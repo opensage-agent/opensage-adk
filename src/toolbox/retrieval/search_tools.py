@@ -44,50 +44,6 @@ def grep_tool(expression: str) -> str:
 
     return output
 
-
-def search_function(function_name: str) -> str:
-    """
-    Tool to search for a function in the codebase. Input is a function name, output is a string containing the implementation of the function.
-    Args:
-        function_name (str): The name of the function to search for.
-    Returns:
-        str: A string containing the implementation for the function.
-    """
-    query = """
-    MATCH (f:Function { name: $function_name })
-    RETURN 
-        f.path AS path,
-        f.start AS start,
-        f.end   AS end
-    """
-    params = {"function_name": function_name}
-    results, _ = db.cypher_query(query, params)
-    if not results:
-        return f"No function named '{function_name}' found in the codebase."
-    function_code = ""
-
-    for res in results:
-        path = res[0]
-        start = res[1]
-        end = res[2]
-        if not path or not start or not end:
-            continue
-        function_code += f"Function '{function_name}' found in {path} from line {start} to {end}:\n"
-        try:
-            # Read the file content from the container
-            file_content = read_file_from_container(os.getenv("CONTAINER_ID"), path)
-            # Extract the function code using the start and end lines
-            lines = file_content.splitlines()
-            function_lines = lines[start-1:end]  # Adjust for 0-based index
-            function_code += "\n".join(function_lines) + "\n\n"
-        except Exception as e:
-            continue
-
-    if not function_code:
-        return f"Function '{function_name}' has no code associated with it."
-    
-    return function_code
-
 def list_functions_in_file(filepath: str) -> str:
     """
     Tool to list all functions in a given file.
@@ -123,17 +79,18 @@ def list_functions_in_file(filepath: str) -> str:
             function_list.append(f"{function_name} (lines {start}-{end})")
     return f"Functions in '{filepath}':\n" + "\n".join(function_list)
 
-def get_line_around_linenum_in_file(filepath: str, linenum: int) -> str:
+def get_line_around_linenum_in_file(filepath: str, linenum: int, context: int) -> str:
     """
-    Tool to get a specific line and surrounding lines (10 lines) from a file.
+    Tool to get a specific line and surrounding lines from a file.
     Args:
         filepath (str): The path to the file.
         linenum (int): The line number to retrieve.
+        context (int): The number of lines of context to include before and after the specified line.
     Returns:
         str: A string containing the specified line and its context.
     """
     try:
-        file_content = read_file_from_container(os.getenv("CONTAINER_ID"), filepath)
+        file_content = extract_file_from_container(os.getenv("CONTAINER_ID"), filepath)
         lines = file_content.splitlines()
         start = max(0, linenum - context - 1)  # Adjust for 0-based index
         end = min(len(lines), linenum + context)  # Adjust for 0-based index

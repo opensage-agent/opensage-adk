@@ -164,11 +164,12 @@ def delete_container(container_id, max_wait=10):
     print(f"[warn] container {container_id} still listed after {max_wait}s")
 
 
-def extract_file_from_container(container, filepath):
+def extract_file_from_container(container_id, filepath):
     """
     Extracts the content of the specified file from the container.
     Returns the file content as a decoded string.
     """
+    container = client.containers.get(container_id)
     stream, _ = container.get_archive(filepath)
     file_data = b""
     for chunk in stream:
@@ -180,11 +181,12 @@ def extract_file_from_container(container, filepath):
         content = f.read().decode()
     return content
 
-def extract_file_from_container_bytes(container, filepath):
+def extract_file_from_container_bytes(container_id, filepath):
     """
     Extracts the content of the specified file from the container.
     Returns the file content as bytes.
     """
+    container = client.containers.get(container_id)
     stream, _ = container.get_archive(filepath)
     file_data = b""
     for chunk in stream:

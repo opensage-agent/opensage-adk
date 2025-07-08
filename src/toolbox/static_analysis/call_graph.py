@@ -1,6 +1,51 @@
 from src.utils.docker_utils import *
 from neomodel import db
 
+db.set_connection(f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}")
+
+def search_function(function_name: str) -> str:
+    """
+    Tool to search for a function in the codebase. Input is a function name, output is a string containing the implementation of the function.
+    Args:
+        function_name (str): The name of the function to search for.
+    Returns:
+        str: A string containing the implementation for the function.
+    """
+    query = """
+    MATCH (f:Function { name: $function_name })
+    RETURN 
+        f.path AS path,
+        f.start AS start,
+        f.end   AS end
+    """
+    params = {"function_name": function_name}
+    results, _ = db.cypher_query(query, params)
+    if not results:
+        return f"No function named '{function_name}' found in the codebase."
+    function_code = ""
+
+    for res in results:
+        path = res[0]
+        start = res[1]
+        end = res[2]
+        if not path or not start or not end:
+            continue
+        function_code += f"Function '{function_name}' found in {path} from line {start} to {end}:\n"
+        try:
+            # Read the file content from the container
+            file_content = extract_file_from_container(os.getenv("CONTAINER_ID"), path)
+            # Extract the function code using the start and end lines
+            lines = file_content.splitlines()
+            function_lines = lines[start-2:end]  # Adjust for 0-based index
+            function_code += "\n".join(function_lines) + "\n\n"
+        except Exception as e:
+            continue
+
+    if not function_code:
+        return f"Function '{function_name}' has no code associated with it."
+    
+    return function_code
+
 def get_caller_by_funcname(function_name: str) -> str:
     """
     Tool to get the caller of a function in the codebase. Input is a function name, output is a string containing the callers of the function.
@@ -177,7 +222,7 @@ def get_callee_by_funcname_and_filepath(function_name: str, filepath: str) -> st
     return f"{direct_callee}\n{maybe_indirect_callee}"
     
 
-def get_shortest_paths_in_callgraph_to_function(end_function_name: str, end_function_filepath: str) -> str:
+def get_shortest_paths_in_callgraph_to_function_in_file(end_function_name: str, end_function_filepath: str) -> str:
     """
     Tool to get the shortest paths from each fuzzing entrypoint (LLVMFuzzerTestOneInput)
     to a specified end function in the codebase.
@@ -198,11 +243,19 @@ def get_shortest_paths_in_callgraph_to_function(end_function_name: str, end_func
     })
     MATCH (start:Function)
     WHERE start.name CONTAINS "LLVMFuzzerTestOneInput"
-    OPTIONAL MATCH p = allShortestPaths(
+    WITH start, end
+    MATCH p = allShortestPaths(
         (start)-[:DIRECT_CALLS|MAYBE_INDIRECT_CALLS*..10]->(end)
     )
     WHERE p IS NOT NULL
-    RETURN start.name AS start_name, [n IN nodes(p) | n.name] AS path
+    RETURN 
+      start.name AS start_name,
+      [n IN nodes(p) | {
+         name: n.name,
+         path: n.path,
+         start: n.start,
+         end: n.end
+      }] AS path_nodes
     ORDER BY start_name
     """
     params = {
@@ -218,12 +271,15 @@ def get_shortest_paths_in_callgraph_to_function(end_function_name: str, end_func
         )
 
     lines = []
-    for start_name, path_list in results:
-        lines.append(f"From {start_name}: " + " -> ".join(path_list))
+    for start_name, path_nodes in results:
+        nodes_str = []
+        for node in path_nodes:
+            nodes_str.append(
+                f"{node['name']} ({node['path']}:line {node['start']}-line {node['end']})"
+            )
+        lines.append(f"From {start_name}:\n  " + "\n  ".join(nodes_str))
 
-    return "\n".join(lines)
-
-
+    return "\n\n".join(lines)
 
 
 

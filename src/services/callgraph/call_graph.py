@@ -147,17 +147,26 @@ def load_fp_accesses(fp_accesses_path):
 
 def param_types(params):
     """
-    Extract only the type part from parameter definitions.
-    E.g., "ngx_queue_t * s" -> "ngx_queue_t *"
-    This ignores the variable name and focuses only on the type signature.
+    Extract only the type part from parameter definitions,
+    stripping off any 'const' qualifiers and the variable name.
+    E.g.:
+      "const ngx_queue_t * s"    -> "ngx_queue_t *"
+      "char const * const foo"   -> "char *"
     """
     res = []
     for p in params:
+        # trim whitespace
         t = p.strip()
-        # Remove the variable name by dropping the last word
-        if ' ' in t:
-            t = ' '.join(t.split()[:-1])
-        res.append(t)
+        # split into words
+        parts = t.split()
+        # drop the last word (the variable name)
+        if len(parts) > 1:
+            parts = parts[:-1]
+        # filter out all 'const'
+        parts = [w for w in parts if w != 'const']
+        # re‐join
+        typ = ' '.join(parts)
+        res.append(typ)
     return res
 
 def match_edges(expr_calls, fp_funcs):

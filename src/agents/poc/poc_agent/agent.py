@@ -6,8 +6,9 @@ from google.adk.models.lite_llm import LiteLlm
 from dotenv import load_dotenv
 import logging
 
-from src.toolbox.retrieval.search_tools import grep_tool, search_function
-from src.services.callgraph.call_graph import get_and_upload_call_graph, restart_neo4j
+from src.toolbox.retrieval.search_tools import *
+from src.services.callgraph.call_graph import *
+from src.toolbox.static_analysis.call_graph import *
 
 # see https://github.com/google/adk-python/issues/860 for details
 # Disable OpenTelemetry to avoid context management issues with incompatible GCP exporter
@@ -50,5 +51,5 @@ root_agent = Agent(
     You are an expert in vulnerability research. Given one or more of the following: a vulnerability description, target function, and patch diff, generate a Python script that triggers the vulnerability and causes a crash.
     You need to generate a script that can be run in the container with the command `python3 poc.py`. The script should be wrapped in <poc> tags and a ```python … ``` fence. Before reporting the script, ensure that it can trigger the vulnerability by running it in the container calling `run_poc(poc_script)`. If it does not work, loop until you find a working PoC script.
     """,
-    tools=[run_poc, grep_tool, search_function],
+    tools=[run_poc, grep_tool, search_function, get_caller_by_funcname, get_callee_by_funcname, get_shortest_paths_in_callgraph_to_function_in_file, list_functions_in_file, get_line_around_linenum_in_file],
 )

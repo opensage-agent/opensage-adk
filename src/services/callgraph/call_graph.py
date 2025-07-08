@@ -1,0 +1,321 @@
+# download codeql here https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.18.4/codeql-bundle-linux64.tar.gz
+# decompress it and copy callgraph_queries to the codeql directory
+
+import argparse
+import os
+import json
+import re
+import sys
+import tempfile
+import pandas as pd
+import random
+import docker
+import csv
+from neomodel import db
+from collections import defaultdict, deque
+from pathlib import Path
+from typing import Dict, List, Set, Tuple, Optional
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
+
+from src.utils.docker_utils import *
+from src.utils.project_info import PROJECT_PATH
+
+client = docker.from_env(timeout=300)
+
+def restart_neo4j() -> str:
+    """
+    Invoke the restart_neo4j.sh script via bash and return its stdout.
+    Raises RuntimeError on non-zero exit.
+    """
+    script = (
+        Path(PROJECT_PATH)
+        / "src"
+        / "services"
+        / "callgraph"
+        / "callgraph_neo4j"
+        / "restart_neo4j.sh"
+    ).resolve()
+    workdir = script.parent
+
+    # ensure it's executable
+    script.chmod(0o755)
+
+    # run it
+    result = subprocess.run(
+        ["bash", str(script)],
+        cwd=workdir,
+        capture_output=True,
+        text=True
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"restart_neo4j.sh failed (code {result.returncode}):\n"
+            f"{result.stdout}\n{result.stderr}"
+        )
+    return result.stdout
+
+def start_container(codeql_dir, image_name):
+    """
+    Start a Docker container for analysis, mounting target and codeql directories.
+    Returns the container ID.
+    """
+    client = docker.from_env()
+
+    # Define volume mappings
+    volumes = {
+        codeql_dir: {"bind": "/surfi/codeql", "mode": "rw"},
+    }
+
+    # Start the container
+    container = client.containers.run(
+        image_name,
+        command="bash",
+        stdin_open=True,
+        tty=True,
+        detach=True,
+        volumes=volumes,
+    )
+    print(f"Container {container.id} started from image {image_name}")
+    return container.id
+
+def load_expr_calls(expr_calls_path):
+    """
+    Parse expr_calls.csv. Deduplicate rows and aggregate arguments for each call site,
+    with args sorted by argIdx.
+    """
+    seen = set()  # Track unique rows to avoid duplicates
+    expr_calls_dict = defaultdict(lambda: {
+        "id": None,
+        "cid": None,
+        "caller_path": None,
+        "args": [],
+        "start_line": None,
+        "end_line": None,
+        "name": None
+    })
+    # Temporarily store arguments for each cid by argIdx
+    args_per_cid = defaultdict(dict)
+
+    with open(expr_calls_path, newline='') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # Create a unique identifier for the entire row to detect duplicates
+            row_key = tuple(row.items())
+            if row_key in seen:
+                continue  # Skip duplicate rows
+            seen.add(row_key)
+
+            cid = row["cid"]
+            # Initialize metadata for this call site if not already present
+            if expr_calls_dict[cid]["id"] is None:
+                expr_calls_dict[cid]["id"] = row["id"]
+                expr_calls_dict[cid]["cid"] = row["cid"]
+                expr_calls_dict[cid]["caller_path"] = row.get("caller_path", "")
+                expr_calls_dict[cid]["start_line"] = int(row.get("start_line", 0))
+                expr_calls_dict[cid]["end_line"] = int(row.get("end_line", 0))
+                expr_calls_dict[cid]["name"] = row["name"]
+            # Store argument for this cid and argIdx, stripping whitespace
+            argidx = int(row["argIdx"])
+            args_per_cid[cid][argidx] = row["arg"].strip()
+
+    # Aggregate arguments for each call site, sorted by argIdx
+    for cid, call in expr_calls_dict.items():
+        args = [args_per_cid[cid][idx] for idx in sorted(args_per_cid[cid])]
+        call["args"] = args
+
+    return list(expr_calls_dict.values())
+
+def load_fp_accesses(fp_accesses_path):
+    """
+    Parse fp_accesses.csv. Splits the param string into a list.
+    """
+    fp_funcs = []
+    with open(fp_accesses_path, newline='') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            param = row.get("param", "").strip()
+            param_list = [p.strip() for p in param.split(",") if p.strip()] if param else []
+            fp_funcs.append({
+                "name": row["name"],
+                "callee_path": row.get("callee_path", ""),
+                "start_line": int(row.get("start_line", 0)),
+                "end_line": int(row.get("end_line", 0)),
+                "params": param_list,
+            })
+    return fp_funcs
+
+def param_types(params):
+    """
+    Extract only the type part from parameter definitions.
+    E.g., "ngx_queue_t * s" -> "ngx_queue_t *"
+    This ignores the variable name and focuses only on the type signature.
+    """
+    res = []
+    for p in params:
+        t = p.strip()
+        # Remove the variable name by dropping the last word
+        if ' ' in t:
+            t = ' '.join(t.split()[:-1])
+        res.append(t)
+    return res
+
+def match_edges(expr_calls, fp_funcs):
+    """
+    Match indirect function call edges between expr_calls and fp_funcs.
+
+    For each expr_call, check if the parameter types match any function in fp_funcs.
+    If matched, create an edge from the caller (expr_call) to the callee (fp_func).
+    """
+    matched_edges = []
+    for call in expr_calls:
+        call_types = call["args"]
+        for func in fp_funcs:
+            func_types = param_types(func["params"])
+            if call_types == func_types:
+                matched_edges.append({
+                    "caller_path": call["caller_path"],
+                    "caller_start": call["start_line"],
+                    "caller_end": call["end_line"],
+                    "caller_name": call["name"],
+                    "callee_name": func["name"],
+                    "callee_path": func["callee_path"],
+                    "callee_start": func["start_line"],
+                    "callee_end": func["end_line"],
+                    "call_loc": call["cid"],
+                    "direct": False
+                })
+    return matched_edges
+
+def get_and_upload_call_graph(codeql_dir, image_name, build_command):
+    container_id = None
+    try:
+        container_id = start_container(codeql_dir, image_name)
+        # Build CodeQL database with the specified build command
+        build_codeql_database_command = (
+            "/surfi/codeql/codeql database create /work/.surfi-codeql-database "
+            "--language=cpp --overwrite --threads=$(nproc) "
+            f"--command='{build_command}'"
+        )
+        res, exit_code = run_command_in_container(container_id, build_codeql_database_command)
+        if exit_code != 0:
+            raise ValueError("Error creating codeql database")
+        # Run CodeQL query to get the call graph
+        call_graph_command = (
+            "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
+            "--output=/work/callgraph.bqrs /surfi/codeql/callgraph_queries/directCalls.ql"
+        )
+        res, exit_code = run_command_in_container(container_id, call_graph_command)
+        if exit_code != 0:
+            raise ValueError("Error creating call graph")
+        # Decode the call graph results
+        decode_call_graph_command = (
+            "/surfi/codeql/codeql bqrs decode /work/callgraph.bqrs "
+            "--format=csv --output=/work/results.csv"
+        )
+        # Construct call graph with indirect calls (determined by function signature)
+        # step 1. find all function pointer accesses
+        fp_command = (
+            "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
+            "--output=/work/fp_accesses.bqrs /surfi/codeql/callgraph_queries/funcPtrAccesses.ql"
+        )
+        res, exit_code = run_command_in_container(container_id, fp_command)
+        if exit_code != 0:
+            raise ValueError("Error finding function pointer accesses")
+        # Decode the function pointer accesses
+        decode_fp_command = (
+            "/surfi/codeql/codeql bqrs decode /work/fp_accesses.bqrs "
+            "--format=csv --output=/work/fp_accesses.csv"
+        )
+        res, exit_code = run_command_in_container(container_id, decode_fp_command)
+        if exit_code != 0:
+            raise ValueError("Error decoding function pointer accesses")
+        # step 2. find all expr calls
+        expr_command = (
+            "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
+            "--output=/work/expr_calls.bqrs /surfi/codeql/callgraph_queries/exprCalls.ql"
+        )
+        res, exit_code = run_command_in_container(container_id, expr_command)
+        if exit_code != 0:
+            raise ValueError("Error finding expression calls")
+        # Decode the expression calls
+        decode_expr_command = (
+            "/surfi/codeql/codeql bqrs decode /work/expr_calls.bqrs "
+            "--format=csv --output=/work/expr_calls.csv"
+        )
+        res, exit_code = run_command_in_container(container_id, decode_expr_command)
+        if exit_code != 0:
+            raise ValueError("Error decoding expression calls")
+        # step 3. find all possible indirect calls
+        res, exit_code = run_command_in_container(container_id, decode_call_graph_command)
+        if exit_code != 0:
+            raise ValueError("Error decoding call graph")
+        with tempfile.TemporaryDirectory() as output_subdir:
+            # Retrieve and process call graph file
+            results_csv_path = os.path.join(output_subdir, "results.csv")
+            copy_file_from_container(container_id, "/work/results.csv", results_csv_path)
+            expr_calls_path = os.path.join(output_subdir, "expr_calls.csv")
+            copy_file_from_container(container_id, "/work/expr_calls.csv", expr_calls_path)
+            fp_accesses_path = os.path.join(output_subdir, "fp_accesses.csv")
+            copy_file_from_container(container_id, "/work/fp_accesses.csv", fp_accesses_path)
+            # 1. Load the main call graph DataFrame
+            df = pd.read_csv(results_csv_path, header=0)
+            df["call_type"] = "direct"
+
+            # 2. Load expr_calls and fp_accesses 
+            expr_calls = load_expr_calls(expr_calls_path)
+            fp_funcs = load_fp_accesses(fp_accesses_path)
+            indirect_edges = match_edges(expr_calls, fp_funcs)
+
+            # 3. Convert indirect_edges to a DataFrame
+            if indirect_edges:
+                indirect_df = pd.DataFrame(indirect_edges)
+                # Ensure columns match for concat (provide missing columns as needed)
+                for col in df.columns:
+                    if col not in indirect_df.columns:
+                        indirect_df[col] = None
+                indirect_df = indirect_df[df.columns]  # Reorder columns
+                indirect_df["call_type"] = "maybe_indirect"
+
+                df_direct = df.copy(deep=True)
+
+                # 4. Append the indirect edges to the main DataFrame
+                df = pd.concat([df, indirect_df], ignore_index=True)
+        
+        db.set_connection(f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}")
+        rows = df.to_dict("records")
+        cypher = """
+            UNWIND $rows AS row
+
+            // 1. Merge caller and callee nodes
+            MERGE (caller:Function { name: row.caller_name, path: row.caller_path })
+            ON CREATE SET 
+                caller.start = toInteger(row.caller_start),
+                caller.end   = toInteger(row.caller_end)
+
+            MERGE (callee:Function { name: row.callee_name, path: row.callee_path })
+            ON CREATE SET 
+                callee.start = toInteger(row.callee_start),
+                callee.end   = toInteger(row.callee_end)
+
+            // 2. Create relationship for direct calls
+            FOREACH (_ IN CASE WHEN row.call_type = 'direct' THEN [1] ELSE [] END |
+            MERGE (caller)-[r:DIRECT_CALLS]->(callee)
+                ON CREATE SET r.call_loc = row.call_loc
+            )
+
+            // 3. Create relationship for indirect calls
+            FOREACH (_ IN CASE WHEN row.call_type = 'maybe_indirect' THEN [1] ELSE [] END |
+            MERGE (caller)-[r:MAYBE_INDIRECT_CALLS]->(callee)
+                ON CREATE SET r.call_loc = row.call_loc
+            )
+        """
+        db.cypher_query(cypher, {"rows": rows})
+
+    except Exception as e:
+        print(f"[WARN] Failed to process: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        if container_id:
+            delete_container(container_id)

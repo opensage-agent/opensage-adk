@@ -1,0 +1,17 @@
+services:
+  callgraph-neo4j:
+    image: neo4j:latest
+    container_name: callgraph-neo4j
+    network_mode: bridge
+    restart: always
+    environment:
+      - NEO4J_AUTH=neo4j/callgraphn4j!
+      - NEO4J_PLUGINS='["graph-data-science", "apoc"]'
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    # volumes:
+    #   - ./neo4j_db/data:/data
+    #   - ./neo4j_db/logs:/logs
+    #   - ./neo4j_db/import:/var/lib/neo4j/import
+    #   - ./neo4j_db/plugins:/plugins

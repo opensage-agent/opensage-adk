@@ -31,6 +31,7 @@ def restart_neo4j() -> str:
     script = (
         Path(PROJECT_PATH)
         / "src"
+        / "secagentx"
         / "services"
         / "callgraph"
         / "callgraph_neo4j"

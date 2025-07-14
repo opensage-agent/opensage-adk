@@ -6,7 +6,7 @@ import os
 import shutil
 import subprocess
 from collections import deque
-from src.utils.parser import get_function_info
+from secagentx.utils.parser import get_function_info
 from docker.errors import NotFound, APIError
 import re
 import tempfile

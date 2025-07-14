@@ -1,4 +1,4 @@
-from src.utils.docker_utils import *
+from secagentx.utils.docker_utils import *
 from neomodel import db
 
 db.set_connection(f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}")

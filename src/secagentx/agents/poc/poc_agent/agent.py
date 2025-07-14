@@ -1,14 +1,14 @@
 import os
 from typing import Optional
 from google.adk.agents import Agent
-from src.utils.docker_utils import *
+from secagentx.utils.docker_utils import *
 from google.adk.models.lite_llm import LiteLlm
 from dotenv import load_dotenv
 import logging
 
-from src.toolbox.retrieval.search_tools import *
-from src.services.callgraph.call_graph import *
-from src.toolbox.static_analysis.call_graph import *
+from secagentx.toolbox.retrieval.search_tools import *
+from secagentx.services.callgraph.call_graph import *
+from secagentx.toolbox.static_analysis.call_graph import *
 
 # see https://github.com/google/adk-python/issues/860 for details
 # Disable OpenTelemetry to avoid context management issues with incompatible GCP exporter
@@ -22,7 +22,7 @@ if os.getenv("TARGET_TYPE") == "arvo":
     os.environ["COMPILE_COMMAND"]="arvo compile"
     os.environ["RUN_COMMAND"]="arvo"
     os.environ["POC_DIR"] = "/tmp/poc"
-    from src.toolbox.build.arvo.compile_and_run import run_poc
+    from secagentx.toolbox.build.arvo.compile_and_run import run_poc
 
 CODEQL_DIR = os.getenv("CODEQL_DIR")
 if not CODEQL_DIR:

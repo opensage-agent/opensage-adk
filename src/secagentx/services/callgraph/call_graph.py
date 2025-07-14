@@ -18,8 +18,8 @@ from typing import Dict, List, Set, Tuple, Optional
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
-from src.utils.docker_utils import *
-from src.utils.project_info import PROJECT_PATH
+from secagentx.utils.docker_utils import *
+from secagentx.utils.project_info import PROJECT_PATH
 
 client = docker.from_env(timeout=300)
 

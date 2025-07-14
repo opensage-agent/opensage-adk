@@ -3,7 +3,7 @@ from typing import Tuple
 import re
 import os
 import subprocess
-from src.utils.docker_utils import *
+from secagentx.utils.docker_utils import *
 
 def run_poc(poc_generation_script: str) -> str:
     """

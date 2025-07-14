@@ -178,7 +178,7 @@ def extract_file_from_container(container_id, filepath):
     with tarfile.open(fileobj=tar_stream) as tar:
         member = tar.getmembers()[0]
         f = tar.extractfile(member)
-        content = f.read().decode()
+        content = f.read().decode('latin-1')
     return content
 
 def extract_file_from_container_bytes(container_id, filepath):

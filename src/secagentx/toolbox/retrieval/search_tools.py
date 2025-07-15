@@ -56,7 +56,7 @@ def list_functions_in_file(filepath: str) -> str:
     MATCH (f:Function)
     WHERE f.path = $filepath
     RETURN 
-        f.name AS function_name
+        f.name AS function_name,
         f.start AS start,
         f.end AS end
     """

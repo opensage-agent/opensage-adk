@@ -66,8 +66,8 @@ def get_caller_by_funcname(function_name: str) -> str:
     results, _ = db.cypher_query(direct_query, params)
 
     direct_caller = "\n".join(
-        f"Direct Caller: {row['caller_name']} at {row['path']}:{row['start']}-{row['end']}"
-        for row in results if row['caller_name']
+        f"Direct Caller: {row[0]} at {row[1]}:{row[2]}-{row[3]}"
+        for row in results if row[0]
     )
 
     indirect_query = """
@@ -82,8 +82,8 @@ def get_caller_by_funcname(function_name: str) -> str:
     results, _ = db.cypher_query(indirect_query, params)
 
     maybe_indirect_caller = "\n".join(
-        f"Maybe Indirect Caller: {row['caller_name']} at {row['path']}:{row['start']}-{row['end']}"
-        for row in results if not row['caller_name']
+        f"Maybe Indirect Caller: {row[0]} at {row[1]}:{row[2]}-{row[3]}"
+        for row in results if row[0]
     )
 
     if not direct_caller and not maybe_indirect_caller:
@@ -110,8 +110,8 @@ def get_callee_by_funcname(function_name: str) -> str:
     results, _ = db.cypher_query(direct_query, params)
 
     direct_callee = "\n".join(
-        f"Direct Callee: {row['callee_name']} at {row['path']}:{row['start']}-{row['end']}"
-        for row in results if row['callee_name']
+        f"Direct Callee: {row[0]} at {row[1]}:{row[2]}-{row[3]}"
+        for row in results if row[0]
     )
 
     indirect_query = """
@@ -126,8 +126,8 @@ def get_callee_by_funcname(function_name: str) -> str:
     results, _ = db.cypher_query(indirect_query, params)
 
     maybe_indirect_callee = "\n".join(
-        f"Maybe Indirect Callee: {row['callee_name']} at {row['path']}:{row['start']}-{row['end']}"
-        for row in results if not row['callee_name']
+        f"Maybe Indirect Callee: {row[0]} at {row[1]}:{row[2]}-{row[3]}"
+        for row in results if row[0]
     )
 
     if not direct_callee and not maybe_indirect_callee:
@@ -156,8 +156,8 @@ def get_caller_by_funcname_and_filepath(function_name: str, filepath: str) -> st
     results, _ = db.cypher_query(direct_query, params)
 
     direct_caller = "\n".join(
-        f"Direct Callee: {row['callee_name']} at {row['path']}:{row['start']}-{row['end']}"
-        for row in results if row['callee_name']
+        f"Direct Caller: {row[0]} at {row[1]}:{row[2]}-{row[3]}"
+        for row in results if row[0]
     )
 
     indirect_query = """
@@ -171,8 +171,8 @@ def get_caller_by_funcname_and_filepath(function_name: str, filepath: str) -> st
     params = {"function_name": function_name, "filepath": filepath}
     results, _ = db.cypher_query(indirect_query, params)
     maybe_indirect_caller = "\n".join(
-        f"Maybe Indirect Caller: {row['caller_name']} at {row['path']}:{row['start']}-{row['end']}"
-        for row in results if not row['caller_name']
+        f"Maybe Indirect Caller: {row[0]} at {row[1]}:{row[2]}-{row[3]}"
+        for row in results if row[0]
     )
     if not direct_caller and not maybe_indirect_caller:
         return f"No callers found for function '{function_name}' in file '{filepath}'."
@@ -200,8 +200,8 @@ def get_callee_by_funcname_and_filepath(function_name: str, filepath: str) -> st
     results, _ = db.cypher_query(direct_query, params)
 
     direct_callee = "\n".join(
-        f"Direct Callee: {row['callee_name']} at {row['path']}:{row['start']}-{row['end']}"
-        for row in results if row['callee_name']
+        f"Direct Callee: {row[0]} at {row[1]}:{row[2]}-{row[3]}"
+        for row in results if row[0]
     )
     indirect_query = """
     MATCH (f:Function { name: $function_name, path: $filepath })-[:MAYBE_INDIRECT_CALLS]->(callee:Function)
@@ -214,8 +214,8 @@ def get_callee_by_funcname_and_filepath(function_name: str, filepath: str) -> st
     params = {"function_name": function_name, "filepath": filepath}
     results, _ = db.cypher_query(indirect_query, params)
     maybe_indirect_callee = "\n".join(
-        f"Maybe Indirect Callee: {row['callee_name']} at {row['path']}:{row['start']}-{row['end']}"
-        for row in results if not row['callee_name']
+        f"Maybe Indirect Callee: {row[0]} at {row[1]}:{row[2]}-{row[3]}"
+        for row in results if row[0]
     )
     if not direct_callee and not maybe_indirect_callee:
         return f"No callees found for function '{function_name}' in file '{filepath}'."

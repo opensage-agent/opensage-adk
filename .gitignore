@@ -1,0 +1,9 @@
+.vscode
+.idea
+.env
+.run
+.DS_Store
+*__pycache__*
+*egg-info*
+*codeqldb*
+**/.logs/

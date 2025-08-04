@@ -1,7 +1,7 @@
-from secagentx.utils.docker_utils import *
-from neomodel import db
+from google.adk.tools.tool_context import ToolContext
+from secagentx.sandbox_manager import SandboxManager
 
-def grep_tool(expression: str) -> dict:
+def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
     """
     Search the codebase inside the running container for a given regex pattern.
     The pattern is passed to grep with flags '-rnE' for recursive, line-numbered,
@@ -16,13 +16,21 @@ def grep_tool(expression: str) -> dict:
 
     Args:
         expression (str): A regex pattern to search for.
+        tool_context (ToolContext): The tool context containing session state.
 
     Returns:
         dict: A dictionary with key "result" pointing to a list of grep matches.
     """
-    import os
+    # Get sandbox from SandboxManager
+    session_id = tool_context._invocation_context.session.id
+    try:
+        sandbox = SandboxManager.get_sandbox(session_id)
+    except Exception as e:
+        return {
+            "result": [],
+            "error": f"Failed to get sandbox: {str(e)}"
+        }
 
-    container_id = os.getenv("CONTAINER_ID")
     grep_command = " ".join([
         'grep',
         "-rniE",
@@ -32,7 +40,7 @@ def grep_tool(expression: str) -> dict:
     ])
     output = ""
     try:
-        output, exit_code = run_command_in_container(container_id, grep_command)
+        output, exit_code = sandbox.run_command_in_container(grep_command)
     except Exception as e:
         return {
             "result": [],
@@ -93,18 +101,23 @@ def list_functions_in_file(filepath: str) -> dict:
 
     return dict_result
 
-def get_line_around_linenum_in_file(filepath: str, linenum: int, context: int) -> dict:
+def get_line_around_linenum_in_file(filepath: str, linenum: int, context: int, *, tool_context: ToolContext) -> dict:
     """
     Tool to get a specific line and surrounding lines from a file.
     Args:
         filepath (str): The path to the file.
         linenum (int): The line number to retrieve.
         context (int): The number of lines of context to include before and after the specified line.
+        tool_context (ToolContext): The tool context containing session state.
     Returns:
         dict: A dictionary with key "result" pointing to a list of line information.
     """
     try:
-        file_content = extract_file_from_container(os.getenv("CONTAINER_ID"), filepath)
+        # Get sandbox from SandboxManager
+        session_id = tool_context._invocation_context.session.id
+        sandbox = SandboxManager.get_sandbox(session_id)
+        
+        file_content = sandbox.extract_file_from_container(filepath)
         lines = file_content.splitlines()
         start = max(0, linenum - context - 1)  # Adjust for 0-based index
         end = min(len(lines), linenum + context)  # Adjust for 0-based index

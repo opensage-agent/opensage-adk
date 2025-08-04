@@ -5,7 +5,7 @@ from secagentx.extended_features.sec_agent import SecAgent
 from secagentx.extended_features.tool_combo_manager import ToolCombo
 from secagentx.extended_features.reward_logger import RewardLogger
 from google.adk.tools.function_tool import FunctionTool
-from secagentx.utils.docker_utils import *
+# from secagentx.sandbox import NativeDockerSandbox, SweRexSandbox  # Not needed anymore, using SandboxManager
 from google.adk.models.lite_llm import LiteLlm
 from dotenv import load_dotenv
 import logging
@@ -14,6 +14,7 @@ from secagentx.toolbox.retrieval.search_tools import *
 from secagentx.services.callgraph.call_graph import *
 from secagentx.toolbox.static_analysis.call_graph import *
 from secagentx.extended_features.function_composer import combined_for, combined_one
+from secagentx.toolbox.build.compile_and_run import run_poc_from_script
 
 # see https://github.com/google/adk-python/issues/860 for details
 # Disable OpenTelemetry to avoid context management issues with incompatible GCP exporter
@@ -22,12 +23,6 @@ os.environ["OTEL_SDK_DISABLED"] = "true"
 logging.getLogger("opentelemetry").setLevel(logging.ERROR)
 
 load_dotenv() 
-
-if os.getenv("TARGET_TYPE") == "arvo":
-    os.environ["COMPILE_COMMAND"]="arvo compile"
-    os.environ["RUN_COMMAND"]="arvo"
-    os.environ["POC_DIR"] = "/tmp/poc"
-    from secagentx.toolbox.build.arvo.compile_and_run import run_poc
 
 CODEQL_DIR = os.getenv("CODEQL_DIR")
 if not CODEQL_DIR:
@@ -46,10 +41,62 @@ MODEL_NAME = os.getenv("MODEL_NAME", "anthropic/claude-sonnet-4-20250514")
 #     build_command=os.getenv("COMPILE_COMMAND"),
 # )
 
-container_id = get_container(IMAGE_NAME)
-if not container_id:
-    raise ValueError("get_container did not return a valid container id.")
-os.environ["CONTAINER_ID"] = container_id
+# # Create sandbox for container operations
+# # Try SweRexSandbox first, fallback to NativeDockerSandbox if it fails
+# sandbox = None
+# try:
+#     from swerex.deployment.docker import DockerDeployment, DockerDeploymentConfig
+    
+#     # Try SWE-ReX sandbox first
+#     deployment_config = DockerDeploymentConfig(
+#         image=IMAGE_NAME,
+#         remove_container=False,
+#         remove_images=False
+#     )
+#     deployment = DockerDeployment(deployment_config)
+#     deployment.start()
+    
+#     sandbox = SweRexSandbox(
+#         image_name=IMAGE_NAME,
+#         compile_command=os.getenv("COMPILE_COMMAND", ""),
+#         run_command=os.getenv("RUN_COMMAND", ""),
+#         poc_dir=os.getenv("POC_DIR", "/tmp/poc"),
+#         deployment=deployment
+#     )
+    
+#     # Test if SWE-ReX sandbox is working
+#     test_output, test_exit_code = sandbox.run_command_in_container("echo 'test'")
+#     if "test" in test_output:
+#         print("Using SWE-ReX sandbox")
+#     else:
+#         raise Exception("SWE-ReX sandbox test failed")
+        
+# except Exception as e:
+#     print(f"SWE-ReX sandbox failed: {e}")
+#     print("Falling back to Native Docker sandbox")
+    
+#     # Cleanup SWE-ReX resources if they were created
+#     if sandbox and hasattr(sandbox, 'deployment'):
+#         try:
+#             sandbox.deployment.stop()
+#         except:
+#             pass
+    
+#     # Fallback to Native Docker sandbox
+#     sandbox = NativeDockerSandbox(
+#         image_name=IMAGE_NAME,
+#         compile_command=os.getenv("COMPILE_COMMAND", ""),
+#         run_command=os.getenv("RUN_COMMAND", ""),
+#         poc_dir=os.getenv("POC_DIR", "/tmp/poc")
+#     )
+    
+#     # Test Native Docker sandbox
+#     test_output, test_exit_code = sandbox.run_command_in_container("echo 'native test'")
+#     if test_exit_code == 0 and "native test" in test_output:
+#         print("Using Native Docker sandbox - working correctly")
+#     else:
+#         raise Exception(f"Native Docker sandbox test failed: {test_output}")
+
 
 search_caller_combo = ToolCombo(
     name="search_caller_combo",
@@ -120,7 +167,7 @@ root_agent = SecAgent(
     You need to generate a script that can be run in the container with the command `python3 poc.py`. The script should be wrapped in <poc> tags and a ```python … ``` fence. Before reporting the script, ensure that it can trigger the vulnerability by running it in the container calling `run_poc(poc_script)`. If it does not work, loop until you find a working PoC script.
     If you have found a working PoC script, you can stop the loop and report the script, and say <final_result>Crashed!<final_result>, you should stop and say <final_result>NoCrash!<final_result> after calling 3 run_poc.
     """,
-    tools=[run_poc, grep_tool, search_function, get_caller_by_funcname, get_callee_by_funcname, get_shortest_paths_in_callgraph_to_function_in_file, list_functions_in_file, get_line_around_linenum_in_file, get_callee_search_combined, get_caller_search_combined],
+    tools=[run_poc_from_script, grep_tool, search_function, get_caller_by_funcname, get_callee_by_funcname, get_shortest_paths_in_callgraph_to_function_in_file, list_functions_in_file, get_line_around_linenum_in_file, get_callee_search_combined, get_caller_search_combined],
     tool_combos=[search_caller_combo, search_callee_combo],
     reward_loggers=[poc_reward_logger, final_result_reward_logger]
 )

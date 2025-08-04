@@ -25,11 +25,17 @@ def combined_for(function_a: Callable, function_b: Callable, name: Optional[str]
     # Create combined function
     def composed_function(*args, **kwargs):
         # Execute first function
-        if asyncio.iscoroutinefunction(function_a):
-            result_a = asyncio.run(function_a(*args, **kwargs))
+        # Handle FunctionTool objects
+        if hasattr(function_a, 'func'):
+            # function_a is a FunctionTool
+            actual_function_a = function_a.func
         else:
-            result_a = function_a(*args, **kwargs)
-        breakpoint()
+            actual_function_a = function_a
+        
+        if asyncio.iscoroutinefunction(actual_function_a):
+            result_a = asyncio.run(actual_function_a(*args, **kwargs))
+        else:
+            result_a = actual_function_a(*args, **kwargs)
         
         # Check result format
         if not isinstance(result_a, dict) or "result" not in result_a:
@@ -49,7 +55,14 @@ def combined_for(function_a: Callable, function_b: Callable, name: Optional[str]
             raise ValueError(f"Each element in {func_a_name} result list must be a dict")
         
         # Get function_b parameters
-        func_b_sig = inspect.signature(function_b)
+        # Handle FunctionTool objects
+        if hasattr(function_b, 'func'):
+            # function_b is a FunctionTool
+            actual_function_b = function_b.func
+        else:
+            actual_function_b = function_b
+        
+        func_b_sig = inspect.signature(actual_function_b)
         func_b_params = list(func_b_sig.parameters.keys())
         
         # Check which parameters exist in first element
@@ -73,10 +86,10 @@ def combined_for(function_a: Callable, function_b: Callable, name: Optional[str]
                     call_args[key] = element[key]
             
             # Execute second function
-            if asyncio.iscoroutinefunction(function_b):
-                result_b = asyncio.run(function_b(**call_args))
+            if asyncio.iscoroutinefunction(actual_function_b):
+                result_b = asyncio.run(actual_function_b(**call_args))
             else:
-                result_b = function_b(**call_args)
+                result_b = actual_function_b(**call_args)
             
             final_results.append({
                 "source_element": element,
@@ -145,10 +158,17 @@ def combined_one(function_a: Callable, function_b: Callable, name: Optional[str]
     # Create combined function
     def composed_function(*args, **kwargs):
         # Execute first function
-        if asyncio.iscoroutinefunction(function_a):
-            result_a = asyncio.run(function_a(*args, **kwargs))
+        # Handle FunctionTool objects
+        if hasattr(function_a, 'func'):
+            # function_a is a FunctionTool
+            actual_function_a = function_a.func
         else:
-            result_a = function_a(*args, **kwargs)
+            actual_function_a = function_a
+        
+        if asyncio.iscoroutinefunction(actual_function_a):
+            result_a = asyncio.run(actual_function_a(*args, **kwargs))
+        else:
+            result_a = actual_function_a(*args, **kwargs)
         
         # Check result format
         if not isinstance(result_a, dict) or "result" not in result_a:
@@ -168,7 +188,14 @@ def combined_one(function_a: Callable, function_b: Callable, name: Optional[str]
             raise ValueError(f"First element in {func_a_name} result list must be a dict")
         
         # Get function_b parameters
-        func_b_sig = inspect.signature(function_b)
+        # Handle FunctionTool objects
+        if hasattr(function_b, 'func'):
+            # function_b is a FunctionTool
+            actual_function_b = function_b.func
+        else:
+            actual_function_b = function_b
+        
+        func_b_sig = inspect.signature(actual_function_b)
         func_b_params = list(func_b_sig.parameters.keys())
         
         # Check which parameters exist in first element
@@ -186,10 +213,10 @@ def combined_one(function_a: Callable, function_b: Callable, name: Optional[str]
                 call_args[key] = first_element[key]
         
         # Execute second function with first element
-        if asyncio.iscoroutinefunction(function_b):
-            result_b = asyncio.run(function_b(**call_args))
+        if asyncio.iscoroutinefunction(actual_function_b):
+            result_b = asyncio.run(actual_function_b(**call_args))
         else:
-            result_b = function_b(**call_args)
+            result_b = actual_function_b(**call_args)
         
         return {
             "result": result_b,

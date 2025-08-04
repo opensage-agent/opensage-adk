@@ -3,16 +3,13 @@
 Test function_composer functionality
 """
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-
+import pytest
 from secagentx.extended_features.function_composer import combined_for, combined_one
 
 
-def test_function_a(query: str) -> dict:
+def helper_function_a(query: str) -> dict:
     """
-    Test function A that returns a list of dictionaries.
+    Helper function A that returns a list of dictionaries.
     
     Args:
         query: Search query
@@ -29,9 +26,9 @@ def test_function_a(query: str) -> dict:
     }
 
 
-def test_function_b(function_name: str) -> dict:
+def helper_function_b(function_name: str) -> dict:
     """
-    Test function B that processes function names.
+    Helper function B that processes function names.
     
     Args:
         function_name: Name of the function to process
@@ -46,9 +43,9 @@ def test_function_b(function_name: str) -> dict:
     }
 
 
-def test_function_c(filepath: str) -> dict:
+def helper_function_c(filepath: str) -> dict:
     """
-    Test function C that processes file paths.
+    Helper function C that processes file paths.
     
     Args:
         filepath: Path to the file to process
@@ -63,86 +60,150 @@ def test_function_c(filepath: str) -> dict:
     }
 
 
-def test_combined_for():
+def test_combined_for_functionality():
     """Test combined_for functionality"""
-    print("=== Test combined_for functionality ===\n")
-    
     # Create combined function
-    combined_ab = combined_for(test_function_a, test_function_b, "test_a_for_b")
+    combined_ab = combined_for(helper_function_a, helper_function_b, "test_a_for_b")
     
-    print("1. Test function_a + function_b")
-    result = combined_ab("test query")
-    print(f"Result: {result}")
-    print()
+    # Test the combined function - call the underlying function
+    result = combined_ab.func("test query")
     
-    print("2. Tool information:")
-    print(f"Name: {combined_ab.name}")
-    print(f"Description: {combined_ab.description}")
-    print()
+    # Assertions
+    assert isinstance(result, dict), "Result should be a dictionary"
+    assert "result" in result, "Result should contain 'result' key"
+    assert "composed_from" in result, "Result should contain composition info"
+    
+    # Check that all elements were processed
+    assert len(result["result"]) == 3, "Should process all 3 elements"
+    
+    # Check structure of first result
+    first_result = result["result"][0]
+    assert "source_element" in first_result, "Should contain source element"
+    assert "result" in first_result, "Should contain processing result"
+    
+    # Check the processed result
+    processed = first_result["result"]
+    assert processed["processed_function"] == "aa", "Should process function name correctly"
+    assert processed["status"] == "success", "Should have success status"
     
     # Test with function_c
-    combined_ac = combined_for(test_function_a, test_function_c, "test_a_for_c")
-    result_2 = combined_ac("test query")
-    print("3. Test function_a + function_c")
-    print(f"Result: {result_2}")
-    print()
+    combined_ac = combined_for(helper_function_a, helper_function_c, "test_a_for_c")
+    result_2 = combined_ac.func("test query")
+    
+    assert len(result_2["result"]) == 3, "Should process all 3 elements with function_c"
+    first_result_c = result_2["result"][0]
+    processed_c = first_result_c["result"]
+    assert processed_c["processed_file"] == "/path/to/aa.py", "Should process filepath correctly"
 
 
-def test_combined_one():
+def test_combined_one_functionality():
     """Test combined_one functionality"""
-    print("=== Test combined_one functionality ===\n")
-    
     # Create combined function
-    combined_ab_one = combined_one(test_function_a, test_function_b, "test_a_one_b")
+    combined_ab_one = combined_one(helper_function_a, helper_function_b, "test_a_one_b")
     
-    print("1. Test function_a + function_b (first element only)")
-    result = combined_ab_one("test query")
-    print(f"Result: {result}")
-    print()
+    # Test the combined function - call the underlying function
+    result = combined_ab_one.func("test query")
     
-    print("2. Tool information:")
-    print(f"Name: {combined_ab_one.name}")
-    print(f"Description: {combined_ab_one.description}")
-    print()
+    # Assertions
+    assert isinstance(result, dict), "Result should be a dictionary"
+    assert "result" in result, "Result should contain 'result' key"
+    assert "composed_from" in result, "Result should contain composition info"
+    
+    # Check that only first element was processed
+    processed = result["result"]
+    assert processed["processed_function"] == "aa", "Should process first function name only"
+    assert processed["status"] == "success", "Should have success status"
+    assert processed["length"] == 2, "Should correctly calculate length of 'aa'"
     
     # Test with function_c
-    combined_ac_one = combined_one(test_function_a, test_function_c, "test_a_one_c")
-    result_2 = combined_ac_one("test query")
-    print("3. Test function_a + function_c (first element only)")
-    print(f"Result: {result_2}")
-    print()
+    combined_ac_one = combined_one(helper_function_a, helper_function_c, "test_a_one_c")
+    result_2 = combined_ac_one.func("test query")
+    
+    processed_c = result_2["result"]
+    assert processed_c["processed_file"] == "/path/to/aa.py", "Should process first filepath only"
+    assert processed_c["file_type"] == "py", "Should correctly extract file type"
 
 
-def test_chaining():
+def test_chaining_capability():
     """Test chaining capability"""
-    print("=== Test chaining capability ===\n")
-    
     # Create base combined function
-    combined_ab = combined_one(test_function_a, test_function_b, "test_a_one_b")
+    combined_ab = combined_one(helper_function_a, helper_function_b, "test_a_one_b")
     
-    # Chain with another function
-    def test_function_d(processed_function: str) -> dict:
+    # Define function to chain with - this function expects a single result, not a list
+    def helper_function_d(processed_function: str, status: str, length: int) -> dict:
         return {
             "final_result": f"Final processing of {processed_function}",
-            "status": "completed"
+            "status": "completed",
+            "original_length": length
         }
     
-    # Create chained function
-    chain_1 = combined_one(combined_ab, test_function_d, "chain_ab_d")
+    # For chaining, we need to create a wrapper that returns the expected format
+    def wrapper_for_chaining(query: str) -> dict:
+        """Wrapper that converts combined_one result to expected list format"""
+        result = combined_ab.func(query)
+        # Extract the result and wrap it in a list format expected by combined_for
+        inner_result = result["result"]
+        return {
+            "result": [inner_result]  # Wrap single result in a list
+        }
     
-    print("1. Test chaining: (function_a + function_b) + function_d")
-    result = chain_1("test query")
-    print(f"Result: {result}")
-    print()
+    # Create chained function using combined_for with the wrapper
+    chain_1 = combined_for(wrapper_for_chaining, helper_function_d, "chain_ab_d")
     
-    print("2. Tool information:")
-    print(f"Name: {chain_1.name}")
-    print(f"Description: {chain_1.description}")
-    print()
+    # Test the chained function - call the underlying function
+    result = chain_1.func("test query")
+    
+    # Assertions
+    assert isinstance(result, dict), "Chained result should be a dictionary"
+    assert "result" in result, "Chained result should contain 'result' key"
+    assert len(result["result"]) == 1, "Should have one processed result"
+    
+    # Get the first (and only) result
+    first_result = result["result"][0]
+    assert "result" in first_result, "Should contain processing result"
+    
+    final_result = first_result["result"]
+    assert final_result["final_result"] == "Final processing of aa", "Should chain processing correctly"
+    assert final_result["status"] == "completed", "Should have completed status"
+    assert final_result["original_length"] == 2, "Should preserve original length"
+
+
+def test_tool_properties():
+    """Test that created tools have proper properties"""
+    combined_tool = combined_for(helper_function_a, helper_function_b, "test_tool")
+    
+    # Check that it's a FunctionTool
+    from google.adk.tools.function_tool import FunctionTool
+    assert isinstance(combined_tool, FunctionTool), "Should create FunctionTool instance"
+    
+    # Check tool properties
+    assert hasattr(combined_tool, 'name'), "Tool should have name property"
+    assert hasattr(combined_tool, 'description'), "Tool should have description property"
+
+
+def test_empty_result_handling():
+    """Test handling of empty results"""
+    def empty_function_a(query: str) -> dict:
+        return {"result": []}
+    
+    combined_empty = combined_for(empty_function_a, helper_function_b, "empty_test")
+    result = combined_empty.func("test")
+    
+    # Should return the original empty result
+    assert result == {"result": []}, "Should handle empty results gracefully"
+
+
+def test_invalid_result_format():
+    """Test handling of invalid result formats"""
+    def invalid_function_a(query: str) -> dict:
+        return {"wrong_key": []}
+    
+    combined_invalid = combined_for(invalid_function_a, helper_function_b, "invalid_test")
+    
+    with pytest.raises(ValueError, match="must return dict with 'result' key"):
+        combined_invalid.func("test")
 
 
 if __name__ == "__main__":
-    test_combined_for()
-    test_combined_one()
-    test_chaining()
-    print("All tests completed successfully!") 
+    # Allow running the test directly for debugging
+    pytest.main([__file__, "-v"]) 

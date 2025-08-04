@@ -1,13 +1,16 @@
-from secagentx.utils.docker_utils import *
+import os
 from neomodel import db
+from google.adk.tools.tool_context import ToolContext
+from secagentx.sandbox_manager import SandboxManager
 
 db.set_connection(f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}")
 
-def search_function(function_name: str) -> dict:
+def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
     """
     Tool to search for a function in the codebase. Input is a function name, output is a dictionary containing the implementation of the function.
     Args:
         function_name (str): The name of the function to search for.
+        tool_context (ToolContext): The tool context containing session state.
     Returns:
         dict: A dictionary with key "result" pointing to a list of function information.
     """
@@ -34,8 +37,12 @@ def search_function(function_name: str) -> dict:
             continue
         
         try:
-            # Read the file content from the container
-            file_content = extract_file_from_container(os.getenv("CONTAINER_ID"), path)
+            # Get sandbox from SandboxManager
+            session_id = tool_context._invocation_context.session.id
+            sandbox = SandboxManager.get_sandbox(session_id)
+            
+            # Read the file content from the container using sandbox
+            file_content = sandbox.extract_file_from_container(path)
             # Extract the function code using the start and end lines
             lines = file_content.splitlines()
             function_lines = lines[start-2:end]  # Adjust for 0-based index

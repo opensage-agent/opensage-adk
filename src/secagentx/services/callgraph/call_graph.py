@@ -9,8 +9,8 @@ import sys
 import tempfile
 import pandas as pd
 import random
-import docker
 import csv
+import subprocess
 from neomodel import db
 from collections import defaultdict, deque
 from pathlib import Path
@@ -18,10 +18,9 @@ from typing import Dict, List, Set, Tuple, Optional
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
-from secagentx.utils.docker_utils import *
+from secagentx.sandbox import BaseSandbox, NativeDockerSandbox
 from secagentx.utils.project_info import PROJECT_PATH
 
-client = docker.from_env(timeout=300)
 
 def restart_neo4j() -> str:
     """
@@ -56,29 +55,49 @@ def restart_neo4j() -> str:
         )
     return result.stdout
 
-def start_container(codeql_dir, image_name):
+def create_sandbox_with_codeql_mount(codeql_dir: str, image_name: str) -> NativeDockerSandbox:
     """
-    Start a Docker container for analysis, mounting target and codeql directories.
-    Returns the container ID.
+    Create a NativeDockerSandbox with CodeQL directory mounted.
+    Returns the configured sandbox.
     """
-    client = docker.from_env()
-
+    import docker
+    
     # Define volume mappings
     volumes = {
         codeql_dir: {"bind": "/surfi/codeql", "mode": "rw"},
     }
-
-    # Start the container
-    container = client.containers.run(
-        image_name,
-        command="bash",
-        stdin_open=True,
-        tty=True,
-        detach=True,
-        volumes=volumes,
+    
+    # Create custom docker config with volumes
+    docker_config = {
+        "timeout": 300,
+        "volumes": volumes
+    }
+    
+    # Create sandbox with mounted volumes
+    # Note: We need to override the _get_container method to include volumes
+    class CodeQLSandbox(NativeDockerSandbox):
+        def _get_container(self) -> str:
+            """Create and start a new container with CodeQL volume mounted."""
+            container = self.client.containers.run(
+                self.image_name,
+                command="bash",
+                stdin_open=True,
+                tty=True,
+                detach=True,
+                volumes=self.docker_config.get("volumes", {})
+            )
+            print(f"Container {container.id} started from image {self.image_name}")
+            return container.id
+    
+    sandbox = CodeQLSandbox(
+        image_name=image_name,
+        compile_command="",  # Will be set dynamically
+        run_command="",     # Not used in this context
+        poc_dir="/tmp",     # Not used in this context
+        docker_config=docker_config
     )
-    print(f"Container {container.id} started from image {image_name}")
-    return container.id
+    
+    return sandbox
 
 def load_expr_calls(expr_calls_path):
     """
@@ -197,77 +216,97 @@ def match_edges(expr_calls, fp_funcs):
                 })
     return matched_edges
 
-def get_and_upload_call_graph(codeql_dir, image_name, build_command):
-    container_id = None
+def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: str):
+    """
+    Generate and upload call graph using the specified sandbox.
+    
+    Args:
+        codeql_dir: Path to CodeQL installation directory
+        image_name: Docker image name to use
+        build_command: Command to build the project
+    """
+    sandbox = None
     try:
-        container_id = start_container(codeql_dir, image_name)
+        sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name)
+        
         # Build CodeQL database with the specified build command
         build_codeql_database_command = (
             "/surfi/codeql/codeql database create /work/.surfi-codeql-database "
             "--language=cpp --overwrite --threads=$(nproc) "
             f"--command='{build_command}'"
         )
-        res, exit_code = run_command_in_container(container_id, build_codeql_database_command)
+        res, exit_code = sandbox.run_command_in_container(build_codeql_database_command)
         if exit_code != 0:
             raise ValueError("Error creating codeql database")
+            
         # Run CodeQL query to get the call graph
         call_graph_command = (
             "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
             "--output=/work/callgraph.bqrs /surfi/codeql/callgraph_queries/directCalls.ql"
         )
-        res, exit_code = run_command_in_container(container_id, call_graph_command)
+        res, exit_code = sandbox.run_command_in_container(call_graph_command)
         if exit_code != 0:
             raise ValueError("Error creating call graph")
+            
         # Decode the call graph results
         decode_call_graph_command = (
             "/surfi/codeql/codeql bqrs decode /work/callgraph.bqrs "
             "--format=csv --output=/work/results.csv"
         )
+        
         # Construct call graph with indirect calls (determined by function signature)
         # step 1. find all function pointer accesses
         fp_command = (
             "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
             "--output=/work/fp_accesses.bqrs /surfi/codeql/callgraph_queries/funcPtrAccesses.ql"
         )
-        res, exit_code = run_command_in_container(container_id, fp_command)
+        res, exit_code = sandbox.run_command_in_container(fp_command)
         if exit_code != 0:
             raise ValueError("Error finding function pointer accesses")
+            
         # Decode the function pointer accesses
         decode_fp_command = (
             "/surfi/codeql/codeql bqrs decode /work/fp_accesses.bqrs "
             "--format=csv --output=/work/fp_accesses.csv"
         )
-        res, exit_code = run_command_in_container(container_id, decode_fp_command)
+        res, exit_code = sandbox.run_command_in_container(decode_fp_command)
         if exit_code != 0:
             raise ValueError("Error decoding function pointer accesses")
+            
         # step 2. find all expr calls
         expr_command = (
             "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
             "--output=/work/expr_calls.bqrs /surfi/codeql/callgraph_queries/exprCalls.ql"
         )
-        res, exit_code = run_command_in_container(container_id, expr_command)
+        res, exit_code = sandbox.run_command_in_container(expr_command)
         if exit_code != 0:
             raise ValueError("Error finding expression calls")
+            
         # Decode the expression calls
         decode_expr_command = (
             "/surfi/codeql/codeql bqrs decode /work/expr_calls.bqrs "
             "--format=csv --output=/work/expr_calls.csv"
         )
-        res, exit_code = run_command_in_container(container_id, decode_expr_command)
+        res, exit_code = sandbox.run_command_in_container(decode_expr_command)
         if exit_code != 0:
             raise ValueError("Error decoding expression calls")
+            
         # step 3. find all possible indirect calls
-        res, exit_code = run_command_in_container(container_id, decode_call_graph_command)
+        res, exit_code = sandbox.run_command_in_container(decode_call_graph_command)
         if exit_code != 0:
             raise ValueError("Error decoding call graph")
+            
         with tempfile.TemporaryDirectory() as output_subdir:
             # Retrieve and process call graph file
             results_csv_path = os.path.join(output_subdir, "results.csv")
-            copy_file_from_container(container_id, "/work/results.csv", results_csv_path)
+            sandbox.copy_file_from_container("/work/results.csv", results_csv_path)
+            
             expr_calls_path = os.path.join(output_subdir, "expr_calls.csv")
-            copy_file_from_container(container_id, "/work/expr_calls.csv", expr_calls_path)
+            sandbox.copy_file_from_container("/work/expr_calls.csv", expr_calls_path)
+            
             fp_accesses_path = os.path.join(output_subdir, "fp_accesses.csv")
-            copy_file_from_container(container_id, "/work/fp_accesses.csv", fp_accesses_path)
+            sandbox.copy_file_from_container("/work/fp_accesses.csv", fp_accesses_path)
+            
             # 1. Load the main call graph DataFrame
             df = pd.read_csv(results_csv_path, header=0)
             df["call_type"] = "direct"
@@ -327,5 +366,21 @@ def get_and_upload_call_graph(codeql_dir, image_name, build_command):
         import traceback
         traceback.print_exc()
     finally:
-        if container_id:
-            delete_container(container_id)
+        if sandbox:
+            sandbox.delete_container()
+
+
+# Legacy function interface for backward compatibility
+def start_container(codeql_dir, image_name):
+    """
+    Legacy function - creates a sandbox and returns container ID.
+    Deprecated: Use create_sandbox_with_codeql_mount instead.
+    """
+    import warnings
+    warnings.warn(
+        "start_container is deprecated. Use create_sandbox_with_codeql_mount instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name)
+    return sandbox.container_id

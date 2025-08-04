@@ -1,0 +1,341 @@
+import docker
+import time
+import io
+import tarfile
+import os
+import shutil
+import subprocess
+from collections import deque
+from secagentx.utils.parser import get_function_info
+from docker.errors import NotFound, APIError
+import re
+import tempfile
+from typing import Dict, Any, Optional, Tuple
+from secagentx.sandbox.base_sandbox import BaseSandbox
+
+
+class NativeDockerSandbox(BaseSandbox):
+    """Native Docker sandbox implementation using direct Docker API."""
+    
+    def __init__(self, 
+                 image_name: str, 
+                 compile_command: str, 
+                 run_command: str, 
+                 poc_dir: str,
+                 docker_config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize NativeDockerSandbox.
+        
+        Args:
+            image_name: Docker image name to use
+            compile_command: Command to compile the target
+            run_command: Command to run the target
+            poc_dir: Directory for PoC files
+            docker_config: Docker client configuration (default: empty dict)
+        """
+        super().__init__(image_name, compile_command, run_command, poc_dir)
+        
+        # Initialize Docker client with configuration
+        self.docker_config = docker_config or {}
+        self.client = docker.from_env(timeout=self.docker_config.get('timeout', 300))
+        
+        # Create and start container
+        self.container_id = self._get_container()
+    
+    def _get_container(self) -> str:
+        """Create and start a new container from the specified image."""
+        container = self.client.containers.run(
+            self.image_name, 
+            command="bash", 
+            stdin_open=True, 
+            tty=True, 
+            detach=True
+        )
+        print(f"Container {container.id} started from image {self.image_name}")
+        return container.id
+
+    def copy_directory_from_container(self, src_path: str, dst_path: str):
+        """Copy a directory from the container to local filesystem."""
+        container = self.client.containers.get(self.container_id)
+        exec_result = container.exec_run(f"ls -la {src_path}")
+        if exec_result.exit_code != 0:
+            raise ValueError(f"Path {src_path} does not exist in the container.")
+
+        if os.path.exists(dst_path):
+            shutil.rmtree(dst_path)
+        os.makedirs(dst_path, exist_ok=True)
+
+        stream, stats = container.get_archive(src_path)
+        temp_tar = os.path.join(dst_path, "temp_archive.tar")
+
+        with open(temp_tar, "wb") as f:
+            for chunk in stream:
+                f.write(chunk)
+
+        with tarfile.open(temp_tar) as tar:
+            tar.extractall(path=dst_path, numeric_owner=True)
+
+        os.remove(temp_tar)
+
+    def copy_file_from_container(self, src_path: str, dst_path: str):
+        """Copy a file from the container to local filesystem."""
+        container = self.client.containers.get(self.container_id)
+
+        # Check if the file exists inside the container
+        exec_result = container.exec_run(f"test -f {src_path}")
+        if exec_result.exit_code != 0:
+            raise FileNotFoundError(f"File {src_path} does not exist in the container.")
+
+        # Retrieve the file as a tar stream
+        stream, _ = container.get_archive(src_path)
+        temp_tar = dst_path + ".tar"
+
+        # Write the tar stream to a temporary file
+        with open(temp_tar, "wb") as f:
+            for chunk in stream:
+                f.write(chunk)
+
+        # Extract the file content and write it directly to dst_path
+        with tarfile.open(temp_tar) as tar:
+            members = tar.getmembers()
+            file_member = members[0]
+            fileobj = tar.extractfile(file_member)
+            if fileobj is None:
+                raise RuntimeError("Failed to extract file from the tar archive.")
+
+            with open(dst_path, "wb") as out_file:
+                out_file.write(fileobj.read())
+
+        os.remove(temp_tar)
+
+    def copy_file_to_container(self, local_path: str, container_path: str):
+        """Copy a single file to the container."""
+        container = self.client.containers.get(self.container_id)
+
+        data = io.BytesIO()
+        with tarfile.open(fileobj=data, mode="w") as tar:
+            tar.add(local_path, arcname=os.path.basename(container_path))
+        data.seek(0)
+
+        container_dir = os.path.dirname(container_path)
+        container.exec_run(f"mkdir -p {container_dir}")
+        container.put_archive(container_dir, data.getvalue())
+
+    def copy_directory_to_container(self, src_path: str, dst_path: str):
+        """Copy a directory from the host to the container."""
+        container = self.client.containers.get(self.container_id)
+
+        mkdir_cmd = f"mkdir -p {dst_path}"
+        exit_code, output = container.exec_run(mkdir_cmd)
+        if exit_code != 0:
+            raise RuntimeError(f"Failed to create directory {dst_path} in container: {output.decode()}")
+
+        mem_tar = io.BytesIO()
+        with tarfile.open(fileobj=mem_tar, mode='w') as tar:
+            tar.add(src_path, arcname="") 
+        mem_tar.seek(0)
+
+        container.put_archive(dst_path, mem_tar.getvalue())
+
+    def run_poc(self, poc_command: str) -> Tuple[str, int]:
+        """Run a PoC command in the container."""
+        container = self.client.containers.get(self.container_id)
+        exec_result = container.exec_run(poc_command, stdout=True, stderr=True)
+        output = exec_result.output.decode("utf-8-sig", errors="ignore")
+        return output, exec_result.exit_code
+
+    def compile_target(self) -> str:
+        """Compile the target using the compile_command."""
+        container = self.client.containers.get(self.container_id)
+        workdir = self.get_work_dir()
+        compile_command_with_cd = f"bash -c 'cd {workdir} && {self.compile_command}'"
+        exec_result = container.exec_run(compile_command_with_cd, stdout=True, stderr=True)
+        output = exec_result.output.decode()
+        return output
+
+    def delete_container(self, max_wait: int = 10):
+        """Delete the container."""
+        try:
+            container = self.client.containers.get(self.container_id)
+            container.remove(force=True, v=True)
+        except NotFound:
+            print(f"[info] container {self.container_id} already gone")
+            return
+        except APIError as e:
+            print(f"[warn] docker API error on {self.container_id}: {e.explanation}")
+            return
+        for _ in range(max_wait):
+            try:
+                self.client.containers.get(self.container_id)
+                time.sleep(1)
+            except NotFound:
+                print(f"Container {self.container_id} removed")
+                return
+        print(f"[warn] container {self.container_id} still listed after {max_wait}s")
+
+    def extract_file_from_container(self, filepath: str) -> str:
+        """Extract the content of the specified file from the container."""
+        container = self.client.containers.get(self.container_id)
+        stream, _ = container.get_archive(filepath)
+        file_data = b""
+        for chunk in stream:
+            file_data += chunk
+        tar_stream = io.BytesIO(file_data)
+        with tarfile.open(fileobj=tar_stream) as tar:
+            member = tar.getmembers()[0]
+            f = tar.extractfile(member)
+            content = f.read().decode('latin-1')
+        return content
+
+    def extract_file_from_container_bytes(self, filepath: str) -> bytes:
+        """Extract the content of the specified file from the container as bytes."""
+        container = self.client.containers.get(self.container_id)
+        stream, _ = container.get_archive(filepath)
+        file_data = b""
+        for chunk in stream:
+            file_data += chunk
+        tar_stream = io.BytesIO(file_data)
+        with tarfile.open(fileobj=tar_stream) as tar:
+            member = tar.getmembers()[0]
+            f = tar.extractfile(member)
+            content = f.read()
+        return content
+
+    def create_tar_bytes(self, file_content: str, arcname: str) -> bytes:
+        """Pack the given file content into a tar archive."""
+        tar_stream = io.BytesIO()
+        with tarfile.open(fileobj=tar_stream, mode='w') as tar:
+            file_bytes = file_content.encode()
+            tarinfo = tarfile.TarInfo(name=arcname)
+            tarinfo.size = len(file_bytes)
+            tar.addfile(tarinfo, io.BytesIO(file_bytes))
+        tar_stream.seek(0)
+        return tar_stream.read()
+
+    def patch_search_replace(self, file: str, search: str, replace: str):
+        """Replace all occurrences of 'search' with 'replace' in the specified file."""
+        container = self.client.containers.get(self.container_id)
+        
+        # Extract the file content from the container
+        file_content = self.extract_file_from_container(file)
+        
+        # Replace the search string with the replace string
+        modified_content = file_content.replace(search, replace)
+        
+        # Create a tar archive of the modified content
+        archive_data = self.create_tar_bytes(modified_content, arcname=file.split("/")[-1])
+        
+        # Copy the modified content back to the container
+        destination_dir = "/".join(file.split("/")[:-1])
+        if not destination_dir:
+            destination_dir = "/"
+        container.put_archive(destination_dir, archive_data)
+
+    def patch_file_func(self, files_func_to_content: Dict[str, str], lang: str = "c"):
+        """Replace a function in a file inside the container with new content."""
+        container = self.client.containers.get(self.container_id)
+        
+        for key, new_function_content in files_func_to_content.items():
+            parts = key.split("__xx__")
+            if len(parts) != 2:
+                print(f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'")
+                continue
+            filepath, function_name = parts
+            
+            # Extract the file content from the container.
+            file_content = self.extract_file_from_container(filepath)
+            
+            # Use Tree-sitter to obtain function information from the file.
+            functions = get_function_info(file_content, lang)
+            if function_name not in functions:
+                print(f"Initial try, Function {function_name} not found in file {filepath}")
+                print("Trying to do partial matching, the result may be inaccurate")
+                func_name = function_name.split("::")[-1]
+                if func_name in functions:
+                    function_name = func_name
+                else:
+                    print("Trying to do partial matching with looser rules")
+                    potential_funcs = [func for func in functions if func_name in func or func in func_name]
+                    # get the distance between the function name and the potential function name
+                    if potential_funcs:
+                        potential_funcs.sort(key=lambda f: abs(len(f) - len(func_name)))
+                        function_name = potential_funcs[0]
+                    else:
+                        print(f"Function {function_name} finally not found in file {filepath}")
+                        continue
+                
+            # TODO: FIXME: if there are multiple functions with the same name, we need to find the one that matches the line number
+            start_line, end_line = functions[function_name][0]
+            start_index = start_line - 1
+            end_index = end_line  
+            
+            # Replace
+            file_lines = file_content.splitlines()
+            new_function_lines = new_function_content.splitlines()
+            modified_lines = file_lines[:start_index] + new_function_lines + file_lines[end_index:]
+            modified_file_content = "\n".join(modified_lines)
+            
+            # copy back
+            archive_data = self.create_tar_bytes(modified_file_content, arcname=filepath.split("/")[-1])
+            destination_dir = "/".join(filepath.split("/")[:-1])
+            if not destination_dir:
+                destination_dir = "/"
+            container.put_archive(destination_dir, archive_data)
+            print(f"Updated function {function_name} in file {filepath} in container {self.container_id}")
+
+    def get_function_content(self, key: str, lang: str = "c", line_in_func: int = -1) -> Tuple[str, int, int]:
+        """Retrieve the content of a specific function from a file inside the container."""
+        container = self.client.containers.get(self.container_id)
+        
+        parts = key.split("__xx__")
+        if len(parts) != 2:
+            print(f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'")
+            return "", -1, -1
+        filepath, function_name = parts
+        
+        # Extract the file content from the container
+        file_content = self.extract_file_from_container(filepath)
+        # Use Tree-sitter to obtain function information from the file
+        functions = get_function_info(file_content, lang)
+        if function_name not in functions:
+            print(f"Initial try, Function {function_name} not found in file {filepath}")
+            print("Trying to do partial matching, the result may be inaccurate")
+            func_name = function_name.split("::")[-1]
+            if func_name in functions:
+                function_name = func_name
+            else:
+                return "", -1, -1
+        # line_in_func helps to decide which function to extract when there are multiple functions with the same name
+        if line_in_func != -1:
+            for scope in functions[function_name]:
+                start_line, end_line = scope
+                if start_line <= line_in_func <= end_line:
+                    break
+        else:
+            start_line, end_line = functions[function_name][-1]
+        
+        # Split the file content into lines and extract the function content
+        file_lines = file_content.splitlines()
+        function_lines = file_lines[start_line - 1:end_line]  # convert 1-indexed to 0-indexed
+        function_content = "\n".join(function_lines)
+        
+        return function_content, start_line, end_line
+
+    def get_file_content(self, filepath: str) -> str:
+        """Retrieve the content of a file inside the container."""
+        return self.extract_file_from_container(filepath)
+
+    def run_command_in_container(self, command: str) -> Tuple[str, int]:
+        """Run a command inside the container."""
+        container = self.client.containers.get(self.container_id)
+        full_command = f"/bin/bash -c \"{command}\""
+        exec_result = container.exec_run(full_command, stdout=True, stderr=True)
+        output = exec_result.output.decode('latin-1')
+        exit_code = exec_result.exit_code
+        
+        return output, exit_code
+
+    def get_work_dir(self) -> str:
+        """Get the working directory of the container."""
+        work_dir, exit_code = self.run_command_in_container("pwd")
+        return work_dir.strip()

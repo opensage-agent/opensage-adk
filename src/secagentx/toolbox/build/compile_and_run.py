@@ -3,9 +3,10 @@ from typing import Tuple
 import re
 import os
 import subprocess
-from secagentx.utils.docker_utils import *
+from google.adk.tools.tool_context import ToolContext
+from secagentx.sandbox_manager import SandboxManager
 
-def run_poc_from_script(poc_generation_script: str) -> str:
+def run_poc_from_script(poc_generation_script: str, *, tool_context: ToolContext) -> str:
     """
     Execute a PoC generation script, which will save a generated poc, we execute the generated poc and capture its output.
 
@@ -43,6 +44,7 @@ def run_poc_from_script(poc_generation_script: str) -> str:
             f.write(tls_header + handshake_header + body)
         ```
         </poc>
+        tool_context (ToolContext): The tool context containing session state.
 
     Returns:
         str: The standard output produced by running the generated PoC.
@@ -60,10 +62,12 @@ def run_poc_from_script(poc_generation_script: str) -> str:
         return "[ERROR] No Python code block found within <poc> tags."
     poc_code = code_match.group(1).strip()
 
-    # 2. Ensure we have a container to run in
-    container_id = os.getenv("CONTAINER_ID")
-    if not container_id:
-        return "[ERROR] CONTAINER_ID environment variable is not set."
+    # 2. Get sandbox from SandboxManager
+    session_id = tool_context._invocation_context.session.id
+    try:
+        sandbox = SandboxManager.get_sandbox(session_id)
+    except Exception as e:
+        return f"[ERROR] Failed to get sandbox: {str(e)}"
 
     # 3. Write, execute and capture the PoC generation script
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -88,20 +92,20 @@ def run_poc_from_script(poc_generation_script: str) -> str:
         if not os.path.isfile(poc_path):
             return "[WARN] No PoC file named 'poc' was generated."
 
-        # 5. Copy the PoC into the container
-        poc_dir = os.getenv("POC_DIR")
-        if not poc_dir:
-            raise ValueError("POC_DIR environment variable is not set.")
-        copy_file_to_container(container_id, poc_path, poc_dir)
+        # 5. Copy the PoC into the container using sandbox
+        container_poc_path = sandbox.poc_dir
+        try:
+            sandbox.copy_file_to_container(poc_path, container_poc_path)
+        except Exception as e:
+            return f"[ERROR] Failed to copy PoC to container: {str(e)}"
 
-        # 6. Execute the PoC inside the container and capture output
-        run_command = os.getenv("RUN_COMMAND")  
-        if not run_command:
-            raise ValueError("RUN_COMMAND environment variable is not set.")
-        output, exit_code = run_poc(container_id, run_command)
-        if exit_code != 0:
-            return f"[ERROR] Running PoC in container failed (code {exit_code}):\n{output}"
-
-        return output
+        # 6. Execute the PoC inside the container using sandbox
+        try:
+            output, exit_code = sandbox.run_poc(f"{sandbox.run_command}")
+            if exit_code != 0:
+                return f"[ERROR] Running PoC in container failed (code {exit_code}):\n{output}"
+            return output
+        except Exception as e:
+            return f"[ERROR] Failed to run PoC in container: {str(e)}"
     
 

@@ -13,10 +13,17 @@ from secagentx.toolbox.retrieval.search_tools import *
 from secagentx.services.callgraph.call_graph import *
 from secagentx.toolbox.static_analysis.call_graph import *
 from secagentx.extended_features.function_composer import combined_for, combined_one
-from secagentx.toolbox.build.compile_and_run import run_poc_from_script
+import importlib
 
-# see https://github.com/google/adk-python/issues/860 for details
+
+target_type = os.getenv("TARGET_TYPE", "default")
+if target_type != "default":
+    module_path = f"secagentx.toolbox.build.{target_type}.compile_and_run"
+    mod = importlib.import_module(module_path)
+    run_poc_from_script = getattr(mod, "run_poc_from_script")
+
 # Disable OpenTelemetry to avoid context management issues with incompatible GCP exporter
+# see https://github.com/google/adk-python/issues/860 for details
 os.environ["OTEL_SDK_DISABLED"] = "true"
 # Suppress OpenTelemetry warnings
 logging.getLogger("opentelemetry").setLevel(logging.ERROR)

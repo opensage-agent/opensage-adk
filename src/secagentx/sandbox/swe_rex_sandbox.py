@@ -6,7 +6,7 @@ from typing import Optional, Tuple, Union
 # SWE-ReX
 from swerex.deployment.abstract import AbstractDeployment
 from swerex.runtime.abstract import CreateBashSessionRequest, BashAction
-from swerex.exceptions import SessionDoesNotExistError
+# removed SessionDoesNotExistError import since manager handles session creation
 from .base_sandbox import BaseSandbox
 
 
@@ -53,25 +53,7 @@ class SweRexSandbox(BaseSandbox):
         super().__init__(image_name, compile_command, run_command, poc_dir)
         self.deployment = deployment
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    async def _ensure_runtime_and_session(self) -> None:
-        """Lazily start runtime and create default bash session if absent."""
-        # 1. Ensure runtime started
-        if getattr(self.deployment, "_runtime", None) is None:
-            await self.deployment.start()
-
-        runtime = self.deployment._runtime  # type: ignore[attr-defined]
-
-        # 2. Ensure default session exists
-        try:
-            await runtime.run_in_session(  # type: ignore[arg-type]
-                BashAction(command="true", check="silent")
-            )
-        except SessionDoesNotExistError:
-            await runtime.create_session(CreateBashSessionRequest())
+    # Runtime and default session are created by SandboxManager at sandbox creation.
 
     def copy_file_from_container(self, src_path: str, dst_path: str):
         """Copy a file from the runtime environment to local filesystem."""
@@ -79,7 +61,6 @@ class SweRexSandbox(BaseSandbox):
 
     async def _copy_file_from_container_async(self, src_path: str, dst_path: str):
         """Async implementation of copy_file_from_container."""
-        await self._ensure_runtime_and_session()
         runtime = self.deployment._runtime  # type: ignore[attr-defined]
         
         # Check if file exists
@@ -112,7 +93,6 @@ class SweRexSandbox(BaseSandbox):
 
     async def _copy_file_to_container_async(self, local_path: str, container_path: str):
         """Async implementation of copy_file_to_container."""
-        await self._ensure_runtime_and_session()
         runtime = self.deployment._runtime  # type: ignore[attr-defined]
         
         # Read local file content
@@ -126,6 +106,13 @@ class SweRexSandbox(BaseSandbox):
             check="silent"
         )
         await runtime.run_in_session(mkdir_action)
+
+        # delete the file if it exists
+        delete_action = BashAction(
+            command=f"rm -f {container_path}",
+            check="silent"
+        )
+        await runtime.run_in_session(delete_action)
         
         # Write content to container file using cat with heredoc
         # Escape single quotes in content to prevent shell injection
@@ -145,7 +132,6 @@ class SweRexSandbox(BaseSandbox):
 
     async def _run_poc_async(self, poc_command: str) -> Tuple[str, int]:
         """Async implementation of run_poc."""
-        await self._ensure_runtime_and_session()
         runtime = self.deployment._runtime  # type: ignore[attr-defined]
         
         action = BashAction(
@@ -163,7 +149,6 @@ class SweRexSandbox(BaseSandbox):
 
     async def _compile_target_async(self) -> str:
         """Async implementation of compile_target."""
-        await self._ensure_runtime_and_session()
         runtime = self.deployment._runtime  # type: ignore[attr-defined]
         
         # Get working directory first
@@ -186,7 +171,6 @@ class SweRexSandbox(BaseSandbox):
 
     async def _extract_file_from_container_async(self, filepath: str) -> str:
         """Async implementation of extract_file_from_container."""
-        await self._ensure_runtime_and_session()
         runtime = self.deployment._runtime  # type: ignore[attr-defined]
         
         action = BashAction(
@@ -206,7 +190,6 @@ class SweRexSandbox(BaseSandbox):
 
     async def _run_command_in_container_async(self, command: str) -> Tuple[str, int]:
         """Async implementation of run_command_in_container."""
-        await self._ensure_runtime_and_session()
         runtime = self.deployment._runtime  # type: ignore[attr-defined]
         
         action = BashAction(
@@ -224,7 +207,6 @@ class SweRexSandbox(BaseSandbox):
 
     async def _get_work_dir_async(self) -> str:
         """Async implementation of get_work_dir."""
-        await self._ensure_runtime_and_session()
         runtime = self.deployment._runtime  # type: ignore[attr-defined]
         
         action = BashAction(

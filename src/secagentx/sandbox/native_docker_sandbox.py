@@ -119,6 +119,7 @@ class NativeDockerSandbox(BaseSandbox):
 
         container_dir = os.path.dirname(container_path)
         container.exec_run(f"mkdir -p {container_dir}")
+        container.exec_run(f"rm -f {container_path}")
         container.put_archive(container_dir, data.getvalue())
 
     def copy_directory_to_container(self, src_path: str, dst_path: str):

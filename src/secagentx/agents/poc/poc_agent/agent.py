@@ -5,7 +5,6 @@ from secagentx.extended_features.sec_agent import SecAgent
 from secagentx.extended_features.tool_combo_manager import ToolCombo
 from secagentx.extended_features.reward_logger import RewardLogger
 from google.adk.tools.function_tool import FunctionTool
-# from secagentx.sandbox import NativeDockerSandbox, SweRexSandbox  # Not needed anymore, using SandboxManager
 from google.adk.models.lite_llm import LiteLlm
 from dotenv import load_dotenv
 import logging
@@ -40,63 +39,6 @@ MODEL_NAME = os.getenv("MODEL_NAME", "anthropic/claude-sonnet-4-20250514")
 #     image_name=IMAGE_NAME,
 #     build_command=os.getenv("COMPILE_COMMAND"),
 # )
-
-# # Create sandbox for container operations
-# # Try SweRexSandbox first, fallback to NativeDockerSandbox if it fails
-# sandbox = None
-# try:
-#     from swerex.deployment.docker import DockerDeployment, DockerDeploymentConfig
-    
-#     # Try SWE-ReX sandbox first
-#     deployment_config = DockerDeploymentConfig(
-#         image=IMAGE_NAME,
-#         remove_container=False,
-#         remove_images=False
-#     )
-#     deployment = DockerDeployment(deployment_config)
-#     deployment.start()
-    
-#     sandbox = SweRexSandbox(
-#         image_name=IMAGE_NAME,
-#         compile_command=os.getenv("COMPILE_COMMAND", ""),
-#         run_command=os.getenv("RUN_COMMAND", ""),
-#         poc_dir=os.getenv("POC_DIR", "/tmp/poc"),
-#         deployment=deployment
-#     )
-    
-#     # Test if SWE-ReX sandbox is working
-#     test_output, test_exit_code = sandbox.run_command_in_container("echo 'test'")
-#     if "test" in test_output:
-#         print("Using SWE-ReX sandbox")
-#     else:
-#         raise Exception("SWE-ReX sandbox test failed")
-        
-# except Exception as e:
-#     print(f"SWE-ReX sandbox failed: {e}")
-#     print("Falling back to Native Docker sandbox")
-    
-#     # Cleanup SWE-ReX resources if they were created
-#     if sandbox and hasattr(sandbox, 'deployment'):
-#         try:
-#             sandbox.deployment.stop()
-#         except:
-#             pass
-    
-#     # Fallback to Native Docker sandbox
-#     sandbox = NativeDockerSandbox(
-#         image_name=IMAGE_NAME,
-#         compile_command=os.getenv("COMPILE_COMMAND", ""),
-#         run_command=os.getenv("RUN_COMMAND", ""),
-#         poc_dir=os.getenv("POC_DIR", "/tmp/poc")
-#     )
-    
-#     # Test Native Docker sandbox
-#     test_output, test_exit_code = sandbox.run_command_in_container("echo 'native test'")
-#     if test_exit_code == 0 and "native test" in test_output:
-#         print("Using Native Docker sandbox - working correctly")
-#     else:
-#         raise Exception(f"Native Docker sandbox test failed: {test_output}")
-
 
 search_caller_combo = ToolCombo(
     name="search_caller_combo",

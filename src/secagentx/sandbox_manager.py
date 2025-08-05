@@ -109,11 +109,30 @@ class SandboxManager:
             try:
                 asyncio.get_running_loop()
                 # Already in an event loop – off-load to a separate thread.
+                def _start_and_create():
+                    asyncio.run(_start_and_session())
+
+                async def _start_and_session():
+                    await deployment.start()
+                    runtime = deployment._runtime  # type: ignore[attr-defined]
+                    try:
+                        await runtime.create_session(CreateBashSessionRequest())
+                    except Exception:
+                        pass
+
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    pool.submit(asyncio.run, deployment.start()).result()
+                    pool.submit(_start_and_create).result()
             except RuntimeError:
                 # No running loop in this thread – safe to run directly.
-                asyncio.run(deployment.start())
+                async def _start_and_session_main():
+                    await deployment.start()
+                    runtime = deployment._runtime  # type: ignore[attr-defined]
+                    try:
+                        await runtime.create_session(CreateBashSessionRequest())
+                    except Exception:
+                        pass
+
+                asyncio.run(_start_and_session_main())
             
             sandbox = SweRexSandbox(
                 image_name=IMAGE_NAME,

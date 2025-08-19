@@ -40,12 +40,12 @@ if not IMAGE_NAME:
 
 MODEL_NAME = os.getenv("MODEL_NAME", "anthropic/claude-sonnet-4-20250514")
 
-# restart_neo4j()
-# get_and_upload_call_graph(
-#     codeql_dir=CODEQL_DIR,
-#     image_name=IMAGE_NAME,
-#     build_command=os.getenv("COMPILE_COMMAND"),
-# )
+restart_neo4j()
+get_and_upload_call_graph(
+    codeql_dir=CODEQL_DIR,
+    image_name=IMAGE_NAME,
+    build_command=os.getenv("COMPILE_COMMAND"),
+)
 
 search_caller_combo = ToolCombo(
     name="search_caller_combo",

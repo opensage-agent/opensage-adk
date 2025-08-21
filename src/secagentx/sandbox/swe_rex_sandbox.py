@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import os
 import tempfile
 import concurrent.futures
@@ -73,17 +74,21 @@ class SweRexSandbox(BaseSandbox):
         if result.exit_code != 0:
             raise FileNotFoundError(f"File {src_path} does not exist in the container.")
         
-        # Read file content
+        # Read file content as base64 to handle binary files correctly
         read_action = BashAction(
-            command=f"cat {src_path}",
+            command=f"base64 {src_path}",
             check="silent"
         )
         result = await runtime.run_in_session(read_action)
         
         if result.exit_code == 0:
-            # Write content to local file
-            with open(dst_path, "w", encoding="utf-8") as f:
-                f.write(result.output)
+            # Decode base64 content and write to local file in binary mode
+            try:
+                binary_content = base64.b64decode(result.output.strip())
+                with open(dst_path, "wb") as f:
+                    f.write(binary_content)
+            except Exception as e:
+                raise RuntimeError(f"Failed to decode base64 content from {src_path}: {str(e)}")
         else:
             raise RuntimeError(f"Failed to read file {src_path}: {result.output}")
 
@@ -95,9 +100,12 @@ class SweRexSandbox(BaseSandbox):
         """Async implementation of copy_file_to_container."""
         runtime = self.deployment._runtime  # type: ignore[attr-defined]
         
-        # Read local file content
-        with open(local_path, "r", encoding="utf-8") as f:
-            content = f.read()
+        # Read local file content in binary mode to handle any file type
+        with open(local_path, "rb") as f:
+            binary_content = f.read()
+        
+        # Encode binary content as base64 for safe shell transmission
+        base64_content = base64.b64encode(binary_content).decode('ascii')
         
         # Create directory if needed
         container_dir = os.path.dirname(container_path)
@@ -114,11 +122,10 @@ class SweRexSandbox(BaseSandbox):
         )
         await runtime.run_in_session(delete_action)
         
-        # Write content to container file using cat with heredoc
-        # Escape single quotes in content to prevent shell injection
-        escaped_content = content.replace("'", "'\"'\"'")
+        # Write content to container file using base64 decoding
+        # This approach handles binary files correctly
         write_action = BashAction(
-            command=f"cat > {container_path} << 'EOF'\n{escaped_content}\nEOF",
+            command=f"echo '{base64_content}' | base64 -d > {container_path}",
             check="silent"
         )
         result = await runtime.run_in_session(write_action)
@@ -173,14 +180,23 @@ class SweRexSandbox(BaseSandbox):
         """Async implementation of extract_file_from_container."""
         runtime = self.deployment._runtime  # type: ignore[attr-defined]
         
+        # Try to read as text first (for backwards compatibility)
         action = BashAction(
-            command=f"cat {filepath}",
+            command=f"file {filepath} | grep -q text && cat {filepath} || base64 {filepath}",
             check="silent"
         )
         result = await runtime.run_in_session(action)
         
         if result.exit_code == 0:
-            return result.output
+            # Check if the file was detected as binary by seeing if output is base64
+            output = result.output.strip()
+            try:
+                # If it's valid base64, decode it and return as latin-1 string for compatibility
+                binary_content = base64.b64decode(output)
+                return binary_content.decode('latin-1')
+            except:
+                # If not base64, it's text content, return as-is
+                return output
         else:
             raise FileNotFoundError(f"Could not read file {filepath}: {result.output}")
 

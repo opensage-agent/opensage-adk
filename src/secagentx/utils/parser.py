@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 from tree_sitter_languages import get_parser
 
 
@@ -44,7 +45,9 @@ def find_cpp_function(node, cur_class=None):
         return None
     inner = declarator.child_by_field_name("declarator")
     if not inner:
-        inner = next((c for c in declarator.children if c.type.endswith("declarator")), None)
+        inner = next(
+            (c for c in declarator.children if c.type.endswith("declarator")), None
+        )
         if not inner:
             return None
 

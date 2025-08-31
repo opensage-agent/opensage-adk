@@ -1,12 +1,17 @@
+import os
+import re
+import subprocess
 import tempfile
 from typing import Tuple
-import re
-import os
-import subprocess
+
 from google.adk.tools.tool_context import ToolContext
+
 from secagentx.sandbox_manager import SandboxManager
 
-def run_poc_from_script(poc_generation_script: str, *, tool_context: ToolContext) -> str:
+
+def run_poc_from_script(
+    poc_generation_script: str, *, tool_context: ToolContext
+) -> str:
     """
     Execute a PoC generation script, which will save a generated poc, we execute the generated poc and capture its output.
 
@@ -50,7 +55,9 @@ def run_poc_from_script(poc_generation_script: str, *, tool_context: ToolContext
         str: The standard output produced by running the generated PoC.
     """
     # 1. Extract the code block
-    poc_re = re.compile(r"<poc\s*>\s*(?P<body>.*?)\s*</poc\s*>", re.IGNORECASE | re.DOTALL)
+    poc_re = re.compile(
+        r"<poc\s*>\s*(?P<body>.*?)\s*</poc\s*>", re.IGNORECASE | re.DOTALL
+    )
     match = poc_re.search(poc_generation_script)
     if not match:
         return "[ERROR] No <poc> tags found."
@@ -76,10 +83,7 @@ def run_poc_from_script(poc_generation_script: str, *, tool_context: ToolContext
             f.write(poc_code)
 
         result = subprocess.run(
-            ["python3", script_path],
-            cwd=temp_dir,
-            capture_output=True,
-            text=True
+            ["python3", script_path], cwd=temp_dir, capture_output=True, text=True
         )
         if result.returncode != 0:
             return (
@@ -107,5 +111,3 @@ def run_poc_from_script(poc_generation_script: str, *, tool_context: ToolContext
             return output
         except Exception as e:
             return f"[ERROR] Failed to run PoC in container: {str(e)}"
-    
-

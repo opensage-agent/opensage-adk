@@ -1,31 +1,35 @@
-import docker
-import time
 import io
-import tarfile
 import os
+import re
 import shutil
 import subprocess
-from collections import deque
-from secagentx.utils.parser import get_function_info
-from docker.errors import NotFound, APIError
-import re
+import tarfile
 import tempfile
-from typing import Dict, Any, Optional, Tuple
+import time
+from collections import deque
+from typing import Any, Dict, Optional, Tuple
+
+import docker
+from docker.errors import APIError, NotFound
+
 from secagentx.sandbox.base_sandbox import BaseSandbox
+from secagentx.utils.parser import get_function_info
 
 
 class NativeDockerSandbox(BaseSandbox):
     """Native Docker sandbox implementation using direct Docker API."""
-    
-    def __init__(self, 
-                 image_name: str, 
-                 compile_command: str, 
-                 run_command: str, 
-                 poc_dir: str,
-                 docker_config: Optional[Dict[str, Any]] = None):
+
+    def __init__(
+        self,
+        image_name: str,
+        compile_command: str,
+        run_command: str,
+        poc_dir: str,
+        docker_config: Optional[Dict[str, Any]] = None,
+    ):
         """
         Initialize NativeDockerSandbox.
-        
+
         Args:
             image_name: Docker image name to use
             compile_command: Command to compile the target
@@ -34,22 +38,18 @@ class NativeDockerSandbox(BaseSandbox):
             docker_config: Docker client configuration (default: empty dict)
         """
         super().__init__(image_name, compile_command, run_command, poc_dir)
-        
+
         # Initialize Docker client with configuration
         self.docker_config = docker_config or {}
         self.client = docker.from_env(timeout=self.docker_config.get('timeout', 300))
-        
+
         # Create and start container
         self.container_id = self._get_container()
-    
+
     def _get_container(self) -> str:
         """Create and start a new container from the specified image."""
         container = self.client.containers.run(
-            self.image_name, 
-            command="bash", 
-            stdin_open=True, 
-            tty=True, 
-            detach=True
+            self.image_name, command="bash", stdin_open=True, tty=True, detach=True
         )
         print(f"Container {container.id} started from image {self.image_name}")
         return container.id
@@ -129,11 +129,13 @@ class NativeDockerSandbox(BaseSandbox):
         mkdir_cmd = f"mkdir -p {dst_path}"
         exit_code, output = container.exec_run(mkdir_cmd)
         if exit_code != 0:
-            raise RuntimeError(f"Failed to create directory {dst_path} in container: {output.decode()}")
+            raise RuntimeError(
+                f"Failed to create directory {dst_path} in container: {output.decode()}"
+            )
 
         mem_tar = io.BytesIO()
         with tarfile.open(fileobj=mem_tar, mode='w') as tar:
-            tar.add(src_path, arcname="") 
+            tar.add(src_path, arcname="")
         mem_tar.seek(0)
 
         container.put_archive(dst_path, mem_tar.getvalue())
@@ -150,7 +152,9 @@ class NativeDockerSandbox(BaseSandbox):
         container = self.client.containers.get(self.container_id)
         workdir = self.get_work_dir()
         compile_command_with_cd = f"bash -c 'cd {workdir} && {self.compile_command}'"
-        exec_result = container.exec_run(compile_command_with_cd, stdout=True, stderr=True)
+        exec_result = container.exec_run(
+            compile_command_with_cd, stdout=True, stderr=True
+        )
         output = exec_result.output.decode()
         return output
 
@@ -216,16 +220,18 @@ class NativeDockerSandbox(BaseSandbox):
     def patch_search_replace(self, file: str, search: str, replace: str):
         """Replace all occurrences of 'search' with 'replace' in the specified file."""
         container = self.client.containers.get(self.container_id)
-        
+
         # Extract the file content from the container
         file_content = self.extract_file_from_container(file)
-        
+
         # Replace the search string with the replace string
         modified_content = file_content.replace(search, replace)
-        
+
         # Create a tar archive of the modified content
-        archive_data = self.create_tar_bytes(modified_content, arcname=file.split("/")[-1])
-        
+        archive_data = self.create_tar_bytes(
+            modified_content, arcname=file.split("/")[-1]
+        )
+
         # Copy the modified content back to the container
         destination_dir = "/".join(file.split("/")[:-1])
         if not destination_dir:
@@ -235,65 +241,85 @@ class NativeDockerSandbox(BaseSandbox):
     def patch_file_func(self, files_func_to_content: Dict[str, str], lang: str = "c"):
         """Replace a function in a file inside the container with new content."""
         container = self.client.containers.get(self.container_id)
-        
+
         for key, new_function_content in files_func_to_content.items():
             parts = key.split("__xx__")
             if len(parts) != 2:
-                print(f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'")
+                print(
+                    f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'"
+                )
                 continue
             filepath, function_name = parts
-            
+
             # Extract the file content from the container.
             file_content = self.extract_file_from_container(filepath)
-            
+
             # Use Tree-sitter to obtain function information from the file.
             functions = get_function_info(file_content, lang)
             if function_name not in functions:
-                print(f"Initial try, Function {function_name} not found in file {filepath}")
+                print(
+                    f"Initial try, Function {function_name} not found in file {filepath}"
+                )
                 print("Trying to do partial matching, the result may be inaccurate")
                 func_name = function_name.split("::")[-1]
                 if func_name in functions:
                     function_name = func_name
                 else:
                     print("Trying to do partial matching with looser rules")
-                    potential_funcs = [func for func in functions if func_name in func or func in func_name]
+                    potential_funcs = [
+                        func
+                        for func in functions
+                        if func_name in func or func in func_name
+                    ]
                     # get the distance between the function name and the potential function name
                     if potential_funcs:
                         potential_funcs.sort(key=lambda f: abs(len(f) - len(func_name)))
                         function_name = potential_funcs[0]
                     else:
-                        print(f"Function {function_name} finally not found in file {filepath}")
+                        print(
+                            f"Function {function_name} finally not found in file {filepath}"
+                        )
                         continue
-                
+
             # TODO: FIXME: if there are multiple functions with the same name, we need to find the one that matches the line number
             start_line, end_line = functions[function_name][0]
             start_index = start_line - 1
-            end_index = end_line  
-            
+            end_index = end_line
+
             # Replace
             file_lines = file_content.splitlines()
             new_function_lines = new_function_content.splitlines()
-            modified_lines = file_lines[:start_index] + new_function_lines + file_lines[end_index:]
+            modified_lines = (
+                file_lines[:start_index] + new_function_lines + file_lines[end_index:]
+            )
             modified_file_content = "\n".join(modified_lines)
-            
+
             # copy back
-            archive_data = self.create_tar_bytes(modified_file_content, arcname=filepath.split("/")[-1])
+            archive_data = self.create_tar_bytes(
+                modified_file_content, arcname=filepath.split("/")[-1]
+            )
             destination_dir = "/".join(filepath.split("/")[:-1])
             if not destination_dir:
                 destination_dir = "/"
             container.put_archive(destination_dir, archive_data)
-            print(f"Updated function {function_name} in file {filepath} in container {self.container_id}")
+            print(
+                f"Updated function {function_name} in file {filepath} in container {self.container_id}"
+            )
 
-    def get_function_content(self, key: str, lang: str = "c", line_in_func: int = -1) -> Tuple[str, int, int]:
+    def get_function_content(
+        self, key: str, lang: str = "c", line_in_func: int = -1
+    ) -> Tuple[str, int, int]:
         """Retrieve the content of a specific function from a file inside the container."""
         container = self.client.containers.get(self.container_id)
-        
+
         parts = key.split("__xx__")
         if len(parts) != 2:
-            print(f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'")
+            print(
+                f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'"
+            )
             return "", -1, -1
         filepath, function_name = parts
-        
+
         # Extract the file content from the container
         file_content = self.extract_file_from_container(filepath)
         # Use Tree-sitter to obtain function information from the file
@@ -314,12 +340,14 @@ class NativeDockerSandbox(BaseSandbox):
                     break
         else:
             start_line, end_line = functions[function_name][-1]
-        
+
         # Split the file content into lines and extract the function content
         file_lines = file_content.splitlines()
-        function_lines = file_lines[start_line - 1:end_line]  # convert 1-indexed to 0-indexed
+        function_lines = file_lines[
+            start_line - 1 : end_line
+        ]  # convert 1-indexed to 0-indexed
         function_content = "\n".join(function_lines)
-        
+
         return function_content, start_line, end_line
 
     def get_file_content(self, filepath: str) -> str:
@@ -333,7 +361,7 @@ class NativeDockerSandbox(BaseSandbox):
         exec_result = container.exec_run(full_command, stdout=True, stderr=True)
         output = exec_result.output.decode('latin-1')
         exit_code = exec_result.exit_code
-        
+
         return output, exit_code
 
     def get_work_dir(self) -> str:

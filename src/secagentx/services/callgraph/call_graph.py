@@ -2,21 +2,21 @@
 # decompress it and copy callgraph_queries to the codeql directory
 
 import argparse
-import os
+import csv
 import json
+import os
+import random
 import re
+import subprocess
 import sys
 import tempfile
-import pandas as pd
-import random
-import csv
-import subprocess
-from neomodel import db
 from collections import defaultdict, deque
-from pathlib import Path
-from typing import Dict, List, Set, Tuple, Optional
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
+
+import pandas as pd
+from neomodel import db
 
 from secagentx.sandbox import BaseSandbox, NativeDockerSandbox
 from secagentx.utils.project_info import PROJECT_PATH
@@ -43,10 +43,7 @@ def restart_neo4j() -> str:
 
     # run it
     result = subprocess.run(
-        ["bash", str(script)],
-        cwd=workdir,
-        capture_output=True,
-        text=True
+        ["bash", str(script)], cwd=workdir, capture_output=True, text=True
     )
     if result.returncode != 0:
         raise RuntimeError(
@@ -55,24 +52,24 @@ def restart_neo4j() -> str:
         )
     return result.stdout
 
-def create_sandbox_with_codeql_mount(codeql_dir: str, image_name: str) -> NativeDockerSandbox:
+
+def create_sandbox_with_codeql_mount(
+    codeql_dir: str, image_name: str
+) -> NativeDockerSandbox:
     """
     Create a NativeDockerSandbox with CodeQL directory mounted.
     Returns the configured sandbox.
     """
     import docker
-    
+
     # Define volume mappings
     volumes = {
         codeql_dir: {"bind": "/surfi/codeql", "mode": "rw"},
     }
-    
+
     # Create custom docker config with volumes
-    docker_config = {
-        "timeout": 300,
-        "volumes": volumes
-    }
-    
+    docker_config = {"timeout": 300, "volumes": volumes}
+
     # Create sandbox with mounted volumes
     # Note: We need to override the _get_container method to include volumes
     class CodeQLSandbox(NativeDockerSandbox):
@@ -84,20 +81,21 @@ def create_sandbox_with_codeql_mount(codeql_dir: str, image_name: str) -> Native
                 stdin_open=True,
                 tty=True,
                 detach=True,
-                volumes=self.docker_config.get("volumes", {})
+                volumes=self.docker_config.get("volumes", {}),
             )
             print(f"Container {container.id} started from image {self.image_name}")
             return container.id
-    
+
     sandbox = CodeQLSandbox(
         image_name=image_name,
         compile_command="",  # Will be set dynamically
-        run_command="",     # Not used in this context
-        poc_dir="/tmp",     # Not used in this context
-        docker_config=docker_config
+        run_command="",  # Not used in this context
+        poc_dir="/tmp",  # Not used in this context
+        docker_config=docker_config,
     )
-    
+
     return sandbox
+
 
 def load_expr_calls(expr_calls_path):
     """
@@ -105,15 +103,17 @@ def load_expr_calls(expr_calls_path):
     with args sorted by argIdx.
     """
     seen = set()  # Track unique rows to avoid duplicates
-    expr_calls_dict = defaultdict(lambda: {
-        "id": None,
-        "cid": None,
-        "caller_path": None,
-        "args": [],
-        "start_line": None,
-        "end_line": None,
-        "name": None
-    })
+    expr_calls_dict = defaultdict(
+        lambda: {
+            "id": None,
+            "cid": None,
+            "caller_path": None,
+            "args": [],
+            "start_line": None,
+            "end_line": None,
+            "name": None,
+        }
+    )
     # Temporarily store arguments for each cid by argIdx
     args_per_cid = defaultdict(dict)
 
@@ -146,6 +146,7 @@ def load_expr_calls(expr_calls_path):
 
     return list(expr_calls_dict.values())
 
+
 def load_fp_accesses(fp_accesses_path):
     """
     Parse fp_accesses.csv. Splits the param string into a list.
@@ -155,15 +156,20 @@ def load_fp_accesses(fp_accesses_path):
         reader = csv.DictReader(f)
         for row in reader:
             param = row.get("param", "").strip()
-            param_list = [p.strip() for p in param.split(",") if p.strip()] if param else []
-            fp_funcs.append({
-                "name": row["name"],
-                "callee_path": row.get("callee_path", ""),
-                "start_line": int(row.get("start_line", 0)),
-                "end_line": int(row.get("end_line", 0)),
-                "params": param_list,
-            })
+            param_list = (
+                [p.strip() for p in param.split(",") if p.strip()] if param else []
+            )
+            fp_funcs.append(
+                {
+                    "name": row["name"],
+                    "callee_path": row.get("callee_path", ""),
+                    "start_line": int(row.get("start_line", 0)),
+                    "end_line": int(row.get("end_line", 0)),
+                    "params": param_list,
+                }
+            )
     return fp_funcs
+
 
 def param_types(params):
     """
@@ -189,6 +195,7 @@ def param_types(params):
         res.append(typ)
     return res
 
+
 def match_edges(expr_calls, fp_funcs):
     """
     Match indirect function call edges between expr_calls and fp_funcs.
@@ -202,24 +209,27 @@ def match_edges(expr_calls, fp_funcs):
         for func in fp_funcs:
             func_types = param_types(func["params"])
             if call_types == func_types:
-                matched_edges.append({
-                    "caller_path": call["caller_path"],
-                    "caller_start": call["start_line"],
-                    "caller_end": call["end_line"],
-                    "caller_name": call["name"],
-                    "callee_name": func["name"],
-                    "callee_path": func["callee_path"],
-                    "callee_start": func["start_line"],
-                    "callee_end": func["end_line"],
-                    "call_loc": call["cid"],
-                    "direct": False
-                })
+                matched_edges.append(
+                    {
+                        "caller_path": call["caller_path"],
+                        "caller_start": call["start_line"],
+                        "caller_end": call["end_line"],
+                        "caller_name": call["name"],
+                        "callee_name": func["name"],
+                        "callee_path": func["callee_path"],
+                        "callee_start": func["start_line"],
+                        "callee_end": func["end_line"],
+                        "call_loc": call["cid"],
+                        "direct": False,
+                    }
+                )
     return matched_edges
+
 
 def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: str):
     """
     Generate and upload call graph using the specified sandbox.
-    
+
     Args:
         codeql_dir: Path to CodeQL installation directory
         image_name: Docker image name to use
@@ -228,7 +238,7 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
     sandbox = None
     try:
         sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name)
-        
+
         # Build CodeQL database with the specified build command
         build_codeql_database_command = (
             "/surfi/codeql/codeql database create /work/.surfi-codeql-database "
@@ -238,7 +248,7 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         res, exit_code = sandbox.run_command_in_container(build_codeql_database_command)
         if exit_code != 0:
             raise ValueError("Error creating codeql database")
-            
+
         # Run CodeQL query to get the call graph
         call_graph_command = (
             "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
@@ -247,13 +257,13 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         res, exit_code = sandbox.run_command_in_container(call_graph_command)
         if exit_code != 0:
             raise ValueError("Error creating call graph")
-            
+
         # Decode the call graph results
         decode_call_graph_command = (
             "/surfi/codeql/codeql bqrs decode /work/callgraph.bqrs "
             "--format=csv --output=/work/results.csv"
         )
-        
+
         # Construct call graph with indirect calls (determined by function signature)
         # step 1. find all function pointer accesses
         fp_command = (
@@ -263,7 +273,7 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         res, exit_code = sandbox.run_command_in_container(fp_command)
         if exit_code != 0:
             raise ValueError("Error finding function pointer accesses")
-            
+
         # Decode the function pointer accesses
         decode_fp_command = (
             "/surfi/codeql/codeql bqrs decode /work/fp_accesses.bqrs "
@@ -272,7 +282,7 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         res, exit_code = sandbox.run_command_in_container(decode_fp_command)
         if exit_code != 0:
             raise ValueError("Error decoding function pointer accesses")
-            
+
         # step 2. find all expr calls
         expr_command = (
             "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
@@ -281,7 +291,7 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         res, exit_code = sandbox.run_command_in_container(expr_command)
         if exit_code != 0:
             raise ValueError("Error finding expression calls")
-            
+
         # Decode the expression calls
         decode_expr_command = (
             "/surfi/codeql/codeql bqrs decode /work/expr_calls.bqrs "
@@ -290,28 +300,28 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         res, exit_code = sandbox.run_command_in_container(decode_expr_command)
         if exit_code != 0:
             raise ValueError("Error decoding expression calls")
-            
+
         # step 3. find all possible indirect calls
         res, exit_code = sandbox.run_command_in_container(decode_call_graph_command)
         if exit_code != 0:
             raise ValueError("Error decoding call graph")
-            
+
         with tempfile.TemporaryDirectory() as output_subdir:
             # Retrieve and process call graph file
             results_csv_path = os.path.join(output_subdir, "results.csv")
             sandbox.copy_file_from_container("/work/results.csv", results_csv_path)
-            
+
             expr_calls_path = os.path.join(output_subdir, "expr_calls.csv")
             sandbox.copy_file_from_container("/work/expr_calls.csv", expr_calls_path)
-            
+
             fp_accesses_path = os.path.join(output_subdir, "fp_accesses.csv")
             sandbox.copy_file_from_container("/work/fp_accesses.csv", fp_accesses_path)
-            
+
             # 1. Load the main call graph DataFrame
             df = pd.read_csv(results_csv_path, header=0)
             df["call_type"] = "direct"
 
-            # 2. Load expr_calls and fp_accesses 
+            # 2. Load expr_calls and fp_accesses
             expr_calls = load_expr_calls(expr_calls_path)
             fp_funcs = load_fp_accesses(fp_accesses_path)
             indirect_edges = match_edges(expr_calls, fp_funcs)
@@ -330,20 +340,22 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
 
                 # 4. Append the indirect edges to the main DataFrame
                 df = pd.concat([df, indirect_df], ignore_index=True)
-        
-        db.set_connection(f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}")
+
+        db.set_connection(
+            f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}"
+        )
         rows = df.to_dict("records")
         cypher = """
             UNWIND $rows AS row
 
             // 1. Merge caller and callee nodes
             MERGE (caller:Function { name: row.caller_name, path: row.caller_path })
-            ON CREATE SET 
+            ON CREATE SET
                 caller.start = toInteger(row.caller_start),
                 caller.end   = toInteger(row.caller_end)
 
             MERGE (callee:Function { name: row.callee_name, path: row.callee_path })
-            ON CREATE SET 
+            ON CREATE SET
                 callee.start = toInteger(row.callee_start),
                 callee.end   = toInteger(row.callee_end)
 
@@ -364,6 +376,7 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
     except Exception as e:
         print(f"[WARN] Failed to process: {e}")
         import traceback
+
         traceback.print_exc()
     finally:
         if sandbox:
@@ -377,10 +390,11 @@ def start_container(codeql_dir, image_name):
     Deprecated: Use create_sandbox_with_codeql_mount instead.
     """
     import warnings
+
     warnings.warn(
         "start_container is deprecated. Use create_sandbox_with_codeql_mount instead.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name)
     return sandbox.container_id

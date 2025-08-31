@@ -1,9 +1,14 @@
 import os
-from neomodel import db
+
 from google.adk.tools.tool_context import ToolContext
+from neomodel import db
+
 from secagentx.sandbox_manager import SandboxManager
 
-db.set_connection(f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}")
+db.set_connection(
+    f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}"
+)
+
 
 def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
     """
@@ -16,16 +21,16 @@ def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
     """
     query = """
     MATCH (f:Function { name: $function_name })
-    RETURN 
+    RETURN
         f.path AS path,
         f.start AS start,
         f.end   AS end
     """
     params = {"function_name": function_name}
     results, _ = db.cypher_query(query, params)
-    
+
     dict_result = {"result": []}
-    
+
     if not results:
         return dict_result
 
@@ -35,30 +40,33 @@ def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
         end = res[2]
         if not path or not start or not end:
             continue
-        
+
         try:
             # Get sandbox from SandboxManager
             session_id = tool_context._invocation_context.session.id
             sandbox = SandboxManager.get_sandbox(session_id)
-            
+
             # Read the file content from the container using sandbox
             file_content = sandbox.extract_file_from_container(path)
             # Extract the function code using the start and end lines
             lines = file_content.splitlines()
-            function_lines = lines[start-2:end]  # Adjust for 0-based index
+            function_lines = lines[start - 2 : end]  # Adjust for 0-based index
             function_code = "\n".join(function_lines)
-            
-            dict_result["result"].append({
-                "function_name": function_name,
-                "filepath": path,
-                "start_line": start,
-                "end_line": end,
-                "function_code": function_code
-            })
+
+            dict_result["result"].append(
+                {
+                    "function_name": function_name,
+                    "filepath": path,
+                    "start_line": start,
+                    "end_line": end,
+                    "function_code": function_code,
+                }
+            )
         except Exception as e:
             continue
 
     return dict_result
+
 
 def get_caller_by_funcname(function_name: str) -> dict:
     """
@@ -71,7 +79,7 @@ def get_caller_by_funcname(function_name: str) -> dict:
     """
     direct_query = """
     MATCH (f:Function { name: $function_name })<-[:DIRECT_CALLS]-(caller:Function)
-    RETURN 
+    RETURN
         caller.name AS caller_name,
         caller.path AS path,
         caller.start AS start,
@@ -84,17 +92,19 @@ def get_caller_by_funcname(function_name: str) -> dict:
 
     for row in results:
         if row[0]:
-            dict_result["result"].append({
-                "function_name": row[0],
-                "filepath": row[1],
-                "start_line": row[2],
-                "end_line": row[3],
-                "call_type": "direct"
-            })
+            dict_result["result"].append(
+                {
+                    "function_name": row[0],
+                    "filepath": row[1],
+                    "start_line": row[2],
+                    "end_line": row[3],
+                    "call_type": "direct",
+                }
+            )
 
     indirect_query = """
     MATCH (f:Function { name: $function_name })<-[:MAYBE_INDIRECT_CALLS]-(caller:Function)
-    RETURN 
+    RETURN
         caller.name AS caller_name,
         caller.path AS path,
         caller.start AS start,
@@ -104,15 +114,18 @@ def get_caller_by_funcname(function_name: str) -> dict:
 
     for row in results:
         if row[0]:
-            dict_result["result"].append({
-                "function_name": row[0],
-                "filepath": row[1],
-                "start_line": row[2],
-                "end_line": row[3],
-                "call_type": "maybe_indirect"
-            })
+            dict_result["result"].append(
+                {
+                    "function_name": row[0],
+                    "filepath": row[1],
+                    "start_line": row[2],
+                    "end_line": row[3],
+                    "call_type": "maybe_indirect",
+                }
+            )
 
     return dict_result
+
 
 def get_callee_by_funcname(function_name: str) -> dict:
     """
@@ -124,7 +137,7 @@ def get_callee_by_funcname(function_name: str) -> dict:
     """
     direct_query = """
     MATCH (f:Function { name: $function_name })-[:DIRECT_CALLS]->(callee:Function)
-    RETURN 
+    RETURN
         callee.name AS callee_name,
         callee.path AS path,
         callee.start AS start,
@@ -138,7 +151,7 @@ def get_callee_by_funcname(function_name: str) -> dict:
     # Direct callees
     direct_query = """
     MATCH (f:Function { name: $function_name })-[:DIRECT_CALLS]->(callee:Function)
-    RETURN 
+    RETURN
         callee.name AS callee_name,
         callee.path AS path,
         callee.start AS start,
@@ -147,18 +160,20 @@ def get_callee_by_funcname(function_name: str) -> dict:
     results, _ = db.cypher_query(direct_query, params)
     for row in results:
         if row[0]:
-            dict_result["result"].append({
-                "function_name": row[0],
-                "filepath": row[1],
-                "start_line": row[2],
-                "end_line": row[3],
-                "call_type": "direct"
-            })
+            dict_result["result"].append(
+                {
+                    "function_name": row[0],
+                    "filepath": row[1],
+                    "start_line": row[2],
+                    "end_line": row[3],
+                    "call_type": "direct",
+                }
+            )
 
     # Maybe indirect callees
     indirect_query = """
     MATCH (f:Function { name: $function_name })-[:MAYBE_INDIRECT_CALLS]->(callee:Function)
-    RETURN 
+    RETURN
         callee.name AS callee_name,
         callee.path AS path,
         callee.start AS start,
@@ -167,15 +182,18 @@ def get_callee_by_funcname(function_name: str) -> dict:
     results, _ = db.cypher_query(indirect_query, params)
     for row in results:
         if row[0]:
-            dict_result["result"].append({
-                "function_name": row[0],
-                "filepath": row[1],
-                "start_line": row[2],
-                "end_line": row[3],
-                "call_type": "maybe_indirect"
-            })
+            dict_result["result"].append(
+                {
+                    "function_name": row[0],
+                    "filepath": row[1],
+                    "start_line": row[2],
+                    "end_line": row[3],
+                    "call_type": "maybe_indirect",
+                }
+            )
 
     return dict_result
+
 
 def get_caller_by_funcname_and_filepath(function_name: str, filepath: str) -> dict:
     """
@@ -188,7 +206,7 @@ def get_caller_by_funcname_and_filepath(function_name: str, filepath: str) -> di
     """
     direct_query = """
     MATCH (f:Function { name: $function_name, path: $filepath })<-[:DIRECT_CALLS]-(caller:Function)
-    RETURN 
+    RETURN
         caller.name AS caller_name,
         caller.path AS path,
         caller.start AS start,
@@ -201,17 +219,19 @@ def get_caller_by_funcname_and_filepath(function_name: str, filepath: str) -> di
 
     for row in results:
         if row[0]:
-            dict_result["result"].append({
-                "function_name": row[0],
-                "filepath": row[1],
-                "start_line": row[2],
-                "end_line": row[3],
-                "call_type": "direct"
-            })
+            dict_result["result"].append(
+                {
+                    "function_name": row[0],
+                    "filepath": row[1],
+                    "start_line": row[2],
+                    "end_line": row[3],
+                    "call_type": "direct",
+                }
+            )
 
     indirect_query = """
     MATCH (f:Function { name: $function_name, path: $filepath })<-[:MAYBE_INDIRECT_CALLS]-(caller:Function)
-    RETURN 
+    RETURN
         caller.name AS caller_name,
         caller.path AS path,
         caller.start AS start,
@@ -222,13 +242,15 @@ def get_caller_by_funcname_and_filepath(function_name: str, filepath: str) -> di
 
     for row in results:
         if row[0]:
-            dict_result["result"].append({
-                "function_name": row[0],
-                "filepath": row[1],
-                "start_line": row[2],
-                "end_line": row[3],
-                "call_type": "maybe_indirect"
-            })
+            dict_result["result"].append(
+                {
+                    "function_name": row[0],
+                    "filepath": row[1],
+                    "start_line": row[2],
+                    "end_line": row[3],
+                    "call_type": "maybe_indirect",
+                }
+            )
 
     return dict_result
 
@@ -244,7 +266,7 @@ def get_callee_by_funcname_and_filepath(function_name: str, filepath: str) -> di
     """
     direct_query = """
     MATCH (f:Function { name: $function_name, path: $filepath })-[:DIRECT_CALLS]->(callee:Function)
-    RETURN 
+    RETURN
         callee.name AS callee_name,
         callee.path AS path,
         callee.start AS start,
@@ -257,17 +279,19 @@ def get_callee_by_funcname_and_filepath(function_name: str, filepath: str) -> di
 
     for row in results:
         if row[0]:
-            dict_result["result"].append({
-                "function_name": row[0],
-                "filepath": row[1],
-                "start_line": row[2],
-                "end_line": row[3],
-                "call_type": "direct"
-            })
+            dict_result["result"].append(
+                {
+                    "function_name": row[0],
+                    "filepath": row[1],
+                    "start_line": row[2],
+                    "end_line": row[3],
+                    "call_type": "direct",
+                }
+            )
 
     indirect_query = """
     MATCH (f:Function { name: $function_name, path: $filepath })-[:MAYBE_INDIRECT_CALLS]->(callee:Function)
-    RETURN 
+    RETURN
         callee.name AS callee_name,
         callee.path AS path,
         callee.start AS start,
@@ -278,18 +302,22 @@ def get_callee_by_funcname_and_filepath(function_name: str, filepath: str) -> di
 
     for row in results:
         if row[0]:
-            dict_result["result"].append({
-                "function_name": row[0],
-                "filepath": row[1],
-                "start_line": row[2],
-                "end_line": row[3],
-                "call_type": "maybe_indirect"
-            })
+            dict_result["result"].append(
+                {
+                    "function_name": row[0],
+                    "filepath": row[1],
+                    "start_line": row[2],
+                    "end_line": row[3],
+                    "call_type": "maybe_indirect",
+                }
+            )
 
     return dict_result
-    
 
-def get_shortest_paths_in_callgraph_to_function_in_file(function_name: str, filepath: str) -> dict:
+
+def get_shortest_paths_in_callgraph_to_function_in_file(
+    function_name: str, filepath: str
+) -> dict:
     """
     Tool to get the shortest paths from each fuzzing entrypoint (LLVMFuzzerTestOneInput)
     to a specified end function in the codebase.
@@ -313,7 +341,7 @@ def get_shortest_paths_in_callgraph_to_function_in_file(function_name: str, file
         (start)-[:DIRECT_CALLS|MAYBE_INDIRECT_CALLS*..10]->(end)
     )
     WHERE p IS NOT NULL
-    RETURN 
+    RETURN
       start.name AS start_name,
       [n IN nodes(p) | {
          name: n.name,
@@ -323,10 +351,7 @@ def get_shortest_paths_in_callgraph_to_function_in_file(function_name: str, file
       }] AS path_nodes
     ORDER BY start_name
     """
-    params = {
-        "function_name": function_name,
-        "filepath": filepath
-    }
+    params = {"function_name": function_name, "filepath": filepath}
     results, _ = db.cypher_query(query, params)
 
     dict_result = {"result": []}
@@ -339,22 +364,19 @@ def get_shortest_paths_in_callgraph_to_function_in_file(function_name: str, file
             "start_function": start_name,
             "target_function": function_name,
             "target_filepath": filepath,
-            "path_nodes": []
+            "path_nodes": [],
         }
-        
+
         for node in path_nodes:
-            path_info["path_nodes"].append({
-                "function_name": node['name'],
-                "filepath": node['path'],
-                "start_line": node['start'],
-                "end_line": node['end']
-            })
-        
+            path_info["path_nodes"].append(
+                {
+                    "function_name": node['name'],
+                    "filepath": node['path'],
+                    "start_line": node['start'],
+                    "end_line": node['end'],
+                }
+            )
+
         dict_result["result"].append(path_info)
 
     return dict_result
-
-
-
-
-

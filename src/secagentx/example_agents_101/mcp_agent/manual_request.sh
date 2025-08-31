@@ -1,4 +1,4 @@
-curl -sS -X POST "http://localhost:3001/message?sessionId=81f0e295-f405-47d7-be5b-ca24b01c4869" \ 
+curl -sS -X POST "http://localhost:3001/message?sessionId=81f0e295-f405-47d7-be5b-ca24b01c4869" \
   -H 'Content-Type: application/json' \
   -d '{
     "jsonrpc": "2.0",

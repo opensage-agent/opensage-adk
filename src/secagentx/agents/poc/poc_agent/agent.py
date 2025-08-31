@@ -1,20 +1,20 @@
+import importlib
+import logging
 import os
 from typing import Optional
+
+from dotenv import load_dotenv
 from google.adk.agents.llm_agent import ToolUnion
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.tools.function_tool import FunctionTool
+
+from secagentx.extended_features.function_composer import combined_for, combined_one
+from secagentx.extended_features.reward_logger import RewardLogger
 from secagentx.extended_features.sec_agent import SecAgent
 from secagentx.extended_features.tool_combo_manager import ToolCombo
-from secagentx.extended_features.reward_logger import RewardLogger
-from google.adk.tools.function_tool import FunctionTool
-from google.adk.models.lite_llm import LiteLlm
-from dotenv import load_dotenv
-import logging
-
-from secagentx.toolbox.retrieval.search_tools import *
 from secagentx.services.callgraph.call_graph import *
+from secagentx.toolbox.retrieval.search_tools import *
 from secagentx.toolbox.static_analysis.call_graph import *
-from secagentx.extended_features.function_composer import combined_for, combined_one
-import importlib
-
 
 target_type = os.getenv("TARGET_TYPE", "default")
 if target_type != "default":
@@ -28,7 +28,7 @@ os.environ["OTEL_SDK_DISABLED"] = "true"
 # Suppress OpenTelemetry warnings
 logging.getLogger("opentelemetry").setLevel(logging.ERROR)
 
-load_dotenv() 
+load_dotenv()
 
 CODEQL_DIR = os.getenv("CODEQL_DIR")
 if not CODEQL_DIR:
@@ -64,8 +64,13 @@ search_callee_combo = ToolCombo(
 )
 
 # Create combined tool using function_composer
-get_callee_search_combined = combined_for(get_callee_by_funcname, search_function, "get_callee_and_search")
-get_caller_search_combined = combined_one(get_caller_by_funcname, search_function, "get_caller_and_search")
+get_callee_search_combined = combined_for(
+    get_callee_by_funcname, search_function, "get_callee_and_search"
+)
+get_caller_search_combined = combined_one(
+    get_caller_by_funcname, search_function, "get_caller_and_search"
+)
+
 
 def sanitizer_reward_function(tool_response: dict, message: Optional[str]) -> float:
     """
@@ -76,6 +81,7 @@ def sanitizer_reward_function(tool_response: dict, message: Optional[str]) -> fl
     if "sanitizer" in result_str:
         return 1.0
     return 0.0
+
 
 def final_result_reward_function(agent_result: dict, message: Optional[str]) -> float:
     """
@@ -88,7 +94,7 @@ def final_result_reward_function(agent_result: dict, message: Optional[str]) -> 
     response_text = agent_result.get("response", "")
     if not response_text:
         return -1.0
-    
+
     response_str = str(response_text)
     if "<final_result>Crashed!</final_result>" in response_str:
         return 1.0
@@ -97,14 +103,13 @@ def final_result_reward_function(agent_result: dict, message: Optional[str]) -> 
     else:
         return -1.0
 
+
 poc_reward_logger = RewardLogger(
-    reward_function=sanitizer_reward_function,
-    tool_name="run_poc"
+    reward_function=sanitizer_reward_function, tool_name="run_poc"
 )
 
 final_result_reward_logger = RewardLogger(
-    reward_function=final_result_reward_function,
-    agent_name="poc_generation_agent"
+    reward_function=final_result_reward_function, agent_name="poc_generation_agent"
 )
 
 root_agent = SecAgent(
@@ -116,7 +121,18 @@ root_agent = SecAgent(
     You need to generate a script that can be run in the container with the command `python3 poc.py`. The script should be wrapped in <poc> tags and a ```python … ``` fence. Before reporting the script, ensure that it can trigger the vulnerability by running it in the container calling `run_poc(poc_script)`. If it does not work, loop until you find a working PoC script.
     If you have found a working PoC script, you can stop the loop and report the script, and say <final_result>Crashed!<final_result>, you should stop and say <final_result>NoCrash!<final_result> after calling 3 run_poc.
     """,
-    tools=[run_poc_from_script, grep_tool, search_function, get_caller_by_funcname, get_callee_by_funcname, get_shortest_paths_in_callgraph_to_function_in_file, list_functions_in_file, get_line_around_linenum_in_file, get_callee_search_combined, get_caller_search_combined],
+    tools=[
+        run_poc_from_script,
+        grep_tool,
+        search_function,
+        get_caller_by_funcname,
+        get_callee_by_funcname,
+        get_shortest_paths_in_callgraph_to_function_in_file,
+        list_functions_in_file,
+        get_line_around_linenum_in_file,
+        get_callee_search_combined,
+        get_caller_search_combined,
+    ],
     tool_combos=[search_caller_combo, search_callee_combo],
-    reward_loggers=[poc_reward_logger, final_result_reward_logger]
+    reward_loggers=[poc_reward_logger, final_result_reward_logger],
 )

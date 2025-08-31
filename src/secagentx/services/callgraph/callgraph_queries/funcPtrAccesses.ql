@@ -7,7 +7,7 @@ boolean isGlobal(FunctionAccess fa) {
 }
 
 string enclosingVar(FunctionAccess fa){
-  exists(Variable v | fa.getEnclosingVariable() = v and result = v.getLocation().toString()) 
+  exists(Variable v | fa.getEnclosingVariable() = v and result = v.getLocation().toString())
   or
   not exists(Variable v | fa.getEnclosingVariable() = v) and result = ""
 }

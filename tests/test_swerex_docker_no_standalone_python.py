@@ -20,12 +20,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import pytest
 from contextlib import suppress
 
+import pytest
 from swerex.deployment.config import DockerDeploymentConfig
 from swerex.deployment.docker import DockerDeployment
-from swerex.runtime.abstract import CreateBashSessionRequest, BashAction
+from swerex.runtime.abstract import BashAction, CreateBashSessionRequest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -50,7 +50,7 @@ async def docker_deployment():
     )
 
     deployment = DockerDeployment.from_config(config)
-    
+
     try:
         await deployment.start()
         alive = await deployment.is_alive()
@@ -65,37 +65,34 @@ async def docker_deployment():
 async def test_arvo_sanitizer_error(docker_deployment):
     """Test that running arvo triggers AddressSanitizer error."""
     deployment = docker_deployment
-    
+
     # Get the runtime from deployment
     runtime = deployment._runtime
     assert runtime is not None, "Runtime is not available"
-    
+
     # Create a bash session (uses default session name)
     session_req = CreateBashSessionRequest()
     await runtime.create_session(session_req)
     print("Created bash session")
-    
+
     # Run arvo command using default session
     print(f"\n>>> Executing: arvo")
-    action = BashAction(
-        command="arvo",
-        timeout=30.0,
-        check="silent"
-    )
+    action = BashAction(command="arvo", timeout=30.0, check="silent")
     result = await runtime.run_in_session(action)
     # Assert that MemorySanitizer error appears in output
-    assert "MemorySanitizer: use-of-uninitialized-value" in result.output, \
-        f"Expected MemorySanitizer error not found in output. Output: {result.output}"
-    
+    assert (
+        "MemorySanitizer: use-of-uninitialized-value" in result.output
+    ), f"Expected MemorySanitizer error not found in output. Output: {result.output}"
+
     # Print the output for debugging
     if result.output:
         print(f"Output:\n{result.output}")
     if result.exit_code is not None:
         print(f"Exit code: {result.exit_code}")
-    
+
     print("MemorySanitizer error detected as expected!")
 
 
 if __name__ == "__main__":
     # Allow running the test directly for debugging
-    pytest.main([__file__, "-v"]) 
+    pytest.main([__file__, "-v"])

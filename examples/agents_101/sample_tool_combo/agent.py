@@ -16,8 +16,8 @@ import os
 from typing import Dict, Any
 from google.adk.tools.function_tool import FunctionTool
 from google.adk.models.lite_llm import LiteLlm
-from secagentx.extended_features.sec_agent import SecAgent
-from secagentx.extended_features.tool_combo_manager import ToolCombo
+from aigise.extended_features.sec_agent import SecAgent
+from aigise.extended_features.tool_combo_manager import ToolCombo
 from dotenv import load_dotenv
 
 # Disable OpenTelemetry to avoid context management issues

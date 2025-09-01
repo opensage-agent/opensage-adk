@@ -15,7 +15,7 @@ from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
 from .agent_registry import AgentRegistry, get_agent_registry
 
-logger = logging.getLogger('secagentx.extended_features.' + __name__)
+logger = logging.getLogger('aigise.extended_features.' + __name__)
 
 
 class AgentStatus(Enum):

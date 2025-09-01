@@ -9,7 +9,7 @@ from google.adk.tools.tool_context import ToolContext
 from .dynamic_agent_manager import get_dynamic_agent_manager, AgentStatus
 from .agent_registry import get_agent_registry
 
-logger = logging.getLogger('secagentx.extended_features.' + __name__)
+logger = logging.getLogger('aigise.extended_features.' + __name__)
 
 
 class CreateAgentTool(BaseTool):

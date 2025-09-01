@@ -16,8 +16,8 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 from google.adk.tools.function_tool import FunctionTool
 from google.adk.models.lite_llm import LiteLlm
-from secagentx.extended_features.sec_agent import SecAgent
-from secagentx.extended_features.reward_logger import RewardLogger
+from aigise.extended_features.sec_agent import SecAgent
+from aigise.extended_features.reward_logger import RewardLogger
 from dotenv import load_dotenv
 
 # Disable OpenTelemetry to avoid context management issues

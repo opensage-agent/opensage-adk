@@ -18,7 +18,7 @@ from aigise.toolbox.static_analysis.call_graph import *
 
 target_type = os.getenv("TARGET_TYPE", "default")
 if target_type != "default":
-    module_path = f"secagentx.toolbox.build.{target_type}.compile_and_run"
+    module_path = f"aigise.toolbox.build_utils.{target_type}.compile_and_run"
     mod = importlib.import_module(module_path)
     run_poc_from_script = getattr(mod, "run_poc_from_script")
 
@@ -40,12 +40,12 @@ if not IMAGE_NAME:
 
 MODEL_NAME = os.getenv("MODEL_NAME", "anthropic/claude-sonnet-4-20250514")
 
-restart_neo4j()
-get_and_upload_call_graph(
-    codeql_dir=CODEQL_DIR,
-    image_name=IMAGE_NAME,
-    build_command=os.getenv("COMPILE_COMMAND"),
-)
+# restart_neo4j()
+# get_and_upload_call_graph(
+#     codeql_dir=CODEQL_DIR,
+#     image_name=IMAGE_NAME,
+#     build_command=os.getenv("COMPILE_COMMAND"),
+# )
 
 
 root_agent = SecAgent(

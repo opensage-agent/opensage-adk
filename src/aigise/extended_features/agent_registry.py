@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
 
-logger = logging.getLogger('secagentx.extended_features.' + __name__)
+logger = logging.getLogger('aigise.extended_features.' + __name__)
 
 # Type aliases
 AgentFactory = Callable[..., BaseAgent]

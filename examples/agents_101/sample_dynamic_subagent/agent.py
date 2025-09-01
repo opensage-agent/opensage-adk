@@ -1,7 +1,7 @@
-from secagentx.extended_features.sec_agent import SecAgent
+from aigise.extended_features.sec_agent import SecAgent
 from google.adk.models.lite_llm import LiteLlm
-from secagentx.extended_features import get_dynamic_agent_manager, AgentStatus
-from secagentx.toolbox.general.dynamic_subagent import create_subagent, list_active_agents, call_subagent_as_tool
+from aigise.extended_features import get_dynamic_agent_manager, AgentStatus
+from aigise.toolbox.general.dynamic_subagent import create_subagent, list_active_agents, call_subagent_as_tool
 from typing import Dict, Any, Optional, List
 from google.adk.runners import Runner
 from google.adk.memory.in_memory_memory_service import InMemoryMemoryService

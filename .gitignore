@@ -6,6 +6,7 @@
 *codeqldb*
 **/.logs/
 **/playground/
+.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

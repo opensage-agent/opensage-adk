@@ -1,6 +1,6 @@
-# SecAgentFramework Examples 101
+# AIgiSE Examples 101
 
-Examples demonstrating key SecAgentFramework features.
+Examples demonstrating key AIgiSE features.
 
 ## Examples
 
@@ -42,9 +42,3 @@ Custom MCP server integration.
 **Run**:
 - Terminal 1: `python my_mcp_server.py`
 - Terminal 2: `adk web`
-
-## Quick Start
-```bash
-cd SecAgentFramework/example_agents_101/<example_name>
-# Follow the Run instructions above
-```

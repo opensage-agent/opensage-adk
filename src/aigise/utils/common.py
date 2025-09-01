@@ -1,3 +1,6 @@
+import os
+
+
 def _slice_body(file_content: str, start: int, end: int) -> str:
     """
     Return the source lines [start, end] (1-based, inclusive) from `file_content`.

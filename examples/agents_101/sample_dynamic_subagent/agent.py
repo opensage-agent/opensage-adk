@@ -119,6 +119,8 @@ root_agent = SecAgent(
     2. Managing and coordinating multiple math agents with different capabilities
     3. Delegating math tasks to appropriate sub-agents and executing calculations
     4. Aggregating results from multiple calculations
+
+    You should not calculate the result yourself, you should delegate the calculation to the sub-agents. If a sub-agent cannot perform the calculation, you should create a new sub-agent with the appropriate tools and instructions.
     
     When you receive a math request:
     1. Determine if you need to create a new specialized math agent
@@ -127,13 +129,6 @@ root_agent = SecAgent(
     4. Coordinate complex multi-step calculations
     5. Provide comprehensive mathematical results
     
-    Available math tools:
-    - add: For addition operations
-    - subtract: For subtraction operations  
-    - multiply: For multiplication operations
-    - divide: For division operations
-    
-    Each sub-agent can be created with any combination of these tools and custom instructions.
     Use the available tools to create and manage math agents dynamically based on specific needs.
     """,
     description="Root math agent that dynamically creates and manages specialized math sub-agents for calculations.",

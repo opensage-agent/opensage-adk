@@ -1,7 +1,3 @@
-import os
+from pathlib import Path
 
-PROJECT_PATH = os.path.realpath(
-    os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    )
-)
+PROJECT_PATH = Path(__file__).parents[3].resolve()

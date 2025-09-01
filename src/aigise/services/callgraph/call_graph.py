@@ -28,7 +28,7 @@ def restart_neo4j() -> str:
     Raises RuntimeError on non-zero exit.
     """
     script = (
-        Path(PROJECT_PATH)
+        PROJECT_PATH
         / "src"
         / "secagentx"
         / "services"

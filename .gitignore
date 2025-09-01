@@ -1,3 +1,6 @@
+/out/
+/tmp/
+
 .run
 .DS_Store
 *codeqldb*

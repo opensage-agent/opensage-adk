@@ -1,0 +1,7 @@
+#!/bin/bash -eu
+
+# Check whether libstdc++-dev is installed
+if ! dpkg -l | grep -q libstdc++.*-dev; then
+    echo "[*] libstdc++-dev is not installed. Installing..."
+    apt update && apt install -y build-essential
+fi

@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, Union
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
 
-logger = logging.getLogger('aigise.extended_features.' + __name__)
+logger = logging.getLogger("aigise.extended_features." + __name__)
 
 # Type aliases
 AgentFactory = Callable[..., BaseAgent]
@@ -52,24 +52,24 @@ class LlmAgentBuilder(AgentBuilder):
             raise ValueError(f"Missing required parameters: {missing}")
 
         # Auto-wrap string models with LiteLlm
-        if 'model' in params and isinstance(params['model'], str):
+        if "model" in params and isinstance(params["model"], str):
             from google.adk.models.lite_llm import LiteLlm
 
-            params['model'] = LiteLlm(model=params['model'])
+            params["model"] = LiteLlm(model=params["model"])
 
         return LlmAgent(**params)
 
     def get_required_params(self) -> List[str]:
         """Get required parameters for LLM agent."""
-        return ['name', 'model']
+        return ["name", "model"]
 
     def get_optional_params(self) -> Dict[str, Any]:
         """Get optional parameters with defaults."""
         return {
-            'description': '',
-            'instruction': '',
-            'tools': [],
-            'sub_agents': [],
+            "description": "",
+            "instruction": "",
+            "tools": [],
+            "sub_agents": [],
         }
 
 
@@ -94,7 +94,7 @@ class CustomAgentBuilder(AgentBuilder):
         return [
             name
             for name, field in model_fields.items()
-            if field.is_required() and name != 'parent_agent'
+            if field.is_required() and name != "parent_agent"
         ]
 
     def get_optional_params(self) -> Dict[str, Any]:
@@ -116,7 +116,7 @@ class AgentRegistry:
         self._instances: Dict[str, BaseAgent] = {}
 
         # Register default builders
-        self.register_builder('llm_agent', LlmAgentBuilder())
+        self.register_builder("llm_agent", LlmAgentBuilder())
 
     def register_builder(self, name: str, builder: AgentBuilder) -> None:
         """Register an agent builder."""
@@ -169,11 +169,11 @@ class AgentRegistry:
             )
 
         template = self._templates[template_name]
-        builder_name = template.get('builder', 'llm_agent')
+        builder_name = template.get("builder", "llm_agent")
 
         # Merge template with kwargs
         params = {**template, **kwargs}
-        params.pop('builder', None)  # Remove builder key from params
+        params.pop("builder", None)  # Remove builder key from params
 
         return self.create_agent(builder_name, instance_name, **params)
 
@@ -200,9 +200,9 @@ class AgentRegistry:
 
         builder = self._builders[builder_name]
         return {
-            'name': builder_name,
-            'required_params': builder.get_required_params(),
-            'optional_params': builder.get_optional_params(),
+            "name": builder_name,
+            "required_params": builder.get_required_params(),
+            "optional_params": builder.get_optional_params(),
         }
 
     def clone_agent(self, instance_name: str, new_name: str, **updates) -> BaseAgent:

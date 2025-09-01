@@ -16,7 +16,7 @@ root_agent = LlmAgent(
         MCPToolset(
             connection_params=StdioConnectionParams(
                 server_params=StdioServerParameters(
-                    command='npx',
+                    command="npx",
                     args=[
                         "-y",
                         "@modelcontextprotocol/server-filesystem",

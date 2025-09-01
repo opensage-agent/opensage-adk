@@ -103,9 +103,9 @@ async def list_active_agents() -> Dict[str, Any]:
                 tool_names = []
                 if agent_instance and agent_instance.tools:
                     tool_names = [
-                        tool.__name__.replace('_numbers', '')
+                        tool.__name__.replace("_numbers", "")
                         for tool in agent_instance.tools
-                        if hasattr(tool, '__name__')
+                        if hasattr(tool, "__name__")
                     ]
 
                 active_agents.append(
@@ -117,7 +117,7 @@ async def list_active_agents() -> Dict[str, Any]:
                         "description": agent_metadata.description,
                         "tools": tool_names,
                         "model": agent_metadata.config.get(
-                            'model', 'anthropic/claude-sonnet-4-20250514'
+                            "model", "anthropic/claude-sonnet-4-20250514"
                         ),
                     }
                 )
@@ -178,7 +178,7 @@ async def call_subagent_as_tool(agent_name: str, task_message: str) -> Dict[str,
 
         # Create user content in proper format
         content = types.Content(
-            role='user', parts=[types.Part.from_text(text=task_message)]
+            role="user", parts=[types.Part.from_text(text=task_message)]
         )
 
         # Create Runner with proper services
@@ -191,7 +191,7 @@ async def call_subagent_as_tool(agent_name: str, task_message: str) -> Dict[str,
 
         # Create session
         session = await runner.session_service.create_session(
-            app_name=agent_instance.name, user_id='math_root_agent', state={}
+            app_name=agent_instance.name, user_id="math_root_agent", state={}
         )
 
         # Execute sub-agent using Runner
@@ -203,9 +203,9 @@ async def call_subagent_as_tool(agent_name: str, task_message: str) -> Dict[str,
 
         # Extract result
         if not last_event or not last_event.content or not last_event.content.parts:
-            final_response = ''
+            final_response = ""
         else:
-            final_response = '\n'.join(
+            final_response = "\n".join(
                 p.text for p in last_event.content.parts if p.text
             )
 

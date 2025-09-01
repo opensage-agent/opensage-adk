@@ -10,7 +10,7 @@ from google.adk.tools.tool_context import ToolContext
 from .agent_registry import get_agent_registry
 from .dynamic_agent_manager import AgentStatus, get_dynamic_agent_manager
 
-logger = logging.getLogger('aigise.extended_features.' + __name__)
+logger = logging.getLogger("aigise.extended_features." + __name__)
 
 
 class CreateAgentTool(BaseTool):
@@ -85,7 +85,7 @@ class CreateAgentTool(BaseTool):
                     }
 
             # Get creator from context
-            creator = getattr(tool_context, 'user_id', None) or "system"
+            creator = getattr(tool_context, "user_id", None) or "system"
 
             # Create the agent
             agent_id, agent = await manager.create_agent(
@@ -177,7 +177,7 @@ class CloneAgentTool(BaseTool):
                     }
 
             # Get creator from context
-            creator = getattr(tool_context, 'user_id', None) or "system"
+            creator = getattr(tool_context, "user_id", None) or "system"
 
             # Clone the agent
             new_agent_id, new_agent = await manager.clone_agent(
@@ -329,7 +329,7 @@ class GetAgentInfoTool(BaseTool):
             if agent:
                 agent_info["current_tools"] = (
                     [tool.name for tool in agent.tools]
-                    if hasattr(agent, 'tools')
+                    if hasattr(agent, "tools")
                     else []
                 )
                 agent_info["sub_agents"] = (

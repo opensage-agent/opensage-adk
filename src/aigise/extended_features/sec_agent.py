@@ -34,12 +34,12 @@ class SecAgent(LlmAgent):
             sub_agents_str = "\n".join(
                 [f"{agent.name}: {agent.description}" for agent in sub_agents]
             )
-            kwargs[
-                "instruction"
-            ] += f"\n\nYou have the following sub-agents: \n{sub_agents_str}"
-            kwargs[
-                "instruction"
-            ] += f"\n\nDelegate the task to the sub-agents if necessary."
+            kwargs["instruction"] += (
+                f"\n\nYou have the following sub-agents: \n{sub_agents_str}"
+            )
+            kwargs["instruction"] += (
+                f"\n\nDelegate the task to the sub-agents if necessary."
+            )
         kwargs["tools"] = tools
 
         # Initialize the parent class first

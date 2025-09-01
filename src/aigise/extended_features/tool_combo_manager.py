@@ -104,7 +104,7 @@ class ToolCombo:
 
         # Get tool name for better instruction
         tool_name = (
-            getattr(tool, 'name', str(tool)) if hasattr(tool, 'name') else f"tool_{idx}"
+            getattr(tool, "name", str(tool)) if hasattr(tool, "name") else f"tool_{idx}"
         )
 
         # Build sequence overview
@@ -147,7 +147,7 @@ class ToolCombo:
             return "unknown"
         tool = self.tool_sequences[idx]
         return (
-            getattr(tool, 'name', str(tool)) if hasattr(tool, 'name') else f"tool_{idx}"
+            getattr(tool, "name", str(tool)) if hasattr(tool, "name") else f"tool_{idx}"
         )
 
     def _build_sequence_overview(self) -> str:

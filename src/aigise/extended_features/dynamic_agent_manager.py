@@ -16,7 +16,7 @@ from google.adk.agents.llm_agent import LlmAgent
 
 from .agent_registry import AgentRegistry, get_agent_registry
 
-logger = logging.getLogger('aigise.extended_features.' + __name__)
+logger = logging.getLogger("aigise.extended_features." + __name__)
 
 
 class AgentStatus(Enum):
@@ -117,20 +117,20 @@ class DynamicAgentManager:
 
         try:
             # Extract basic config
-            agent_type = config.get('type', 'llm_agent')
-            agent_name = config.get('name', f"agent_{agent_id[:8]}")
+            agent_type = config.get("type", "llm_agent")
+            agent_name = config.get("name", f"agent_{agent_id[:8]}")
 
             # Create agent using registry
-            if 'template' in config:
-                template_name = config['template']
+            if "template" in config:
+                template_name = config["template"]
                 agent_config = {
-                    k: v for k, v in config.items() if k not in ['type', 'template']
+                    k: v for k, v in config.items() if k not in ["type", "template"]
                 }
                 agent = self.registry.create_from_template(
                     template_name, **agent_config
                 )
             else:
-                agent_config = {k: v for k, v in config.items() if k != 'type'}
+                agent_config = {k: v for k, v in config.items() if k != "type"}
                 agent = self.registry.create_agent(agent_type, **agent_config)
 
             # Create metadata
@@ -142,7 +142,7 @@ class DynamicAgentManager:
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
                 creator=creator,
-                description=config.get('description'),
+                description=config.get("description"),
                 config=config,
             )
 
@@ -171,8 +171,8 @@ class DynamicAgentManager:
             if agent_id not in self._metadata:
                 error_metadata = AgentMetadata(
                     id=agent_id,
-                    name=config.get('name', f"agent_{agent_id[:8]}"),
-                    type=config.get('type', 'llm_agent'),
+                    name=config.get("name", f"agent_{agent_id[:8]}"),
+                    type=config.get("type", "llm_agent"),
                     status=AgentStatus.ERROR,
                     created_at=datetime.now(),
                     updated_at=datetime.now(),
@@ -220,8 +220,8 @@ class DynamicAgentManager:
 
         # Prepare updates
         clone_updates = updates or {}
-        if 'name' not in clone_updates:
-            clone_updates['name'] = new_name
+        if "name" not in clone_updates:
+            clone_updates["name"] = new_name
 
         # Clone the agent
         cloned_agent = source_agent.clone(update=clone_updates)
@@ -232,13 +232,13 @@ class DynamicAgentManager:
 
         metadata = AgentMetadata(
             id=new_id,
-            name=clone_updates.get('name', new_name),
+            name=clone_updates.get("name", new_name),
             type=source_metadata.type,
             status=AgentStatus.CREATED,
             created_at=datetime.now(),
             updated_at=datetime.now(),
             creator=creator,
-            description=clone_updates.get('description', source_metadata.description),
+            description=clone_updates.get("description", source_metadata.description),
             config=new_config,
             parent_id=source_id,
         )
@@ -356,12 +356,12 @@ class DynamicAgentManager:
         metadata_dict = asdict(metadata)
 
         # Convert datetime objects to ISO strings
-        metadata_dict['created_at'] = metadata.created_at.isoformat()
-        metadata_dict['updated_at'] = metadata.updated_at.isoformat()
-        metadata_dict['status'] = metadata.status.value
+        metadata_dict["created_at"] = metadata.created_at.isoformat()
+        metadata_dict["updated_at"] = metadata.updated_at.isoformat()
+        metadata_dict["status"] = metadata.status.value
 
         metadata_file = self.storage_path / f"{agent_id}_metadata.json"
-        with open(metadata_file, 'w') as f:
+        with open(metadata_file, "w") as f:
             json.dump(metadata_dict, f, indent=2)
 
     def _load_persisted_agents(self) -> None:
@@ -371,37 +371,37 @@ class DynamicAgentManager:
 
         for metadata_file in self.storage_path.glob("*_metadata.json"):
             try:
-                with open(metadata_file, 'r') as f:
+                with open(metadata_file, "r") as f:
                     metadata_dict = json.load(f)
 
                 # Convert back to proper types
-                metadata_dict['created_at'] = datetime.fromisoformat(
-                    metadata_dict['created_at']
+                metadata_dict["created_at"] = datetime.fromisoformat(
+                    metadata_dict["created_at"]
                 )
-                metadata_dict['updated_at'] = datetime.fromisoformat(
-                    metadata_dict['updated_at']
+                metadata_dict["updated_at"] = datetime.fromisoformat(
+                    metadata_dict["updated_at"]
                 )
-                metadata_dict['status'] = AgentStatus(metadata_dict['status'])
+                metadata_dict["status"] = AgentStatus(metadata_dict["status"])
 
                 metadata = AgentMetadata(**metadata_dict)
 
                 # Try to recreate the agent if it's not in error state
                 if metadata.status != AgentStatus.ERROR and metadata.config:
                     try:
-                        agent_type = metadata.config.get('type', 'llm_agent')
-                        if 'template' in metadata.config:
-                            template_name = metadata.config['template']
+                        agent_type = metadata.config.get("type", "llm_agent")
+                        if "template" in metadata.config:
+                            template_name = metadata.config["template"]
                             agent_config = {
                                 k: v
                                 for k, v in metadata.config.items()
-                                if k not in ['type', 'template']
+                                if k not in ["type", "template"]
                             }
                             agent = self.registry.create_from_template(
                                 template_name, **agent_config
                             )
                         else:
                             agent_config = {
-                                k: v for k, v in metadata.config.items() if k != 'type'
+                                k: v for k, v in metadata.config.items() if k != "type"
                             }
                             agent = self.registry.create_agent(
                                 agent_type, **agent_config

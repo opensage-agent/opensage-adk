@@ -52,7 +52,7 @@ class RewardLogger:
         self.log_dir = log_dir
 
         # Get reward function name automatically
-        if hasattr(reward_function, '__name__'):
+        if hasattr(reward_function, "__name__"):
             self.reward_function_name = reward_function.__name__
         else:
             self.reward_function_name = str(reward_function)

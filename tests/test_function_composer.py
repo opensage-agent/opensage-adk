@@ -56,7 +56,7 @@ def helper_function_c(filepath: str) -> dict:
     """
     return {
         "processed_file": filepath,
-        "file_type": filepath.split('.')[-1] if '.' in filepath else "unknown",
+        "file_type": filepath.split(".")[-1] if "." in filepath else "unknown",
         "status": "success",
     }
 
@@ -84,9 +84,9 @@ def test_combined_for_functionality():
 
     # Check the processed result
     processed = first_result["result"]
-    assert (
-        processed["processed_function"] == "aa"
-    ), "Should process function name correctly"
+    assert processed["processed_function"] == "aa", (
+        "Should process function name correctly"
+    )
     assert processed["status"] == "success", "Should have success status"
 
     # Test with function_c
@@ -96,9 +96,9 @@ def test_combined_for_functionality():
     assert len(result_2["result"]) == 3, "Should process all 3 elements with function_c"
     first_result_c = result_2["result"][0]
     processed_c = first_result_c["result"]
-    assert (
-        processed_c["processed_file"] == "/path/to/aa.py"
-    ), "Should process filepath correctly"
+    assert processed_c["processed_file"] == "/path/to/aa.py", (
+        "Should process filepath correctly"
+    )
 
 
 def test_combined_one_functionality():
@@ -116,9 +116,9 @@ def test_combined_one_functionality():
 
     # Check that only first element was processed
     processed = result["result"]
-    assert (
-        processed["processed_function"] == "aa"
-    ), "Should process first function name only"
+    assert processed["processed_function"] == "aa", (
+        "Should process first function name only"
+    )
     assert processed["status"] == "success", "Should have success status"
     assert processed["length"] == 2, "Should correctly calculate length of 'aa'"
 
@@ -127,9 +127,9 @@ def test_combined_one_functionality():
     result_2 = combined_ac_one.func("test query")
 
     processed_c = result_2["result"]
-    assert (
-        processed_c["processed_file"] == "/path/to/aa.py"
-    ), "Should process first filepath only"
+    assert processed_c["processed_file"] == "/path/to/aa.py", (
+        "Should process first filepath only"
+    )
     assert processed_c["file_type"] == "py", "Should correctly extract file type"
 
 
@@ -170,9 +170,9 @@ def test_chaining_capability():
     assert "result" in first_result, "Should contain processing result"
 
     final_result = first_result["result"]
-    assert (
-        final_result["final_result"] == "Final processing of aa"
-    ), "Should chain processing correctly"
+    assert final_result["final_result"] == "Final processing of aa", (
+        "Should chain processing correctly"
+    )
     assert final_result["status"] == "completed", "Should have completed status"
     assert final_result["original_length"] == 2, "Should preserve original length"
 
@@ -184,15 +184,15 @@ def test_tool_properties():
     # Check that it's a FunctionTool
     from google.adk.tools.function_tool import FunctionTool
 
-    assert isinstance(
-        combined_tool, FunctionTool
-    ), "Should create FunctionTool instance"
+    assert isinstance(combined_tool, FunctionTool), (
+        "Should create FunctionTool instance"
+    )
 
     # Check tool properties
-    assert hasattr(combined_tool, 'name'), "Tool should have name property"
-    assert hasattr(
-        combined_tool, 'description'
-    ), "Tool should have description property"
+    assert hasattr(combined_tool, "name"), "Tool should have name property"
+    assert hasattr(combined_tool, "description"), (
+        "Tool should have description property"
+    )
 
 
 def test_empty_result_handling():

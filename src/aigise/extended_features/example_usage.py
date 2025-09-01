@@ -79,7 +79,7 @@ async def demo_dynamic_agent_creation():
     try:
         # Create a simple content for the agent
         content = types.Content(
-            role='user', parts=[types.Part.from_text(text="Hello, introduce yourself!")]
+            role="user", parts=[types.Part.from_text(text="Hello, introduce yourself!")]
         )
 
         # Create Runner
@@ -92,7 +92,7 @@ async def demo_dynamic_agent_creation():
 
         # Create session
         session = await runner.session_service.create_session(
-            app_name=agent.name, user_id='demo_user', state={}
+            app_name=agent.name, user_id="demo_user", state={}
         )
 
         print(f"✓ Created session for agent execution")
@@ -109,7 +109,7 @@ async def demo_dynamic_agent_creation():
                 break
 
         if last_event and last_event.content and last_event.content.parts:
-            response = '\n'.join(p.text for p in last_event.content.parts if p.text)
+            response = "\n".join(p.text for p in last_event.content.parts if p.text)
             print(f"✓ Agent response: {response[:100]}...")
 
     except Exception as e:

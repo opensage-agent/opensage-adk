@@ -53,7 +53,6 @@ def create_test_agent(name: str = "test_agent") -> LlmAgent:
 
 
 class UserContent(types.Content):
-
     def __init__(self, text_or_part: str):
         parts = [
             (
@@ -66,7 +65,6 @@ class UserContent(types.Content):
 
 
 class ModelContent(types.Content):
-
     def __init__(self, parts: list[types.Part]):
         super().__init__(role="model", parts=parts)
 
@@ -161,7 +159,6 @@ class TestInMemoryRunner(AfInMemoryRunner):
     async def run_async_with_new_session(
         self, new_message: types.ContentUnion
     ) -> list[Event]:
-
         session = await self.session_service.create_session(
             app_name="InMemoryRunner", user_id="test_user"
         )
@@ -330,7 +327,6 @@ class MockModel(BaseLlm):
 
 
 class MockLlmConnection(BaseLlmConnection):
-
     def __init__(self, llm_responses: list[LlmResponse]):
         self.llm_responses = llm_responses
 

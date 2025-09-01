@@ -16,6 +16,7 @@ Run with::
 
 Docker must be running and the image ``n132/arvo:67862-vul`` accessible locally
 (or on your registry)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -80,9 +81,9 @@ async def test_arvo_sanitizer_error(docker_deployment):
     action = BashAction(command="arvo", timeout=30.0, check="silent")
     result = await runtime.run_in_session(action)
     # Assert that MemorySanitizer error appears in output
-    assert (
-        "MemorySanitizer: use-of-uninitialized-value" in result.output
-    ), f"Expected MemorySanitizer error not found in output. Output: {result.output}"
+    assert "MemorySanitizer: use-of-uninitialized-value" in result.output, (
+        f"Expected MemorySanitizer error not found in output. Output: {result.output}"
+    )
 
     # Print the output for debugging
     if result.output:

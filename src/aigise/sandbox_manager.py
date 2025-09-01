@@ -12,7 +12,7 @@ from typing import Dict, Optional
 from swerex.exceptions import SessionDoesNotExistError
 from swerex.runtime.abstract import BashAction, CreateBashSessionRequest
 
-from secagentx.sandbox import BaseSandbox, NativeDockerSandbox, SweRexSandbox
+from aigise.sandbox import BaseSandbox, NativeDockerSandbox, SweRexSandbox
 
 logger = logging.getLogger(__name__)
 

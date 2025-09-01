@@ -18,8 +18,8 @@ from typing import Dict, List, Optional, Set, Tuple
 import pandas as pd
 from neomodel import db
 
-from secagentx.sandbox import BaseSandbox, NativeDockerSandbox
-from secagentx.utils.project_info import PROJECT_PATH
+from aigise.sandbox import BaseSandbox, NativeDockerSandbox
+from aigise.utils.project_info import PROJECT_PATH
 
 
 def restart_neo4j() -> str:

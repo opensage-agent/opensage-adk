@@ -3,8 +3,8 @@ from typing import List, Optional
 from google.adk.agents.llm_agent import LlmAgent
 from pydantic import Field
 
-from secagentx.extended_features.reward_logger import RewardLogger
-from secagentx.extended_features.tool_combo_manager import ToolCombo
+from aigise.extended_features.reward_logger import RewardLogger
+from aigise.extended_features.tool_combo_manager import ToolCombo
 
 
 class SecAgent(LlmAgent):

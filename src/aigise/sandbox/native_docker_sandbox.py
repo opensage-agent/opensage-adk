@@ -12,8 +12,8 @@ from typing import Any, Dict, Optional, Tuple
 import docker
 from docker.errors import APIError, NotFound
 
-from secagentx.sandbox.base_sandbox import BaseSandbox
-from secagentx.utils.parser import get_function_info
+from aigise.sandbox.base_sandbox import BaseSandbox
+from aigise.utils.parser import get_function_info
 
 
 class NativeDockerSandbox(BaseSandbox):

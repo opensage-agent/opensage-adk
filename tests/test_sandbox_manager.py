@@ -14,7 +14,7 @@ import sys
 # Add the SecAgentFramework to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from secagentx.sandbox_manager import SandboxManager
+from aigise.sandbox_manager import SandboxManager
 
 
 def test_sandbox_manager():

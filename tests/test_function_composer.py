@@ -5,7 +5,7 @@ Test function_composer functionality
 
 import pytest
 
-from secagentx.extended_features.function_composer import combined_for, combined_one
+from aigise.extended_features.function_composer import combined_for, combined_one
 
 
 def helper_function_a(query: str) -> dict:

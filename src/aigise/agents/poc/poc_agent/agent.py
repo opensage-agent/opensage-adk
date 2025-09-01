@@ -8,13 +8,13 @@ from google.adk.agents.llm_agent import ToolUnion
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.function_tool import FunctionTool
 
-from secagentx.extended_features.function_composer import combined_for, combined_one
-from secagentx.extended_features.reward_logger import RewardLogger
-from secagentx.extended_features.sec_agent import SecAgent
-from secagentx.extended_features.tool_combo_manager import ToolCombo
-from secagentx.services.callgraph.call_graph import *
-from secagentx.toolbox.retrieval.search_tools import *
-from secagentx.toolbox.static_analysis.call_graph import *
+from aigise.extended_features.function_composer import combined_for, combined_one
+from aigise.extended_features.reward_logger import RewardLogger
+from aigise.extended_features.sec_agent import SecAgent
+from aigise.extended_features.tool_combo_manager import ToolCombo
+from aigise.services.callgraph.call_graph import *
+from aigise.toolbox.retrieval.search_tools import *
+from aigise.toolbox.static_analysis.call_graph import *
 
 target_type = os.getenv("TARGET_TYPE", "default")
 if target_type != "default":

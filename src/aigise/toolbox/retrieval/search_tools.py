@@ -4,7 +4,7 @@ import shlex
 from google.adk.tools.tool_context import ToolContext
 from neomodel import db
 
-from secagentx.sandbox_manager import SandboxManager
+from aigise.sandbox_manager import SandboxManager
 
 # Set up Neo4j database connection
 db.set_connection(

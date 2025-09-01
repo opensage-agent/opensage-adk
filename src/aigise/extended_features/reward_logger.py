@@ -50,7 +50,17 @@ class RewardLogger:
         self.tool_name = tool_name
         self.agent_name = agent_name
         self.log_dir = log_dir
+<<<<<<< HEAD:src/aigise/extended_features/reward_logger.py
 
+=======
+        
+        # Get reward function name automatically
+        if hasattr(reward_function, '__name__'):
+            self.reward_function_name = reward_function.__name__
+        else:
+            self.reward_function_name = str(reward_function)
+        
+>>>>>>> a3cbf9d (remove unused features from poc agent, refine):src/secagentx/extended_features/reward_logger.py
         # Ensure log directory exists
         os.makedirs(log_dir, exist_ok=True)
 
@@ -79,6 +89,7 @@ class RewardLogger:
             "timestamp": datetime.now().isoformat(),
             "reward_type": reward_type,
             "reward_value": reward_value,
+            "reward_function_name": self.reward_function_name,
             "message": message,
             **(additional_data or {}),
         }

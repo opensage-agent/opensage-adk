@@ -77,7 +77,7 @@ class DynamicAgentManager:
     def __init__(self, registry: Optional[AgentRegistry] = None, 
                  storage_path: Optional[str] = None):
         self.registry = registry or get_agent_registry()
-        self.storage_path = Path(storage_path) if storage_path else Path("./agent_storage")
+        self.storage_path = Path(storage_path) if storage_path else Path("/tmp/agent_storage")
         self.storage_path.mkdir(exist_ok=True)
         
         self._agents: Dict[str, BaseAgent] = {}

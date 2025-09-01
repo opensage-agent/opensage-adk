@@ -1,21 +1,14 @@
 repos:
--   repo: https://github.com/pycqa/isort
-    rev: 6.0.1
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.12.11
     hooks:
-    -   id: isort
-        name: isort (python)
-        args: ["--profile", "black"]
-        # exclude: |
-        #     (?x)^(
-        #         experiments/legacy/.*.py
-        #     )$
--   repo: https://github.com/psf/black
-    rev: 25.1.0
-    hooks:
-    -   id: black
-        args: [
-            "-S" # --skip-string-normalization
-        ]
+        # Run the linter.
+        # Ignore F (pyflakes) currently
+        -   id: ruff-check
+            args: [ --fix, --ignore=F ]
+        # Run the formatter.
+        -   id: ruff-format
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:

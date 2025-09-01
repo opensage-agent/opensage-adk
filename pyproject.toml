@@ -28,10 +28,10 @@ no-build-isolation-package = []
 
 [dependency-groups]
 dev = [
-    "black>=25.1.0",
     "pre-commit>=4.3.0",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
+    "ruff>=0.12.11",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -39,3 +39,13 @@ packages = ["src/aigise"]
 
 [tool.hatch.build.targets.sdist]
 include = ["/src", "/pyproject.toml", "/README.md"]
+
+[tool.ruff.lint]
+select = [
+    "I", # isort
+    "F", # pyflakes
+]
+ignore = ["F401"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

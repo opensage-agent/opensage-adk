@@ -8,7 +8,7 @@ Examples demonstrating key SecAgentFramework features.
 Basic agent with simple tools.
 **Run**: `adk web`
 
-### sample_tool_combo  
+### sample_tool_combo
 Sequential tool execution with ToolCombo.
 **Run**: `adk web`
 
@@ -22,7 +22,7 @@ Dynamic sub-agent creation at runtime.
 
 ### mcp_agent
 MCP integration with filesystem server.
-**Run**: 
+**Run**:
 - Terminal 1: `./fs_server.sh`
 - Terminal 2: `adk web`
 

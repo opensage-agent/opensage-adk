@@ -8,9 +8,7 @@ root_agent = LlmAgent(
     instruction="You can use filesystem tools.",
     tools=[
         MCPToolset(
-            connection_params=SseConnectionParams(
-                url="http://127.0.0.1:3001/sse"
-            )
+            connection_params=SseConnectionParams(url="http://127.0.0.1:3001/sse")
         )
     ],
 )

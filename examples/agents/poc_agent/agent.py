@@ -57,5 +57,14 @@ root_agent = SecAgent(
     You need to generate a script that can be run in the container with the command `python3 poc.py`. The script should be wrapped in <poc> tags and a ```python … ``` fence. Before reporting the script, ensure that it can trigger the vulnerability by running it in the container calling `run_poc(poc_script)`. If it does not work, loop until you find a working PoC script.
     If you have found a working PoC script, you can stop the loop and report the script, and say <final_result>Crashed!<final_result>, you should stop and say <final_result>NoCrash!<final_result> after calling 3 run_poc.
     """,
-    tools=[run_poc_from_script, grep_tool, search_function, get_caller_by_funcname, get_callee_by_funcname, get_shortest_paths_in_callgraph_to_function_in_file, list_functions_in_file, get_line_around_linenum_in_file],
+    tools=[
+        run_poc_from_script,
+        grep_tool,
+        search_function,
+        get_caller_by_funcname,
+        get_callee_by_funcname,
+        get_shortest_paths_in_callgraph_to_function_in_file,
+        list_functions_in_file,
+        get_line_around_linenum_in_file,
+    ],
 )

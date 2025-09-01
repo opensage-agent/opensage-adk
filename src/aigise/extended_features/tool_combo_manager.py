@@ -103,11 +103,13 @@ class ToolCombo:
         is_last = idx == total_tools - 1
 
         # Get tool name for better instruction
-        tool_name = getattr(tool, 'name', str(tool)) if hasattr(tool, 'name') else f"tool_{idx}"
-        
+        tool_name = (
+            getattr(tool, 'name', str(tool)) if hasattr(tool, 'name') else f"tool_{idx}"
+        )
+
         # Build sequence overview
         sequence_overview = self._build_sequence_overview()
-        
+
         # Build detailed instruction
         instruction = f"""You are executing step {idx + 1} of {total_tools} in the '{self.name}' ToolCombo sequence.
 
@@ -124,32 +126,34 @@ class ToolCombo:
             - Do NOT attempt to execute other tools in the sequence
             - Focus only on your specific task
             - Provide a clear result that the next step can use"""
-        
+
         if is_last and self.return_history:
             instruction += f"\n\nSince you are the FINAL step in the sequence, after completing your task, you will have access to a function to transfer control back to the parent agent."
         elif not is_last:
             instruction += f"\n\nYour result will be passed to the next step: '{self._get_tool_name(idx + 1)}'"
-        
+
         # Otherwise, wrap the tool as a minimal LlmAgent with the specified model
         return LlmAgent(
             name=f"{self.name}_step_{idx}",
             model=self.model,
             tools=[tool],
             instruction=instruction,
-            output_key=f"{self.name}_step_{idx}_result" 
+            output_key=f"{self.name}_step_{idx}_result",
         )
-    
+
     def _get_tool_name(self, idx: int) -> str:
         """Get the name of a tool at the given index."""
         if idx >= len(self.tool_sequences):
             return "unknown"
         tool = self.tool_sequences[idx]
-        return getattr(tool, 'name', str(tool)) if hasattr(tool, 'name') else f"tool_{idx}"
-    
+        return (
+            getattr(tool, 'name', str(tool)) if hasattr(tool, 'name') else f"tool_{idx}"
+        )
+
     def _build_sequence_overview(self) -> str:
         """Build a string overview of the entire ToolCombo sequence."""
         overview_lines = []
         for idx, tool in enumerate(self.tool_sequences):
             tool_name = self._get_tool_name(idx)
             overview_lines.append(f"  Step {idx + 1}: {tool_name}")
-        return "\n".join(overview_lines) 
+        return "\n".join(overview_lines)

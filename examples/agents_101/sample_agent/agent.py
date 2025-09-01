@@ -4,11 +4,11 @@ from google.adk.models.lite_llm import LiteLlm
 
 def calculate_add(a: float, b: float) -> float:
     """Calculate the sum of two numbers.
-    
+
     Args:
         a: The first number to add.
         b: The second number to add.
-        
+
     Returns:
         The sum of a and b.
     """

@@ -23,17 +23,17 @@ def combined_for(
 
     # Get function names
     func_a_name = (
-        function_a.__name__ if hasattr(function_a, '__name__') else 'function_a'
+        function_a.__name__ if hasattr(function_a, "__name__") else "function_a"
     )
     func_b_name = (
-        function_b.__name__ if hasattr(function_b, '__name__') else 'function_b'
+        function_b.__name__ if hasattr(function_b, "__name__") else "function_b"
     )
 
     # Create combined function
     def composed_function(*args, **kwargs):
         # Execute first function
         # Handle FunctionTool objects
-        if hasattr(function_a, 'func'):
+        if hasattr(function_a, "func"):
             # function_a is a FunctionTool
             actual_function_a = function_a.func
         else:
@@ -67,7 +67,7 @@ def combined_for(
 
         # Get function_b parameters
         # Handle FunctionTool objects
-        if hasattr(function_b, 'func'):
+        if hasattr(function_b, "func"):
             # function_b is a FunctionTool
             actual_function_b = function_b.func
         else:
@@ -163,17 +163,17 @@ def combined_one(
 
     # Get function names
     func_a_name = (
-        function_a.__name__ if hasattr(function_a, '__name__') else 'function_a'
+        function_a.__name__ if hasattr(function_a, "__name__") else "function_a"
     )
     func_b_name = (
-        function_b.__name__ if hasattr(function_b, '__name__') else 'function_b'
+        function_b.__name__ if hasattr(function_b, "__name__") else "function_b"
     )
 
     # Create combined function
     def composed_function(*args, **kwargs):
         # Execute first function
         # Handle FunctionTool objects
-        if hasattr(function_a, 'func'):
+        if hasattr(function_a, "func"):
             # function_a is a FunctionTool
             actual_function_a = function_a.func
         else:
@@ -207,7 +207,7 @@ def combined_one(
 
         # Get function_b parameters
         # Handle FunctionTool objects
-        if hasattr(function_b, 'func'):
+        if hasattr(function_b, "func"):
             # function_b is a FunctionTool
             actual_function_b = function_b.func
         else:

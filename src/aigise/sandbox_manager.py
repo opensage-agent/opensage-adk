@@ -58,7 +58,7 @@ class SandboxManager:
 
         try:
             # Cleanup SWE-ReX resources if they exist
-            if hasattr(sandbox, 'deployment') and sandbox.deployment:
+            if hasattr(sandbox, "deployment") and sandbox.deployment:
                 try:
                     # SWE-ReX stop() is async, need to run it properly
                     import asyncio
@@ -68,7 +68,7 @@ class SandboxManager:
                     logger.warning(f"SWE-ReX deployment cleanup error: {e}")
 
             # Delete container for Native Docker
-            if hasattr(sandbox, 'delete_container'):
+            if hasattr(sandbox, "delete_container"):
                 sandbox.delete_container()
 
         except Exception as e:
@@ -157,7 +157,7 @@ class SandboxManager:
             logger.info("Falling back to Native Docker sandbox")
 
             # Cleanup SWE-ReX resources if they were created
-            if sandbox and hasattr(sandbox, 'deployment'):
+            if sandbox and hasattr(sandbox, "deployment"):
                 try:
                     # SWE-ReX stop() is async, need to run it properly
                     import asyncio

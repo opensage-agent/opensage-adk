@@ -21,7 +21,7 @@ class SecAgent(LlmAgent):
     ):
         tools = list(tools) if tools else []
 
-        sub_agents = kwargs.get('sub_agents', [])
+        sub_agents = kwargs.get("sub_agents", [])
         for combo in tool_combos or []:
             if combo.return_history:
                 sub_agents.append(combo.sequential_agent)
@@ -29,18 +29,18 @@ class SecAgent(LlmAgent):
                 if combo.agent_tool not in tools:
                     tools.append(combo.agent_tool)
 
-        kwargs['sub_agents'] = sub_agents
+        kwargs["sub_agents"] = sub_agents
         if sub_agents:
             sub_agents_str = "\n".join(
                 [f"{agent.name}: {agent.description}" for agent in sub_agents]
             )
             kwargs[
-                'instruction'
+                "instruction"
             ] += f"\n\nYou have the following sub-agents: \n{sub_agents_str}"
             kwargs[
-                'instruction'
+                "instruction"
             ] += f"\n\nDelegate the task to the sub-agents if necessary."
-        kwargs['tools'] = tools
+        kwargs["tools"] = tools
 
         # Initialize the parent class first
         super().__init__(*args, **kwargs)

@@ -117,7 +117,7 @@ def load_expr_calls(expr_calls_path):
     # Temporarily store arguments for each cid by argIdx
     args_per_cid = defaultdict(dict)
 
-    with open(expr_calls_path, newline='') as f:
+    with open(expr_calls_path, newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
             # Create a unique identifier for the entire row to detect duplicates
@@ -152,7 +152,7 @@ def load_fp_accesses(fp_accesses_path):
     Parse fp_accesses.csv. Splits the param string into a list.
     """
     fp_funcs = []
-    with open(fp_accesses_path, newline='') as f:
+    with open(fp_accesses_path, newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
             param = row.get("param", "").strip()
@@ -189,9 +189,9 @@ def param_types(params):
         if len(parts) > 1:
             parts = parts[:-1]
         # filter out all 'const'
-        parts = [w for w in parts if w != 'const']
+        parts = [w for w in parts if w != "const"]
         # re‐join
-        typ = ' '.join(parts)
+        typ = " ".join(parts)
         res.append(typ)
     return res
 

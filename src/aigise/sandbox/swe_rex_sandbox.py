@@ -105,7 +105,7 @@ class SweRexSandbox(BaseSandbox):
             binary_content = f.read()
 
         # Encode binary content as base64 for safe shell transmission
-        base64_content = base64.b64encode(binary_content).decode('ascii')
+        base64_content = base64.b64encode(binary_content).decode("ascii")
 
         # Create directory if needed
         container_dir = os.path.dirname(container_path)
@@ -181,7 +181,7 @@ class SweRexSandbox(BaseSandbox):
             try:
                 # If it's valid base64, decode it and return as latin-1 string for compatibility
                 binary_content = base64.b64decode(output)
-                return binary_content.decode('latin-1')
+                return binary_content.decode("latin-1")
             except:
                 # If not base64, it's text content, return as-is
                 return output

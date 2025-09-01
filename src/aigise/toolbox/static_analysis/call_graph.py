@@ -370,10 +370,10 @@ def get_shortest_paths_in_callgraph_to_function_in_file(
         for node in path_nodes:
             path_info["path_nodes"].append(
                 {
-                    "function_name": node['name'],
-                    "filepath": node['path'],
-                    "start_line": node['start'],
-                    "end_line": node['end'],
+                    "function_name": node["name"],
+                    "filepath": node["path"],
+                    "start_line": node["start"],
+                    "end_line": node["end"],
                 }
             )
 

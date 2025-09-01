@@ -22,8 +22,8 @@ def delegate_to_parent(tool_context: ToolContext) -> str:
         return "No parent agent to delegate to."
 
     if (
-        hasattr(parent_agent, '__class__')
-        and parent_agent.__class__.__name__ == 'SequentialAgent'
+        hasattr(parent_agent, "__class__")
+        and parent_agent.__class__.__name__ == "SequentialAgent"
     ):
         sequential_parent = parent_agent.parent_agent
         if sequential_parent is None:
@@ -41,7 +41,7 @@ class ToolCombo:
         name: str,
         tool_sequences: List[Any],
         description: str = "",
-        model: Union[str, BaseLlm] = '',
+        model: Union[str, BaseLlm] = "",
         return_history: bool = True,
     ):
         self.name = name
@@ -104,7 +104,7 @@ class ToolCombo:
 
         # Get tool name for better instruction
         tool_name = (
-            getattr(tool, 'name', str(tool)) if hasattr(tool, 'name') else f"tool_{idx}"
+            getattr(tool, "name", str(tool)) if hasattr(tool, "name") else f"tool_{idx}"
         )
 
         instruction = f"Execute the '{tool_name}' tool as part of the '{self.name}' ToolCombo sequence. Save your result."

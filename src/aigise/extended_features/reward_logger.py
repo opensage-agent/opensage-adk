@@ -137,25 +137,25 @@ class RewardLogger:
 
             # Get agent information
             agent = context._invocation_context.agent
-            system_prompt = getattr(agent, 'instruction', '')
+            system_prompt = getattr(agent, "instruction", "")
             tools_info = []
 
             # Get tools information
-            if hasattr(agent, 'tools') and agent.tools:
+            if hasattr(agent, "tools") and agent.tools:
                 for tool in agent.tools:
                     # Handle different tool types
-                    if hasattr(tool, 'name'):
+                    if hasattr(tool, "name"):
                         # Tool object
                         tool_info = {
                             "name": tool.name,
-                            "description": getattr(tool, 'description', ''),
-                            "parameters": getattr(tool, 'input_schema', {}),
+                            "description": getattr(tool, "description", ""),
+                            "parameters": getattr(tool, "input_schema", {}),
                         }
-                    elif hasattr(tool, '__name__'):
+                    elif hasattr(tool, "__name__"):
                         # Function object
                         tool_info = {
                             "name": tool.__name__,
-                            "description": getattr(tool, '__doc__', ''),
+                            "description": getattr(tool, "__doc__", ""),
                             "parameters": {},
                         }
                     else:
@@ -261,7 +261,7 @@ class RewardLogger:
                         if latest_event.content and latest_event.content.parts:
                             response_text = ""
                             for part in latest_event.content.parts:
-                                if hasattr(part, 'text') and part.text:
+                                if hasattr(part, "text") and part.text:
                                     response_text += part.text
                             if response_text:
                                 agent_response = response_text

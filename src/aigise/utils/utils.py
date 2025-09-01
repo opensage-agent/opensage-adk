@@ -45,4 +45,4 @@ def wrap_in_cd(command, basedir):
 
 
 def is_git_repo(path):
-    return os.path.isdir(os.path.join(path, '.git'))
+    return os.path.isdir(os.path.join(path, ".git"))

@@ -41,7 +41,7 @@ class NativeDockerSandbox(BaseSandbox):
 
         # Initialize Docker client with configuration
         self.docker_config = docker_config or {}
-        self.client = docker.from_env(timeout=self.docker_config.get('timeout', 300))
+        self.client = docker.from_env(timeout=self.docker_config.get("timeout", 300))
 
         # Create and start container
         self.container_id = self._get_container()
@@ -134,7 +134,7 @@ class NativeDockerSandbox(BaseSandbox):
             )
 
         mem_tar = io.BytesIO()
-        with tarfile.open(fileobj=mem_tar, mode='w') as tar:
+        with tarfile.open(fileobj=mem_tar, mode="w") as tar:
             tar.add(src_path, arcname="")
         mem_tar.seek(0)
 
@@ -189,7 +189,7 @@ class NativeDockerSandbox(BaseSandbox):
         with tarfile.open(fileobj=tar_stream) as tar:
             member = tar.getmembers()[0]
             f = tar.extractfile(member)
-            content = f.read().decode('latin-1')
+            content = f.read().decode("latin-1")
         return content
 
     def extract_file_from_container_bytes(self, filepath: str) -> bytes:
@@ -209,7 +209,7 @@ class NativeDockerSandbox(BaseSandbox):
     def create_tar_bytes(self, file_content: str, arcname: str) -> bytes:
         """Pack the given file content into a tar archive."""
         tar_stream = io.BytesIO()
-        with tarfile.open(fileobj=tar_stream, mode='w') as tar:
+        with tarfile.open(fileobj=tar_stream, mode="w") as tar:
             file_bytes = file_content.encode()
             tarinfo = tarfile.TarInfo(name=arcname)
             tarinfo.size = len(file_bytes)
@@ -357,9 +357,9 @@ class NativeDockerSandbox(BaseSandbox):
     def run_command_in_container(self, command: str) -> Tuple[str, int]:
         """Run a command inside the container."""
         container = self.client.containers.get(self.container_id)
-        full_command = f"/bin/bash -c \"{command}\""
+        full_command = f'/bin/bash -c "{command}"'
         exec_result = container.exec_run(full_command, stdout=True, stderr=True)
-        output = exec_result.output.decode('latin-1')
+        output = exec_result.output.decode("latin-1")
         exit_code = exec_result.exit_code
 
         return output, exit_code

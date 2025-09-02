@@ -249,20 +249,24 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         if exit_code != 0:
             raise ValueError("Error creating codeql database")
 
-        # Run CodeQL query to get the call graph
+        # Run CodeQL query to get the direct call graph
         call_graph_command = (
             "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
-            "--output=/work/callgraph.bqrs /surfi/codeql/callgraph_queries/directCalls.ql"
+            "--output=/work/direct_callgraph.bqrs /surfi/codeql/callgraph_queries/directCalls.ql"
         )
         res, exit_code = sandbox.run_command_in_container(call_graph_command)
         if exit_code != 0:
             raise ValueError("Error creating call graph")
 
-        # Decode the call graph results
+        # Decode the direct call graph results
         decode_call_graph_command = (
-            "/surfi/codeql/codeql bqrs decode /work/callgraph.bqrs "
+            "/surfi/codeql/codeql bqrs decode /work/direct_callgraph.bqrs "
             "--format=csv --output=/work/results.csv"
         )
+
+        res, exit_code = sandbox.run_command_in_container(decode_call_graph_command)
+        if exit_code != 0:
+            raise ValueError("Error decoding call graph")
 
         # Construct call graph with indirect calls (determined by function signature)
         # step 1. find all function pointer accesses
@@ -301,11 +305,7 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         if exit_code != 0:
             raise ValueError("Error decoding expression calls")
 
-        # step 3. find all possible indirect calls
-        res, exit_code = sandbox.run_command_in_container(decode_call_graph_command)
-        if exit_code != 0:
-            raise ValueError("Error decoding call graph")
-
+        # step 3. find all possible indirect calls by matching expr calls and function pointer accesses
         with tempfile.TemporaryDirectory() as output_subdir:
             # Retrieve and process call graph file
             results_csv_path = os.path.join(output_subdir, "results.csv")
@@ -336,40 +336,54 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
                 indirect_df = indirect_df[df.columns]  # Reorder columns
                 indirect_df["call_type"] = "maybe_indirect"
 
-                df_direct = df.copy(deep=True)
-
                 # 4. Append the indirect edges to the main DataFrame
                 df = pd.concat([df, indirect_df], ignore_index=True)
 
         db.set_connection(
             f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}"
         )
+
+        # constraints + indexes
+        constraints = [
+            """
+            CREATE CONSTRAINT function_key IF NOT EXISTS
+            FOR (f:Function) REQUIRE (f.name, f.path) IS UNIQUE
+            """,
+            """
+            CREATE INDEX direct_calls_loc IF NOT EXISTS
+            FOR ()-[r:DIRECT_CALLS]-() ON (r.call_loc)
+            """,
+            """
+            CREATE INDEX maybe_indirect_calls_loc IF NOT EXISTS
+            FOR ()-[r:MAYBE_INDIRECT_CALLS]-() ON (r.call_loc)
+            """,
+        ]
+        for stmt in constraints:
+            db.cypher_query(stmt)
+
         rows = df.to_dict("records")
         cypher = """
             UNWIND $rows AS row
-
-            // 1. Merge caller and callee nodes
             MERGE (caller:Function { name: row.caller_name, path: row.caller_path })
-            ON CREATE SET
-                caller.start = toInteger(row.caller_start),
-                caller.end   = toInteger(row.caller_end)
-
+            ON CREATE SET caller.start = toInteger(row.caller_start),
+                            caller.end   = toInteger(row.caller_end)
             MERGE (callee:Function { name: row.callee_name, path: row.callee_path })
-            ON CREATE SET
-                callee.start = toInteger(row.callee_start),
-                callee.end   = toInteger(row.callee_end)
+            ON CREATE SET callee.start = toInteger(row.callee_start),
+                            callee.end   = toInteger(row.callee_end)
 
-            // 2. Create relationship for direct calls
-            FOREACH (_ IN CASE WHEN row.call_type = 'direct' THEN [1] ELSE [] END |
+            CALL {
+            WITH row, caller, callee
+            WHERE row.call_type = 'direct'
             MERGE (caller)-[r:DIRECT_CALLS]->(callee)
-                ON CREATE SET r.call_loc = row.call_loc
-            )
+            ON CREATE SET r.call_loc = row.call_loc
+            }
 
-            // 3. Create relationship for indirect calls
-            FOREACH (_ IN CASE WHEN row.call_type = 'maybe_indirect' THEN [1] ELSE [] END |
+            CALL {
+            WITH row, caller, callee
+            WHERE row.call_type = 'maybe_indirect'
             MERGE (caller)-[r:MAYBE_INDIRECT_CALLS]->(callee)
-                ON CREATE SET r.call_loc = row.call_loc
-            )
+            ON CREATE SET r.call_loc = row.call_loc
+            }
         """
         db.cypher_query(cypher, {"rows": rows})
 

@@ -15,7 +15,6 @@ def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
     Tool to search for a function in the codebase. Input is a function name, output is a dictionary containing the implementation of the function.
     Args:
         function_name (str): The name of the function to search for.
-        tool_context (ToolContext): The tool context containing session state.
     Returns:
         dict: A dictionary with key "result" pointing to a list of function information.
     """

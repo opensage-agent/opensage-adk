@@ -7,44 +7,57 @@ creating them on-demand and cleaning them up when needed.
 
 import logging
 import os
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from swerex.exceptions import SessionDoesNotExistError
 from swerex.runtime.abstract import BashAction, CreateBashSessionRequest
 
 from aigise.sandbox import BaseSandbox, NativeDockerSandbox, SweRexSandbox
+from aigise.sandbox.docker_config import DockerConfig
 
 logger = logging.getLogger(__name__)
 
 
 class SandboxManager:
-    """Manages sandbox instances per session_id."""
+    """Manages sandbox instances per session_id and sandbox_type."""
 
-    _instances: Dict[str, BaseSandbox] = {}
+    # Structure: { session_id: { sandbox_type: sandbox_instance } }
+    _instances: Dict[str, Dict[str, BaseSandbox]] = {}
 
     @classmethod
-    def get_sandbox(cls, session_id: str) -> BaseSandbox:
+    def get_sandbox(
+        cls, session_id: str, docker_config: DockerConfig, sandbox_type: str = "main"
+    ) -> BaseSandbox:
         """
         Get or create a sandbox for the given session_id.
 
         Args:
             session_id: The session identifier
+            sandbox_type: The type of sandbox to get or create (default: "main")
 
         Returns:
             BaseSandbox: A sandbox instance for the session
         """
-        if session_id in cls._instances:
-            return cls._instances[session_id]
+        if session_id in cls._instances and sandbox_type in cls._instances[session_id]:
+            return cls._instances[session_id][sandbox_type]
 
-        # Create new sandbox using the fallback logic
-        sandbox = cls._create_sandbox()
-        cls._instances[session_id] = sandbox
+        # Ensure nested dict exists
+        if session_id not in cls._instances:
+            cls._instances[session_id] = {}
 
-        logger.info(f"Created new sandbox for session {session_id}")
+        # Create new sandbox using the requested logic
+        sandbox = cls._create_sandbox(
+            docker_cfg=docker_config,
+        )
+        cls._instances[session_id][sandbox_type] = sandbox
+
+        logger.info(
+            f"Created new sandbox for session {session_id} (type={sandbox_type})"
+        )
         return sandbox
 
     @classmethod
-    def cleanup_sandbox(cls, session_id: str) -> None:
+    def cleanup_sandbox(cls, session_id: str, sandbox_type: str = "main") -> None:
         """
         Clean up and remove sandbox for the given session_id.
 
@@ -54,7 +67,7 @@ class SandboxManager:
         if session_id not in cls._instances:
             return
 
-        sandbox = cls._instances[session_id]
+        sandbox = cls._instances[session_id][sandbox_type]
 
         try:
             # Cleanup SWE-ReX resources if they exist
@@ -74,7 +87,7 @@ class SandboxManager:
         except Exception as e:
             logger.warning(f"Error cleaning up sandbox for session {session_id}: {e}")
 
-        del cls._instances[session_id]
+        del cls._instances[session_id][sandbox_type]
         logger.info(f"Cleaned up sandbox for session {session_id}")
 
     @classmethod
@@ -85,7 +98,7 @@ class SandboxManager:
             cls.cleanup_sandbox(session_id)
 
     @classmethod
-    def _create_sandbox(cls) -> BaseSandbox:
+    def _create_sandbox(cls, docker_cfg: DockerConfig) -> BaseSandbox:
         """
         Create a new sandbox instance using the fallback logic.
         Try SweRexSandbox first, fallback to NativeDockerSandbox if it fails.
@@ -97,58 +110,8 @@ class SandboxManager:
 
         sandbox = None
         try:
-            from swerex.deployment.docker import (
-                DockerDeployment,
-                DockerDeploymentConfig,
-            )
-
-            # Try SWE-ReX sandbox first
-            deployment_config = DockerDeploymentConfig(
-                image=IMAGE_NAME, remove_container=False, remove_images=False
-            )
-            deployment = DockerDeployment.from_config(deployment_config)
-            # Start deployment in a thread-pool to avoid RuntimeError when an event
-            # loop is already running.
-            import asyncio
-            import concurrent.futures
-
-            try:
-                asyncio.get_running_loop()
-
-                # Already in an event loop – off-load to a separate thread.
-                def _start_and_create():
-                    asyncio.run(_start_and_session())
-
-                async def _start_and_session():
-                    await deployment.start()
-                    runtime = deployment._runtime  # type: ignore[attr-defined]
-                    try:
-                        await runtime.create_session(CreateBashSessionRequest())
-                    except Exception:
-                        pass
-
-                with concurrent.futures.ThreadPoolExecutor() as pool:
-                    pool.submit(_start_and_create).result()
-            except RuntimeError:
-                # No running loop in this thread – safe to run directly.
-                async def _start_and_session_main():
-                    await deployment.start()
-                    runtime = deployment._runtime  # type: ignore[attr-defined]
-                    try:
-                        await runtime.create_session(CreateBashSessionRequest())
-                    except Exception:
-                        pass
-
-                asyncio.run(_start_and_session_main())
-
-            sandbox = SweRexSandbox(
-                image_name=IMAGE_NAME,
-                compile_command=os.getenv("COMPILE_COMMAND", ""),
-                run_command=os.getenv("RUN_COMMAND", ""),
-                poc_dir=os.getenv("POC_DIR", "/tmp/poc"),
-                deployment=deployment,
-            )
-
+            # Try SWE-ReX sandbox first using DockerConfig
+            sandbox = SweRexSandbox(docker_config=docker_cfg)
             logger.info("Created SweRexSandbox instance (runtime started)")
             return sandbox
 
@@ -169,9 +132,6 @@ class SandboxManager:
             # Fallback to Native Docker sandbox
             sandbox = NativeDockerSandbox(
                 image_name=IMAGE_NAME,
-                compile_command=os.getenv("COMPILE_COMMAND", ""),
-                run_command=os.getenv("RUN_COMMAND", ""),
-                poc_dir=os.getenv("POC_DIR", "/tmp/poc"),
             )
 
             # Test Native Docker sandbox

@@ -24,7 +24,6 @@ async def create_subagent(
         agent_name: Custom name for the agent
         instruction: Custom instruction for the agent
         tools_list: List of tool names to assign to the agent
-        tool_context: Tool execution context to get current agent
         description: Optional description for the agent
 
     Returns:

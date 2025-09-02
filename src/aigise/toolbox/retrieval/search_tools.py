@@ -4,6 +4,7 @@ import shlex
 from google.adk.tools.tool_context import ToolContext
 from neomodel import db
 
+from aigise.sandbox.docker_config import DockerConfig
 from aigise.sandbox_manager import SandboxManager
 
 # Set up Neo4j database connection
@@ -27,15 +28,15 @@ def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
 
     Args:
         expression (str): A regex pattern to search for.
-        tool_context (ToolContext): The tool context containing session state.
 
     Returns:
         dict: A dictionary with key "result" pointing to a list of grep matches.
     """
     # Get sandbox from SandboxManager
     session_id = tool_context._invocation_context.session.id
+    docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
     try:
-        sandbox = SandboxManager.get_sandbox(session_id)
+        sandbox = SandboxManager.get_sandbox(session_id, docker_config)
     except Exception as e:
         return {"result": [], "error": f"Failed to get sandbox: {str(e)}"}
 
@@ -124,14 +125,14 @@ def get_line_around_linenum_in_file(
         filepath (str): The path to the file.
         linenum (int): The line number to retrieve.
         context (int): The number of lines of context to include before and after the specified line.
-        tool_context (ToolContext): The tool context containing session state.
     Returns:
         dict: A dictionary with key "result" pointing to a list of line information.
     """
     try:
         # Get sandbox from SandboxManager
         session_id = tool_context._invocation_context.session.id
-        sandbox = SandboxManager.get_sandbox(session_id)
+        docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
+        sandbox = SandboxManager.get_sandbox(session_id, docker_config)
 
         file_content = sandbox.extract_file_from_container(filepath)
         lines = file_content.splitlines()

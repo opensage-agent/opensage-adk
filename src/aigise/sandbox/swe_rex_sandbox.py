@@ -3,14 +3,17 @@ import base64
 import concurrent.futures
 import os
 import tempfile
-from typing import Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # SWE-ReX
 from swerex.deployment.abstract import AbstractDeployment
+from swerex.deployment.config import DockerDeploymentConfig
+from swerex.deployment.docker import DockerDeployment
 from swerex.runtime.abstract import BashAction, CreateBashSessionRequest
 
 # removed SessionDoesNotExistError import since manager handles session creation
 from .base_sandbox import BaseSandbox
+from .docker_config import DockerConfig
 
 # Thread-pool helper for running async code from sync context
 
@@ -35,27 +38,129 @@ def _sync_run(coro):
 
 
 class SweRexSandbox(BaseSandbox):
-    """SWE-ReX sandbox implementation using SWE-ReX deployment."""
+    """SWE-ReX sandbox implementation using SWE-ReX deployment.
+
+    This class takes a DockerConfig, constructs a DockerDeployment accordingly,
+    starts it (handling event loop presence), and prepares a default session.
+    """
 
     def __init__(
         self,
-        image_name: str,
-        compile_command: str,
-        run_command: str,
-        poc_dir: str,
-        deployment: AbstractDeployment,
+        docker_config: DockerConfig,
     ):
         """
         Initialize SweRexSandbox.
 
         Args:
-            image_name: Docker image name to use
-            compile_command: Command to compile the target
-            run_command: Command to run the target
-            poc_dir: Directory for PoC files
-            deployment: SWE-ReX deployment instance
+            docker_config: Docker configuration used to create the SWE-ReX deployment (must include image)
         """
-        super().__init__(image_name, compile_command, run_command, poc_dir)
+        # Validate docker_config
+        if docker_config is None or not isinstance(docker_config, DockerConfig):
+            raise TypeError("docker_config must be a DockerConfig instance")
+        if not docker_config.image:
+            raise ValueError("DockerConfig.image must be provided for SweRexSandbox")
+
+        super().__init__(docker_config)
+
+        # Build docker_args from DockerConfig
+        docker_args: List[str] = []
+
+        # Raw passthrough first
+        if docker_config.docker_args:
+            docker_args.extend(docker_config.docker_args)
+
+        # Environment
+        if docker_config.environment:
+            for k, v in docker_config.environment.items():
+                docker_args += ["-e", f"{k}={v}"]
+
+        # Volumes (binds)
+        for spec in docker_config.volumes:
+            docker_args += ["-v", spec]
+
+        # Mounts (as --mount ...)
+        for spec in docker_config.mounts:
+            docker_args += ["--mount", spec]
+
+        # Network
+        if docker_config.network:
+            docker_args += ["--network", docker_config.network]
+
+        # Resources
+        if docker_config.shm_size:
+            docker_args += ["--shm-size", str(docker_config.shm_size)]
+        if docker_config.mem_limit:
+            docker_args += ["--memory", str(docker_config.mem_limit)]
+        if docker_config.cpus:
+            docker_args += ["--cpus", str(docker_config.cpus)]
+
+        # Security / permissions
+        if docker_config.privileged:
+            docker_args += ["--privileged"]
+        for opt in docker_config.security_opt:
+            docker_args += ["--security-opt", str(opt)]
+        for cap in docker_config.cap_add:
+            docker_args += ["--cap-add", str(cap)]
+
+        # GPUs
+        if docker_config.gpus:
+            docker_args += ["--gpus", str(docker_config.gpus)]
+
+        # Extra ports in addition to SWE-ReX's own port mapping
+        for p in docker_config.ports:
+            docker_args += ["-p", p]
+
+        # Construct DockerDeploymentConfig
+        dep_config = DockerDeploymentConfig(
+            image=str(docker_config.image),
+            port=None,  # let SWE-ReX choose a free port unless specified
+            docker_args=docker_args,
+            startup_timeout=300.0,
+            pull="missing",
+            remove_images=bool(docker_config.remove_images)
+            if docker_config.remove_images is not None
+            else False,
+            python_standalone_dir=docker_config.python_standalone_dir,
+            platform=docker_config.platform,
+            remove_container=bool(docker_config.remove_container)
+            if docker_config.remove_container is not None
+            else True,
+        )
+
+        # Create deployment and start it; then create default session
+        deployment = DockerDeployment.from_config(dep_config)
+
+        import concurrent.futures
+
+        try:
+            asyncio.get_running_loop()
+
+            def _start_and_create():
+                asyncio.run(_start_and_session())
+
+            async def _start_and_session():
+                await deployment.start()
+                runtime = deployment._runtime  # type: ignore[attr-defined]
+                try:
+                    await runtime.create_session(CreateBashSessionRequest())
+                except Exception:
+                    pass
+
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                pool.submit(_start_and_create).result()
+        except RuntimeError:
+
+            async def _start_and_session_main():
+                await deployment.start()
+                runtime = deployment._runtime  # type: ignore[attr-defined]
+                try:
+                    await runtime.create_session(CreateBashSessionRequest())
+                except Exception:
+                    pass
+
+            asyncio.run(_start_and_session_main())
+
+        # Store deployment
         self.deployment = deployment
 
     # Runtime and default session are created by SandboxManager at sandbox creation.
@@ -129,37 +234,6 @@ class SweRexSandbox(BaseSandbox):
                 f"Failed to write file {container_path}: {result.output}"
             )
 
-    def run_poc(self, poc_command: str) -> Tuple[str, int]:
-        """Run a PoC command in the runtime environment."""
-        return _sync_run(self._run_poc_async(poc_command))
-
-    async def _run_poc_async(self, poc_command: str) -> Tuple[str, int]:
-        """Async implementation of run_poc."""
-        runtime = self.deployment._runtime  # type: ignore[attr-defined]
-
-        action = BashAction(command=poc_command, check="silent", timeout=30.0)
-        result = await runtime.run_in_session(action)
-
-        return result.output, result.exit_code or 0
-
-    def compile_target(self) -> str:
-        """Compile target in the runtime environment using the compile_command."""
-        return _sync_run(self._compile_target_async())
-
-    async def _compile_target_async(self) -> str:
-        """Async implementation of compile_target."""
-        runtime = self.deployment._runtime  # type: ignore[attr-defined]
-
-        # Get working directory first
-        workdir = await self._get_work_dir_async()
-
-        # Run compile command in working directory
-        compile_cmd = f"cd {workdir} && {self.compile_command}"
-        action = BashAction(command=compile_cmd, check="silent", timeout=120.0)
-        result = await runtime.run_in_session(action)
-
-        return result.output
-
     def extract_file_from_container(self, filepath: str) -> str:
         """Extract the content of the specified file from the runtime environment."""
         return _sync_run(self._extract_file_from_container_async(filepath))
@@ -168,25 +242,24 @@ class SweRexSandbox(BaseSandbox):
         """Async implementation of extract_file_from_container."""
         runtime = self.deployment._runtime  # type: ignore[attr-defined]
 
-        # Try to read as text first (for backwards compatibility)
+        # Always read as base64 to preserve raw bytes, then return latin-1 string for consistency
         action = BashAction(
-            command=f"file {filepath} | grep -q text && cat {filepath} || base64 {filepath}",
+            command=f"base64 {filepath}",
             check="silent",
         )
         result = await runtime.run_in_session(action)
 
-        if result.exit_code == 0:
-            # Check if the file was detected as binary by seeing if output is base64
-            output = result.output.strip()
-            try:
-                # If it's valid base64, decode it and return as latin-1 string for compatibility
-                binary_content = base64.b64decode(output)
-                return binary_content.decode("latin-1")
-            except:
-                # If not base64, it's text content, return as-is
-                return output
-        else:
+        if result.exit_code != 0:
             raise FileNotFoundError(f"Could not read file {filepath}: {result.output}")
+
+        output = result.output.strip()
+        try:
+            binary_content = base64.b64decode(output)
+            return binary_content.decode("latin-1")
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to decode base64 content from {filepath}: {str(e)}"
+            )
 
     def run_command_in_container(self, command: str) -> Tuple[str, int]:
         """Run a command inside the runtime environment (sync wrapper)."""

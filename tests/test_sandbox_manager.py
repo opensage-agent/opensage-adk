@@ -14,6 +14,7 @@ import sys
 # Add the SecAgentFramework to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
+from aigise.sandbox import DockerConfig
 from aigise.sandbox_manager import SandboxManager
 
 
@@ -21,45 +22,44 @@ def test_sandbox_manager():
     """Test basic SandboxManager functionality."""
     print("Testing SandboxManager...")
 
+    # Prepare docker config
+    docker_config = DockerConfig(image=os.getenv("IMAGE_NAME", "n132/arvo:67862-vul"))
+
     # Test 1: Create sandbox for session1
     print("\n1. Creating sandbox for session1...")
     try:
         session1_id = "test-session-1"
-        sandbox1 = SandboxManager.get_sandbox(session1_id)
+        sandbox1 = SandboxManager.get_sandbox(session1_id, docker_config)
         print(f"✓ Successfully created sandbox for {session1_id}")
         print(f"  Sandbox type: {type(sandbox1).__name__}")
-        print(f"  Image name: {sandbox1.image_name}")
+        if hasattr(sandbox1, "image_name"):
+            print(f"  Image name: {sandbox1.image_name}")
     except Exception as e:
-        print(f"✗ Failed to create sandbox for session1: {e}")
-        return False
+        assert False, f"Failed to create sandbox for session1: {e}"
 
     # Test 2: Get same sandbox for session1 (should reuse)
     print("\n2. Getting sandbox for session1 again (should reuse)...")
     try:
-        sandbox1_again = SandboxManager.get_sandbox(session1_id)
+        sandbox1_again = SandboxManager.get_sandbox(session1_id, docker_config)
         if sandbox1 is sandbox1_again:
             print("✓ Successfully reused existing sandbox")
         else:
-            print("✗ Created new sandbox instead of reusing")
-            return False
+            assert False, "Created new sandbox instead of reusing"
     except Exception as e:
-        print(f"✗ Failed to get sandbox again: {e}")
-        return False
+        assert False, f"Failed to get sandbox again: {e}"
 
     # Test 3: Create sandbox for session2
     print("\n3. Creating sandbox for session2...")
     try:
         session2_id = "test-session-2"
-        sandbox2 = SandboxManager.get_sandbox(session2_id)
+        sandbox2 = SandboxManager.get_sandbox(session2_id, docker_config)
         print(f"✓ Successfully created sandbox for {session2_id}")
         if sandbox1 is not sandbox2:
             print("✓ Different sandboxes for different sessions")
         else:
-            print("✗ Same sandbox returned for different sessions")
-            return False
+            assert False, "Same sandbox returned for different sessions"
     except Exception as e:
-        print(f"✗ Failed to create sandbox for session2: {e}")
-        return False
+        assert False, f"Failed to create sandbox for session2: {e}"
 
     # Test 4: Test sandbox functionality
     print("\n4. Testing sandbox functionality...")
@@ -70,45 +70,34 @@ def test_sandbox_manager():
         if exit_code == 0 and "Hello SandboxManager" in output:
             print("✓ Sandbox command execution works")
         else:
-            print(f"✗ Sandbox command failed: exit_code={exit_code}, output={output}")
+            assert False, (
+                f"Sandbox command failed: exit_code={exit_code}, output={output}"
+            )
     except Exception as e:
-        print(f"✗ Sandbox command execution failed: {e}")
+        assert False, f"Sandbox command execution failed: {e}"
 
     # Test 5: Cleanup sandbox
     print("\n5. Testing sandbox cleanup...")
     try:
         SandboxManager.cleanup_sandbox(session1_id)
-        print(f"✓ Successfully cleaned up sandbox for {session1_id}")
-
-        # Verify it's been removed from instances
-        if session1_id not in SandboxManager._instances:
-            print("✓ Sandbox removed from instances")
-        else:
-            print("✗ Sandbox still in instances after cleanup")
-
+        # Accept either key removal or empty mapping
+        assert not SandboxManager._instances.get(session1_id), (
+            "Sandbox still in instances after cleanup"
+        )
     except Exception as e:
-        print(f"⚠ Cleanup completed with warnings: {e}")
-        # Check if it was still removed despite errors
-        if session1_id not in SandboxManager._instances:
-            print("✓ Sandbox removed from instances (despite cleanup warnings)")
-        else:
-            print("✗ Sandbox still in instances after cleanup")
+        assert False, f"Cleanup failed: {e}"
 
     # Test 6: Cleanup all sandboxes
     print("\n6. Testing cleanup all...")
     try:
         SandboxManager.cleanup_all()
-        print("✓ Successfully cleaned up all sandboxes")
-
-        if len(SandboxManager._instances) == 0:
-            print("✓ All instances cleared")
-        else:
-            print(f"✗ Still have {len(SandboxManager._instances)} instances")
+        assert len(SandboxManager._instances) == 0, (
+            f"Still have {len(SandboxManager._instances)} instances"
+        )
     except Exception as e:
-        print(f"✗ Failed to cleanup all: {e}")
+        assert False, f"Failed to cleanup all: {e}"
 
     print("\n✓ All tests completed!")
-    return True
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ import os
 from google.adk.tools.tool_context import ToolContext
 from neomodel import db
 
+from aigise.sandbox.docker_config import DockerConfig
 from aigise.sandbox_manager import SandboxManager
 
 db.set_connection(
@@ -43,7 +44,8 @@ def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
         try:
             # Get sandbox from SandboxManager
             session_id = tool_context._invocation_context.session.id
-            sandbox = SandboxManager.get_sandbox(session_id)
+            docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
+            sandbox = SandboxManager.get_sandbox(session_id, docker_config)
 
             # Read the file content from the container using sandbox
             file_content = sandbox.extract_file_from_container(path)

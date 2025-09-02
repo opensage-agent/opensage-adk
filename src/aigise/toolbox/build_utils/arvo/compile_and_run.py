@@ -6,6 +6,7 @@ from typing import Tuple
 
 from google.adk.tools.tool_context import ToolContext
 
+from aigise.sandbox.docker_config import DockerConfig
 from aigise.sandbox_manager import SandboxManager
 
 
@@ -49,7 +50,6 @@ def run_poc_from_script(
             f.write(tls_header + handshake_header + body)
         ```
         </poc>
-        tool_context (ToolContext): The tool context containing session state.
 
     Returns:
         str: The standard output produced by running the generated PoC.
@@ -71,8 +71,9 @@ def run_poc_from_script(
 
     # 2. Get sandbox from SandboxManager
     session_id = tool_context._invocation_context.session.id
+    docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
     try:
-        sandbox = SandboxManager.get_sandbox(session_id)
+        sandbox = SandboxManager.get_sandbox(session_id, docker_config)
     except Exception as e:
         return f"[ERROR] Failed to get sandbox: {str(e)}"
 
@@ -97,7 +98,7 @@ def run_poc_from_script(
             return "[WARN] No PoC file named 'poc' was generated."
 
         # 5. Copy the PoC into the container using sandbox
-        container_poc_path = sandbox.poc_dir
+        container_poc_path = os.getenv("POC_DIR")
         try:
             sandbox.copy_file_to_container(poc_path, container_poc_path)
         except Exception as e:
@@ -105,9 +106,38 @@ def run_poc_from_script(
 
         # 6. Execute the PoC inside the container using sandbox
         try:
-            output, exit_code = sandbox.run_poc(f"{sandbox.run_command}")
+            output, exit_code = run_poc_in_sandbox(tool_context)
             if exit_code != 0:
                 return f"[ERROR] Running PoC in container failed (code {exit_code}):\n{output}"
             return output
         except Exception as e:
             return f"[ERROR] Failed to run PoC in container: {str(e)}"
+
+
+# Unified helpers that use run_command_in_container
+
+
+def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
+    """Run a build command inside the sandbox via run_command_in_container.
+    Args:
+    Returns:
+        Tuple[str, int]: The output and exit code of the command.
+    """
+    build_command = os.getenv("COMPILE_COMMAND")
+    session_id = tool_context._invocation_context.session.id
+    docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
+    sandbox = SandboxManager.get_sandbox(session_id, docker_config)
+    return sandbox.run_command_in_container(build_command)
+
+
+def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
+    """Run a PoC command inside the sandbox via run_command_in_container.
+    Args:
+    Returns:
+        Tuple[str, int]: The output and exit code of the command.
+    """
+    poc_command = os.getenv("RUN_COMMAND")
+    session_id = tool_context._invocation_context.session.id
+    docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
+    sandbox = SandboxManager.get_sandbox(session_id, docker_config)
+    return sandbox.run_command_in_container(poc_command)

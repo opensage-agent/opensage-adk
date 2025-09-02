@@ -13,6 +13,7 @@ import docker
 from docker.errors import APIError, NotFound
 
 from aigise.sandbox.base_sandbox import BaseSandbox
+from aigise.sandbox.docker_config import DockerConfig
 from aigise.utils.parser import get_function_info
 
 
@@ -21,36 +22,89 @@ class NativeDockerSandbox(BaseSandbox):
 
     def __init__(
         self,
-        image_name: str,
-        compile_command: str,
-        run_command: str,
-        poc_dir: str,
-        docker_config: Optional[Dict[str, Any]] = None,
+        docker_config: DockerConfig,
     ):
         """
         Initialize NativeDockerSandbox.
 
         Args:
-            image_name: Docker image name to use
-            compile_command: Command to compile the target
-            run_command: Command to run the target
-            poc_dir: Directory for PoC files
-            docker_config: Docker client configuration (default: empty dict)
+            docker_config: DockerConfig options controlling container launch (must include image)
         """
-        super().__init__(image_name, compile_command, run_command, poc_dir)
+        if docker_config is None or not isinstance(docker_config, DockerConfig):
+            raise TypeError("docker_config must be a DockerConfig instance")
+        if not docker_config.image:
+            raise ValueError("DockerConfig.image must be provided for SweRexSandbox")
+
+        super().__init__(docker_config)
 
         # Initialize Docker client with configuration
-        self.docker_config = docker_config or {}
-        self.client = docker.from_env(timeout=self.docker_config.get("timeout", 300))
+        self.client = docker.from_env(timeout=self.docker_config_obj.timeout)
 
         # Create and start container
         self.container_id = self._get_container()
 
     def _get_container(self) -> str:
         """Create and start a new container from the specified image."""
-        container = self.client.containers.run(
-            self.image_name, command="bash", stdin_open=True, tty=True, detach=True
+        run_kwargs: Dict[str, Any] = dict(
+            command="bash",
+            stdin_open=True,
+            tty=True,
+            detach=True,
         )
+
+        # Apply config to kwargs
+        if self.docker_config_obj.environment:
+            run_kwargs["environment"] = self.docker_config_obj.environment
+        if self.docker_config_obj.working_dir:
+            run_kwargs["working_dir"] = self.docker_config_obj.working_dir
+        if self.docker_config_obj.user:
+            run_kwargs["user"] = self.docker_config_obj.user
+        if self.docker_config_obj.network:
+            run_kwargs["network"] = self.docker_config_obj.network
+        if self.docker_config_obj.privileged:
+            run_kwargs["privileged"] = True
+        if self.docker_config_obj.security_opt:
+            run_kwargs["security_opt"] = self.docker_config_obj.security_opt
+        if self.docker_config_obj.cap_add:
+            run_kwargs["cap_add"] = self.docker_config_obj.cap_add
+        if self.docker_config_obj.gpus is not None:
+            run_kwargs["device_requests"] = (
+                [docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])]
+                if self.docker_config_obj.gpus == "all"
+                else None
+            )
+        if self.docker_config_obj.shm_size is not None:
+            run_kwargs["shm_size"] = self.docker_config_obj.shm_size
+        if self.docker_config_obj.mem_limit is not None:
+            run_kwargs["mem_limit"] = self.docker_config_obj.mem_limit
+        if self.docker_config_obj.cpus is not None:
+            # docker SDK uses nano_cpus or cpuset; keep simple mapping to cpus via host_config is complex; skip if not trivial
+            run_kwargs["cpuset_cpus"] = str(self.docker_config_obj.cpus)
+
+        # Volumes: list of binds "host:cont[:mode]"
+        if self.docker_config_obj.volumes:
+            binds: Dict[str, Dict[str, str]] = {}
+            for spec in self.docker_config_obj.volumes:
+                if isinstance(spec, str) and ":" in spec:
+                    parts = spec.split(":")
+                    host = parts[0]
+                    target = parts[1] if len(parts) > 1 else "/"
+                    mode = parts[2] if len(parts) > 2 else "rw"
+                    binds[host] = {"bind": target, "mode": mode}
+            if binds:
+                run_kwargs["volumes"] = binds
+
+        # Ports: list like ["9000:9000"]
+        if self.docker_config_obj.ports:
+            port_bindings: Dict[str, Any] = {}
+            for p in self.docker_config_obj.ports:
+                if isinstance(p, str) and ":" in p:
+                    host, cont = p.split(":", 1)
+                    port_bindings[cont] = host
+            if port_bindings:
+                run_kwargs["ports"] = port_bindings
+
+        container = self.client.containers.run(self.image_name, **run_kwargs)
         print(f"Container {container.id} started from image {self.image_name}")
         return container.id
 
@@ -139,24 +193,6 @@ class NativeDockerSandbox(BaseSandbox):
         mem_tar.seek(0)
 
         container.put_archive(dst_path, mem_tar.getvalue())
-
-    def run_poc(self, poc_command: str) -> Tuple[str, int]:
-        """Run a PoC command in the container."""
-        container = self.client.containers.get(self.container_id)
-        exec_result = container.exec_run(poc_command, stdout=True, stderr=True)
-        output = exec_result.output.decode("utf-8-sig", errors="ignore")
-        return output, exec_result.exit_code
-
-    def compile_target(self) -> str:
-        """Compile the target using the compile_command."""
-        container = self.client.containers.get(self.container_id)
-        workdir = self.get_work_dir()
-        compile_command_with_cd = f"bash -c 'cd {workdir} && {self.compile_command}'"
-        exec_result = container.exec_run(
-            compile_command_with_cd, stdout=True, stderr=True
-        )
-        output = exec_result.output.decode()
-        return output
 
     def delete_container(self, max_wait: int = 10):
         """Delete the container."""
@@ -357,7 +393,7 @@ class NativeDockerSandbox(BaseSandbox):
     def run_command_in_container(self, command: str) -> Tuple[str, int]:
         """Run a command inside the container."""
         container = self.client.containers.get(self.container_id)
-        full_command = f'/bin/bash -c "{command}"'
+        full_command = f'/bin/bash -lc "{command}"'
         exec_result = container.exec_run(full_command, stdout=True, stderr=True)
         output = exec_result.output.decode("latin-1")
         exit_code = exec_result.exit_code

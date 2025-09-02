@@ -32,7 +32,6 @@ class CreateAgentTool(BaseTool):
 
         Args:
             args: Dictionary containing agent creation parameters
-            tool_context: The tool execution context
 
         Returns:
             Dictionary with agent creation result
@@ -134,7 +133,6 @@ class CloneAgentTool(BaseTool):
         """Clone an existing agent.
 
         Args:
-            tool_context: The tool execution context
             source_agent_id: ID of the agent to clone
             name: New name for the cloned agent
             description: New description for the cloned agent
@@ -223,7 +221,6 @@ class ListAgentsTool(BaseTool):
         """List agents.
 
         Args:
-            tool_context: The tool execution context
             status: Filter by status (created, active, paused, stopped, error)
             creator: Filter by creator
             include_templates: Whether to include available templates
@@ -296,7 +293,6 @@ class GetAgentInfoTool(BaseTool):
         """Get agent information.
 
         Args:
-            tool_context: The tool execution context
             agent_id: ID of the agent to get info for
 
         Returns:
@@ -358,7 +354,6 @@ class RemoveAgentTool(BaseTool):
         """Remove an agent.
 
         Args:
-            tool_context: The tool execution context
             agent_id: ID of the agent to remove
             cascade: Whether to also remove child agents
 

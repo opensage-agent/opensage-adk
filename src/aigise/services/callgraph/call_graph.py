@@ -18,7 +18,9 @@ from typing import Dict, List, Optional, Set, Tuple
 import pandas as pd
 from neomodel import db
 
-from aigise.sandbox import BaseSandbox, NativeDockerSandbox
+from aigise.sandbox import BaseSandbox
+from aigise.sandbox.docker_config import DockerConfig
+from aigise.sandbox_manager import SandboxManager
 from aigise.utils.project_info import PROJECT_PATH
 
 
@@ -53,47 +55,23 @@ def restart_neo4j() -> str:
     return result.stdout
 
 
-def create_sandbox_with_codeql_mount(
-    codeql_dir: str, image_name: str
-) -> NativeDockerSandbox:
+def create_sandbox_with_codeql_mount(codeql_dir: str, image_name: str) -> BaseSandbox:
     """
     Create a NativeDockerSandbox with CodeQL directory mounted.
     Returns the configured sandbox.
     """
-    import docker
-
-    # Define volume mappings
-    volumes = {
-        codeql_dir: {"bind": "/surfi/codeql", "mode": "rw"},
-    }
-
-    # Create custom docker config with volumes
-    docker_config = {"timeout": 300, "volumes": volumes}
-
-    # Create sandbox with mounted volumes
-    # Note: We need to override the _get_container method to include volumes
-    class CodeQLSandbox(NativeDockerSandbox):
-        def _get_container(self) -> str:
-            """Create and start a new container with CodeQL volume mounted."""
-            container = self.client.containers.run(
-                self.image_name,
-                command="bash",
-                stdin_open=True,
-                tty=True,
-                detach=True,
-                volumes=self.docker_config.get("volumes", {}),
-            )
-            print(f"Container {container.id} started from image {self.image_name}")
-            return container.id
-
-    sandbox = CodeQLSandbox(
-        image_name=image_name,
-        compile_command="",  # Will be set dynamically
-        run_command="",  # Not used in this context
-        poc_dir="/tmp",  # Not used in this context
-        docker_config=docker_config,
+    # Build DockerConfig using bind volume syntax
+    cfg = DockerConfig(
+        image=image_name,
+        timeout=300,
+        volumes=[f"{codeql_dir}:/surfi/codeql:rw"],
     )
 
+    # Use SandboxManager with a dedicated sandbox type
+    session_id = f"codeql-{random.randint(1, 1_000_000_000)}"
+    sandbox = SandboxManager.get_sandbox(
+        session_id=session_id, docker_config=cfg, sandbox_type="codeql"
+    )
     return sandbox
 
 
@@ -236,8 +214,9 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         build_command: Command to build the project
     """
     sandbox = None
+    session_id = f"codeql-{random.randint(1, 1_000_000_000)}"
     try:
-        sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name)
+        sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name, session_id)
 
         # Build CodeQL database with the specified build command
         build_codeql_database_command = (
@@ -393,22 +372,4 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
 
         traceback.print_exc()
     finally:
-        if sandbox:
-            sandbox.delete_container()
-
-
-# Legacy function interface for backward compatibility
-def start_container(codeql_dir, image_name):
-    """
-    Legacy function - creates a sandbox and returns container ID.
-    Deprecated: Use create_sandbox_with_codeql_mount instead.
-    """
-    import warnings
-
-    warnings.warn(
-        "start_container is deprecated. Use create_sandbox_with_codeql_mount instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name)
-    return sandbox.container_id
+        SandboxManager.cleanup_sandbox(session_id)

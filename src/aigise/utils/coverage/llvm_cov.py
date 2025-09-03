@@ -4,6 +4,11 @@ from typing import NamedTuple
 
 import msgspec
 
+"""
+coverage json structure: https://github.com/llvm/llvm-project/blob/main/llvm/tools/llvm-cov/CoverageExporterJson.cpp
+coverage mapping: https://llvm.org/docs/CoverageMappingFormat.html
+"""
+
 
 class LineCoverage(msgspec.Struct):
     """Object summarizing line coverage."""

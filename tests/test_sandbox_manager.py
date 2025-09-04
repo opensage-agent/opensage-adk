@@ -18,6 +18,83 @@ from aigise.sandbox import DockerConfig
 from aigise.sandbox_manager import SandboxManager
 
 
+def test_port_mappings():
+    """Test port mapping configurations."""
+    print("Testing port mappings...")
+
+    # Test different port mapping scenarios
+    test_configs = [
+        # 1. Simple port mapping
+        (
+            DockerConfig(image="ubuntu:20.04", ports={"8080/tcp": 9000}),
+            "Simple port mapping",
+        ),
+        # 2. Random port mapping
+        (
+            DockerConfig(image="ubuntu:20.04", ports={"8080/tcp": None}),
+            "Random port mapping",
+        ),
+        # 3. Host interface binding
+        (
+            DockerConfig(image="ubuntu:20.04", ports={"8080/tcp": ("127.0.0.1", 9001)}),
+            "Host interface binding",
+        ),
+        # 4. Multiple port mapping
+        (
+            DockerConfig(image="ubuntu:20.04", ports={"8080/tcp": [9002, 9003]}),
+            "Multiple port mapping",
+        ),
+        # 5. Mixed port mappings
+        (
+            DockerConfig(
+                image="ubuntu:20.04",
+                ports={
+                    "8080/tcp": 9004,
+                    "8081/tcp": None,
+                    "8082/tcp": ("127.0.0.1", 9005),
+                    "8083/tcp": [9006, 9007],
+                },
+            ),
+            "Mixed port mappings",
+        ),
+    ]
+
+    # Test with both backends
+    backends = ["native", "swerex"]
+
+    for backend in backends:
+        print(f"\n=== Testing with {backend} backend ===")
+        for config, test_name in test_configs:
+            print(f"\nTesting {test_name} with {backend} backend...")
+            try:
+                session_id = (
+                    f"test-ports-{backend}-{test_name.lower().replace(' ', '-')}"
+                )
+                sandbox = SandboxManager.get_sandbox(
+                    session_id, config, backend=backend
+                )
+                print(
+                    f"✓ Successfully created sandbox with {test_name} using {backend} backend"
+                )
+
+                # Test basic functionality to verify sandbox is working
+                output, exit_code = sandbox.run_command_in_container("echo 'Port test'")
+                assert exit_code == 0 and "Port test" in output, (
+                    "Basic sandbox functionality check failed"
+                )
+                print(
+                    f"✓ Sandbox with {test_name} using {backend} backend is functional"
+                )
+
+                # Cleanup after each test
+                SandboxManager.cleanup_sandbox(session_id)
+                print(f"✓ Cleaned up sandbox with {test_name} using {backend} backend")
+            except Exception as e:
+                print(f"⚠ Failed {test_name} test with {backend} backend: {e}")
+
+    print("\n✓ All port mapping tests completed!")
+
+
 def test_sandbox_manager():
     """Test basic SandboxManager functionality."""
     print("Testing SandboxManager...")
@@ -110,7 +187,23 @@ if __name__ == "__main__":
     os.environ.setdefault("RUN_COMMAND", "")
     os.environ.setdefault("POC_DIR", "/tmp/poc")
 
-    success = test_sandbox_manager()
+    # Run port mapping tests first
+    try:
+        test_port_mappings()
+        port_tests_success = True
+    except AssertionError as e:
+        print(f"\n❌ Port mapping tests failed: {e}")
+        port_tests_success = False
+
+    # Run main sandbox manager tests
+    try:
+        test_sandbox_manager()
+        sandbox_tests_success = True
+    except AssertionError as e:
+        print(f"\n❌ Sandbox manager tests failed: {e}")
+        sandbox_tests_success = False
+
+    success = port_tests_success and sandbox_tests_success
 
     if success:
         print("\n🎉 All tests passed!")

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 
 @dataclass
@@ -34,7 +34,17 @@ class DockerConfig:
     mounts: List[str] = field(
         default_factory=list
     )  # ["type=bind,source=...,target=..."]
-    ports: List[str] = field(default_factory=list)  # ["9000:9000", ...]
+    ports: Dict[str, Union[int, None, Tuple[str, int], List[int]]] = field(
+        default_factory=dict
+    )
+    """Ports to bind inside the container.
+    The keys are ports to bind inside the container (e.g. '2222/tcp', '80/udp', or just '8080').
+    The values can be:
+    - An integer for the host port (e.g. {'2222/tcp': 3333} maps container port 2222 to host port 3333)
+    - None to assign a random host port (e.g. {'2222/tcp': None})
+    - A tuple of (host_ip, host_port) to specify the host interface and port (e.g. {'1111/tcp': ('127.0.0.1', 1111)} where '127.0.0.1' is the host_ip and 1111 is the host_port)
+    - A list of integers to bind multiple host ports (e.g. {'1111/tcp': [1234, 4567]})
+    """
 
     # Raw args passthrough for docker CLI (where applicable)
     docker_args: List[str] = field(default_factory=list)

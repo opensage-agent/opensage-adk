@@ -94,13 +94,30 @@ class NativeDockerSandbox(BaseSandbox):
             if binds:
                 run_kwargs["volumes"] = binds
 
-        # Ports: list like ["9000:9000"]
+        # Ports: Dict[str, Union[int, None, Tuple[str, int], List[int]]]
         if self.docker_config_obj.ports:
             port_bindings: Dict[str, Any] = {}
-            for p in self.docker_config_obj.ports:
-                if isinstance(p, str) and ":" in p:
-                    host, cont = p.split(":", 1)
-                    port_bindings[cont] = host
+            for container_port, host_binding in self.docker_config_obj.ports.items():
+                # Normalize container port to include protocol if not specified
+                if "/" not in container_port:
+                    container_port = f"{container_port}/tcp"
+
+                # Handle different host binding types
+                if isinstance(host_binding, int):
+                    # Simple host port number
+                    port_bindings[container_port] = host_binding
+                elif host_binding is None:
+                    # Random host port
+                    port_bindings[container_port] = None
+                elif isinstance(host_binding, tuple):
+                    # (host_ip, host_port) tuple
+                    port_bindings[container_port] = {
+                        "HostIp": host_binding[0],
+                        "HostPort": str(host_binding[1]),
+                    }
+                elif isinstance(host_binding, list):
+                    # List of host ports
+                    port_bindings[container_port] = [str(port) for port in host_binding]
             if port_bindings:
                 run_kwargs["ports"] = port_bindings
 

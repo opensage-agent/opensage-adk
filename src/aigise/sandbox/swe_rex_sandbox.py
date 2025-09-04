@@ -107,8 +107,28 @@ class SweRexSandbox(BaseSandbox):
             docker_args += ["--gpus", str(docker_config.gpus)]
 
         # Extra ports in addition to SWE-ReX's own port mapping
-        for p in docker_config.ports:
-            docker_args += ["-p", p]
+        for container_port, host_binding in docker_config.ports.items():
+            # Normalize container port to include protocol if not specified
+            if "/" not in container_port:
+                container_port = f"{container_port}/tcp"
+
+            # Handle different host binding types
+            if isinstance(host_binding, int):
+                # Simple host port number
+                docker_args += ["-p", f"{host_binding}:{container_port}"]
+            elif host_binding is None:
+                # Random host port
+                docker_args += ["-p", container_port]
+            elif isinstance(host_binding, tuple):
+                # (host_ip, host_port) tuple
+                docker_args += [
+                    "-p",
+                    f"{host_binding[0]}:{host_binding[1]}:{container_port}",
+                ]
+            elif isinstance(host_binding, list):
+                # List of host ports
+                for host_port in host_binding:
+                    docker_args += ["-p", f"{host_port}:{container_port}"]
 
         # Construct DockerDeploymentConfig
         dep_config = DockerDeploymentConfig(

@@ -83,8 +83,6 @@ def test_compile_aflpp(container_and_target):
 def test_run_aflpp(container_and_target):
     container, fuzz_target = container_and_target
 
-    input("Hold")
-
     # test fuzz
     res = container.exec_run(
         cmd=["bash", "/scripts/test_fuzz.sh"],

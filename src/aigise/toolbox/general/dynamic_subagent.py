@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
 from google.adk.runners import Runner
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
+from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
@@ -86,7 +87,7 @@ async def create_subagent(
         return {"success": False, "error": str(e)}
 
 
-async def list_active_agents() -> Dict[str, Any]:
+async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
     """List all active math sub-agents created by this root agent."""
     try:
         manager = get_dynamic_agent_manager()
@@ -96,30 +97,30 @@ async def list_active_agents() -> Dict[str, Any]:
         active_agents = []
 
         for agent_metadata in all_agents:
-            if agent_metadata.creator == "math_root_agent":
-                # Get agent instance to check tools
-                agent_instance = manager.get_agent(agent_metadata.id)
-                tool_names = []
-                if agent_instance and agent_instance.tools:
-                    tool_names = [
-                        tool.__name__.replace("_numbers", "")
-                        for tool in agent_instance.tools
-                        if hasattr(tool, "__name__")
-                    ]
+            # if agent_metadata.creator == tool_context._invocation_context.agent.name:
+            # Get agent instance to check tools
+            agent_instance = manager.get_agent(agent_metadata.id)
+            tool_names = []
+            if agent_instance and agent_instance.tools:
+                tool_names = [
+                    tool.__name__.replace("_numbers", "")
+                    for tool in agent_instance.tools
+                    if hasattr(tool, "__name__")
+                ]
 
-                active_agents.append(
-                    {
-                        "agent_id": agent_metadata.id,
-                        "name": agent_metadata.name,
-                        "status": agent_metadata.status.value,
-                        "created_at": agent_metadata.created_at.isoformat(),
-                        "description": agent_metadata.description,
-                        "tools": tool_names,
-                        "model": agent_metadata.config.get(
-                            "model", "anthropic/claude-sonnet-4-20250514"
-                        ),
-                    }
-                )
+            active_agents.append(
+                {
+                    "agent_id": agent_metadata.id,
+                    "name": agent_metadata.name,
+                    "status": agent_metadata.status.value,
+                    "created_at": agent_metadata.created_at.isoformat(),
+                    "description": agent_metadata.description,
+                    "tools": tool_names,
+                    "model": agent_metadata.config.get(
+                        "model", "anthropic/claude-sonnet-4-20250514"
+                    ),
+                }
+            )
 
         return {
             "success": True,
@@ -131,7 +132,9 @@ async def list_active_agents() -> Dict[str, Any]:
         return {"success": False, "error": str(e)}
 
 
-async def call_subagent_as_tool(agent_name: str, task_message: str) -> Dict[str, Any]:
+async def call_subagent_as_tool(
+    agent_name: str, task_message: str, tool_context: ToolContext
+) -> Dict[str, Any]:
     """
     Call a sub-agent as a tool - Agent as a Tool pattern.
 
@@ -154,8 +157,8 @@ async def call_subagent_as_tool(agent_name: str, task_message: str) -> Dict[str,
 
         for agent_metadata in all_agents:
             if (
-                agent_metadata.creator == "math_root_agent"
-                and agent_metadata.name == agent_name
+                # agent_metadata.creator == tool_context._invocation_context.agent.name and
+                agent_metadata.name == agent_name
             ):
                 target_agent = agent_metadata
                 break
@@ -175,45 +178,23 @@ async def call_subagent_as_tool(agent_name: str, task_message: str) -> Dict[str,
                 "error": f"Failed to get agent instance for '{agent_name}'",
             }
 
-        # Create user content in proper format
-        content = types.Content(
-            role="user", parts=[types.Part.from_text(text=task_message)]
+        # Create AgentTool and call it using standard ADK way
+        agent_tool = AgentTool(agent=agent_instance)
+
+        # Prepare args for AgentTool (following ADK standard)
+        tool_args = {"request": task_message}
+
+        # Call AgentTool using standard run_async method
+        tool_result = await agent_tool.run_async(
+            args=tool_args, tool_context=tool_context
         )
-
-        # Create Runner with proper services
-        runner = Runner(
-            app_name=agent_instance.name,
-            agent=agent_instance,
-            session_service=InMemorySessionService(),
-            memory_service=InMemoryMemoryService(),
-        )
-
-        # Create session
-        session = await runner.session_service.create_session(
-            app_name=agent_instance.name, user_id="math_root_agent", state={}
-        )
-
-        # Execute sub-agent using Runner
-        last_event = None
-        async for event in runner.run_async(
-            user_id=session.user_id, session_id=session.id, new_message=content
-        ):
-            last_event = event
-
-        # Extract result
-        if not last_event or not last_event.content or not last_event.content.parts:
-            final_response = ""
-        else:
-            final_response = "\n".join(
-                p.text for p in last_event.content.parts if p.text
-            )
 
         return {
             "success": True,
             "agent_id": target_agent.id,
             "agent_name": agent_name,
             "task_message": task_message,
-            "response": final_response,
+            "response": str(tool_result),
             "message": f"Sub-agent '{agent_name}' executed as tool successfully",
         }
 

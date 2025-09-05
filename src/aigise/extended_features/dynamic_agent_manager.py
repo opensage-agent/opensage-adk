@@ -190,16 +190,6 @@ class DynamicAgentManager:
 
             raise
 
-    async def create_agent_simple(
-        self,
-        config: Dict[str, Any],
-        creator: Optional[str] = None,
-        persist: bool = True,
-    ) -> str:
-        """Create an agent and return only the agent ID."""
-        agent_id, _ = await self.create_agent(config, creator, persist)
-        return agent_id
-
     async def clone_agent(
         self,
         source_id: str,

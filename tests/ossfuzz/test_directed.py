@@ -1,17 +1,24 @@
+import logging
+
 import docker
 import pytest
-import logging
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 from aigise.utils.project_info import PROJECT_PATH
-from tests.ossfuzz.helpers import copy_to_container, extract_infos_from_arvo_script, copy_from_container
+from tests.ossfuzz.helpers import (
+    copy_from_container,
+    copy_to_container,
+    extract_infos_from_arvo_script,
+)
 
 EXAMPLE_IMAGE = "n132/arvo:51603-vul"  # https://github.com/file/file.git
 OSSFUZZ_SCRIPTS_DIR = PROJECT_PATH / "src/aigise/toolbox/build_utils/ossfuzz/scripts"
 TARGET_FUNCTION_LINE = "fun: mkdbname"
-SELECTIVE_FUNC_FILE = PROJECT_PATH / "src/aigise/toolbox/build_utils/ossfuzz/targets.txt"
+SELECTIVE_FUNC_FILE = (
+    PROJECT_PATH / "src/aigise/toolbox/build_utils/ossfuzz/targets.txt"
+)
 
 
 @pytest.fixture
@@ -32,7 +39,9 @@ def container_and_target():
             f.write(TARGET_FUNCTION_LINE)
 
         copy_to_container(container.id, str(SELECTIVE_FUNC_FILE), "/targets.txt")
-        logger.info(f"Copied selective function file to container: {SELECTIVE_FUNC_FILE}")
+        logger.info(
+            f"Copied selective function file to container: {SELECTIVE_FUNC_FILE}"
+        )
 
         copy_to_container(container.id, str(OSSFUZZ_SCRIPTS_DIR), "/scripts")
         logger.info(f"Copied scripts to container: {OSSFUZZ_SCRIPTS_DIR}")
@@ -60,8 +69,14 @@ def container_and_target():
 
         assert res.exit_code == 0, f"Compile failed: {res.output.decode()}"
 
-        logger.info(f"Copying {infos['FUZZ_TARGET']} to local: {PROJECT_PATH / 'tmp' / infos['FUZZ_TARGET']}")
-        copy_from_container(container.id, "/out/" + infos["FUZZ_TARGET"], PROJECT_PATH / "tmp" / infos["FUZZ_TARGET"])
+        logger.info(
+            f"Copying {infos['FUZZ_TARGET']} to local: {PROJECT_PATH / 'tmp' / infos['FUZZ_TARGET']}"
+        )
+        copy_from_container(
+            container.id,
+            "/out/" + infos["FUZZ_TARGET"],
+            PROJECT_PATH / "tmp" / infos["FUZZ_TARGET"],
+        )
 
         yield container, infos["FUZZ_TARGET"]
 

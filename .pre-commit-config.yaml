@@ -6,9 +6,11 @@ repos:
         # Run the linter.
         # Ignore F (pyflakes) currently
         -   id: ruff-check
+            pass_filenames: false
             args: [ --fix, --ignore=F ]
         # Run the formatter.
         -   id: ruff-format
+            pass_filenames: false
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:

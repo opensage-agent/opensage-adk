@@ -44,7 +44,7 @@ cybergym = { path = "third_party/cybergym", editable = false }
 allow-direct-references = true
 
 [tool.ruff]
-extend-exclude = ["third_party/**"]
+extend-exclude = ["third_party"]
 
 [tool.ruff.lint]
 select = [

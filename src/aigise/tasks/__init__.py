@@ -99,7 +99,7 @@ class Task(abc.ABC):
     def _get_session_id(self, sample: dict) -> str:
         return str(self.output_dir / self._get_sample_id(sample)).replace("/", "_")
 
-    def _get_image_name(self, sample: dict) -> dict:
+    def _get_image_name(self, sample: dict) -> str:
         return "ubuntu:latest"
 
     def _get_workdir_container(self, sample: dict) -> str:

@@ -70,7 +70,7 @@ def run_poc_from_script(
     poc_code = code_match.group(1).strip()
 
     # 2. Get sandbox from SandboxManager
-    session_id = tool_context._invocation_context.session.id
+    tool_context.state.get("root_session_id")
     docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
     try:
         sandbox = SandboxManager.get_sandbox(session_id, docker_config)
@@ -124,7 +124,7 @@ def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
         Tuple[str, int]: The output and exit code of the command.
     """
     build_command = os.getenv("COMPILE_COMMAND")
-    session_id = tool_context._invocation_context.session.id
+    tool_context.state.get("root_session_id")
     docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
     sandbox = SandboxManager.get_sandbox(session_id, docker_config)
     return sandbox.run_command_in_container(build_command)
@@ -137,7 +137,7 @@ def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
         Tuple[str, int]: The output and exit code of the command.
     """
     poc_command = os.getenv("RUN_COMMAND")
-    session_id = tool_context._invocation_context.session.id
+    tool_context.state.get("root_session_id")
     docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
     sandbox = SandboxManager.get_sandbox(session_id, docker_config)
     return sandbox.run_command_in_container(poc_command)

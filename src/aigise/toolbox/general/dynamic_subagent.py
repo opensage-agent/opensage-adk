@@ -20,6 +20,7 @@ async def create_subagent(
 ) -> Dict[str, Any]:
     """
     Dynamically create a sub-agent with specified tools and instructions.
+    You should first list the existing sub-agents before creating a new one.
 
     Args:
         agent_name: Custom name for the agent
@@ -62,14 +63,13 @@ async def create_subagent(
             "model": "anthropic/claude-sonnet-4-20250514",
             "description": description
             or f"Agent {agent_name} with tools: {', '.join(tools_list)}",
+            "tool_names": tools_list,
+            "tools": tools_to_add,
         }
 
         agent_id, agent_instance = await manager.create_agent(
             config, creator=current_agent.name
         )
-
-        if tools_to_add:
-            agent_instance.tools.extend(tools_to_add)
 
         await manager.update_agent_status(agent_id, AgentStatus.ACTIVE)
 
@@ -87,44 +87,75 @@ async def create_subagent(
         return {"success": False, "error": str(e)}
 
 
+def _extract_tool_names_from_metadata(metadata: Any) -> List[str]:
+    """Extract tool names from agent metadata config"""
+    return metadata.config.get("tool_names", []) if metadata.config else []
+
+
+def _extract_tool_names_from_agent(agent_instance) -> List[str]:
+    """Extract tool names from agent instance"""
+    tool_names = []
+    if agent_instance and agent_instance.tools:
+        for tool in agent_instance.tools:
+            tool_name = None
+            if hasattr(tool, "name"):
+                tool_name = tool.name
+            elif hasattr(tool, "__name__"):
+                tool_name = tool.__name__
+            elif hasattr(tool, "func") and hasattr(tool.func, "__name__"):
+                tool_name = tool.func.__name__
+            tool_names.append(tool_name)
+    return tool_names
+
+
 async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
-    """List all active math sub-agents created by this root agent."""
+    """List all active sub-agents, loading persistent agents on demand.
+
+    This function:
+    1. Loads persisted agents on demand using caller's tools
+    2. Returns information about all agents (both in-memory and restored)
+    """
     try:
         manager = get_dynamic_agent_manager()
+        caller_agent = tool_context._invocation_context.agent
 
-        # Get all agents created by this root agent
+        # Extract tools from caller agent
+        caller_tools = extract_tools_from_agent(caller_agent)
+
+        # Load persisted agents on demand, rebuilding with caller tools if possible
+        manager._load_persisted_agents_on_demand(caller_tools)
+
+        # Get all agents (both in-memory and restored)
         all_agents = manager.list_agents()
         active_agents = []
 
         for agent_metadata in all_agents:
-            # if agent_metadata.creator == tool_context._invocation_context.agent.name:
-            # Get agent instance to check tools
+            # Try to get agent instance
             agent_instance = manager.get_agent(agent_metadata.id)
-            tool_names = []
-            if agent_instance and agent_instance.tools:
-                tool_names = [
-                    tool.__name__.replace("_numbers", "")
-                    for tool in agent_instance.tools
-                    if hasattr(tool, "__name__")
-                ]
 
-            active_agents.append(
-                {
-                    "agent_id": agent_metadata.id,
-                    "name": agent_metadata.name,
-                    "status": agent_metadata.status.value,
-                    "created_at": agent_metadata.created_at.isoformat(),
-                    "description": agent_metadata.description,
-                    "tools": tool_names,
-                    "model": agent_metadata.config.get(
-                        "model", "anthropic/claude-sonnet-4-20250514"
-                    ),
-                }
-            )
+            # Determine tool names
+            if agent_instance:
+                tool_names = _extract_tool_names_from_agent(agent_instance)
+            else:
+                # Agent not loaded, get tool names from metadata
+                tool_names = _extract_tool_names_from_metadata(agent_metadata)
+            if agent_instance is not None:
+                active_agents.append(
+                    {
+                        "name": agent_metadata.name,
+                        "description": agent_metadata.description,
+                        "tools": tool_names,
+                        "model": agent_metadata.config.get(
+                            "model", "anthropic/claude-sonnet-4-20250514"
+                        )
+                        if agent_metadata.config
+                        else "anthropic/claude-sonnet-4-20250514",
+                    }
+                )
 
         return {
             "success": True,
-            "active_math_agents": active_agents,
+            "active_agents": active_agents,
             "total_count": len(active_agents),
         }
 

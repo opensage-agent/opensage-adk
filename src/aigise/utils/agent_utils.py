@@ -25,7 +25,7 @@ def extract_tools_from_agent(agent) -> Dict[str, Any]:
                 tool_obj = tool
             elif hasattr(tool, "func") and hasattr(tool.func, "__name__"):
                 tool_name = tool.func.__name__
-                tool_obj = tool.func
+                tool_obj = tool
             elif callable(tool):
                 tool_name = getattr(tool, "__name__", str(tool))
                 tool_obj = tool

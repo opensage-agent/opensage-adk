@@ -43,7 +43,7 @@ def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
 
         try:
             # Get sandbox from SandboxManager
-            session_id = tool_context._invocation_context.session.id
+            tool_context.state.get("root_session_id")
             docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
             sandbox = SandboxManager.get_sandbox(session_id, docker_config)
 

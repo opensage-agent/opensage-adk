@@ -33,7 +33,7 @@ def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
         dict: A dictionary with key "result" pointing to a list of grep matches.
     """
     # Get sandbox from SandboxManager
-    session_id = tool_context._invocation_context.session.id
+    tool_context.state.get("root_session_id")
     docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
     try:
         sandbox = SandboxManager.get_sandbox(session_id, docker_config)
@@ -130,7 +130,7 @@ def get_line_around_linenum_in_file(
     """
     try:
         # Get sandbox from SandboxManager
-        session_id = tool_context._invocation_context.session.id
+        tool_context.state.get("root_session_id")
         docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
         sandbox = SandboxManager.get_sandbox(session_id, docker_config)
 

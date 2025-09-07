@@ -94,9 +94,6 @@ class DynamicAgentManager:
         self._metadata: Dict[str, AgentMetadata] = {}
         self._hooks: List[AgentLifecycleHook] = []
 
-        # Load persisted agents
-        self._load_persisted_agents()
-
     def add_lifecycle_hook(self, hook: AgentLifecycleHook) -> None:
         """Add a lifecycle hook."""
         self._hooks.append(hook)
@@ -120,18 +117,14 @@ class DynamicAgentManager:
             agent_type = config.get("type", "llm_agent")
             agent_name = config.get("name", f"agent_{agent_id[:8]}")
 
-            # Create agent using registry
-            if "template" in config:
-                template_name = config["template"]
-                agent_config = {
-                    k: v for k, v in config.items() if k not in ["type", "template"]
-                }
-                agent = self.registry.create_from_template(
-                    template_name, **agent_config
-                )
-            else:
-                agent_config = {k: v for k, v in config.items() if k != "type"}
-                agent = self.registry.create_agent(agent_type, **agent_config)
+            agent_config = {
+                k: v for k, v in config.items() if k not in ["type", "tool_names"]
+            }
+            agent = self.registry.create_agent(agent_type, **agent_config)
+
+            metadata_config = {
+                k: v for k, v in config.items() if k not in ["type", "tools"]
+            }
 
             # Create metadata
             metadata = AgentMetadata(
@@ -143,14 +136,13 @@ class DynamicAgentManager:
                 updated_at=datetime.now(),
                 creator=creator,
                 description=config.get("description"),
-                config=config,
+                config=metadata_config,
             )
 
             # Store agent and metadata
             self._agents[agent_id] = agent
             self._metadata[agent_id] = metadata
 
-            # Persist if requested
             if persist:
                 await self._persist_agent(agent_id)
 
@@ -354,8 +346,12 @@ class DynamicAgentManager:
         with open(metadata_file, "w") as f:
             json.dump(metadata_dict, f, indent=2)
 
-    def _load_persisted_agents(self) -> None:
-        """Load persisted agents from storage."""
+    def _load_persisted_agents_on_demand(self, caller_tools: Dict[str, Any]) -> None:
+        """Load persisted agents on demand, rebuilding with caller tools if possible.
+
+        Args:
+            caller_tools: Dictionary mapping tool names to tool instances from caller agent
+        """
         if not self.storage_path.exists():
             return
 
@@ -364,7 +360,7 @@ class DynamicAgentManager:
                 with open(metadata_file, "r") as f:
                     metadata_dict = json.load(f)
 
-                # Convert back to proper types
+                # Convert datetime strings back to datetime objects
                 metadata_dict["created_at"] = datetime.fromisoformat(
                     metadata_dict["created_at"]
                 )
@@ -375,43 +371,82 @@ class DynamicAgentManager:
 
                 metadata = AgentMetadata(**metadata_dict)
 
-                # Try to recreate the agent if it's not in error state
+                # Skip if agent already loaded
+                if metadata.id in self._agents and metadata.id in self._metadata:
+                    continue
+
+                # Always store metadata
+                self._metadata[metadata.id] = metadata
+
+                # Try to rebuild agent if not in error state and has config
                 if metadata.status != AgentStatus.ERROR and metadata.config:
-                    try:
-                        agent_type = metadata.config.get("type", "llm_agent")
-                        if "template" in metadata.config:
-                            template_name = metadata.config["template"]
-                            agent_config = {
-                                k: v
-                                for k, v in metadata.config.items()
-                                if k not in ["type", "template"]
-                            }
-                            agent = self.registry.create_from_template(
-                                template_name, **agent_config
-                            )
-                        else:
-                            agent_config = {
-                                k: v for k, v in metadata.config.items() if k != "type"
-                            }
-                            agent = self.registry.create_agent(
-                                agent_type, **agent_config
-                            )
-
-                        self._agents[metadata.id] = agent
-                        self._metadata[metadata.id] = metadata
-
-                        logger.info(f"Restored agent {metadata.id}")
-
-                    except Exception as e:
-                        logger.error(f"Failed to restore agent {metadata.id}: {e}")
-                        metadata.status = AgentStatus.ERROR
-                        self._metadata[metadata.id] = metadata
-                else:
-                    # Just store metadata for error/stopped agents
-                    self._metadata[metadata.id] = metadata
+                    self._try_rebuild_agent_with_caller_tools(metadata, caller_tools)
 
             except Exception as e:
                 logger.error(f"Failed to load metadata from {metadata_file}: {e}")
+
+    def _try_rebuild_agent_with_caller_tools(
+        self, metadata: AgentMetadata, caller_tools: Dict[str, Any]
+    ) -> None:
+        """Try to rebuild an agent with tools from caller if all required tools are available.
+
+        Args:
+            metadata: Agent metadata containing config and tool requirements
+            caller_tools: Available tools from caller agent
+        """
+        required_tool_names = metadata.config.get("tool_names", [])
+
+        # If no tools required, create agent without tools
+        if not required_tool_names:
+            try:
+                agent_config = {
+                    k: v
+                    for k, v in metadata.config.items()
+                    if k not in ["type", "tool_names"]
+                }
+                agent_config["tools"] = []  # Explicitly set empty tools list
+                agent = self.registry.create_agent(metadata.type, **agent_config)
+                self._agents[metadata.id] = agent
+                logger.info(f"Restored agent {metadata.id} without tools")
+            except Exception as e:
+                logger.error(f"Failed to restore agent {metadata.id}: {e}")
+                metadata.status = AgentStatus.ERROR
+            return
+
+        # Check if caller can provide all required tools
+        missing_tools = [
+            name for name in required_tool_names if name not in caller_tools
+        ]
+        if missing_tools:
+            logger.debug(
+                f"Cannot restore agent {metadata.id}: missing tools {missing_tools}"
+            )
+            return
+
+        # Rebuild agent with tools
+        try:
+            # Prepare tools from caller
+            tools_to_assign = [caller_tools[name] for name in required_tool_names]
+
+            # Prepare agent config including tools
+            agent_config = {
+                k: v
+                for k, v in metadata.config.items()
+                if k not in ["type", "tool_names"]
+            }
+            agent_config["tools"] = tools_to_assign
+
+            # Create agent with tools directly
+            agent = self.registry.create_agent(metadata.type, **agent_config)
+
+            self._agents[metadata.id] = agent
+            logger.info(
+                f"Restored agent {metadata.id} with tools: {required_tool_names}"
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to restore agent {metadata.id}: {e}")
+            metadata.status = AgentStatus.ERROR
 
 
 # Global manager instance

@@ -33,10 +33,11 @@ def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
         dict: A dictionary with key "result" pointing to a list of grep matches.
     """
     # Get sandbox from SandboxManager
-    tool_context.state.get("root_session_id")
     docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
     try:
-        sandbox = SandboxManager.get_sandbox(session_id, docker_config)
+        sandbox = SandboxManager.get_sandbox_from_tool_context(
+            tool_context, docker_config
+        )
     except Exception as e:
         return {"result": [], "error": f"Failed to get sandbox: {str(e)}"}
 
@@ -130,9 +131,10 @@ def get_line_around_linenum_in_file(
     """
     try:
         # Get sandbox from SandboxManager
-        tool_context.state.get("root_session_id")
         docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
-        sandbox = SandboxManager.get_sandbox(session_id, docker_config)
+        sandbox = SandboxManager.get_sandbox_from_tool_context(
+            tool_context, docker_config
+        )
 
         file_content = sandbox.extract_file_from_container(filepath)
         lines = file_content.splitlines()

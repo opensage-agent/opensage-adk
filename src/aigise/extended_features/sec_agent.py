@@ -50,8 +50,8 @@ class SecAgent(LlmAgent):
         self.reward_loggers = reward_loggers or []
         self._setup_reward_loggers()
 
-        # Set up root session callback
-        self._setup_root_session_callback()
+        # Set up shared session id callback
+        self._setup_shared_session_id_callback()
 
     def _setup_reward_loggers(self):
         """Set up reward loggers by registering appropriate callbacks."""
@@ -91,13 +91,13 @@ class SecAgent(LlmAgent):
         if existing_after_agent_callbacks:
             self.after_agent_callback = existing_after_agent_callbacks
 
-    def _setup_root_session_callback(self):
-        """Set up callback to ensure root_session_id is stored in session state."""
+    def _setup_shared_session_id_callback(self):
+        """Set up callback to ensure shared_session_id is stored in session state."""
 
         def before_agent_callback(callback_context):
             session = callback_context._invocation_context.session
-            if "root_session_id" not in session.state:
-                session.state["root_session_id"] = session.id
+            if "shared_session_id" not in session.state:
+                session.state["shared_session_id"] = session.id
 
         if (
             not hasattr(self, "before_agent_callback")

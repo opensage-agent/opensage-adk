@@ -4,6 +4,7 @@ from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import Runner
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
+from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
 from aigise.extended_features import AgentStatus, get_dynamic_agent_manager

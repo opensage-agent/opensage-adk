@@ -7,10 +7,9 @@ creating them on-demand and cleaning them up when needed.
 
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Dict
 
-from swerex.exceptions import SessionDoesNotExistError
-from swerex.runtime.abstract import BashAction, CreateBashSessionRequest
+from google.adk.tools.tool_context import ToolContext
 
 from aigise.sandbox import BaseSandbox, NativeDockerSandbox, SweRexSandbox
 from aigise.sandbox.docker_config import DockerConfig
@@ -61,6 +60,26 @@ class SandboxManager:
             f"Created new sandbox for session {session_id} (type={sandbox_type}, backend={backend})"
         )
         return sandbox
+
+    @classmethod
+    def get_sandbox_from_tool_context(
+        cls,
+        tool_context: ToolContext,
+        docker_config: DockerConfig,
+        sandbox_type: str = "main",
+        backend: str = "swerex",
+    ) -> BaseSandbox:
+        def get_shared_session_id(tool_context: ToolContext) -> str:
+            shared_session_id = tool_context.state.get("shared_session_id")
+            if shared_session_id:
+                return shared_session_id
+            else:
+                shared_session_id = tool_context._invocation_context.session.id
+                tool_context.state["shared_session_id"] = shared_session_id
+                return shared_session_id
+
+        session_id = get_shared_session_id(tool_context)
+        return cls.get_sandbox(session_id, docker_config, sandbox_type, backend)
 
     @classmethod
     def cleanup_sandbox(cls, session_id: str, sandbox_type: str = "main") -> None:

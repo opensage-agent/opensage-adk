@@ -8,6 +8,7 @@ from google.adk.tools.tool_context import ToolContext
 
 from aigise.sandbox.docker_config import DockerConfig
 from aigise.sandbox_manager import SandboxManager
+from aigise.utils.agent_utils import get_sandbox_from_manager
 
 
 def run_poc_from_script(
@@ -70,10 +71,11 @@ def run_poc_from_script(
     poc_code = code_match.group(1).strip()
 
     # 2. Get sandbox from SandboxManager
-    tool_context.state.get("root_session_id")
     docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
     try:
-        sandbox = SandboxManager.get_sandbox(session_id, docker_config)
+        sandbox = SandboxManager.get_sandbox_from_tool_context(
+            tool_context, docker_config
+        )
     except Exception as e:
         return f"[ERROR] Failed to get sandbox: {str(e)}"
 
@@ -124,9 +126,8 @@ def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
         Tuple[str, int]: The output and exit code of the command.
     """
     build_command = os.getenv("COMPILE_COMMAND")
-    tool_context.state.get("root_session_id")
     docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
-    sandbox = SandboxManager.get_sandbox(session_id, docker_config)
+    sandbox = SandboxManager.get_sandbox_from_tool_context(tool_context, docker_config)
     return sandbox.run_command_in_container(build_command)
 
 
@@ -137,7 +138,6 @@ def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
         Tuple[str, int]: The output and exit code of the command.
     """
     poc_command = os.getenv("RUN_COMMAND")
-    tool_context.state.get("root_session_id")
     docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
-    sandbox = SandboxManager.get_sandbox(session_id, docker_config)
+    sandbox = SandboxManager.get_sandbox_from_tool_context(tool_context, docker_config)
     return sandbox.run_command_in_container(poc_command)

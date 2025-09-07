@@ -13,5 +13,8 @@ repos:
     rev: v6.0.0
     hooks:
     -   id: check-yaml
+        exclude: ^third_party/
     -   id: end-of-file-fixer
+        exclude: ^third_party/
     -   id: trailing-whitespace
+        exclude: ^third_party/

@@ -77,3 +77,4 @@ class CyberGym(Task):
 
 if __name__ == "__main__":
     fire.Fire(CyberGym)
+    # uv run python src/aigise/tasks/cybergym.py --dataset_path ./tasks.json --max_llm_calls 1 generate

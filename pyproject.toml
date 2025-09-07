@@ -21,7 +21,7 @@ dependencies = [
     "transformers>=4.56.0",
     "datasets>=4.0.0",
     "google-adk>=1.13.0",
-    "cybergym[dev,server]",
+    "cybergym[dev,server] @ git+https://github.com/sunblaze-ucb/cybergym",
 ]
 
 [dependency-groups]
@@ -36,9 +36,6 @@ dev = [
 [tool.uv]
 override-dependencies = []
 no-build-isolation-package = []
-
-[tool.uv.sources]
-cybergym = { path = "third_party/cybergym", editable = false }
 
 [tool.hatch.metadata]
 allow-direct-references = true

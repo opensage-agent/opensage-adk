@@ -22,4 +22,8 @@ NOTE:
 
 ## Development Notes
 
-TODO
+(Not used currently) Use git subtree to add third_party dependencies that we want to edit. Example:
+
+```bash
+git subtree add --prefix third_party/cybergym https://github.com/sunblaze-ucb/cybergym.git main --squash
+```

@@ -47,7 +47,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "boto3", specifier = ">=1.40.21" },
-    { name = "cybergym", extras = ["dev", "server"], directory = "third_party/cybergym" },
+    { name = "cybergym", extras = ["dev", "server"], git = "https://github.com/sunblaze-ucb/cybergym" },
     { name = "datasets", specifier = ">=4.0.0" },
     { name = "docker" },
     { name = "fire" },
@@ -474,7 +474,7 @@ wheels = [
 [[package]]
 name = "cybergym"
 version = "0.1.0"
-source = { directory = "third_party/cybergym" }
+source = { git = "https://github.com/sunblaze-ucb/cybergym#e0a0971b5d319936e3c2caccc8fd1b2c52f91c81" }
 
 [package.optional-dependencies]
 dev = [
@@ -493,23 +493,6 @@ server = [
     { name = "sqlalchemy" },
     { name = "uvicorn" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "docker", marker = "extra == 'dev'", specifier = ">=7.1.0" },
-    { name = "docker", marker = "extra == 'server'", specifier = ">=7.1.0" },
-    { name = "fastapi", marker = "extra == 'server'", specifier = ">=0.115.0" },
-    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.1" },
-    { name = "matplotlib", marker = "extra == 'dev'", specifier = ">=3.10.1" },
-    { name = "openai", marker = "extra == 'dev'", specifier = ">=1.75.0" },
-    { name = "python-multipart", marker = "extra == 'server'", specifier = ">=0.0.20" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.0" },
-    { name = "simple-parsing", marker = "extra == 'dev'", specifier = ">=0.1.7" },
-    { name = "sqlalchemy", marker = "extra == 'server'", specifier = ">=2.0.0" },
-    { name = "tomli-w", marker = "extra == 'dev'", specifier = ">=1.2.0" },
-    { name = "uvicorn", marker = "extra == 'server'", specifier = ">=0.34.0" },
-]
-provides-extras = ["dev", "server"]
 
 [[package]]
 name = "cycler"

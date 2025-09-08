@@ -168,6 +168,7 @@ async def call_subagent_as_tool(
 ) -> Dict[str, Any]:
     """
     Call a sub-agent as a tool - Agent as a Tool pattern.
+    You should first list the existing sub-agents before trying to call one.
 
     This treats the sub-agent as a specialized tool that can process
     natural language requests and return structured results.

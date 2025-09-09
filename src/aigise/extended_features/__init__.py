@@ -13,6 +13,15 @@ from .dynamic_agent_manager import (
 # Function Composer
 from .function_composer import combined_for, combined_one
 
+# Neo4j History Logging
+from .neo4j_history_manager import Neo4jHistoryManager, get_neo4j_history_manager
+from .neo4j_monkey_patch import (
+    Neo4jMonkeyPatchManager,
+    disable_neo4j_logging,
+    enable_neo4j_logging,
+    get_neo4j_patch_manager,
+)
+
 # Reward Logger
 from .reward_logger import RewardLogger
 
@@ -47,4 +56,11 @@ __all__ = [
     # Function Composer
     "combined_for",
     "combined_one",
+    # Neo4j History Logging
+    "Neo4jHistoryManager",
+    "get_neo4j_history_manager",
+    "Neo4jMonkeyPatchManager",
+    "get_neo4j_patch_manager",
+    "enable_neo4j_logging",
+    "disable_neo4j_logging",
 ]

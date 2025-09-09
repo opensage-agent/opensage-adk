@@ -20,6 +20,10 @@ Reward logging for tools and agents.
 Dynamic sub-agent creation at runtime.
 **Run**: `adk web`
 
+### sample_neo4j_logging
+neo4j based history logging
+**Run**: `adk web`
+
 ### mcp_agent
 MCP integration with filesystem server.
 **Run**:

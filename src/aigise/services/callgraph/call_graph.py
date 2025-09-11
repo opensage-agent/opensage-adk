@@ -70,7 +70,10 @@ def create_sandbox_with_codeql_mount(codeql_dir: str, image_name: str) -> BaseSa
     # Use SandboxManager with a dedicated sandbox type
     session_id = f"codeql-{random.randint(1, 1_000_000_000)}"
     sandbox = SandboxManager.get_sandbox(
-        session_id=session_id, docker_config=cfg, sandbox_type="codeql"
+        session_id=session_id,
+        docker_config=cfg,
+        sandbox_type="codeql",
+        backend="native",
     )
     return sandbox
 

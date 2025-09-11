@@ -8,7 +8,6 @@ from google.adk.tools.tool_context import ToolContext
 
 from aigise.sandbox.docker_config import DockerConfig
 from aigise.sandbox_manager import SandboxManager
-from aigise.utils.agent_utils import get_sandbox_from_manager
 
 
 def run_poc_from_script(

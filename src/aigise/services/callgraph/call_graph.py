@@ -216,7 +216,7 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
     sandbox = None
     session_id = f"codeql-{random.randint(1, 1_000_000_000)}"
     try:
-        sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name, session_id)
+        sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name)
 
         # Build CodeQL database with the specified build command
         build_codeql_database_command = (

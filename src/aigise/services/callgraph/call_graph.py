@@ -353,19 +353,15 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
             ON CREATE SET callee.start = toInteger(row.callee_start),
                             callee.end   = toInteger(row.callee_end)
 
-            CALL {
-            WITH row, caller, callee
-            WHERE row.call_type = 'direct'
-            MERGE (caller)-[r:DIRECT_CALLS]->(callee)
-            ON CREATE SET r.call_loc = row.call_loc
-            }
+            FOREACH (ignored IN CASE WHEN row.call_type = 'direct' THEN [1] ELSE [] END |
+                MERGE (caller)-[r:DIRECT_CALLS]->(callee)
+                ON CREATE SET r.call_loc = row.call_loc
+            )
 
-            CALL {
-            WITH row, caller, callee
-            WHERE row.call_type = 'maybe_indirect'
-            MERGE (caller)-[r:MAYBE_INDIRECT_CALLS]->(callee)
-            ON CREATE SET r.call_loc = row.call_loc
-            }
+            FOREACH (ignored IN CASE WHEN row.call_type = 'maybe_indirect' THEN [1] ELSE [] END |
+                MERGE (caller)-[r:MAYBE_INDIRECT_CALLS]->(callee)
+                ON CREATE SET r.call_loc = row.call_loc
+            )
         """
         db.cypher_query(cypher, {"rows": rows})
 

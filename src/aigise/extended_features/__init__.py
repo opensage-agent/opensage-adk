@@ -20,6 +20,7 @@ from .neo4j_monkey_patch import (
     disable_neo4j_logging,
     enable_neo4j_logging,
     get_neo4j_patch_manager,
+    is_neo4j_logging_enabled,
 )
 
 # Reward Logger
@@ -63,4 +64,5 @@ __all__ = [
     "get_neo4j_patch_manager",
     "enable_neo4j_logging",
     "disable_neo4j_logging",
+    "is_neo4j_logging_enabled",
 ]

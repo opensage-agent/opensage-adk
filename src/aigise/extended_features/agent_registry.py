@@ -7,6 +7,7 @@ from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
 
 from aigise.extended_features.sec_agent import SecAgent
+from aigise.extended_features.summarization import setup_summarization_callbacks
 
 logger = logging.getLogger("aigise.extended_features." + __name__)
 
@@ -39,13 +40,15 @@ class AgentRegistry:
 
         # Create agent based on type
         if agent_type == "llm_agent":
-            return self._create_llm_agent(**kwargs)
+            agent = self._create_llm_agent(**kwargs)
         elif agent_type == "sec_agent":
-            return self._create_sec_agent(**kwargs)
+            agent = self._create_sec_agent(**kwargs)
         else:
             raise ValueError(
                 f"Unknown agent type: {agent_type}. Supported types: llm_agent, sec_agent"
             )
+        setup_summarization_callbacks(agent)
+        return agent
 
     def _create_llm_agent(self, **kwargs) -> LlmAgent:
         """Create an LLM agent."""

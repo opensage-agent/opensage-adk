@@ -207,6 +207,14 @@ class Neo4jMonkeyPatchManager:
 
         self._patched = False
 
+    def is_patched(self) -> bool:
+        """Check if the Neo4j patch is currently enabled.
+
+        Returns:
+            bool: True if the patch is enabled, False otherwise.
+        """
+        return self._patched
+
     def __enter__(self):
         self.apply_patch()
         return self
@@ -221,7 +229,11 @@ _patch_manager = None
 def get_neo4j_patch_manager() -> Neo4jMonkeyPatchManager:
     global _patch_manager
     if _patch_manager is None:
-        _patch_manager = Neo4jMonkeyPatchManager()
+        try:
+            _patch_manager = Neo4jMonkeyPatchManager()
+        except Exception as e:
+            print(f"Failed to create Neo4jMonkeyPatchManager: {e}")
+            _patch_manager = None
     return _patch_manager
 
 
@@ -231,3 +243,15 @@ def enable_neo4j_logging():
 
 def disable_neo4j_logging():
     get_neo4j_patch_manager().remove_patch()
+
+
+def is_neo4j_logging_enabled() -> bool:
+    """Check if Neo4j logging patch is currently enabled.
+
+    Returns:
+        bool: True if Neo4j logging is enabled, False otherwise.
+    """
+    patch_manager = get_neo4j_patch_manager()
+    if not patch_manager:
+        return False
+    return patch_manager.is_patched()

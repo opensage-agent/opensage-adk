@@ -14,8 +14,8 @@ import sys
 # Add the SecAgentFramework to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
+from aigise.extended_features.sandbox_manager import SandboxManager
 from aigise.sandbox import DockerConfig
-from aigise.sandbox_manager import SandboxManager
 
 
 def test_port_mappings():

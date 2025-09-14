@@ -3,8 +3,8 @@ import os
 from google.adk.tools.tool_context import ToolContext
 from neomodel import db
 
+from aigise.extended_features.sandbox_manager import SandboxManager
 from aigise.sandbox.docker_config import DockerConfig
-from aigise.sandbox_manager import SandboxManager
 
 db.set_connection(
     f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}"

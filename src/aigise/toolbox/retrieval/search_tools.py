@@ -4,8 +4,8 @@ import shlex
 from google.adk.tools.tool_context import ToolContext
 from neomodel import db
 
+from aigise.extended_features.sandbox_manager import SandboxManager
 from aigise.sandbox.docker_config import DockerConfig
-from aigise.sandbox_manager import SandboxManager
 
 # Set up Neo4j database connection
 db.set_connection(

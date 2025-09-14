@@ -18,9 +18,9 @@ from typing import Dict, List, Optional, Set, Tuple
 import pandas as pd
 from neomodel import db
 
+from aigise.extended_features.sandbox_manager import SandboxManager
 from aigise.sandbox import BaseSandbox
 from aigise.sandbox.docker_config import DockerConfig
-from aigise.sandbox_manager import SandboxManager
 from aigise.utils.project_info import PROJECT_PATH
 
 

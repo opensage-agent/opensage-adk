@@ -6,8 +6,8 @@ from typing import Tuple
 
 from google.adk.tools.tool_context import ToolContext
 
+from aigise.extended_features.sandbox_manager import SandboxManager
 from aigise.sandbox.docker_config import DockerConfig
-from aigise.sandbox_manager import SandboxManager
 
 
 def run_poc_from_script(

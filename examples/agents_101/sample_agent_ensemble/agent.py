@@ -1,0 +1,66 @@
+from google.adk import Agent
+from google.adk.agents.llm_agent import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.tools.agent_tool import AgentTool
+
+from aigise.extended_features import (
+    enable_neo4j_logging,
+    get_agent_ensemble_manager,
+    setup_summarization_callbacks,
+)
+from aigise.extended_features.sec_agent import SecAgent
+from aigise.toolbox.general.agent_tools import (
+    agent_ensemble,
+    flag_unjustified_claims,
+    get_available_agents_and_models_for_ensemble,
+)
+
+
+def calculate_add(a: float, b: float) -> float:
+    """Calculate the sum of two numbers.
+
+    Args:
+        a: The first number to add.
+        b: The second number to add.
+
+    Returns:
+        The sum of a and b.
+    """
+    return a + b
+
+
+calculation_agent = LlmAgent(
+    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+    name="calculation_agent",
+    instruction="""
+    You are a helpful math assistant. You can help users with basic arithmetic operations.
+    """,
+    tools=[
+        calculate_add,
+    ],
+)
+
+calculation_agent_tool = AgentTool(agent=calculation_agent)
+enable_neo4j_logging()
+ensemble_manager = get_agent_ensemble_manager()
+ensemble_manager.add_thread_safe_tool("calculate_add")
+
+root_agent = SecAgent(
+    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+    name="simple_math_agent",
+    instruction="""
+    You are a helpful math assistant. You can help users with basic arithmetic operations.
+    When a user asks you to add two numbers, use the calculate_add tool to perform the calculation.
+    Always use the tool to get accurate results instead of calculating manually.
+    Provide clear and friendly responses to the user.
+    """,
+    description="A simple math agent that can perform addition operations.",
+    tools=[
+        calculation_agent_tool,
+        agent_ensemble,
+        get_available_agents_and_models_for_ensemble,
+        flag_unjustified_claims,
+    ],
+)
+
+setup_summarization_callbacks(root_agent)

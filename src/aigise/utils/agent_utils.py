@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Set
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.llm_agent import LlmAgent, _SingleAfterToolCallback
 from google.adk.agents.readonly_context import ReadonlyContext
+from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.base_toolset import BaseToolset
@@ -254,3 +255,95 @@ def extract_tools_from_agent(agent) -> Dict[str, Any]:
                 available_tools[tool_name] = tool_obj
 
     return available_tools
+
+
+def _copy_agent_with_updated_model(base_agent_info, model_name: str):
+    """
+    Create a new agent instance with a specific model, based on an existing agent.
+
+    Args:
+        base_agent_info: EnsembleAgentInfo object containing the base agent
+        model_name: The model name to use (e.g., "anthropic/claude-sonnet-4")
+
+    Returns:
+        New LlmAgent instance with the specified model
+    """
+    if not base_agent_info.agent_instance or not isinstance(
+        base_agent_info.agent_instance, LlmAgent
+    ):
+        raise ValueError(
+            f"Base agent must be an LlmAgent instance, got {type(base_agent_info.agent_instance)}"
+        )
+
+    base_agent = base_agent_info.agent_instance
+
+    # Use the official copy method provided by BaseAgent (Pydantic model_copy)
+    try:
+        new_agent = base_agent.copy(
+            update={
+                "model": LiteLlm(model=model_name),
+                "name": f"{base_agent.name}_{model_name.replace('/', '_').replace('-', '_')}",
+            }
+        )
+
+        return new_agent
+
+    except Exception as copy_error:
+        # Fallback to manual creation if copy fails
+        print(
+            f"Warning: agent.copy() failed ({copy_error}), falling back to manual creation"
+        )
+
+        new_model = LiteLlm(model=model_name)
+
+        # Create new agent with the same configuration but different model
+        new_agent = LlmAgent(
+            model=new_model,
+            name=f"{base_agent.name}_{model_name.replace('/', '_').replace('-', '_')}",
+            instruction=base_agent.instruction,
+            description=base_agent.description
+            or f"{base_agent.name} using {model_name}",
+            tools=base_agent.tools,
+            sub_agents=base_agent.sub_agents
+            if hasattr(base_agent, "sub_agents")
+            else None,
+            # Copy additional configuration fields
+            global_instruction=getattr(base_agent, "global_instruction", ""),
+            generate_content_config=getattr(
+                base_agent, "generate_content_config", None
+            ),
+            disallow_transfer_to_parent=getattr(
+                base_agent, "disallow_transfer_to_parent", False
+            ),
+            disallow_transfer_to_peers=getattr(
+                base_agent, "disallow_transfer_to_peers", False
+            ),
+            include_contents=getattr(base_agent, "include_contents", "default"),
+        )
+
+        # Copy ALL 4 types of callbacks (evidence: LlmAgent has 4 callback types)
+        if (
+            hasattr(base_agent, "before_model_callback")
+            and base_agent.before_model_callback
+        ):
+            new_agent.before_model_callback = base_agent.before_model_callback
+
+        if (
+            hasattr(base_agent, "after_model_callback")
+            and base_agent.after_model_callback
+        ):
+            new_agent.after_model_callback = base_agent.after_model_callback
+
+        if (
+            hasattr(base_agent, "before_tool_callback")
+            and base_agent.before_tool_callback
+        ):
+            new_agent.before_tool_callback = base_agent.before_tool_callback
+
+        if (
+            hasattr(base_agent, "after_tool_callback")
+            and base_agent.after_tool_callback
+        ):
+            new_agent.after_tool_callback = base_agent.after_tool_callback
+
+        return new_agent

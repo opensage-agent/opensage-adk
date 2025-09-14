@@ -38,30 +38,110 @@ def get_all_invocations_for_agent(agent_name: str, tool_context: ToolContext):
     return db.cypher_query(query, {"agent_name": agent_name})
 
 
-def get_all_invocations_from_session_id(session_id: str, tool_context: ToolContext):
+def get_all_agent_runs(tool_context: ToolContext):
     """
-    Get all invocations from an agent with the given session_id, this returns all agent_tools that were called by the agent with the given session_id
+    Get all agent runs in the current shared session
 
-    Args:
-        session_id: The id of the session
+    Returns:
+        A list of all agent runs with their basic information
     """
-    pass
+    history_manager = get_neo4j_history_manager()
+    shared_session_id = history_manager.get_shared_session_id(tool_context)
+    db_name = f"agent-history-{shared_session_id}".replace("-", "")
+
+    query = f"""
+    USE {db_name}
+    MATCH (a:AgentRun)
+    RETURN a.session_id as session_id,
+           a.agent_name as agent_name,
+           a.shared_session_id as shared_session_id,
+           a.start_time as start_time,
+           a.end_time as end_time,
+           a.status as status,
+           a.input_contents as input_contents,
+           a.output_contents as output_contents,
+           a.agent_model as agent_model
+    ORDER BY a.start_time DESC
+    """
+
+    try:
+        result, _ = db.cypher_query(query)
+
+        # Format the results
+        agent_runs = []
+        for row in result:
+            agent_run_info = {
+                "session_id": row[0],
+                "agent_name": row[1],
+                "input_contents": row[6],  # This is a list
+                "output_contents": row[7],  # This is a list
+                "agent_model": row[8],
+            }
+            agent_runs.append(agent_run_info)
+
+        return agent_runs
+
+    except Exception as e:
+        print(f"Failed to get all agent runs: {e}")
+        return []
 
 
 def get_full_tool_res_and_grep(
-    tool_invocation_id: str, grep_pattern: str, tool_context: ToolContext
+    event_id: str, grep_pattern: str, tool_context: ToolContext
 ):
     """
-    Get the full tool result and grep the result for the given tool invocation id
+    Get the RawToolResponse that this event summarizes and grep its raw_content
 
     Args:
-        tool_invocation_id: The id of the tool invocation
+        event_id: The id of the event that contains the summary
         grep_pattern: The pattern to grep the result
 
     Returns:
-        The grepped result
+        The grepped result from the original tool response
     """
-    pass
+    import re
+
+    history_manager = get_neo4j_history_manager()
+    shared_session_id = history_manager.get_shared_session_id(tool_context)
+    db_name = f"agent-history-{shared_session_id}".replace("-", "")
+
+    # Find RawToolResponse via SUMMARIZES_TOOL_RESPONSE relationship
+    query = f"""
+    USE {db_name}
+    MATCH (e:Event {{event_id: $event_id}})-[:SUMMARIZES_TOOL_RESPONSE]->(r:RawToolResponse)
+    RETURN r.raw_content as content, r.tool_name as tool_name
+    """
+
+    try:
+        result, _ = db.cypher_query(query, {"event_id": event_id})
+        if not result:
+            return f"No RawToolResponse found for event_id: {event_id}. This event may not summarize any tool response."
+
+        content = result[0][0]
+        tool_name = result[0][1]
+        source_type = f"RawToolResponse({tool_name})"
+
+        if not content:
+            return f"No content found in RawToolResponse for event_id: {event_id}"
+
+        # Perform grep on content
+        content_str = str(content)
+        matching_lines = []
+
+        for line_num, line in enumerate(content_str.split("\n"), 1):
+            if re.search(grep_pattern, line, re.IGNORECASE):
+                matching_lines.append(f"{line_num}: {line}")
+
+        if matching_lines:
+            return (
+                f"Found {len(matching_lines)} matching lines in {source_type}:\n"
+                + "\n".join(matching_lines)
+            )
+        else:
+            return f"No matches found for pattern '{grep_pattern}' in {source_type}"
+
+    except Exception as e:
+        return f"Error searching tool result: {e}"
 
 
 def list_all_events_for_session(session_id: str, tool_context: ToolContext):
@@ -72,35 +152,189 @@ def list_all_events_for_session(session_id: str, tool_context: ToolContext):
         session_id: The id of the session
 
     Returns:
-        A list of events
+        A list of events with basic information
     """
-    pass
+    history_manager = get_neo4j_history_manager()
+    shared_session_id = history_manager.get_shared_session_id(tool_context)
+    db_name = f"agent-history-{shared_session_id}".replace("-", "")
+
+    query = f"""
+    USE {db_name}
+    MATCH (a:AgentRun {{session_id: $session_id}})-[:HAS_EVENT]->(e:Event)
+    RETURN e.event_id as event_id,
+           e.type as event_type,
+           e.author as author,
+           e.timestamp as timestamp,
+           e.invocation_id as invocation_id,
+           CASE
+             WHEN e.type = 'function_response' THEN 'TOOL_RESPONSE'
+             WHEN e.type = 'function_call' THEN 'TOOL_CALL'
+             WHEN e.type = 'tool_response_summary' THEN 'TOOL_SUMMARY'
+             ELSE 'OTHER'
+           END as category
+    ORDER BY e.timestamp ASC
+    """
+
+    try:
+        result, _ = db.cypher_query(query, {"session_id": session_id})
+
+        # Format output to hide content for tool responses
+        formatted_events = []
+        for row in result:
+            event_info = {
+                "event_id": row[0],
+                "type": row[1],
+                "author": row[2],
+                "timestamp": row[3],
+                "invocation_id": row[4],
+                "category": row[5],
+                "content": "Content hidden"
+                if row[5] in ["TOOL_RESPONSE", "TOOL_CALL", "TOOL_SUMMARY"]
+                else "Available",
+            }
+            formatted_events.append(event_info)
+
+        return formatted_events
+
+    except Exception as e:
+        print(f"Failed to list events for session {session_id}: {e}")
+        return []
 
 
-def get_tool_res(tool_invocation_id: str, tool_context: ToolContext):
+def get_full_tool_res(event_id: str, tool_context: ToolContext):
     """
-    Get the result of the tool with the given tool invocation id
+    Get the RawToolResponse that this event summarizes via SUMMARIZES_TOOL_RESPONSE relationship
 
     Args:
-        tool_invocation_id: The id of the tool invocation
+        event_id: The id of the event that contains the summary
 
     Returns:
-        The result of the tool
+        The original tool response that was summarized by this event
     """
-    pass
+    history_manager = get_neo4j_history_manager()
+    shared_session_id = history_manager.get_shared_session_id(tool_context)
+    db_name = f"agent-history-{shared_session_id}".replace("-", "")
+
+    # Find RawToolResponse via SUMMARIZES_TOOL_RESPONSE relationship
+    query = f"""
+    USE {db_name}
+    MATCH (e:Event {{event_id: $event_id}})-[:SUMMARIZES_TOOL_RESPONSE]->(r:RawToolResponse)
+    RETURN r.node_id as node_id,
+           r.tool_name as tool_name,
+           r.tool_args as tool_args,
+           r.raw_content as raw_content,
+           r.summary as summary,
+           r.created_at as created_at,
+           r.session_id as session_id
+    """
+
+    try:
+        result, _ = db.cypher_query(query, {"event_id": event_id})
+        if result:
+            row = result[0]
+            return {
+                "node_id": row[0],
+                "tool_name": row[1],
+                "tool_args": row[2],
+                "raw_content": row[3],
+            }
+
+        return {
+            "error": f"No RawToolResponse found for event_id: {event_id}. This event may not summarize any tool response."
+        }
+
+    except Exception as e:
+        return {"error": f"Failed to get tool result: {e}"}
 
 
 def get_all_events_for_summarization(summarization_id: str, tool_context: ToolContext):
     """
-    Get all events for the given summarization id
+    Get all events for the given summarization id, for tool responses, only show the ids, no contents will be shown
 
     Args:
-        summarization_id: The id of the summarization
+        summarization_id: The id of the summarization (event_id of the summary event)
 
     Returns:
-        A list of events
+        A list of events that were summarized
     """
-    pass
+    history_manager = get_neo4j_history_manager()
+    shared_session_id = history_manager.get_shared_session_id(tool_context)
+    db_name = f"agent-history-{shared_session_id}".replace("-", "")
+
+    # Find all events that are summarized by the given summarization event
+    query = f"""
+    USE {db_name}
+    MATCH (summary:Event {{event_id: $summarization_id}})-[:SUMMARIZES_EVENTS]->(original:Event)
+    RETURN original.event_id as event_id,
+           original.type as event_type,
+           original.author as author,
+           original.timestamp as timestamp,
+           original.invocation_id as invocation_id,
+           CASE
+             WHEN original.type = 'function_response' THEN 'TOOL_RESPONSE'
+             WHEN original.type = 'function_call' THEN 'TOOL_CALL'
+             WHEN original.type = 'tool_response_summary' THEN 'TOOL_SUMMARY'
+             ELSE 'OTHER'
+           END as category
+    ORDER BY original.timestamp ASC
+    """
+
+    try:
+        result, _ = db.cypher_query(query, {"summarization_id": summarization_id})
+
+        # Format output to hide content for tool responses
+        summarized_events = []
+        for row in result:
+            event_info = {
+                "event_id": row[0],
+                "type": row[1],
+                "author": row[2],
+                "timestamp": row[3],
+                "invocation_id": row[4],
+                "category": row[5],
+                "content": "Content hidden"
+                if row[5] in ["TOOL_RESPONSE", "TOOL_CALL", "TOOL_SUMMARY"]
+                else "IDs only",
+            }
+            summarized_events.append(event_info)
+
+        # Also get info about the summary event itself
+        summary_query = f"""
+        USE {db_name}
+        MATCH (summary:Event {{event_id: $summarization_id}})
+        RETURN summary.event_id as event_id,
+               summary.type as event_type,
+               summary.content as summary_content,
+               summary.timestamp as timestamp
+        """
+
+        summary_result, _ = db.cypher_query(
+            summary_query, {"summarization_id": summarization_id}
+        )
+        summary_info = None
+        if summary_result:
+            summary_row = summary_result[0]
+            summary_info = {
+                "summary_event_id": summary_row[0],
+                "summary_type": summary_row[1],
+                "summary_content": summary_row[2],
+                "summary_timestamp": summary_row[3],
+            }
+
+        return {
+            "summarization_id": summarization_id,
+            "summary_info": summary_info,
+            "summarized_events": summarized_events,
+            "total_summarized_events": len(summarized_events),
+        }
+
+    except Exception as e:
+        print(f"Failed to get events for summarization {summarization_id}: {e}")
+        return {
+            "error": f"Failed to get summarized events: {e}",
+            "summarization_id": summarization_id,
+            "summarized_events": [],
+        }
 
 
 async def drop_or_summarize_events(tool_context: ToolContext):

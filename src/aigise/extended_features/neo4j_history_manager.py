@@ -428,7 +428,7 @@ class Neo4jHistoryManager:
             summary: $summary,
             created_at: $created_at
         }})
-        CREATE (a)-[:HAS_RAW_TOOL_RESPONSE]->(r)
+        CREATE (a)-[:AGENT_RUN_HAS_RAW_TOOL_RESPONSE]->(r)
         RETURN r.node_id as created_node_id
         """
 
@@ -465,6 +465,7 @@ class Neo4jHistoryManager:
         MATCH (r:RawToolResponse {{session_id: $session_id}})
         WHERE r.summary = $summary_content
         CREATE (e)-[:SUMMARIZES_TOOL_RESPONSE]->(r)
+        SET e.type = "tool_response_summary"
         RETURN r.node_id as matched_node_id, r.tool_name as tool_name
         """
 
@@ -612,7 +613,7 @@ class Neo4jHistoryManager:
                 role: $role,
                 content: $content,
                 timestamp: $timestamp,
-                node_type: "history_summary",
+                type: "history_summary",
                 created_at: $created_at
             }})
             CREATE (a)-[:HAS_EVENT]->(s)

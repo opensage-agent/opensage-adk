@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional
 
+from google.adk.agents.llm_agent import LlmAgent
 from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
 from google.adk.runners import Runner
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
@@ -113,7 +114,7 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
 
     This function:
     1. Loads persisted agents on demand using caller's tools
-    2. Returns information about all agents (both in-memory and restored)
+    2. Returns information about all dynamically created agents (both in-memory and restored)
     """
     try:
         manager = get_dynamic_agent_manager()
@@ -125,10 +126,11 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
         # Load persisted agents on demand, rebuilding with caller tools if possible
         manager._load_persisted_agents_on_demand(caller_tools)
 
-        # Get all agents (both in-memory and restored)
+        # Get all dynamic agents (both in-memory and restored)
         all_agents = manager.list_agents()
         active_agents = []
 
+        # Process dynamic agents
         for agent_metadata in all_agents:
             # Try to get agent instance
             agent_instance = manager.get_agent(agent_metadata.id)
@@ -150,12 +152,19 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
                         )
                         if agent_metadata.config
                         else "anthropic/claude-sonnet-4-20250514",
+                        "type": "dynamic_agent",
                     }
                 )
 
         return {
             "success": True,
             "active_agents": active_agents,
+            "dynamic_agents_count": len(
+                [a for a in active_agents if a.get("type") == "dynamic_agent"]
+            ),
+            "adk_subagents_count": len(
+                [a for a in active_agents if a.get("type") == "adk_subagent"]
+            ),
             "total_count": len(active_agents),
         }
 
@@ -170,6 +179,8 @@ async def call_subagent_as_tool(
     Call a sub-agent as a tool - Agent as a Tool pattern.
     You should first list the existing sub-agents before trying to call one.
 
+    This supports both dynamic agents and the current agent's subagents (only LlmAgent types).
+
     This treats the sub-agent as a specialized tool that can process
     natural language requests and return structured results.
 
@@ -182,32 +193,35 @@ async def call_subagent_as_tool(
     """
     try:
         manager = get_dynamic_agent_manager()
+        caller_agent = tool_context._invocation_context.agent
 
-        # Find the target sub-agent
+        # First try to find in dynamic agents
         all_agents = manager.list_agents()
-        target_agent = None
+        target_agent_metadata = None
+        agent_instance = None
 
         for agent_metadata in all_agents:
-            if (
-                # agent_metadata.creator == tool_context._invocation_context.agent.name and
-                agent_metadata.name == agent_name
-            ):
-                target_agent = agent_metadata
-                break
+            if agent_metadata.name == agent_name:
+                target_agent_metadata = agent_metadata
+                agent_instance = manager.get_agent(agent_metadata.id)
+                if agent_instance:
+                    break
 
-        if not target_agent:
-            return {
-                "success": False,
-                "error": f"Sub-agent '{agent_name}' not found. Create one first.",
-            }
-
-        # Get the agent instance
-        agent_instance = manager.get_agent(target_agent.id)
+        # If not found in dynamic agents, try ADK subagents (only LlmAgent types)
+        if (
+            not agent_instance
+            and hasattr(caller_agent, "sub_agents")
+            and caller_agent.sub_agents
+        ):
+            for sub_agent in caller_agent.sub_agents:
+                if sub_agent.name == agent_name and isinstance(sub_agent, LlmAgent):
+                    agent_instance = sub_agent
+                    break
 
         if not agent_instance:
             return {
                 "success": False,
-                "error": f"Failed to get agent instance for '{agent_name}'",
+                "error": f"Sub-agent '{agent_name}' not found. Create one first.",
             }
 
         # Create AgentTool and call it using standard ADK way
@@ -221,13 +235,18 @@ async def call_subagent_as_tool(
             args=tool_args, tool_context=tool_context
         )
 
+        # Determine agent type and ID
+        agent_id = target_agent_metadata.id if target_agent_metadata else "adk_subagent"
+        agent_type = "dynamic_agent" if target_agent_metadata else "adk_subagent"
+
         return {
             "success": True,
-            "agent_id": target_agent.id,
+            "agent_id": agent_id,
             "agent_name": agent_name,
+            "agent_type": agent_type,
             "task_message": task_message,
             "response": str(tool_result),
-            "message": f"Sub-agent '{agent_name}' executed as tool successfully",
+            "message": f"Sub-agent '{agent_name}' ({agent_type}) executed as tool successfully",
         }
 
     except Exception as e:

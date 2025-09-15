@@ -10,11 +10,10 @@ import os
 from typing import Dict
 
 from google.adk.tools.tool_context import ToolContext
+from loguru import logger
 
-from aigise.sandbox import BaseSandbox, NativeDockerSandbox, SweRexSandbox
+from aigise.sandbox import BaseSandbox, NativeDockerSandbox
 from aigise.sandbox.docker_config import DockerConfig
-
-logger = logging.getLogger(__name__)
 
 
 class SandboxManager:
@@ -29,7 +28,7 @@ class SandboxManager:
         session_id: str,
         docker_config: DockerConfig,
         sandbox_type: str = "main",
-        backend: str = "swerex",
+        backend: str = "native",
     ) -> BaseSandbox:
         """
         Get or create a sandbox for the given session_id.
@@ -38,9 +37,7 @@ class SandboxManager:
             session_id: The session identifier
             docker_config: Docker configuration for the sandbox
             sandbox_type: The type of sandbox to get or create (default: "main")
-            backend: Backend to use ("swerex", "native").
-                    "swerex" tries SWE-ReX first, falls back to native if it fails.
-                    "native" uses native Docker directly without trying SWE-ReX.
+            backend: Backend to use ("native": uses native Docker).
 
         Returns:
             BaseSandbox: A sandbox instance for the session
@@ -141,14 +138,14 @@ class SandboxManager:
 
     @classmethod
     def _create_sandbox(
-        cls, docker_cfg: DockerConfig, backend: str = "swerex"
+        cls, docker_cfg: DockerConfig, backend: str = "native"
     ) -> BaseSandbox:
         """
         Create a new sandbox instance using the specified backend.
 
         Args:
             docker_cfg: Docker configuration for the sandbox
-            backend: Backend to use ("swerex", "native")
+            backend: Backend to use ("native")
 
         Returns:
             BaseSandbox: A configured sandbox instance
@@ -173,40 +170,5 @@ class SandboxManager:
                 return sandbox
             else:
                 raise Exception(f"Native Docker sandbox test failed: {test_output}")
-
-        else:  # backend == "swerex"
-            # Try SWE-ReX first, fallback to Native Docker
-            logger.info("Creating SWE-ReX sandbox with native fallback")
-            sandbox = None
-            try:
-                # Try SWE-ReX sandbox first using DockerConfig
-                sandbox = SweRexSandbox(docker_config=docker_cfg)
-                logger.info("Created SweRexSandbox instance (runtime started)")
-                return sandbox
-
-            except Exception as e:
-                logger.warning(f"SWE-ReX sandbox failed: {e}")
-                logger.info("Falling back to Native Docker sandbox")
-
-                # Cleanup SWE-ReX resources if they were created
-                if sandbox and hasattr(sandbox, "deployment"):
-                    try:
-                        # SWE-ReX stop() is async, need to run it properly
-                        import asyncio
-
-                        asyncio.run(sandbox.deployment.stop())
-                    except Exception as e:
-                        logger.warning(f"SWE-ReX cleanup error during fallback: {e}")
-
-                # Fallback to Native Docker sandbox
-                sandbox = NativeDockerSandbox(docker_config=docker_cfg)
-
-                # Test Native Docker sandbox
-                test_output, test_exit_code = sandbox.run_command_in_container(
-                    "echo 'native test'"
-                )
-                if test_exit_code == 0 and "native test" in test_output:
-                    logger.info("Created Native Docker sandbox")
-                    return sandbox
-                else:
-                    raise Exception(f"Native Docker sandbox test failed: {test_output}")
+        else:
+            raise NotImplementedError(f"Unsupported backend: {backend}")

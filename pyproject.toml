@@ -7,39 +7,41 @@ name = "aigise"
 version = "0.1.0"
 description = "AIgiSE"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
-    "pandas==2.2.3",
-    "neomodel==5.4.3",
-    "docker==7.1.0",
-    "python-dotenv==1.1.0",
-    "tree-sitter-languages==1.10.2",
-    "loguru==0.7.3",
-    "pyyaml==6.0.2",
-    "requests==2.32.4",
-    "google-adk==1.13.0",
-    "litellm>=1.74.7",
-    "msgspec>=0.19.0",
-    "pygdbmi>=0.11.0.0",
+    "fire",
+    "litellm",
+    "tenacity",
+    "loguru",
+    "docker",
+    "jsonpickle",
+    "neomodel",
+    "tree-sitter-languages>=1.10.2",
+    "boto3>=1.40.21",
+    "transformers>=4.56.0",
+    "datasets>=4.0.0",
+    "google-adk>=1.13.0",
+    "cybergym[dev,server] @ git+https://github.com/sunblaze-ucb/cybergym",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit",
+    "ipython",
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
 ]
 
 [tool.uv]
 override-dependencies = []
 no-build-isolation-package = []
 
-[dependency-groups]
-dev = [
-    "pre-commit>=4.3.0",
-    "pytest>=8.4.1",
-    "pytest-asyncio>=1.1.0",
-    "ruff>=0.12.11",
-]
+[tool.hatch.metadata]
+allow-direct-references = true
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/aigise"]
-
-[tool.hatch.build.targets.sdist]
-include = ["/src", "/pyproject.toml", "/README.md"]
+[tool.ruff]
+extend-exclude = ["third_party"]
 
 [tool.ruff.lint]
 select = [

@@ -34,7 +34,7 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
         if docker_config is None or not isinstance(docker_config, DockerConfig):
             raise TypeError("docker_config must be a DockerConfig instance")
         if not docker_config.image:
-            raise ValueError("DockerConfig.image must be provided for SweRexSandbox")
+            raise ValueError("DockerConfig.image must be provided")
 
         super().__init__(docker_config)
 
@@ -229,6 +229,7 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
         mem_tar.seek(0)
 
         container.put_archive(dst_path, mem_tar.getvalue())
+        self.run_command_in_container(f"chown -R $(id -nu):$(id -ng) {dst_path}")
 
     def delete_container(self, max_wait: int = 10):
         """Delete the container."""

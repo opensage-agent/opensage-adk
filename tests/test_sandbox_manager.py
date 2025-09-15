@@ -60,7 +60,7 @@ def test_port_mappings():
     ]
 
     # Test with both backends
-    backends = ["native", "swerex"]
+    backends = ["native"]
 
     for backend in backends:
         print(f"\n=== Testing with {backend} backend ===")

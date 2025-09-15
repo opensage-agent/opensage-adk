@@ -24,7 +24,6 @@ from .template_fallback import TemplateFallbackMixin, ensure_docker_image
 __all__ = [
     "BaseSandbox",
     "NativeDockerSandbox",
-    "SweRexSandbox",
     "DockerConfig",
     "DockerfileBuilder",
     "DockerBuildResult",

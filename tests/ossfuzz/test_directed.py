@@ -2,8 +2,8 @@ import logging
 
 import docker
 import pytest
+from loguru import logger
 
-logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 from aigise.utils.project_info import PROJECT_PATH

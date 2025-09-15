@@ -14,6 +14,7 @@ from swerex.runtime.abstract import BashAction, CreateBashSessionRequest
 # removed SessionDoesNotExistError import since manager handles session creation
 from .base_sandbox import BaseSandbox
 from .docker_config import DockerConfig
+from .template_fallback import TemplateFallbackMixin
 
 # Thread-pool helper for running async code from sync context
 
@@ -37,7 +38,7 @@ def _sync_run(coro):
         return future.result()
 
 
-class SweRexSandbox(BaseSandbox):
+class SweRexSandbox(BaseSandbox, TemplateFallbackMixin):
     """SWE-ReX sandbox implementation using SWE-ReX deployment.
 
     This class takes a DockerConfig, constructs a DockerDeployment accordingly,
@@ -61,6 +62,9 @@ class SweRexSandbox(BaseSandbox):
             raise ValueError("DockerConfig.image must be provided for SweRexSandbox")
 
         super().__init__(docker_config)
+
+        # Ensure Docker image is available (with template fallback if needed)
+        self._ensure_image_with_template_fallback(docker_config)
 
         # Build docker_args from DockerConfig
         docker_args: List[str] = []

@@ -14,10 +14,11 @@ from docker.errors import APIError, NotFound
 
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.sandbox.docker_config import DockerConfig
+from aigise.sandbox.template_fallback import TemplateFallbackMixin
 from aigise.utils.parser import get_function_info
 
 
-class NativeDockerSandbox(BaseSandbox):
+class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
     """Native Docker sandbox implementation using direct Docker API."""
 
     def __init__(
@@ -37,6 +38,9 @@ class NativeDockerSandbox(BaseSandbox):
 
         super().__init__(docker_config)
 
+        # Ensure Docker image is available (with template fallback if needed)
+        self._ensure_image_with_template_fallback(docker_config)
+
         # Initialize Docker client with configuration
         self.client = docker.from_env(timeout=self.docker_config_obj.timeout)
 
@@ -46,11 +50,26 @@ class NativeDockerSandbox(BaseSandbox):
     def _get_container(self) -> str:
         """Create and start a new container from the specified image."""
         run_kwargs: Dict[str, Any] = dict(
-            command="bash",
             stdin_open=True,
             tty=True,
             detach=True,
         )
+
+        # Set command from config
+        # If command is None, default to "bash" for backward compatibility
+        # If command is empty string, don't set command to use Dockerfile's default CMD
+        # If command is set to a specific value, use that
+        if hasattr(self.docker_config_obj, "command"):
+            if self.docker_config_obj.command is None:
+                run_kwargs["command"] = "bash"
+            elif self.docker_config_obj.command == "":
+                # Empty string means use Dockerfile's default CMD - don't set command
+                pass
+            else:
+                run_kwargs["command"] = self.docker_config_obj.command
+        else:
+            # Fallback for old DockerConfig without command field
+            run_kwargs["command"] = "bash"
 
         # Apply config to kwargs
         if self.docker_config_obj.environment:

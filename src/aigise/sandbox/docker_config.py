@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 
@@ -53,6 +54,13 @@ class DockerConfig:
     remove_container: Optional[bool] = None
     remove_images: Optional[bool] = None
     python_standalone_dir: Optional[str] = None
+
+    # Template fallback configuration
+    dockerfile_template_path: Optional[str] = None
+    template_variables: Dict[str, Any] = field(default_factory=dict)
+
+    # Command override - if None, defaults to "bash"; if empty string, uses Dockerfile's default CMD
+    command: Optional[str] = None
 
     # Anything else
     extra: Dict[str, Any] = field(default_factory=dict)

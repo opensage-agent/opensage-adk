@@ -29,6 +29,7 @@ dependencies = [
     { name = "msgspec" },
     { name = "neomodel" },
     { name = "pandas" },
+    { name = "pygdbmi" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "requests" },
@@ -52,6 +53,7 @@ requires-dist = [
     { name = "msgspec", specifier = ">=0.19.0" },
     { name = "neomodel", specifier = "==5.4.3" },
     { name = "pandas", specifier = "==2.2.3" },
+    { name = "pygdbmi", specifier = ">=0.11.0.0" },
     { name = "python-dotenv", specifier = "==1.1.0" },
     { name = "pyyaml", specifier = "==6.0.2" },
     { name = "requests", specifier = "==2.32.4" },
@@ -2381,6 +2383,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/68/85/1ea668bbab3c50071ca613c6ab30047fb36ab0da1b92fa8f17bbc38fd36c/pydantic_settings-2.10.1.tar.gz", hash = "sha256:06f0062169818d0f5524420a360d632d5857b83cffd4d42fe29597807a1614ee", size = 172583, upload-time = "2025-06-24T13:26:46.841Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/58/f0/427018098906416f580e3cf1366d3b1abfb408a0652e9f31600c24a1903c/pydantic_settings-2.10.1-py3-none-any.whl", hash = "sha256:a60952460b99cf661dc25c29c0ef171721f98bfcb52ef8d9ea4c943d7c8cc796", size = 45235, upload-time = "2025-06-24T13:26:45.485Z" },
+]
+
+[[package]]
+name = "pygdbmi"
+version = "0.11.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/2a/d0/d386ad42b12b90e60293c56a3b793910f34aa21c63f7ddc8a857e498d458/pygdbmi-0.11.0.0.tar.gz", hash = "sha256:7a286be2fcf25650d9f66e11adc46e972cf078a466864a700cd44739ad261fb0", size = 24648, upload-time = "2023-01-29T16:10:55.65Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c8/4b/71df806f4d260ddf01f9e431f5a6538a4155db3ec84a131d7e087178c591/pygdbmi-0.11.0.0-py3-none-any.whl", hash = "sha256:f7cac28e1d558927444c880ed1e65da1a5d8686121a3aac16f42fb84d3ceb60d", size = 21258, upload-time = "2023-01-29T16:10:53.171Z" },
 ]
 
 [[package]]

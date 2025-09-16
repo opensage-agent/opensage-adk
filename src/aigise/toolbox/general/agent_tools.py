@@ -150,9 +150,9 @@ async def get_available_agents_and_models_for_ensemble(tool_context: ToolContext
         ensemble_manager = get_agent_ensemble_manager()
         root_agent = tool_context._invocation_context.agent
 
-        # Get all ensemble-ready agents (static + dynamic)
+        # Get all ensemble-ready agents (static + dynamic) in current session
         ensemble_result = ensemble_manager.get_ensemble_ready_agents(
-            root_agent=root_agent, include_dynamic=True
+            root_agent=root_agent, include_dynamic=True, context=tool_context
         )
 
         # Convert EnsembleAgentInfo objects to dictionaries for API response
@@ -244,7 +244,7 @@ async def agent_ensemble(
         root_agent = tool_context._invocation_context.agent
 
         ensemble_result = ensemble_manager.get_ensemble_ready_agents(
-            root_agent=root_agent, include_dynamic=True
+            root_agent=root_agent, include_dynamic=True, context=tool_context
         )
 
         # Check if the requested agent is in the safe agents list

@@ -15,6 +15,7 @@ from google.genai import types
 from .neo4j_history_manager import get_neo4j_history_manager
 
 
+# This could only be enabled or disabled globally, for all agents in the same process
 class Neo4jMonkeyPatchManager:
     def __init__(self):
         self._original_agent_tool_run: Optional[Callable] = None

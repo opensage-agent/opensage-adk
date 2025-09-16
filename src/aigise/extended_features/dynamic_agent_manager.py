@@ -90,26 +90,72 @@ class DynamicAgentManager:
         )
         self.storage_path.mkdir(exist_ok=True)
 
-        self._agents: Dict[str, BaseAgent] = {}
-        self._metadata: Dict[str, AgentMetadata] = {}
-        self._hooks: List[AgentLifecycleHook] = []
+        # Session-aware storage: {shared_session_id: {agent_id: agent/metadata}}
+        self._session_agents: Dict[str, Dict[str, BaseAgent]] = {}
+        self._session_metadata: Dict[str, Dict[str, AgentMetadata]] = {}
+        self._global_hooks: List[AgentLifecycleHook] = []
 
     def add_lifecycle_hook(self, hook: AgentLifecycleHook) -> None:
         """Add a lifecycle hook."""
-        self._hooks.append(hook)
+        self._global_hooks.append(hook)
 
     def remove_lifecycle_hook(self, hook: AgentLifecycleHook) -> None:
         """Remove a lifecycle hook."""
-        if hook in self._hooks:
-            self._hooks.remove(hook)
+        if hook in self._global_hooks:
+            self._global_hooks.remove(hook)
+
+    def _get_shared_session_id_from_context(self, context) -> Optional[str]:
+        """Extract shared_session_id from various context objects."""
+        if context is None:
+            return None
+
+        # Try tool_context first
+        if hasattr(context, "state") and hasattr(context.state, "get"):
+            shared_session_id = context.state.get("shared_session_id")
+            if shared_session_id:
+                return shared_session_id
+
+        # Try invocation_context
+        if hasattr(context, "_invocation_context"):
+            session = context._invocation_context.session
+            if "shared_session_id" not in session.state:
+                session.state["shared_session_id"] = session.id
+            return session.state["shared_session_id"]
+
+        # Try session directly
+        if hasattr(context, "session"):
+            session = context.session
+            if "shared_session_id" not in session.state:
+                session.state["shared_session_id"] = session.id
+            return session.state["shared_session_id"]
+
+        return None
+
+    def _ensure_session_initialized(self, shared_session_id: str) -> None:
+        """Ensure session storage structures exist."""
+        if shared_session_id not in self._session_agents:
+            self._session_agents[shared_session_id] = {}
+        if shared_session_id not in self._session_metadata:
+            self._session_metadata[shared_session_id] = {}
 
     async def create_agent(
         self,
         config: Dict[str, Any],
         creator: Optional[str] = None,
         persist: bool = True,
+        shared_session_id: Optional[str] = None,
+        context=None,
     ) -> tuple[str, BaseAgent]:
         """Create a new agent dynamically."""
+        # Determine shared_session_id
+        if shared_session_id is None:
+            shared_session_id = self._get_shared_session_id_from_context(context)
+            if shared_session_id is None:
+                shared_session_id = "default"
+
+        # Ensure session storage exists
+        self._ensure_session_initialized(shared_session_id)
+
         agent_id = str(uuid.uuid4())
 
         try:
@@ -139,28 +185,30 @@ class DynamicAgentManager:
                 config=metadata_config,
             )
 
-            # Store agent and metadata
-            self._agents[agent_id] = agent
-            self._metadata[agent_id] = metadata
+            # Store agent and metadata in session-specific storage
+            self._session_agents[shared_session_id][agent_id] = agent
+            self._session_metadata[shared_session_id][agent_id] = metadata
 
             if persist:
-                await self._persist_agent(agent_id)
+                await self._persist_agent(agent_id, shared_session_id)
 
             # Call lifecycle hooks
-            for hook in self._hooks:
+            for hook in self._global_hooks:
                 try:
                     await hook.on_agent_created(agent, metadata)
                 except Exception as e:
                     logger.error(f"Lifecycle hook error: {e}")
 
-            logger.info(f"Created agent '{agent_name}' with ID: {agent_id}")
+            logger.info(
+                f"Created agent '{agent_name}' with ID: {agent_id} in session: {shared_session_id}"
+            )
             return agent_id, agent
 
         except Exception as e:
             logger.error(f"Failed to create agent: {e}")
 
-            # Create error metadata
-            if agent_id not in self._metadata:
+            # Create error metadata in session-specific storage
+            if agent_id not in self._session_metadata.get(shared_session_id, {}):
                 error_metadata = AgentMetadata(
                     id=agent_id,
                     name=config.get("name", f"agent_{agent_id[:8]}"),
@@ -171,12 +219,14 @@ class DynamicAgentManager:
                     creator=creator,
                     config=config,
                 )
-                self._metadata[agent_id] = error_metadata
+                self._session_metadata[shared_session_id][agent_id] = error_metadata
 
             # Call error hooks
-            for hook in self._hooks:
+            for hook in self._global_hooks:
                 try:
-                    await hook.on_agent_error(None, self._metadata[agent_id], e)
+                    await hook.on_agent_error(
+                        None, self._session_metadata[shared_session_id][agent_id], e
+                    )
                 except Exception as hook_error:
                     logger.error(f"Lifecycle hook error: {hook_error}")
 
@@ -188,13 +238,30 @@ class DynamicAgentManager:
         updates: Optional[Dict[str, Any]] = None,
         creator: Optional[str] = None,
         persist: bool = True,
+        shared_session_id: Optional[str] = None,
+        context=None,
     ) -> tuple[str, BaseAgent]:
         """Clone an existing agent with optional updates."""
-        if source_id not in self._agents:
-            raise ValueError(f"Agent {source_id} not found")
+        # Determine shared_session_id
+        if shared_session_id is None:
+            shared_session_id = self._get_shared_session_id_from_context(context)
+            if shared_session_id is None:
+                shared_session_id = "default"
 
-        source_agent = self._agents[source_id]
-        source_metadata = self._metadata[source_id]
+        # Ensure session storage exists
+        self._ensure_session_initialized(shared_session_id)
+
+        # Find source agent in the same session
+        if (
+            shared_session_id not in self._session_agents
+            or source_id not in self._session_agents[shared_session_id]
+        ):
+            raise ValueError(
+                f"Agent {source_id} not found in session {shared_session_id}"
+            )
+
+        source_agent = self._session_agents[shared_session_id][source_id]
+        source_metadata = self._session_metadata[shared_session_id][source_id]
 
         # Generate new ID and name
         new_id = str(uuid.uuid4())
@@ -225,70 +292,112 @@ class DynamicAgentManager:
             parent_id=source_id,
         )
 
-        # Store cloned agent
-        self._agents[new_id] = cloned_agent
-        self._metadata[new_id] = metadata
+        # Store cloned agent in session-specific storage
+        self._session_agents[shared_session_id][new_id] = cloned_agent
+        self._session_metadata[shared_session_id][new_id] = metadata
 
         # Update parent's children
-        self._metadata[source_id].children_ids.append(new_id)
+        self._session_metadata[shared_session_id][source_id].children_ids.append(new_id)
 
         # Persist if requested
         if persist:
-            await self._persist_agent(new_id)
-            await self._persist_agent(source_id)  # Update parent
+            await self._persist_agent(new_id, shared_session_id)
+            await self._persist_agent(source_id, shared_session_id)  # Update parent
 
-        logger.info(f"Cloned agent {source_id} to {new_id}")
+        logger.info(
+            f"Cloned agent {source_id} to {new_id} in session: {shared_session_id}"
+        )
         return new_id, cloned_agent
 
-    async def update_agent_status(self, agent_id: str, status: AgentStatus) -> None:
+    async def update_agent_status(
+        self,
+        agent_id: str,
+        status: AgentStatus,
+        shared_session_id: Optional[str] = None,
+        context=None,
+    ) -> None:
         """Update agent status and call appropriate hooks."""
-        if agent_id not in self._metadata:
-            raise ValueError(f"Agent {agent_id} not found")
+        if shared_session_id is None:
+            shared_session_id = self._get_shared_session_id_from_context(context)
+            if shared_session_id is None:
+                shared_session_id = "default"
 
-        old_status = self._metadata[agent_id].status
-        self._metadata[agent_id].status = status
-        self._metadata[agent_id].updated_at = datetime.now()
+        if (
+            shared_session_id not in self._session_metadata
+            or agent_id not in self._session_metadata[shared_session_id]
+        ):
+            raise ValueError(
+                f"Agent {agent_id} not found in session {shared_session_id}"
+            )
 
-        agent = self._agents.get(agent_id)
-        metadata = self._metadata[agent_id]
+        old_status = self._session_metadata[shared_session_id][agent_id].status
+        self._session_metadata[shared_session_id][agent_id].status = status
+        self._session_metadata[shared_session_id][agent_id].updated_at = datetime.now()
+
+        agent = self._session_agents[shared_session_id].get(agent_id)
+        metadata = self._session_metadata[shared_session_id][agent_id]
 
         # Call appropriate lifecycle hooks
         if status == AgentStatus.ACTIVE and old_status != AgentStatus.ACTIVE:
-            for hook in self._hooks:
+            for hook in self._global_hooks:
                 try:
                     await hook.on_agent_started(agent, metadata)
                 except Exception as e:
                     logger.error(f"Lifecycle hook error: {e}")
 
         elif status == AgentStatus.PAUSED and old_status != AgentStatus.PAUSED:
-            for hook in self._hooks:
+            for hook in self._global_hooks:
                 try:
                     await hook.on_agent_paused(agent, metadata)
                 except Exception as e:
                     logger.error(f"Lifecycle hook error: {e}")
 
         elif status == AgentStatus.STOPPED and old_status != AgentStatus.STOPPED:
-            for hook in self._hooks:
+            for hook in self._global_hooks:
                 try:
                     await hook.on_agent_stopped(agent, metadata)
                 except Exception as e:
                     logger.error(f"Lifecycle hook error: {e}")
 
-        await self._persist_agent(agent_id)
+        await self._persist_agent(agent_id, shared_session_id)
 
-    def get_agent(self, agent_id: str) -> Optional[BaseAgent]:
-        """Get an agent by ID."""
-        return self._agents.get(agent_id)
+    def get_agent(
+        self, agent_id: str, shared_session_id: Optional[str] = None, context=None
+    ) -> Optional[BaseAgent]:
+        """Get an agent by ID within a specific session."""
+        if shared_session_id is None:
+            shared_session_id = self._get_shared_session_id_from_context(context)
+            if shared_session_id is None:
+                shared_session_id = "default"
 
-    def get_agent_metadata(self, agent_id: str) -> Optional[AgentMetadata]:
-        """Get agent metadata by ID."""
-        return self._metadata.get(agent_id)
+        return self._session_agents.get(shared_session_id, {}).get(agent_id)
+
+    def get_agent_metadata(
+        self, agent_id: str, shared_session_id: Optional[str] = None, context=None
+    ) -> Optional[AgentMetadata]:
+        """Get agent metadata by ID within a specific session."""
+        if shared_session_id is None:
+            shared_session_id = self._get_shared_session_id_from_context(context)
+            if shared_session_id is None:
+                shared_session_id = "default"
+
+        return self._session_metadata.get(shared_session_id, {}).get(agent_id)
 
     def list_agents(
-        self, status: Optional[AgentStatus] = None, creator: Optional[str] = None
+        self,
+        status: Optional[AgentStatus] = None,
+        creator: Optional[str] = None,
+        shared_session_id: Optional[str] = None,
+        context=None,
     ) -> List[AgentMetadata]:
-        """List agents with optional filtering."""
-        agents = list(self._metadata.values())
+        """List agents with optional filtering within a specific session."""
+        if shared_session_id is None:
+            shared_session_id = self._get_shared_session_id_from_context(context)
+            if shared_session_id is None:
+                shared_session_id = "default"
+
+        session_metadata = self._session_metadata.get(shared_session_id, {})
+        agents = list(session_metadata.values())
 
         if status:
             agents = [a for a in agents if a.status == status]
@@ -298,43 +407,72 @@ class DynamicAgentManager:
 
         return agents
 
-    async def remove_agent(self, agent_id: str, cascade: bool = False) -> bool:
-        """Remove an agent from management."""
-        if agent_id not in self._agents:
+    async def remove_agent(
+        self,
+        agent_id: str,
+        cascade: bool = False,
+        shared_session_id: Optional[str] = None,
+        context=None,
+    ) -> bool:
+        """Remove an agent from management within a specific session."""
+        if shared_session_id is None:
+            shared_session_id = self._get_shared_session_id_from_context(context)
+            if shared_session_id is None:
+                shared_session_id = "default"
+
+        if (
+            shared_session_id not in self._session_agents
+            or agent_id not in self._session_agents[shared_session_id]
+        ):
             return False
 
-        metadata = self._metadata[agent_id]
+        metadata = self._session_metadata[shared_session_id][agent_id]
 
         # Handle children if cascade delete
         if cascade and metadata.children_ids:
             for child_id in metadata.children_ids.copy():
-                await self.remove_agent(child_id, cascade=True)
+                await self.remove_agent(
+                    child_id, cascade=True, shared_session_id=shared_session_id
+                )
 
         # Update parent's children list
-        if metadata.parent_id and metadata.parent_id in self._metadata:
-            parent_children = self._metadata[metadata.parent_id].children_ids
+        if metadata.parent_id and metadata.parent_id in self._session_metadata.get(
+            shared_session_id, {}
+        ):
+            parent_children = self._session_metadata[shared_session_id][
+                metadata.parent_id
+            ].children_ids
             if agent_id in parent_children:
                 parent_children.remove(agent_id)
-                await self._persist_agent(metadata.parent_id)
+                await self._persist_agent(metadata.parent_id, shared_session_id)
 
         # Remove from memory
-        del self._agents[agent_id]
-        del self._metadata[agent_id]
+        del self._session_agents[shared_session_id][agent_id]
+        del self._session_metadata[shared_session_id][agent_id]
 
         # Remove persistence
-        metadata_file = self.storage_path / f"{agent_id}_metadata.json"
+        metadata_file = (
+            self.storage_path
+            / "sessions"
+            / shared_session_id
+            / "metadata"
+            / f"{agent_id}_metadata.json"
+        )
         if metadata_file.exists():
             metadata_file.unlink()
 
-        logger.info(f"Removed agent {agent_id}")
+        logger.info(f"Removed agent {agent_id} from session {shared_session_id}")
         return True
 
-    async def _persist_agent(self, agent_id: str) -> None:
-        """Persist agent metadata to storage."""
-        if agent_id not in self._metadata:
+    async def _persist_agent(self, agent_id: str, shared_session_id: str) -> None:
+        """Persist agent metadata to session-specific storage."""
+        if (
+            shared_session_id not in self._session_metadata
+            or agent_id not in self._session_metadata[shared_session_id]
+        ):
             return
 
-        metadata = self._metadata[agent_id]
+        metadata = self._session_metadata[shared_session_id][agent_id]
         metadata_dict = asdict(metadata)
 
         # Convert datetime objects to ISO strings
@@ -342,7 +480,11 @@ class DynamicAgentManager:
         metadata_dict["updated_at"] = metadata.updated_at.isoformat()
         metadata_dict["status"] = metadata.status.value
 
-        metadata_file = self.storage_path / f"{agent_id}_metadata.json"
+        # Create session-specific directory structure
+        session_path = self.storage_path / "sessions" / shared_session_id / "metadata"
+        session_path.mkdir(parents=True, exist_ok=True)
+
+        metadata_file = session_path / f"{agent_id}_metadata.json"
         with open(metadata_file, "w") as f:
             json.dump(metadata_dict, f, indent=2)
 

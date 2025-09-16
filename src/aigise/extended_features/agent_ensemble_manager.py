@@ -32,6 +32,8 @@ class EnsembleAgentInfo:
     source_path: Optional[str] = None  # For tracking where the agent was found
 
 
+# This is a global manager for the agent ensemble functionality with thread-safe tools management.
+# It is intended to use a global _thread_safe_tools set to manage the thread-safe tools in all sessions.
 class AgentEnsembleManager:
     """Manager for agent ensemble functionality with thread-safe tools management."""
 
@@ -253,7 +255,7 @@ class AgentEnsembleManager:
         return {"safe_agents": safe_agents, "unsafe_agents": unsafe_agents}
 
     def get_ensemble_ready_agents(
-        self, root_agent: BaseAgent, include_dynamic: bool = True
+        self, root_agent: BaseAgent, include_dynamic: bool = True, context=None
     ) -> Dict[str, Any]:
         """Get all agents ready for ensemble from both static and dynamic sources."""
         result = {
@@ -277,11 +279,14 @@ class AgentEnsembleManager:
         if include_dynamic and get_dynamic_agent_manager is not None:
             try:
                 manager = get_dynamic_agent_manager()
-                all_dynamic = manager.list_agents()
+                # Get dynamic agents from the current session context
+                all_dynamic = manager.list_agents(context=context)
 
                 dynamic_agents = []
                 for agent_metadata in all_dynamic:
-                    agent_instance = manager.get_agent(agent_metadata.id)
+                    agent_instance = manager.get_agent(
+                        agent_metadata.id, context=context
+                    )
                     if agent_instance:
                         tools = self._extract_tool_names_from_agent(agent_instance)
                         model = (

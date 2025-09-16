@@ -69,10 +69,12 @@ async def create_subagent(
         }
 
         agent_id, agent_instance = await manager.create_agent(
-            config, creator=current_agent.name
+            config, creator=current_agent.name, context=tool_context
         )
 
-        await manager.update_agent_status(agent_id, AgentStatus.ACTIVE)
+        await manager.update_agent_status(
+            agent_id, AgentStatus.ACTIVE, context=tool_context
+        )
 
         return {
             "success": True,
@@ -126,14 +128,14 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
         # Load persisted agents on demand, rebuilding with caller tools if possible
         manager._load_persisted_agents_on_demand(caller_tools)
 
-        # Get all dynamic agents (both in-memory and restored)
-        all_agents = manager.list_agents()
+        # Get all dynamic agents (both in-memory and restored) for current session
+        all_agents = manager.list_agents(context=tool_context)
         active_agents = []
 
         # Process dynamic agents
         for agent_metadata in all_agents:
-            # Try to get agent instance
-            agent_instance = manager.get_agent(agent_metadata.id)
+            # Try to get agent instance from current session
+            agent_instance = manager.get_agent(agent_metadata.id, context=tool_context)
 
             # Determine tool names
             if agent_instance:
@@ -195,15 +197,17 @@ async def call_subagent_as_tool(
         manager = get_dynamic_agent_manager()
         caller_agent = tool_context._invocation_context.agent
 
-        # First try to find in dynamic agents
-        all_agents = manager.list_agents()
+        # First try to find in dynamic agents within current session
+        all_agents = manager.list_agents(context=tool_context)
         target_agent_metadata = None
         agent_instance = None
 
         for agent_metadata in all_agents:
             if agent_metadata.name == agent_name:
                 target_agent_metadata = agent_metadata
-                agent_instance = manager.get_agent(agent_metadata.id)
+                agent_instance = manager.get_agent(
+                    agent_metadata.id, context=tool_context
+                )
                 if agent_instance:
                     break
 

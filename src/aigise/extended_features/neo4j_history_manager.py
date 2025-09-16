@@ -26,13 +26,26 @@ class Neo4jHistoryManager:
         )
 
     def get_shared_session_id(self, context) -> str:
+        # Try context.state first
+        if hasattr(context, "state") and hasattr(context.state, "get"):
+            shared_session_id = context.state.get("shared_session_id")
+            if shared_session_id:
+                return shared_session_id
+
+        # Get session from context
         if hasattr(context, "_invocation_context"):
             session = context._invocation_context.session
         elif hasattr(context, "session"):
             session = context.session
+        else:
+            raise ValueError("Context must have either _invocation_context or session")
 
         if "shared_session_id" not in session.state:
             session.state["shared_session_id"] = session.id
+
+        # Also set it in context.state if possible for immediate access
+        if hasattr(context, "state"):
+            context.state["shared_session_id"] = session.state["shared_session_id"]
 
         return session.state["shared_session_id"]
 

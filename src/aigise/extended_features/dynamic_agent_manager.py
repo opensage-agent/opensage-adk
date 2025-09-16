@@ -120,6 +120,9 @@ class DynamicAgentManager:
             session = context._invocation_context.session
             if "shared_session_id" not in session.state:
                 session.state["shared_session_id"] = session.id
+            # Also set it in context.state if possible for immediate access
+            if hasattr(context, "state"):
+                context.state["shared_session_id"] = session.state["shared_session_id"]
             return session.state["shared_session_id"]
 
         # Try session directly
@@ -127,6 +130,9 @@ class DynamicAgentManager:
             session = context.session
             if "shared_session_id" not in session.state:
                 session.state["shared_session_id"] = session.id
+            # Also set it in context.state if possible for immediate access
+            if hasattr(context, "state"):
+                context.state["shared_session_id"] = session.state["shared_session_id"]
             return session.state["shared_session_id"]
 
         return None

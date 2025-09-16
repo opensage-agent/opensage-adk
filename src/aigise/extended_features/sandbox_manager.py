@@ -71,9 +71,14 @@ class SandboxManager:
             if shared_session_id:
                 return shared_session_id
             else:
-                shared_session_id = tool_context._invocation_context.session.id
-                tool_context.state["shared_session_id"] = shared_session_id
-                return shared_session_id
+                session = tool_context._invocation_context.session
+                if "shared_session_id" not in session.state:
+                    session.state["shared_session_id"] = session.id
+                # Also set it in tool_context.state for immediate access in current call
+                tool_context.state["shared_session_id"] = session.state[
+                    "shared_session_id"
+                ]
+                return session.state["shared_session_id"]
 
         session_id = get_shared_session_id(tool_context)
         return cls.get_sandbox(session_id, docker_config, sandbox_type, backend)

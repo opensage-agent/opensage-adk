@@ -30,7 +30,7 @@ class BaseSandbox(ABC):
         pass
 
     @abstractmethod
-    def run_command_in_container(self, command: str):
+    def run_command_in_container(self, command: str | list[str]):
         """Run a command inside the container."""
         pass
 

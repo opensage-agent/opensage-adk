@@ -301,7 +301,7 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
         """Delete the container."""
         try:
             container = self.client.containers.get(self.container_id)
-            container.remove(force=True, v=True)
+            container.remove(force=True)
         except NotFound:
             print(f"[info] container {self.container_id} already gone")
             return
@@ -493,10 +493,13 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
         """Retrieve the content of a file inside the container."""
         return self.extract_file_from_container(filepath)
 
-    def run_command_in_container(self, command: str) -> Tuple[str, int]:
+    def run_command_in_container(self, command: str | list[str]) -> Tuple[str, int]:
         """Run a command inside the container."""
         container = self.client.containers.get(self.container_id)
-        full_command = f'/bin/bash -lc "{command}"'
+        if isinstance(command, list):
+            full_command = command
+        else:
+            full_command = ["/bin/bash", "-lc", command]
         exec_result = container.exec_run(full_command, stdout=True, stderr=True)
         output = exec_result.output.decode("latin-1")
         exit_code = exec_result.exit_code

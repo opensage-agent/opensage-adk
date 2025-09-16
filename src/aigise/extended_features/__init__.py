@@ -39,7 +39,7 @@ from .sec_agent import SecAgent
 from .summarization import setup_summarization_callbacks
 
 # Tool Combo Manager
-from .tool_combo_manager import ToolCombo
+from .tool_combo import ToolCombo
 
 __all__ = [
     # Dynamic Agent Management

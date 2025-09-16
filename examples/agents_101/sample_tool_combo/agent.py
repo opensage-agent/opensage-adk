@@ -20,7 +20,7 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.function_tool import FunctionTool
 
 from aigise.extended_features.sec_agent import SecAgent
-from aigise.extended_features.tool_combo_manager import ToolCombo
+from aigise.extended_features.tool_combo import ToolCombo
 
 # Disable OpenTelemetry to avoid context management issues
 os.environ["OTEL_SDK_DISABLED"] = "true"

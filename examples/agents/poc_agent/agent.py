@@ -12,7 +12,7 @@ from google.adk.tools.function_tool import FunctionTool
 from aigise.extended_features.function_composer import combined_for, combined_one
 from aigise.extended_features.reward_logger import RewardLogger
 from aigise.extended_features.sec_agent import SecAgent
-from aigise.extended_features.tool_combo_manager import ToolCombo
+from aigise.extended_features.tool_combo import ToolCombo
 from aigise.services.callgraph.call_graph import *
 from aigise.toolbox.retrieval.search_tools import *
 from aigise.toolbox.static_analysis.call_graph import *

@@ -5,7 +5,7 @@ from google.adk.tools.agent_tool import AgentTool
 from pydantic import Field
 
 from aigise.extended_features.reward_logger import RewardLogger
-from aigise.extended_features.tool_combo_manager import ToolCombo
+from aigise.extended_features.tool_combo import ToolCombo
 
 
 class SecAgent(LlmAgent):

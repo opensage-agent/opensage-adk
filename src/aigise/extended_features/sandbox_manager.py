@@ -64,7 +64,7 @@ class SandboxManager:
         tool_context: ToolContext,
         docker_config: DockerConfig,
         sandbox_type: str = "main",
-        backend: str = "swerex",
+        backend: str = "native",
     ) -> BaseSandbox:
         def get_shared_session_id(tool_context: ToolContext) -> str:
             shared_session_id = tool_context.state.get("shared_session_id")

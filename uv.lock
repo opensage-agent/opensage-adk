@@ -30,16 +30,8 @@ dependencies = [
     { name = "litellm" },
     { name = "loguru" },
     { name = "neomodel" },
-<<<<<<< HEAD
-    { name = "pandas" },
-    { name = "pygdbmi" },
-    { name = "python-dotenv" },
-    { name = "pyyaml" },
-    { name = "requests" },
-=======
     { name = "tenacity" },
     { name = "transformers" },
->>>>>>> pr-51
     { name = "tree-sitter-languages" },
 ]
 
@@ -54,20 +46,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-<<<<<<< HEAD
-    { name = "docker", specifier = "==7.1.0" },
-    { name = "google-adk", specifier = "==1.13.0" },
-    { name = "litellm", specifier = ">=1.74.7" },
-    { name = "loguru", specifier = "==0.7.3" },
-    { name = "msgspec", specifier = ">=0.19.0" },
-    { name = "neomodel", specifier = "==5.4.3" },
-    { name = "pandas", specifier = "==2.2.3" },
-    { name = "pygdbmi", specifier = ">=0.11.0.0" },
-    { name = "python-dotenv", specifier = "==1.1.0" },
-    { name = "pyyaml", specifier = "==6.0.2" },
-    { name = "requests", specifier = "==2.32.4" },
-    { name = "tree-sitter-languages", specifier = "==1.10.2" },
-=======
     { name = "boto3", specifier = ">=1.40.21" },
     { name = "cybergym", extras = ["dev", "server"], git = "https://github.com/sunblaze-ucb/cybergym" },
     { name = "datasets", specifier = ">=4.0.0" },
@@ -81,7 +59,6 @@ requires-dist = [
     { name = "tenacity" },
     { name = "transformers", specifier = ">=4.56.0" },
     { name = "tree-sitter-languages", specifier = ">=1.10.2" },
->>>>>>> pr-51
 ]
 
 [package.metadata.requires-dev]

@@ -14,6 +14,9 @@ class DockerConfig:
 
     # General
     image: Optional[str] = None
+    container_id: Optional[str] = (
+        None  # If provided, connect to existing container instead of creating new one
+    )
     timeout: int = 300
 
     # Runtime/engine options

@@ -147,6 +147,7 @@ class SandboxManager:
     ) -> BaseSandbox:
         """
         Create a new sandbox instance using the specified backend.
+        If docker_cfg has container_id, connect to existing container.
 
         Args:
             docker_cfg: Docker configuration for the sandbox
@@ -157,7 +158,39 @@ class SandboxManager:
         """
         IMAGE_NAME = os.getenv("IMAGE_NAME", "ubuntu:20.04")
 
-        # Ensure docker_cfg has an image set
+        # Handle existing container connection
+        if docker_cfg.container_id:
+            logger.info(
+                f"Attempting to connect to existing container {docker_cfg.container_id}"
+            )
+            try:
+                if backend == "native":
+                    sandbox = NativeDockerSandbox(docker_config=docker_cfg)
+                    # Test connection to existing container
+                    test_output, test_exit_code = sandbox.run_command_in_container(
+                        "echo 'existing container test'"
+                    )
+                    if test_exit_code == 0 and "existing container test" in test_output:
+                        logger.info(
+                            f"Successfully connected to existing container {docker_cfg.container_id}"
+                        )
+                        return sandbox
+                    else:
+                        raise Exception(
+                            f"Existing container connection test failed: {test_output}"
+                        )
+                else:
+                    raise NotImplementedError(
+                        f"Unsupported backend for existing container: {backend}"
+                    )
+            except Exception as e:
+                logger.warning(
+                    f"Failed to connect to existing container {docker_cfg.container_id}: {e}"
+                )
+                # Clear container_id and fall back to creating new container
+                docker_cfg.container_id = None
+
+        # Ensure docker_cfg has an image set for new container creation
         if not docker_cfg.image:
             docker_cfg.image = IMAGE_NAME
 

@@ -29,23 +29,89 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
         Initialize NativeDockerSandbox.
 
         Args:
-            docker_config: DockerConfig options controlling container launch (must include image)
+            docker_config: DockerConfig options controlling container launch (must include image or container_id)
         """
         if docker_config is None or not isinstance(docker_config, DockerConfig):
             raise TypeError("docker_config must be a DockerConfig instance")
-        if not docker_config.image:
-            raise ValueError("DockerConfig.image must be provided")
+
+        # Either image or container_id must be provided
+        if not docker_config.image and not docker_config.container_id:
+            raise ValueError("DockerConfig must have either image or container_id")
 
         super().__init__(docker_config)
-
-        # Ensure Docker image is available (with template fallback if needed)
-        self._ensure_image_with_template_fallback(docker_config)
 
         # Initialize Docker client with configuration
         self.client = docker.from_env(timeout=self.docker_config_obj.timeout)
 
-        # Create and start container
-        self.container_id = self._get_container()
+        # Connect to existing container or create new one
+        if docker_config.container_id:
+            try:
+                self.container_id = self._connect_to_existing_container(
+                    docker_config.container_id
+                )
+            except (ValueError, NotFound, APIError) as e:
+                print(
+                    f"[warn] Failed to connect to existing container {docker_config.container_id}: {e}"
+                )
+                print("[info] Falling back to creating new container")
+                # Clear container_id and fallback to creating new container
+                docker_config.container_id = None
+                # Ensure we have an image for fallback
+                if not docker_config.image:
+                    raise ValueError(
+                        "Fallback to create new container failed: no image specified in DockerConfig"
+                    )
+                # Ensure Docker image is available (with template fallback if needed)
+                self._ensure_image_with_template_fallback(docker_config)
+                # Create and start container
+                self.container_id = self._get_container()
+        else:
+            # Ensure Docker image is available (with template fallback if needed)
+            self._ensure_image_with_template_fallback(docker_config)
+            # Create and start container
+            self.container_id = self._get_container()
+
+    def _connect_to_existing_container(self, container_id: str) -> str:
+        """Connect to an existing container if it's running.
+
+        Args:
+            container_id: The ID or name of the existing container
+
+        Returns:
+            str: The container ID
+
+        Raises:
+            ValueError: If container doesn't exist or is not running
+        """
+        try:
+            container = self.client.containers.get(container_id)
+
+            # Check if container is running
+            container.reload()  # Refresh container state
+            if container.status != "running":
+                raise ValueError(
+                    f"Container {container_id} exists but is not running (status: {container.status})"
+                )
+
+            # Update image_name from the existing container if not already set
+            if not self.docker_config_obj.image:
+                self.image_name = (
+                    container.image.tags[0]
+                    if container.image.tags
+                    else container.image.id
+                )
+
+            print(
+                f"Connected to existing container {container_id} (image: {self.image_name})"
+            )
+            return container.id
+
+        except NotFound:
+            raise ValueError(f"Container {container_id} not found")
+        except APIError as e:
+            raise ValueError(
+                f"Failed to connect to container {container_id}: {e.explanation}"
+            )
 
     def _get_container(self) -> str:
         """Create and start a new container from the specified image."""

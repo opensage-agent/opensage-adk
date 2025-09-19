@@ -4,7 +4,8 @@ from collections import defaultdict
 from pathlib import Path
 
 import pandas as pd
-from neomodel.async_.core import AsyncDatabase
+
+from aigise.services.neo4j.client import AsyncNeo4jClient
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +169,9 @@ def load_codeql_results(out_dir: str) -> pd.DataFrame:
         return df
 
 
-async def insert_codeql_results_to_cpg(codeql_out_dir: str, adb: AsyncDatabase):
+async def insert_codeql_results_to_cpg(
+    n4j_client: AsyncNeo4jClient, codeql_out_dir: str
+):
     df = load_codeql_results(codeql_out_dir)
 
     # 1. match methods
@@ -239,7 +242,7 @@ async def insert_codeql_results_to_cpg(codeql_out_dir: str, adb: AsyncDatabase):
         m.LINE_NUMBER_END >= row.start_line
     RETURN row.idx as idx, collect(m.id) as method_ids
     """
-    results, _ = await adb.cypher_query(cypher, params={"rows": rows})
+    results = await n4j_client.run_query(cypher, {"rows": rows})
     id_map = {}
     for res in results:
         idx = res["idx"]
@@ -282,11 +285,13 @@ async def insert_codeql_results_to_cpg(codeql_out_dir: str, adb: AsyncDatabase):
     YIELD rel
     RETURN count(rel) as rel_count
     """
-    res, _ = await adb.cypher_query(cypher, params={"rows": rows})
+    res = await n4j_client.run_query(cypher, {"rows": rows})
     logger.info(f"Created {res[0]['rel_count']} call graph edges")
 
 
-async def update_joern_cpg(adb: AsyncDatabase, fix_identical_methods: bool = False):
+async def update_joern_cpg(
+    n4j_client: AsyncNeo4jClient, fix_identical_methods: bool = False
+):
     # create CG_CALL edges
     cypher = """
     MATCH (a:METHOD)-[:CONTAINS]->(:CALL)-[:CALL]->(b:METHOD)
@@ -294,7 +299,7 @@ async def update_joern_cpg(adb: AsyncDatabase, fix_identical_methods: bool = Fal
     RETURN count(*) as rel_count
     """
 
-    res, _ = await adb.cypher_query(cypher)
+    res = await n4j_client.run_query(cypher)
     logger.info(f"Created {res[0]['rel_count']} CG_CALL edges")
 
     if fix_identical_methods:
@@ -308,5 +313,17 @@ async def update_joern_cpg(adb: AsyncDatabase, fix_identical_methods: bool = Fal
         MERGE (n)<-[:MAYBE_IDENTICAL]-(m)
         RETURN count(*) as rel_count
         """
-        res, _ = await adb.cypher_query(cypher)
+        res = await n4j_client.run_query(cypher)
         logger.info(f"Created {res[0]['rel_count']} MAYBE_IDENTICAL edges")
+
+
+async def import_joern_cpg(n4j_client: AsyncNeo4jClient, graphml_path: str):
+    cypher = f"""
+    CALL apoc.import.graphml("file:///{graphml_path}", {{readLabels: true, storeNodeIds: true}})
+    YIELD nodes, relationships, properties, time
+    RETURN nodes, relationships, properties, time
+    """
+    res = await n4j_client.run_query(cypher)
+    logger.info(
+        f"Imported {res[0]['nodes']} nodes, {res[0]['relationships']} relationships, {res[0]['properties']} properties, in {res[0]['time']} ms from {graphml_path}"
+    )

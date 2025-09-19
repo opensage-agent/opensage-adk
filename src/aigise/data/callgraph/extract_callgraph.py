@@ -1,19 +1,12 @@
 # download codeql here https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.18.4/codeql-bundle-linux64.tar.gz
 # decompress it and copy callgraph_queries to the codeql directory
 
-import argparse
 import csv
-import json
 import os
-import random
-import re
 import subprocess
-import sys
 import tempfile
-from collections import defaultdict, deque
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from collections import defaultdict
+from uuid import uuid4
 
 import pandas as pd
 from neomodel import db
@@ -68,7 +61,7 @@ def create_sandbox_with_codeql_mount(codeql_dir: str, image_name: str) -> BaseSa
     )
 
     # Use SandboxManager with a dedicated sandbox type
-    session_id = f"codeql-{random.randint(1, 1_000_000_000)}"
+    session_id = f"codeql-{uuid4().hex}"
     sandbox = SandboxManager.get_sandbox(
         session_id=session_id,
         docker_config=cfg,
@@ -217,77 +210,15 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         build_command: Command to build the project
     """
     sandbox = None
-    session_id = f"codeql-{random.randint(1, 1_000_000_000)}"
+    session_id = f"codeql-{uuid4().hex}"
     try:
         sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name)
 
-        # Build CodeQL database with the specified build command
-        build_codeql_database_command = (
-            "/surfi/codeql/codeql database create /work/.surfi-codeql-database "
-            "--language=cpp --overwrite --threads=$(nproc) "
-            f"--command='{build_command}'"
-        )
-        res, exit_code = sandbox.run_command_in_container(build_codeql_database_command)
-        if exit_code != 0:
-            raise ValueError("Error creating codeql database")
-
-        # Run CodeQL query to get the direct call graph
-        call_graph_command = (
-            "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
-            "--output=/work/direct_callgraph.bqrs /surfi/codeql/callgraph_queries/directCalls.ql"
-        )
-        res, exit_code = sandbox.run_command_in_container(call_graph_command)
-        if exit_code != 0:
-            raise ValueError("Error creating call graph")
-
-        # Decode the direct call graph results
-        decode_call_graph_command = (
-            "/surfi/codeql/codeql bqrs decode /work/direct_callgraph.bqrs "
-            "--format=csv --output=/work/results.csv"
+        sandbox.run_command_in_container(
+            ["bash", "/surfi/codeql/callgraph_queries/run_queries.sh", build_command]
         )
 
-        res, exit_code = sandbox.run_command_in_container(decode_call_graph_command)
-        if exit_code != 0:
-            raise ValueError("Error decoding call graph")
-
-        # Construct call graph with indirect calls (determined by function signature)
-        # step 1. find all function pointer accesses
-        fp_command = (
-            "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
-            "--output=/work/fp_accesses.bqrs /surfi/codeql/callgraph_queries/funcPtrAccesses.ql"
-        )
-        res, exit_code = sandbox.run_command_in_container(fp_command)
-        if exit_code != 0:
-            raise ValueError("Error finding function pointer accesses")
-
-        # Decode the function pointer accesses
-        decode_fp_command = (
-            "/surfi/codeql/codeql bqrs decode /work/fp_accesses.bqrs "
-            "--format=csv --output=/work/fp_accesses.csv"
-        )
-        res, exit_code = sandbox.run_command_in_container(decode_fp_command)
-        if exit_code != 0:
-            raise ValueError("Error decoding function pointer accesses")
-
-        # step 2. find all expr calls
-        expr_command = (
-            "/surfi/codeql/codeql query run --database=/work/.surfi-codeql-database "
-            "--output=/work/expr_calls.bqrs /surfi/codeql/callgraph_queries/exprCalls.ql"
-        )
-        res, exit_code = sandbox.run_command_in_container(expr_command)
-        if exit_code != 0:
-            raise ValueError("Error finding expression calls")
-
-        # Decode the expression calls
-        decode_expr_command = (
-            "/surfi/codeql/codeql bqrs decode /work/expr_calls.bqrs "
-            "--format=csv --output=/work/expr_calls.csv"
-        )
-        res, exit_code = sandbox.run_command_in_container(decode_expr_command)
-        if exit_code != 0:
-            raise ValueError("Error decoding expression calls")
-
-        # step 3. find all possible indirect calls by matching expr calls and function pointer accesses
+        # find all possible indirect calls by matching expr calls and function pointer accesses
         with tempfile.TemporaryDirectory() as output_subdir:
             # Retrieve and process call graph file
             results_csv_path = os.path.join(output_subdir, "results.csv")

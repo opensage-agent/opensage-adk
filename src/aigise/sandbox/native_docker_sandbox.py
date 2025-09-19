@@ -1,13 +1,11 @@
 import io
+import logging
 import os
-import re
 import shutil
-import subprocess
 import tarfile
 import tempfile
 import time
-from collections import deque
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import docker
 from docker.errors import APIError, NotFound
@@ -16,6 +14,8 @@ from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.sandbox.docker_config import DockerConfig
 from aigise.sandbox.template_fallback import TemplateFallbackMixin
 from aigise.utils.parser import get_function_info
+
+logger = logging.getLogger(__name__)
 
 
 class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
@@ -50,10 +50,10 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
                     docker_config.container_id
                 )
             except (ValueError, NotFound, APIError) as e:
-                print(
-                    f"[warn] Failed to connect to existing container {docker_config.container_id}: {e}"
+                logger.warning(
+                    f"Failed to connect to existing container {docker_config.container_id}: {e}"
                 )
-                print("[info] Falling back to creating new container")
+                logger.info("Falling back to creating new container")
                 # Clear container_id and fallback to creating new container
                 docker_config.container_id = None
                 # Ensure we have an image for fallback
@@ -101,7 +101,7 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
                     else container.image.id
                 )
 
-            print(
+            logger.info(
                 f"Connected to existing container {container_id} (image: {self.image_name})"
             )
             return container.id
@@ -115,7 +115,7 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
 
     def _get_container(self) -> str:
         """Create and start a new container from the specified image."""
-        run_kwargs: Dict[str, Any] = dict(
+        run_kwargs: dict[str, Any] = dict(
             stdin_open=True,
             tty=True,
             detach=True,
@@ -168,7 +168,7 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
 
         # Volumes: list of binds "host:cont[:mode]"
         if self.docker_config_obj.volumes:
-            binds: Dict[str, Dict[str, str]] = {}
+            binds: dict[str, dict[str, str]] = {}
             for spec in self.docker_config_obj.volumes:
                 if isinstance(spec, str) and ":" in spec:
                     parts = spec.split(":")
@@ -179,9 +179,9 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
             if binds:
                 run_kwargs["volumes"] = binds
 
-        # Ports: Dict[str, Union[int, None, Tuple[str, int], List[int]]]
+        # Ports: dict[str, Union[int, None, tuple[str, int], List[int]]]
         if self.docker_config_obj.ports:
-            port_bindings: Dict[str, Any] = {}
+            port_bindings: dict[str, Any] = {}
             for container_port, host_binding in self.docker_config_obj.ports.items():
                 # Normalize container port to include protocol if not specified
                 if "/" not in container_port:
@@ -207,13 +207,13 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
                 run_kwargs["ports"] = port_bindings
 
         container = self.client.containers.run(self.image_name, **run_kwargs)
-        print(f"Container {container.id} started from image {self.image_name}")
+        logger.info(f"Container {container.id} started from image {self.image_name}")
         return container.id
 
     def copy_directory_from_container(self, src_path: str, dst_path: str):
         """Copy a directory from the container to local filesystem."""
         container = self.client.containers.get(self.container_id)
-        exec_result = container.exec_run(f"ls -la {src_path}")
+        exec_result = container.exec_run(["ls", "-la", src_path])
         if exec_result.exit_code != 0:
             raise ValueError(f"Path {src_path} does not exist in the container.")
 
@@ -222,37 +222,34 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
         os.makedirs(dst_path, exist_ok=True)
 
         stream, stats = container.get_archive(src_path)
-        temp_tar = os.path.join(dst_path, "temp_archive.tar")
-
-        with open(temp_tar, "wb") as f:
+        with tempfile.NamedTemporaryFile(delete=False) as temp_tar:
             for chunk in stream:
-                f.write(chunk)
+                temp_tar.write(chunk)
+            temp_tar_path = temp_tar.name
 
-        with tarfile.open(temp_tar) as tar:
+        with tarfile.open(temp_tar_path) as tar:
             tar.extractall(path=dst_path, numeric_owner=True)
 
-        os.remove(temp_tar)
+        os.remove(temp_tar_path)
 
     def copy_file_from_container(self, src_path: str, dst_path: str):
         """Copy a file from the container to local filesystem."""
         container = self.client.containers.get(self.container_id)
 
         # Check if the file exists inside the container
-        exec_result = container.exec_run(f"test -f {src_path}")
+        exec_result = container.exec_run(["test", "-f", src_path])
         if exec_result.exit_code != 0:
             raise FileNotFoundError(f"File {src_path} does not exist in the container.")
 
         # Retrieve the file as a tar stream
         stream, _ = container.get_archive(src_path)
-        temp_tar = dst_path + ".tar"
-
-        # Write the tar stream to a temporary file
-        with open(temp_tar, "wb") as f:
+        with tempfile.NamedTemporaryFile(delete=False) as temp_tar:
             for chunk in stream:
-                f.write(chunk)
+                temp_tar.write(chunk)
+            temp_tar_path = temp_tar.name
 
         # Extract the file content and write it directly to dst_path
-        with tarfile.open(temp_tar) as tar:
+        with tarfile.open(temp_tar_path) as tar:
             members = tar.getmembers()
             file_member = members[0]
             fileobj = tar.extractfile(file_member)
@@ -262,7 +259,7 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
             with open(dst_path, "wb") as out_file:
                 out_file.write(fileobj.read())
 
-        os.remove(temp_tar)
+        os.remove(temp_tar_path)
 
     def copy_file_to_container(self, local_path: str, container_path: str):
         """Copy a single file to the container."""
@@ -274,15 +271,15 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
         data.seek(0)
 
         container_dir = os.path.dirname(container_path)
-        container.exec_run(f"mkdir -p {container_dir}")
-        container.exec_run(f"rm -f {container_path}")
+        container.exec_run(["mkdir", "-p", container_dir])
+        container.exec_run(["rm", "-f", container_path])
         container.put_archive(container_dir, data.getvalue())
 
     def copy_directory_to_container(self, src_path: str, dst_path: str):
         """Copy a directory from the host to the container."""
         container = self.client.containers.get(self.container_id)
 
-        mkdir_cmd = f"mkdir -p {dst_path}"
+        mkdir_cmd = ["mkdir", "-p", dst_path]
         exit_code, output = container.exec_run(mkdir_cmd)
         if exit_code != 0:
             raise RuntimeError(
@@ -295,27 +292,27 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
         mem_tar.seek(0)
 
         container.put_archive(dst_path, mem_tar.getvalue())
-        self.run_command_in_container(f"chown -R $(id -nu):$(id -ng) {dst_path}")
+        container.exec_run(["chown", "-R", "$(id -nu):$(id -ng)", dst_path])
 
     def delete_container(self, max_wait: int = 10):
         """Delete the container."""
         try:
             container = self.client.containers.get(self.container_id)
-            container.remove(force=True, v=True)
+            container.remove(force=True)
         except NotFound:
-            print(f"[info] container {self.container_id} already gone")
+            logger.info(f"container {self.container_id} already gone")
             return
         except APIError as e:
-            print(f"[warn] docker API error on {self.container_id}: {e.explanation}")
+            logger.warning(f"docker API error on {self.container_id}: {e.explanation}")
             return
         for _ in range(max_wait):
             try:
                 self.client.containers.get(self.container_id)
                 time.sleep(1)
             except NotFound:
-                print(f"Container {self.container_id} removed")
+                logger.info(f"Container {self.container_id} removed")
                 return
-        print(f"[warn] container {self.container_id} still listed after {max_wait}s")
+        logger.warning(f"container {self.container_id} still listed after {max_wait}s")
 
     def extract_file_from_container(self, filepath: str) -> str:
         """Extract the content of the specified file from the container."""
@@ -377,14 +374,14 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
             destination_dir = "/"
         container.put_archive(destination_dir, archive_data)
 
-    def patch_file_func(self, files_func_to_content: Dict[str, str], lang: str = "c"):
+    def patch_file_func(self, files_func_to_content: dict[str, str], lang: str = "c"):
         """Replace a function in a file inside the container with new content."""
         container = self.client.containers.get(self.container_id)
 
         for key, new_function_content in files_func_to_content.items():
-            parts = key.split("__xx__")
+            parts = key.split__xx__
             if len(parts) != 2:
-                print(
+                logger.warning(
                     f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'"
                 )
                 continue
@@ -396,15 +393,17 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
             # Use Tree-sitter to obtain function information from the file.
             functions = get_function_info(file_content, lang)
             if function_name not in functions:
-                print(
+                logger.warning(
                     f"Initial try, Function {function_name} not found in file {filepath}"
                 )
-                print("Trying to do partial matching, the result may be inaccurate")
+                logger.info(
+                    "Trying to do partial matching, the result may be inaccurate"
+                )
                 func_name = function_name.split("::")[-1]
                 if func_name in functions:
                     function_name = func_name
                 else:
-                    print("Trying to do partial matching with looser rules")
+                    logger.info("Trying to do partial matching with looser rules")
                     potential_funcs = [
                         func
                         for func in functions
@@ -415,7 +414,7 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
                         potential_funcs.sort(key=lambda f: abs(len(f) - len(func_name)))
                         function_name = potential_funcs[0]
                     else:
-                        print(
+                        logger.warning(
                             f"Function {function_name} finally not found in file {filepath}"
                         )
                         continue
@@ -441,19 +440,19 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
             if not destination_dir:
                 destination_dir = "/"
             container.put_archive(destination_dir, archive_data)
-            print(
+            logger.info(
                 f"Updated function {function_name} in file {filepath} in container {self.container_id}"
             )
 
     def get_function_content(
         self, key: str, lang: str = "c", line_in_func: int = -1
-    ) -> Tuple[str, int, int]:
+    ) -> tuple[str, int, int]:
         """Retrieve the content of a specific function from a file inside the container."""
         container = self.client.containers.get(self.container_id)
 
-        parts = key.split("__xx__")
+        parts = key.split__xx__
         if len(parts) != 2:
-            print(
+            logger.warning(
                 f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'"
             )
             return "", -1, -1
@@ -464,8 +463,10 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
         # Use Tree-sitter to obtain function information from the file
         functions = get_function_info(file_content, lang)
         if function_name not in functions:
-            print(f"Initial try, Function {function_name} not found in file {filepath}")
-            print("Trying to do partial matching, the result may be inaccurate")
+            logger.warning(
+                f"Initial try, Function {function_name} not found in file {filepath}"
+            )
+            logger.info("Trying to do partial matching, the result may be inaccurate")
             func_name = function_name.split("::")[-1]
             if func_name in functions:
                 function_name = func_name
@@ -493,12 +494,16 @@ class NativeDockerSandbox(BaseSandbox, TemplateFallbackMixin):
         """Retrieve the content of a file inside the container."""
         return self.extract_file_from_container(filepath)
 
-    def run_command_in_container(self, command: str) -> Tuple[str, int]:
+    def run_command_in_container(self, command: str | list[str]) -> tuple[str, int]:
         """Run a command inside the container."""
         container = self.client.containers.get(self.container_id)
-        full_command = f'/bin/bash -lc "{command}"'
+        if isinstance(command, list):
+            full_command = command
+        else:
+            full_command = ["/bin/bash", "-lc", command]
         exec_result = container.exec_run(full_command, stdout=True, stderr=True)
-        output = exec_result.output.decode("latin-1")
+        # TODO: other encoding?
+        output = exec_result.output.decode("latin-1", errors="replace")
         exit_code = exec_result.exit_code
 
         return output, exit_code

@@ -2,13 +2,13 @@ import docker
 import pytest
 
 from aigise.utils.project_info import PROJECT_PATH
-from tests.ossfuzz.helpers import copy_to_container, extract_infos_from_arvo_script
+from tests.helpers import copy_to_container, extract_infos_from_arvo_script
 
 EXAMPLE_IMAGE = "n132/arvo:51603-vul"  # https://github.com/file/file.git
-OSSFUZZ_SCRIPTS_DIR = PROJECT_PATH / "src/aigise/toolbox/build_utils/ossfuzz/scripts"
+OSSFUZZ_SCRIPTS_DIR = PROJECT_PATH / "src/aigise/data/ossfuzz/"
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def container_and_target():
     client = docker.from_env()
 

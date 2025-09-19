@@ -1,4 +1,48 @@
 import os
+import random
+import socket
+
+
+def find_free_port(
+    start_port: int = 20000, end_port: int = 30000, reserved_ports: set[int] = None
+) -> int:
+    """Find a free port in the given range."""
+    if reserved_ports is None:
+        reserved_ports = set()
+    first_port = random.randint(start_port, end_port - 1)
+    port = first_port
+
+    def next_port(p):
+        p += 1
+        if p >= end_port:
+            p = start_port
+        return p
+
+    while True:
+        if port in reserved_ports:
+            port = next_port(port)
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex(("localhost", port)) != 0:
+                return port
+
+        port = next_port(port)
+
+        if port == first_port:
+            raise RuntimeError("No free port found")
+
+
+def find_free_ports(
+    n: int, start_port: int = 20000, end_port: int = 30000
+) -> list[int]:
+    """Find n free ports in the given range."""
+    if n > (end_port - start_port):
+        raise ValueError("Not enough ports in the given range")
+    ports = set()
+    while len(ports) < n:
+        port = find_free_port(start_port, end_port, ports)
+        ports.add(port)
+    return list(ports)
 
 
 def _slice_body(file_content: str, start: int, end: int) -> str:

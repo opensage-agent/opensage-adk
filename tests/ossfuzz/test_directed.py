@@ -7,7 +7,7 @@ from loguru import logger
 logging.basicConfig(level=logging.INFO)
 
 from aigise.utils.project_info import PROJECT_PATH
-from tests.ossfuzz.helpers import (
+from tests.helpers import (
     copy_from_container,
     copy_to_container,
     extract_infos_from_arvo_script,
@@ -21,7 +21,7 @@ SELECTIVE_FUNC_FILE = (
 )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def container_and_target():
     client = docker.from_env()
 

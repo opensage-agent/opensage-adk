@@ -4,11 +4,12 @@ from pathlib import Path
 import pytest
 
 from aigise.utils.coverage.llvm_cov import parse_llvm_coverage_json
+from aigise.utils.project_info import PROJECT_PATH
 
 
 @pytest.fixture
 def cov_data_dir(tmp_path_factory):
-    data_archive = Path("tests/data/cov.tar.gz")
+    data_archive = PROJECT_PATH / "tests/data/cov.tar.gz"
     tmp_path = tmp_path_factory.mktemp("cov_data")
     with tarfile.open(data_archive, "r:gz") as tar:
         tar.extractall(path=tmp_path, filter="data")

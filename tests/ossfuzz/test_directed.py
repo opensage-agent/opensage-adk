@@ -21,7 +21,7 @@ SELECTIVE_FUNC_FILE = (
 )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def container_and_target():
     client = docker.from_env()
 

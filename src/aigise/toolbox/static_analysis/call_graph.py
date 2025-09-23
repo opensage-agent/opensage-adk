@@ -51,7 +51,7 @@ def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
             # Read the file content from the container using sandbox
             file_content = sandbox.extract_file_from_container(path)
             # Extract the function code using the start and end lines
-            lines = file_content.splitlines()
+            lines = file_content.split("\n")
             function_lines = lines[start - 2 : end]  # Adjust for 0-based index
             function_code = "\n".join(function_lines)
 

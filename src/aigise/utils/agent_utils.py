@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Set
 
 from google.adk.agents.base_agent import BaseAgent
+from google.adk.agents.invocation_context import InvocationContext
 from google.adk.agents.llm_agent import LlmAgent, _SingleAfterToolCallback
 from google.adk.agents.readonly_context import ReadonlyContext
 from google.adk.models.lite_llm import LiteLlm
@@ -10,6 +11,171 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.base_toolset import BaseToolset
 from google.adk.tools.tool_context import ToolContext
+
+from aigise.config.config_dataclass import AigiseConfig
+
+
+def get_aigise_config_from_context(
+    context: InvocationContext | ToolContext,
+) -> AigiseConfig:
+    """Get AIgiSE config from context using new AigiseSession architecture."""
+    # Lazy import to avoid circular dependency
+    from aigise.session import get_aigise_session
+
+    aigise_session_id = get_aigise_session_id_from_context(context)
+    aigise_session = get_aigise_session(aigise_session_id)
+    return aigise_session.config
+
+
+def get_mcp_url_from_session_id(mcp_name: str, aigise_session_id: str) -> str:
+    """Get MCP service URL from AIgiSE session configuration.
+
+    Args:
+        mcp_name: Name of the MCP service (e.g., "gdb_mcp", "pdb_mcp")
+        aigise_session_id: AIgiSE session ID to retrieve configuration
+
+    Returns:
+        MCP SSE URL (e.g., "http://localhost:8000/sse")
+
+    Raises:
+        RuntimeError: If MCP service is not configured in the session
+
+    Example::
+
+        url = get_mcp_url_from_session_id("gdb_mcp", session_id)
+        # Returns: "http://localhost:8000/sse"
+    """
+    # Lazy import to avoid circular dependency
+    from aigise.session import get_aigise_session
+
+    # Get session and configuration
+    aigise_session = get_aigise_session(aigise_session_id)
+
+    # Get MCP configuration
+    mcp_config = aigise_session.config.mcp.services.get(mcp_name)
+    if not mcp_config:
+        raise RuntimeError(f"{mcp_name} not configured in mcp.services")
+
+    host = mcp_config.sse_host
+    port = mcp_config.sse_port
+    url = f"http://{host}:{port}/sse"
+
+    return url
+
+
+def get_mcp_host_and_port_from_session_id(
+    mcp_name: str, aigise_session_id: str
+) -> tuple[str, int]:
+    """Get MCP host and port from AIgiSE session configuration."""
+    # Lazy import to avoid circular dependency
+    from aigise.session import get_aigise_session
+
+    aigise_session = get_aigise_session(aigise_session_id)
+
+    # Get MCP configuration
+    mcp_config = aigise_session.config.mcp.services.get(mcp_name)
+    if not mcp_config:
+        raise RuntimeError(f"{mcp_name} not configured in mcp.services")
+
+    host = mcp_config.sse_host
+    port = mcp_config.sse_port
+    return host, port
+
+
+def get_sandbox_from_context(
+    context: InvocationContext | ToolContext, sandbox_type: str = "main"
+):
+    """Get sandbox from context using AigiseSession architecture.
+
+    This is a convenience helper for tools that need to access sandboxes.
+    It extracts the session ID from context and retrieves the appropriate sandbox.
+
+    Args:
+        context: Tool or invocation context
+        sandbox_type: Type of sandbox to retrieve (e.g., "main", "gdb_mcp", "neo4j")
+
+    Returns:
+        The requested sandbox instance
+
+    Example::
+
+        from aigise.toolbox.decorators import requires_sandbox
+        from aigise.utils.agent_utils import get_sandbox_from_context
+
+        @requires_sandbox("main")
+        async def bash_tool(command: str, context: ToolContext) -> str:
+            sandbox = get_sandbox_from_context(context, "main")
+            return await sandbox.run_command_in_container(command)
+    """
+    # Lazy import to avoid circular dependency
+    from aigise.session import get_aigise_session
+
+    aigise_session_id = get_aigise_session_id_from_context(context)
+    aigise_session = get_aigise_session(aigise_session_id)
+    return aigise_session.sandboxes.get_sandbox(sandbox_type)
+
+
+async def get_neo4j_client_from_context(
+    context: InvocationContext | ToolContext, client_type: str = "history"
+):
+    """Get Neo4j client from context using new AigiseSession architecture.
+
+    Args:
+        context: Tool or invocation context
+        client_type: Type of client ("history", "analysis", etc.)
+
+    Returns:
+        Neo4j client for the specified type
+    """
+    # Lazy import to avoid circular dependency
+    from aigise.session import get_aigise_session
+
+    aigise_session_id = get_aigise_session_id_from_context(context)
+    aigise_session = get_aigise_session(aigise_session_id)
+    return await aigise_session.neo4j.get_async_client(client_type)
+
+
+def get_aigise_session_id_from_context(context) -> str:
+    """
+    Extract aigise_session_id from context (ToolContext, InvocationContext, or similar).
+
+    This is a unified utility function used across the AIgiSE Framework to consistently
+    extract and manage aigise_session_id for session isolation.
+
+    Args:
+        context: Any context object that might contain session information
+
+    Returns:
+        str: The aigise_session_id for session isolation
+    """
+    # Try to get from context.state first (immediate access)
+    if hasattr(context, "state") and hasattr(context.state, "get"):
+        aigise_session_id = context.state.get("aigise_session_id")
+        if aigise_session_id:
+            return aigise_session_id
+
+    # Get session from different context types
+    session = None
+    if hasattr(context, "_invocation_context") and hasattr(
+        context._invocation_context, "session"
+    ):
+        session = context._invocation_context.session
+    elif hasattr(context, "session"):
+        session = context.session
+
+    if session is not None:
+        # Ensure aigise_session_id is set in session.state
+        if "aigise_session_id" not in session.state:
+            session.state["aigise_session_id"] = session.id
+
+        # Also set it in context.state if possible for immediate access
+        if hasattr(context, "state"):
+            context.state["aigise_session_id"] = session.state["aigise_session_id"]
+
+        return session.state["aigise_session_id"]
+
+    # Ultimate fallback
+    return "default"
 
 
 async def discover_all_agents_async(
@@ -172,11 +338,6 @@ def _add_callbacks_to_agent(
     except Exception as e:
         print(f"Error adding callbacks to agent {agent.name}: {e}")
         return False
-
-
-def _add_callback_to_agent(agent: LlmAgent, callback: _SingleAfterToolCallback) -> bool:
-    """Add single callback to a single agent."""
-    return _add_callbacks_to_agent(agent, [callback])
 
 
 def discover_all_agents(

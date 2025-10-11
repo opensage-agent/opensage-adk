@@ -1,5 +1,7 @@
 /out/
 /tmp/
+**/codeql/
+**/logs/
 
 .run
 .DS_Store

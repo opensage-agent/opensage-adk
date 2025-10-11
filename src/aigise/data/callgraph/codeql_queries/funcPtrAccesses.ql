@@ -15,6 +15,14 @@ string enclosingVar(FunctionAccess fa){
 
 from FunctionAccess fa, Function dst
 where fa.getTarget() = dst
-select dst.getName() as name, dst.getLocation() as loc, dst.getParameterString() as param,
-  isGlobal(fa) as isGlobal, enclosingVar(fa) as enclosingVar,   dst.getLocation().getStartLine() as start_line,
-  dst.getBlock().getLocation().getEndLine() as end_line, dst.getFile().getAbsolutePath() as callee_path
+select
+  dst.getName() as name,
+  dst.getLocation() as loc,
+  dst.getParameterString() as param,
+  isGlobal(fa) as isGlobal,
+  enclosingVar(fa) as enclosingVar,
+  dst.getLocation().getStartLine() as start_line,
+  dst.getLocation().getStartColumn() as start_col,
+  dst.getBlock().getLocation().getEndLine() as end_line,
+  dst.getBlock().getLocation().getEndColumn() as end_col,
+  dst.getFile().getAbsolutePath() as callee_path

@@ -1,0 +1,132 @@
+# SecAgentFramework Default Configuration with Template Variables
+# Template variables: ${VAR_NAME} will be expanded from top-level variables or environment
+
+# Top-level template variables (UPPERCASE)
+DEFAULT_IMAGE = "ubuntu:20.04"
+NEO4J_PASSWORD = "callgraphn4j!"
+DEFAULT_HOST = "127.0.0.1"
+MAIN_MODEL = "anthropic/claude-sonnet-4-20250514"
+TASK_NAME = "my_analysis_task"
+POC_DIR = "/tmp/poc"
+COMPILE_COMMAND = "arvo compile"
+RUN_COMMAND = "arvo"
+AGENT_STORAGE_PATH = ""
+# History configuration defaults
+MAX_TOOL_RESPONSE_LENGTH = 3000
+MAX_HISTORY_SUMMARY_LENGTH = 50000
+# Agent ensemble defaults
+AVAILABLE_MODELS = "anthropic/claude-sonnet-4-20250514,openai/o4-mini"
+
+task_name = "${TASK_NAME}"
+agent_storage_path = "${AGENT_STORAGE_PATH}"
+
+[neo4j]
+user = "neo4j"
+password = "${NEO4J_PASSWORD}"
+uri = "neo4j://${DEFAULT_HOST}:7687"
+
+[sandbox]
+default_image = "${DEFAULT_IMAGE}"
+backend = "native"
+project_relative_shared_data_path = "src/aigise/data"
+
+# Main sandbox configuration
+[sandbox.sandboxes.main]
+image = "${DEFAULT_IMAGE}"
+timeout = 300
+
+# GDB MCP sandbox configuration
+[sandbox.sandboxes.gdb_mcp]
+image = "${TASK_NAME}_gdb_mcp"
+project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/gdb_mcp/Dockerfile"
+command = ""
+[sandbox.sandboxes.gdb_mcp.build_args]
+BASE_IMAGE = "${DEFAULT_IMAGE}"
+[sandbox.sandboxes.gdb_mcp.ports]
+"1111/tcp" = 1111
+
+# PDB MCP sandbox configuration
+[sandbox.sandboxes.pdb_mcp]
+image = "${TASK_NAME}_pdb_mcp"
+project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/pdb_mcp/Dockerfile"
+command = ""
+[sandbox.sandboxes.pdb_mcp.build_args]
+BASE_IMAGE = "${DEFAULT_IMAGE}"
+[sandbox.sandboxes.pdb_mcp.ports]
+"1112/tcp" = 1112
+
+# CodeQL sandbox configuration
+[sandbox.sandboxes.codeql]
+image = "${DEFAULT_IMAGE}"
+
+# Joern sandbox
+[sandbox.sandboxes.joern]
+image = "aigise/joern"
+project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/joern/Dockerfile"
+command = ""
+ports = { "8081/tcp" = 8081 }
+
+# Neo4j sandbox configuration
+[sandbox.sandboxes.neo4j]
+image = "neo4j:5.26.12-enterprise"
+command = ""                       # Use Neo4j's default startup command
+[sandbox.sandboxes.neo4j.environment]
+NEO4J_ACCEPT_LICENSE_AGREEMENT = "yes"
+NEO4J_AUTH = "neo4j/${NEO4J_PASSWORD}"
+NEO4J_PLUGINS = '["graph-data-science", "apoc"]'
+NEO4J_apoc_import_file_enabled = "true"
+NEO4J_apoc_export_file_enabled = "true"
+NEO4J_dbms_directories_import = "/shared/neo4j/import"
+[sandbox.sandboxes.neo4j.ports]
+"7474/tcp" = 7474 # HTTP port (standard)
+"7687/tcp" = 7687 # Bolt port (standard)
+
+[llm]
+# Main model configuration
+[llm.model_configs.main]
+model_name = "${MAIN_MODEL}"
+temperature = 0.7
+max_tokens = 4096
+rpm = 60
+tpm = 60000
+
+# Drop/summarize model configuration
+[llm.model_configs.summarize]
+model_name = "${MAIN_MODEL}"
+temperature = 0.3
+max_tokens = 2048
+rpm = 30
+tpm = 30000
+
+# Flag claims model configuration
+[llm.model_configs.flag_claims]
+model_name = "${MAIN_MODEL}"
+temperature = 0.1
+max_tokens = 1024
+rpm = 30
+tpm = 30000
+
+[history]
+max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+
+[agent_ensemble]
+thread_safe_tools = []
+available_models_for_ensemble = "${AVAILABLE_MODELS}"
+
+[build]
+poc_dir = "${POC_DIR}"
+compile_command = "${COMPILE_COMMAND}"
+run_command = "${RUN_COMMAND}"
+target_type = "default"
+
+[mcp]
+# GDB MCP service configuration
+[mcp.services.gdb_mcp]
+sse_port = 1111
+sse_host = "${DEFAULT_HOST}"
+
+# PDB MCP service configuration
+[mcp.services.pdb_mcp]
+sse_port = 1112
+sse_host = "${DEFAULT_HOST}"

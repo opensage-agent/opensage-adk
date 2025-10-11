@@ -1,17 +1,16 @@
-import os
-
 from google.adk.tools.tool_context import ToolContext
-from neomodel import db
 
-from aigise.extended_features.sandbox_manager import SandboxManager
-from aigise.sandbox.docker_config import DockerConfig
-
-db.set_connection(
-    f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}"
+from aigise.toolbox.decorators import requires_sandbox
+from aigise.utils.agent_utils import (
+    get_neo4j_client_from_context,
+    get_sandbox_from_context,
 )
 
+# Setup Neo4j connection using config manager with fallback
 
-def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
+
+@requires_sandbox("neo4j", "main", "codeql", "joern")
+async def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
     """
     Tool to search for a function in the codebase. Input is a function name, output is a dictionary containing the implementation of the function.
     Args:
@@ -26,8 +25,11 @@ def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
         f.start AS start,
         f.end   AS end
     """
+    # Use analysis client for static analysis queries
+    client = await get_neo4j_client_from_context(tool_context, "analysis")
+
     params = {"function_name": function_name}
-    results, _ = db.cypher_query(query, params)
+    results = await client.run_query(query, params)
 
     dict_result = {"result": []}
 
@@ -42,11 +44,8 @@ def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
             continue
 
         try:
-            # Get sandbox from SandboxManager
-            docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
-            sandbox = SandboxManager.get_sandbox_from_tool_context(
-                tool_context, docker_config
-            )
+            # Get sandbox from SandboxManager using session-specific config
+            sandbox = get_sandbox_from_context(tool_context, "main")
 
             # Read the file content from the container using sandbox
             file_content = sandbox.extract_file_from_container(path)
@@ -70,7 +69,10 @@ def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
     return dict_result
 
 
-def get_caller_by_funcname(function_name: str) -> dict:
+@requires_sandbox("neo4j", "codeql", "joern")
+async def get_caller_by_funcname(
+    function_name: str, *, tool_context: ToolContext
+) -> dict:
     """
     Tool to get the caller of a function in the codebase. Input is a function name, output is a list of dicts containing
     the caller function name, file path, and start/end line numbers.
@@ -87,8 +89,10 @@ def get_caller_by_funcname(function_name: str) -> dict:
         caller.start AS start,
         caller.end AS end
     """
+    # Use analysis client for static analysis queries
+    client = await get_neo4j_client_from_context(tool_context, "analysis")
     params = {"function_name": function_name}
-    results, _ = db.cypher_query(direct_query, params)
+    results = await client.run_query(direct_query, params)
 
     dict_result = {"result": []}
 
@@ -112,7 +116,7 @@ def get_caller_by_funcname(function_name: str) -> dict:
         caller.start AS start,
         caller.end AS end
     """
-    results, _ = db.cypher_query(indirect_query, params)
+    results = await client.run_query(indirect_query, params)
 
     for row in results:
         if row[0]:
@@ -129,7 +133,10 @@ def get_caller_by_funcname(function_name: str) -> dict:
     return dict_result
 
 
-def get_callee_by_funcname(function_name: str) -> dict:
+@requires_sandbox("neo4j", "codeql", "joern")
+async def get_callee_by_funcname(
+    function_name: str, *, tool_context: ToolContext
+) -> dict:
     """
     Tool to get the callee of a function in the codebase. Input is a function name, output is a string containing the callees of the function.
     Args:
@@ -145,8 +152,10 @@ def get_callee_by_funcname(function_name: str) -> dict:
         callee.start AS start,
         callee.end AS end
     """
+    # Use analysis client for static analysis queries
+    client = await get_neo4j_client_from_context(tool_context, "analysis")
     params = {"function_name": function_name}
-    results, _ = db.cypher_query(direct_query, params)
+    results = await client.run_query(direct_query, params)
 
     dict_result = {"result": []}
 
@@ -159,7 +168,7 @@ def get_callee_by_funcname(function_name: str) -> dict:
         callee.start AS start,
         callee.end AS end
     """
-    results, _ = db.cypher_query(direct_query, params)
+    results = await client.run_query(direct_query, params)
     for row in results:
         if row[0]:
             dict_result["result"].append(
@@ -181,7 +190,7 @@ def get_callee_by_funcname(function_name: str) -> dict:
         callee.start AS start,
         callee.end AS end
     """
-    results, _ = db.cypher_query(indirect_query, params)
+    results = await client.run_query(indirect_query, params)
     for row in results:
         if row[0]:
             dict_result["result"].append(
@@ -197,7 +206,10 @@ def get_callee_by_funcname(function_name: str) -> dict:
     return dict_result
 
 
-def get_caller_by_funcname_and_filepath(function_name: str, filepath: str) -> dict:
+@requires_sandbox("neo4j", "codeql", "joern")
+async def get_caller_by_funcname_and_filepath(
+    function_name: str, filepath: str, *, tool_context: ToolContext
+) -> dict:
     """
     Tool to get the caller of a function in the codebase by function name and file path.
     Args:
@@ -214,8 +226,10 @@ def get_caller_by_funcname_and_filepath(function_name: str, filepath: str) -> di
         caller.start AS start,
         caller.end AS end
     """
+    # Use analysis client for static analysis queries
+    client = await get_neo4j_client_from_context(tool_context, "analysis")
     params = {"function_name": function_name, "filepath": filepath}
-    results, _ = db.cypher_query(direct_query, params)
+    results = await client.run_query(direct_query, params)
 
     dict_result = {"result": []}
 
@@ -240,7 +254,7 @@ def get_caller_by_funcname_and_filepath(function_name: str, filepath: str) -> di
         caller.end AS end
     """
     params = {"function_name": function_name, "filepath": filepath}
-    results, _ = db.cypher_query(indirect_query, params)
+    results = await client.run_query(indirect_query, params)
 
     for row in results:
         if row[0]:
@@ -257,7 +271,10 @@ def get_caller_by_funcname_and_filepath(function_name: str, filepath: str) -> di
     return dict_result
 
 
-def get_callee_by_funcname_and_filepath(function_name: str, filepath: str) -> dict:
+@requires_sandbox("neo4j", "codeql", "joern")
+async def get_callee_by_funcname_and_filepath(
+    function_name: str, filepath: str, *, tool_context: ToolContext
+) -> dict:
     """
     Tool to get the callee of a function in the codebase by function name and file path.
     Args:
@@ -274,8 +291,10 @@ def get_callee_by_funcname_and_filepath(function_name: str, filepath: str) -> di
         callee.start AS start,
         callee.end AS end
     """
+    # Use analysis client for static analysis queries
+    client = await get_neo4j_client_from_context(tool_context, "analysis")
     params = {"function_name": function_name, "filepath": filepath}
-    results, _ = db.cypher_query(direct_query, params)
+    results = await client.run_query(direct_query, params)
 
     dict_result = {"result": []}
 
@@ -300,7 +319,7 @@ def get_callee_by_funcname_and_filepath(function_name: str, filepath: str) -> di
         callee.end AS end
     """
     params = {"function_name": function_name, "filepath": filepath}
-    results, _ = db.cypher_query(indirect_query, params)
+    results = await client.run_query(indirect_query, params)
 
     for row in results:
         if row[0]:
@@ -317,8 +336,9 @@ def get_callee_by_funcname_and_filepath(function_name: str, filepath: str) -> di
     return dict_result
 
 
-def get_shortest_paths_in_callgraph_to_function_in_file(
-    function_name: str, filepath: str
+@requires_sandbox("neo4j", "codeql", "joern")
+async def get_shortest_paths_in_callgraph_to_function_in_file(
+    function_name: str, filepath: str, *, tool_context: ToolContext
 ) -> dict:
     """
     Tool to get the shortest paths from each fuzzing entrypoint (LLVMFuzzerTestOneInput)
@@ -353,8 +373,10 @@ def get_shortest_paths_in_callgraph_to_function_in_file(
       }] AS path_nodes
     ORDER BY start_name
     """
+    # Use analysis client for static analysis queries
+    client = await get_neo4j_client_from_context(tool_context, "analysis")
     params = {"function_name": function_name, "filepath": filepath}
-    results, _ = db.cypher_query(query, params)
+    results = await client.run_query(query, params)
 
     dict_result = {"result": []}
 

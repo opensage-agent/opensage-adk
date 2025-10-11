@@ -1,0 +1,437 @@
+"""
+DynamicAgentManager: Session-specific agent lifecycle management
+
+This module provides session-bound agent management, replacing the global
+DynamicAgentManager with session-isolated agent handling.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import uuid
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
+
+from google.adk.agents.base_agent import BaseAgent
+from google.adk.models.lite_llm import LiteLlm
+from loguru import logger
+
+from aigise.agents.aigise_agent import AigiseAgent
+
+
+class AgentStatus(Enum):
+    """Agent lifecycle status."""
+
+    CREATED = "created"
+    ACTIVE = "active"
+    PAUSED = "paused"
+    STOPPED = "stopped"
+    ERROR = "error"
+    PENDING_TOOLS = "pending_tools"  # Waiting for required tools to be available
+
+
+@dataclass
+class AgentMetadata:
+    """Metadata for dynamically created agents."""
+
+    id: str
+    name: str
+    type: str
+    status: AgentStatus
+    created_at: datetime
+    updated_at: datetime
+    creator: Optional[str] = None
+    description: Optional[str] = None
+    config: Optional[Dict[str, Any]] = None
+    parent_id: Optional[str] = None
+    children_ids: List[str] = None
+
+    def __post_init__(self):
+        if self.children_ids is None:
+            self.children_ids = []
+
+
+class DynamicAgentManager:
+    """Session-specific manager for dynamic agent creation, lifecycle, and persistence.
+
+    Each AigiseSession gets its own DynamicAgentManager instance,
+    ensuring complete agent isolation between sessions.
+    """
+
+    def __init__(self, session):
+        """Initialize DynamicAgentManager.
+
+        Args:
+            session: AigiseSession instance (stores reference, not copied)
+        """
+        self._session = session
+        self.aigise_session_id = session.aigise_session_id
+
+        # Get storage path from config, use default if not specified or empty
+        storage_path = session.config.agent_storage_path
+        if not storage_path:  # None or empty string
+            storage_path = "/tmp/aigise_agent_storage"
+
+        self.storage_path = Path(storage_path)
+        self.storage_path.mkdir(parents=True, exist_ok=True)
+        self._agents: Dict[str, BaseAgent] = {}
+        self._metadata: Dict[str, AgentMetadata] = {}
+
+    @property
+    def config(self):
+        """Get latest config from session dynamically."""
+        return self._session.config
+
+    def _create_agent_instance(self, **kwargs) -> AigiseAgent:
+        """Create an AigiseAgent instance.
+
+        Args:
+            **kwargs: Agent configuration parameters
+
+        Returns:
+            Created AigiseAgent instance
+
+        Raises:
+            ValueError: If required parameters are missing
+        """
+        # Handle common model string wrapping
+        if "model" in kwargs and isinstance(kwargs["model"], str):
+            kwargs["model"] = LiteLlm(model=kwargs["model"])
+
+        # Validate required parameters
+        required_params = ["name", "model"]
+        missing = [param for param in required_params if param not in kwargs]
+        if missing:
+            raise ValueError(f"Missing required parameters: {missing}")
+
+        # Create AigiseAgent
+        agent = AigiseAgent(**kwargs)
+
+        # Setup summarization callbacks
+        from ..framework.summarization import setup_summarization_callbacks
+
+        setup_summarization_callbacks(agent)
+        return agent
+
+    async def create_agent(
+        self,
+        config: Dict[str, Any],
+        creator: Optional[str] = None,
+        persist: bool = True,
+    ) -> tuple[str, AigiseAgent]:
+        """Create a new agent dynamically for this session.
+
+        Args:
+            config: Agent configuration dictionary
+            creator: Optional creator identifier
+            persist: Whether to persist agent metadata
+
+        Returns:
+            Tuple of (agent_id, agent_instance)
+        """
+        agent_id = str(uuid.uuid4())
+
+        try:
+            agent_name = config.get("name", f"agent_{agent_id[:8]}")
+
+            # Create agent configuration (exclude tool_names)
+            agent_config = {k: v for k, v in config.items() if k not in ["tool_names"]}
+            agent = self._create_agent_instance(**agent_config)
+
+            # Create metadata (exclude tools - cannot be serialized)
+            metadata_config = {k: v for k, v in config.items() if k not in ["tools"]}
+
+            metadata = AgentMetadata(
+                id=agent_id,
+                name=agent_name,
+                type="aigise_agent",
+                status=AgentStatus.CREATED,
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+                creator=creator,
+                config=metadata_config,
+            )
+
+            # Store agent and metadata
+            self._agents[agent_id] = agent
+            self._metadata[agent_id] = metadata
+
+            # Persist if requested
+            if persist:
+                await self._persist_agent_metadata(agent_id, metadata)
+
+            logger.info(
+                f"Created AigiseAgent {agent_id} ({agent_name}) "
+                f"for session {self.aigise_session_id}"
+            )
+
+            return agent_id, agent
+
+        except Exception as e:
+            logger.error(f"Failed to create agent: {e}")
+            raise
+
+    def get_agent(self, agent_id: str) -> Optional[BaseAgent]:
+        """Get an agent by ID for this session."""
+        return self._agents.get(agent_id)
+
+    def get_agent_metadata(self, agent_id: str) -> Optional[AgentMetadata]:
+        """Get agent metadata by ID for this session."""
+        return self._metadata.get(agent_id)
+
+    async def update_agent_status(self, agent_id: str, status: AgentStatus) -> bool:
+        """Update agent status and trigger lifecycle hooks.
+
+        Args:
+            agent_id: ID of the agent to update
+            status: New status to set
+
+        Returns:
+            True if updated successfully, False if agent not found
+        """
+        if agent_id not in self._metadata:
+            return False
+
+        old_status = self._metadata[agent_id].status
+        self._metadata[agent_id].status = status
+        self._metadata[agent_id].updated_at = datetime.now()
+
+        # Persist changes
+        await self._persist_agent_metadata(agent_id, self._metadata[agent_id])
+
+        logger.info(f"Updated agent {agent_id} status: {old_status} -> {status}")
+        return True
+
+    def list_agents(
+        self,
+        status: Optional[AgentStatus] = None,
+        creator: Optional[str] = None,
+    ) -> List[AgentMetadata]:
+        """List agents with optional filtering for this session.
+
+        Args:
+            status: Optional status filter
+            creator: Optional creator filter
+
+        Returns:
+            List of agent metadata matching the filters
+        """
+        agents = list(self._metadata.values())
+
+        if status:
+            agents = [a for a in agents if a.status == status]
+
+        if creator:
+            agents = [a for a in agents if a.creator == creator]
+
+        return agents
+
+    async def remove_agent(
+        self,
+        agent_id: str,
+        cascade: bool = False,
+    ) -> bool:
+        """Remove an agent from this session.
+
+        Args:
+            agent_id: ID of the agent to remove
+            cascade: Whether to remove child agents as well
+
+        Returns:
+            True if removed successfully, False if not found
+        """
+        if agent_id not in self._agents:
+            return False
+
+        metadata = self._metadata[agent_id]
+
+        # Handle children if cascade delete
+        if cascade and metadata.children_ids:
+            for child_id in metadata.children_ids.copy():
+                await self.remove_agent(child_id, cascade=True)
+
+        # Update parent's children list
+        if metadata.parent_id and metadata.parent_id in self._metadata:
+            parent_children = self._metadata[metadata.parent_id].children_ids
+            if agent_id in parent_children:
+                parent_children.remove(agent_id)
+                await self._persist_agent_metadata(
+                    metadata.parent_id, self._metadata[metadata.parent_id]
+                )
+
+        # Remove from memory
+        del self._agents[agent_id]
+        del self._metadata[agent_id]
+
+        # Remove persistence
+        metadata_file = self.storage_path / f"{agent_id}_metadata.json"
+        if metadata_file.exists():
+            metadata_file.unlink()
+
+        logger.info(f"Removed agent {agent_id} from session {self.aigise_session_id}")
+        return True
+
+    def get_session_statistics(self) -> Dict:
+        """Get statistics for this session's agents.
+
+        Returns:
+            Dictionary with session statistics
+        """
+        status_counts = {}
+        for metadata in self._metadata.values():
+            status = metadata.status.value
+            status_counts[status] = status_counts.get(status, 0) + 1
+
+        return {
+            "aigise_session_id": self.aigise_session_id,
+            "total_agents": len(self._agents),
+            "status_counts": status_counts,
+        }
+
+    async def _persist_agent_metadata(
+        self, agent_id: str, metadata: AgentMetadata
+    ) -> None:
+        """Persist agent metadata to storage.
+
+        Args:
+            agent_id: ID of the agent
+            metadata: Metadata to persist
+        """
+        metadata_dict = asdict(metadata)
+
+        # Convert datetime objects to ISO strings
+        metadata_dict["created_at"] = metadata.created_at.isoformat()
+        metadata_dict["updated_at"] = metadata.updated_at.isoformat()
+        metadata_dict["status"] = metadata.status.value
+
+        metadata_file = self.storage_path / f"{agent_id}_metadata.json"
+        with open(metadata_file, "w") as f:
+            json.dump(metadata_dict, f, indent=2)
+
+    def _load_persisted_agents_on_demand(self, caller_tools: Dict[str, Any]) -> None:
+        """Load persisted agents on demand, rebuilding with caller tools if possible.
+
+        Args:
+            caller_tools: Dictionary mapping tool names to tool instances from caller agent
+        """
+        if not self.storage_path.exists():
+            return
+
+        for metadata_file in self.storage_path.glob("*_metadata.json"):
+            try:
+                # Extract agent ID from filename and check if already loaded (optimization)
+                filename = metadata_file.name
+                if filename.endswith("_metadata.json"):
+                    agent_id = filename[: -len("_metadata.json")]
+
+                    # Skip if agent already loaded - avoid file I/O
+                    if agent_id in self._agents and agent_id in self._metadata:
+                        continue
+
+                # Only read and parse file if agent is not already loaded
+                with open(metadata_file, "r") as f:
+                    metadata_dict = json.load(f)
+
+                # Convert datetime strings back to datetime objects
+                metadata_dict["created_at"] = datetime.fromisoformat(
+                    metadata_dict["created_at"]
+                )
+                metadata_dict["updated_at"] = datetime.fromisoformat(
+                    metadata_dict["updated_at"]
+                )
+                metadata_dict["status"] = AgentStatus(metadata_dict["status"])
+
+                metadata = AgentMetadata(**metadata_dict)
+
+                # Always store metadata
+                self._metadata[metadata.id] = metadata
+
+                # Try to rebuild agent if not in permanent error state and has config
+                # Allow retry for PENDING_TOOLS status, but not for ERROR status
+                if metadata.status != AgentStatus.ERROR and metadata.config:
+                    self._try_rebuild_agent_with_caller_tools(metadata, caller_tools)
+
+            except Exception as e:
+                logger.error(f"Failed to load metadata from {metadata_file}: {e}")
+
+    def _try_rebuild_agent_with_caller_tools(
+        self, metadata: AgentMetadata, caller_tools: Dict[str, Any]
+    ) -> None:
+        """Try to rebuild an agent with tools from caller if all required tools are available.
+
+        Args:
+            metadata: Agent metadata containing config and tool requirements
+            caller_tools: Available tools from caller agent
+        """
+        required_tool_names = metadata.config.get("tool_names", [])
+
+        # If no tools required, create agent without tools
+        if not required_tool_names:
+            try:
+                agent_config = {
+                    k: v for k, v in metadata.config.items() if k not in ["tool_names"]
+                }
+                agent_config["tools"] = []  # Explicitly set empty tools list
+                agent = self._create_agent_instance(**agent_config)
+                self._agents[metadata.id] = agent
+                # Set to ACTIVE status on successful rebuild (clear any previous error states)
+                metadata.status = AgentStatus.ACTIVE
+                metadata.updated_at = datetime.now()
+                logger.info(f"Restored agent {metadata.id} without tools")
+            except Exception as e:
+                logger.error(f"Failed to restore agent {metadata.id}: {e}")
+                metadata.status = AgentStatus.ERROR
+            return
+
+        # Check if caller can provide all required tools
+        missing_tools = [
+            name for name in required_tool_names if name not in caller_tools
+        ]
+        if missing_tools:
+            logger.debug(
+                f"Cannot restore agent {metadata.id}: missing tools {missing_tools}"
+            )
+            # Set PENDING_TOOLS status (not ERROR) - this is a temporary tool availability issue
+            metadata.status = AgentStatus.PENDING_TOOLS
+            metadata.updated_at = datetime.now()
+            return
+
+        # Rebuild agent with tools
+        try:
+            # Prepare tools from caller
+            tools_to_assign = [caller_tools[name] for name in required_tool_names]
+
+            # Prepare agent config including tools
+            agent_config = {
+                k: v for k, v in metadata.config.items() if k not in ["tool_names"]
+            }
+            agent_config["tools"] = tools_to_assign
+
+            # Create agent with tools directly
+            agent = self._create_agent_instance(**agent_config)
+
+            self._agents[metadata.id] = agent
+            # Set to ACTIVE status on successful rebuild (clear any previous error states)
+            metadata.status = AgentStatus.ACTIVE
+            metadata.updated_at = datetime.now()
+            logger.info(
+                f"Restored agent {metadata.id} with tools: {required_tool_names}"
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to restore agent {metadata.id}: {e}")
+            metadata.status = AgentStatus.ERROR
+
+    def cleanup(self) -> None:
+        """Cleanup all agents and resources for this session."""
+        logger.info(
+            f"Cleaning up DynamicAgentManager for session {self.aigise_session_id}"
+        )
+
+        # Clear all agents and metadata
+        self._agents.clear()
+        self._metadata.clear()

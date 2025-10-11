@@ -6,10 +6,14 @@ from typing import Tuple
 
 from google.adk.tools.tool_context import ToolContext
 
-from aigise.extended_features.sandbox_manager import SandboxManager
-from aigise.sandbox.docker_config import DockerConfig
+from aigise.toolbox.decorators import requires_sandbox
+from aigise.utils.agent_utils import (
+    get_aigise_config_from_context,
+    get_sandbox_from_context,
+)
 
 
+@requires_sandbox("main")
 def run_poc_from_script(
     poc_generation_script: str, *, tool_context: ToolContext
 ) -> str:
@@ -69,14 +73,8 @@ def run_poc_from_script(
         return "[ERROR] No Python code block found within <poc> tags."
     poc_code = code_match.group(1).strip()
 
-    # 2. Get sandbox from SandboxManager
-    docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
-    try:
-        sandbox = SandboxManager.get_sandbox_from_tool_context(
-            tool_context, docker_config
-        )
-    except Exception as e:
-        return f"[ERROR] Failed to get sandbox: {str(e)}"
+    # 2. Get sandbox using new AigiseSession architecture
+    sandbox = get_sandbox_from_context(tool_context, "main")
 
     # 3. Write, execute and capture the PoC generation script
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -98,8 +96,10 @@ def run_poc_from_script(
         if not os.path.isfile(poc_path):
             return "[WARN] No PoC file named 'poc' was generated."
 
-        # 5. Copy the PoC into the container using sandbox
-        container_poc_path = os.getenv("POC_DIR")
+        # 5. Copy the PoC into the container using session-specific config
+        config = get_aigise_config_from_context(tool_context)
+        container_poc_path = config.build.poc_dir
+
         try:
             sandbox.copy_file_to_container(poc_path, container_poc_path)
         except Exception as e:
@@ -124,19 +124,22 @@ def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     Returns:
         Tuple[str, int]: The output and exit code of the command.
     """
-    build_command = os.getenv("COMPILE_COMMAND")
-    docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
-    sandbox = SandboxManager.get_sandbox_from_tool_context(tool_context, docker_config)
+    # Use main sandbox for compilation
+    sandbox = get_sandbox_from_context(tool_context, "main")
+    config = get_aigise_config_from_context(tool_context)
+    build_command = config.build.compile_command
     return sandbox.run_command_in_container(build_command)
 
 
+@requires_sandbox("main")
 def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     """Run a PoC command inside the sandbox via run_command_in_container.
     Args:
     Returns:
         Tuple[str, int]: The output and exit code of the command.
     """
-    poc_command = os.getenv("RUN_COMMAND")
-    docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
-    sandbox = SandboxManager.get_sandbox_from_tool_context(tool_context, docker_config)
+    # Get PoC command using new AigiseSession architecture
+    sandbox = get_sandbox_from_context(tool_context, "main")
+    config = get_aigise_config_from_context(tool_context)
+    poc_command = config.build.run_command
     return sandbox.run_command_in_container(poc_command)

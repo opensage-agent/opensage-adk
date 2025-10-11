@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import logging
 import os
 from functools import wraps
 from typing import Any, Dict, Optional
 
 from dotenv import load_dotenv
+from loguru import logger
 from mcp.server import FastMCP
 from mcp.server.fastmcp import Context
 from mcp.server.fastmcp.prompts import base
@@ -13,7 +13,7 @@ from mcp.server.session import ServerSession
 from .helper import PwndbgTools
 
 load_dotenv()
-GDB_MCP_SSE_PORT = int(os.getenv("GDB_MCP_SSE_PORT", 1111))
+GDB_MCP_SSE_PORT = 1111
 
 # Some codes are referenced from https://github.com/pwno-io/pwno-mcp
 
@@ -27,7 +27,7 @@ def catch_errors(tuple_on_error: bool = False):
             try:
                 return await fn(*args, **kwargs)
             except Exception as e:
-                logging.exception("tool error in %s", fn.__name__)
+                logger.exception("tool error in {}", fn.__name__)
                 if tuple_on_error:
                     return {
                         "success": False,
@@ -47,7 +47,7 @@ session_dict: Dict[ServerSession, PwndbgTools] = {}
 
 async def get_unit_session(session: ServerSession):
     if session not in session_dict:
-        logging.info(f"{session} not in session_dict, Please set_file first.")
+        logger.info("{} not in session_dict, Please set_file first.", session)
         return None
     return session_dict[session]
 
@@ -77,7 +77,7 @@ async def set_file(binary_path: str, context: Context) -> Dict[str, Any]:
     :returns: Loading status and binary information
     """
     if context.session not in session_dict:
-        logging.info("create new session...")
+        logger.info("create new session...")
         session_dict[context.session] = PwndbgTools()
     pwndbg_tools = session_dict[context.session]
     return pwndbg_tools.set_file(binary_path)

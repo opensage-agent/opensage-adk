@@ -1,5 +1,5 @@
 # download codeql here https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.18.4/codeql-bundle-linux64.tar.gz
-# decompress it and copy callgraph_queries to the codeql directory
+# decompress it and copy the codeql folder to PROJECT_PATH/src/aigise/data/
 
 import csv
 import os
@@ -11,64 +11,10 @@ from uuid import uuid4
 import pandas as pd
 from neomodel import db
 
-from aigise.extended_features.sandbox_manager import SandboxManager
+from aigise.config.config_dataclass import ContainerConfig
 from aigise.sandbox import BaseSandbox
-from aigise.sandbox.docker_config import DockerConfig
+from aigise.session import get_aigise_session
 from aigise.utils.project_info import PROJECT_PATH
-
-
-def restart_neo4j() -> str:
-    """
-    Invoke the restart_neo4j.sh script via bash and return its stdout.
-    Raises RuntimeError on non-zero exit.
-    """
-    script = (
-        PROJECT_PATH
-        / "src"
-        / "aigise"
-        / "services"
-        / "callgraph"
-        / "callgraph_neo4j"
-        / "restart_neo4j.sh"
-    ).resolve()
-    workdir = script.parent
-
-    # ensure it's executable
-    script.chmod(0o755)
-
-    # run it
-    result = subprocess.run(
-        ["bash", str(script)], cwd=workdir, capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"restart_neo4j.sh failed (code {result.returncode}):\n"
-            f"{result.stdout}\n{result.stderr}"
-        )
-    return result.stdout
-
-
-def create_sandbox_with_codeql_mount(codeql_dir: str, image_name: str) -> BaseSandbox:
-    """
-    Create a NativeDockerSandbox with CodeQL directory mounted.
-    Returns the configured sandbox.
-    """
-    # Build DockerConfig using bind volume syntax
-    cfg = DockerConfig(
-        image=image_name,
-        timeout=300,
-        volumes=[f"{codeql_dir}:/surfi/codeql:rw"],
-    )
-
-    # Use SandboxManager with a dedicated sandbox type
-    session_id = f"codeql-{uuid4().hex}"
-    sandbox = SandboxManager.get_sandbox(
-        session_id=session_id,
-        docker_config=cfg,
-        sandbox_type="codeql",
-        backend="native",
-    )
-    return sandbox
 
 
 def load_expr_calls(expr_calls_path):
@@ -200,7 +146,9 @@ def match_edges(expr_calls, fp_funcs):
     return matched_edges
 
 
-def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: str):
+def get_and_upload_call_graph(
+    codeql_dir: str, image_name: str, build_command: str, aigise_session_id: str
+):
     """
     Generate and upload call graph using the specified sandbox.
 
@@ -210,9 +158,11 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
         build_command: Command to build the project
     """
     sandbox = None
-    session_id = f"codeql-{uuid4().hex}"
+    sandbox_session_id = None
     try:
-        sandbox = create_sandbox_with_codeql_mount(codeql_dir, image_name)
+        sandbox, sandbox_session_id = create_sandbox_with_codeql_mount(
+            codeql_dir, image_name
+        )
 
         sandbox.run_command_in_container(
             ["bash", "/surfi/codeql/callgraph_queries/run_queries.sh", build_command]
@@ -252,9 +202,22 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
                 # 4. Append the indirect edges to the main DataFrame
                 df = pd.concat([df, indirect_df], ignore_index=True)
 
-        db.set_connection(
-            f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}"
-        )
+        # Setup Neo4j connection using session-based approach
+        try:
+            aigise_session = get_aigise_session(aigise_session_id)
+            config = aigise_session.config.get_config()
+            neo4j_config = config.neo4j
+            connection_string = (
+                f"bolt://{neo4j_config.user}:{neo4j_config.password}@{neo4j_config.uri}"
+            )
+        except Exception:
+            # Fallback to environment variables for backward compatibility
+            user = os.getenv("NEO4J_USER")
+            password = os.getenv("NEO4J_PASSWORD")
+            uri_suffix = os.getenv("NEO4J_URI_SUFFIX")
+            connection_string = f"bolt://{user}:{password}@{uri_suffix}"
+
+        db.set_connection(connection_string)
 
         # constraints + indexes
         constraints = [
@@ -302,4 +265,8 @@ def get_and_upload_call_graph(codeql_dir: str, image_name: str, build_command: s
 
         traceback.print_exc()
     finally:
-        SandboxManager.cleanup_sandbox(session_id)
+        # Cleanup session and its resources
+        if sandbox_session_id:
+            from aigise.session import cleanup_aigise_session
+
+            cleanup_aigise_session(sandbox_session_id)

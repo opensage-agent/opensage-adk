@@ -1,84 +1,19 @@
-import os
-import socket
-import time
-
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
 
-from aigise.sandbox import NativeDockerSandbox
-from aigise.sandbox.docker_config import DockerConfig
-from aigise.utils.project_info import PROJECT_PATH
+from aigise.toolbox.decorators import requires_sandbox
+from aigise.utils.agent_utils import get_mcp_url_from_session_id
 
 
-def _find_free_port(start_port: int = 6000) -> int:
-    """Find a free port starting from start_port."""
-    port = start_port
-    while port < 65535:
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(("127.0.0.1", port))
-                return port
-        except OSError:
-            port += 1
-    raise RuntimeError("No free ports available")
-
-
-def get_toolset() -> MCPToolset:
+@requires_sandbox("pdb_mcp")
+def get_toolset(aigise_session_id: str) -> MCPToolset:
     """Create MCPToolset with PDB MCP server running in Docker container.
+
+    Args:
+        shared_session_id: Shared session ID for session-based management
 
     Returns:
         MCPToolset connected to PDB MCP server
-
-    Raises:
-        RuntimeError: If IMAGE_NAME environment variable is not set
-        RuntimeError: If container creation fails
     """
-    # Get base image from environment
-    image_name = os.getenv("IMAGE_NAME")
-    if not image_name:
-        raise RuntimeError("IMAGE_NAME environment variable must be set")
-
-    # Generate container image name
-    container_image = f"{image_name}_pdb_mcp"
-
-    # Find free port for mapping
-    host_port = _find_free_port(6000)
-
-    # Create Docker configuration with template fallback
-    template_path = (
-        PROJECT_PATH / "src/aigise/templates/dockerfiles/pdb_mcp/pdb_mcp.dockerfile.j2"
-    )
-    config = DockerConfig(
-        image=container_image,
-        dockerfile_template_path=str(template_path),
-        template_variables={"base_image": image_name},
-        ports={
-            "1112/tcp": host_port  # Map container port 1112 to host port
-        },
-        # Keep container running in detached mode
-        environment={"PDB_MCP_SSE_PORT": "1112"},
-        # Use Dockerfile's default CMD (MCP server) instead of bash
-        command="",
-    )
-    # Create sandbox with template fallback
-    try:
-        sandbox = NativeDockerSandbox(config)
-        print(f"Created PDB MCP container with image: {container_image}")
-        print(f"Container accessible on port: {host_port}")
-
-        # Wait a moment for the MCP server to start up
-        print("Waiting for MCP server to start...")
-        time.sleep(3)
-
-    except RuntimeError as e:
-        raise RuntimeError(f"Failed to create PDB MCP container: {e}")
-
-    # Create MCPToolset connected to the container
-    mcp_toolset = MCPToolset(
-        connection_params=SseConnectionParams(url=f"http://127.0.0.1:{host_port}/sse")
-    )
-
+    url = get_mcp_url_from_session_id("pdb_mcp", aigise_session_id)
+    mcp_toolset = MCPToolset(connection_params=SseConnectionParams(url=url))
     return mcp_toolset
-
-
-# Provide an alias for consistency with gdb_mcp naming pattern
-get_pdb_toolset = get_toolset

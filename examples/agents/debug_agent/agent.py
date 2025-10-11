@@ -1,30 +1,27 @@
-import importlib
-import logging
-import os
+import uuid
 
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
 
-from aigise.extended_features.sec_agent import SecAgent
+from aigise.agents.aigise_agent import AigiseAgent
+from aigise.toolbox.decorators import collect_sandbox_dependencies
 from aigise.toolbox.mcp_tools.debugger.gdb_mcp.get_toolset import (
     get_toolset as get_gdb_toolset,
 )
 
-# Disable OpenTelemetry to avoid context management issues with incompatible GCP exporter
-# see https://github.com/google/adk-python/issues/860 for details
-os.environ["OTEL_SDK_DISABLED"] = "true"
-# Suppress OpenTelemetry warnings
-logging.getLogger("opentelemetry").setLevel(logging.ERROR)
-MODEL_NAME = os.getenv("MODEL_NAME", "anthropic/claude-sonnet-4-20250514")
 
-gdb_toolset = get_gdb_toolset()
+def mk_agent(aigise_session_id="debug-agent-session"):
+    gdb_toolset = get_gdb_toolset(aigise_session_id)
 
-root_agent = SecAgent(
-    name="debug_agent",
-    model=LiteLlm(model=MODEL_NAME),
-    description="Generates Python PoC scripts for vulnerabilities.",
-    instruction="""
-    You are an debugger AI agent.
-    """,
-    tools=[gdb_toolset],
-)
+    return AigiseAgent(
+        name="debug_agent",
+        aigise_session_id=aigise_session_id,
+        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        description="Generates Python PoC scripts for vulnerabilities.",
+        instruction="""
+      You are an debugger AI agent.
+      """,
+        tools=[gdb_toolset],
+    )
+
+
+root_agent = mk_agent()

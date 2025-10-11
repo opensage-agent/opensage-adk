@@ -1,0 +1,80 @@
+import os
+
+from google.adk import Agent
+from google.adk.agents.llm_agent import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.tools.agent_tool import AgentTool
+
+from aigise.agents.aigise_agent import AigiseAgent
+from aigise.framework import (
+    enable_neo4j_logging,
+    setup_summarization_callbacks,
+)
+from aigise.session import get_aigise_session
+from aigise.toolbox.general.agent_tools import (
+    agent_ensemble,
+    flag_unjustified_claims,
+    get_available_agents_and_models_for_ensemble,
+)
+
+
+def calculate_add(a: float, b: float) -> float:
+    """Calculate the sum of two numbers.
+
+    Args:
+        a: The first number to add.
+        b: The second number to add.
+
+    Returns:
+        The sum of a and b.
+    """
+    return a + b
+
+
+calculation_agent = LlmAgent(
+    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+    name="calculation_agent",
+    instruction="""
+    You are a helpful math assistant. You can help users with basic arithmetic operations.
+    """,
+    tools=[
+        calculate_add,
+    ],
+)
+
+calculation_agent_tool = AgentTool(agent=calculation_agent)
+enable_neo4j_logging()
+
+# Get session-specific ensemble manager
+aigise_session_id = "sample-ensemble-session"
+aigise_session = get_aigise_session(aigise_session_id)
+
+os.environ["AVAILABLE_MODELS"] = "anthropic/claude-sonnet-4-20250514, openai/o4-mini"
+ensemble_manager = aigise_session.ensemble
+ensemble_manager.add_thread_safe_tool("calculate_add")
+
+
+def mk_agent(aigise_session_id="sample-ensemble-session"):
+    root_agent = AigiseAgent(
+        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        aigise_session_id=aigise_session_id,
+        name="simple_math_agent",
+        instruction="""
+        You are a helpful math assistant. You can help users with basic arithmetic operations.
+        When a user asks you to add two numbers, use the calculate_add tool to perform the calculation.
+        Always use the tool to get accurate results instead of calculating manually.
+        Provide clear and friendly responses to the user.
+        Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
+        """,
+        description="A simple math agent that can perform addition operations.",
+        tools=[
+            calculation_agent_tool,
+            agent_ensemble,
+            get_available_agents_and_models_for_ensemble,
+        ],
+    )
+    setup_summarization_callbacks(root_agent)
+    return root_agent
+
+
+root_agent = mk_agent()

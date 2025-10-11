@@ -1,18 +1,17 @@
-import os
 import shlex
 
 from google.adk.tools.tool_context import ToolContext
-from neomodel import db
 
-from aigise.extended_features.sandbox_manager import SandboxManager
-from aigise.sandbox.docker_config import DockerConfig
-
-# Set up Neo4j database connection
-db.set_connection(
-    f"bolt://{os.getenv('NEO4J_USER')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URI_SUFFIX')}"
+from aigise.toolbox.decorators import requires_sandbox
+from aigise.utils.agent_utils import (
+    get_neo4j_client_from_context,
+    get_sandbox_from_context,
 )
 
+# Neo4j database connection will be set up per function call using session-based approach
 
+
+@requires_sandbox("main")
 def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
     """
     Search the codebase inside the running container for a given regex pattern.
@@ -32,14 +31,7 @@ def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
     Returns:
         dict: A dictionary with key "result" pointing to a list of grep matches.
     """
-    # Get sandbox from SandboxManager
-    docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
-    try:
-        sandbox = SandboxManager.get_sandbox_from_tool_context(
-            tool_context, docker_config
-        )
-    except Exception as e:
-        return {"result": [], "error": f"Failed to get sandbox: {str(e)}"}
+    sandbox = get_sandbox_from_context(tool_context, "main")
 
     # Escape the expression for shell safety and add limits to prevent broken pipe
     escaped_expression = shlex.quote(expression)
@@ -72,7 +64,8 @@ def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
     return dict_result
 
 
-def list_functions_in_file(filepath: str) -> dict:
+@requires_sandbox("neo4j", "codeql", "joern")
+async def list_functions_in_file(filepath: str, *, tool_context: ToolContext) -> dict:
     """
     Tool to list all functions in a given file.
     Args:
@@ -81,6 +74,8 @@ def list_functions_in_file(filepath: str) -> dict:
         dict: A dictionary with key "result" pointing to a list of function information.
     """
     try:
+        # Use analysis client for static analysis queries
+        client = await get_neo4j_client_from_context(tool_context, "analysis")
         query = """
         MATCH (f:Function)
         WHERE f.path = $filepath
@@ -90,7 +85,7 @@ def list_functions_in_file(filepath: str) -> dict:
             f.end AS end
         """
         params = {"filepath": filepath}
-        results, _ = db.cypher_query(query, params)
+        results = await client.run_query(query, params)
 
         dict_result = {"result": []}
 
@@ -117,6 +112,7 @@ def list_functions_in_file(filepath: str) -> dict:
         }
 
 
+@requires_sandbox("main")
 def get_line_around_linenum_in_file(
     filepath: str, linenum: int, context: int, *, tool_context: ToolContext
 ) -> dict:
@@ -130,11 +126,7 @@ def get_line_around_linenum_in_file(
         dict: A dictionary with key "result" pointing to a list of line information.
     """
     try:
-        # Get sandbox from SandboxManager
-        docker_config = DockerConfig(image=os.getenv("IMAGE_NAME"))
-        sandbox = SandboxManager.get_sandbox_from_tool_context(
-            tool_context, docker_config
-        )
+        sandbox = get_sandbox_from_context(tool_context, "main")
 
         file_content = sandbox.extract_file_from_container(filepath)
         lines = file_content.splitlines()

@@ -10,9 +10,9 @@ if [ $# -ne 1 ]; then
 fi
 
 BUILD_COMMAND="$1"
-CODEQL_BIN="/surfi/codeql/codeql"
-DATABASE_PATH="/work/.surfi-codeql-database"
-QUERY_DIR="/shared/data/callgraph/codeql_queries"
+CODEQL_BIN="/shared/codeql/codeql"
+DATABASE_PATH="/work/.aigise-codeql-database"
+QUERY_DIR="/shared/callgraph/codeql_queries"
 OUT_DIR="/shared/out/callgraph"
 
 echo "Starting CodeQL analysis with build command: $BUILD_COMMAND"

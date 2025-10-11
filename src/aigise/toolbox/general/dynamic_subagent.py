@@ -8,8 +8,11 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
-from aigise.extended_features import AgentStatus, get_dynamic_agent_manager
-from aigise.utils.agent_utils import extract_tools_from_agent
+from aigise.session import AgentStatus, get_aigise_session
+from aigise.utils.agent_utils import (
+    extract_tools_from_agent,
+    get_aigise_session_id_from_context,
+)
 
 
 async def create_subagent(
@@ -33,7 +36,9 @@ async def create_subagent(
         Dictionary with creation result and agent details
     """
     try:
-        manager = get_dynamic_agent_manager()
+        session_id = get_aigise_session_id_from_context(tool_context)
+        session = get_aigise_session(session_id)
+        manager = session.agents
 
         current_agent = tool_context._invocation_context.agent
         available_tools = extract_tools_from_agent(current_agent)
@@ -58,7 +63,6 @@ async def create_subagent(
             }
 
         config = {
-            "type": "llm_agent",
             "name": agent_name,
             "instruction": instruction + "\nyou must use the tools provided.",
             "model": "anthropic/claude-sonnet-4-20250514",
@@ -69,12 +73,10 @@ async def create_subagent(
         }
 
         agent_id, agent_instance = await manager.create_agent(
-            config, creator=current_agent.name, context=tool_context
+            config, creator=current_agent.name
         )
 
-        await manager.update_agent_status(
-            agent_id, AgentStatus.ACTIVE, context=tool_context
-        )
+        await manager.update_agent_status(agent_id, AgentStatus.ACTIVE)
 
         return {
             "success": True,
@@ -119,7 +121,9 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
     2. Returns information about all dynamically created agents (both in-memory and restored)
     """
     try:
-        manager = get_dynamic_agent_manager()
+        session_id = get_aigise_session_id_from_context(tool_context)
+        session = get_aigise_session(session_id)
+        manager = session.agents
         caller_agent = tool_context._invocation_context.agent
 
         # Extract tools from caller agent
@@ -129,13 +133,13 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
         manager._load_persisted_agents_on_demand(caller_tools)
 
         # Get all dynamic agents (both in-memory and restored) for current session
-        all_agents = manager.list_agents(context=tool_context)
+        all_agents = manager.list_agents()
         active_agents = []
 
         # Process dynamic agents
         for agent_metadata in all_agents:
             # Try to get agent instance from current session
-            agent_instance = manager.get_agent(agent_metadata.id, context=tool_context)
+            agent_instance = manager.get_agent(agent_metadata.id)
 
             # Determine tool names
             if agent_instance:
@@ -194,20 +198,20 @@ async def call_subagent_as_tool(
         Result from the sub-agent execution
     """
     try:
-        manager = get_dynamic_agent_manager()
+        session_id = get_aigise_session_id_from_context(tool_context)
+        session = get_aigise_session(session_id)
+        manager = session.agents
         caller_agent = tool_context._invocation_context.agent
 
         # First try to find in dynamic agents within current session
-        all_agents = manager.list_agents(context=tool_context)
+        all_agents = manager.list_agents()
         target_agent_metadata = None
         agent_instance = None
 
         for agent_metadata in all_agents:
             if agent_metadata.name == agent_name:
                 target_agent_metadata = agent_metadata
-                agent_instance = manager.get_agent(
-                    agent_metadata.id, context=tool_context
-                )
+                agent_instance = manager.get_agent(agent_metadata.id)
                 if agent_instance:
                     break
 

@@ -15,11 +15,12 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
 from dotenv import load_dotenv
+from loguru import logger
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
 
 load_dotenv()
-PDB_MCP_SSE_PORT = int(os.getenv("PDB_MCP_SSE_PORT", 1112))
+PDB_MCP_SSE_PORT = 1112
 
 # Initialize FastMCP server
 mcp = FastMCP("mcp-pdb", port=PDB_MCP_SSE_PORT, host="0.0.0.0")
@@ -53,9 +54,9 @@ def read_pdb_output(process, output_queue):
             output_queue.put(line_bytes.decode("utf-8", errors="replace").rstrip())
     except ValueError:
         # Handle ValueError if stdout is closed prematurely (e.g., process killed)
-        print("PDB output reader: ValueError (stdout likely closed).", file=sys.stderr)
+        logger.warning("PDB output reader: ValueError (stdout likely closed).")
     except Exception as e:
-        print(f"PDB output reader: Unexpected error: {e}", file=sys.stderr)
+        logger.error(f"PDB output reader: Unexpected error: {e}")
         # Optionally log traceback here if needed
     finally:
         # Ensure stdout is closed if loop finishes normally or breaks
@@ -63,8 +64,8 @@ def read_pdb_output(process, output_queue):
             try:
                 process.stdout.close()
             except Exception as e:
-                print(f"PDB output reader: Error closing stdout: {e}", file=sys.stderr)
-        print("PDB output reader thread finished.", file=sys.stderr)
+                logger.error(f"PDB output reader: Error closing stdout: {e}")
+        logger.info("PDB output reader thread finished.")
 
 
 def get_pdb_output(session_state: SessionState, timeout=0.5):
@@ -134,7 +135,7 @@ def send_to_pdb(session_state: SessionState, command, timeout_multiplier=1.0):
             return output
 
         except (OSError, BrokenPipeError) as e:
-            print(f"Error writing to PDB stdin: {e}", file=sys.stderr)
+            logger.error(f"Error writing to PDB stdin: {e}")
             pdb_running = False
             # Try to get final output
             final_output = get_pdb_output(session_state, timeout=0.1)
@@ -143,7 +144,7 @@ def send_to_pdb(session_state: SessionState, command, timeout_multiplier=1.0):
                 pdb_process.wait(timeout=0.5)
             return f"Error communicating with PDB: {e}\nFinal Output:\n{final_output}\n\n*** The debugging session has likely ended. ***"
         except Exception as e:
-            print(f"Unexpected error in send_to_pdb: {e}", file=sys.stderr)
+            logger.error(f"Unexpected error in send_to_pdb: {e}")
             pdb_running = False
             return f"Unexpected error sending command: {e}"
 
@@ -173,13 +174,15 @@ def find_project_root(start_path):
     while current_dir and current_dir != os.path.dirname(current_dir):
         for indicator in root_indicators:
             if os.path.exists(os.path.join(current_dir, indicator)):
-                print(f"Found project root indicator '{indicator}' at: {current_dir}")
+                logger.debug(
+                    f"Found project root indicator '{indicator}' at: {current_dir}"
+                )
                 return current_dir
         current_dir = os.path.dirname(current_dir)
 
     # Fallback to the starting path's directory if no indicator found
     fallback_dir = os.path.abspath(start_path)
-    print(
+    logger.info(
         f"No common project root indicators found upwards. Falling back to: {fallback_dir}"
     )
     return fallback_dir
@@ -207,7 +210,7 @@ def find_venv_details(project_root):
                 bin_dir = os.path.join(venv_path, "bin")
 
             if os.path.exists(python_exe):
-                print(f"Found active virtual environment: {venv_path}")
+                logger.debug(f"Found active virtual environment: {venv_path}")
                 return python_exe, bin_dir
 
     # Check for conda environment
@@ -221,7 +224,7 @@ def find_venv_details(project_root):
             bin_dir = os.path.join(conda_path, "bin")
 
         if os.path.exists(python_exe):
-            print(f"Found conda environment: {conda_path}")
+            logger.debug(f"Found conda environment: {conda_path}")
             return python_exe, bin_dir
 
     for location in common_venv_locations:
@@ -236,7 +239,7 @@ def find_venv_details(project_root):
                     bin_dir = os.path.join(venv_path, "bin")
 
                 if os.path.exists(python_exe):
-                    print(f"Found virtual environment: {venv_path}")
+                    logger.debug(f"Found virtual environment: {venv_path}")
                     return python_exe, bin_dir
 
     # Look for other common Python installations
@@ -256,7 +259,7 @@ def find_venv_details(project_root):
                     py_exe = os.path.join(local_bin, f)
                     return py_exe, local_bin
 
-    print(f"No virtual environment found in: {project_root}")
+    logger.info(f"No virtual environment found in: {project_root}")
     return None, None
 
 
@@ -297,7 +300,7 @@ def start_debug(
         if session_state.pdb_process and session_state.pdb_process.poll() is None:
             return f"Debugging session already running for {session_state.current_file}. Use restart_debug or end_debug first."
         else:
-            print("Detected stale 'pdb_running' state. Resetting.")
+            logger.warning("Detected stale 'pdb_running' state. Resetting.")
             session_state.pdb_running = False  # Reset state if process died
 
     # --- Validate Input and Find Project ---
@@ -333,7 +336,7 @@ def start_debug(
 
     # Store original working directory before changing
     original_working_dir = os.getcwd()
-    print(f"Original working directory: {original_working_dir}")
+    logger.debug(f"Original working directory: {original_working_dir}")
 
     # Initialize breakpoints structure for this file if new
     if abs_file_path not in session_state.breakpoints:
@@ -356,11 +359,13 @@ def start_debug(
         if uv_path and os.path.exists(os.path.join(project_root, "pyproject.toml")):
             # More reliably check for uv.lock as primary indicator
             if os.path.exists(os.path.join(project_root, "uv.lock")):
-                print("Found uv.lock, assuming uv project.")
+                logger.debug("Found uv.lock, assuming uv project.")
                 use_uv = True
             else:
                 # Optional: Could check pyproject.toml for [tool.uv]
-                print("Found pyproject.toml and uv executable, tentatively trying uv.")
+                logger.debug(
+                    "Found pyproject.toml and uv executable, tentatively trying uv."
+                )
                 # We'll let `uv run` determine if it's actually a uv project.
                 use_uv = True  # Tentatively true
 
@@ -382,8 +387,8 @@ def start_debug(
 
         except ValueError:
             # Handle cases where file is on a different drive (Windows)
-            print(
-                f"Warning: File '{abs_file_path}' not relative to project root '{project_root}'. Using absolute path."
+            logger.warning(
+                f"File '{abs_file_path}' not relative to project root '{project_root}'. Using absolute path."
             )
             rel_file_path = abs_file_path  # Use absolute path if relative fails
 
@@ -395,7 +400,7 @@ def start_debug(
 
         # Determine command based on environment
         if use_uv:
-            print(f"Using uv run in: {project_root}")
+            logger.info(f"Using uv run in: {project_root}")
             # Clean potentially conflicting env vars for uv run
             env.pop("VIRTUAL_ENV", None)
             env.pop("PYTHONHOME", None)
@@ -407,7 +412,7 @@ def start_debug(
                 base_cmd.extend(["python", "-m", "pdb"])
             cmd = base_cmd + [rel_file_path] + parsed_args
         elif venv_python_path:
-            print(f"Using venv Python: {venv_python_path}")
+            logger.info(f"Using venv Python: {venv_python_path}")
             venv_dir = os.path.dirname(
                 os.path.dirname(venv_bin_dir)
             )  # Get actual venv root
@@ -437,7 +442,7 @@ def start_debug(
                             cwd=project_root,
                             env=env,
                         )
-                        print(f"Found pytest via '{venv_python_path} -m pytest'")
+                        logger.debug(f"Found pytest via '{venv_python_path} -m pytest'")
                         cmd = [
                             venv_python_path,
                             "-m",
@@ -460,8 +465,8 @@ def start_debug(
             else:
                 cmd = [venv_python_path, "-m", "pdb", rel_file_path] + parsed_args
         else:
-            print(
-                "Warning: No uv or standard venv detected in project root. Using system Python/pytest."
+            logger.warning(
+                "No uv or standard venv detected in project root. Using system Python/pytest."
             )
             # Fallback to system python/pytest found in PATH
             python_exe = (
@@ -485,14 +490,13 @@ def start_debug(
                 cmd = [python_exe, "-m", "pdb", rel_file_path] + parsed_args
 
         # --- Launch Subprocess ---
-        print(f"Executing command: {' '.join(map(shlex.quote, cmd))}")
-        print(f"Working directory: {project_root}")
-        print(f"Using VIRTUAL_ENV: {env.get('VIRTUAL_ENV', 'Not Set')}")
-        # print(f"Using PATH: {env.get('PATH', 'Not Set')}") # Can be very long
+        logger.info(f"Executing command: {' '.join(map(shlex.quote, cmd))}")
+        logger.debug(f"Working directory: {project_root}")
+        logger.debug(f"Using VIRTUAL_ENV: {env.get('VIRTUAL_ENV', 'Not Set')}")
 
         # Ensure previous thread is not running (important for restarts)
         if session_state.output_thread and session_state.output_thread.is_alive():
-            print("Warning: Previous output thread was still alive.", file=sys.stderr)
+            logger.warning("Previous output thread was still alive.")
             # Attempting to join might hang if readline blocks, so we just detach.
 
         session_state.pdb_process = subprocess.Popen(
@@ -519,7 +523,7 @@ def start_debug(
         )
 
         # --- Wait for Initial Output & Verify Start ---
-        print("Waiting for PDB to start...")
+        logger.info("Waiting for PDB to start...")
         initial_output = get_pdb_output(
             session_state, timeout=3.0
         )  # Longer timeout for potentially slow starts/imports
@@ -552,7 +556,7 @@ def start_debug(
                     "Warning: PDB started but initial prompt ('-> ' or '(Pdb)') "
                     "not detected in first few seconds. It might be running."
                 )
-                print(warning_msg, file=sys.stderr)
+                logger.warning(warning_msg)
                 # Proceed but include the warning in the return message
                 initial_output = f"{warning_msg}\n\n{initial_output}"
             else:
@@ -574,7 +578,7 @@ def start_debug(
             session_state.current_file in session_state.breakpoints
             and session_state.breakpoints[session_state.current_file]
         ):
-            print(
+            logger.info(
                 f"Restoring {len(session_state.breakpoints[session_state.current_file])} breakpoints for {rel_file_path}..."
             )
             # Use relative path for consistency in breakpoint commands
@@ -591,7 +595,7 @@ def start_debug(
                 session_state.breakpoints[session_state.current_file].keys()
             ):
                 bp_command_rel = f"b {bp_rel_path}:{line_num}"
-                print(f"Sending restore cmd: {bp_command_rel}")
+                logger.debug(f"Sending restore cmd: {bp_command_rel}")
                 restore_out = send_to_pdb(session_state, bp_command_rel)
                 restored_bps_output += (
                     f"Set {bp_rel_path}:{line_num}: {restore_out or '[No Response]'}\n"
@@ -691,7 +695,7 @@ def send_pdb_command(command: str, context: Context = None) -> str:
             # Give PDB a tiny bit more time after navigation before asking for location
             # Check again if it's running before sending 'l .'
             if pdb_running and pdb_process.poll() is None:
-                print("Fetching context after navigation...")
+                logger.debug("Fetching context after navigation...")
                 line_context = send_to_pdb(session_state, "l .")
                 # Check again after sending 'l .'
                 if pdb_running and pdb_process.poll() is None:
@@ -704,7 +708,7 @@ def send_pdb_command(command: str, context: Context = None) -> str:
 
     except Exception as e:
         # Catch unexpected errors during command sending/processing
-        print(f"Error in send_pdb_command: {e}", file=sys.stderr)
+        logger.error(f"Error in send_pdb_command: {e}")
         # Check process status again
         if pdb_process and pdb_process.poll() is not None:
             pdb_running = False
@@ -759,8 +763,8 @@ def set_breakpoint(file_path: str, line_number: int, context: Context = None) ->
         if f"{rel_file_path}:{line_number}" in current_bps:
             return f"Breakpoint already exists and is tracked at {abs_file_path}:{line_number}"
         else:
-            print(
-                f"Warning: Breakpoint tracked locally but not found in PDB output for {rel_file_path}:{line_number}. Will attempt to set."
+            logger.warning(
+                f"Breakpoint tracked locally but not found in PDB output for {rel_file_path}:{line_number}. Will attempt to set."
             )
 
     command = f"b {rel_file_path}:{line_number}"
@@ -951,16 +955,16 @@ def restart_debug(context: Context = None) -> str:
     file_to_debug = session_state.current_file
     args_to_use = session_state.current_args
     use_pytest_flag = session_state.current_use_pytest
-    print(
+    logger.info(
         f"Attempting to restart debug for: {file_to_debug} with args='{args_to_use}' pytest={use_pytest_flag}"
     )
 
     # End the current session forcefully if running
     end_result = "Previous session not running or already ended."
     if session_state.pdb_running:
-        print("Ending current session before restart...")
+        logger.info("Ending current session before restart...")
         end_result = end_debug(context=context)  # Use the dedicated end function
-        print(f"Restart: {end_result}")
+        logger.debug(f"Restart: {end_result}")
 
     # Reset state explicitly (end_debug should handle most, but belt-and-suspenders)
     session_state.pdb_process = None
@@ -975,7 +979,7 @@ def restart_debug(context: Context = None) -> str:
             break
 
     # Start a new session using stored parameters
-    print("Calling start_debug for restart...")
+    logger.info("Calling start_debug for restart...")
     start_result = start_debug(
         file_path=file_to_debug,
         use_pytest=use_pytest_flag,
@@ -1004,14 +1008,14 @@ def examine_variable(variable_name: str, context: Context = None) -> str:
 
     # Basic print
     p_command = f"p {variable_name}"
-    print(f"Sending command: {p_command}")
+    logger.debug(f"Sending command: {p_command}")
     basic_info = send_to_pdb(session_state, p_command)
     if not session_state.pdb_running:
         return f"Session ended after 'p {variable_name}'. Output:\n{basic_info}"
 
     # Type info
     type_command = f"p type({variable_name})"
-    print(f"Sending command: {type_command}")
+    logger.debug(f"Sending command: {type_command}")
     type_info = send_to_pdb(session_state, type_command)
     # Check if session ended, but proceed if possible
     if not session_state.pdb_running and "Session ended" not in basic_info:
@@ -1021,14 +1025,14 @@ def examine_variable(variable_name: str, context: Context = None) -> str:
     dir_command = (
         f"import inspect; print(dir({variable_name}))"  # More robust than just dir()
     )
-    print("Sending command: (inspect dir)")
+    logger.debug("Sending command: (inspect dir)")
     dir_info = send_to_pdb(session_state, dir_command)
     if not session_state.pdb_running and "Session ended" not in type_info:
         return f"Value:\n{basic_info}\n\nType:\n{type_info}\n\nSession ended after 'dir()'. Dir Output:\n{dir_info}"
 
     # Pretty print (useful for complex objects)
     pp_command = f"pp {variable_name}"
-    print(f"Sending command: {pp_command}")
+    logger.debug(f"Sending command: {pp_command}")
     pretty_info = send_to_pdb(session_state, pp_command)
     if not session_state.pdb_running and "Session ended" not in dir_info:
         return f"Value:\n{basic_info}\n\nType:\n{type_info}\n\nAttributes/Methods:\n{dir_info}\n\nSession ended after 'pp'. PP Output:\n{pretty_info}"
@@ -1133,7 +1137,7 @@ def end_debug(context: Context = None) -> str:
     ):
         return "No active debugging session to end."
 
-    print("Ending debugging session...")
+    logger.info("Ending debugging session...")
     result_message = "Debugging session ended."
 
     if session_state.pdb_process and session_state.pdb_process.poll() is None:
@@ -1147,19 +1151,19 @@ def end_debug(context: Context = None) -> str:
                     except subprocess.TimeoutExpired:
                         pass
                 except (OSError, ProcessLookupError) as e:
-                    print(f"SIGINT failed: {e}")
+                    logger.error(f"SIGINT failed: {e}")
 
             # Next try sending quit command for graceful exit
             if session_state.pdb_process.poll() is None:
                 try:
-                    print("Attempting graceful exit with 'q'...")
+                    logger.info("Attempting graceful exit with 'q'...")
                     session_state.pdb_process.stdin.write(b"q\n")
                     session_state.pdb_process.stdin.flush()
                     # Wait briefly for potential cleanup
                     session_state.pdb_process.wait(timeout=0.5)
-                    print("PDB process quit gracefully.")
+                    logger.info("PDB process quit gracefully.")
                 except (subprocess.TimeoutExpired, OSError, BrokenPipeError) as e:
-                    print(
+                    logger.warning(
                         f"Graceful quit failed or timed out ({e}). Terminating forcefully."
                     )
 
@@ -1168,27 +1172,27 @@ def end_debug(context: Context = None) -> str:
                 try:
                     session_state.pdb_process.terminate()  # Send SIGTERM
                     session_state.pdb_process.wait(timeout=1.0)  # Wait for termination
-                    print("PDB process terminated.")
+                    logger.info("PDB process terminated.")
                 except subprocess.TimeoutExpired:
-                    print("Terminate timed out. Killing process.")
+                    logger.warning("Terminate timed out. Killing process.")
                     session_state.pdb_process.kill()  # Send SIGKILL
                     session_state.pdb_process.wait(timeout=0.5)  # Wait for kill
-                    print("PDB process killed.")
+                    logger.info("PDB process killed.")
                 except Exception as term_err:
-                    print(f"Error during terminate/kill: {term_err}", file=sys.stderr)
+                    logger.error(f"Error during terminate/kill: {term_err}")
                     result_message = f"Debugging session ended with errors during termination: {term_err}"
         except Exception as e:
-            print(f"Error during end_debug: {e}", file=sys.stderr)
+            logger.error(f"Error during end_debug: {e}")
             result_message = f"Debugging session ended with errors: {e}"
 
     # Clean up state
 
     # Wait briefly for the output thread to potentially finish reading remaining output
     if session_state.output_thread and session_state.output_thread.is_alive():
-        print("Waiting for output thread to finish...")
+        logger.info("Waiting for output thread to finish...")
         session_state.output_thread.join(timeout=0.5)
         if session_state.output_thread.is_alive():
-            print("Warning: Output thread did not finish cleanly.", file=sys.stderr)
+            logger.warning("Output thread did not finish cleanly.")
 
     session_state.output_thread = None  # Clear thread object reference
 
@@ -1199,7 +1203,7 @@ def end_debug(context: Context = None) -> str:
         except queue.Empty:
             break
 
-    print("Debugging session ended and state cleared.")
+    logger.info("Debugging session ended and state cleared.")
     return result_message
 
 
@@ -1208,7 +1212,7 @@ def end_debug(context: Context = None) -> str:
 
 def cleanup(context: Context = None):
     """Ensure the PDB process is terminated when the MCP server exits."""
-    print("Running atexit cleanup...")
+    logger.info("Running atexit cleanup...")
     session = context.session
     if session not in session_dict:
         return "No debugging session found for this context."
@@ -1226,12 +1230,12 @@ atexit.register(cleanup)
 
 def main():
     """Initialize and run the FastMCP server."""
-    print("--- Starting MCP PDB Tool Server ---")
-    print(f"Python Executable: {sys.executable}")
-    print(f"Working Directory: {os.getcwd()}")
+    logger.info("--- Starting MCP PDB Tool Server ---")
+    logger.info(f"Python Executable: {sys.executable}")
+    logger.info(f"Working Directory: {os.getcwd()}")
     # Add any other relevant startup info here
     mcp.run(transport="sse")
-    print("--- MCP PDB Tool Server Shutdown ---")
+    logger.info("--- MCP PDB Tool Server Shutdown ---")
 
 
 if __name__ == "__main__":

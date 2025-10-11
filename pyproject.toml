@@ -9,7 +9,7 @@ description = "AIgiSE"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "google-adk>=1.13.0",
+    "google-adk>=1.15.1",
     "cybergym[dev,server] @ git+https://github.com/sunblaze-ucb/cybergym",
     "pandas==2.2.3",
     "neomodel==5.4.3",
@@ -19,11 +19,11 @@ dependencies = [
     "loguru==0.7.3",
     "pyyaml==6.0.2",
     "requests==2.32.4",
-    "google-adk==1.13.0",
     "litellm>=1.74.7",
     "msgspec>=0.19.0",
     "websockets>=15.0.1",
     "networkx>=3.4.2",
+    "toml>=0.10.2",
 ]
 
 [dependency-groups]
@@ -58,3 +58,14 @@ convention = "google"
 [tool.pytest.ini_options]
 log_format = "%(asctime)s [%(name)s] [%(levelname)s] %(message)s"
 log_date_format = "%Y-%m-%d %H:%M:%S"
+log_cli_level = "WARNING"
+log_cli = false
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]
+markers = [
+    "native_backend: tests for the native sandbox backend",
+    "k8s_backend: tests for the Kubernetes sandbox backend",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]

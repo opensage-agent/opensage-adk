@@ -15,6 +15,9 @@ class Neo4jInitializer(SandboxInitializer):
 
     async def async_initialize(self) -> None:
         """Initialize Neo4j environment (async version)."""
+        await self.ensure_ready()
+
+    async def ensure_ready(self) -> None:
         from aigise.session.aigise_session import get_aigise_session
 
         logger.info(

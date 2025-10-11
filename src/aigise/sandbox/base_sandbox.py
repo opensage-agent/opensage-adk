@@ -30,6 +30,10 @@ class BaseSandbox(ABC):
         """
         pass
 
+    async def ensure_ready(self) -> None:
+        """Ensure the sandbox is ready."""
+        pass
+
     @abstractmethod
     def copy_file_from_container(self, src_path: str, dst_path: str):
         """Copy a file from the container to local filesystem."""

@@ -1171,6 +1171,8 @@ class K8sSandbox(BaseSandbox):
 
             if not config.using_cached:
                 init_tasks.append(sandbox_instance.async_initialize())
+            else:
+                init_tasks.append(sandbox_instance.ensure_ready())
 
         if init_tasks:
             await asyncio.gather(*init_tasks)

@@ -17,3 +17,7 @@ class FuzzInitializer(SandboxInitializer):
         )
         # TODO: Add async fuzzing setup (downloads, network operations) here
         pass
+
+    async def ensure_ready(self) -> None:
+        """Ensure the sandbox is ready."""
+        pass

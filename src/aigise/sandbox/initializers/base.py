@@ -22,36 +22,45 @@ class SandboxInitializer(ABC):
         """
         pass
 
+    @abstractmethod
+    async def ensure_ready(self) -> None:
+        """Ensure the sandbox is ready."""
+        pass
+
 
 class DefaultInitializer(SandboxInitializer):
     """Default initializer with no special initialization."""
 
-    async def verify_connection(self, url: str) -> bool:
-        """Check if MCP SSE server is ready by testing initial response."""
-        import httpx
-
-        try:
-            async with httpx.AsyncClient(timeout=2.0) as client:
-                async with client.stream("GET", url) as response:
-                    # If we can receive response (status code + headers), server is ready
-                    return response.status_code == 200
-                    # Don't read body, exit context manager to auto-close connection
-        except Exception:
-            return False
-
     async def async_initialize(self) -> None:
         """Wait for MCP server to be ready."""
+
+        await self.ensure_ready()
+
+    async def ensure_ready(self) -> None:
         from loguru import logger
 
         from aigise.session import get_aigise_session
         from aigise.utils.agent_utils import get_mcp_url_from_session_id
+
+        async def verify_connection(url: str) -> bool:
+            """Check if MCP SSE server is ready by testing initial response."""
+            import httpx
+
+            try:
+                async with httpx.AsyncClient(timeout=2.0) as client:
+                    async with client.stream("GET", url) as response:
+                        # If we can receive response (status code + headers), server is ready
+                        return response.status_code == 200
+                        # Don't read body, exit context manager to auto-close connection
+            except Exception:
+                return False
 
         try:
             url = get_mcp_url_from_session_id(self.sandbox_type, self.aigise_session_id)
             retry_num = 0
             logger.info(f"Waiting for MCP server {self.sandbox_type} at {url}...")
 
-            while not await self.verify_connection(url):
+            while not await verify_connection(url):
                 retry_num += 1
                 logger.info(
                     f"Still waiting for {self.sandbox_type}... (retry {retry_num})"

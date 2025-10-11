@@ -912,9 +912,7 @@ class NativeDockerSandbox(BaseSandbox):
         if not container_config.using_cached:
             await sandbox_instance.async_initialize()
         else:
-            logger.info(
-                f"Skipping async initialization for cached sandbox: {sandbox_type}"
-            )
+            await sandbox_instance.ensure_ready()
 
         logger.info(f"Successfully launched {sandbox_type} sandbox")
         return sandbox_type, sandbox_instance

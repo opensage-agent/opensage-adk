@@ -1020,6 +1020,34 @@ class NativeDockerSandbox(BaseSandbox):
             raise
 
     @classmethod
+    def delete_shared_volumes(
+        cls, scripts_volume_id: str = None, data_volume_id: str = None
+    ) -> None:
+        """Delete shared volumes.
+
+        Args:
+            scripts_volume_id: ID of the scripts volume to delete
+            data_volume_id: ID of the data volume to delete
+        """
+        for volume_id in [scripts_volume_id, data_volume_id]:
+            if volume_id:
+                try:
+                    result = subprocess.run(
+                        ["docker", "volume", "rm", volume_id],
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+                    if result.returncode == 0:
+                        logger.info(f"Deleted volume: {volume_id}")
+                    else:
+                        logger.warning(
+                            f"Failed to delete volume {volume_id}: {result.stderr}"
+                        )
+                except Exception as e:
+                    logger.warning(f"Error deleting volume {volume_id}: {e}")
+
+    @classmethod
     async def create_single_sandbox(
         cls, session_id: str, sandbox_type: str, container_config
     ) -> tuple[str, "NativeDockerSandbox"]:
@@ -1096,7 +1124,7 @@ class NativeDockerSandbox(BaseSandbox):
         logger.info(f"Checking ports for availability: {ports_to_check}")
 
         # Try 127.0.0.x addresses (skip 127.0.0.1 as it's commonly used)
-        for last_octet in range(2, 256):
+        for last_octet in range(1, 256):
             test_ip = f"127.0.0.{last_octet}"
             all_ports_available = True
 

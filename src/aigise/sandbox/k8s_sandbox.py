@@ -1064,6 +1064,41 @@ class K8sSandbox(BaseSandbox):
                 pass
             raise
 
+    @classmethod
+    def delete_shared_volumes(
+        cls, scripts_volume_id: str = None, data_volume_id: str = None
+    ) -> None:
+        """Delete shared PVCs.
+
+        Args:
+            scripts_volume_id: ID of the scripts PVC to delete (with or without pvc/ prefix)
+            data_volume_id: ID of the data PVC to delete (with or without pvc/ prefix)
+        """
+        namespace = cls._resolve_namespace_from_env()
+        context = cls._resolve_context_from_env()
+        kubeconfig = cls._resolve_kubeconfig_from_env()
+
+        for volume_id in [scripts_volume_id, data_volume_id]:
+            if volume_id:
+                # Remove pvc/ prefix if present
+                pvc_name = volume_id.replace("pvc/", "")
+                try:
+                    result = cls._run_kubectl_class(
+                        ["delete", "pvc", pvc_name],
+                        namespace=namespace,
+                        context=context,
+                        kubeconfig=kubeconfig,
+                        check=False,
+                    )
+                    if result.returncode == 0:
+                        logger.info(f"Deleted PVC: {pvc_name}")
+                    else:
+                        logger.warning(
+                            f"Failed to delete PVC {pvc_name}: {result.stderr}"
+                        )
+                except Exception as e:
+                    logger.warning(f"Error deleting PVC {pvc_name}: {e}")
+
     # ------------------------------------------------------------------
     # Pod launch helpers
     # ------------------------------------------------------------------

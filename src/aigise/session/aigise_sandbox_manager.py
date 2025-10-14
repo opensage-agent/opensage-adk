@@ -399,12 +399,23 @@ class AigiseSandboxManager:
         # Make a copy to avoid modifying while iterating
         sandbox_types = list(self._sandboxes.keys())
         for sandbox_type in sandbox_types:
-            # TODO: change to config option
-            if sandbox_type != "neo4j":
-                try:
-                    self.remove_sandbox(sandbox_type)
-                except Exception as e:
-                    logger.warning(f"Error cleaning up sandbox {sandbox_type}: {e}")
+            try:
+                self.remove_sandbox(sandbox_type)
+            except Exception as e:
+                logger.warning(f"Error cleaning up sandbox {sandbox_type}: {e}")
+
+        # Delete shared volumes if they exist
+        if self._scripts_volume_id or self._shared_volume_id:
+            try:
+                backend_type = getattr(self.config.sandbox, "backend", "native")
+                backend_class = get_backend_class(backend_type)
+                backend_class.delete_shared_volumes(
+                    scripts_volume_id=self._scripts_volume_id,
+                    data_volume_id=self._shared_volume_id,
+                )
+                logger.info("Deleted shared volumes")
+            except Exception as e:
+                logger.warning(f"Error deleting shared volumes: {e}")
 
         # Clear any remaining references
         self._sandboxes.clear()

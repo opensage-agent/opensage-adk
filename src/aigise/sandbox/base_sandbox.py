@@ -131,3 +131,11 @@ class BaseSandbox(ABC):
             Dictionary with cache results including backup paths and cached images
         """
         pass
+
+    @classmethod
+    @abstractmethod
+    def delete_shared_volumes(
+        cls, scripts_volume_id: str = None, data_volume_id: str = None
+    ) -> None:
+        """Delete shared volumes."""
+        pass

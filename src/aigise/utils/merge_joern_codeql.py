@@ -267,6 +267,7 @@ async def insert_codeql_results_to_cpg(
                 },
             )
         if len(method_ids) > 1:
+            breakpoint()
             raise ValueError(f"Multiple methods matched for idx {idx}: {method_ids}")
         if method_ids:
             id_map[idx] = method_ids[0]

@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import toml
+from dacite import Config as DaciteConfig
+from dacite import from_dict
 
 from aigise.utils.project_info import PROJECT_PATH
 
@@ -266,7 +268,6 @@ class BuildConfig:
     compile_command: Optional[str] = None
     run_command: Optional[str] = None
     target_type: Optional[str] = None
-    code_dir: Optional[str] = None
 
 
 class MCPServiceConfig:
@@ -382,51 +383,43 @@ class AigiseConfig:
         # Expand template variables
         expanded_data = _expand_template_variables(toml_data)
 
-        # Helper function to create config objects
-        def create_config(section_name: str, config_class, **kwargs):
-            if section_name not in expanded_data:
-                return None
-            data = expanded_data[section_name]
-            return config_class(**data, **kwargs)
+        # Preprocess special fields before dacite conversion
+        cls._preprocess_config_data(expanded_data)
 
-        # Create configuration objects from expanded data
-        neo4j = create_config("neo4j", Neo4jConfig)
-        history = create_config("history", HistoryConfig)
+        # Use dacite to automatically convert dict to nested dataclasses
+        config = from_dict(
+            data_class=cls,
+            data=expanded_data,
+            config=DaciteConfig(
+                type_hooks={
+                    Path: lambda x: Path(x) if x else None,
+                },
+                cast=[int, str, float, bool],
+                check_types=False,
+            ),
+        )
 
-        # Sandbox (needs special handling for nested ContainerConfigs)
-        sandbox = None
-        if "sandbox" in expanded_data:
-            sandbox_data = expanded_data["sandbox"]
-            sandboxes = {
-                name: ContainerConfig(**config)
-                for name, config in sandbox_data.get("sandboxes", {}).items()
-            }
+        # Set parent config references to enable dynamic host resolution
+        if config.neo4j:
+            config.neo4j._parent_config = config
 
-            sandbox = SandboxConfig(
-                default_image=sandbox_data.get("default_image"),
-                sandboxes=sandboxes,
-                project_relative_shared_data_path=sandbox_data.get(
-                    "project_relative_shared_data_path"
-                ),
-                absolute_shared_data_path=sandbox_data.get("absolute_shared_data_path"),
-                backend=sandbox_data.get("backend", "native"),
-            )
+        if config.mcp:
+            config.mcp.set_parent_config(config)
 
-        # LLM (needs special handling for nested ModelConfigs)
-        llm = None
-        if "llm" in expanded_data:
-            model_configs = {
-                name: ModelConfig(**config)
-                for name, config in expanded_data["llm"]
-                .get("model_configs", {})
-                .items()
-            }
-            llm = LLMConfig(model_configs=model_configs)
+        return config
 
-        # Agent Ensemble (needs list to set conversion and comma-separated string to list)
-        agent_ensemble = None
-        if "agent_ensemble" in expanded_data:
-            ensemble_data = dict(expanded_data["agent_ensemble"])
+    @classmethod
+    def _preprocess_config_data(cls, data: dict) -> None:
+        """Preprocess config data for special conversions before dacite.
+
+        Modifies data dict in-place to handle:
+        - agent_ensemble: list → set, comma-separated string → list
+        - build: empty string → None
+        - mcp: convert to MCPServiceConfig with proper initialization
+        """
+        # Agent Ensemble: list → set, comma-separated string → list
+        if "agent_ensemble" in data:
+            ensemble_data = data["agent_ensemble"]
 
             # Convert thread_safe_tools list to set
             if "thread_safe_tools" in ensemble_data:
@@ -442,60 +435,28 @@ class AigiseConfig:
                     ensemble_data["available_models_for_ensemble"] = [
                         model.strip()
                         for model in models_value.split(",")
-                        if model.strip()  # Filter out empty strings
+                        if model.strip()
                     ]
                 elif not models_value or models_value == "":
                     ensemble_data["available_models_for_ensemble"] = []
 
-            agent_ensemble = AgentEnsembleConfig(**ensemble_data)
-
-        # Build (needs empty string to None conversion)
-        build = None
-        if "build" in expanded_data:
-            build_data = dict(expanded_data["build"])
+        # Build: empty string → None
+        if "build" in data:
+            build_data = data["build"]
             for field in ["poc_dir", "compile_command", "run_command"]:
                 if build_data.get(field) == "":
                     build_data[field] = None
-            build = BuildConfig(**build_data)
 
-        # MCP (needs special handling for nested MCPServiceConfigs)
-        mcp = None
-        if "mcp" in expanded_data:
-            services = {
-                name: MCPServiceConfig(
+        # MCP: Manually create MCPServiceConfig instances (can't be auto-converted)
+        if "mcp" in data and "services" in data["mcp"]:
+            services_data = data["mcp"]["services"]
+            services = {}
+            for name, service_config in services_data.items():
+                services[name] = MCPServiceConfig(
                     sse_port=service_config.get("sse_port"),
-                    sse_host=service_config.get(
-                        "sse_host"
-                    ),  # None if not specified -> will use default_host dynamically
+                    sse_host=service_config.get("sse_host"),  # None = use default_host
                 )
-                for name, service_config in expanded_data["mcp"]
-                .get("services", {})
-                .items()
-            }
-            mcp = MCPConfig(services=services)
-
-        # Create and return the complete configuration
-        config = cls(
-            neo4j=neo4j,
-            sandbox=sandbox,
-            llm=llm,
-            history=history,
-            agent_ensemble=agent_ensemble,
-            build=build,
-            mcp=mcp,
-            task_name=expanded_data.get("task_name"),
-            agent_storage_path=expanded_data.get("agent_storage_path"),
-            default_host=expanded_data.get("default_host", None),
-        )
-
-        # Set parent config references to enable dynamic host resolution
-        if config.neo4j:
-            config.neo4j._parent_config = config
-
-        if config.mcp:
-            config.mcp.set_parent_config(config)
-
-        return config
+            data["mcp"] = MCPConfig(services=services)
 
     def get_sandbox_config(self, sandbox_type: str):
         """Get sandbox configuration for a specific type.

@@ -15,8 +15,8 @@ task_name = "${TASK_NAME}"
 [neo4j]
 user = "neo4j"
 password = "${NEO4J_PASSWORD}"
-bolt_port = 27687
-neo4j_http_port = 27474
+bolt_port = 7688
+neo4j_http_port = 7475
 
 [sandbox]
 default_image = "${DEFAULT_IMAGE}"
@@ -52,8 +52,8 @@ NEO4J_server_directories_import = "/shared/neo4j/import"
 NEO4J_apoc_import_file_enabled = "true"
 NEO4J_apoc_export_file_enabled = "true"
 [sandbox.sandboxes.neo4j.ports]
-"7474/tcp" = 27474 # HTTP port (standard)
-"7687/tcp" = 27687 # Bolt port (standard)
+"7474/tcp" = 7475 # HTTP port (standard)
+"7687/tcp" = 7687 # Bolt port (standard)
 
 [build]
 compile_command = "arvo compile"

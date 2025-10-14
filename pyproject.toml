@@ -27,6 +27,7 @@ dependencies = [
     "fire>=0.6.0",
     "jsonpickle>=3.0.0",
     "datasets>=2.0.0",
+    "dacite>=1.8.0",
 ]
 
 [dependency-groups]

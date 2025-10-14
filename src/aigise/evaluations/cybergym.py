@@ -1,9 +1,13 @@
+import re
+import shutil
+import tempfile
 from dataclasses import dataclass
+from pathlib import Path
 
 import fire
 
-from aigise.config import AigiseConfig
 from aigise.evaluations import Evaluation, EvaluationTask
+from aigise.session import get_aigise_session
 from aigise.utils.project_info import PROJECT_PATH
 
 
@@ -27,11 +31,37 @@ class CyberGym(Evaluation):
             f"once it triggers the vulnerabilit, you should store the poc in {self.output_dir_in_sandbox}, named as poc"
         )
 
-    def _modify_config(self, config: AigiseConfig, task: EvaluationTask) -> None:
-        super()._modify_config(config, task)
+    def _register_aigise_session(self, task: EvaluationTask):
+        """Register AigiseSession with task-specific config.
+
+        Args:
+            task: EvaluationTask containing session_id and config_template_path
+        Returns:
+            None
+        """
+        # Copy config template to a temporary file for this task
+        config_template = Path(task.config_template_path)
+        temp_dir = tempfile.mkdtemp(prefix=f"aigise_{task.session_id}_")
+        temp_config_path = Path(temp_dir) / config_template.name
+        shutil.copy(config_template, temp_config_path)
+        task_name = task.task_name
+        input_data_path = str(Path(task.input_data_path).relative_to(PROJECT_PATH))
         image_name = task.sample["task_id"]
         arvo_image_name = "n132/" + image_name + "-vul"
-        config.sandbox.default_image = arvo_image_name
+        template_variables = {
+            "TASK_NAME": task_name,
+            "PROJECT_RELATIVE_SHARED_DATA_PATH": input_data_path,
+            "DEFAULT_IMAGE": arvo_image_name,
+        }
+        self._replace_template_variables_in_config(temp_config_path, template_variables)
+
+        aigise_session = get_aigise_session(
+            task.session_id, config_path=temp_config_path
+        )
+        task.aigise_session = aigise_session
+
+        # clean up temp config file
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
     def evaluate(self) -> None:
         """Evaluate results by calling cybergym's server."""

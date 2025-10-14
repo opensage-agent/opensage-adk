@@ -3,7 +3,10 @@ import asyncio
 import datetime
 import importlib
 import json
+import re
+import shutil
 import sys
+import tempfile
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -21,6 +24,7 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
+from huggingface_hub import pause_space
 from loguru import logger
 from tqdm import tqdm
 
@@ -28,6 +32,7 @@ from aigise.config import AigiseConfig
 from aigise.framework.summarization import setup_summarization_callbacks
 from aigise.session import get_aigise_session
 from aigise.toolbox.decorators import collect_sandbox_dependencies
+from aigise.utils.project_info import PROJECT_PATH
 
 if TYPE_CHECKING:
     from google.adk.sessions import Session
@@ -53,6 +58,10 @@ class EvaluationTask:
     cache_dir: str  # Sandbox cache directory
     output_dir_in_sandbox: str | None  # Optional sandbox dir to export
     metadata: dict  # Metadata to save
+    config_template_path: str = (
+        PROJECT_PATH / "src/aigise/templates/configs/default_config.toml"
+    )
+    aigise_session: AigiseSession | None = None
 
 
 @dataclass
@@ -67,6 +76,9 @@ class Evaluation(abc.ABC):
     max_workers: int = 1
     model: str = "openai/o4-mini"
     output_dir_in_sandbox: str | None = None
+    config_template_path: str | None = (
+        PROJECT_PATH / "src/aigise/templates/configs/default_config.toml"
+    )
 
     def __post_init__(self) -> None:
         if not self.output_dir:
@@ -250,6 +262,7 @@ class Evaluation(abc.ABC):
             cache_dir=self._get_cache_dir(sample),
             output_dir_in_sandbox=self._get_output_dir_in_sandbox(sample),
             metadata=sample,
+            config_template_path=self.config_template_path,
         )
 
     def generate(self) -> None:
@@ -299,7 +312,6 @@ class Evaluation(abc.ABC):
         results = []
         # Keep only first sample for debugging
         dataset = dataset.select([0])
-        breakpoint()
         for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
             try:
                 # Create task from sample
@@ -400,10 +412,16 @@ class Evaluation(abc.ABC):
 
     def _prepare_agent(self, task: EvaluationTask) -> None:
         agent = self._mk_agent_original(aigise_session_id=task.session_id)
-        task_model = LiteLlm(model=self.model)
+        aigise_session = task.aigise_session
+        model_name = (
+            self.model
+            if self.model
+            else aigise_session.config.llm.model_configs.main.model_name
+        )
+        task_model = LiteLlm(model=model_name)
         self._replace_agent_models_recursive(agent, task_model)
         logger.info(
-            f"Replaced all agent models with '{self.model}' for session {task.session_id}"
+            f"Replaced all agent models with '{model_name}' for session {task.session_id}"
         )
         setup_summarization_callbacks(agent)
         logger.info(f"Setup summarization callbacks for session {task.session_id}")
@@ -418,6 +436,9 @@ class Evaluation(abc.ABC):
         Returns:
             Dictionary with sample results and metadata
         """
+        # === 0. Get aigise_session ===
+        self._register_aigise_session(task)
+
         # === 1. Create Agent ===
         agent = self._prepare_agent(task)
 
@@ -432,31 +453,52 @@ class Evaluation(abc.ABC):
 
         # === 5. Cleanup ===
         try:
-            aigise_session = get_aigise_session(task.session_id)
-            aigise_session.cleanup()
+            task.aigise_session.cleanup()
             logger.info(f"Cleanup completed for session: {task.session_id}")
         except Exception as e:
             logger.warning(f"Cleanup failed for session {task.session_id}: {e}")
 
         return output_info
 
-    def _modify_config(self, config: AigiseConfig, task: EvaluationTask) -> None:
-        """Modify configuration for this evaluation.
+    def _replace_template_variables_in_config(
+        self, config_path: str, template_variables: dict
+    ) -> None:
+        with open(config_path, "r") as f:
+            content = f.read()
+        for var_name, var_value in template_variables.items():
+            pattern = rf"\${{\s*{re.escape(var_name)}\s*}}"
+            content = re.sub(pattern, str(var_value), content)
+        with open(config_path, "w") as f:
+            f.write(content)
 
-        Subclasses can override this to add custom config modifications.
-        They can access any field from the task object.
+    def _register_aigise_session(self, task: EvaluationTask):
+        """Register AigiseSession with task-specific config.
 
         Args:
-            config: AigiseConfig instance to modify
-            task: EvaluationTask instance with all task data
-
-        Example::
-            def _modify_config(self, config: AigiseConfig, task: MyTask) -> None:
-                super()._modify_config(config, task)
-                config.custom_field = task.custom_field
+            task: EvaluationTask containing session_id and config_template_path
+        Returns:
+            None
         """
-        config.task_name = task.task_name
-        config.sandbox.absolute_shared_data_path = task.input_data_path
+        # Copy config template to a temporary file for this task
+        config_template = Path(task.config_template_path)
+        temp_dir = tempfile.mkdtemp(prefix=f"aigise_{task.session_id}_")
+        temp_config_path = Path(temp_dir) / config_template.name
+        shutil.copy(config_template, temp_config_path)
+        task_name = task.task_name
+        input_data_path = str(Path(task.input_data_path).relative_to(PROJECT_PATH))
+        template_variables = {
+            "TASK_NAME": task_name,
+            "PROJECT_RELATIVE_SHARED_DATA_PATH": input_data_path,
+        }
+        self._replace_template_variables_in_config(temp_config_path, template_variables)
+
+        aigise_session = get_aigise_session(
+            task.session_id, config_path=temp_config_path
+        )
+        task.aigise_session = aigise_session
+
+        # clean up temp config file
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
     async def _prepare_environment(
         self, task: EvaluationTask, agent: BaseAgent
@@ -466,8 +508,7 @@ class Evaluation(abc.ABC):
         Args:
             task: EvaluationTask instance with all task data
         """
-        # Get aigise_session
-        aigise_session = get_aigise_session(task.session_id)
+        aigise_session = task.aigise_session
 
         # 1. Enable Neo4j logging
         from aigise.framework.agent_history_tracker import (
@@ -477,9 +518,6 @@ class Evaluation(abc.ABC):
 
         if not is_neo4j_logging_enabled():
             enable_neo4j_logging()
-
-        # 2. Modify configs
-        self._modify_config(aigise_session.config, task)
 
         # Collect sandbox dependencies from agent
         sandbox_dependencies = collect_sandbox_dependencies(agent)

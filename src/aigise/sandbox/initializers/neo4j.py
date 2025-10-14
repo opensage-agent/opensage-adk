@@ -6,6 +6,7 @@ import asyncio
 
 from loguru import logger
 
+from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.sandbox.initializers.base import SandboxInitializer
 from aigise.session.sandbox_state import SandboxState
 
@@ -19,6 +20,14 @@ class Neo4jInitializer(SandboxInitializer):
 
     async def ensure_ready(self) -> None:
         from aigise.session.aigise_session import get_aigise_session
+
+        assert isinstance(self, BaseSandbox)
+
+        msg, err = self.run_command_in_container(
+            ["mkdir", "-p", "/shared/neo4j/import"]
+        )
+        if err != 0:
+            raise RuntimeError(f"Neo4j import dir creation failed: {msg}")
 
         logger.info(
             f"Async initializing Neo4j environment for session {self.aigise_session_id}..."

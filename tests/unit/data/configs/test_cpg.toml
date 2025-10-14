@@ -21,7 +21,7 @@ neo4j_http_port = 27474
 [sandbox]
 default_image = "${DEFAULT_IMAGE}"
 backend = "native"
-project_relative_shared_data_path = "src/aigise/data"
+project_relative_shared_data_path = "tests/unit/data/arvo_51603_vul_code.tar.gz"
 
 # Main sandbox configuration
 [sandbox.sandboxes.main]
@@ -56,5 +56,4 @@ NEO4J_apoc_export_file_enabled = "true"
 "7687/tcp" = 27687 # Bolt port (standard)
 
 [build]
-code_dir = "/src/file"
 compile_command = "arvo compile"

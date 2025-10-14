@@ -34,7 +34,7 @@ class CodeQLInitializer(SandboxInitializer):
         msg, err = self.run_command_in_container(
             [
                 "bash",
-                "/shared/callgraph/run_codeql.sh",
+                "/sandbox_scripts/callgraph/run_codeql.sh",
                 aigise_session.config.build.compile_command,
             ]
         )

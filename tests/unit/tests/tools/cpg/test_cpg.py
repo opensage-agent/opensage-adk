@@ -20,7 +20,6 @@ async def aigise_session():
     finally:
         if aigise_session is not None:
             aigise_session.cleanup()
-        # TODO: remove the shared volume and the neo4j sandbox
 
 
 @pytest.mark.slow

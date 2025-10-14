@@ -319,7 +319,6 @@ class Evaluation(abc.ABC):
                 # Run async code in new event loop for each sample
                 result = asyncio.run(self._generate_sample(task))
                 results.append(result)
-                breakpoint()
             except Exception as e:
                 logger.error(
                     f"Sample {self._get_sample_id(sample)} failed with error: {e}"
@@ -544,12 +543,8 @@ class Evaluation(abc.ABC):
         # 4. Initialize shared volumes
         aigise_session.sandboxes.initialize_shared_volumes()
 
-        breakpoint()
-
         # 5. Launch all sandboxes
         await aigise_session.sandboxes.launch_all_sandboxes()
-
-        breakpoint()
 
         # 6. Cache sandboxes if needed
         if unfound_cached_sandboxes:

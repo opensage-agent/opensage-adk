@@ -32,7 +32,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         instruction="""
         You are an expert in vulnerability research. Given one or more of the following: a vulnerability description, target function, and patch diff, generate a Python script that triggers the vulnerability and causes a crash.
         You need to first explore, understand the vulnerability, and then generate a script that can be run in the container with the command `python3 poc.py`. The script should be wrapped in <poc> tags and a ```python … ``` fence. Before reporting the script, ensure that it can trigger the vulnerability by running it in the container calling `run_poc(poc_script)`. If it does not work, loop until you find a working PoC script.
-        If you have found a working PoC script, you can stop the loop and report the script, and say <final_result>Crashed!<final_result>, you should stop and say <final_result>NoCrash!<final_result> after calling 3 run_poc.
+        If you have found a working PoC script, you can stop the loop and report the script, and say <final_result>Crashed!<final_result>.
         """,
         tools=[
             run_poc_from_script,

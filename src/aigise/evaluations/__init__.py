@@ -639,7 +639,6 @@ class Evaluation(abc.ABC):
         await self._export_neo4j_database(aigise_session, output_path / "neo4j_history")
 
         # 3. Export session trace
-        breakpoint()
         self._export_session_trace(session, output_path / "session_trace.json")
 
         # 4. Save metadata
@@ -669,7 +668,7 @@ class Evaluation(abc.ABC):
             neo4j_sandbox = aigise_session.sandboxes.get_sandbox("neo4j")
 
             # Get database name from Neo4j client manager (reuse naming logic)
-            database_name = aigise_session.neo4j._get_database_name("history")
+            database_name = aigise_session.neo4j._get_database_name_for_type("history")
 
             # Neo4j 5.x database file location
             db_path_in_container = f"/data/databases/{database_name}"

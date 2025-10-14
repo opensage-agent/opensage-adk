@@ -21,7 +21,7 @@ from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.run_config import RunConfig
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
+from google.adk.sessions import InMemorySessionService, Session
 from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
 from huggingface_hub import pause_space
@@ -31,13 +31,9 @@ from tqdm import tqdm
 from aigise.config import AigiseConfig
 from aigise.framework.summarization import setup_summarization_callbacks
 from aigise.session import get_aigise_session
+from aigise.session.aigise_session import AigiseSession
 from aigise.toolbox.decorators import collect_sandbox_dependencies
 from aigise.utils.project_info import PROJECT_PATH
-
-if TYPE_CHECKING:
-    from google.adk.sessions import Session
-
-    from aigise.session.aigise_session import AigiseSession
 
 
 @dataclass
@@ -74,7 +70,7 @@ class Evaluation(abc.ABC):
     cache_dir: str = ""
     max_llm_calls: int = 128
     max_workers: int = 1
-    model: str = "openai/o4-mini"
+    model: str = "anthropic/claude-sonnet-4-5"
     output_dir_in_sandbox: str | None = None
     config_template_path: str | None = (
         PROJECT_PATH / "src/aigise/templates/configs/default_config.toml"
@@ -83,7 +79,8 @@ class Evaluation(abc.ABC):
     def __post_init__(self) -> None:
         if not self.output_dir:
             self.output_dir: Path = (
-                Path("evals")
+                PROJECT_PATH
+                / Path("evals")
                 / self.__class__.__name__.lower()
                 / datetime.datetime.now().strftime("%y%m%d_%H%M%S")
             )
@@ -191,7 +188,9 @@ class Evaluation(abc.ABC):
         if isinstance(agent, LlmAgent):
             try:
                 agent.model = model
-                logger.debug(f"Replaced model for agent '{agent.name}'")
+                logger.debug(
+                    f"Replaced model for agent '{agent.name}', current model: {agent.model.model_name}"
+                )
             except Exception:
                 # Fallback for frozen Pydantic models
                 object.__setattr__(agent, "model", model)
@@ -640,6 +639,7 @@ class Evaluation(abc.ABC):
         await self._export_neo4j_database(aigise_session, output_path / "neo4j_history")
 
         # 3. Export session trace
+        breakpoint()
         self._export_session_trace(session, output_path / "session_trace.json")
 
         # 4. Save metadata

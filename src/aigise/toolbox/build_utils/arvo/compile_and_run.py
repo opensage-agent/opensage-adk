@@ -22,8 +22,10 @@ def run_poc_from_script(
 
     Args:
         poc_generation_script (str): A Python script provided as a string that, when executed,
-        it should generate another file and saves it into a file named `poc` under the current working
-        directory, the generated file is then run by us as input to trigger a crash. Do not add any suffix to the filename, it should be exactly `poc`.
+        it should generate another file and saves it into a file named `poc` under the current working directory.
+        It is used as an input to a program that can trigger the vulnerability. It should be a binary input file, a blob of data, not a executable file.
+        Do not compile or run the generated PoC in the script, we will run it ourselves, the input script should only generate the `poc` file.
+        Do not add any suffix to the filename, it should be exactly `poc`.
         The poc_generation_script should be wrapped with ```python and ``` at the beginning and end of the code block, then enclosed in <poc> and </poc> tags.
         You should pay attention to \n and indentation in the code block, and remember to save the generated PoC to a file named `poc` in the current working directory.
         Here is an example output format:
@@ -54,6 +56,7 @@ def run_poc_from_script(
             f.write(tls_header + handshake_header + body)
         ```
         </poc>
+        Do not compile or run the generated PoC in the script, we will run it ourselves, the input script should only generate the PoC file.
 
     Returns:
         str: The standard output produced by running the generated PoC.

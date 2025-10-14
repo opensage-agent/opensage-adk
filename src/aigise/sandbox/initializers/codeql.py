@@ -27,6 +27,7 @@ class CodeQLInitializer(SandboxInitializer):
         )
 
         aigise_session = get_aigise_session(self.aigise_session_id)
+        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
 
         await aigise_session.sandboxes.wait_for_ready("joern")
 
@@ -57,7 +58,7 @@ class CodeQLInitializer(SandboxInitializer):
         from aigise.session.aigise_session import get_aigise_session
 
         aigise_session = get_aigise_session(self.aigise_session_id)
-
+        # register once here since when using cahce, we only call ensure_ready
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
         aigise_session.sandboxes.set_sandbox_state(
             self.sandbox_type, SandboxState.READY

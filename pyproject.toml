@@ -24,6 +24,9 @@ dependencies = [
     "websockets>=15.0.1",
     "networkx>=3.4.2",
     "toml>=0.10.2",
+    "fire>=0.6.0",
+    "jsonpickle>=3.0.0",
+    "datasets>=2.0.0",
 ]
 
 [dependency-groups]

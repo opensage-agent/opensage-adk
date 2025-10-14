@@ -15,7 +15,8 @@ task_name = "${TASK_NAME}"
 [neo4j]
 user = "neo4j"
 password = "${NEO4J_PASSWORD}"
-uri = "bolt://${DEFAULT_HOST}:27687"
+bolt_port = 27687
+neo4j_http_port = 27474
 
 [sandbox]
 default_image = "${DEFAULT_IMAGE}"

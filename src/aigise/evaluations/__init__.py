@@ -25,7 +25,9 @@ from loguru import logger
 from tqdm import tqdm
 
 from aigise.config import AigiseConfig
+from aigise.framework.summarization import setup_summarization_callbacks
 from aigise.session import get_aigise_session
+from aigise.toolbox.decorators import collect_sandbox_dependencies
 
 if TYPE_CHECKING:
     from google.adk.sessions import Session
@@ -87,8 +89,8 @@ class Evaluation(abc.ABC):
                     exit(0)
         self.user_id = str(self.output_dir).replace("/", "_")
 
-        # Load mk_agent function from agent_dir
-        self.mk_agent_original = self._load_mk_agent(self.agent_dir)
+        # Load mk_agent function from agent_path
+        self._mk_agent_original = self._load_mk_agent(self.agent_dir)
 
     def _load_mk_agent(self, agent_dir: str) -> Callable:
         """Load mk_agent function from agent directory.
@@ -291,6 +293,30 @@ class Evaluation(abc.ABC):
 
         logger.info(f"Generated {len(results)}/{len(dataset)} samples successfully")
 
+    def generate_single_thread(self) -> None:
+        """Generate samples sequentially in a single thread for debugging."""
+        dataset = self._get_dataset()
+        results = []
+        # Keep only first sample for debugging
+        dataset = dataset.select([0])
+        breakpoint()
+        for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
+            try:
+                # Create task from sample
+                task = self._create_task(sample)
+                # Run async code in new event loop for each sample
+                result = asyncio.run(self._generate_sample(task))
+                results.append(result)
+                breakpoint()
+            except Exception as e:
+                logger.error(
+                    f"Sample {self._get_sample_id(sample)} failed with error: {e}"
+                )
+                # Re-raise for easier debugging
+                raise
+
+        logger.info(f"Generated {len(results)}/{len(dataset)} samples successfully")
+
     @abc.abstractmethod
     def _get_sample_id(self, sample: dict) -> str:
         """Get unique task name/ID for this sample.
@@ -339,6 +365,8 @@ class Evaluation(abc.ABC):
             Path to input data directory
         """
         task_name = self._get_sample_id(sample)
+        if not self.input_data_path:
+            return None
         return str(Path(self.input_data_path) / task_name)
 
     def _get_cache_dir(self, sample: dict) -> str:
@@ -370,6 +398,17 @@ class Evaluation(abc.ABC):
         """
         return self.output_dir_in_sandbox
 
+    def _prepare_agent(self, task: EvaluationTask) -> None:
+        agent = self._mk_agent_original(aigise_session_id=task.session_id)
+        task_model = LiteLlm(model=self.model)
+        self._replace_agent_models_recursive(agent, task_model)
+        logger.info(
+            f"Replaced all agent models with '{self.model}' for session {task.session_id}"
+        )
+        setup_summarization_callbacks(agent)
+        logger.info(f"Setup summarization callbacks for session {task.session_id}")
+        return agent
+
     async def _generate_sample(self, task: EvaluationTask) -> dict:
         """Generate a single sample with automatic sandbox and Neo4j management.
 
@@ -379,18 +418,11 @@ class Evaluation(abc.ABC):
         Returns:
             Dictionary with sample results and metadata
         """
-        # === 1. Prepare Environment ===
-        await self._prepare_environment(task)
+        # === 1. Create Agent ===
+        agent = self._prepare_agent(task)
 
-        # === 2. Create Agent ===
-        agent = self.mk_agent_original(aigise_session_id=task.session_id)
-
-        # Replace all models in agent tree with Evaluation's model
-        task_model = LiteLlm(model=self.model)
-        self._replace_agent_models_recursive(agent, task_model)
-        logger.info(
-            f"Replaced all agent models with '{self.model}' for session {task.session_id}"
-        )
+        # === 2. Prepare Environment ===
+        await self._prepare_environment(task, agent)
 
         # === 3. Run Agent ===
         session = await self._run_agent(task, agent)
@@ -426,7 +458,9 @@ class Evaluation(abc.ABC):
         config.task_name = task.task_name
         config.sandbox.absolute_shared_data_path = task.input_data_path
 
-    async def _prepare_environment(self, task: EvaluationTask) -> None:
+    async def _prepare_environment(
+        self, task: EvaluationTask, agent: BaseAgent
+    ) -> None:
         """Prepare environment: session, config, volumes, sandboxes.
 
         Args:
@@ -447,6 +481,23 @@ class Evaluation(abc.ABC):
         # 2. Modify configs
         self._modify_config(aigise_session.config, task)
 
+        # Collect sandbox dependencies from agent
+        sandbox_dependencies = collect_sandbox_dependencies(agent)
+
+        # Remove sandbox configs that are not in dependencies
+        if aigise_session.config.sandbox and aigise_session.config.sandbox.sandboxes:
+            sandboxes_to_remove = [
+                sandbox_type
+                for sandbox_type in aigise_session.config.sandbox.sandboxes.keys()
+                if sandbox_type not in sandbox_dependencies
+            ]
+            for sandbox_type in sandboxes_to_remove:
+                del aigise_session.config.sandbox.sandboxes[sandbox_type]
+                logger.info(
+                    f"Removed unused sandbox '{sandbox_type}' from config "
+                    f"(not in agent dependencies: {sandbox_dependencies})"
+                )
+
         # 3. Load cached sandboxes
         unfound_cached_sandboxes = (
             aigise_session.sandboxes.load_sandbox_caches_to_config()
@@ -455,8 +506,12 @@ class Evaluation(abc.ABC):
         # 4. Initialize shared volumes
         aigise_session.sandboxes.initialize_shared_volumes()
 
+        breakpoint()
+
         # 5. Launch all sandboxes
         await aigise_session.sandboxes.launch_all_sandboxes()
+
+        breakpoint()
 
         # 6. Cache sandboxes if needed
         if unfound_cached_sandboxes:
@@ -474,14 +529,6 @@ class Evaluation(abc.ABC):
         Returns:
             ADK Session object with execution history
         """
-        # Get aigise_session
-        aigise_session = get_aigise_session(task.session_id)
-
-        # 1. Setup summarization callbacks
-        from aigise.framework.summarization import setup_summarization_callbacks
-
-        setup_summarization_callbacks(agent)
-
         # 2. Create runner and session service
         app_name = self.__class__.__name__.lower()
         session_service = InMemorySessionService()

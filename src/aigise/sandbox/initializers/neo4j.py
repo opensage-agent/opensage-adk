@@ -24,13 +24,13 @@ class Neo4jInitializer(SandboxInitializer):
             f"Async initializing Neo4j environment for session {self.aigise_session_id}..."
         )
         aigise_session = get_aigise_session(self.aigise_session_id)
+        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
         self.neo4j_client = aigise_session.neo4j.get_async_client_without_connection(
             "default"
         )
         while not await self.neo4j_client.verify_connection():
             await asyncio.sleep(1)
 
-        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
         aigise_session.sandboxes.set_sandbox_state(
             self.sandbox_type, SandboxState.READY
         )

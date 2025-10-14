@@ -742,11 +742,27 @@ class K8sSandbox(BaseSandbox):
             )
 
     @classmethod
-    def create_shared_volume(cls, volume_name: str, init_data_path: Path) -> str:
-        pvc_name = cls._sanitize_name(volume_name)
-        namespace = cls._resolve_namespace_from_env()
-        context = cls._resolve_context_from_env()
-        kubeconfig = cls._resolve_kubeconfig_from_env()
+    def _create_and_populate_pvc(
+        cls,
+        pvc_name: str,
+        namespace: str,
+        context: str,
+        kubeconfig: str,
+        source_path: Path = None,
+    ) -> str:
+        """Helper method to create a single PVC and populate it with data.
+
+        Args:
+            pvc_name: Name of the PVC to create
+            source_path: Local path containing data to copy into the PVC
+            namespace: Kubernetes namespace
+            context: Kubernetes context
+            kubeconfig: Path to kubeconfig file
+
+        Returns:
+            The PVC name that was created
+        """
+        import tarfile
 
         pvc_manifest = {
             "apiVersion": "v1",
@@ -805,9 +821,9 @@ class K8sSandbox(BaseSandbox):
             else:
                 raise wait_error
 
-        if init_data_path and init_data_path.exists():
-            if init_data_path.is_dir():
-                files = list(init_data_path.iterdir())
+        if source_path and source_path.exists():
+            if source_path.is_dir():
+                files = list(source_path.iterdir())
                 archive_candidates = [
                     file
                     for file in files
@@ -841,15 +857,15 @@ class K8sSandbox(BaseSandbox):
                         )
                 else:
                     cls._copy_path_to_pvc(
-                        init_data_path,
+                        source_path,
                         pvc_name=pvc_name,
                         namespace=namespace,
                         context=context,
                         kubeconfig=kubeconfig,
                     )
-            elif init_data_path.is_file():
+            elif source_path.is_file():
                 cls._copy_path_to_pvc(
-                    init_data_path,
+                    source_path,
                     pvc_name=pvc_name,
                     namespace=namespace,
                     context=context,
@@ -857,11 +873,11 @@ class K8sSandbox(BaseSandbox):
                 )
             else:
                 logger.warning(
-                    f"Init data path {init_data_path} is not accessible; skipping content initialization"
+                    f"Source path {source_path} is not accessible; skipping content initialization"
                 )
         else:
             logger.info(
-                f"No init data provided for PVC {pvc_name}, created empty volume"
+                f"No source data provided for PVC {pvc_name}, created empty volume"
             )
 
         # Maintain compatibility with tooling expecting a Docker volume name
@@ -885,6 +901,168 @@ class K8sSandbox(BaseSandbox):
             )
 
         return pvc_name
+
+    @classmethod
+    def create_shared_volume(
+        cls, volume_name_prefix: str, init_data_path: Path = None
+    ) -> tuple[str, str]:
+        """Create and initialize two shared PVCs.
+
+        Creates two PVCs:
+        1. Read-only PVC with sandbox scripts (mapped to /sandbox_scripts)
+        2. Read-write PVC with user data (mapped to /shared)
+
+        Args:
+            volume_name_prefix: Prefix for PVC names (e.g., session_id)
+            init_data_path: Path to initial data to copy into the rw PVC (optional)
+
+        Returns:
+            Tuple of (scripts_pvc_name, data_pvc_name)
+        """
+        from aigise.utils.project_info import PROJECT_PATH
+
+        namespace = cls._resolve_namespace_from_env()
+        context = cls._resolve_context_from_env()
+        kubeconfig = cls._resolve_kubeconfig_from_env()
+
+        try:
+            # Create PVC names
+            scripts_pvc_name = cls._sanitize_name(
+                f"{volume_name_prefix}_sandbox_scripts"
+            )
+            data_pvc_name = cls._sanitize_name(f"{volume_name_prefix}_shared")
+
+            # 1. Create and populate scripts PVC
+            scripts_path = Path(PROJECT_PATH) / "src" / "aigise" / "sandbox_scripts"
+            scripts_pvc_id = cls._create_and_populate_pvc(
+                scripts_pvc_name, namespace, context, kubeconfig, scripts_path
+            )
+            logger.info(
+                f"Created sandbox scripts PVC: {scripts_pvc_id} from {scripts_path}"
+            )
+
+            # 2. Create and populate data PVC
+            data_pvc_id = cls._create_and_populate_pvc(
+                data_pvc_name, namespace, context, kubeconfig, init_data_path
+            )
+            logger.info(f"Created shared data PVC: {data_pvc_id} from {init_data_path}")
+
+            # 3. Set permissions to 777 on data PVC to ensure write access
+            import json
+            import time
+
+            chmod_pod_name = cls._sanitize_name(f"chmod-{data_pvc_name}")
+            chmod_pod_spec = {
+                "apiVersion": "v1",
+                "kind": "Pod",
+                "metadata": {
+                    "name": chmod_pod_name,
+                    "namespace": namespace,
+                },
+                "spec": {
+                    "restartPolicy": "Never",
+                    "containers": [
+                        {
+                            "name": "chmod-container",
+                            "image": "alpine:latest",
+                            "command": [
+                                "sh",
+                                "-c",
+                                "chmod -R 777 /target && echo 'Permissions set successfully'",
+                            ],
+                            "volumeMounts": [
+                                {
+                                    "name": "target-volume",
+                                    "mountPath": "/target",
+                                }
+                            ],
+                        }
+                    ],
+                    "volumes": [
+                        {
+                            "name": "target-volume",
+                            "persistentVolumeClaim": {
+                                "claimName": data_pvc_id,
+                            },
+                        }
+                    ],
+                },
+            }
+
+            try:
+                # Create chmod pod
+                cls._run_kubectl_class(
+                    ["apply", "-f", "-"],
+                    input_data=json.dumps(chmod_pod_spec),
+                    namespace=namespace,
+                    context=context,
+                    kubeconfig=kubeconfig,
+                )
+                logger.info(f"Created chmod pod: {chmod_pod_name}")
+
+                # Wait for pod to complete (max 30 seconds)
+                for _ in range(30):
+                    result = cls._run_kubectl_class(
+                        [
+                            "get",
+                            "pod",
+                            chmod_pod_name,
+                            "-o",
+                            "jsonpath={.status.phase}",
+                        ],
+                        namespace=namespace,
+                        context=context,
+                        kubeconfig=kubeconfig,
+                        check=False,
+                    )
+                    if result.stdout.strip() == "Succeeded":
+                        logger.info(
+                            f"Set permissions 777 on shared data PVC: {data_pvc_id}"
+                        )
+                        break
+                    elif result.stdout.strip() == "Failed":
+                        logger.warning(
+                            f"Failed to set permissions on PVC {data_pvc_id}"
+                        )
+                        break
+                    time.sleep(1)
+
+                # Clean up chmod pod
+                cls._run_kubectl_class(
+                    ["delete", "pod", chmod_pod_name],
+                    namespace=namespace,
+                    context=context,
+                    kubeconfig=kubeconfig,
+                    check=False,
+                )
+            except Exception as chmod_error:
+                logger.warning(
+                    f"Failed to set permissions on PVC {data_pvc_id}: {chmod_error}"
+                )
+
+            return (scripts_pvc_id, data_pvc_id)
+
+        except Exception as e:
+            logger.error(f"Failed to create shared PVCs: {e}")
+            # Clean up any created PVCs on failure
+            try:
+                cls._run_kubectl_class(
+                    ["delete", "pvc", scripts_pvc_name],
+                    namespace=namespace,
+                    context=context,
+                    kubeconfig=kubeconfig,
+                    check=False,
+                )
+                cls._run_kubectl_class(
+                    ["delete", "pvc", data_pvc_name],
+                    namespace=namespace,
+                    context=context,
+                    kubeconfig=kubeconfig,
+                    check=False,
+                )
+            except Exception:
+                pass
+            raise
 
     # ------------------------------------------------------------------
     # Pod launch helpers
@@ -1033,7 +1211,11 @@ class K8sSandbox(BaseSandbox):
 
     @classmethod
     async def launch_all_sandboxes(
-        cls, session_id: str, sandbox_configs: dict, shared_volume_id: str = None
+        cls,
+        session_id: str,
+        sandbox_configs: dict,
+        shared_volume_id: str = None,
+        scripts_volume_id: str = None,
     ) -> dict:
         namespace = cls._resolve_common_setting(
             sandbox_configs,
@@ -1074,13 +1256,17 @@ class K8sSandbox(BaseSandbox):
                     existing_volumes.append(f"{shared_volume_id}:/shared:rw")
                 config.volumes = existing_volumes
 
-            # For PVC tracking, mark if shared volume id should be treated as pvc
+            # For PVC tracking, mark if volume ids should be treated as pvc
             if config.volumes:
                 new_volumes = []
                 for entry in config.volumes:
                     parts = entry.split(":")
+                    # Mark shared_volume_id as PVC
                     if shared_volume_id and parts[0] == shared_volume_id:
                         parts[0] = f"pvc/{shared_volume_id}"
+                    # Mark scripts_volume_id as PVC
+                    elif scripts_volume_id and parts[0] == scripts_volume_id:
+                        parts[0] = f"pvc/{scripts_volume_id}"
                     new_volumes.append(":".join(parts))
                 config.volumes = new_volumes
 

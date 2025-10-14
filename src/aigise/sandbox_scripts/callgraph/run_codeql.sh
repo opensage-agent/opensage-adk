@@ -9,11 +9,15 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
+WORK_DIR="/work"
 BUILD_COMMAND="$1"
-CODEQL_BIN="/shared/codeql/codeql"
+CODEQL_BIN="/sandbox_scripts/codeql/codeql"
 DATABASE_PATH="/work/.aigise-codeql-database"
-QUERY_DIR="/shared/callgraph/codeql_queries"
+QUERY_DIR="/sandbox_scripts/callgraph/codeql_queries"
 OUT_DIR="/shared/out/callgraph"
+
+mkdir -p $WORK_DIR
+mkdir -p $OUT_DIR
 
 echo "Starting CodeQL analysis with build command: $BUILD_COMMAND"
 

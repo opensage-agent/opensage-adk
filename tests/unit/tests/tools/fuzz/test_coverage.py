@@ -6,7 +6,7 @@ from aigise.utils.project_info import PROJECT_PATH
 from ....utils import copy_to_container, extract_infos_from_arvo_script
 
 EXAMPLE_IMAGE = "n132/arvo:51603-vul"  # https://github.com/file/file.git
-OSSFUZZ_SCRIPTS_DIR = PROJECT_PATH / "src/aigise/data/ossfuzz"
+OSSFUZZ_SCRIPTS_DIR = PROJECT_PATH / "src/aigise/sandbox_scripts/ossfuzz"
 
 
 @pytest.fixture(scope="module")

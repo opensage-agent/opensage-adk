@@ -51,8 +51,11 @@ class SandboxBackendScenario:
     def generate_session_id(self) -> str:
         return f"test_{self.name}_session_{uuid.uuid4().hex[:8]}"
 
-    def cleanup_shared_volume(
-        self, volume_id: Optional[str], config: Optional[AigiseConfig]
+    def cleanup_shared_volumes(
+        self,
+        scripts_volume_id: Optional[str],
+        data_volume_id: Optional[str],
+        config: Optional[AigiseConfig],
     ) -> None:  # pragma: no cover - implemented by subclasses
         raise NotImplementedError
 
@@ -72,18 +75,22 @@ class NativeScenario(SandboxBackendScenario):
         except Exception:
             pytest.skip("Docker not available for testing")
 
-    def cleanup_shared_volume(
-        self, volume_id: Optional[str], config: Optional[AigiseConfig]
+    def cleanup_shared_volumes(
+        self,
+        scripts_volume_id: Optional[str],
+        data_volume_id: Optional[str],
+        config: Optional[AigiseConfig],
     ) -> None:
-        if not volume_id:
-            return
-        try:
-            client = docker.from_env()
-            client.volumes.get(volume_id).remove(force=True)
-        except NotFound:
-            return
-        except APIError:
-            return
+        client = docker.from_env()
+        for volume_id in [scripts_volume_id, data_volume_id]:
+            if not volume_id:
+                continue
+            try:
+                client.volumes.get(volume_id).remove(force=True)
+            except NotFound:
+                continue
+            except APIError:
+                continue
 
     def cleanup_cached_images(self, cache_result: Optional[dict]) -> None:
         if not cache_result:
@@ -137,31 +144,35 @@ class K8sScenario(SandboxBackendScenario):
             return env_value
         return "default"
 
-    def cleanup_shared_volume(
-        self, volume_id: Optional[str], config: Optional[AigiseConfig]
+    def cleanup_shared_volumes(
+        self,
+        scripts_volume_id: Optional[str],
+        data_volume_id: Optional[str],
+        config: Optional[AigiseConfig],
     ) -> None:
-        if not volume_id:
-            return
         namespace = self._resolve_namespace(config)
-        subprocess.run(
-            [
-                "kubectl",
-                "-n",
-                namespace,
-                "delete",
-                "pvc",
-                volume_id,
-                "--ignore-not-found=true",
-            ],
-            check=False,
-            capture_output=True,
-        )
-        # Best-effort cleanup of compatibility Docker volume, mirroring backend behaviour
-        try:
-            client = docker.from_env()
-            client.volumes.get(volume_id).remove(force=True)
-        except (NotFound, APIError, Exception):
-            pass
+        for volume_id in [scripts_volume_id, data_volume_id]:
+            if not volume_id:
+                continue
+            subprocess.run(
+                [
+                    "kubectl",
+                    "-n",
+                    namespace,
+                    "delete",
+                    "pvc",
+                    volume_id,
+                    "--ignore-not-found=true",
+                ],
+                check=False,
+                capture_output=True,
+            )
+            # Best-effort cleanup of compatibility Docker volume, mirroring backend behaviour
+            try:
+                client = docker.from_env()
+                client.volumes.get(volume_id).remove(force=True)
+            except (NotFound, APIError, Exception):
+                pass
 
     def cleanup_cached_images(self, cache_result: Optional[dict]) -> None:
         if not cache_result:
@@ -201,6 +212,7 @@ async def test_shared_volume_initialization_and_launch(
 ):
     config = sandbox_scenario.build_config()
     session_id = sandbox_scenario.generate_session_id()
+    scripts_volume_id: Optional[str] = None
     shared_volume_id: Optional[str] = None
     manager: Optional[AigiseSandboxManager] = None
 
@@ -218,11 +230,18 @@ async def test_shared_volume_initialization_and_launch(
         manager = aigise_session.sandboxes
         try:
             manager.initialize_shared_volumes()
+            scripts_volume_id = manager._scripts_volume_id
             shared_volume_id = manager.get_shared_volume()
+            assert scripts_volume_id is not None
             assert shared_volume_id is not None
 
             await manager.launch_all_sandboxes()
-            assert len(manager._sandboxes) == 2
+            if sandbox_scenario.backend == "native":
+                assert len(manager._sandboxes) == 3
+                # there is a placeholder sandbox
+                assert "_placeholder" in manager._sandboxes
+            else:
+                assert len(manager._sandboxes) == 2
 
             main_sandbox = manager._sandboxes["main"]
             worker_sandbox = manager._sandboxes["worker"]
@@ -267,7 +286,7 @@ async def test_shared_volume_initialization_and_launch(
         finally:
             if manager:
                 manager.cleanup()
-    sandbox_scenario.cleanup_shared_volume(shared_volume_id, config)
+    sandbox_scenario.cleanup_shared_volumes(scripts_volume_id, shared_volume_id, config)
 
 
 @pytest.mark.asyncio
@@ -277,11 +296,15 @@ async def test_cache_shared_volume_and_containers(
     cache_dir_path = Path(tempfile.mkdtemp(prefix="aigise-cache-"))
     manager: Optional[AigiseSandboxManager] = None
     reloaded_manager: Optional[AigiseSandboxManager] = None
+    scripts_volume_id: Optional[str] = None
     shared_volume_id: Optional[str] = None
+    reloaded_scripts_volume_id: Optional[str] = None
     reloaded_shared_volume_id: Optional[str] = None
     cache_result: Optional[dict] = None
     initial_config = sandbox_scenario.build_config()
     reloaded_config: Optional[AigiseConfig] = None
+    reloaded_session_id: Optional[str] = None
+    session_id: Optional[str] = None
 
     try:
         with tempfile.TemporaryDirectory(prefix="aigise-shared-") as temp_dir:
@@ -295,7 +318,9 @@ async def test_cache_shared_volume_and_containers(
             aigise_session.config = initial_config
             manager = aigise_session.sandboxes
             manager.initialize_shared_volumes()
+            scripts_volume_id = manager._scripts_volume_id
             shared_volume_id = manager.get_shared_volume()
+            assert scripts_volume_id is not None
             assert shared_volume_id is not None
 
             await manager.launch_all_sandboxes()
@@ -331,7 +356,10 @@ async def test_cache_shared_volume_and_containers(
         # Cleanup first session from registry
         AigiseSessionRegistry.remove_session(session_id)
         manager = None
-        sandbox_scenario.cleanup_shared_volume(shared_volume_id, initial_config)
+        sandbox_scenario.cleanup_shared_volumes(
+            scripts_volume_id, shared_volume_id, initial_config
+        )
+        scripts_volume_id = None
         shared_volume_id = None
 
         reloaded_config = sandbox_scenario.build_config()
@@ -344,7 +372,9 @@ async def test_cache_shared_volume_and_containers(
         reloaded_manager = reloaded_aigise_session.sandboxes
         reloaded_manager.load_sandbox_caches_to_config()
         reloaded_manager.initialize_shared_volumes()
+        reloaded_scripts_volume_id = reloaded_manager._scripts_volume_id
         reloaded_shared_volume_id = reloaded_manager.get_shared_volume()
+        assert reloaded_scripts_volume_id is not None
         assert reloaded_shared_volume_id is not None
 
         await reloaded_manager.launch_all_sandboxes()
@@ -380,9 +410,11 @@ async def test_cache_shared_volume_and_containers(
             AigiseSessionRegistry.remove_session(session_id)
         if reloaded_session_id in AigiseSessionRegistry._sessions:
             AigiseSessionRegistry.remove_session(reloaded_session_id)
-        sandbox_scenario.cleanup_shared_volume(shared_volume_id, initial_config)
-        sandbox_scenario.cleanup_shared_volume(
-            reloaded_shared_volume_id, reloaded_config
+        sandbox_scenario.cleanup_shared_volumes(
+            scripts_volume_id, shared_volume_id, initial_config
+        )
+        sandbox_scenario.cleanup_shared_volumes(
+            reloaded_scripts_volume_id, reloaded_shared_volume_id, reloaded_config
         )
         sandbox_scenario.cleanup_cached_images(cache_result)
         shutil.rmtree(cache_dir_path, ignore_errors=True)

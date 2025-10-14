@@ -140,13 +140,10 @@ class TestDataclassCreation:
 
     def test_neo4j_config_creation(self):
         """Test Neo4j configuration creation."""
-        config = Neo4jConfig(
-            user="neo4j", password="test_password", uri="neo4j://localhost:7687"
-        )
+        config = Neo4jConfig(user="neo4j", password="test_password")
 
         assert config.user == "neo4j"
         assert config.password == "test_password"
-        assert config.uri == "neo4j://localhost:7687"
 
     def test_neo4j_config_defaults(self):
         """Test Neo4j configuration with default values."""
@@ -154,7 +151,9 @@ class TestDataclassCreation:
 
         assert config.user is None
         assert config.password is None
-        assert config.uri is None
+        # URI is now dynamically constructed, should return default
+        assert config.uri == "neo4j://127.0.0.1:7687"
+        assert config.bolt_port == 7687
 
     def test_container_config_creation(self):
         """Test ContainerConfig creation with various options."""
@@ -243,15 +242,14 @@ class TestDataclassCreation:
 
     def test_mcp_service_config_creation(self):
         """Test MCPServiceConfig creation."""
-        config = MCPServiceConfig(sse_port=1111, sse_host="localhost")
+        config = MCPServiceConfig(sse_port=1111)
 
         assert config.sse_port == 1111
-        assert config.sse_host == "localhost"
 
     def test_mcp_config_with_services(self):
         """Test MCPConfig with multiple services."""
-        gdb_service = MCPServiceConfig(sse_port=1111, sse_host="localhost")
-        pdb_service = MCPServiceConfig(sse_port=1112, sse_host="localhost")
+        gdb_service = MCPServiceConfig(sse_port=1111)
+        pdb_service = MCPServiceConfig(sse_port=1112)
 
         mcp_config = MCPConfig(
             services={"gdb_mcp": gdb_service, "pdb_mcp": pdb_service}
@@ -303,7 +301,7 @@ task_name = "test_task"
 [neo4j]
 user = "neo4j"
 password = "${NEO4J_PASSWORD}"
-uri = "neo4j://localhost:7687"
+bolt_port = 7687
 
 [sandbox]
 default_image = "${DEFAULT_IMAGE}"
@@ -322,7 +320,9 @@ timeout = 300
         assert config.task_name == "test_task"
         assert config.neo4j.user == "neo4j"
         assert config.neo4j.password == "test_password"
-        assert config.neo4j.uri == "neo4j://localhost:7687"
+        # URI is now dynamically constructed from bolt_port
+        assert config.neo4j.uri == "neo4j://127.0.0.1:7687"
+        assert config.neo4j.bolt_port == 7687
         assert config.sandbox.default_image == "ubuntu:20.04"
         assert config.sandbox.backend == "native"
         assert config.sandbox.sandboxes["main"].image == "ubuntu:20.04"
@@ -414,11 +414,9 @@ DEFAULT_HOST = "127.0.0.1"
 
 [mcp.services.gdb_mcp]
 sse_port = 1111
-sse_host = "${DEFAULT_HOST}"
 
 [mcp.services.pdb_mcp]
 sse_port = 1112
-sse_host = "${DEFAULT_HOST}"
 """
 
         with open(self.test_config_path, "w") as f:
@@ -430,11 +428,9 @@ sse_host = "${DEFAULT_HOST}"
 
         gdb_service = config.mcp.get_service_config("gdb_mcp")
         assert gdb_service.sse_port == 1111
-        assert gdb_service.sse_host == "127.0.0.1"
 
         pdb_service = config.mcp.get_service_config("pdb_mcp")
         assert pdb_service.sse_port == 1112
-        assert pdb_service.sse_host == "127.0.0.1"
 
     def test_file_not_found_error(self):
         """Test that FileNotFoundError is raised for non-existent config file."""

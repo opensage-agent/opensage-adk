@@ -42,6 +42,9 @@ class DefaultInitializer(SandboxInitializer):
         from aigise.session import get_aigise_session
         from aigise.utils.agent_utils import get_mcp_url_from_session_id
 
+        aigise_session = get_aigise_session(self.aigise_session_id)
+        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
+
         async def verify_connection(url: str) -> bool:
             """Check if MCP SSE server is ready by testing initial response."""
             import httpx
@@ -72,10 +75,6 @@ class DefaultInitializer(SandboxInitializer):
             logger.debug(
                 f"{self.sandbox_type} is not an MCP server, skipping connection check"
             )
-
-        aigise_session = get_aigise_session(self.aigise_session_id)
-
-        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
         aigise_session.sandboxes.set_sandbox_state(
             self.sandbox_type, SandboxState.READY
         )

@@ -1,6 +1,7 @@
 import asyncio
 import concurrent.futures
 import io
+import ipaddress
 import os
 import re
 import shutil
@@ -754,20 +755,24 @@ class NativeDockerSandbox(BaseSandbox):
         return work_dir.strip()
 
     @classmethod
-    def create_shared_volume(cls, volume_name: str, init_data_path: Path) -> str:
-        """Create and initialize a Docker volume with data from init_data_path.
-        If the init_data_path is a directory with only file that ends with .tar.gz, it will be extracted into the volume.
+    def _create_and_populate_volume(
+        cls, volume_name: str, source_path: Path = None
+    ) -> str:
+        """Helper method to create a single volume and populate it with data.
 
         Args:
             volume_name: Name of the Docker volume to create
-            init_data_path: Local path containing data to copy into the volume
+            source_path: Local path containing data to copy into the volume (optional)
 
         Returns:
             The volume name that was created
         """
+        import tarfile
+        import tempfile
+
         try:
             # Create Docker volume
-            result = subprocess.run(
+            subprocess.run(
                 ["docker", "volume", "create", volume_name],
                 capture_output=True,
                 text=True,
@@ -775,14 +780,14 @@ class NativeDockerSandbox(BaseSandbox):
             )
             logger.info(f"Created Docker volume: {volume_name}")
 
-            # Check if init_data_path exists
-            if not init_data_path.exists():
-                logger.warning(f"Init data path does not exist: {init_data_path}")
+            # Check if source_path exists
+            if not source_path or not source_path.exists():
+                logger.warning(f"No data copied to volume {volume_name}")
                 return volume_name
 
-            # Check if init_data_path is a directory with only one .tar.gz file
-            if init_data_path.is_dir():
-                files = list(init_data_path.iterdir())
+            # Check if source_path is a directory with only one .tar.gz file
+            if source_path.is_dir():
+                files = list(source_path.iterdir())
                 if (
                     len(files) == 1
                     and files[0].is_file()
@@ -793,9 +798,6 @@ class NativeDockerSandbox(BaseSandbox):
                     logger.info(
                         f"Detected single .tar.gz file: {tar_file.name}, extracting on host then copying to volume"
                     )
-
-                    import tarfile
-                    import tempfile
 
                     with tempfile.TemporaryDirectory() as temp_extract_dir:
                         # Extract tar.gz on host
@@ -815,9 +817,9 @@ class NativeDockerSandbox(BaseSandbox):
                                 "docker",
                                 "run",
                                 "--rm",
-                                f"-v",
+                                "-v",
                                 f"{volume_name}:/target",
-                                f"-v",
+                                "-v",
                                 f"{temp_extract_dir}:/source:ro",
                                 "alpine",
                                 "sh",
@@ -842,16 +844,67 @@ class NativeDockerSandbox(BaseSandbox):
 
                     return volume_name
 
+            # Check if source_path itself is a .tar.gz file
+            if source_path.is_file() and source_path.name.endswith(".tar.gz"):
+                logger.info(
+                    f"Detected .tar.gz file: {source_path.name}, extracting on host then copying to volume"
+                )
+
+                with tempfile.TemporaryDirectory() as temp_extract_dir:
+                    # Extract tar.gz on host
+                    try:
+                        with tarfile.open(source_path, "r:gz") as tar:
+                            tar.extractall(temp_extract_dir)
+                        logger.info(
+                            f"Extracted {source_path.name} to temporary directory"
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to extract {source_path.name}: {e}")
+                        raise RuntimeError(f"Failed to extract tar.gz: {e}")
+
+                    # Copy extracted contents to volume
+                    copy_result = subprocess.run(
+                        [
+                            "docker",
+                            "run",
+                            "--rm",
+                            "-v",
+                            f"{volume_name}:/target",
+                            "-v",
+                            f"{temp_extract_dir}:/source:ro",
+                            "alpine",
+                            "sh",
+                            "-c",
+                            "cp -r /source/* /target/ 2>/dev/null || cp -r /source/. /target/",
+                        ],
+                        capture_output=True,
+                        text=True,
+                    )
+
+                    if copy_result.returncode == 0:
+                        logger.info(
+                            f"Successfully copied extracted data from {source_path.name} to volume {volume_name}"
+                        )
+                    else:
+                        logger.error(
+                            f"Failed to copy extracted data to volume {volume_name}: {copy_result.stderr}"
+                        )
+                        raise RuntimeError(
+                            f"Failed to copy extracted data: {copy_result.stderr}"
+                        )
+
+                return volume_name
+
             # Otherwise, copy data to volume using temporary container (normal case)
             copy_result = subprocess.run(
                 [
                     "docker",
                     "run",
                     "--rm",
-                    f"-v",
+                    "-v",
                     f"{volume_name}:/target",
-                    f"-v",
-                    f"{init_data_path.resolve().absolute()}:/source:ro",
+                    "-v",
+                    f"{source_path.resolve().absolute()}:/source:ro",
                     "alpine",
                     "sh",
                     "-c",
@@ -863,11 +916,11 @@ class NativeDockerSandbox(BaseSandbox):
 
             if copy_result.returncode == 0:
                 logger.info(
-                    f"Successfully copied data from {init_data_path} to volume {volume_name}"
+                    f"Successfully copied data from {source_path} to volume {volume_name}"
                 )
             else:
                 logger.warning(
-                    f"Failed to copy data from {init_data_path} to volume {volume_name}: {copy_result.stderr}"
+                    f"Failed to copy data from {source_path} to volume {volume_name}: {copy_result.stderr}"
                 )
 
             return volume_name
@@ -877,6 +930,93 @@ class NativeDockerSandbox(BaseSandbox):
             raise RuntimeError(f"Docker volume creation failed: {e.stderr}")
         except Exception as e:
             logger.error(f"Unexpected error creating volume {volume_name}: {e}")
+            raise
+
+    @classmethod
+    def create_shared_volume(
+        cls, volume_name_prefix: str, init_data_path: Path = None
+    ) -> tuple[str, str]:
+        """Create and initialize two shared volumes.
+
+        Creates two volumes:
+        1. Read-only volume with sandbox scripts (mapped to /sandbox_scripts)
+        2. Read-write volume with user data (mapped to /shared)
+
+        Args:
+            volume_name_prefix: Prefix for volume names (e.g., session_id)
+            init_data_path: Path to initial data to copy into the rw volume (optional)
+
+        Returns:
+            Tuple of (scripts_volume_id, data_volume_id)
+        """
+        from aigise.utils.project_info import PROJECT_PATH
+
+        try:
+            # Create volume names
+            scripts_volume_name = f"{volume_name_prefix}_sandbox_scripts"
+            data_volume_name = f"{volume_name_prefix}_shared"
+
+            # 1. Create and populate scripts volume
+            scripts_path = Path(PROJECT_PATH) / "src" / "aigise" / "sandbox_scripts"
+            scripts_volume_id = cls._create_and_populate_volume(
+                scripts_volume_name, scripts_path
+            )
+            logger.info(
+                f"Created sandbox scripts volume: {scripts_volume_id} from {scripts_path}"
+            )
+
+            # 2. Create and populate data volume
+            data_volume_id = cls._create_and_populate_volume(
+                data_volume_name, init_data_path
+            )
+            logger.info(
+                f"Created shared data volume: {data_volume_id} from {init_data_path}"
+            )
+
+            # 3. Set permissions to 777 on data volume to ensure write access
+            chmod_result = subprocess.run(
+                [
+                    "docker",
+                    "run",
+                    "--rm",
+                    "-v",
+                    f"{data_volume_id}:/target",
+                    "alpine",
+                    "sh",
+                    "-c",
+                    "chmod -R 777 /target",
+                ],
+                capture_output=True,
+                text=True,
+            )
+
+            if chmod_result.returncode == 0:
+                logger.info(
+                    f"Set permissions 777 on shared data volume: {data_volume_id}"
+                )
+            else:
+                logger.warning(
+                    f"Failed to set permissions on volume {data_volume_id}: {chmod_result.stderr}"
+                )
+
+            return (scripts_volume_id, data_volume_id)
+
+        except Exception as e:
+            logger.error(f"Failed to create shared volumes: {e}")
+            # Clean up any created volumes on failure
+            try:
+                subprocess.run(
+                    ["docker", "volume", "rm", scripts_volume_name],
+                    capture_output=True,
+                    check=False,
+                )
+                subprocess.run(
+                    ["docker", "volume", "rm", data_volume_name],
+                    capture_output=True,
+                    check=False,
+                )
+            except Exception:
+                pass
             raise
 
     @classmethod
@@ -918,8 +1058,75 @@ class NativeDockerSandbox(BaseSandbox):
         return sandbox_type, sandbox_instance
 
     @classmethod
+    def _find_available_loopback_ip(cls, config) -> str:
+        """Find an available IP address in 127.0.0.0/24 range (127.0.0.1-127.0.0.255).
+
+        Checks all ports that will be used:
+        - Placeholder port: 7777
+        - Neo4j bolt_port and neo4j_http_port
+        - All MCP service sse_port values
+
+        Args:
+            config: AigiseConfig object to extract port information
+
+        Returns:
+            str: An available IP address (e.g., '127.0.0.2')
+        """
+        import socket
+
+        # Collect all ports to check
+        ports_to_check = [7777]  # Placeholder port
+
+        # Add Neo4j ports
+        if config.neo4j:
+            if hasattr(config.neo4j, "bolt_port") and config.neo4j.bolt_port:
+                ports_to_check.append(config.neo4j.bolt_port)
+            if (
+                hasattr(config.neo4j, "neo4j_http_port")
+                and config.neo4j.neo4j_http_port
+            ):
+                ports_to_check.append(config.neo4j.neo4j_http_port)
+
+        # Add MCP service ports
+        if config.mcp and config.mcp.services:
+            for service_name, service_config in config.mcp.services.items():
+                if hasattr(service_config, "sse_port") and service_config.sse_port:
+                    ports_to_check.append(service_config.sse_port)
+
+        logger.info(f"Checking ports for availability: {ports_to_check}")
+
+        # Try 127.0.0.x addresses (skip 127.0.0.1 as it's commonly used)
+        for last_octet in range(2, 256):
+            test_ip = f"127.0.0.{last_octet}"
+            all_ports_available = True
+
+            # Check if all ports are available on this IP
+            for port in ports_to_check:
+                try:
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        s.bind((test_ip, port))
+                except OSError:
+                    # This port is in use on this IP, try next IP
+                    all_ports_available = False
+                    break
+
+            if all_ports_available:
+                logger.info(
+                    f"Found available loopback IP {test_ip} for all ports: {ports_to_check}"
+                )
+                return test_ip
+
+        raise RuntimeError(
+            f"No available loopback IP found in 127.0.0.0/24 range for ports {ports_to_check}"
+        )
+
+    @classmethod
     async def launch_all_sandboxes(
-        cls, session_id: str, sandbox_configs: dict, shared_volume_id: str = None
+        cls,
+        session_id: str,
+        sandbox_configs: dict,
+        shared_volume_id: str = None,
+        scripts_volume_id: str = None,
     ) -> dict:
         """Launch all sandbox instances as separate Docker containers.
 
@@ -927,6 +1134,7 @@ class NativeDockerSandbox(BaseSandbox):
             session_id: Session identifier
             sandbox_configs: Dictionary of sandbox_type -> ContainerConfig
             shared_volume_id: Optional shared volume to mount to all sandboxes (unused, configs already updated)
+            scripts_volume_id: Optional scripts volume to mount to all sandboxes (unused, configs already updated)
 
         Returns:
             Dictionary mapping sandbox_type to NativeDockerSandbox instance
@@ -947,14 +1155,93 @@ class NativeDockerSandbox(BaseSandbox):
             return dict(results)
 
         sandbox_instances = {}
+
         try:
-            # Run the concurrent creation in a sync context
-            sandbox_instances = await launch_concurrent()
+            from aigise.session.aigise_session import get_aigise_session
+
+            aigise_session = get_aigise_session(session_id)
+            config = aigise_session.config
+
+            # 1. Find available loopback IP that works for all required ports
+            loopback_ip = cls._find_available_loopback_ip(config)
+            logger.info(
+                f"Found available loopback IP {loopback_ip} for session {session_id}"
+            )
+
+            # Create a placeholder container to hold the IP:7777
+            # This ensures no other process takes it before we launch real sandboxes
+            client = docker.from_env()
+            placeholder_container = client.containers.run(
+                "alpine:latest",
+                command=["sh", "-c", "nc -l -p 7777 0.0.0.0 & sleep infinity"],
+                detach=True,
+                name=f"aigise-placeholder-{session_id}",
+                ports={"7777/tcp": (loopback_ip, 7777)},
+                remove=True,
+            )
+            logger.info(f"Created placeholder container to reserve {loopback_ip}:7777")
+
+            # 2. Update config's default_host (top-level only)
+            config.default_host = loopback_ip
+            logger.info(f"Updated config.default_host to {loopback_ip}")
+
+            # 2.5. Update all sandbox port mappings to use the new loopback IP
+            for sandbox_type, container_config in sandbox_configs.items():
+                if container_config.ports:
+                    updated_ports = {}
+                    for container_port, host_binding in container_config.ports.items():
+                        if host_binding is None:
+                            # None means expose but don't bind
+                            updated_ports[container_port] = host_binding
+                        elif isinstance(host_binding, int):
+                            # Just a port number, bind to loopback_ip
+                            updated_ports[container_port] = (loopback_ip, host_binding)
+                        elif isinstance(host_binding, tuple) and len(host_binding) == 2:
+                            # (host, port) tuple, replace host with loopback_ip
+                            _, port = host_binding
+                            updated_ports[container_port] = (loopback_ip, port)
+                        elif isinstance(host_binding, list):
+                            # List of ports, bind first one to loopback_ip
+                            # Docker typically uses first port in list
+                            if host_binding:
+                                updated_ports[container_port] = (
+                                    loopback_ip,
+                                    host_binding[0],
+                                )
+                            else:
+                                updated_ports[container_port] = host_binding
+                        else:
+                            # Unknown format, keep as-is
+                            updated_ports[container_port] = host_binding
+
+                    container_config.ports = updated_ports
+                    logger.info(
+                        f"Updated {sandbox_type} sandbox ports to use {loopback_ip}"
+                    )
+
+            # 3. Wrap placeholder container as a sandbox for unified management
+            placeholder_config = ContainerConfig(
+                container_id=placeholder_container.id,
+                image="alpine:latest",
+            )
+            placeholder_sandbox = cls(
+                placeholder_config,
+                session_id=session_id,
+                backend_type=cls.backend_type,
+                sandbox_type="placeholder",
+            )
+            sandbox_instances["_placeholder"] = placeholder_sandbox
+            logger.info("Registered placeholder container as a managed sandbox")
+
+            # 4. Launch all sandboxes concurrently
+            sandbox_instances.update(await launch_concurrent())
+
             return sandbox_instances
 
         except Exception as e:
             logger.error(f"Failed to launch sandboxes for session {session_id}: {e}")
-            # Cleanup any successfully created sandboxes
+
+            # Cleanup any successfully created sandboxes (including placeholder)
             for sandbox in sandbox_instances.values():
                 try:
                     if hasattr(sandbox, "delete_container"):
@@ -963,6 +1250,7 @@ class NativeDockerSandbox(BaseSandbox):
                     logger.warning(
                         f"Failed to cleanup sandbox during error recovery: {cleanup_e}"
                     )
+
             raise
 
     @classmethod

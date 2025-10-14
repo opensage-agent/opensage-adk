@@ -63,15 +63,21 @@ class BaseSandbox(ABC):
 
     @classmethod
     @abstractmethod
-    def create_shared_volume(cls, volume_name: str, init_data_path: Path) -> str:
-        """Create and initialize a shared volume.
+    def create_shared_volume(
+        cls, volume_name_prefix: str, init_data_path: Path = None
+    ) -> tuple[str, str]:
+        """Create and initialize two shared volumes.
+
+        Creates two volumes:
+        1. Read-only volume with sandbox scripts (mapped to /sandbox_scripts)
+        2. Read-write volume with user data (mapped to /shared)
 
         Args:
-            volume_name: Name of the volume to create
-            init_data_path: Path to initial data to copy into the volume
+            volume_name_prefix: Prefix for volume names (e.g., session_id)
+            init_data_path: Path to initial data to copy into the rw volume (optional)
 
         Returns:
-            Volume identifier that can be used to reference the volume
+            Tuple of (scripts_volume_id, data_volume_id)
         """
         pass
 
@@ -86,7 +92,11 @@ class BaseSandbox(ABC):
     @classmethod
     @abstractmethod
     async def launch_all_sandboxes(
-        cls, session_id: str, sandbox_configs: dict, shared_volume_id: str = None
+        cls,
+        session_id: str,
+        sandbox_configs: dict,
+        shared_volume_id: str = None,
+        scripts_volume_id: str = None,
     ) -> dict:
         """Launch all sandbox instances for a session.
 
@@ -94,7 +104,7 @@ class BaseSandbox(ABC):
             session_id: Session identifier
             sandbox_configs: Dictionary of sandbox_type -> ContainerConfig
             shared_volume_id: Optional shared volume to mount to all sandboxes
-
+            scripts_volume_id: Optional scripts volume to mount to all sandboxes
         Returns:
             Dictionary mapping sandbox_type to sandbox instance or connection info
         """

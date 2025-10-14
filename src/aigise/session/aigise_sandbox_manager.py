@@ -53,8 +53,9 @@ class AigiseSandboxManager:
         self._sandboxes: Dict[str, BaseSandbox] = {}
         # Sandbox state tracking
         self._sandbox_states: Dict[str, SandboxState] = {}
-        # Shared volume ID for this session
-        self._shared_volume_id: Optional[str] = None
+        # Shared volume IDs for this session
+        self._scripts_volume_id: Optional[str] = None  # Read-only scripts volume
+        self._shared_volume_id: Optional[str] = None  # Read-write data volume
         # Locks for concurrent sandbox creation (per sandbox_type)
         self._sandbox_locks: Dict[str, asyncio.Lock] = {}
         # Lock to protect _sandbox_locks dictionary itself
@@ -170,12 +171,6 @@ class AigiseSandboxManager:
         """Initialize shared volume if configured in global sandbox config."""
         try:
             config = self.config
-            # no sandbox at all
-            if not config.sandbox or not (
-                config.sandbox.project_relative_shared_data_path
-                or config.sandbox.absolute_shared_data_path
-            ):
-                return
 
             # Check if global sandbox config has shared data path
             try:
@@ -192,10 +187,8 @@ class AigiseSandboxManager:
                     f"Resolved backend class for shared volume: {backend_class.__name__}"
                 )
 
-                # Create shared volume name for this session
-                volume_name = f"{self.aigise_session_id}_shared"
-
                 # Determine the shared data path
+                shared_data_path = None
                 if config.sandbox.absolute_shared_data_path:
                     shared_data_path = Path(config.sandbox.absolute_shared_data_path)
                 elif config.sandbox.project_relative_shared_data_path:
@@ -203,26 +196,25 @@ class AigiseSandboxManager:
                         Path(PROJECT_PATH)
                         / config.sandbox.project_relative_shared_data_path
                     )
-                else:
-                    logger.warning(
-                        "No shared data path configured, skipping shared volume initialization"
-                    )
-                    return
 
-                # Call class method to create shared volume
-                volume_id = backend_class.create_shared_volume(
-                    volume_name,
+                # Call class method to create two shared volumes
+                scripts_volume_id, data_volume_id = backend_class.create_shared_volume(
+                    self.aigise_session_id,
                     shared_data_path,
                 )
 
-                # Store shared volume ID
-                self._shared_volume_id = volume_id
+                # Store volume IDs
+                self._scripts_volume_id = scripts_volume_id
+                self._shared_volume_id = data_volume_id
 
-                # Update all sandbox configs to mount the shared volume
-                self._add_shared_volume_to_all_configs(volume_id)
+                # Update all sandbox configs to mount both volumes
+                self._add_shared_volumes_to_all_configs(
+                    scripts_volume_id, data_volume_id
+                )
 
                 logger.info(
-                    f"Initialized shared volume {volume_id} for session {self.aigise_session_id}"
+                    f"Initialized shared volumes for session {self.aigise_session_id}: "
+                    f"scripts={scripts_volume_id}, data={data_volume_id}"
                 )
 
             except Exception as e:
@@ -241,35 +233,49 @@ class AigiseSandboxManager:
         """
         return self._shared_volume_id
 
-    def _add_shared_volume_to_all_configs(self, volume_id: str) -> None:
-        """Add shared volume mount to all sandbox configurations.
+    def _add_shared_volumes_to_all_configs(
+        self, scripts_volume_id: str, data_volume_id: str
+    ) -> None:
+        """Add shared volume mounts to all sandbox configurations.
 
         Args:
-            volume_id: The volume identifier to mount to all sandboxes
+            scripts_volume_id: The scripts volume identifier (read-only)
+            data_volume_id: The data volume identifier (read-write)
         """
         try:
             config = self.config
             if not config.sandbox or not config.sandbox.sandboxes:
                 return
 
-            shared_mount = f"{volume_id}:/shared:rw"
+            scripts_mount = f"{scripts_volume_id}:/sandbox_scripts:ro"
+            data_mount = f"{data_volume_id}:/shared:rw"
 
             for sandbox_type, sandbox_config in config.sandbox.sandboxes.items():
                 # Initialize volumes list if it doesn't exist
                 if not sandbox_config.volumes:
                     sandbox_config.volumes = []
 
-                # Add shared volume mount if not already present
-                if shared_mount not in sandbox_config.volumes:
-                    sandbox_config.volumes.append(shared_mount)
+                # Add scripts volume mount if not already present
+                if scripts_mount not in sandbox_config.volumes:
+                    sandbox_config.volumes.append(scripts_mount)
                     logger.debug(
-                        f"Added shared volume mount to {sandbox_type}: {shared_mount}"
+                        f"Added scripts volume mount to {sandbox_type}: {scripts_mount}"
                     )
 
-            logger.info(f"Updated all sandbox configs with shared volume: {volume_id}")
+                # Add data volume mount if not already present
+                if data_mount not in sandbox_config.volumes:
+                    sandbox_config.volumes.append(data_mount)
+                    logger.debug(
+                        f"Added data volume mount to {sandbox_type}: {data_mount}"
+                    )
+
+            logger.info(
+                f"Updated all sandbox configs with shared volumes: "
+                f"scripts={scripts_volume_id}, data={data_volume_id}"
+            )
 
         except Exception as e:
-            logger.error(f"Failed to update sandbox configs with shared volume: {e}")
+            logger.error(f"Failed to update sandbox configs with shared volumes: {e}")
 
     async def launch_all_sandboxes(
         self, sandbox_types: Optional[Set[str]] = None
@@ -345,6 +351,7 @@ class AigiseSandboxManager:
                 session_id=self.aigise_session_id,
                 sandbox_configs=sandbox_configs,
                 shared_volume_id=self._shared_volume_id,
+                scripts_volume_id=self._scripts_volume_id,
             )
 
             # Store sandbox instances in manager
@@ -353,7 +360,8 @@ class AigiseSandboxManager:
                 self._sandbox_states[sandbox_type] = SandboxState.READY
 
             logger.info(
-                f"Successfully launched {len(sandbox_instances)} sandboxes for session {self.aigise_session_id}"
+                f"Successfully launched {len(sandbox_instances)} sandboxes for session {self.aigise_session_id}, "
+                f"sandbox types: {list(sandbox_instances.keys())}"
             )
 
         except Exception as e:
@@ -401,6 +409,7 @@ class AigiseSandboxManager:
         # Clear any remaining references
         self._sandboxes.clear()
         self._sandbox_states.clear()
+        self._scripts_volume_id = None
         self._shared_volume_id = None
         logger.info("Completed cleanup")
 

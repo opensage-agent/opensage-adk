@@ -88,11 +88,27 @@ def _expand_template_variables(config_data: dict) -> dict:
 
 @dataclass
 class Neo4jConfig:
-    """Neo4j database configuration."""
+    """Neo4j database configuration with dynamic URI construction."""
 
     user: Optional[str] = None
     password: Optional[str] = None
-    uri: Optional[str] = None
+    bolt_port: int = 7687  # Neo4j bolt port
+    neo4j_http_port: int = 7474  # Neo4j HTTP port
+    _parent_config: Optional["AigiseConfig"] = field(default=None, repr=False)
+
+    @property
+    def uri(self) -> str:
+        """Get Neo4j URI, dynamically constructed from parent config's default_host.
+
+        Returns URI in format: neo4j://{default_host}:{bolt_port}
+        Falls back to 127.0.0.1 if no default_host is set.
+        """
+        if self._parent_config and self._parent_config.default_host:
+            host = self._parent_config.default_host
+        else:
+            host = "127.0.0.1"
+
+        return f"neo4j://{host}:{self.bolt_port}"
 
 
 @dataclass
@@ -253,12 +269,50 @@ class BuildConfig:
     code_dir: Optional[str] = None
 
 
-@dataclass
 class MCPServiceConfig:
-    """Single MCP service configuration."""
+    """Single MCP service configuration with dynamic host resolution."""
 
-    sse_port: int
-    sse_host: str = None
+    def __init__(
+        self,
+        sse_port: int,
+        sse_host: Optional[str] = None,
+        _parent_config: "AigiseConfig" = None,
+    ):
+        """Initialize MCP service config.
+
+        Args:
+            sse_port: SSE server port
+            sse_host: Explicit SSE host. If None, will dynamically use parent config's default_host
+            _parent_config: Reference to parent AigiseConfig for dynamic default_host
+        """
+        self._sse_port = sse_port
+        self._sse_host = sse_host  # None means "use default_host dynamically"
+        self._parent_config = _parent_config
+
+    @property
+    def sse_port(self) -> int:
+        """Get SSE port."""
+        return self._sse_port
+
+    @property
+    def sse_host(self) -> str:
+        """Get SSE host with dynamic resolution.
+
+        Priority:
+        1. If sse_host was explicitly set (not None), use that fixed value
+        2. Otherwise, dynamically get from parent config's default_host
+        3. Fallback to "127.0.0.1" if no parent config
+        """
+        # If explicitly set, use it (allows override)
+        if self._sse_host is not None:
+            return self._sse_host
+
+        # Otherwise, dynamically get from parent config
+        if self._parent_config and hasattr(self._parent_config, "default_host"):
+            return self._parent_config.default_host
+
+        # Final fallback
+        return "127.0.0.1"
 
 
 @dataclass
@@ -266,6 +320,13 @@ class MCPConfig:
     """MCP servers configuration supporting multiple services."""
 
     services: Dict[str, MCPServiceConfig] = field(default_factory=dict)
+    _parent_config: Optional["AigiseConfig"] = field(default=None, repr=False)
+
+    def set_parent_config(self, parent_config: "AigiseConfig") -> None:
+        """Set parent config reference for all services."""
+        self._parent_config = parent_config
+        for service in self.services.values():
+            service._parent_config = parent_config
 
     def get_service_config(self, service_name: str) -> Optional[MCPServiceConfig]:
         """Get configuration for a specific MCP service."""
@@ -274,6 +335,8 @@ class MCPConfig:
     def add_service(self, name: str, config: MCPServiceConfig) -> None:
         """Add a new MCP service configuration."""
         self.services[name] = config
+        if self._parent_config:
+            config._parent_config = self._parent_config
 
 
 @dataclass
@@ -289,6 +352,7 @@ class AigiseConfig:
     mcp: MCPConfig = None
     task_name: str = None
     agent_storage_path: Optional[str] = None
+    default_host: str = None
 
     @classmethod
     def create_default(cls) -> "AigiseConfig":
@@ -398,8 +462,15 @@ class AigiseConfig:
         mcp = None
         if "mcp" in expanded_data:
             services = {
-                name: MCPServiceConfig(**config)
-                for name, config in expanded_data["mcp"].get("services", {}).items()
+                name: MCPServiceConfig(
+                    sse_port=service_config.get("sse_port"),
+                    sse_host=service_config.get(
+                        "sse_host"
+                    ),  # None if not specified -> will use default_host dynamically
+                )
+                for name, service_config in expanded_data["mcp"]
+                .get("services", {})
+                .items()
             }
             mcp = MCPConfig(services=services)
 
@@ -414,7 +485,15 @@ class AigiseConfig:
             mcp=mcp,
             task_name=expanded_data.get("task_name"),
             agent_storage_path=expanded_data.get("agent_storage_path"),
+            default_host=expanded_data.get("default_host", None),
         )
+
+        # Set parent config references to enable dynamic host resolution
+        if config.neo4j:
+            config.neo4j._parent_config = config
+
+        if config.mcp:
+            config.mcp.set_parent_config(config)
 
         return config
 

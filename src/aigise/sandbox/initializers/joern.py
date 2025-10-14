@@ -25,20 +25,23 @@ class JoernInitializer(SandboxInitializer):
         )
 
         aigise_session = get_aigise_session(self.aigise_session_id)
+        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
 
         await aigise_session.sandboxes.wait_for_ready("main")
 
         main_sandbox = aigise_session.sandboxes.get_sandbox("main")
 
-        msg, err = self.run_command_in_container(["bash", "/shared/callgraph/init.sh"])
+        msg, err = self.run_command_in_container(
+            ["bash", "/sandbox_scripts/callgraph/init.sh"]
+        )
         if err != 0:
             raise RuntimeError(f"Joern init failed: {msg}")
 
-        msg, err = main_sandbox.run_command_in_container(
-            ["cp", "-r", aigise_session.config.build.code_dir, "/shared/code"]
-        )
-        if err != 0:
-            raise RuntimeError(f"Joern code copy failed: {msg}")
+        # msg, err = main_sandbox.run_command_in_container(
+        #     ["cp", "-r", aigise_session.config.build.code_dir, "/shared/code"]
+        # )
+        # if err != 0:
+        #     raise RuntimeError(f"Joern code copy failed: {msg}")
 
         msg, err = self.run_command_in_container(
             ["bash", "/shared/callgraph/run_joern.sh"]

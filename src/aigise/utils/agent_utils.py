@@ -77,7 +77,7 @@ def get_mcp_host_and_port_from_session_id(
     if not mcp_config:
         raise RuntimeError(f"{mcp_name} not configured in mcp.services")
 
-    host = mcp_config.sse_host
+    host = aigise_session.config.default_host
     port = mcp_config.sse_port
     return host, port
 

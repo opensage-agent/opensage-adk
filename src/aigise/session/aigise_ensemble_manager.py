@@ -285,10 +285,6 @@ class AigiseEnsembleManager:
                 # Store unsafe tools in a custom attribute
                 setattr(agent_info, "unsafe_tools", list(unsafe_tools))
                 unsafe_agents.append(agent_info)
-
-        logger.info(
-            f"Filtered agents in session {self.aigise_session_id}: {len(safe_agents)} safe, {len(unsafe_agents)} unsafe"
-        )
         return {"safe_agents": safe_agents, "unsafe_agents": unsafe_agents}
 
     def get_ensemble_ready_agents(
@@ -309,6 +305,9 @@ class AigiseEnsembleManager:
         # Discover static agents
         static_agents = self.discover_all_static_agents(current_agent)
         filtered_static = self.filter_thread_safe_agents(static_agents)
+        logger.info(
+            f"Filtered static agents in session {self.aigise_session_id}: {len(filtered_static['safe_agents'])} safe, {len(filtered_static['unsafe_agents'])} unsafe"
+        )
 
         result["static_agents"] = static_agents
         result["safe_agents"].extend(filtered_static["safe_agents"])
@@ -348,6 +347,9 @@ class AigiseEnsembleManager:
                         )
 
                 filtered_dynamic = self.filter_thread_safe_agents(dynamic_agents)
+                logger.info(
+                    f"Filtered dynamic agents in session {self.aigise_session_id}: {len(filtered_dynamic['safe_agents'])} safe, {len(filtered_dynamic['unsafe_agents'])} unsafe"
+                )
                 result["dynamic_agents"] = dynamic_agents
                 result["safe_agents"].extend(filtered_dynamic["safe_agents"])
                 result["unsafe_agents"].extend(filtered_dynamic["unsafe_agents"])

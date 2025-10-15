@@ -11,6 +11,7 @@ that the mathematical calculation is performed correctly.
 """
 
 import asyncio
+import json
 import os
 import re
 import shutil
@@ -135,7 +136,7 @@ class TestAgentEnsembleIntegration:
 
         from sample_agent_ensemble import agent as agent_module
 
-        root_agent = agent_module.root_agent
+        root_agent = agent_module.mk_agent(aigise_session_id=aigise_session_id)
 
         # Create session service and runner
         session_service = InMemorySessionService()
@@ -273,6 +274,21 @@ class TestAgentEnsembleIntegration:
         # Verify we have multiple function calls (indicating ensemble logic was triggered)
         assert len(function_calls) >= 2, (
             f"Expected at least 2 function calls for ensemble functionality, got {len(function_calls)}"
+        )
+
+        # Extract function call names from content field
+        function_call_names = []
+        for event in function_calls:
+            content = json.loads(event.get("content", "[]"))
+            for item in content:
+                if "function_call" in item:
+                    function_call_names.append(item["function_call"]["name"])
+
+        assert "get_available_agents_and_models_for_ensemble" in function_call_names, (
+            f"Expected get_available_agents_and_models_for_ensemble function call, got {function_call_names}"
+        )
+        assert "agent_ensemble" in function_call_names, (
+            f"Expected agent_ensemble function call, got {function_call_names}"
         )
 
         print(f"✅ Ensemble functionality verification completed!")

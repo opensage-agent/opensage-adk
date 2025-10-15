@@ -129,7 +129,7 @@ class TestNeo4jLoggingIntegration:
 
         from sample_neo4j_logging import agent as agent_module
 
-        root_agent = agent_module.root_agent
+        root_agent = agent_module.mk_agent(aigise_session_id=aigise_session_id)
 
         # Create session service and runner
         session_service = InMemorySessionService()

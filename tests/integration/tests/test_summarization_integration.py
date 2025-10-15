@@ -179,7 +179,7 @@ class TestSummarizationIntegration:
 
         from sample_summarization import agent as agent_module
 
-        root_agent = agent_module.root_agent
+        root_agent = agent_module.mk_agent(aigise_session_id=isolated_aigise_session_id)
 
         # Create completely isolated session service and runner
         session_service = InMemorySessionService()

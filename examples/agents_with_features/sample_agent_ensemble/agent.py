@@ -45,16 +45,17 @@ calculation_agent = LlmAgent(
 calculation_agent_tool = AgentTool(agent=calculation_agent)
 enable_neo4j_logging()
 
-# Get session-specific ensemble manager
-aigise_session_id = "sample-ensemble-session"
-aigise_session = get_aigise_session(aigise_session_id)
-
-os.environ["AVAILABLE_MODELS"] = "anthropic/claude-sonnet-4-20250514, openai/o4-mini"
-ensemble_manager = aigise_session.ensemble
-ensemble_manager.add_thread_safe_tool("calculate_add")
-
 
 def mk_agent(aigise_session_id="sample-ensemble-session"):
+    aigise_session = get_aigise_session(aigise_session_id)
+    ensemble_manager = aigise_session.ensemble
+    ensemble_manager.add_thread_safe_tool("calculate_add")
+    config = aigise_session.config
+    config.agent_ensemble.available_models_for_ensemble = [
+        "anthropic/claude-sonnet-4-20250514",
+        "openai/o4-mini",
+    ]
+    aigise_session.config = config
     root_agent = AigiseAgent(
         model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
         aigise_session_id=aigise_session_id,

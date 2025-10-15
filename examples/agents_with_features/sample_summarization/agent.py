@@ -90,35 +90,6 @@ def calculate_area_and_perimeter(
     }
 
 
-geometry_calculator = AigiseAgent(
-    name="geometry_calculator",
-    description="Calculates geometric properties like area and perimeter of shapes",
-    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
-    instruction="""You are a geometry calculator agent. You specialize in calculating geometric properties.
-Use the provided tools to calculate areas, perimeters, and other geometric measurements.
-Always explain the geometric concepts involved and show the calculation steps.
-Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
-""",
-    tools=[calculate_area_and_perimeter],
-)
-
-# Create AgentTools from sub-agents
-# Note: AgentTool automatically uses the agent's name and description
-geometry_tool = AgentTool(agent=geometry_calculator)
-
-
-math_calculator = AigiseAgent(
-    name="math_calculator",
-    description="Calculates multiplication",
-    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
-    instruction="""You are a math calculator agent. You specialize in calculating mathematical properties.
-Use the provided tools to calculate addition and multiplication.
-Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
-""",
-    tools=[multiply_numbers],
-)
-
-
 def mk_agent(aigise_session_id="sample-summarization-session"):
     enable_neo4j_logging()
     os.environ["MAX_HISTORY_SUMMARY_LENGTH"] = (
@@ -126,12 +97,40 @@ def mk_agent(aigise_session_id="sample-summarization-session"):
     )
     os.environ["MAX_TOOL_RESPONSE_LENGTH"] = "1000"
 
+    # Create agents inside mk_agent to avoid reusing instances across multiple calls
+    geometry_calculator = AigiseAgent(
+        name="geometry_calculator",
+        description="Calculates geometric properties like area and perimeter of shapes",
+        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        instruction="""You are a geometry calculator agent. You specialize in calculating geometric properties.
+Use the provided tools to calculate areas, perimeters, and other geometric measurements.
+Always explain the geometric concepts involved and show the calculation steps.
+Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
+""",
+        tools=[calculate_area_and_perimeter],
+    )
+
+    # Create AgentTools from sub-agents
+    # Note: AgentTool automatically uses the agent's name and description
+    geometry_tool = AgentTool(agent=geometry_calculator)
+
+    math_calculator = AigiseAgent(
+        name="math_calculator",
+        description="Calculates multiplication",
+        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        instruction="""You are a math calculator agent. You specialize in calculating mathematical properties.
+Use the provided tools to calculate addition and multiplication.
+Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
+""",
+        tools=[multiply_numbers],
+    )
+
     root_agent = AigiseAgent(
         name="calculation_orchestrator",
         description="Main agent that coordinates mathematical and geometric calculations with Neo4j history logging",
         model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
         instruction="""You are a calculation orchestrator. You help users with various mathematical and geometric calculations.
-      Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
+      Formulate the final answer as a single number inside <final_answer> ...</final_answer> tags.
       """,
         # Agent tools - these are tools that wrap agents
         tools=[

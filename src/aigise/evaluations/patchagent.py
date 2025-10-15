@@ -95,7 +95,7 @@ class PatchAgent(Evaluation):
         logger.info(f"Starting evaluation for image: {image}")
 
         # Create Docker client
-        client = docker.from_env()
+        client = docker.from_env(timeout=600)
         container = None
 
         try:

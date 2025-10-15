@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -18,9 +19,10 @@ from typing import Any, Callable, Dict, List, Optional
 
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.models.lite_llm import LiteLlm
-from loguru import logger
 
 from aigise.agents.aigise_agent import AigiseAgent
+
+logger = logging.getLogger(__name__)
 
 
 class AgentStatus(Enum):

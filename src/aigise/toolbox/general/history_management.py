@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 import traceback
@@ -11,7 +12,6 @@ from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.function_tool import FunctionTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-from loguru import logger
 
 from aigise.session import get_aigise_session
 from aigise.toolbox.decorators import requires_sandbox
@@ -19,6 +19,8 @@ from aigise.utils.agent_utils import (
     get_aigise_session_id_from_context,
     get_neo4j_client_from_context,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @requires_sandbox("neo4j")

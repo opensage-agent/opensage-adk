@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-
-from loguru import logger
+import logging
 
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.sandbox.initializers.base import SandboxInitializer
 from aigise.session.sandbox_state import SandboxState
+
+logger = logging.getLogger(__name__)
 
 
 class Neo4jInitializer(SandboxInitializer):

@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from loguru import logger
+import logging
 
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.session.sandbox_state import SandboxState
 from aigise.utils.merge_joern_codeql import import_joern_cpg, update_joern_cpg
 
 from .base import SandboxInitializer
+
+logger = logging.getLogger(__name__)
 
 
 class JoernInitializer(SandboxInitializer):

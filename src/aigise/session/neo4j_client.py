@@ -1,8 +1,10 @@
 import asyncio
+import logging
 from contextlib import contextmanager
 
-from loguru import logger
 from neo4j import AsyncGraphDatabase, GraphDatabase
+
+logger = logging.getLogger(__name__)
 
 
 class AsyncNeo4jClient:

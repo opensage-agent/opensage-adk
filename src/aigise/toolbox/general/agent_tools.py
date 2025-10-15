@@ -1,11 +1,14 @@
+import logging
+
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-from loguru import logger
 
 from aigise.session import get_aigise_session
 from aigise.utils.agent_utils import get_aigise_session_id_from_context
+
+logger = logging.getLogger(__name__)
 
 
 async def flag_unjustified_claims(tool_context: ToolContext):

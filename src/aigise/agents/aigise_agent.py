@@ -1,3 +1,4 @@
+import logging
 from typing import List, Optional
 
 from google.adk.agents.llm_agent import LlmAgent
@@ -6,6 +7,8 @@ from pydantic import Field
 
 from aigise.framework.reward_logger import RewardLogger
 from aigise.framework.tool_combo import ToolCombo
+
+logger = logging.getLogger(__name__)
 
 
 class AigiseAgent(LlmAgent):
@@ -95,7 +98,6 @@ class AigiseAgent(LlmAgent):
 
         async def aigise_before_agent_callback(callback_context):
             session = callback_context._invocation_context.session
-            from loguru import logger
 
             # 1. Set aigise_session_id
             if "aigise_session_id" not in session.state:

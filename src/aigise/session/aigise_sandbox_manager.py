@@ -9,12 +9,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import re
 from pathlib import Path
 from typing import Any, Dict, Optional, Set
-
-from loguru import logger
 
 from aigise.config.config_dataclass import AigiseConfig
 from aigise.sandbox import BaseSandbox
@@ -22,6 +21,8 @@ from aigise.sandbox.factory import get_backend_class
 from aigise.sandbox.utils import can_pull_image, image_exists_locally
 from aigise.session.sandbox_state import SandboxState
 from aigise.utils.project_info import PROJECT_PATH
+
+logger = logging.getLogger(__name__)
 
 
 class AigiseSandboxManager:

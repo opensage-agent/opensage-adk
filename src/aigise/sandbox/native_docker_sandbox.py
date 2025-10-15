@@ -2,6 +2,7 @@ import asyncio
 import concurrent.futures
 import io
 import ipaddress
+import logging
 import os
 import re
 import shutil
@@ -15,9 +16,10 @@ from typing import Any, Dict, Optional, Union
 
 import docker
 from docker.errors import APIError, NotFound
-from loguru import logger
 
 from aigise.config import ContainerConfig
+
+logger = logging.getLogger(__name__)
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.sandbox.utils import can_pull_image, image_exists_locally
 from aigise.utils.parser import get_function_info

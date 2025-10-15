@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import tempfile
-
-from loguru import logger
 
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.sandbox.initializers.base import SandboxInitializer
 from aigise.session.sandbox_state import SandboxState
 from aigise.utils.merge_joern_codeql import insert_codeql_results_to_cpg
+
+logger = logging.getLogger(__name__)
 
 
 class CodeQLInitializer(SandboxInitializer):

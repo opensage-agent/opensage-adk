@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from loguru import logger
+import logging
 
 from .base import SandboxInitializer
+
+logger = logging.getLogger(__name__)
 
 
 class FuzzInitializer(SandboxInitializer):

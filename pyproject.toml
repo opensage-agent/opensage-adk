@@ -16,7 +16,6 @@ dependencies = [
     "docker==7.1.0",
     "python-dotenv==1.1.0",
     "tree-sitter-languages==1.10.2",
-    "loguru==0.7.3",
     "pyyaml==6.0.2",
     "requests==2.32.4",
     "litellm>=1.74.7",

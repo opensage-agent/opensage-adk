@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import sys
 import traceback
 from typing import Any, Callable, Optional
@@ -14,7 +15,6 @@ from google.adk.tools._forwarding_artifact_service import ForwardingArtifactServ
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-from loguru import logger
 
 from aigise.utils.neo4j_history_management import (
     create_agent_call_relation,
@@ -24,6 +24,8 @@ from aigise.utils.neo4j_history_management import (
     record_agent_start,
     store_session_state,
 )
+
+logger = logging.getLogger(__name__)
 
 
 # This could only be enabled or disabled globally, for all agents in the same process

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import atexit
+import logging
 import os
 import queue
 import re
@@ -15,9 +16,10 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
 from dotenv import load_dotenv
-from loguru import logger
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 PDB_MCP_SSE_PORT = 1112

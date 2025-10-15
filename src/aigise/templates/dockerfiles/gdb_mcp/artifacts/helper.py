@@ -5,12 +5,14 @@ Provides MCP tool implementations for GDB/pwndbg commands.
 Each tool returns immediate results suitable for LLM interaction.
 """
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from loguru import logger
 from pygdbmi import gdbcontroller
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

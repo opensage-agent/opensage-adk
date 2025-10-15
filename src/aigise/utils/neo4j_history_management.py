@@ -7,6 +7,7 @@ Provides functions for recording agent execution history, events, and tool respo
 from __future__ import annotations
 
 import json
+import logging
 import re
 import uuid
 from datetime import datetime
@@ -17,12 +18,13 @@ from google.adk.agents.callback_context import CallbackContext
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.events.event import Event
 from google.adk.tools.tool_context import ToolContext
-from loguru import logger
 
 from aigise.utils.agent_utils import (
     get_aigise_session_id_from_context,
     get_neo4j_client_from_context,
 )
+
+logger = logging.getLogger(__name__)
 
 
 async def record_agent_start(agent: BaseAgent, context: InvocationContext) -> str:

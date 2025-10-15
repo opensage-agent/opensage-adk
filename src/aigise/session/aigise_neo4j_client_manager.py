@@ -7,12 +7,13 @@ different database types (history, analysis, etc.).
 
 from __future__ import annotations
 
+import logging
 from typing import Dict, Literal, Optional
-
-from loguru import logger
 
 from aigise.session.aigise_sandbox_manager import AigiseSandboxManager
 from aigise.session.neo4j_client import AsyncNeo4jClient
+
+logger = logging.getLogger(__name__)
 
 
 class AigiseNeo4jClientManager:

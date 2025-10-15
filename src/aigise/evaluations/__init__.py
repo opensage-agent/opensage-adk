@@ -3,6 +3,7 @@ import asyncio
 import datetime
 import importlib
 import json
+import logging
 import re
 import shutil
 import sys
@@ -25,7 +26,6 @@ from google.adk.sessions import InMemorySessionService, Session
 from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
 from huggingface_hub import pause_space
-from loguru import logger
 from tqdm import tqdm
 
 from aigise.config import AigiseConfig
@@ -34,6 +34,8 @@ from aigise.session import get_aigise_session
 from aigise.session.aigise_session import AigiseSession
 from aigise.toolbox.decorators import collect_sandbox_dependencies
 from aigise.utils.project_info import PROJECT_PATH
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

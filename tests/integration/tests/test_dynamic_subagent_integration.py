@@ -8,6 +8,7 @@ This test verifies that:
 4. Mathematical calculations are correct
 """
 
+import logging
 import os
 import re
 import shutil
@@ -15,15 +16,16 @@ import warnings
 from pathlib import Path
 from typing import List
 
-# Test configuration
-AGENT_STORAGE_PATH = "/tmp/dynamic_agent_test/agent_storage"
-
 import pytest
 from google.adk import Runner
 from google.adk.events import Event
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
-from loguru import logger
+
+logger = logging.getLogger(__name__)
+
+# Test configuration
+AGENT_STORAGE_PATH = "/tmp/dynamic_agent_test/agent_storage"
 
 # Filter out Pydantic serialization warnings from LiteLLM
 warnings.filterwarnings("ignore", message=".*Pydantic serializer warnings.*")
@@ -133,8 +135,7 @@ def agent():
 
     yield agent_module.root_agent
 
-    # Cleanup: Remove logger handlers to avoid "I/O operation on closed file" errors
-    logger.remove()
+    # Cleanup: No special cleanup needed for standard logging
 
 
 @pytest.fixture(scope="session", autouse=True)

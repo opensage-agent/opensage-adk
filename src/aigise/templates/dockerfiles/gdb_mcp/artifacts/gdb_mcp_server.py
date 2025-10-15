@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
+import logging
 import os
 from functools import wraps
 from typing import Any, Dict, Optional
 
 from dotenv import load_dotenv
-from loguru import logger
 from mcp.server import FastMCP
 from mcp.server.fastmcp import Context
 from mcp.server.fastmcp.prompts import base
 from mcp.server.session import ServerSession
 
 from .helper import PwndbgTools
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 GDB_MCP_SSE_PORT = 1111

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import io
 import json
+import logging
 import os
 import re
 import shlex
@@ -17,12 +18,13 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import yaml
-from loguru import logger
 
 from aigise.config import ContainerConfig
 from aigise.utils.parser import get_function_info
 
 from .base_sandbox import BaseSandbox
+
+logger = logging.getLogger(__name__)
 
 
 class K8sSandbox(BaseSandbox):

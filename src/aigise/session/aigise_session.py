@@ -11,12 +11,13 @@ resources for that session without relying on global singletons.
 from __future__ import annotations
 
 import atexit
+import logging
 import signal
 from typing import Dict, Optional
 
-from loguru import logger
-
 from ..config.config_dataclass import AigiseConfig
+
+logger = logging.getLogger(__name__)
 from .aigise_dynamic_agent_manager import DynamicAgentManager
 from .aigise_ensemble_manager import AigiseEnsembleManager
 from .aigise_neo4j_client_manager import AigiseNeo4jClientManager

@@ -8,6 +8,7 @@ AgentEnsembleManager with session-isolated ensemble handling.
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Union
@@ -19,13 +20,14 @@ from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-from loguru import logger
 
 from aigise.session.aigise_dynamic_agent_manager import DynamicAgentManager
 from aigise.utils.agent_utils import (
     _copy_agent_with_updated_model,
     extract_tools_from_agent,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

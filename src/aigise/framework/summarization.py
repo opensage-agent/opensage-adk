@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from datetime import datetime
 
@@ -7,7 +8,6 @@ from google.adk.events.event import Event
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.genai import types
-from loguru import logger
 
 from aigise.framework.agent_history_tracker import is_neo4j_logging_enabled
 from aigise.utils.agent_utils import (
@@ -15,6 +15,8 @@ from aigise.utils.agent_utils import (
     get_aigise_session_id_from_context,
     register_callback_to_all_agents,
 )
+
+logger = logging.getLogger(__name__)
 
 
 async def _get_summary_async(model, llm_request):

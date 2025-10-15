@@ -2,11 +2,12 @@ import logging
 
 import docker
 import pytest
-from loguru import logger
-
-logging.basicConfig(level=logging.INFO)
 
 from aigise.utils.project_info import PROJECT_PATH
+
+logger = logging.getLogger(__name__)
+
+logging.basicConfig(level=logging.INFO)
 
 EXAMPLE_IMAGE = "n132/arvo:51603-vul"  # https://github.com/file/file.git
 OSSFUZZ_SCRIPTS_DIR = PROJECT_PATH / "src/aigise/toolbox/build_utils/ossfuzz/scripts"

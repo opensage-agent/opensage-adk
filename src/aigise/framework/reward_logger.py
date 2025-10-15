@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime
 from typing import Any, Callable, Dict, Optional, Union
@@ -8,7 +9,8 @@ from google.adk.agents.callback_context import CallbackContext
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-from loguru import logger
+
+logger = logging.getLogger(__name__)
 
 # Type definitions for reward functions
 RewardFunction = Callable[[Dict[str, Any], Optional[str]], float]

@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from abc import ABC, abstractmethod
 
 from aigise.session.sandbox_state import SandboxState
+
+logger = logging.getLogger(__name__)
 
 
 class SandboxInitializer(ABC):
@@ -37,8 +40,6 @@ class DefaultInitializer(SandboxInitializer):
         await self.ensure_ready()
 
     async def ensure_ready(self) -> None:
-        from loguru import logger
-
         from aigise.session import get_aigise_session
         from aigise.utils.agent_utils import get_mcp_url_from_session_id
 

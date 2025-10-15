@@ -8,10 +8,10 @@ This script uploads LLVM coverage data to Neo4j for efficient querying of:
 """
 
 import json
+import logging
 
 import cxxfilt
 import msgspec
-from loguru import logger
 from neo4j import GraphDatabase
 
 from aigise.utils.coverage.llvm_cov import (
@@ -24,6 +24,8 @@ from aigise.utils.coverage.llvm_cov import (
     LLVMCoverageRoot,
     Summary,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class Neo4jCoverageUploader:

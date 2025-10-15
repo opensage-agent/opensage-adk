@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import csv
+import logging
 from collections import defaultdict
 from pathlib import Path
 
 import pandas as pd
-from loguru import logger
 
 from aigise.session.neo4j_client import AsyncNeo4jClient
+
+logger = logging.getLogger(__name__)
 
 
 def load_expr_calls(expr_calls_path):

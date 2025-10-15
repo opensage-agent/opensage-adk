@@ -10,13 +10,14 @@ import click
 import mcp.types as types
 from google.adk.tools.function_tool import FunctionTool
 from google.adk.tools.mcp_tool.conversion_utils import adk_to_mcp_tool_type
-from loguru import logger
 from mcp import types as mcp_types
 from mcp.server.lowlevel import Server
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from starlette.applications import Starlette
 from starlette.routing import Mount
 from starlette.types import Receive, Scope, Send
+
+logger = logging.getLogger(__name__)
 
 
 def calculate_multiplication(a: int, b: int) -> int:

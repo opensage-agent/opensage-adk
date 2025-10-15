@@ -94,7 +94,7 @@ class Evaluation(abc.ABC):
                     .lower()
                 )
                 if flag != "y":
-                    print(f"Exiting...")
+                    print("Exiting...")
                     exit(0)
         self.user_id = str(self.output_dir).replace("/", "_")
 
@@ -212,10 +212,10 @@ class Evaluation(abc.ABC):
     def _get_dataset(self) -> datasets.Dataset:
         if Path(self.dataset_path).exists():
             if Path(self.dataset_path).is_dir():
-                dataset = datasets.load_from_disk(self.dataset_path)
+                dataset = datasets.load_from_disk(str(self.dataset_path))
             else:
                 dataset = datasets.load_dataset(
-                    "json", data_files=self.dataset_path, split="train"
+                    "json", data_files=str(self.dataset_path), split="train"
                 )
         else:
             dataset = datasets.load_dataset(
@@ -735,6 +735,10 @@ class Evaluation(abc.ABC):
 
     def run(self) -> dict:
         self.generate()
+        self.evaluate()
+
+    def run_debug(self) -> dict:
+        self.generate_single_thread()
         self.evaluate()
 
 

@@ -20,6 +20,13 @@ NOTE:
 - `uv` installs dependencies into `.venv` which is unknown for your shell by default. Therefore, you should use `uv run <command>` to run all commands using the dependencies. Check [`uv`'s documentation](https://docs.astral.sh/uv/concepts/projects/run) for details.
 - Since we use `uv` for dependency management, you should avoid using `pip` to change dependencies. Instead, always use `uv add` or `uv remove`. Check [`uv`'s documentation](https://docs.astral.sh/uv/concepts/projects/dependencies) for details.
 
+## Evaluation
+
+```shell
+cd src/aigise/evaluations
+python patchagent.py run
+```
+
 ## Development Notes
 
 (Not used currently) Use git subtree to add third_party dependencies that we want to edit. Example:

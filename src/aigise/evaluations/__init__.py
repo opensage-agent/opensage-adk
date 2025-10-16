@@ -266,6 +266,10 @@ class Evaluation(abc.ABC):
             config_template_path=self.config_template_path,
         )
 
+    def _prepare_general_env(self) -> None:
+        """Prepare general environment for all samples."""
+        pass
+
     def generate(self) -> None:
         """Generate samples using threadpool for true parallelism.
 

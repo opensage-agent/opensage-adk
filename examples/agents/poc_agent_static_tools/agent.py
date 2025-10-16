@@ -37,7 +37,6 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         tools=[
             run_poc_from_script,
             grep_tool,
-            bash_tool,
             # search_function,
             # get_caller_by_funcname,
             # get_callee_by_funcname,

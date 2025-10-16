@@ -672,16 +672,13 @@ class Evaluation(abc.ABC):
             # Get database name from Neo4j client manager (reuse naming logic)
             database_name = aigise_session.neo4j._get_database_name_for_type("history")
 
-            # Neo4j 5.x database file location
-            db_path_in_container = f"/data/databases/{database_name}"
-
             # Create tar archive in container
             tar_path_in_container = f"/tmp/{database_name}.tar.gz"
             tar_command = (
                 f"tar -czf {tar_path_in_container} -C /data/databases {database_name}"
             )
 
-            await neo4j_sandbox.run_command_in_container(tar_command)
+            neo4j_sandbox.run_command_in_container(tar_command)
 
             # Copy tar file from container
             neo4j_sandbox.copy_file_from_container(

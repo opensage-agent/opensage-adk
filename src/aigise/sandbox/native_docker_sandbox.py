@@ -293,6 +293,11 @@ class NativeDockerSandbox(BaseSandbox):
             detach=True,
         )
 
+        if self.container_config_obj.container_name is None:
+            self.container_config_obj.container_name = (
+                f"aigise_{self.sandbox_type}_{self.aigise_session_id}"
+            )
+
         # Set command from config
         # If command is None, use sh to keep container alive (sh is more universal)
         # Shell selection for command execution is handled by _detect_shell() method
@@ -313,6 +318,8 @@ class NativeDockerSandbox(BaseSandbox):
             run_kwargs["command"] = ["sh", "-c", "while true; do sleep 1000; done"]
 
         # Apply config to kwargs
+        if self.container_config_obj.container_name:
+            run_kwargs["name"] = self.container_config_obj.container_name
         if self.container_config_obj.environment:
             run_kwargs["environment"] = self.container_config_obj.environment
         if self.container_config_obj.working_dir:

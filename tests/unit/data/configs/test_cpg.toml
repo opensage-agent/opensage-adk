@@ -4,7 +4,6 @@
 # Top-level template variables (UPPERCASE)
 DEFAULT_IMAGE = "n132/arvo:51603-vul"
 NEO4J_PASSWORD = "callgraphn4j!"
-DEFAULT_HOST = "127.0.0.1"
 MAIN_MODEL = "anthropic/claude-sonnet-4-20250514"
 TASK_NAME = "test_cpg"
 
@@ -15,8 +14,8 @@ task_name = "${TASK_NAME}"
 [neo4j]
 user = "neo4j"
 password = "${NEO4J_PASSWORD}"
-bolt_port = 7688
-neo4j_http_port = 7475
+bolt_port = 7687
+neo4j_http_port = 7474
 
 [sandbox]
 default_image = "${DEFAULT_IMAGE}"
@@ -52,7 +51,7 @@ NEO4J_server_directories_import = "/shared/neo4j/import"
 NEO4J_apoc_import_file_enabled = "true"
 NEO4J_apoc_export_file_enabled = "true"
 [sandbox.sandboxes.neo4j.ports]
-"7474/tcp" = 7475 # HTTP port (standard)
+"7474/tcp" = 7474 # HTTP port (standard)
 "7687/tcp" = 7687 # Bolt port (standard)
 
 [build]

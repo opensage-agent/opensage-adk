@@ -1,6 +1,9 @@
 import re
 import subprocess
 
+from aigise.session.aigise_session import AigiseSession
+from aigise.session.neo4j_client import AsyncNeo4jClient
+
 
 def copy_from_container(container_id: str, src: str, dst: str):
     subprocess.run(["docker", "cp", f"{container_id}:{src}", dst], check=True)
@@ -26,3 +29,18 @@ def extract_infos_from_arvo_script(arvo_script: str) -> dict[str, str]:
             infos["FUZZ_TARGET"] = m.group(1)
             break
     return infos
+
+
+def fix_neo4j_client(
+    aigise_session: AigiseSession, client_type: str
+) -> AsyncNeo4jClient:
+    new_client = AsyncNeo4jClient(
+        aigise_session.config.neo4j.uri,
+        aigise_session.config.neo4j.user,
+        aigise_session.config.neo4j.password,
+        database=aigise_session.neo4j._get_database_name_for_type(client_type),
+    )
+
+    aigise_session.neo4j._clients[client_type] = new_client
+
+    return new_client

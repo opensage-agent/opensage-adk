@@ -355,6 +355,8 @@ class AigiseConfig:
     agent_storage_path: Optional[str] = None
     default_host: str = None
 
+    auto_cleanup: bool = True
+
     @classmethod
     def create_default(cls) -> "AigiseConfig":
         """Create a default configuration from TOML file with environment variable overrides."""

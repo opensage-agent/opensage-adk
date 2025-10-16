@@ -370,7 +370,7 @@ class AigiseSandboxManager:
                 f"Failed to launch sandboxes for session {self.aigise_session_id}: {e}"
             )
             # Set all sandbox states to error
-            for sandbox_type in config.sandbox.sandboxes.keys():
+            for sandbox_type in config.sandbox.sandboxes:
                 self._sandbox_states[sandbox_type] = SandboxState.ERROR
             raise
 

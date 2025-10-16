@@ -68,7 +68,9 @@ class AigiseNeo4jClientManager:
         return database_mapping.get(client_type, client_type)
 
     def get_async_client_without_connection(
-        self, client_type: str = "history", database_name: Optional[str] = None
+        self,
+        client_type: str = "history",
+        database_name: Optional[str] = None,
     ):
         """Get async Neo4j client for a specific type without connection verification.
 

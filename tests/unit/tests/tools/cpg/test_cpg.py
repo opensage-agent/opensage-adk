@@ -1,9 +1,20 @@
+from re import search
+from unittest.mock import MagicMock
+
 import pytest
 import pytest_asyncio
 
 from aigise.session import AigiseSession, get_aigise_session
 from aigise.session.neo4j_client import AsyncNeo4jClient
+from aigise.toolbox.static_analysis.cpg import (
+    get_callee_by_funcname,
+    get_callee_by_funcname_and_filepath,
+    get_caller_by_funcname,
+    get_caller_by_funcname_and_filepath,
+    search_function,
+)
 from aigise.utils.project_info import PROJECT_PATH
+from tests.unit.utils.utils import fix_neo4j_client
 
 
 @pytest_asyncio.fixture(scope="module")
@@ -25,20 +36,79 @@ async def aigise_session():
 @pytest.mark.slow
 @pytest.mark.asyncio
 async def test_cpg_initialization(aigise_session: AigiseSession):
-    await aigise_session.sandboxes.wait_for_ready("codeql")
-    await aigise_session.sandboxes.wait_for_ready("joern")
-    await aigise_session.sandboxes.wait_for_ready("neo4j")
-
-    neo4j_client = AsyncNeo4jClient(
-        aigise_session.config.neo4j.uri,
-        aigise_session.config.neo4j.user,
-        aigise_session.config.neo4j.password,
-        database=aigise_session.neo4j._get_database_name_for_type("analysis"),
-    )
+    neo4j_client = fix_neo4j_client(aigise_session, "analysis")
 
     cpg_nodes = await neo4j_client.run_query("MATCH (n) RETURN count(n) AS count")
     count = cpg_nodes[0]["count"]
     assert count > 1000  # Expecting more than 1000 nodes in the CPG
+
+
+@pytest.mark.slow
+@pytest.mark.asyncio
+async def test_cpg_search_function(aigise_session: AigiseSession):
+    mock_context = MagicMock()
+    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
+    fix_neo4j_client(aigise_session, "analysis")
+
+    res = await search_function("file_fsmagic", tool_context=mock_context)
+
+    # 'file_path': 'file/src/fsmagic.c', 'start_line': 105, 'end_line': 435
+    assert len(res["result"]) == 1
+    assert res["result"][0]["function_name"] == "file_fsmagic"
+    assert res["result"][0]["file_path"] == "file/src/fsmagic.c"
+    assert res["result"][0]["start_line"] == 105
+    assert res["result"][0]["end_line"] == 435
+
+    res = await search_function("non_existing_function", tool_context=mock_context)
+    assert len(res["result"]) == 0
+
+
+@pytest.mark.slow
+@pytest.mark.asyncio
+async def test_cpg_get_caller(aigise_session: AigiseSession):
+    mock_context = MagicMock()
+    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
+    fix_neo4j_client(aigise_session, "analysis")
+
+    res = await get_caller_by_funcname("file_fsmagic", tool_context=mock_context)
+    assert len(res["result"]) == 1
+    assert res["result"][0]["function_name"] == "file_or_fd"
+
+    res = await get_caller_by_funcname_and_filepath(
+        "file_fsmagic", "file/src/fsmagic.c", tool_context=mock_context
+    )
+    assert len(res["result"]) == 1
+    assert res["result"][0]["function_name"] == "file_or_fd"
+
+    res = await get_caller_by_funcname(
+        "non_existing_function", tool_context=mock_context
+    )
+    assert len(res["result"]) == 0
+
+
+@pytest.mark.slow
+@pytest.mark.asyncio
+async def test_cpg_get_callee(aigise_session: AigiseSession):
+    mock_context = MagicMock()
+    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
+    fix_neo4j_client(aigise_session, "analysis")
+
+    res = await get_callee_by_funcname("file_or_fd", tool_context=mock_context)
+    assert len(res["result"]) == 25
+    callee_names = [entry["function_name"] for entry in res["result"]]
+    assert "file_fsmagic" in callee_names
+
+    res = await get_callee_by_funcname_and_filepath(
+        "file_or_fd", "src/magic.c", tool_context=mock_context
+    )
+    assert len(res["result"]) == 25
+    callee_names = [entry["function_name"] for entry in res["result"]]
+    assert "file_fsmagic" in callee_names
+
+    res = await get_callee_by_funcname(
+        "non_existing_function", tool_context=mock_context
+    )
+    assert len(res["result"]) == 0
 
 
 if __name__ == "__main__":  # pragma: no cover - manual execution helper

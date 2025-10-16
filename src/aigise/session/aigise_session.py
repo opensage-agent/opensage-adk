@@ -107,9 +107,10 @@ class AigiseSession:
         """
         Cleanup all resources for this session.
         """
-        self.sandboxes.cleanup()
-        self.agents.cleanup()
-        self.ensemble.cleanup()
+        if self.config.auto_cleanup:
+            self.sandboxes.cleanup()
+            self.agents.cleanup()
+            self.ensemble.cleanup()
 
 
 class AigiseSessionRegistry:

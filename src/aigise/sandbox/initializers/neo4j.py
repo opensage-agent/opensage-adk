@@ -39,7 +39,7 @@ class Neo4jInitializer(SandboxInitializer):
             "default"
         )
         while not await self.neo4j_client.verify_connection():
-            await asyncio.sleep(1)
+            await asyncio.sleep(10)
 
         aigise_session.sandboxes.set_sandbox_state(
             self.sandbox_type, SandboxState.READY

@@ -78,9 +78,9 @@ def _setup_logging():
 
         handler.setFormatter(formatter)
 
-    # Set level for aigise logger specifically
-    logging.getLogger("aigise").setLevel(log_level)
-    logging.getLogger("aigise").addHandler(handler)
+        # Set level for aigise logger specifically
+        logging.getLogger("aigise").setLevel(log_level)
+        logging.getLogger("aigise").addHandler(handler)
 
 
 _setup_logging()

@@ -72,6 +72,7 @@ class Evaluation(abc.ABC):
     cache_dir: str = ""
     max_llm_calls: int = 128
     max_workers: int = 1
+    run_until_explicit_finish: bool = False
     model: str = "anthropic/claude-sonnet-4-5"
     output_dir_in_sandbox: str | None = None
     config_template_path: str | None = (
@@ -267,7 +268,7 @@ class Evaluation(abc.ABC):
         )
 
     def _prepare_general_env(self) -> None:
-        """Prepare general environment for all samples."""
+        """Set up general environment for all samples."""
         pass
 
     def generate(self) -> None:
@@ -279,6 +280,8 @@ class Evaluation(abc.ABC):
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
         dataset = self._get_dataset()
+
+        self._prepare_general_env()
 
         # Wrapper to run async _generate_sample in a thread
         def run_sample_in_thread(sample: dict) -> dict:
@@ -315,6 +318,7 @@ class Evaluation(abc.ABC):
         """Generate samples sequentially in a single thread for debugging."""
         dataset = self._get_dataset()
         results = []
+        self._prepare_general_env()
         # Keep only first sample for debugging
         dataset = dataset.select([0])
         for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
@@ -589,18 +593,32 @@ class Evaluation(abc.ABC):
         # 4. Run agent with prompt
         run_config = RunConfig(max_llm_calls=self.max_llm_calls)
 
-        try:
-            async for event in runner.run_async(
-                user_id=self.user_id,
-                session_id=task.session_id,
-                run_config=run_config,
-                new_message=types.Content(
-                    role="user", parts=[types.Part(text=task.prompt)]
-                ),
-            ):
-                logger.debug(event)
-        except Exception as e:
-            logger.warning(f"Agent execution error: {e}")
+        async for event in runner.run_async(
+            user_id=self.user_id,
+            session_id=task.session_id,
+            run_config=run_config,
+            new_message=types.Content(
+                role="user", parts=[types.Part(text=task.prompt)]
+            ),
+        ):
+            logger.debug(event)
+
+        if self.run_until_explicit_finish:
+            task_finished = session.state.get("task_finished", False)
+            while not task_finished:
+                async for event in runner.run_async(
+                    user_id=self.user_id,
+                    session_id=task.session_id,
+                    run_config=run_config,
+                    new_message=types.Content(
+                        role="user",
+                        parts=[types.Part(text="I approve you to continue")],
+                    ),
+                ):
+                    logger.debug(event)
+                task_finished = session.state.get("task_finished", False)
+
+        await runner.close()
 
         logger.info(f"Agent execution completed for session: {task.session_id}")
         return session

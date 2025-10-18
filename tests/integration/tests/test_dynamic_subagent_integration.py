@@ -121,10 +121,11 @@ class DynamicSubagentTestRunner:
 def agent():
     """Load the sample_dynamic_subagent agent with custom storage path."""
     import sys
+    import uuid
 
     # Add examples directory to Python path
     examples_dir = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
         "examples",
         "agents_with_features",
     )
@@ -133,7 +134,7 @@ def agent():
     # Import the agent module
     from sample_dynamic_subagent import agent as agent_module
 
-    yield agent_module.root_agent
+    yield agent_module.mk_agent(aigise_session_id=str(uuid.uuid4()))
 
     # Cleanup: No special cleanup needed for standard logging
 
@@ -263,7 +264,7 @@ async def test_dynamic_subagent_persistence_across_sessions(agent, storage_path)
     runner = await DynamicSubagentTestRunner(agent).async_init()
 
     # Run the agent with a different calculation
-    events = await runner.run("calculate 72138*82136+7")
+    await runner.run("calculate 72138*82136+7")
 
     # Get tool call sequence
     tool_calls = await runner.get_tool_calls_sequence()

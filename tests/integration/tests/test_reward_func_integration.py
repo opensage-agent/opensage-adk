@@ -119,6 +119,7 @@ class RewardFuncTestRunner:
 def agent():
     """Load the sample_reward_func agent."""
     import sys
+    import uuid
 
     # Add examples directory to Python path
     examples_dir = os.path.join(
@@ -131,7 +132,7 @@ def agent():
     # Import the agent module
     from sample_reward_func import agent as agent_module
 
-    yield agent_module.root_agent
+    yield agent_module.mk_agent(aigise_session_id=str(uuid.uuid4()))
 
     # Cleanup: No special cleanup needed for standard logging
 

@@ -128,7 +128,7 @@ class TestAgentEnsembleIntegration:
         import sys
 
         # Get the AIgiSE root directory and construct path to examples
-        current_dir = os.path.dirname(__file__)  # tests/integration/framework/
+        current_dir = os.path.dirname(__file__)  # tests/integration/tests/
         aigise_root = os.path.dirname(
             os.path.dirname(os.path.dirname(current_dir))
         )  # AIgiSE root

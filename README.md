@@ -20,6 +20,10 @@ NOTE:
 - `uv` installs dependencies into `.venv` which is unknown for your shell by default. Therefore, you should use `uv run <command>` to run all commands using the dependencies. Check [`uv`'s documentation](https://docs.astral.sh/uv/concepts/projects/run) for details.
 - Since we use `uv` for dependency management, you should avoid using `pip` to change dependencies. Instead, always use `uv add` or `uv remove`. Check [`uv`'s documentation](https://docs.astral.sh/uv/concepts/projects/dependencies) for details.
 
+## Sandboxes
+
+In order to use the joern and codeql sandbox, you need to download codeql here https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.18.4/codeql-bundle-linux64.tar.gz, decompress it and copy the codeql folder to PROJECT_PATH/src/aigise/sandbox_scripts
+
 ## Evaluation
 
 The evaluation script of each benchmark has the following sub-commands:

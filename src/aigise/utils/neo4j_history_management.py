@@ -63,9 +63,11 @@ async def record_agent_start(agent: BaseAgent, context: InvocationContext) -> st
                 "agent_name": agent.name,
                 "aigise_session_id": aigise_session_id,
                 "start_time": datetime.now().isoformat(),
-                "agent_model": agent.model.model
-                if hasattr(agent.model, "model")
-                else str(agent.model),
+                "agent_model": agent.model
+                if hasattr(agent, "model") and isinstance(agent.model, str)
+                else agent.model.model
+                if hasattr(agent, "model")
+                else "No model",
                 "input_content": input_content,
             },
         )

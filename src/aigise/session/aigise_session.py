@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import atexit
 import logging
+import os
 import signal
 from typing import Dict, Optional
 
@@ -130,11 +131,19 @@ class AigiseSessionRegistry:
     def _signal_handler(signum, frame):
         logger.info(f"Received signal {signum}, cleaning up all sessions...")
         AigiseSessionRegistry.cleanup_all_sessions()
-        exit(0)
+        os._exit(0)
+
+    def _cleanup_at_exit():
+        """Cleanup all sessions at exit, ignoring closed stream errors."""
+        try:
+            AigiseSessionRegistry.cleanup_all_sessions()
+        except (ValueError, OSError):
+            # Ignore errors from logging to closed streams during shutdown
+            pass
 
     signal.signal(signal.SIGINT, _signal_handler)  # Ctrl+C
     signal.signal(signal.SIGTERM, _signal_handler)  # Termination signal
-    atexit.register(lambda: AigiseSessionRegistry.cleanup_all_sessions())
+    atexit.register(_cleanup_at_exit)
     logger.info("Signal handlers registered for graceful session cleanup")
 
     @classmethod

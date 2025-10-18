@@ -14,6 +14,7 @@ def submit_submission(tool_context: ToolContext) -> str:
     Returns:
         The output of the submission
     """
-    # TODO: do it
     sandbox = get_sandbox_from_context(tool_context, "main")
-    return sandbox.run_command_in_container("xxxxxx", timeout=300)
+    return sandbox.run_command_in_container(
+        f"cd /shared/ && ./submit.sh /tmp/poc", timeout=300
+    )

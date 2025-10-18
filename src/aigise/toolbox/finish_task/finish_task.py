@@ -10,4 +10,4 @@ def finish_task(tool_context: ToolContext) -> str:
     Returns:
         None
     """
-    tool_context.session.state["task_finished"] = True
+    tool_context._invocation_context.session.state["task_finished"] = True

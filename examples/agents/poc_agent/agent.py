@@ -11,6 +11,8 @@ from google.adk.tools.function_tool import FunctionTool
 
 from aigise.agents.aigise_agent import AigiseAgent
 from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
+from aigise.toolbox.eval_submission.cybergym.submission import submit_submission
+from aigise.toolbox.finish_task.finish_task import finish_task
 from aigise.toolbox.general.bash_tool import bash_tool
 from aigise.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
@@ -42,6 +44,8 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             # get_callee_by_funcname,
             # get_shortest_paths_in_callgraph_to_function_in_file,
             # list_functions_in_file,
+            submit_submission,
+            finish_task,
             get_line_around_linenum_in_file,
         ],
         aigise_session_id=aigise_session_id,

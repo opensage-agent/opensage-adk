@@ -9,6 +9,8 @@
 **/.logs/
 **/playground/
 .env
+*.db*
+**/evals/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -37,6 +39,8 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+**/cybergym_data/
+**/oss-fuzz-data/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

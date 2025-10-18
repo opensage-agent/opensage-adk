@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import shutil
 import tempfile
 from dataclasses import dataclass
@@ -7,11 +8,12 @@ from pathlib import Path
 
 import docker
 import fire
-from loguru import logger
 
 from aigise.evaluations import Evaluation, EvaluationTask
 from aigise.session import get_aigise_session
 from aigise.utils.project_info import PROJECT_PATH
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -21,6 +23,7 @@ class PatchAgent(Evaluation):
     dataset_hf_split: str = "train"
     output_dir_in_sandbox: str = "/shared/"
     agent_dir: str = str(PROJECT_PATH / "examples/agents/poc_agent")
+    max_llm_calls: int = 2
 
     def _get_sample_id(self, sample: dict) -> str:
         """Get unique task ID for this sample."""

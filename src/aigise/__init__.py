@@ -34,6 +34,10 @@ def _setup_logging():
 
 _setup_logging()
 
+import litellm
+
+litellm.disable_streaming_logging = True
+
 # Export version
 __version__ = "1.0.0"
 

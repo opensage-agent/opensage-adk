@@ -11,8 +11,8 @@ COMPILE_COMMAND = "arvo compile"
 RUN_COMMAND = "arvo"
 AGENT_STORAGE_PATH = ""
 # History configuration defaults
-MAX_TOOL_RESPONSE_LENGTH = 3000
-MAX_HISTORY_SUMMARY_LENGTH = 50000
+MAX_TOOL_RESPONSE_LENGTH = 5000
+MAX_HISTORY_SUMMARY_LENGTH = 70000
 # Agent ensemble defaults
 AVAILABLE_MODELS = "anthropic/claude-sonnet-4-20250514,openai/o4-mini"
 # Host and Ports

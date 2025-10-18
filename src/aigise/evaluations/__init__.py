@@ -18,6 +18,7 @@ import fire
 import google.adk as adk
 import jsonpickle
 from google.adk.agents.base_agent import BaseAgent
+from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.run_config import RunConfig
 from google.adk.models.lite_llm import LiteLlm
@@ -70,7 +71,7 @@ class Evaluation(abc.ABC):
     output_dir: str | None = None
     input_data_path: str = ""
     cache_dir: str = ""
-    max_llm_calls: int = 128
+    max_llm_calls: int = 50
     max_workers: int = 1
     run_until_explicit_finish: bool = False
     model: str = "anthropic/claude-sonnet-4-5"
@@ -316,6 +317,7 @@ class Evaluation(abc.ABC):
 
     def generate_single_thread(self) -> None:
         """Generate samples sequentially in a single thread for debugging."""
+
         dataset = self._get_dataset()
         results = []
         self._prepare_general_env()
@@ -581,7 +583,7 @@ class Evaluation(abc.ABC):
         )
 
         # 3. Create session with aigise_session_id in state
-        session = await session_service.create_session(
+        await session_service.create_session(
             app_name=app_name,
             user_id=self.user_id,
             session_id=task.session_id,
@@ -593,32 +595,56 @@ class Evaluation(abc.ABC):
         # 4. Run agent with prompt
         run_config = RunConfig(max_llm_calls=self.max_llm_calls)
 
-        async for event in runner.run_async(
-            user_id=self.user_id,
-            session_id=task.session_id,
-            run_config=run_config,
-            new_message=types.Content(
-                role="user", parts=[types.Part(text=task.prompt)]
-            ),
-        ):
-            logger.debug(event)
+        all_events = []
 
-        if self.run_until_explicit_finish:
-            task_finished = session.state.get("task_finished", False)
-            while not task_finished:
-                async for event in runner.run_async(
-                    user_id=self.user_id,
-                    session_id=task.session_id,
-                    run_config=run_config,
-                    new_message=types.Content(
-                        role="user",
-                        parts=[types.Part(text="I approve you to continue")],
-                    ),
-                ):
-                    logger.debug(event)
+        try:
+            async for event in runner.run_async(
+                user_id=self.user_id,
+                session_id=task.session_id,
+                run_config=run_config,
+                new_message=types.Content(
+                    role="user", parts=[types.Part(text=task.prompt)]
+                ),
+            ):
+                logger.info(event)
+                all_events.append(event)
+
+            if self.run_until_explicit_finish:
                 task_finished = session.state.get("task_finished", False)
+                while not task_finished:
+                    async for event in runner.run_async(
+                        user_id=self.user_id,
+                        session_id=task.session_id,
+                        run_config=run_config,
+                        new_message=types.Content(
+                            role="user",
+                            parts=[types.Part(text="I approve you to continue")],
+                        ),
+                    ):
+                        logger.info(event)
+                        all_events.append(event)
+
+                    # get the session object to check if the task is finished, get_session returns a deepcopy of the session
+                    # need to call get_session to get the latest status of the session
+                    session = await session_service.get_session(
+                        app_name=app_name,
+                        user_id=self.user_id,
+                        session_id=task.session_id,
+                    )
+
+                    task_finished = session.state.get("task_finished", False)
+
+        except LlmCallsLimitExceededError as e:
+            logger.warning(
+                f"Llm calls limit exceeded for session {task.session_id}: {e}"
+            )
 
         await runner.close()
+        session = await session_service.get_session(
+            app_name=app_name, user_id=self.user_id, session_id=task.session_id
+        )
+        # set our collected events to the session object, since the original events may be lost due to summarization
+        session.events = all_events
 
         logger.info(f"Agent execution completed for session: {task.session_id}")
         return session

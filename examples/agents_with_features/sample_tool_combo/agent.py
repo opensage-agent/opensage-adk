@@ -64,26 +64,24 @@ def multiply_by_two(result: float) -> Dict[str, Any]:
     }
 
 
-# two-step operation, shows intermediate steps
-simple_combo_with_history = ToolCombo(
-    name="simple_combo_with_history",
-    tool_sequences=[add_numbers, multiply_by_two],
-    description="Simple two-step calculation: Add two numbers and multiply by 2. Shows intermediate steps.",
-    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
-    return_history=True,
-)
-
-# two-step operation, only shows final result
-simple_combo_without_history = ToolCombo(
-    name="simple_combo_without_history",
-    tool_sequences=[add_numbers, multiply_by_two],
-    description="Simple two-step calculation: Add two numbers and multiply by 2. Only shows final result.",
-    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
-    return_history=False,
-)
-
-
 def mk_agent(aigise_session_id="sample-tool-combo-session"):
+    # two-step operation, shows intermediate steps
+    simple_combo_with_history = ToolCombo(
+        name="simple_combo_with_history",
+        tool_sequences=[add_numbers, multiply_by_two],
+        description="Simple two-step calculation: Add two numbers and multiply by 2. Shows intermediate steps.",
+        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        return_history=True,
+    )
+
+    # two-step operation, only shows final result
+    simple_combo_without_history = ToolCombo(
+        name="simple_combo_without_history",
+        tool_sequences=[add_numbers, multiply_by_two],
+        description="Simple two-step calculation: Add two numbers and multiply by 2. Only shows final result.",
+        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        return_history=False,
+    )
     root_agent = AigiseAgent(
         name="tool_combo_demo_agent",
         model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),

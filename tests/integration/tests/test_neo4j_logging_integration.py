@@ -122,7 +122,9 @@ class TestNeo4jLoggingIntegration:
         import sys
 
         examples_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            ),
             "examples",
             "agents_with_features",
         )

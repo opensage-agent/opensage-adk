@@ -37,6 +37,7 @@ jobs:
     - name: Run AIgiSE integration tests
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
         source .venv/bin/activate
         pytest tests/integration -sv --tb=short -m "not slow"

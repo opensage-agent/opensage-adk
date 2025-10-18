@@ -63,7 +63,10 @@ class TestNeo4jLoggingIntegration:
             "original_agent_storage_path": original_agent_storage_path,
         }
 
-        # Cleanup: No special cleanup needed for standard logging
+        # Cleanup: Remove session to cleanup all resources (containers, etc.)
+        from aigise.session.aigise_session import cleanup_aigise_session
+
+        cleanup_aigise_session(aigise_session_id)
 
     async def _cleanup_test_database(self, aigise_session_id: str, database_name: str):
         """Clean up the test database."""

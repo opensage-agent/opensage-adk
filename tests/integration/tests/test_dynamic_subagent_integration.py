@@ -134,9 +134,16 @@ def agent():
     # Import the agent module
     from sample_dynamic_subagent import agent as agent_module
 
-    yield agent_module.mk_agent(aigise_session_id=str(uuid.uuid4()))
+    # Create agent with unique session ID
+    aigise_session_id = str(uuid.uuid4())
+    agent_instance = agent_module.mk_agent(aigise_session_id=aigise_session_id)
 
-    # Cleanup: No special cleanup needed for standard logging
+    yield agent_instance
+
+    # Cleanup: Remove session to cleanup all resources (containers, etc.)
+    from aigise.session.aigise_session import cleanup_aigise_session
+
+    cleanup_aigise_session(aigise_session_id)
 
 
 @pytest.fixture(scope="session", autouse=True)

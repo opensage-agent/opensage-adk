@@ -71,11 +71,12 @@ class FuzzInitializer(SandboxInitializer):
         """Set up the fuzzing environment."""
         logger.info("Setting up fuzzing environment...")
         
-        # Verify environment variables
-        assert infos["SANITIZER"] == "address"
-        assert infos["FUZZING_LANGUAGE"] == "c++"
-        assert infos["ARCHITECTURE"] == "x86_64"
-        assert infos["FUZZ_TARGET"] == "magic_fuzzer_loaddb"
+        # Copy source code from /shared/code to /src for compilation
+        logger.info("Copying source code from /shared/code to /src...")
+        copy_cmd = "cp -r /shared/code/* /src/"
+        msg, err = self.run_command_in_container(copy_cmd)
+        if err != 0:
+            raise RuntimeError(f"Failed to copy source code: {msg}")
         
         logger.info(f"Fuzzing environment verified: {infos}")
 

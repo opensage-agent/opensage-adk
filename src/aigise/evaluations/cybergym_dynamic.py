@@ -100,7 +100,9 @@ class CyberGym(Evaluation):
         )
         await super()._prepare_environment(task, agent)
         main_sandbox = task.aigise_session.sandboxes.get_sandbox("main")
-        main_sandbox.run_command_in_container(f"apt install -y curl")
+        main_sandbox.run_command_in_container(
+            f"apt-get update && apt-get install -y curl"
+        )
         if tmp_workdir:
             shutil.rmtree(tmp_workdir, ignore_errors=True)
 

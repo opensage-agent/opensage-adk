@@ -150,3 +150,63 @@ def get_line_around_linenum_in_file(
         return dict_result
     except Exception as e:
         return {"result": [], "error": f"Failed to read file '{filepath}': {e}"}
+
+
+@requires_sandbox("main")
+def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> dict:
+    """
+    Search the codebase inside the running container for a given symbol definition.
+    Args:
+        symbol_name (str): The name of the symbol to search for.
+    Returns:
+        dict: A dictionary with key "result" pointing to a list of symbol information.
+    """
+    sandbox = get_sandbox_from_context(tool_context, "main")
+    try:
+        sandbox.run_command_in_container(
+            f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R /shared/code"
+        )
+    except Exception as e:
+        try:
+            sandbox.run_command_in_container("apt update && apt install ctags")
+            sandbox.run_command_in_container(
+                f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R /shared/code"
+            )
+        except Exception as e:
+            return {
+                "result": [],
+                "error": f"Failed to install ctags and run ctags command: {e}, do not call this tool again.",
+            }
+    tags_file = sandbox.extract_file_from_container("/shared/.tags")
+    results = []
+    with open(tags_file, "r", errors="ignore") as f:
+        for line in f:
+            if line.startswith("!_TAG_"):
+                continue
+
+            try:
+                parts = line.split(';"')[0].split("\t")
+
+                if len(parts) >= 3:
+                    symbol = parts[0].strip()
+                    file_path = parts[1].strip()
+                    line_number = parts[2].strip()
+
+                    if symbol == symbol_name:
+                        kind = None
+                        if ';"' in line:
+                            ext_part = line.split(';"', 1)[1].strip()
+                            if ext_part:
+                                kind = ext_part.split()[0] if ext_part.split() else None
+
+                        results.append(
+                            {
+                                "symbol": symbol,
+                                "file": file_path,
+                                "line": line_number,
+                                "kind": kind,
+                            }
+                        )
+            except (IndexError, ValueError):
+                continue
+    return {"result": results}

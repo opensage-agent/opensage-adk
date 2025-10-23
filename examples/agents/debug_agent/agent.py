@@ -3,7 +3,7 @@ import uuid
 from google.adk.models.lite_llm import LiteLlm
 
 from aigise.agents.aigise_agent import AigiseAgent
-from aigise.toolbox.mcp_tools.debugger.gdb_mcp.get_toolset import (
+from aigise.toolbox.debugger.gdb_mcp.get_toolset import (
     get_toolset as get_gdb_toolset,
 )
 

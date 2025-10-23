@@ -9,7 +9,7 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.genai import types
 
-from aigise.framework.agent_history_tracker import is_neo4j_logging_enabled
+from aigise.features.agent_history_tracker import is_neo4j_logging_enabled
 from aigise.utils.agent_utils import (
     discover_all_agents,
     get_aigise_session_id_from_context,

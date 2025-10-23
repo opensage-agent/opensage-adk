@@ -23,7 +23,7 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from aigise.agents.aigise_agent import AigiseAgent
-from aigise.framework import enable_neo4j_logging
+from aigise.features import enable_neo4j_logging
 from aigise.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,

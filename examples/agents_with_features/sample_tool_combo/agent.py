@@ -18,7 +18,7 @@ from typing import Any, Dict
 from google.adk.models.lite_llm import LiteLlm
 
 from aigise.agents.aigise_agent import AigiseAgent
-from aigise.framework.tool_combo import ToolCombo
+from aigise.features.tool_combo import ToolCombo
 
 
 # Arithmetic operation tools

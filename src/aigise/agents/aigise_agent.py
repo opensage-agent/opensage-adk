@@ -5,8 +5,8 @@ from google.adk.agents.llm_agent import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
 from pydantic import Field
 
-from aigise.framework.reward_logger import RewardLogger
-from aigise.framework.tool_combo import ToolCombo
+from aigise.features.reward_logger import RewardLogger
+from aigise.features.tool_combo import ToolCombo
 
 logger = logging.getLogger(__name__)
 

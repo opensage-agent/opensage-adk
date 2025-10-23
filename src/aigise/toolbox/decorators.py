@@ -118,7 +118,7 @@ def collect_sandbox_dependencies(agent) -> set[str]:
             if hasattr(step, "agent"):
                 dependencies.update(collect_sandbox_dependencies(step.agent))
     dependencies.add("main")
-    from aigise.framework import is_neo4j_logging_enabled
+    from aigise.features import is_neo4j_logging_enabled
 
     if is_neo4j_logging_enabled():
         dependencies.add("neo4j")

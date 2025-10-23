@@ -20,7 +20,7 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.function_tool import FunctionTool
 
 from aigise.agents.aigise_agent import AigiseAgent
-from aigise.framework.reward_logger import RewardLogger
+from aigise.features.reward_logger import RewardLogger
 
 
 # Mathematical operation tools

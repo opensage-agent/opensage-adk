@@ -10,7 +10,7 @@ import pytest
 from google.adk.events.event import Event
 from google.genai import types
 
-from aigise.framework.summarization import (
+from aigise.features.summarization import (
     _get_summary_async,
     _summarize_events_async,
     history_summarizer_callback,
@@ -176,7 +176,7 @@ class TestToolResponseSummarizer:
         self.mock_session_id = "shared-session-123"
 
         self.mock_get_session_id_patcher = patch(
-            "aigise.framework.summarization.get_aigise_session_id_from_context"
+            "aigise.features.summarization.get_aigise_session_id_from_context"
         )
         self.mock_get_session_id = self.mock_get_session_id_patcher.start()
         self.mock_get_session_id.return_value = self.mock_session_id
@@ -198,7 +198,7 @@ class TestToolResponseSummarizer:
 
         # Mock neo4j logging
         self.mock_neo4j_logging_patcher = patch(
-            "aigise.framework.summarization.is_neo4j_logging_enabled"
+            "aigise.features.summarization.is_neo4j_logging_enabled"
         )
         self.mock_neo4j_logging = self.mock_neo4j_logging_patcher.start()
         self.mock_neo4j_logging.return_value = False  # Default to disabled
@@ -230,7 +230,7 @@ class TestToolResponseSummarizer:
         # Long response that exceeds threshold
         tool_response = "x" * 200
 
-        with patch("aigise.framework.summarization.LiteLlm") as mock_lite_llm:
+        with patch("aigise.features.summarization.LiteLlm") as mock_lite_llm:
             mock_model = MagicMock()
             mock_lite_llm.return_value = mock_model
 
@@ -308,7 +308,7 @@ class TestToolResponseSummarizer:
 
         tool_response = "x" * 50  # Long response
 
-        with patch("aigise.framework.summarization.LiteLlm") as mock_lite_llm:
+        with patch("aigise.features.summarization.LiteLlm") as mock_lite_llm:
             mock_model = MagicMock()
             mock_lite_llm.return_value = mock_model
             mock_model.generate_content_async.side_effect = RuntimeError("Model error")
@@ -339,7 +339,7 @@ class TestToolResponseSummarizer:
         tool_response = "x" * 50  # Long response
 
         with (
-            patch("aigise.framework.summarization.LiteLlm") as mock_lite_llm,
+            patch("aigise.features.summarization.LiteLlm") as mock_lite_llm,
             patch(
                 "aigise.utils.neo4j_history_management.create_raw_tool_response_node"
             ) as mock_create_node,
@@ -395,7 +395,7 @@ class TestHistorySummarizer:
         self.mock_session_id = "shared-session-123"
 
         self.mock_get_session_id_patcher = patch(
-            "aigise.framework.summarization.get_aigise_session_id_from_context"
+            "aigise.features.summarization.get_aigise_session_id_from_context"
         )
         self.mock_get_session_id = self.mock_get_session_id_patcher.start()
         self.mock_get_session_id.return_value = self.mock_session_id
@@ -422,7 +422,7 @@ class TestHistorySummarizer:
 
         # Mock neo4j logging
         self.mock_neo4j_logging_patcher = patch(
-            "aigise.framework.summarization.is_neo4j_logging_enabled"
+            "aigise.features.summarization.is_neo4j_logging_enabled"
         )
         self.mock_neo4j_logging = self.mock_neo4j_logging_patcher.start()
         self.mock_neo4j_logging.return_value = False
@@ -722,7 +722,7 @@ class TestHistorySummarizer:
 
         self.mock_session.events = [event1, event2, event3]
 
-        with patch("aigise.framework.summarization.LiteLlm") as mock_lite_llm:
+        with patch("aigise.features.summarization.LiteLlm") as mock_lite_llm:
             mock_model = MagicMock()
             mock_lite_llm.return_value = mock_model
 
@@ -757,11 +757,9 @@ class TestSetupSummarizationCallbacks:
         sub_agent2.name = "sub2"
 
         with (
+            patch("aigise.features.summarization.discover_all_agents") as mock_discover,
             patch(
-                "aigise.framework.summarization.discover_all_agents"
-            ) as mock_discover,
-            patch(
-                "aigise.framework.summarization.register_callback_to_all_agents"
+                "aigise.features.summarization.register_callback_to_all_agents"
             ) as mock_register,
         ):
             # Mock discovered agents
@@ -795,11 +793,9 @@ class TestSetupSummarizationCallbacks:
         root_agent.name = "root"
 
         with (
+            patch("aigise.features.summarization.discover_all_agents") as mock_discover,
             patch(
-                "aigise.framework.summarization.discover_all_agents"
-            ) as mock_discover,
-            patch(
-                "aigise.framework.summarization.register_callback_to_all_agents"
+                "aigise.features.summarization.register_callback_to_all_agents"
             ) as mock_register,
         ):
             # Mock no agents discovered

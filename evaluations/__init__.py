@@ -30,7 +30,7 @@ from huggingface_hub import pause_space
 from tqdm import tqdm
 
 from aigise.config import AigiseConfig
-from aigise.framework.summarization import setup_summarization_callbacks
+from aigise.features.summarization import setup_summarization_callbacks
 from aigise.session import get_aigise_session
 from aigise.session.aigise_session import AigiseSession
 from aigise.toolbox.decorators import collect_sandbox_dependencies
@@ -521,7 +521,7 @@ class Evaluation(abc.ABC):
         aigise_session = task.aigise_session
 
         # 1. Enable Neo4j logging
-        from aigise.framework.agent_history_tracker import (
+        from aigise.features.agent_history_tracker import (
             enable_neo4j_logging,
             is_neo4j_logging_enabled,
         )

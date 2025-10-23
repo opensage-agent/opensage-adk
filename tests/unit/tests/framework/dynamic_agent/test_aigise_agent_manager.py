@@ -168,7 +168,7 @@ class TestDynamicAgentManager:
         assert manager.storage_path == Path("/tmp/aigise_agent_storage")
 
     @patch("aigise.session.aigise_dynamic_agent_manager.AigiseAgent")
-    @patch("aigise.framework.summarization.setup_summarization_callbacks")
+    @patch("aigise.features.summarization.setup_summarization_callbacks")
     def test_create_agent_instance(self, mock_setup_callbacks, mock_aigise_agent):
         """Test _create_agent_instance method."""
         mock_agent = MagicMock()

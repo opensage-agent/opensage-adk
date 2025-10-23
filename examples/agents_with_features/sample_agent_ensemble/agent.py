@@ -6,7 +6,7 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 
 from aigise.agents.aigise_agent import AigiseAgent
-from aigise.framework import (
+from aigise.features import (
     enable_neo4j_logging,
     setup_summarization_callbacks,
 )

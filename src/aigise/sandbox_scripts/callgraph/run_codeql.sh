@@ -21,6 +21,8 @@ mkdir -p $OUT_DIR
 
 echo "Starting CodeQL analysis with build command: $BUILD_COMMAND"
 
+$CODEQL_BIN pack install $QUERY_DIR/qlpack.yml
+
 # Step 1: Build CodeQL database
 echo "Creating CodeQL database..."
 $CODEQL_BIN database create $DATABASE_PATH \

@@ -38,7 +38,7 @@ timeout = 600
 # image = "${DEFAULT_IMAGE}"
 # command = "tail -f /dev/null"
 
-# Skip Joern sandbox for fuzz tests to avoid timeout issues  
+# Skip Joern sandbox for fuzz tests to avoid timeout issues
 # [sandbox.sandboxes.joern]
 # image = "aigise/joern"
 # project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/joern/Dockerfile"

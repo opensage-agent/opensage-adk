@@ -140,6 +140,59 @@ class Evaluation(abc.ABC):
             json.dump(params, f, indent=2)
         logger.info(f"Parameters saved to: {params_file}")
 
+    def _save_cost_info(self, task: EvaluationTask, session: "Session") -> None:
+        """Calculate and save cost information for the task.
+
+        Args:
+            task: EvaluationTask instance
+            session: ADK Session with events
+        """
+        total_input_tokens = 0
+        total_output_tokens = 0
+        total_cached_tokens = 0
+        num_llm_calls = 0
+
+        for event in session.events:
+            if hasattr(event, "usage_metadata") and event.usage_metadata:
+                usage = event.usage_metadata
+                num_llm_calls += 1
+
+                if hasattr(usage, "prompt_token_count"):
+                    total_input_tokens += usage.prompt_token_count or 0
+                if hasattr(usage, "candidates_token_count"):
+                    total_output_tokens += usage.candidates_token_count or 0
+                if hasattr(usage, "cached_content_token_count"):
+                    total_cached_tokens += usage.cached_content_token_count or 0
+
+        cost_info = {
+            "session_id": task.session_id,
+            "task_name": task.task_name,
+            "model": self.model,
+            "timestamp": datetime.datetime.now().isoformat(),
+            "token_usage": {
+                "total_input_tokens": total_input_tokens,
+                "total_output_tokens": total_output_tokens,
+                "total_cached_tokens": total_cached_tokens,
+                "total_tokens": total_input_tokens + total_output_tokens,
+            },
+            "num_llm_calls": num_llm_calls,
+        }
+
+        logger.info("=" * 80)
+        logger.info(f"Cost info for session {task.session_id}:")
+        logger.info(f"  Model: {self.model}")
+        logger.info(f"  LLM calls: {num_llm_calls}")
+        logger.info(f"  Input tokens: {total_input_tokens:,}")
+        logger.info(f"  Output tokens: {total_output_tokens:,}")
+        logger.info(f"  Cached tokens: {total_cached_tokens:,}")
+        logger.info(f"  Total tokens: {total_input_tokens + total_output_tokens:,}")
+        logger.info("=" * 80)
+
+        cost_file = Path(task.output_dir) / "cost_info.json"
+        with open(cost_file, "w") as f:
+            json.dump(cost_info, f, indent=2)
+        logger.info(f"Cost info saved to: {cost_file}")
+
     def _load_mk_agent(self, agent_dir: str) -> Callable:
         """Load mk_agent function from agent directory.
 
@@ -682,6 +735,10 @@ class Evaluation(abc.ABC):
         session.events = all_events
 
         logger.info(f"Agent execution completed for session: {task.session_id}")
+
+        # Calculate and save cost information
+        self._save_cost_info(task, session)
+
         return session
 
     async def _collect_outputs(self, task: EvaluationTask, session: "Session") -> dict:

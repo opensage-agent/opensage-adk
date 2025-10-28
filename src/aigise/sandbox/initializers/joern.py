@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import logging
+import tempfile
+
+import networkx as nx
 
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.session.joern_client import JoernClient
@@ -12,6 +15,21 @@ from aigise.utils.merge_joern_codeql import import_joern_cpg, update_joern_cpg
 from .base import SandboxInitializer
 
 logger = logging.getLogger(__name__)
+
+
+def _update_graphml(graphml_path: str, output_path: str):
+    graph = nx.read_graphml(graphml_path)
+    # change labelV to labels
+    for node in graph.nodes(data=True):
+        if "labelV" in node[1]:
+            node[1]["labels"] = ":" + node[1].pop("labelV")
+
+    # change labelE to label
+    for u, v, data in graph.edges(data=True):
+        if "labelE" in data:
+            data["label"] = data.pop("labelE")
+
+    nx.write_graphml(graph, output_path, named_key_ids=True)
 
 
 class JoernInitializer(SandboxInitializer):
@@ -30,9 +48,9 @@ class JoernInitializer(SandboxInitializer):
         aigise_session = get_aigise_session(self.aigise_session_id)
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
 
-        await aigise_session.sandboxes.wait_for_ready("main")
+        # await aigise_session.sandboxes.wait_for_ready("main")
 
-        main_sandbox = aigise_session.sandboxes.get_sandbox("main")
+        # main_sandbox = aigise_session.sandboxes.get_sandbox("main")
 
         msg, err = self.run_command_in_container(
             ["bash", "/sandbox_scripts/callgraph/init.sh"]
@@ -49,26 +67,39 @@ class JoernInitializer(SandboxInitializer):
         if err != 0:
             raise RuntimeError(f"Joern run failed: {msg}")
 
-        msg, err = main_sandbox.run_command_in_container(
-            ["pip3", "install", "networkx"]
-        )
-        if err != 0:
-            raise RuntimeError(f"Joern networkx install failed: {msg}")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.copy_file_from_container(
+                "/shared/out/callgraph/joern_export.xml", f"{tmpdir}/joern_export.xml"
+            )
+            _update_graphml(
+                f"{tmpdir}/joern_export.xml",
+                f"{tmpdir}/joern_export_updated.xml",
+            )
+            self.copy_file_to_container(
+                f"{tmpdir}/joern_export_updated.xml",
+                "/shared/neo4j/import/joern_export.xml",
+            )
+
+        # msg, err = main_sandbox.run_command_in_container(
+        #     ["pip3", "install", "networkx"]
+        # )
+        # if err != 0:
+        #     raise RuntimeError(f"Joern networkx install failed: {msg}")
 
         # wait for neo4j to be ready, such that we can import the CPG
         await aigise_session.sandboxes.wait_for_ready("neo4j")
         neo4j_client = await aigise_session.neo4j.get_async_client("analysis")
 
-        msg, err = main_sandbox.run_command_in_container(
-            [
-                "python3",
-                "/sandbox_scripts/callgraph/update_graphml.py",
-                "/shared/out/callgraph/joern_export.xml",
-                "/shared/neo4j/import/joern_export.xml",
-            ]
-        )
-        if err != 0:
-            raise RuntimeError(f"Joern graphml update failed: {msg}")
+        # msg, err = main_sandbox.run_command_in_container(
+        #     [
+        #         "python3",
+        #         "/sandbox_scripts/callgraph/update_graphml.py",
+        #         "/shared/out/callgraph/joern_export.xml",
+        #         "/shared/neo4j/import/joern_export.xml",
+        #     ]
+        # )
+        # if err != 0:
+        #     raise RuntimeError(f"Joern graphml update failed: {msg}")
 
         await import_joern_cpg(neo4j_client, "/joern_export.xml")
         await update_joern_cpg(neo4j_client, fix_identical_methods=True)

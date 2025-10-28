@@ -71,8 +71,8 @@ class Evaluation(abc.ABC):
     output_dir: str | None = None
     input_data_path: str = ""
     cache_dir: str = ""
-    max_llm_calls: int = 50
-    max_workers: int = 1
+    max_llm_calls: int = 100
+    max_workers: int = 16
     run_until_explicit_finish: bool = False
     model: str = "anthropic/claude-sonnet-4-5"
     output_dir_in_sandbox: str | None = None
@@ -102,8 +102,43 @@ class Evaluation(abc.ABC):
                     exit(0)
         self.user_id = str(self.output_dir).replace("/", "_")
 
+        # Log and save evaluation parameters
+        self._log_and_save_parameters()
+
         # Load mk_agent function from agent_path
         self._mk_agent_original = self._load_mk_agent(self.agent_dir)
+
+    def _log_and_save_parameters(self) -> None:
+        """Log and save evaluation parameters to output directory."""
+        from dataclasses import asdict, fields
+
+        # Collect all dataclass fields
+        params = {}
+        for field in fields(self):
+            value = getattr(self, field.name)
+            # Convert Path objects to strings
+            if isinstance(value, Path):
+                params[field.name] = str(value)
+            elif value is not None:
+                params[field.name] = value
+
+        # Add timestamp
+        params["timestamp"] = datetime.datetime.now().isoformat()
+        params["evaluation_class"] = self.__class__.__name__
+
+        # Log parameters
+        logger.info("=" * 80)
+        logger.info("Evaluation parameters:")
+        logger.info("=" * 80)
+        for key, value in params.items():
+            logger.info(f"  {key:30s}: {value}")
+        logger.info("=" * 80)
+
+        # Save to output directory
+        params_file = self.output_dir / "eval_params.json"
+        with open(params_file, "w") as f:
+            json.dump(params, f, indent=2)
+        logger.info(f"Parameters saved to: {params_file}")
 
     def _load_mk_agent(self, agent_dir: str) -> Callable:
         """Load mk_agent function from agent directory.

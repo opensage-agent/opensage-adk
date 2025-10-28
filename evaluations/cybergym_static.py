@@ -10,9 +10,10 @@ from pathlib import Path
 import fire
 from google.adk.agents.base_agent import BaseAgent
 
-from aigise.evaluations import Evaluation, EvaluationTask
 from aigise.session import get_aigise_session
 from aigise.utils.project_info import PROJECT_PATH
+
+from . import Evaluation, EvaluationTask
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
     output_dir_in_sandbox: str = "/shared/"
-    agent_dir: str = str(PROJECT_PATH / "examples/agents/poc_agent")
+    agent_dir: str = str(PROJECT_PATH / "examples/agents/poc_agent_static_tools")
     cybergym_data_dir: str = str(
         PROJECT_PATH / "third_party/cybergym/cybergym_data/data"
     )
@@ -103,6 +104,7 @@ class CyberGym(Evaluation):
         main_sandbox.run_command_in_container(
             f"apt-get update && apt-get install -y curl"
         )
+        main_sandbox.run_command_in_container(f"rm -rf /tmp/poc")
         if tmp_workdir:
             shutil.rmtree(tmp_workdir, ignore_errors=True)
 

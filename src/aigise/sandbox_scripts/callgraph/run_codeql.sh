@@ -16,6 +16,9 @@ DATABASE_PATH="/work/.aigise-codeql-database"
 QUERY_DIR="/sandbox_scripts/callgraph/codeql_queries"
 OUT_DIR="/shared/out/callgraph"
 
+cp -r $QUERY_DIR /work/.codeql_queries
+QUERY_DIR="/work/.codeql_queries"
+
 mkdir -p $WORK_DIR
 mkdir -p $OUT_DIR
 

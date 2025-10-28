@@ -1,4 +1,6 @@
 import ast
+import datetime
+import json
 import logging
 import re
 import shutil
@@ -7,13 +9,14 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+import datasets
 import fire
 from google.adk.agents.base_agent import BaseAgent
 
 from aigise.session import get_aigise_session
 from aigise.utils.project_info import PROJECT_PATH
 
-from . import Evaluation, EvaluationTask
+from .. import Evaluation, EvaluationTask
 
 logger = logging.getLogger(__name__)
 
@@ -22,17 +25,22 @@ logger = logging.getLogger(__name__)
 class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
-    output_dir_in_sandbox: str = "/shared/"
-    agent_dir: str = str(PROJECT_PATH / "examples/agents/poc_agent")
+    output_dir_in_sandbox: str = "/tmp/"
+    agent_dir: str = str(PROJECT_PATH / "examples/agents/poc_agent_static_tools")
     cybergym_data_dir: str = str(
         PROJECT_PATH / "third_party/cybergym/cybergym_data/data"
     )
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
+    config_template_path: str = str(
+        PROJECT_PATH / "evaluations/conifgs/cybergym_static_config.toml"
+    )
     # evaluate
     cybergym_dir: str = str(PROJECT_PATH / "third_party/cybergym")
-    cybergym_poc_save_dir: str = str(Path(cybergym_dir) / "server_poc")
+    cybergym_poc_save_dir: str = (
+        "/scr/zhun/data/playground/cybergym/server/cybergym/server_poc/"
+    )
     server_url_host: str = "http://127.0.0.1:8666"
 
     def __post_init__(self):
@@ -44,6 +52,25 @@ class CyberGym(Evaluation):
     def _get_sample_id(self, sample: dict) -> str:
         """Get unique task ID for this sample."""
         return sample["task_id"].replace(":", "_")
+
+    def _get_dataset(self) -> datasets.Dataset:
+        if Path(self.dataset_path).exists():
+            if Path(self.dataset_path).is_dir():
+                dataset = datasets.load_from_disk(str(self.dataset_path))
+            else:
+                dataset = datasets.load_dataset(
+                    "json", data_files=str(self.dataset_path), split="train"
+                )
+        else:
+            dataset = datasets.load_dataset(
+                self.dataset_path, split=self.dataset_hf_split
+            )
+        with open(Path(__file__).parent / "metadata" / "task_list_subset", "r") as f:
+            task_list = f.read().splitlines()
+        task_list = task_list[1:11]
+        dataset = dataset.filter(lambda x: x["task_id"] in task_list)
+        # dataset = dataset.select(range(1))
+        return dataset
 
     def _init_workdir(self, sample: dict, tmp_workdir: str) -> None:
         def get_docker_bridge_ip() -> str:
@@ -180,20 +207,29 @@ class CyberGym(Evaluation):
         success_rate = (successful_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
         # Log summary
-        logger.info(f"=" * 60)
-        logger.info(f"CyberGym Evaluation Results for agent_id: {self.agent_id}")
-        logger.info(f"Total tasks: {total_tasks}")
-        logger.info(f"Successful tasks: {successful_tasks}")
-        logger.info(f"Success rate: {success_rate:.2f}%")
-        logger.info(f"=" * 60)
+        logger.warning(f"=" * 60)
+        logger.warning(f"CyberGym Evaluation Results for agent_id: {self.agent_id}")
+        logger.warning(f"Total tasks: {total_tasks}")
+        logger.warning(f"Successful tasks: {successful_tasks}")
+        logger.warning(f"Success rate: {success_rate:.2f}%")
+        logger.warning(f"=" * 60)
 
-        return {
+        eval_results = {
             "agent_id": self.agent_id,
             "total_tasks": total_tasks,
             "successful_tasks": successful_tasks,
             "success_rate": success_rate,
             "results": results,
+            "timestamp": datetime.datetime.now().isoformat(),
         }
+
+        # Save evaluation results to output directory
+        eval_file = self.output_dir / "evaluation_results.json"
+        with open(eval_file, "w") as f:
+            json.dump(eval_results, f, indent=2)
+        logger.warning(f"Evaluation results saved to: {eval_file}")
+
+        return eval_results
 
 
 if __name__ == "__main__":

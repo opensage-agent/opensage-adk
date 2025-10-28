@@ -4,12 +4,14 @@ import io
 import ipaddress
 import logging
 import os
+import random
 import re
 import shutil
 import subprocess
 import tarfile
 import tempfile
 import time
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
@@ -1133,8 +1135,22 @@ class NativeDockerSandbox(BaseSandbox):
 
         logger.info(f"Checking ports for availability: {ports_to_check}")
 
-        # Try 127.0.0.x addresses (skip 127.0.0.1 as it's commonly used)
-        for last_octet in range(1, 256):
+        # Keep trying random IPs until one is available
+
+        octets = list(range(2, 256))  # Skip 127.0.0.1
+        attempt = 0
+
+        while True:
+            # Reshuffle and try again if we've exhausted all options
+            if attempt % len(octets) == 0:
+                random.shuffle(octets)
+                if attempt > 0:
+                    logger.info(
+                        f"Retrying IP allocation, attempt {attempt // len(octets) + 1}"
+                    )
+                    time.sleep(0.5)  # Brief pause before retry
+
+            last_octet = octets[attempt % len(octets)]
             test_ip = f"127.0.0.{last_octet}"
             all_ports_available = True
 
@@ -1148,15 +1164,37 @@ class NativeDockerSandbox(BaseSandbox):
                     all_ports_available = False
                     break
 
+            placeholder_container_id = None
             if all_ports_available:
                 logger.info(
                     f"Found available loopback IP {test_ip} for all ports: {ports_to_check}"
                 )
-                return test_ip
 
-        raise RuntimeError(
-            f"No available loopback IP found in 127.0.0.0/24 range for ports {ports_to_check}"
-        )
+                # Create a placeholder container to hold the IP:7777
+                # This ensures no other process takes it before we launch real sandboxes
+                try:
+                    client = docker.from_env()
+                    placeholder_container = client.containers.run(
+                        "alpine:latest",
+                        command=["sh", "-c", "nc -l -p 7777 0.0.0.0 & sleep infinity"],
+                        detach=True,
+                        name=f"aigise_placeholder_{str(uuid.uuid4())}",
+                        ports={"7777/tcp": (test_ip, 7777)},
+                        remove=True,
+                    )
+                    placeholder_container_id = placeholder_container.id
+                    logger.info(
+                        f"Created placeholder container to reserve {test_ip}:7777"
+                    )
+                    return test_ip, placeholder_container_id
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to create placeholder container: {e}, trying next IP"
+                    )
+                    attempt += 1
+                    continue
+
+            attempt += 1
 
     @classmethod
     async def launch_all_sandboxes(
@@ -1201,23 +1239,12 @@ class NativeDockerSandbox(BaseSandbox):
             config = aigise_session.config
 
             # 1. Find available loopback IP that works for all required ports
-            loopback_ip = cls._find_available_loopback_ip(config)
+            loopback_ip, placeholder_container_id = cls._find_available_loopback_ip(
+                config
+            )
             logger.info(
                 f"Found available loopback IP {loopback_ip} for session {session_id}"
             )
-
-            # Create a placeholder container to hold the IP:7777
-            # This ensures no other process takes it before we launch real sandboxes
-            client = docker.from_env()
-            placeholder_container = client.containers.run(
-                "alpine:latest",
-                command=["sh", "-c", "nc -l -p 7777 0.0.0.0 & sleep infinity"],
-                detach=True,
-                name=f"aigise_placeholder_{session_id}",
-                ports={"7777/tcp": (loopback_ip, 7777)},
-                remove=True,
-            )
-            logger.info(f"Created placeholder container to reserve {loopback_ip}:7777")
 
             # 2. Update config's default_host (top-level only)
             config.default_host = loopback_ip
@@ -1259,7 +1286,7 @@ class NativeDockerSandbox(BaseSandbox):
 
             # 3. Wrap placeholder container as a sandbox for unified management
             placeholder_config = ContainerConfig(
-                container_id=placeholder_container.id,
+                container_id=placeholder_container_id,
                 image="alpine:latest",
             )
             placeholder_sandbox = cls(
@@ -1369,17 +1396,17 @@ class NativeDockerSandbox(BaseSandbox):
                         ".",
                     ]
 
-                    logger.info(
-                        f"Backing up shared volume {shared_volume_id} to {volume_backup_path}"
-                    )
-                    result = subprocess.run(
-                        backup_cmd, capture_output=True, text=True, check=True
-                    )
+                    # logger.info(
+                    #     f"Backing up shared volume {shared_volume_id} to {volume_backup_path}"
+                    # )
+                    # result = subprocess.run(
+                    #     backup_cmd, capture_output=True, text=True, check=True
+                    # )
 
-                    cache_results["shared_volume_backup"] = volume_backup_path
-                    logger.info(
-                        f"Successfully backed up shared volume to {volume_backup_path}"
-                    )
+                    # cache_results["shared_volume_backup"] = volume_backup_path
+                    # logger.info(
+                    #     f"Successfully backed up shared volume to {volume_backup_path}"
+                    # )
 
                 except subprocess.CalledProcessError as e:
                     error_msg = (

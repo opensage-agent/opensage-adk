@@ -13,7 +13,7 @@ from google.adk.agents.base_agent import BaseAgent
 from aigise.session import get_aigise_session
 from aigise.utils.project_info import PROJECT_PATH
 
-from . import Evaluation, EvaluationTask
+from .. import Evaluation, EvaluationTask
 
 logger = logging.getLogger(__name__)
 
@@ -22,17 +22,14 @@ logger = logging.getLogger(__name__)
 class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
-    output_dir_in_sandbox: str = "/shared/"
-    agent_dir: str = str(PROJECT_PATH / "examples/agents/poc_agent_static_tools")
+    output_dir_in_sandbox: str = "/tmp/"
+    agent_dir: str = str(PROJECT_PATH / "examples/agents/poc_agent")
     cybergym_data_dir: str = str(
         PROJECT_PATH / "third_party/cybergym/cybergym_data/data"
     )
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
-    config_template_path: str = str(
-        PROJECT_PATH / "evaluations/conifgs/cybergym_static_config.toml"
-    )
     # evaluate
     cybergym_dir: str = str(PROJECT_PATH / "third_party/cybergym")
     cybergym_poc_save_dir: str = str(Path(cybergym_dir) / "server_poc")
@@ -183,12 +180,12 @@ class CyberGym(Evaluation):
         success_rate = (successful_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
         # Log summary
-        logger.info(f"=" * 60)
-        logger.info(f"CyberGym Evaluation Results for agent_id: {self.agent_id}")
-        logger.info(f"Total tasks: {total_tasks}")
-        logger.info(f"Successful tasks: {successful_tasks}")
-        logger.info(f"Success rate: {success_rate:.2f}%")
-        logger.info(f"=" * 60)
+        logger.warning(f"=" * 60)
+        logger.warning(f"CyberGym Evaluation Results for agent_id: {self.agent_id}")
+        logger.warning(f"Total tasks: {total_tasks}")
+        logger.warning(f"Successful tasks: {successful_tasks}")
+        logger.warning(f"Success rate: {success_rate:.2f}%")
+        logger.warning(f"=" * 60)
 
         return {
             "agent_id": self.agent_id,

@@ -38,6 +38,10 @@ from aigise.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
 
+import litellm
+
+litellm.disable_streaming_logging = True
+
 
 @dataclass
 class EvaluationTask:
@@ -127,18 +131,18 @@ class Evaluation(abc.ABC):
         params["evaluation_class"] = self.__class__.__name__
 
         # Log parameters
-        logger.info("=" * 80)
-        logger.info("Evaluation parameters:")
-        logger.info("=" * 80)
+        logger.warning("=" * 80)
+        logger.warning("Evaluation parameters:")
+        logger.warning("=" * 80)
         for key, value in params.items():
-            logger.info(f"  {key:30s}: {value}")
-        logger.info("=" * 80)
+            logger.warning(f"  {key:30s}: {value}")
+        logger.warning("=" * 80)
 
         # Save to output directory
         params_file = self.output_dir / "eval_params.json"
         with open(params_file, "w") as f:
             json.dump(params, f, indent=2)
-        logger.info(f"Parameters saved to: {params_file}")
+        logger.warning(f"Parameters saved to: {params_file}")
 
     def _save_cost_info(self, task: EvaluationTask, session: "Session") -> None:
         """Calculate and save cost information for the task.
@@ -178,20 +182,24 @@ class Evaluation(abc.ABC):
             "num_llm_calls": num_llm_calls,
         }
 
-        logger.info("=" * 80)
-        logger.info(f"Cost info for session {task.session_id}:")
-        logger.info(f"  Model: {self.model}")
-        logger.info(f"  LLM calls: {num_llm_calls}")
-        logger.info(f"  Input tokens: {total_input_tokens:,}")
-        logger.info(f"  Output tokens: {total_output_tokens:,}")
-        logger.info(f"  Cached tokens: {total_cached_tokens:,}")
-        logger.info(f"  Total tokens: {total_input_tokens + total_output_tokens:,}")
-        logger.info("=" * 80)
+        logger.warning("=" * 80)
+        logger.warning(f"Cost info for session {task.session_id}:")
+        logger.warning(f"  Model: {self.model}")
+        logger.warning(f"  LLM calls: {num_llm_calls}")
+        logger.warning(f"  Input tokens: {total_input_tokens:,}")
+        logger.warning(f"  Output tokens: {total_output_tokens:,}")
+        logger.warning(f"  Cached tokens: {total_cached_tokens:,}")
+        logger.warning(f"  Total tokens: {total_input_tokens + total_output_tokens:,}")
+        logger.warning("=" * 80)
 
-        cost_file = Path(task.output_dir) / "cost_info.json"
+        # Ensure output directory exists
+        output_dir = Path(task.output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        cost_file = output_dir / "cost_info.json"
         with open(cost_file, "w") as f:
             json.dump(cost_info, f, indent=2)
-        logger.info(f"Cost info saved to: {cost_file}")
+        logger.warning(f"Cost info saved to: {cost_file}")
 
     def _load_mk_agent(self, agent_dir: str) -> Callable:
         """Load mk_agent function from agent directory.
@@ -401,7 +409,7 @@ class Evaluation(abc.ABC):
                         f"Sample {self._get_sample_id(sample)} failed with error: {e}"
                     )
 
-        logger.info(f"Generated {len(results)}/{len(dataset)} samples successfully")
+        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
 
     def generate_single_thread(self) -> None:
         """Generate samples sequentially in a single thread for debugging."""
@@ -425,7 +433,7 @@ class Evaluation(abc.ABC):
                 # Re-raise for easier debugging
                 raise
 
-        logger.info(f"Generated {len(results)}/{len(dataset)} samples successfully")
+        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
 
     @abc.abstractmethod
     def _get_sample_id(self, sample: dict) -> str:
@@ -518,11 +526,11 @@ class Evaluation(abc.ABC):
         )
         task_model = LiteLlm(model=model_name)
         self._replace_agent_models_recursive(agent, task_model)
-        logger.info(
+        logger.warning(
             f"Replaced all agent models with '{model_name}' for session {task.session_id}"
         )
         setup_summarization_callbacks(agent)
-        logger.info(f"Setup summarization callbacks for session {task.session_id}")
+        logger.warning(f"Setup summarization callbacks for session {task.session_id}")
         return agent
 
     async def _generate_sample(self, task: EvaluationTask) -> dict:
@@ -552,7 +560,7 @@ class Evaluation(abc.ABC):
         # === 5. Cleanup ===
         try:
             task.aigise_session.cleanup()
-            logger.info(f"Cleanup completed for session: {task.session_id}")
+            logger.warning(f"Cleanup completed for session: {task.session_id}")
         except Exception as e:
             logger.warning(f"Cleanup failed for session {task.session_id}: {e}")
 
@@ -629,7 +637,7 @@ class Evaluation(abc.ABC):
             ]
             for sandbox_type in sandboxes_to_remove:
                 del aigise_session.config.sandbox.sandboxes[sandbox_type]
-                logger.info(
+                logger.warning(
                     f"Removed unused sandbox '{sandbox_type}' from config "
                     f"(not in agent dependencies: {sandbox_dependencies})"
                 )
@@ -649,7 +657,7 @@ class Evaluation(abc.ABC):
         if unfound_cached_sandboxes:
             aigise_session.sandboxes.cache_sandboxes(cache_dir=task.cache_dir)
 
-        logger.info(f"Environment prepared for session: {task.session_id}")
+        logger.warning(f"Environment prepared for session: {task.session_id}")
 
     async def _run_agent(self, task: EvaluationTask, agent: adk.Agent) -> "Session":
         """Run agent with the given prompt.
@@ -694,7 +702,7 @@ class Evaluation(abc.ABC):
                     role="user", parts=[types.Part(text=task.prompt)]
                 ),
             ):
-                logger.info(event)
+                logger.warning(event)
                 all_events.append(event)
 
             if self.run_until_explicit_finish:
@@ -709,7 +717,7 @@ class Evaluation(abc.ABC):
                             parts=[types.Part(text="I approve you to continue")],
                         ),
                     ):
-                        logger.info(event)
+                        logger.warning(event)
                         all_events.append(event)
 
                     # get the session object to check if the task is finished, get_session returns a deepcopy of the session
@@ -734,7 +742,7 @@ class Evaluation(abc.ABC):
         # set our collected events to the session object, since the original events may be lost due to summarization
         session.events = all_events
 
-        logger.info(f"Agent execution completed for session: {task.session_id}")
+        logger.warning(f"Agent execution completed for session: {task.session_id}")
 
         # Calculate and save cost information
         self._save_cost_info(task, session)
@@ -760,19 +768,19 @@ class Evaluation(abc.ABC):
 
         # 1. Copy output from sandbox (if specified)
         if task.output_dir_in_sandbox:
-            # Check if under /shared
-            if not task.output_dir_in_sandbox.startswith("/shared"):
-                raise ValueError(
-                    f"output_dir_in_sandbox must be under /shared, "
-                    f"got: {task.output_dir_in_sandbox}"
-                )
+            # # Check if under /shared
+            # if not task.output_dir_in_sandbox.startswith("/shared"):
+            #     raise ValueError(
+            #         f"output_dir_in_sandbox must be under /shared, "
+            #         f"got: {task.output_dir_in_sandbox}"
+            #     )
 
             sandbox = aigise_session.sandboxes.get_sandbox("main")
             sandbox_output_dir = output_path / "sandbox_output"
             sandbox.copy_directory_from_container(
                 src_path=task.output_dir_in_sandbox, dst_path=str(sandbox_output_dir)
             )
-            logger.info(
+            logger.warning(
                 f"Copied sandbox output from {task.output_dir_in_sandbox} "
                 f"to {sandbox_output_dir}"
             )
@@ -791,7 +799,7 @@ class Evaluation(abc.ABC):
         with open(output_path / "metadata.json", "w") as f:
             json.dump(json.loads(jsonpickle.encode(info)), f, indent=2)
 
-        logger.info(f"Outputs collected to {output_path}")
+        logger.warning(f"Outputs collected to {output_path}")
         return info
 
     async def _export_neo4j_database(
@@ -826,7 +834,7 @@ class Evaluation(abc.ABC):
                 dst_path=str(output_path / f"{database_name}.tar.gz"),
             )
 
-            logger.info(
+            logger.warning(
                 f"Neo4j database exported to {output_path}/{database_name}.tar.gz"
             )
         except Exception as e:
@@ -867,7 +875,7 @@ class Evaluation(abc.ABC):
         with open(output_path.with_suffix(".txt"), "w") as f:
             f.write("\n".join(output_lines))
 
-        logger.info(f"Session trace exported to {output_path}")
+        logger.warning(f"Session trace exported to {output_path}")
 
     def evaluate(self) -> None:
         raise NotImplementedError

@@ -9,9 +9,10 @@ from pathlib import Path
 import docker
 import fire
 
-from aigise.evaluations import Evaluation, EvaluationTask
 from aigise.session import get_aigise_session
 from aigise.utils.project_info import PROJECT_PATH
+
+from .. import Evaluation, EvaluationTask
 
 logger = logging.getLogger(__name__)
 

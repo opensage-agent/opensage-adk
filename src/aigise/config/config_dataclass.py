@@ -248,8 +248,8 @@ class LLMConfig:
 class HistoryConfig:
     """Tool configuration."""
 
-    max_tool_response_length: int = 1500
-    max_history_summary_length: int = 60000
+    max_tool_response_length: int = 10000
+    max_history_summary_length: int = 100000
 
 
 @dataclass

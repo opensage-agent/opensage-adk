@@ -77,14 +77,14 @@ ports = { "8081/tcp" = "${JOERN_PORT}" }
 # Neo4j sandbox configuration
 [sandbox.sandboxes.neo4j]
 image = "neo4j:5.26.12-enterprise"
-command = ""                       # Use Neo4j's default startup command
+command = "" # Use Neo4j's default startup command
 [sandbox.sandboxes.neo4j.environment]
 NEO4J_ACCEPT_LICENSE_AGREEMENT = "yes"
 NEO4J_AUTH = "neo4j/${NEO4J_PASSWORD}"
 NEO4J_PLUGINS = '["graph-data-science", "apoc"]'
+NEO4J_server_directories_import = "/shared/neo4j/import"
 NEO4J_apoc_import_file_enabled = "true"
 NEO4J_apoc_export_file_enabled = "true"
-NEO4J_dbms_directories_import = "/shared/neo4j/import"
 [sandbox.sandboxes.neo4j.ports]
 "7474/tcp" = "${NEO4J_HTTP_PORT}" # HTTP port
 "7687/tcp" = "${NEO4J_BOLT_PORT}" # Bolt port

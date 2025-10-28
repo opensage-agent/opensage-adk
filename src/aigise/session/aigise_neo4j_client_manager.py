@@ -63,7 +63,7 @@ class AigiseNeo4jClientManager:
         database_mapping = {
             "history": f"agent-history-{self.aigise_session_id}",
             "analysis": f"analysis-{self.aigise_session_id}",
-            "default": f"neo4j",
+            "default": "neo4j",
         }
         return database_mapping.get(client_type, client_type)
 

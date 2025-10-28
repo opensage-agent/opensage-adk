@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from aigise.sandbox.base_sandbox import BaseSandbox
+from aigise.session.joern_client import JoernClient
 from aigise.session.sandbox_state import SandboxState
 from aigise.utils.merge_joern_codeql import import_joern_cpg, update_joern_cpg
 
@@ -71,6 +72,12 @@ class JoernInitializer(SandboxInitializer):
 
         await import_joern_cpg(neo4j_client, "/joern_export.xml")
         await update_joern_cpg(neo4j_client, fix_identical_methods=True)
+
+        client = JoernClient(
+            server_endpoint=f"{aigise_session.config.default_host}:18087"
+        )
+
+        await client.aexecute("importCpg('/cpg.bin')")
 
         await self.ensure_ready()
 

@@ -7,6 +7,7 @@ to sandbox instances without affecting the underlying backend implementation.
 
 from .base import DefaultInitializer, SandboxInitializer
 from .codeql import CodeQLInitializer
+from .coverage import CoverageInitializer
 from .fuzz import FuzzInitializer
 from .joern import JoernInitializer
 from .neo4j import Neo4jInitializer
@@ -15,6 +16,7 @@ __all__ = [
     "SandboxInitializer",
     "DefaultInitializer",
     "CodeQLInitializer",
+    "CoverageInitializer",
     "JoernInitializer",
     "FuzzInitializer",
     "Neo4jInitializer",

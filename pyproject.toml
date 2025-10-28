@@ -27,6 +27,7 @@ dependencies = [
     "jsonpickle>=3.0.0",
     "datasets>=2.0.0",
     "dacite>=1.8.0",
+    "cxxfilt>=0.3.0",
 ]
 
 [dependency-groups]

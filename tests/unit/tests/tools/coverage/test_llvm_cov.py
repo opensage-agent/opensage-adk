@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from aigise.utils.coverage.llvm_cov import parse_llvm_coverage_json
+from aigise.toolbox.coverage.llvm_cov import parse_llvm_coverage_json
 from aigise.utils.project_info import PROJECT_PATH
 
 

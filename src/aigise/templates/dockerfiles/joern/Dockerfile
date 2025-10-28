@@ -35,4 +35,4 @@ ENV PATH="/opt/joern/joern-cli:$PATH"
 
 EXPOSE 8081
 WORKDIR /work
-CMD ["joern", "--server", "0.0.0.0", "--server-port", "8081"]
+CMD ["joern", "--server", "--server-host", "0.0.0.0", "--server-port", "8081"]

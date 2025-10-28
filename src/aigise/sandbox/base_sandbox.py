@@ -45,7 +45,12 @@ class BaseSandbox(ABC):
         pass
 
     @abstractmethod
-    def extract_file_from_container(self, filepath: str):
+    def extract_file_from_container(self, filepath: str) -> str:
+        """Extract file content from the container."""
+        pass
+
+    @abstractmethod
+    def extract_file_from_container_bytes(self, filepath: str) -> bytes:
         """Extract file content from the container."""
         pass
 

@@ -7,10 +7,8 @@ import pytest_asyncio
 from aigise.session import AigiseSession, get_aigise_session
 from aigise.session.neo4j_client import AsyncNeo4jClient
 from aigise.toolbox.static_analysis.cpg import (
-    get_callee_by_funcname,
-    get_callee_by_funcname_and_filepath,
-    get_caller_by_funcname,
-    get_caller_by_funcname_and_filepath,
+    get_callee,
+    get_caller,
     search_function,
 )
 from aigise.utils.project_info import PROJECT_PATH
@@ -70,19 +68,17 @@ async def test_cpg_get_caller(aigise_session: AigiseSession):
     mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
     fix_neo4j_client(aigise_session, "analysis")
 
-    res = await get_caller_by_funcname("file_fsmagic", tool_context=mock_context)
+    res = await get_caller("file_fsmagic", None, tool_context=mock_context)
     assert len(res["result"]) == 1
     assert res["result"][0]["function_name"] == "file_or_fd"
 
-    res = await get_caller_by_funcname_and_filepath(
+    res = await get_caller(
         "file_fsmagic", "file/src/fsmagic.c", tool_context=mock_context
     )
     assert len(res["result"]) == 1
     assert res["result"][0]["function_name"] == "file_or_fd"
 
-    res = await get_caller_by_funcname(
-        "non_existing_function", tool_context=mock_context
-    )
+    res = await get_caller("non_existing_function", None, tool_context=mock_context)
     assert len(res["result"]) == 0
 
 
@@ -93,21 +89,17 @@ async def test_cpg_get_callee(aigise_session: AigiseSession):
     mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
     fix_neo4j_client(aigise_session, "analysis")
 
-    res = await get_callee_by_funcname("file_or_fd", tool_context=mock_context)
+    res = await get_callee("file_or_fd", None, tool_context=mock_context)
     assert len(res["result"]) == 25
     callee_names = [entry["function_name"] for entry in res["result"]]
     assert "file_fsmagic" in callee_names
 
-    res = await get_callee_by_funcname_and_filepath(
-        "file_or_fd", "src/magic.c", tool_context=mock_context
-    )
+    res = await get_callee("file_or_fd", "src/magic.c", tool_context=mock_context)
     assert len(res["result"]) == 25
     callee_names = [entry["function_name"] for entry in res["result"]]
     assert "file_fsmagic" in callee_names
 
-    res = await get_callee_by_funcname(
-        "non_existing_function", tool_context=mock_context
-    )
+    res = await get_callee("non_existing_function", None, tool_context=mock_context)
     assert len(res["result"]) == 0
 
 

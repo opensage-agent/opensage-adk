@@ -14,7 +14,7 @@ import cxxfilt
 import msgspec
 from neo4j import GraphDatabase
 
-from aigise.utils.coverage.llvm_cov import (
+from aigise.toolbox.coverage.llvm_cov import (
     Branch,
     CountedRegion,
     CoverageSegment,

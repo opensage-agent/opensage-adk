@@ -6,6 +6,7 @@ from typing import Optional, Type
 
 from aigise.sandbox.initializers import (
     CodeQLInitializer,
+    CoverageInitializer,
     DefaultInitializer,
     FuzzInitializer,
     JoernInitializer,
@@ -30,6 +31,7 @@ SANDBOX_INITIALIZERS = {
     "joern": JoernInitializer,
     "fuzz": FuzzInitializer,
     "neo4j": Neo4jInitializer,
+    "coverage": CoverageInitializer,
 }
 
 

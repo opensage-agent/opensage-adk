@@ -13,6 +13,7 @@ from google.adk.tools.base_toolset import BaseToolset
 from google.adk.tools.tool_context import ToolContext
 
 from aigise.config.config_dataclass import AigiseConfig
+from aigise.session.joern_client import JoernClient
 
 
 def get_aigise_config_from_context(
@@ -133,6 +134,27 @@ async def get_neo4j_client_from_context(
     aigise_session_id = get_aigise_session_id_from_context(context)
     aigise_session = get_aigise_session(aigise_session_id)
     return await aigise_session.neo4j.get_async_client(client_type)
+
+
+async def get_joern_client_from_context(
+    context: InvocationContext | ToolContext,
+) -> JoernClient:
+    """Get Joern client from context using new AigiseSession architecture.
+
+    Args:
+        context: Tool or invocation context
+    Returns:
+        JoernClient instance
+    """
+    # Lazy import to avoid circular dependency
+    from aigise.session import get_aigise_session
+
+    aigise_session_id = get_aigise_session_id_from_context(context)
+    aigise_session = get_aigise_session(aigise_session_id)
+    joern_port = 18087
+    return JoernClient(
+        server_endpoint=f"{aigise_session.config.default_host}:{joern_port}"
+    )
 
 
 def get_aigise_session_id_from_context(context) -> str:

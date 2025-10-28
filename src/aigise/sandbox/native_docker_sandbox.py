@@ -1112,6 +1112,7 @@ class NativeDockerSandbox(BaseSandbox):
         import socket
 
         # Collect all ports to check
+        # TODO: Add more ports to check as needed
         ports_to_check = [7777]  # Placeholder port
 
         # Add Neo4j ports
@@ -1212,7 +1213,7 @@ class NativeDockerSandbox(BaseSandbox):
                 "alpine:latest",
                 command=["sh", "-c", "nc -l -p 7777 0.0.0.0 & sleep infinity"],
                 detach=True,
-                name=f"aigise-placeholder-{session_id}",
+                name=f"aigise_placeholder_{session_id}",
                 ports={"7777/tcp": (loopback_ip, 7777)},
                 remove=True,
             )

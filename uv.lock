@@ -20,6 +20,7 @@ name = "aigise"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "cxxfilt" },
     { name = "cybergym", extra = ["dev", "server"] },
     { name = "dacite" },
     { name = "datasets" },
@@ -52,6 +53,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cxxfilt", specifier = ">=0.3.0" },
     { name = "cybergym", extras = ["dev", "server"], git = "https://github.com/sunblaze-ucb/cybergym" },
     { name = "dacite", specifier = ">=1.8.0" },
     { name = "datasets", specifier = ">=2.0.0" },
@@ -498,6 +500,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/15/52/ea7e2b1910f547baed566c866fbb86de2402e501a89ecb4871ea7f169a81/cryptography-46.0.2-cp38-abi3-win32.whl", hash = "sha256:0b507c8e033307e37af61cb9f7159b416173bdf5b41d11c4df2e499a1d8e007c", size = 3036711, upload-time = "2025-10-01T00:28:47.096Z" },
     { url = "https://files.pythonhosted.org/packages/71/9e/171f40f9c70a873e73c2efcdbe91e1d4b1777a03398fa1c4af3c56a2477a/cryptography-46.0.2-cp38-abi3-win_amd64.whl", hash = "sha256:f9b2dc7668418fb6f221e4bf701f716e05e8eadb4f1988a2487b11aedf8abe62", size = 3500007, upload-time = "2025-10-01T00:28:48.967Z" },
     { url = "https://files.pythonhosted.org/packages/3e/7c/15ad426257615f9be8caf7f97990cf3dcbb5b8dd7ed7e0db581a1c4759dd/cryptography-46.0.2-cp38-abi3-win_arm64.whl", hash = "sha256:91447f2b17e83c9e0c89f133119d83f94ce6e0fb55dd47da0a959316e6e9cfa1", size = 2918153, upload-time = "2025-10-01T00:28:51.003Z" },
+]
+
+[[package]]
+name = "cxxfilt"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/dc/71ac606f7dfa71d49e3dc126b49b18daefaf6bd953078858af30fde40702/cxxfilt-0.3.0.tar.gz", hash = "sha256:7df6464ba5e8efbf0d8974c0b2c78b32546676f06059a83515dbdfa559b34214", size = 4806, upload-time = "2021-08-21T16:48:04.038Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1c/29/23572dc59bf4a3984fe3c5fc242f73be916785ee93387dd95c972dbf584e/cxxfilt-0.3.0-py2.py3-none-any.whl", hash = "sha256:774e85a8d0157775ed43276d89397d924b104135762d86b3a95f81f203094e07", size = 4649, upload-time = "2021-08-21T16:48:02.953Z" },
 ]
 
 [[package]]

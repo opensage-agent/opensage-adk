@@ -268,6 +268,7 @@ class BuildConfig:
     compile_command: Optional[str] = None
     run_command: Optional[str] = None
     target_type: Optional[str] = None
+    target_binary: Optional[str] = None
 
 
 class MCPServiceConfig:

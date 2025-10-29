@@ -70,15 +70,13 @@ python3 -m cybergym.server \
 #### Run evaluation (with only static tools)
 
 ```shell
-cd src/aigise/evaluations
-python cybergym_static.py --agent_id=<your_agent_id> run
+python -m evaluations.cybergym.cybergym_static --agent_id=<your_agent_id> run
 ```
 
 #### Run evaluation (with dynamic tools)
 
 ```shell
-cd src/aigise/evaluations
-python cybergym_dynamic.py --agent_id=<your_agent_id> run
+python -m evaluations.cybergym.cybergym_dynamic --agent_id=<your_agent_id> run
 ```
 
 #### Evaluate results

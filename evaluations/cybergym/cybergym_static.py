@@ -67,9 +67,7 @@ class CyberGym(Evaluation):
             )
         with open(Path(__file__).parent / "metadata" / "task_list_subset", "r") as f:
             task_list = f.read().splitlines()
-        task_list = task_list[1:11]
         dataset = dataset.filter(lambda x: x["task_id"] in task_list)
-        # dataset = dataset.select(range(1))
         return dataset
 
     def _init_workdir(self, sample: dict, tmp_workdir: str) -> None:

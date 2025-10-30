@@ -384,7 +384,7 @@ async def import_joern_callgraph(n4j_client: AsyncNeo4jClient, json_outdir: str)
             CALL apoc.periodic.iterate(
             '
             // Stream the JSON array
-            CALL apoc.load.json("file://{json_outdir}/r_{rel}.json") YIELD value
+            CALL apoc.load.json("file://{json_outdir}/r_{n}-{m}-{rel}.json") YIELD value
             RETURN value
             ',
             '

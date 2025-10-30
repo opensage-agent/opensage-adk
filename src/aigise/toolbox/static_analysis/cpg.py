@@ -27,9 +27,9 @@ async def search_function(function_name: str, *, tool_context: ToolContext) -> d
     client = await get_neo4j_client_from_context(tool_context, "analysis")
 
     results = await client.run_query(
-        "MATCH (m:METHOD) WHERE m.NAME = $name "
-        "RETURN m.FILENAME as path, m.LINE_NUMBER as start,"
-        "m.LINE_NUMBER_END as end, m.CODE as code",
+        "MATCH (m:METHOD) WHERE m.name = $name "
+        "RETURN m.filename as path, m.lineNumber as start,"
+        "m.lineNumberEnd as end, m.code as code",
         {"name": function_name},
     )
 
@@ -69,20 +69,20 @@ async def _get_caller_helper(
     # Build the WHERE clause based on whether file_path is provided
     if file_path:
         where_clause = (
-            "WHERE n.NAME = $name AND "
-            "(n.FILENAME CONTAINS $file_path OR $file_path CONTAINS n.FILENAME)"
+            "WHERE n.name = $name AND "
+            "(n.filename CONTAINS $file_path OR $file_path CONTAINS n.filename)"
         )
         params = {"name": function_name, "file_path": file_path}
     else:
-        where_clause = "WHERE n.NAME = $name"
+        where_clause = "WHERE n.name = $name"
         params = {"name": function_name}
 
     # Query for direct calls
     query_direct = (
         f"MATCH (m:METHOD)-[:CG_CALL]->(n:METHOD) "
         f"{where_clause} "
-        f"RETURN m.NAME as caller_name, m.FILENAME as path, "
-        f"m.LINE_NUMBER as start, m.LINE_NUMBER_END as end"
+        f"RETURN m.name as caller_name, m.filename as path, "
+        f"m.lineNumber as start, m.lineNumberEnd as end"
     )
     results = await client.run_query(query_direct, params)
 
@@ -101,8 +101,8 @@ async def _get_caller_helper(
     query_indirect = (
         f"MATCH (m:METHOD)-[:CG_MAYBE_INDIRECT_CALL]->(n:METHOD) "
         f"{where_clause} "
-        f"RETURN m.NAME as caller_name, m.FILENAME as path, "
-        f"m.LINE_NUMBER as start, m.LINE_NUMBER_END as end"
+        f"RETURN m.name as caller_name, m.filename as path, "
+        f"m.lineNumber as start, m.lineNumberEnd as end"
     )
     results = await client.run_query(query_indirect, params)
 
@@ -140,21 +140,21 @@ async def _get_callee_helper(
     # Build the WHERE clause based on whether file_path is provided
     if file_path:
         where_clause = (
-            "WHERE m.NAME = $name AND "
-            "(m.FILENAME CONTAINS $file_path OR $file_path CONTAINS m.FILENAME) "
-            "AND NOT n.NAME STARTS WITH '<operator>'"
+            "WHERE m.name = $name AND "
+            "(m.filename CONTAINS $file_path OR $file_path CONTAINS m.filename) "
+            "AND NOT n.name STARTS WITH '<operator>'"
         )
         params = {"name": function_name, "file_path": file_path}
     else:
-        where_clause = "WHERE m.NAME = $name AND NOT n.NAME STARTS WITH '<operator>'"
+        where_clause = "WHERE m.name = $name AND NOT n.name STARTS WITH '<operator>'"
         params = {"name": function_name}
 
     # Query for direct calls
     query_direct = (
         f"MATCH (m:METHOD)-[:CG_CALL]->(n:METHOD) "
         f"{where_clause} "
-        f"RETURN n.NAME as callee_name, n.FILENAME as path, "
-        f"n.LINE_NUMBER as start, n.LINE_NUMBER_END as end"
+        f"RETURN n.name as callee_name, n.filename as path, "
+        f"n.lineNumber as start, n.lineNumberEnd as end"
     )
     results = await client.run_query(query_direct, params)
 
@@ -173,8 +173,8 @@ async def _get_callee_helper(
     query_indirect = (
         f"MATCH (m:METHOD)-[:CG_MAYBE_INDIRECT_CALL]->(n:METHOD) "
         f"{where_clause} "
-        f"RETURN n.NAME as callee_name, n.FILENAME as path, "
-        f"n.LINE_NUMBER as start, n.LINE_NUMBER_END as end"
+        f"RETURN n.name as callee_name, n.filename as path, "
+        f"n.lineNumber as start, n.lineNumberEnd as end"
     )
     results = await client.run_query(query_indirect, params)
 
@@ -265,19 +265,19 @@ async def get_shortest_paths_in_callgraph_to_function_in_file(
     # Build the WHERE clauses based on whether file paths are provided
     if dst_file_path:
         dst_where_clause = (
-            "end.NAME = $dst_name AND "
-            "(end.FILENAME CONTAINS $dst_file_path OR $dst_file_path CONTAINS end.FILENAME)"
+            "end.name = $dst_name AND "
+            "(end.filename CONTAINS $dst_file_path OR $dst_file_path CONTAINS end.filename)"
         )
     else:
-        dst_where_clause = "end.NAME = $dst_name"
+        dst_where_clause = "end.name = $dst_name"
 
     if src_file_path:
         src_where_clause = (
-            "start.NAME = $src_name AND "
-            "(start.FILENAME CONTAINS $src_file_path OR $src_file_path CONTAINS start.FILENAME)"
+            "start.name = $src_name AND "
+            "(start.filename CONTAINS $src_file_path OR $src_file_path CONTAINS start.filename)"
         )
     else:
-        src_where_clause = "start.NAME = $src_name"
+        src_where_clause = "start.name = $src_name"
 
     # Use allShortestPaths to find all shortest paths with a reasonable depth limit
     query = (
@@ -289,13 +289,13 @@ async def get_shortest_paths_in_callgraph_to_function_in_file(
         f") "
         f"WHERE p IS NOT NULL "
         f"RETURN "
-        f"  start.NAME AS start_name, "
-        f"  start.FILENAME AS start_path, "
+        f"  start.name AS start_name, "
+        f"  start.filename AS start_path, "
         f"  [n IN nodes(p) | {{"
-        f"     name: n.NAME, "
-        f"     path: n.FILENAME, "
-        f"     start: n.LINE_NUMBER, "
-        f"     end: n.LINE_NUMBER_END"
+        f"     name: n.name, "
+        f"     path: n.filename, "
+        f"     start: n.lineNumber, "
+        f"     end: n.lineNumberEnd"
         f"  }}] AS path_nodes "
         f"ORDER BY start_name"
     )

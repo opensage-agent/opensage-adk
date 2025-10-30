@@ -229,10 +229,10 @@ async def insert_codeql_results_to_cpg(
     cypher = """
     UNWIND $rows AS row
     OPTIONAL MATCH (m:METHOD)
-    WHERE m.NAME = row.name AND
-        row.path ENDS WITH m.FILENAME AND
-        m.LINE_NUMBER <= row.end_line AND
-        m.LINE_NUMBER_END >= row.start_line
+    WHERE m.name = row.name AND
+        row.path ENDS WITH m.filename AND
+        m.lineNumber <= row.end_line AND
+        m.lineNumberEnd >= row.start_line
     RETURN row.idx as idx, collect(m.id) as method_ids
     """
     results = await n4j_client.run_query(cypher, {"rows": rows})
@@ -249,13 +249,13 @@ async def insert_codeql_results_to_cpg(
             logger.info(f"Creating missing method node: {methods[idx]}")
             create_cypher = """
             CREATE (m:METHOD)
-            SET m.NAME = $name,
-                m.FULL_NAME = $name,
-                m.FILENAME = $path,
-                m.LINE_NUMBER = $start_line,
-                m.COLUMN_NUMBER = $start_col,
-                m.LINE_NUMBER_END = $end_line,
-                m.COLUMN_NUMBER_END = $end_col
+            SET m.name = $name,
+                m.fullName = $name,
+                m.filename = $path,
+                m.lineNumber = $start_line,
+                m.columnNumber = $start_col,
+                m.lineNumberEnd = $end_line,
+                m.columnNumberEnd = $end_col
             """
             await n4j_client.run_query(
                 create_cypher,
@@ -321,11 +321,11 @@ async def update_joern_cpg(
 
     if fix_identical_methods:
         cypher = """
-        MATCH (n: METHOD {IS_EXTERNAL: true})
-        MATCH (m: METHOD {IS_EXTERNAL: false})
-        WHERE n.NAME = m.NAME and
-            (n.SIGNATURE = "<unresolvedSignature>" or
-                (n.SIGNATURE = m.SIGNATURE))
+        MATCH (n: METHOD {isExternal: true})
+        MATCH (m: METHOD {isExternal: false})
+        WHERE n.name = m.name and
+            (n.signature = "<unresolvedSignature>" or
+                (n.signature = m.signature))
         MERGE (n)-[:MAYBE_IDENTICAL]->(m)
         MERGE (n)<-[:MAYBE_IDENTICAL]-(m)
         RETURN count(*) as rel_count
@@ -334,13 +334,68 @@ async def update_joern_cpg(
         logger.info(f"Created {res[0]['rel_count']} MAYBE_IDENTICAL edges")
 
 
-async def import_joern_cpg(n4j_client: AsyncNeo4jClient, graphml_path: str):
-    cypher = f"""
-    CALL apoc.import.graphml("file://{graphml_path}", {{readLabels: true, storeNodeIds: true}})
-    YIELD nodes, relationships, properties, time
-    RETURN nodes, relationships, properties, time
-    """
-    res = await n4j_client.run_query(cypher)
-    logger.info(
-        f"Imported {res[0]['nodes']} nodes, {res[0]['relationships']} relationships, {res[0]['properties']} properties, in {res[0]['time']} ms from {graphml_path}"
-    )
+# async def import_joern_cpg(n4j_client: AsyncNeo4jClient, graphml_path: str):
+#     cypher = f"""
+#     CALL apoc.import.graphml("file://{graphml_path}", {{readLabels: true, storeNodeIds: true}})
+#     YIELD nodes, relationships, properties, time
+#     RETURN nodes, relationships, properties, time
+#     """
+#     res = await n4j_client.run_query(cypher)
+#     logger.info(
+#         f"Imported {res[0]['nodes']} nodes, {res[0]['relationships']} relationships, {res[0]['properties']} properties, in {res[0]['time']} ms from {graphml_path}"
+#     )
+
+
+async def import_joern_callgraph(n4j_client: AsyncNeo4jClient, json_outdir: str):
+    for node in ["CALL", "METHOD"]:
+        res = await n4j_client.run_query(
+            f"""
+            CALL apoc.periodic.iterate(
+            '
+            // Stream the JSON array
+            CALL apoc.load.json("file://{json_outdir}/{node}.json") YIELD value
+            RETURN value
+            ',
+            '
+            // For each JSON object:
+            WITH value
+            WITH value._label AS label,
+                apoc.map.removeKeys(value, ["_label"]) AS props
+            // Upsert by _id using dynamic label
+            CALL apoc.create.node([label], props) YIELD node
+            RETURN 1
+            ',
+            {{batchSize: 10000, parallel: true}}
+            );
+            """
+        )
+        logger.info(f"Imported {node} node: {res}")
+        # create index on n._id
+        await n4j_client.run_query(
+            f"CREATE INDEX IF NOT EXISTS FOR (n:{node}) ON (n._id)"
+        )
+
+    for n, m, rel in [
+        ("METHOD", "CALL", "CONTAINS"),
+        ("CALL", "METHOD", "CALL"),
+    ]:
+        res = await n4j_client.run_query(
+            f"""
+            CALL apoc.periodic.iterate(
+            '
+            // Stream the JSON array
+            CALL apoc.load.json("file://{json_outdir}/r_{rel}.json") YIELD value
+            RETURN value
+            ',
+            '
+            // For each JSON object:
+            WITH value
+            MATCH (a:{n} {{_id: value._1}}), (b:{m} {{_id: value._2}})
+            CREATE (a)-[:{rel}]->(b)
+            RETURN 1
+            ',
+            {{batchSize: 10000, parallel: true}}
+            );
+            """
+        )
+        logger.info(f"Imported {rel} relationship: {res}")

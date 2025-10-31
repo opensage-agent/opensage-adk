@@ -13,7 +13,7 @@ import datasets
 import fire
 from google import adk
 from google.adk import Runner
-from google.adk.agents import ParallelAgent, RunConfig
+from google.adk.agents import LlmAgent, ParallelAgent, RunConfig, SequentialAgent
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.models.lite_llm import LiteLlm
@@ -72,29 +72,28 @@ def mk_agent(
     function_name,
     file_name,
     impl,
-    aigise_session_id="vulnerability-detection-agent-session",
 ):
-    enable_neo4j_logging()
-    aigise_session = get_aigise_session(aigise_session_id)
-    ensemble_manager = aigise_session.ensemble
-    ensemble_manager.add_thread_safe_tool("grep_tool")
-    ensemble_manager.add_thread_safe_tool("search_function")
-    ensemble_manager.add_thread_safe_tool("get_caller_by_funcname")
-    ensemble_manager.add_thread_safe_tool("get_callee_by_funcname")
-    ensemble_manager.add_thread_safe_tool("list_functions_in_file")
-    ensemble_manager.add_thread_safe_tool("get_line_around_linenum_in_file")
-    ensemble_manager.add_thread_safe_tool("neo4j_query")
-    ensemble_manager.add_thread_safe_tool("joern_slice")
-    ensemble_manager.add_thread_safe_tool("joern_query")
-    config = aigise_session.config
-    config.agent_ensemble.available_models_for_ensemble = [
-        "anthropic/claude-sonnet-4-5-20250929",
-        "openai/o4-mini",
-        "openai/gpt-5",
-    ]
-    aigise_session.config = config
-    vul_detect_agent = AigiseAgent(
-        name="vulnerability_detection_agent",
+    # enable_neo4j_logging()
+    # aigise_session = get_aigise_session(aigise_session_id)
+    # ensemble_manager = aigise_session.ensemble
+    # ensemble_manager.add_thread_safe_tool("grep_tool")
+    # ensemble_manager.add_thread_safe_tool("search_function")
+    # ensemble_manager.add_thread_safe_tool("get_caller_by_funcname")
+    # ensemble_manager.add_thread_safe_tool("get_callee_by_funcname")
+    # ensemble_manager.add_thread_safe_tool("list_functions_in_file")
+    # ensemble_manager.add_thread_safe_tool("get_line_around_linenum_in_file")
+    # ensemble_manager.add_thread_safe_tool("neo4j_query")
+    # ensemble_manager.add_thread_safe_tool("joern_slice")
+    # ensemble_manager.add_thread_safe_tool("joern_query")
+    # config = aigise_session.config
+    # config.agent_ensemble.available_models_for_ensemble = [
+    #     "anthropic/claude-sonnet-4-5-20250929",
+    #     "openai/o4-mini",
+    #     "openai/gpt-5",
+    # ]
+    # aigise_session.config = config
+    vul_detect_agent = LlmAgent(
+        name="vulnerability_detection_agent_for_" + function_name,
         model=LiteLlm(model="anthropic/claude-sonnet-4-5-20250929"),
         description="find vulnerabilities existing in this function.",
         instruction=f"""You are an expert in vulnerability research. Given a function called {function_name}, detect if any vulnerability exists in this function.
@@ -123,7 +122,8 @@ You need to first find this function's implementation by `search_function`, and 
             # list_active_agents,
             # call_subagent_as_tool,
         ],
-        aigise_session_id=aigise_session_id,
+        output_key=function_name,
+        # aigise_session_id=aigise_session_id,
     )
     setup_summarization_callbacks(vul_detect_agent)
     return vul_detect_agent
@@ -289,8 +289,11 @@ RETURN n.name AS name, n.filename AS filename""")
         # a = await client.run_query(function_query)
         logger.info("All indexes are now online")
         agent_list = []
-        for func in ret[:2]:
+        input_key_str = ""
+        for func in ret[:5]:
             function_name = func["name"]
+            if "<" in function_name:
+                continue
             impl = await client.run_query(
                 "MATCH (m:METHOD) WHERE m.name = $name "
                 "RETURN m.filename as path, m.lineNumber as start,"
@@ -302,9 +305,9 @@ RETURN n.name AS name, n.filename AS filename""")
                     function_name=function_name,
                     file_name=impl[0]["path"],
                     impl=impl[0]["code"],
-                    aigise_session_id=task.session_id + str(function_name),
                 )
             )
+            input_key_str += f"{{{function_name}}}\n\n"
 
         parallel_agent = ParallelAgent(
             name="ParallelVulDetectAgent",
@@ -312,11 +315,30 @@ RETURN n.name AS name, n.filename AS filename""")
             description="Run multiple agents in parallel to analyze different functions in the code base",
         )
 
+        merger_agent = LlmAgent(
+            name="SummaryAgent",
+            model=LiteLlm(
+                model="anthropic/claude-sonnet-4-5-20250929"
+            ),  # Or potentially a more powerful model if needed for synthesis
+            instruction=f"""You are an AI Assistant responsible for combining Vulnerability findings into a structured report.
+
+        **Input Summaries:**
+
+        {input_key_str}
+
+        """,
+            description="Combines vulnerability findings from parallel agents into a structured report, strictly grounded on provided inputs.",
+        )
+        root_agent = SequentialAgent(
+            name="AllAgent",
+            sub_agents=[parallel_agent, merger_agent],
+            description="Run multiple agents in parallel to analyze different functions in the code base",
+        )
         # 2. Create runner and session service
         app_name = self.__class__.__name__.lower()
         session_service = InMemorySessionService()
         runner = Runner(
-            agent=parallel_agent,
+            agent=root_agent,
             app_name=app_name,
             session_service=session_service,
         )

@@ -75,6 +75,8 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
         # Anthropic prompt caching
         extra_headers={"anthropic-beta": "prompt-caching-2024-07-31"},
+        # Auto-inject cache_control for system messages
+        cache_control_injection_points=[{"location": "message", "role": "system"}],
     )
 
     root_agent = AigiseAgent(

@@ -957,7 +957,7 @@ class Evaluation(abc.ABC):
     def run_debug(self) -> dict:
         """Run evaluation in single-threaded mode for debugging."""
         self.generate_single_thread()
-        self.evaluate()
+        # self.evaluate()
 
 
 if __name__ == "__main__":

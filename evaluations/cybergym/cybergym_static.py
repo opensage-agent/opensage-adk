@@ -36,6 +36,7 @@ class CyberGym(Evaluation):
     config_template_path: str = str(
         PROJECT_PATH / "evaluations/conifgs/cybergym_static_config.toml"
     )
+    use_task_subset: bool = True  # If True, filter using task_list_subset file
     # evaluate
     cybergym_dir: str = str(PROJECT_PATH / "third_party/cybergym")
     cybergym_poc_save_dir: str = (
@@ -65,10 +66,20 @@ class CyberGym(Evaluation):
             dataset = datasets.load_dataset(
                 self.dataset_path, split=self.dataset_hf_split
             )
-        with open(Path(__file__).parent / "metadata" / "task_list_subset", "r") as f:
-            task_list = f.read().splitlines()
-        task_list = task_list[:72]
-        dataset = dataset.filter(lambda x: x["task_id"] in task_list)
+
+        # Optionally filter using task_list_subset
+        if self.use_task_subset:
+            with open(
+                Path(__file__).parent / "metadata" / "task_list_subset", "r"
+            ) as f:
+                task_list = f.read().splitlines()
+            dataset = dataset.filter(lambda x: x["task_id"] in task_list)
+            logger.warning(
+                f"Filtered dataset to {len(dataset)} tasks from task_list_subset"
+            )
+        else:
+            logger.warning(f"Using full dataset: {len(dataset)} tasks")
+
         return dataset
 
     def _init_workdir(self, sample: dict, tmp_workdir: str) -> None:

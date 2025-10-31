@@ -35,22 +35,18 @@ class AsyncNeo4jClient:
         logger.info(f"Waiting for Neo4j at {self.uri} to be ready (async client)...")
 
         try:
-            # Use synchronous driver for testing connection to default database first
-            test_driver = GraphDatabase.driver(
-                self.uri, auth=(self.user, self.password), database="neo4j"
-            )
-            with test_driver.session() as session:
-                result = session.run("RETURN 1 as test")
-                if result.single()["test"] == 1:
+            # Use async driver for testing connection
+            async with self.driver.session(database="neo4j") as session:
+                result = await session.run("RETURN 1 as test")
+                data = await result.data()
+                if data and data[0]["test"] == 1:
                     logger.info(f"Neo4j default database ready")
 
                     # If we need a specific database, check if it exists and create if needed
                     if self.database and self.database != "neo4j":
-                        await self._ensure_database_exists(test_driver, self.database)
+                        await self._ensure_database_exists(self.driver, self.database)
 
-                    test_driver.close()
                     return True
-            test_driver.close()
         except Exception as e:
             logger.debug(f"Neo4j default database not ready yet: {e}")
         return False
@@ -59,29 +55,28 @@ class AsyncNeo4jClient:
         """Ensure the target database exists, create if it doesn't.
 
         Args:
-            driver: Neo4j driver connected to default database
+            driver: Async Neo4j driver connected to default database
             database_name: Name of database to check/create
         """
         try:
-            with driver.session() as session:
+            async with driver.session(database="neo4j") as session:
                 # Check if database exists
-                result = session.run("SHOW DATABASES")
-                existing_databases = [record["name"] for record in result]
+                result = await session.run("SHOW DATABASES")
+                data = await result.data()
+                existing_databases = [record["name"] for record in data]
 
                 if database_name not in existing_databases:
                     logger.info(f"Database {database_name} does not exist, creating...")
-                    session.run(f"CREATE DATABASE `{database_name}`")
+                    await session.run(f"CREATE DATABASE `{database_name}`")
                     logger.info(f"Created database: {database_name}")
 
-                    # Start the database after creation
-                    logger.info(f"Starting database: {database_name}")
-                    session.run(f"START DATABASE `{database_name}`")
-                    logger.info(f"Started database: {database_name}")
+                # Start the database after creation
+                logger.info(f"Starting database: {database_name}")
+                await session.run(f"START DATABASE `{database_name}`")
+                logger.info(f"Started database: {database_name}")
 
-                    # Wait for database to become online after creation
-                    await self._wait_for_database_online(driver, database_name)
-                else:
-                    logger.debug(f"Database {database_name} already exists")
+                # Wait for database to become online after creation
+                await self._wait_for_database_online(driver, database_name)
         except Exception as e:
             logger.warning(f"Failed to check/create database {database_name}: {e}")
             # Continue anyway, maybe the database exists but we can't check it
@@ -89,33 +84,36 @@ class AsyncNeo4jClient:
     async def _wait_for_database_online(
         self, driver, database_name: str, timeout: int = 60
     ):
-        """Wait for database to become online after creation (synchronous version).
+        """Wait for database to become online after creation (async version).
 
         Args:
-            driver: Neo4j driver connected to default database
+            driver: Async Neo4j driver connected to default database
             database_name: Name of database to wait for
             timeout: Maximum wait time in seconds
         """
-        import time
-
         logger.info(f"Waiting for database {database_name} to come online...")
 
         for attempt in range(timeout):
             try:
-                with driver.session() as session:
-                    result = session.run("SHOW DATABASES")
-                    for record in result:
+                async with driver.session(database="neo4j") as session:
+                    result = await session.run("SHOW DATABASES")
+                    data = await result.data()
+
+                    for record in data:
                         if (
                             record["name"] == database_name
                             and record.get("currentStatus", "").lower() == "online"
                         ):
                             # Database shows as online, now test if it's actually usable
                             try:
-                                with driver.session(
+                                async with driver.session(
                                     database=database_name
                                 ) as test_session:
-                                    test_result = test_session.run("RETURN 1 as test")
-                                    if test_result.single()["test"] == 1:
+                                    test_result = await test_session.run(
+                                        "RETURN 1 as test"
+                                    )
+                                    test_data = await test_result.data()
+                                    if test_data and test_data[0]["test"] == 1:
                                         logger.info(
                                             f"Database {database_name} is now online and functional after {attempt + 1} seconds"
                                         )

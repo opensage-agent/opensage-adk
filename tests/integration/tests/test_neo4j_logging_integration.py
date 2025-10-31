@@ -54,7 +54,7 @@ class TestNeo4jLoggingIntegration:
         os.environ["AGENT_STORAGE_PATH"] = test_storage_dir
 
         # Database name that will be created
-        database_name = f"agent-history-{aigise_session_id}"
+        database_name = f"agent-history"
 
         yield {
             "aigise_session_id": aigise_session_id,
@@ -378,7 +378,7 @@ if __name__ == "__main__":
             {
                 "aigise_session_id": aigise_session_id,
                 "test_storage_dir": test_storage_dir,
-                "database_name": f"agent-history-{aigise_session_id}",
+                "database_name": f"agent-history",
                 "original_agent_storage_path": None,
             }
         )

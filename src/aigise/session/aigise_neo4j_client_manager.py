@@ -61,8 +61,8 @@ class AigiseNeo4jClientManager:
             Database name for the type
         """
         database_mapping = {
-            "history": f"agent-history-{self.aigise_session_id}",
-            "analysis": f"analysis-{self.aigise_session_id}",
+            "history": f"agent-history",
+            "analysis": f"analysis",
             "default": "neo4j",
         }
         return database_mapping.get(client_type, client_type)

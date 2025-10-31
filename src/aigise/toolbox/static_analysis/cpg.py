@@ -230,7 +230,7 @@ async def get_callee(
 
 
 @requires_sandbox("neo4j", "codeql", "joern")
-async def get_shortest_paths_in_callgraph_to_function_in_file(
+async def get_call_paths_to_function(
     dst_function_name: str,
     dst_file_path: Optional[str],
     src_function_name: Optional[str],
@@ -239,8 +239,7 @@ async def get_shortest_paths_in_callgraph_to_function_in_file(
     tool_context: ToolContext,
 ) -> dict:
     """
-    Tool to get the shortest paths from each fuzzing entrypoint (LLVMFuzzerTestOneInput)
-    to a specified end function in the codebase.
+    Get a path from each entrypoint to a specified end function in the codebase.
 
     Args:
         dst_function_name (str): The name of the destination function to search for.

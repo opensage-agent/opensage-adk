@@ -20,9 +20,9 @@ from aigise.toolbox.retrieval.search_tools import (
     list_functions_in_file,
 )
 from aigise.toolbox.static_analysis.call_graph import (
+    get_call_paths_to_function,
     get_callee_by_funcname,
     get_caller_by_funcname,
-    get_shortest_paths_in_callgraph_to_function_in_file,
 )
 
 
@@ -42,7 +42,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             # search_function,
             # get_caller_by_funcname,
             # get_callee_by_funcname,
-            # get_shortest_paths_in_callgraph_to_function_in_file,
+            # get_call_paths_to_function,
             # list_functions_in_file,
             submit_submission,
             finish_task,

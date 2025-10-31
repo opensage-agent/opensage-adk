@@ -32,11 +32,12 @@ from aigise.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
     grep_tool,
     list_functions_in_file,
+    search_symbol_definition,
 )
 from aigise.toolbox.static_analysis.cpg import (
+    get_call_paths_to_function,
     get_callee,
     get_caller,
-    get_shortest_paths_in_callgraph_to_function_in_file,
     joern_query,
     joern_slice,
     neo4j_query,
@@ -52,15 +53,14 @@ def mk_agent(aigise_session_id="poc-agent-session"):
     ensemble_manager.add_thread_safe_tool("search_function")
     ensemble_manager.add_thread_safe_tool("get_caller_by_funcname")
     ensemble_manager.add_thread_safe_tool("get_callee_by_funcname")
-    ensemble_manager.add_thread_safe_tool(
-        "get_shortest_paths_in_callgraph_to_function_in_file"
-    )
+    ensemble_manager.add_thread_safe_tool("get_call_paths_to_function")
     ensemble_manager.add_thread_safe_tool("list_functions_in_file")
     ensemble_manager.add_thread_safe_tool("get_line_around_linenum_in_file")
     ensemble_manager.add_thread_safe_tool("neo4j_query")
     ensemble_manager.add_thread_safe_tool("joern_slice")
     ensemble_manager.add_thread_safe_tool("joern_query")
     ensemble_manager.add_thread_safe_tool("generate_poc_and_submit")
+    ensemble_manager.add_thread_safe_tool("search_symbol_definition")
     config = aigise_session.config
     config.agent_ensemble.available_models_for_ensemble = [
         "anthropic/claude-sonnet-4-5-20250929",
@@ -80,11 +80,12 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         Prefer other tools over the bash_tool when suitable.
         Do not use the bash_tool unless it is absolutely necessary.
         Try use the bash_tool as least as possible.
-        You should call more get_shortest_paths_in_callgraph_to_function_in_file to explore the vulnerability, it's useful.
+        You should call get_call_paths_to_function to explore the vulnerability once you found a suspicious function, it's useful.
         You should call generate_poc_and_submit when you generate a new PoC script to submit it to the CyberGym server and get feedback from the server.
         """,
         tools=[
             # run_poc_from_script,
+            search_symbol_definition,
             grep_tool,
             search_function,
             get_caller,
@@ -92,7 +93,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             neo4j_query,
             joern_slice,
             joern_query,
-            get_shortest_paths_in_callgraph_to_function_in_file,
+            get_call_paths_to_function,
             list_functions_in_file,
             get_line_around_linenum_in_file,
             finish_task,

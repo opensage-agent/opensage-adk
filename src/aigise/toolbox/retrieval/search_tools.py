@@ -50,11 +50,11 @@ def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
 
     # Split into lines and check count
     lines = [line for line in output.strip().splitlines() if line.strip()]
-    if len(lines) > 100 or len(output) > 5000:
-        return {
-            "result": [],
-            "error": "Pattern too broad; please provide a more specific pattern.",
-        }
+    # if len(lines) > 100 or len(output) > 5000:
+    #     return {
+    #         "result": [],
+    #         "error": "Pattern too broad; please provide a more specific pattern.",
+    #     }
 
     dict_result = {"result": []}
 

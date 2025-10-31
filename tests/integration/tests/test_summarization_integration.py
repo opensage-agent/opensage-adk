@@ -54,7 +54,7 @@ class TestSummarizationIntegration:
         os.environ["AGENT_STORAGE_PATH"] = test_storage_dir
 
         # Database name that will be created
-        database_name = f"agent-history-{aigise_session_id}"
+        database_name = f"agent-history"
 
         yield {
             "aigise_session_id": aigise_session_id,
@@ -152,7 +152,7 @@ class TestSummarizationIntegration:
         for session_result in session_results:
             try:
                 aigise_session_id = session_result["aigise_session_id"]
-                database_name = f"agent-history-{aigise_session_id}"
+                database_name = f"agent-history"
                 await self._cleanup_test_database(aigise_session_id, database_name)
                 print(f"✅ Cleaned up isolated database: {database_name}")
             except Exception as e:
@@ -287,7 +287,7 @@ class TestSummarizationIntegration:
             description = session_result["description"]
 
             print(f"\n--- Verifying test case {i + 1}: {description} ---")
-            print(f"Database: agent-history-{aigise_session_id}")
+            print(f"Database: agent-history")
 
             # Get aigise session for this specific test case
             aigise_session = get_aigise_session(aigise_session_id)

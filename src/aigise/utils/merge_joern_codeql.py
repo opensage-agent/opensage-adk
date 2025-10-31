@@ -374,7 +374,9 @@ async def import_joern_callgraph(n4j_client: AsyncNeo4jClient, json_outdir: str)
         await n4j_client.run_query(
             f"CREATE INDEX IF NOT EXISTS FOR (n:{node}) ON (n._id)"
         )
-
+    logger.info("Waiting for indexes to come online...")
+    await n4j_client.run_query("CALL db.awaitIndexes(300)")
+    logger.info("All indexes are now online")
     for n, m, rel in [
         ("METHOD", "CALL", "CONTAINS"),
         ("CALL", "METHOD", "CALL"),

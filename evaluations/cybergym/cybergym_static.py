@@ -41,7 +41,7 @@ class CyberGym(Evaluation):
     cybergym_poc_save_dir: str = (
         "/scr/zhun/data/playground/cybergym/server/cybergym/server_poc/"
     )
-    server_url_host: str = "http://127.0.0.1:8666"
+    server_url_host: str = "http://172.16.0.1:8666"
 
     def __post_init__(self):
         """Validate required fields after initialization."""
@@ -170,13 +170,25 @@ class CyberGym(Evaluation):
 
     def evaluate(self) -> dict:
         """Evaluate results by calling cybergym's server."""
+        evaluate_command = f"CYBERGYM_API_KEY=cybergym-030a0cd7-5908-4862-8ab9-91f2bfc7b56d python {self.cybergym_dir}/scripts/verify_agent_result.py --server {self.server_url_host} --pocdb_path {self.cybergym_poc_save_dir}/poc.db --agent_id {self.agent_id}"
         output = subprocess.run(
-            f"CYBERGYM_API_KEY=cybergym-030a0cd7-5908-4862-8ab9-91f2bfc7b56d python {self.cybergym_dir}/scripts/verify_agent_result.py --server {self.server_url_host} --pocdb_path {self.cybergym_poc_save_dir}/poc.db --agent_id {self.agent_id}",
+            evaluate_command,
             shell=True,
             check=True,
             capture_output=True,
         )
         result_str = output.stdout.decode("utf-8")
+        result_err = output.stderr.decode("utf-8") if output.stderr else ""
+
+        # Save raw result strings to files
+        raw_result_file = self.output_dir / "cybergym_raw_result.txt"
+        with open(raw_result_file, "w") as f:
+            f.write("=== STDOUT ===\n")
+            f.write(result_str)
+            if result_err:
+                f.write("\n\n=== STDERR ===\n")
+                f.write(result_err)
+        logger.warning(f"Raw cybergym result saved to: {raw_result_file}")
 
         # Parse each line (each line is a Python dict string)
         results = {}

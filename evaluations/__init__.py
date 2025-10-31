@@ -43,6 +43,24 @@ import litellm
 litellm.disable_streaming_logging = True
 
 
+def _run_sample_in_process(evaluation_instance: "Evaluation", sample: dict) -> dict:
+    """Wrapper function to run a sample in a separate process.
+
+    This function must be defined at module level for pickling.
+
+    Args:
+        evaluation_instance: The Evaluation instance
+        sample: Sample dict from dataset
+
+    Returns:
+        Result dictionary from _generate_sample
+    """
+    # Create task from sample
+    task = evaluation_instance._create_task(sample)
+    # Run async code in this process's event loop
+    return asyncio.run(evaluation_instance._generate_sample(task))
+
+
 @dataclass
 class EvaluationTask:
     """Represents a single evaluation task instance.
@@ -78,11 +96,14 @@ class Evaluation(abc.ABC):
     max_llm_calls: int = 100
     max_workers: int = 16
     run_until_explicit_finish: bool = False
-    model: str = "anthropic/claude-sonnet-4-5"
+    model: str | None = (
+        None  # If None, use agent's original model; if set, replace all models
+    )
     output_dir_in_sandbox: str | None = None
     config_template_path: str | None = (
         PROJECT_PATH / "src/aigise/templates/configs/default_config.toml"
     )
+    use_multiprocessing: bool = True  # Use multiprocessing (True) or threading (False)
 
     def __post_init__(self) -> None:
         if not self.output_dir:
@@ -171,7 +192,7 @@ class Evaluation(abc.ABC):
         cost_info = {
             "session_id": task.session_id,
             "task_name": task.task_name,
-            "model": self.model,
+            "model": self.model if self.model else "agent_default",
             "timestamp": datetime.datetime.now().isoformat(),
             "token_usage": {
                 "total_input_tokens": total_input_tokens,
@@ -184,7 +205,7 @@ class Evaluation(abc.ABC):
 
         logger.warning("=" * 80)
         logger.warning(f"Cost info for session {task.session_id}:")
-        logger.warning(f"  Model: {self.model}")
+        logger.warning(f"  Model: {self.model if self.model else 'agent_default'}")
         logger.warning(f"  LLM calls: {num_llm_calls}")
         logger.warning(f"  Input tokens: {total_input_tokens:,}")
         logger.warning(f"  Output tokens: {total_output_tokens:,}")
@@ -369,10 +390,51 @@ class Evaluation(abc.ABC):
         pass
 
     def generate(self) -> None:
-        """Generate samples using threadpool for true parallelism.
+        """Generate samples using multiprocessing for true parallelism.
 
-        Each sample runs in its own thread to avoid Python's GIL limitations
+        Each sample runs in its own process to bypass Python's GIL
         and enable true concurrent execution of multiple tasks.
+
+        Note: Uses ProcessPoolExecutor by default. For threading mode,
+        use generate_threaded() instead.
+        """
+        from concurrent.futures import ProcessPoolExecutor, as_completed
+
+        dataset = self._get_dataset()
+
+        self._prepare_general_env()
+
+        # Execute samples in parallel using process pool
+        with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
+            # Submit all tasks
+            futures = {
+                executor.submit(_run_sample_in_process, self, sample): sample
+                for sample in dataset
+            }
+
+            # Wait for completion with progress bar
+            results = []
+            for future in tqdm(
+                as_completed(futures),
+                total=len(dataset),
+                desc="Generating samples (multiprocess)",
+            ):
+                try:
+                    result = future.result()
+                    results.append(result)
+                except Exception as e:
+                    sample = futures[future]
+                    logger.error(
+                        f"Sample {self._get_sample_id(sample)} failed with error: {e}"
+                    )
+
+        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
+
+    def generate_threaded(self) -> None:
+        """Generate samples using multithreading (fallback option).
+
+        Each sample runs in its own thread. Use this if multiprocessing
+        has issues with serialization or you need shared memory.
         """
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -398,7 +460,9 @@ class Evaluation(abc.ABC):
             # Wait for completion with progress bar
             results = []
             for future in tqdm(
-                as_completed(futures), total=len(dataset), desc="Generating samples"
+                as_completed(futures),
+                total=len(dataset),
+                desc="Generating samples (threaded)",
             ):
                 try:
                     result = future.result()
@@ -518,17 +582,19 @@ class Evaluation(abc.ABC):
 
     def _prepare_agent(self, task: EvaluationTask) -> None:
         agent = self._mk_agent_original(aigise_session_id=task.session_id)
-        aigise_session = task.aigise_session
-        model_name = (
-            self.model
-            if self.model
-            else aigise_session.config.llm.model_configs.main.model_name
-        )
-        task_model = LiteLlm(model=model_name)
-        self._replace_agent_models_recursive(agent, task_model)
-        logger.warning(
-            f"Replaced all agent models with '{model_name}' for session {task.session_id}"
-        )
+
+        # Only replace models if user explicitly specified a model
+        if self.model is not None:
+            task_model = LiteLlm(model=self.model)
+            self._replace_agent_models_recursive(agent, task_model)
+            logger.warning(
+                f"Replaced all agent models with '{self.model}' for session {task.session_id}"
+            )
+        else:
+            logger.warning(
+                f"Using agent's original model configuration for session {task.session_id}"
+            )
+
         setup_summarization_callbacks(agent)
         logger.warning(f"Setup summarization callbacks for session {task.session_id}")
         return agent
@@ -706,7 +772,7 @@ class Evaluation(abc.ABC):
                 all_events.append(event)
 
             if self.run_until_explicit_finish:
-                task_finished = session.state.get("task_finished", False)
+                task_finished = False
                 while not task_finished:
                     async for event in runner.run_async(
                         user_id=self.user_id,
@@ -881,10 +947,15 @@ class Evaluation(abc.ABC):
         raise NotImplementedError
 
     def run(self) -> dict:
-        self.generate()
+        """Run evaluation with configured parallelism mode."""
+        if self.use_multiprocessing:
+            self.generate()  # Uses ProcessPoolExecutor
+        else:
+            self.generate_threaded()  # Uses ThreadPoolExecutor
         self.evaluate()
 
     def run_debug(self) -> dict:
+        """Run evaluation in single-threaded mode for debugging."""
         self.generate_single_thread()
         self.evaluate()
 

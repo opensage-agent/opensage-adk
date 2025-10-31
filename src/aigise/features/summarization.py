@@ -257,6 +257,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         author="user",  # History summaries are treated as user messages
         timestamp=summary_timestamp,
         content=summary_content,
+        branch=tool_context._invocation_context.branch,  # Inherit branch from context
     )
 
     # Update session events: new summary + kept events

@@ -41,8 +41,8 @@ def mk_agent(aigise_session_id="vulnerability-detection-agent-session"):
     ensemble_manager.add_thread_safe_tool("list_functions_in_file")
     ensemble_manager.add_thread_safe_tool("get_line_around_linenum_in_file")
     ensemble_manager.add_thread_safe_tool("neo4j_query")
-    ensemble_manager.add_thread_safe_tool("joern_slice")
-    ensemble_manager.add_thread_safe_tool("joern_query")
+    # ensemble_manager.add_thread_safe_tool("joern_slice")
+    # ensemble_manager.add_thread_safe_tool("joern_query")
     config = aigise_session.config
     config.agent_ensemble.available_models_for_ensemble = [
         "anthropic/claude-sonnet-4-5-20250929",
@@ -65,8 +65,8 @@ def mk_agent(aigise_session_id="vulnerability-detection-agent-session"):
             get_caller,
             get_callee,
             neo4j_query,
-            joern_slice,
-            joern_query,
+            # joern_slice,
+            # joern_query,
             # get_shortest_paths_in_callgraph_to_function_in_file,
             list_functions_in_file,
             get_line_around_linenum_in_file,

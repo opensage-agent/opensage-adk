@@ -168,6 +168,16 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     ):
         return None
 
+    # BUGFIX: Disable history summarization in parallel agent scenarios
+    # to avoid race conditions where multiple agents simultaneously modify session.events
+    current_branch = tool_context._invocation_context.branch
+    if current_branch and "." in current_branch:
+        logger.warning(
+            f"Skipping history summarization in parallel agent context (branch={current_branch}) "
+            "to prevent concurrent session.events modifications that break tool_call/tool_response pairing"
+        )
+        return None
+
     logger.info(
         f"History text length {total_text_length} exceeds threshold {MAX_HISTORY_SUMMARY_LENGTH - MAX_TOOL_RESPONSE_LENGTH}, triggering summarization..."
     )

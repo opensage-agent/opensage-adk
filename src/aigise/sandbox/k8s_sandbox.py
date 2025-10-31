@@ -423,8 +423,14 @@ class K8sSandbox(BaseSandbox):
             # String command: wrap with shell
             shell = self._detect_shell()
             if timeout:
-                # Use timeout command to ensure process is killed
-                full_command = [shell, "-c", f"timeout {timeout}s {command}"]
+                # Use timeout command with nested shell to handle shell built-ins
+                import shlex
+
+                full_command = [
+                    shell,
+                    "-c",
+                    f"timeout {timeout}s {shell} -c {shlex.quote(command)}",
+                ]
             else:
                 full_command = [shell, "-c", command]
 

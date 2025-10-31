@@ -67,7 +67,7 @@ class CyberGym(Evaluation):
             )
         with open(Path(__file__).parent / "metadata" / "task_list_subset", "r") as f:
             task_list = f.read().splitlines()
-        task_list = task_list[:6]
+        task_list = task_list[:72]
         dataset = dataset.filter(lambda x: x["task_id"] in task_list)
         return dataset
 

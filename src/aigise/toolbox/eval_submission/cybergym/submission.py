@@ -6,10 +6,11 @@ from datetime import datetime
 
 from google.adk.tools import ToolContext
 
-from aigise.toolbox.decorators import requires_sandbox
+from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
 from aigise.utils.agent_utils import get_sandbox_from_context
 
 
+@safe_tool_execution
 @requires_sandbox("main")
 def submit_submission_from_default_location(tool_context: ToolContext) -> str:
     """Submit a submission to the Cybergym platform and get feedback.
@@ -26,6 +27,7 @@ def submit_submission_from_default_location(tool_context: ToolContext) -> str:
     )
 
 
+@safe_tool_execution
 @requires_sandbox("main")
 def generate_poc_and_submit(
     poc_generation_script: str, *, tool_context: ToolContext

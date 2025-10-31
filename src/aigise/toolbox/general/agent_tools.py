@@ -6,11 +6,13 @@ from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
 from aigise.session import get_aigise_session
+from aigise.toolbox.decorators import safe_tool_execution
 from aigise.utils.agent_utils import get_aigise_session_id_from_context
 
 logger = logging.getLogger(__name__)
 
 
+@safe_tool_execution
 async def flag_unjustified_claims(tool_context: ToolContext):
     """
     Flag the unjustified claims in the history, this is done by another model
@@ -134,6 +136,7 @@ If no unjustified claims are found, simply state that no problematic claims were
         return error_msg
 
 
+@safe_tool_execution
 async def get_available_agents_and_models_for_ensemble(tool_context: ToolContext):
     """
     Get the available agents for the ensemble.
@@ -238,6 +241,7 @@ def _build_full_instruction(
     return "\n".join(task_parts)
 
 
+@safe_tool_execution
 async def agent_ensemble(
     instruction: str,
     agent_name: str,

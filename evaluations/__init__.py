@@ -8,6 +8,7 @@ import re
 import shutil
 import sys
 import tempfile
+import traceback
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -57,6 +58,14 @@ def _run_sample_in_process(evaluation_instance: "Evaluation", sample: dict) -> d
     """
     # Create task from sample
     task = evaluation_instance._create_task(sample)
+
+    # Re-configure litellm in subprocess to avoid event loop issues
+    import litellm
+
+    litellm.disable_streaming_logging = True
+    litellm.success_callback = []
+    litellm.failure_callback = []
+
     # Run async code in this process's event loop
     return asyncio.run(evaluation_instance._generate_sample(task))
 
@@ -94,7 +103,7 @@ class Evaluation(abc.ABC):
     input_data_path: str = ""
     cache_dir: str = ""
     max_llm_calls: int = 100
-    max_workers: int = 16
+    max_workers: int = 6
     run_until_explicit_finish: bool = False
     model: str | None = (
         None  # If None, use agent's original model; if set, replace all models
@@ -404,31 +413,66 @@ class Evaluation(abc.ABC):
 
         self._prepare_general_env()
 
-        # Execute samples in parallel using process pool
-        with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
-            # Submit all tasks
-            futures = {
-                executor.submit(_run_sample_in_process, self, sample): sample
-                for sample in dataset
-            }
+        # Configure master log for this evaluation
+        master_log = self.output_dir / "evaluation_master.log"
+        master_handler = logging.FileHandler(master_log, mode="w")
+        master_handler.setLevel(logging.INFO)
+        master_handler.setFormatter(
+            logging.Formatter(
+                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
+        logging.getLogger().addHandler(master_handler)
 
-            # Wait for completion with progress bar
-            results = []
-            for future in tqdm(
-                as_completed(futures),
-                total=len(dataset),
-                desc="Generating samples (multiprocess)",
-            ):
-                try:
-                    result = future.result()
-                    results.append(result)
-                except Exception as e:
+        try:
+            # Execute samples in parallel using process pool
+            with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
+                # Submit all tasks
+                futures = {
+                    executor.submit(_run_sample_in_process, self, sample): sample
+                    for sample in dataset
+                }
+
+                # Wait for completion with progress bar
+                results = []
+                failed_samples = []
+
+                for future in tqdm(
+                    as_completed(futures),
+                    total=len(dataset),
+                    desc="Generating samples (multiprocess)",
+                ):
                     sample = futures[future]
-                    logger.error(
-                        f"Sample {self._get_sample_id(sample)} failed with error: {e}"
-                    )
+                    task_name = self._get_sample_id(sample)
 
-        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
+                    try:
+                        result = future.result()
+                        results.append(result)
+                        logger.info(f"✓ Task {task_name} completed successfully")
+                    except Exception as e:
+                        failed_samples.append(task_name)
+                        logger.error(f"✗ Task {task_name} FAILED")
+                        logger.error(f"  Error: {e}")
+                        logger.error(f"  Traceback:\n{traceback.format_exc()}")
+
+                        # Check if subprocess created error.json
+                        error_file = self.output_dir / task_name / "error.json"
+                        if error_file.exists():
+                            logger.error(f"  Detailed error saved to: {error_file}")
+
+            logger.warning(
+                f"Generated {len(results)}/{len(dataset)} samples successfully"
+            )
+            if failed_samples:
+                logger.warning(
+                    f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
+                )
+
+        finally:
+            master_handler.flush()
+            logging.getLogger().removeHandler(master_handler)
+            master_handler.close()
 
     def generate_threaded(self) -> None:
         """Generate samples using multithreading (fallback option).
@@ -442,6 +486,18 @@ class Evaluation(abc.ABC):
 
         self._prepare_general_env()
 
+        # Configure master log
+        master_log = self.output_dir / "evaluation_master.log"
+        master_handler = logging.FileHandler(master_log, mode="w")
+        master_handler.setLevel(logging.INFO)
+        master_handler.setFormatter(
+            logging.Formatter(
+                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
+        logging.getLogger().addHandler(master_handler)
+
         # Wrapper to run async _generate_sample in a thread
         def run_sample_in_thread(sample: dict) -> dict:
             # Create task from sample
@@ -449,31 +505,49 @@ class Evaluation(abc.ABC):
             # Run async code in this thread's event loop
             return asyncio.run(self._generate_sample(task))
 
-        # Execute samples in parallel using thread pool
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            # Submit all tasks
-            futures = {
-                executor.submit(run_sample_in_thread, sample): sample
-                for sample in dataset
-            }
+        try:
+            # Execute samples in parallel using thread pool
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                # Submit all tasks
+                futures = {
+                    executor.submit(run_sample_in_thread, sample): sample
+                    for sample in dataset
+                }
 
-            # Wait for completion with progress bar
-            results = []
-            for future in tqdm(
-                as_completed(futures),
-                total=len(dataset),
-                desc="Generating samples (threaded)",
-            ):
-                try:
-                    result = future.result()
-                    results.append(result)
-                except Exception as e:
+                # Wait for completion with progress bar
+                results = []
+                failed_samples = []
+
+                for future in tqdm(
+                    as_completed(futures),
+                    total=len(dataset),
+                    desc="Generating samples (threaded)",
+                ):
                     sample = futures[future]
-                    logger.error(
-                        f"Sample {self._get_sample_id(sample)} failed with error: {e}"
-                    )
+                    task_name = self._get_sample_id(sample)
 
-        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
+                    try:
+                        result = future.result()
+                        results.append(result)
+                        logger.info(f"✓ Task {task_name} completed successfully")
+                    except Exception as e:
+                        failed_samples.append(task_name)
+                        logger.error(f"✗ Task {task_name} FAILED")
+                        logger.error(f"  Error: {e}")
+                        logger.error(f"  Traceback:\n{traceback.format_exc()}")
+
+            logger.warning(
+                f"Generated {len(results)}/{len(dataset)} samples successfully"
+            )
+            if failed_samples:
+                logger.warning(
+                    f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
+                )
+
+        finally:
+            master_handler.flush()
+            logging.getLogger().removeHandler(master_handler)
+            master_handler.close()
 
     def generate_single_thread(self) -> None:
         """Generate samples sequentially in a single thread for debugging."""
@@ -481,23 +555,46 @@ class Evaluation(abc.ABC):
         dataset = self._get_dataset()
         results = []
         self._prepare_general_env()
-        # Keep only first sample for debugging
-        dataset = dataset.select([0])
-        for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
-            try:
-                # Create task from sample
-                task = self._create_task(sample)
-                # Run async code in new event loop for each sample
-                result = asyncio.run(self._generate_sample(task))
-                results.append(result)
-            except Exception as e:
-                logger.error(
-                    f"Sample {self._get_sample_id(sample)} failed with error: {e}"
-                )
-                # Re-raise for easier debugging
-                raise
 
-        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
+        # Configure master log
+        master_log = self.output_dir / "evaluation_master.log"
+        master_handler = logging.FileHandler(master_log, mode="w")
+        master_handler.setLevel(logging.DEBUG)
+        master_handler.setFormatter(
+            logging.Formatter(
+                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
+        logging.getLogger().addHandler(master_handler)
+
+        try:
+            # Keep only first sample for debugging
+            dataset = dataset.select([0])
+            for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
+                task_name = self._get_sample_id(sample)
+                try:
+                    # Create task from sample
+                    task = self._create_task(sample)
+                    # Run async code in new event loop for each sample
+                    result = asyncio.run(self._generate_sample(task))
+                    results.append(result)
+                    logger.info(f"✓ Task {task_name} completed")
+                except Exception as e:
+                    logger.error(f"✗ Task {task_name} FAILED")
+                    logger.error(f"  Error: {e}")
+                    logger.error(f"  Traceback:\n{traceback.format_exc()}")
+                    # Re-raise for easier debugging
+                    raise
+
+            logger.warning(
+                f"Generated {len(results)}/{len(dataset)} samples successfully"
+            )
+
+        finally:
+            master_handler.flush()
+            logging.getLogger().removeHandler(master_handler)
+            master_handler.close()
 
     @abc.abstractmethod
     def _get_sample_id(self, sample: dict) -> str:
@@ -608,29 +705,117 @@ class Evaluation(abc.ABC):
         Returns:
             Dictionary with sample results and metadata
         """
-        # === 0. Get aigise_session ===
-        self._register_aigise_session(task)
+        # Ensure output directory exists immediately (for logging)
+        output_path = Path(task.output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
 
-        # === 1. Create Agent ===
-        agent = self._prepare_agent(task)
+        # Configure task-specific logging with two files + terminal
+        # File 1: DEBUG level (all details)
+        debug_log = output_path / "execution_debug.log"
+        debug_handler = logging.FileHandler(debug_log, mode="w")
+        debug_handler.setLevel(logging.DEBUG)
+        debug_handler.setFormatter(
+            logging.Formatter(
+                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
 
-        # === 2. Prepare Environment ===
-        await self._prepare_environment(task, agent)
+        # File 2: INFO level (important info)
+        info_log = output_path / "execution_info.log"
+        info_handler = logging.FileHandler(info_log, mode="w")
+        info_handler.setLevel(logging.INFO)
+        info_handler.setFormatter(
+            logging.Formatter(
+                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
 
-        # === 3. Run Agent ===
-        session = await self._run_agent(task, agent)
+        # Configure root logger
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.DEBUG)  # Accept all levels
+        root_logger.addHandler(debug_handler)
+        root_logger.addHandler(info_handler)
 
-        # === 4. Collect Outputs ===
-        output_info = await self._collect_outputs(task, session)
+        # Terminal: Set ALL stderr StreamHandlers to INFO level
+        # Traverse all existing loggers (root and all children)
+        logging.basicConfig(level=logging.INFO)
+        for logger_name in list(logging.Logger.manager.loggerDict.keys()) + [""]:
+            logger_obj = logging.getLogger(logger_name)
+            for handler in logger_obj.handlers[:]:
+                if (
+                    isinstance(handler, logging.StreamHandler)
+                    and handler.stream == sys.stderr
+                ):
+                    handler.setLevel(logging.INFO)  # Terminal shows only INFO+
 
-        # === 5. Cleanup ===
         try:
-            task.aigise_session.cleanup()
-            logger.warning(f"Cleanup completed for session: {task.session_id}")
-        except Exception as e:
-            logger.warning(f"Cleanup failed for session {task.session_id}: {e}")
+            logger.info(f"Starting task {task.task_name} (session: {task.session_id})")
 
-        return output_info
+            # === 0. Get aigise_session ===
+            self._register_aigise_session(task)
+
+            # === 1. Create Agent ===
+            agent = self._prepare_agent(task)
+
+            # === 2. Prepare Environment ===
+            await self._prepare_environment(task, agent)
+
+            # === 3. Run Agent ===
+            session = await self._run_agent(task, agent)
+
+            # === 4. Collect Outputs ===
+            output_info = await self._collect_outputs(task, session)
+
+            # === 5. Cleanup ===
+            try:
+                task.aigise_session.cleanup()
+                logger.warning(f"Cleanup completed for session: {task.session_id}")
+            except Exception as e:
+                logger.warning(f"Cleanup failed for session {task.session_id}: {e}")
+
+            logger.info(f"Task {task.task_name} completed successfully")
+            return output_info
+
+        except Exception as e:
+            # Log exception details
+            logger.error(f"Task {task.task_name} failed with exception: {e}")
+            logger.error(f"Full traceback:\n{traceback.format_exc()}")
+
+            # Save error information to file
+            error_file = output_path / "error.json"
+            with open(error_file, "w") as f:
+                json.dump(
+                    {
+                        "task_name": task.task_name,
+                        "session_id": task.session_id,
+                        "error": str(e),
+                        "error_type": type(e).__name__,
+                        "traceback": traceback.format_exc(),
+                        "timestamp": datetime.datetime.now().isoformat(),
+                    },
+                    f,
+                    indent=2,
+                )
+
+            # Try to cleanup even on error
+            try:
+                if task.aigise_session:
+                    task.aigise_session.cleanup()
+            except Exception as cleanup_error:
+                logger.error(f"Cleanup after error failed: {cleanup_error}")
+
+            raise
+
+        finally:
+            # Ensure logs are flushed and handlers are removed
+            debug_handler.flush()
+            info_handler.flush()
+            root_logger.removeHandler(debug_handler)
+            root_logger.removeHandler(info_handler)
+            debug_handler.close()
+            info_handler.close()
 
     def _replace_template_variables_in_config(
         self, config_path: str, template_variables: dict

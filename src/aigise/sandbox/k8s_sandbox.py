@@ -412,16 +412,33 @@ class K8sSandbox(BaseSandbox):
     def run_command_in_container(
         self, command: str | list[str], timeout: int | None = None
     ) -> tuple[str, int]:
+        # Prepare command with timeout wrapper if specified
         if isinstance(command, list):
-            full_command = command
+            # List command: wrap with timeout if needed
+            if timeout:
+                full_command = ["timeout", f"{timeout}s"] + command
+            else:
+                full_command = command
         else:
+            # String command: wrap with shell
             shell = self._detect_shell()
-            full_command = [shell, "-c", command]
-        result = self._run_kubectl_exec(full_command, text=False, timeout=timeout)
+            if timeout:
+                # Use timeout command to ensure process is killed
+                full_command = [shell, "-c", f"timeout {timeout}s {command}"]
+            else:
+                full_command = [shell, "-c", command]
+
+        result = self._run_kubectl_exec(full_command, text=False, timeout=None)
         stdout = result.stdout or b""
         stderr = result.stderr or b""
         output_text = (stdout + stderr).decode("latin-1", errors="replace")
-        return output_text, result.returncode
+        returncode = result.returncode
+
+        # timeout command returns exit code 124 when it times out
+        if returncode == 124:
+            output_text = f"Command timed out after {timeout} seconds\n{output_text}"
+
+        return output_text, returncode
 
     def get_work_dir(self) -> str:
         output, _ = self.run_command_in_container("pwd")

@@ -8,6 +8,7 @@ before actually creating any sandboxes.
 from __future__ import annotations
 
 import asyncio
+import traceback
 from functools import wraps
 from typing import Callable, TypeVar
 
@@ -65,6 +66,45 @@ def requires_sandbox(*sandbox_types: str) -> Callable[[F], F]:
             return sync_wrapper
 
     return decorator
+
+
+def safe_tool_execution(func: F) -> F:
+    """Decorator to wrap tool functions with error handling.
+
+    Catches all exceptions and returns a formatted error message with backtrace.
+    Works for both sync and async functions.
+
+    Returns:
+        dict with "error" key containing failure message and backtrace
+    """
+
+    @wraps(func)
+    async def async_wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except Exception as e:
+            error_msg = f"Failed: {type(e).__name__}: {str(e)}\n\nBacktrace:\n{traceback.format_exc()}"
+            return {"error": error_msg, "success": False}
+
+    @wraps(func)
+    def sync_wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            error_msg = f"Failed: {type(e).__name__}: {str(e)}\n\nBacktrace:\n{traceback.format_exc()}"
+            return {"error": error_msg, "success": False}
+
+    # Return appropriate wrapper based on function type
+    if asyncio.iscoroutinefunction(func):
+        async_wrapper.__sandbox_requirements__ = getattr(
+            func, "__sandbox_requirements__", ()
+        )
+        return async_wrapper
+    else:
+        sync_wrapper.__sandbox_requirements__ = getattr(
+            func, "__sandbox_requirements__", ()
+        )
+        return sync_wrapper
 
 
 def collect_sandbox_dependencies(agent) -> set[str]:

@@ -9,12 +9,14 @@ from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
 from aigise.session import AgentStatus, get_aigise_session
+from aigise.toolbox.decorators import safe_tool_execution
 from aigise.utils.agent_utils import (
     extract_tools_from_agent,
     get_aigise_session_id_from_context,
 )
 
 
+@safe_tool_execution
 async def create_subagent(
     agent_name: str,
     instruction: str,
@@ -113,6 +115,7 @@ def _extract_tool_names_from_agent(agent_instance) -> List[str]:
     return tool_names
 
 
+@safe_tool_execution
 async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
     """List all active sub-agents, loading persistent agents on demand.
 
@@ -178,6 +181,7 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
         return {"success": False, "error": str(e)}
 
 
+@safe_tool_execution
 async def call_subagent_as_tool(
     agent_name: str, task_message: str, tool_context: ToolContext
 ) -> Dict[str, Any]:

@@ -14,7 +14,7 @@ from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
 from aigise.session import get_aigise_session
-from aigise.toolbox.decorators import requires_sandbox
+from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
 from aigise.utils.agent_utils import (
     get_aigise_session_id_from_context,
     get_neo4j_client_from_context,
@@ -23,6 +23,7 @@ from aigise.utils.agent_utils import (
 logger = logging.getLogger(__name__)
 
 
+@safe_tool_execution
 @requires_sandbox("neo4j")
 async def get_all_invocations_for_agent(agent_name: str, tool_context: ToolContext):
     """
@@ -44,6 +45,7 @@ async def get_all_invocations_for_agent(agent_name: str, tool_context: ToolConte
     return result, None
 
 
+@safe_tool_execution
 @requires_sandbox("neo4j")
 async def get_all_agent_runs(tool_context: ToolContext):
     """
@@ -92,6 +94,7 @@ async def get_all_agent_runs(tool_context: ToolContext):
         return []
 
 
+@safe_tool_execution
 @requires_sandbox("neo4j")
 async def get_full_tool_res_and_grep(
     event_id: str, grep_pattern: str, tool_context: ToolContext
@@ -148,6 +151,7 @@ async def get_full_tool_res_and_grep(
         return f"Error searching tool result: {e}"
 
 
+@safe_tool_execution
 @requires_sandbox("neo4j")
 async def list_all_events_for_session(session_id: str, tool_context: ToolContext):
     """
@@ -202,6 +206,7 @@ async def list_all_events_for_session(session_id: str, tool_context: ToolContext
         return []
 
 
+@safe_tool_execution
 @requires_sandbox("neo4j")
 async def get_full_tool_res(event_id: str, tool_context: ToolContext):
     """
@@ -247,6 +252,7 @@ async def get_full_tool_res(event_id: str, tool_context: ToolContext):
         return {"error": f"Failed to get tool result: {e}"}
 
 
+@safe_tool_execution
 @requires_sandbox("neo4j")
 async def get_all_events_for_summarization(
     summarization_id: str, tool_context: ToolContext
@@ -351,6 +357,7 @@ async def get_all_events_for_summarization(
 # Provide a tool that the LLM can automatically invoke to drop or summarize events.
 
 
+@safe_tool_execution
 @requires_sandbox("neo4j")
 async def drop_or_summarize_events(tool_context: ToolContext):
     """

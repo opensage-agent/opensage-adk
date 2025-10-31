@@ -9,12 +9,13 @@ from typing import Dict, List, Optional
 
 from google.adk.tools.tool_context import ToolContext
 
-from aigise.toolbox.decorators import requires_sandbox
+from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
 from aigise.utils.agent_utils import get_sandbox_from_context
 
 logger = logging.getLogger(__name__)
 
 
+@safe_tool_execution
 @requires_sandbox("fuzz")
 async def run_fuzzing_campaign(
     duration_minutes: int = 5,
@@ -69,6 +70,7 @@ async def run_fuzzing_campaign(
     }
 
 
+@safe_tool_execution
 @requires_sandbox("fuzz")
 async def analyze_crash(
     crash_file_path: str, *, tool_context: ToolContext

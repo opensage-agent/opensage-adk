@@ -1,16 +1,20 @@
+import logging
 import shlex
 
 from google.adk.tools.tool_context import ToolContext
 
-from aigise.toolbox.decorators import requires_sandbox
+from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
 from aigise.utils.agent_utils import (
     get_neo4j_client_from_context,
     get_sandbox_from_context,
 )
 
+logger = logging.getLogger(__name__)
+
 # Neo4j database connection will be set up per function call using session-based approach
 
 
+@safe_tool_execution
 @requires_sandbox("main")
 def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
     """
@@ -64,6 +68,7 @@ def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
     return dict_result
 
 
+@safe_tool_execution
 @requires_sandbox("neo4j", "codeql", "joern")
 async def list_functions_in_file(filepath: str, *, tool_context: ToolContext) -> dict:
     """
@@ -112,6 +117,7 @@ async def list_functions_in_file(filepath: str, *, tool_context: ToolContext) ->
         }
 
 
+@safe_tool_execution
 @requires_sandbox("main")
 def get_line_around_linenum_in_file(
     filepath: str, linenum: int, context: int, *, tool_context: ToolContext
@@ -152,6 +158,7 @@ def get_line_around_linenum_in_file(
         return {"result": [], "error": f"Failed to read file '{filepath}': {e}"}
 
 
+@safe_tool_execution
 @requires_sandbox("main")
 def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> dict:
     """
@@ -162,51 +169,55 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
         dict: A dictionary with key "result" pointing to a list of symbol information.
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
-    try:
-        sandbox.run_command_in_container(
-            f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R /shared/code"
+    output, exit_code = sandbox.run_command_in_container(
+        f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R /shared/code"
+    )
+    if exit_code != 0:
+        output, exit_code = sandbox.run_command_in_container(
+            "apt update && apt install ctags"
         )
-    except Exception as e:
-        try:
-            sandbox.run_command_in_container("apt update && apt install ctags")
-            sandbox.run_command_in_container(
-                f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R /shared/code"
-            )
-        except Exception as e:
+        if exit_code != 0:
             return {
                 "result": [],
-                "error": f"Failed to install ctags and run ctags command: {e}, do not call this tool again.",
+                "error": f"Failed to install ctags and run ctags command: {output}, do not call this tool again.",
             }
-    tags_file = sandbox.extract_file_from_container("/shared/.tags")
+        output, exit_code = sandbox.run_command_in_container(
+            f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R /shared/code"
+        )
+        if exit_code != 0:
+            return {
+                "result": [],
+                "error": f"Failed to run ctags command: {output}, do not call this tool again.",
+            }
+    tags_content = sandbox.extract_file_from_container("/shared/.tags")
     results = []
-    with open(tags_file, "r", errors="ignore") as f:
-        for line in f:
-            if line.startswith("!_TAG_"):
-                continue
+    for line in tags_content.splitlines():
+        if line.startswith("!_TAG_"):
+            continue
 
-            try:
-                parts = line.split(';"')[0].split("\t")
+        try:
+            parts = line.split(';"')[0].split("\t")
 
-                if len(parts) >= 3:
-                    symbol = parts[0].strip()
-                    file_path = parts[1].strip()
-                    line_number = parts[2].strip()
+            if len(parts) >= 3:
+                symbol = parts[0].strip()
+                file_path = parts[1].strip()
+                line_number = parts[2].strip()
 
-                    if symbol == symbol_name:
-                        kind = None
-                        if ';"' in line:
-                            ext_part = line.split(';"', 1)[1].strip()
-                            if ext_part:
-                                kind = ext_part.split()[0] if ext_part.split() else None
+                if symbol == symbol_name:
+                    kind = None
+                    if ';"' in line:
+                        ext_part = line.split(';"', 1)[1].strip()
+                        if ext_part:
+                            kind = ext_part.split()[0] if ext_part.split() else None
 
-                        results.append(
-                            {
-                                "symbol": symbol,
-                                "file": file_path,
-                                "line": line_number,
-                                "kind": kind,
-                            }
-                        )
-            except (IndexError, ValueError):
-                continue
+                    results.append(
+                        {
+                            "symbol": symbol,
+                            "file": file_path,
+                            "line": line_number,
+                            "kind": kind,
+                        }
+                    )
+        except (IndexError, ValueError):
+            continue
     return {"result": results}

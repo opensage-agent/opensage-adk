@@ -1,9 +1,10 @@
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
 
-from aigise.toolbox.decorators import requires_sandbox
+from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
 from aigise.utils.agent_utils import get_mcp_url_from_session_id
 
 
+@safe_tool_execution
 @requires_sandbox("pdb_mcp")
 def get_toolset(aigise_session_id: str) -> MCPToolset:
     """Create MCPToolset with PDB MCP server running in Docker container.

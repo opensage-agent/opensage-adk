@@ -6,13 +6,14 @@ from typing import Tuple
 
 from google.adk.tools.tool_context import ToolContext
 
-from aigise.toolbox.decorators import requires_sandbox
+from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
 from aigise.utils.agent_utils import (
     get_aigise_config_from_context,
     get_sandbox_from_context,
 )
 
 
+@safe_tool_execution
 @requires_sandbox("main")
 def run_poc_from_script(
     poc_generation_script: str, *, tool_context: ToolContext
@@ -119,8 +120,8 @@ def run_poc_from_script(
 
 
 # Unified helpers that use run_command_in_container
-
-
+@safe_tool_execution
+@requires_sandbox("main")
 def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     """Run a build command inside the sandbox via run_command_in_container.
     Args:
@@ -134,6 +135,7 @@ def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     return sandbox.run_command_in_container(build_command)
 
 
+@safe_tool_execution
 @requires_sandbox("main")
 def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     """Run a PoC command inside the sandbox via run_command_in_container.

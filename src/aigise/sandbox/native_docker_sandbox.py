@@ -731,32 +731,33 @@ class NativeDockerSandbox(BaseSandbox):
         self, command: str | list[str], timeout: int | None = None
     ) -> tuple[str, int]:
         """Run a command inside the container."""
-        # TODO: check output?
-
         container = self.client.containers.get(self.container_id)
+
+        # Prepare command with timeout wrapper if specified
         if isinstance(command, list):
-            full_command = command
+            # List command: wrap with timeout if needed
+            if timeout:
+                full_command = ["timeout", f"{timeout}s"] + command
+            else:
+                full_command = command
         else:
-            # Auto-detect and use the appropriate shell
+            # String command: wrap with shell
             shell = self._detect_shell()
-            full_command = [shell, "-c", command]
+            if timeout:
+                # Use timeout command to ensure process is killed
+                full_command = [shell, "-c", f"timeout {timeout}s {command}"]
+            else:
+                full_command = [shell, "-c", command]
 
-        def _exec_command():
-            return container.exec_run(full_command, stdout=True, stderr=True)
+        # Execute command (timeout is handled by container's timeout command)
+        exec_result = container.exec_run(full_command, stdout=True, stderr=True)
 
-        # TODO: may use /usr/bin/timeout or timeout in shell
-        # Use ThreadPoolExecutor to implement timeout
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(_exec_command)
-            try:
-                exec_result = future.result(timeout=timeout)
-            except concurrent.futures.TimeoutError:
-                # Command timed out (this only happens when timeout is not None)
-                return f"Command timed out after {timeout} seconds", 124
-
-        # TODO: other encoding?
         output = exec_result.output.decode("latin-1", errors="replace")
         exit_code = exec_result.exit_code
+
+        # timeout command returns exit code 124 when it times out
+        if exit_code == 124:
+            output = f"Command timed out after {timeout} seconds\n{output}"
 
         return output, exit_code
 

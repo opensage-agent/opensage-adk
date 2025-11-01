@@ -262,12 +262,18 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     )
 
     # Create new event with proper fields
+    # Ensure branch is a valid string or None (handle mock objects in tests)
+    current_branch = tool_context._invocation_context.branch
+    branch_value = (
+        current_branch if isinstance(current_branch, (str, type(None))) else None
+    )
+
     summary_event = Event(
         invocation_id=tool_context._invocation_context.invocation_id,
         author="user",  # History summaries are treated as user messages
         timestamp=summary_timestamp,
         content=summary_content,
-        branch=tool_context._invocation_context.branch,  # Inherit branch from context
+        branch=branch_value,  # Inherit branch from context
     )
 
     # Update session events: new summary + kept events

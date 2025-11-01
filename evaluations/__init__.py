@@ -160,6 +160,34 @@ class Evaluation(abc.ABC):
         params["timestamp"] = datetime.datetime.now().isoformat()
         params["evaluation_class"] = self.__class__.__name__
 
+        # Add git commit information
+        try:
+            import subprocess
+
+            git_commit = (
+                subprocess.check_output(
+                    ["git", "rev-parse", "HEAD"],
+                    cwd=self.output_dir.parent.parent,
+                    stderr=subprocess.DEVNULL,
+                )
+                .decode()
+                .strip()
+            )
+            git_branch = (
+                subprocess.check_output(
+                    ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                    cwd=self.output_dir.parent.parent,
+                    stderr=subprocess.DEVNULL,
+                )
+                .decode()
+                .strip()
+            )
+            params["git_commit"] = git_commit
+            params["git_branch"] = git_branch
+        except Exception:
+            params["git_commit"] = "unknown"
+            params["git_branch"] = "unknown"
+
         # Log parameters
         logger.warning("=" * 80)
         logger.warning("Evaluation parameters:")

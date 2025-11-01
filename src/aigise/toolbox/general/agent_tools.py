@@ -13,6 +13,95 @@ logger = logging.getLogger(__name__)
 
 
 @safe_tool_execution
+async def get_idea_from_other_models(tool_context: ToolContext):
+    """
+    Call this to query another model as a consultant to help you solve the task, you should call this frequently to get an idea of how to solve the task.
+
+    Returns:
+        dict with 'idea' containing the other model's suggestion
+    """
+    try:
+        aigise_session_id = get_aigise_session_id_from_context(tool_context)
+        session = get_aigise_session(aigise_session_id)
+        FLAG_UNJUSTIFIED_CLAIMS_MODEL = session.config.llm.flag_claims_model
+        if not FLAG_UNJUSTIFIED_CLAIMS_MODEL:
+            print("FLAG_UNJUSTIFIED_CLAIMS_MODEL not configured in LLM settings")
+            return []
+        model_name = FLAG_UNJUSTIFIED_CLAIMS_MODEL
+        # Get session and current conversation history
+        session = tool_context._invocation_context.session
+
+        # Get current agent's task/instruction for context
+        agent = tool_context._invocation_context.agent
+        agent_instruction = getattr(agent, "instruction", "")
+
+        # Build conversation history summary for context
+        history_text = []
+        for event in session.events:
+            if event.content and event.content.parts:
+                for part in event.content.parts:
+                    if hasattr(part, "text") and part.text:
+                        history_text.append(f"[{event.author}]: {part.text}")
+
+        context_summary = (
+            "\n".join(history_text) if history_text else "No recent history"
+        )
+
+        # Construct prompt for the other model
+        prompt = f"""You are being consulted by another AI agent who is stuck on a task.
+
+**Original Task**: {agent_instruction}
+
+**Recent conversation history**:
+{context_summary}
+
+**The agent needs help with**: Understanding what to do next, what might be missing, or alternative approaches.
+
+Please provide:
+1. A brief analysis of what the agent has tried so far
+2. Suggestions on what the agent should try next
+3. Any potential issues or missing steps you notice
+
+You need to be critical and objective, do not sugarcoat the truth, do not be afraid to tell the agent what they are doing wrong.
+You should also find all unjustified claims and flag them, you should find all the unjustified assumptions and flag them. There are probably something missing or wrong in the task, you need to find it and tell the agent.
+
+Keep your response concise and actionable."""
+
+        # Create LLM request
+        llm_request = LlmRequest()
+        llm_request.config = types.GenerateContentConfig()
+        llm_request.contents = [
+            types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
+        ]
+
+        # Get or create model
+        model = LiteLlm(model=model_name)
+
+        # Call model
+        idea_parts = []
+        async for llm_response in model.generate_content_async(llm_request):
+            if llm_response.content and llm_response.content.parts:
+                for part in llm_response.content.parts:
+                    if part.text:
+                        idea_parts.append(part.text)
+
+        idea = "".join(idea_parts).strip()
+
+        return {
+            "success": True,
+            "idea": idea,
+            "model_used": model_name,
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to get idea from other models: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to get idea from other models: {str(e)}",
+        }
+
+
+@safe_tool_execution
 async def flag_unjustified_claims(tool_context: ToolContext):
     """
     Flag the unjustified claims in the history, this is done by another model

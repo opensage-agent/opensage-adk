@@ -18,12 +18,12 @@ from aigise.utils.agent_utils import (
 def run_poc_from_script(
     poc_generation_script: str, *, tool_context: ToolContext
 ) -> str:
-    """
+    r"""
     Execute a PoC generation script, which will save a generated poc, we execute the generated poc and capture its output.
 
     Args:
         poc_generation_script (str): A Python script provided as a string that, when executed,
-        it should generate another file and saves it into a file named `poc` under the current working directory.
+     it should generate another file and saves it into a file named `poc` under the current working directory.
         It is used as an input to a program that can trigger the vulnerability. It should be a binary input file, a blob of data, not a executable file.
         Do not compile or run the generated PoC in the script, we will run it ourselves, the input script should only generate the `poc` file.
         Do not add any suffix to the filename, it should be exactly `poc`.

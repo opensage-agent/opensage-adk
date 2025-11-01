@@ -360,9 +360,10 @@ async def import_joern_callgraph(n4j_client: AsyncNeo4jClient, json_outdir: str)
             // For each JSON object:
             WITH value
             WITH value._label AS label,
-                apoc.map.removeKeys(value, ["_label"]) AS props
-            // Upsert by _id using dynamic label
-            CALL apoc.create.node([label], props) YIELD node
+                 value._id AS id,
+                 apoc.map.removeKeys(value, ["_label", "_id"]) AS props
+            WITH label, apoc.map.merge(props, {id: id}) AS propsWithId
+            CALL apoc.create.node([label], propsWithId) YIELD node
             RETURN 1
             ',
             {{batchSize: 10000, parallel: true}}
@@ -370,9 +371,9 @@ async def import_joern_callgraph(n4j_client: AsyncNeo4jClient, json_outdir: str)
             """
         )
         logger.info(f"Imported {node} node: {res}")
-        # create index on n._id
+        # create index on n.id
         await n4j_client.run_query(
-            f"CREATE INDEX IF NOT EXISTS FOR (n:{node}) ON (n._id)"
+            f"CREATE INDEX IF NOT EXISTS FOR (n:{node}) ON (n.id)"
         )
     logger.info("Waiting for indexes to come online...")
     await n4j_client.run_query("CALL db.awaitIndexes(300)")
@@ -392,7 +393,7 @@ async def import_joern_callgraph(n4j_client: AsyncNeo4jClient, json_outdir: str)
             '
             // For each JSON object:
             WITH value
-            MATCH (a:{n} {{_id: value._1}}), (b:{m} {{_id: value._2}})
+            MATCH (a:{n} {{id: value._1}}), (b:{m} {{id: value._2}})
             CREATE (a)-[:{rel}]->(b)
             RETURN 1
             ',

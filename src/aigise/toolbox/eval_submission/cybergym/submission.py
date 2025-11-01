@@ -32,7 +32,7 @@ def submit_submission_from_default_location(tool_context: ToolContext) -> str:
 def generate_poc_and_submit(
     poc_generation_script: str, *, tool_context: ToolContext
 ) -> str:
-    """
+    r"""
     Execute a PoC generation script, which will save a generated poc, we execute the generated poc and capture its output.
 
     Args:

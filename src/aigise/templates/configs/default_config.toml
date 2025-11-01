@@ -11,8 +11,8 @@ COMPILE_COMMAND = "arvo compile"
 RUN_COMMAND = "arvo"
 AGENT_STORAGE_PATH = ""
 # History configuration defaults
-MAX_TOOL_RESPONSE_LENGTH = 10000
-MAX_HISTORY_SUMMARY_LENGTH = 100000
+MAX_TOOL_RESPONSE_LENGTH = 5000
+MAX_HISTORY_SUMMARY_LENGTH = 60000
 # Agent ensemble defaults
 AVAILABLE_MODELS = "anthropic/claude-sonnet-4-20250514,openai/o4-mini"
 # Host and Ports
@@ -72,7 +72,10 @@ image = "${DEFAULT_IMAGE}"
 image = "aigise/joern"
 project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/joern/Dockerfile"
 command = ""
-ports = { "8081/tcp" = "${JOERN_PORT}" }
+[sandbox.sandboxes.joern.environment]
+JAVA_OPTS = "-Xmx16G -Xms4G"
+[sandbox.sandboxes.joern.ports]
+"8081/tcp" = "${JOERN_PORT}"
 
 # Neo4j sandbox configuration
 [sandbox.sandboxes.neo4j]
@@ -110,7 +113,7 @@ tpm = 30000
 
 # Flag claims model configuration
 [llm.model_configs.flag_claims]
-model_name = "${MAIN_MODEL}"
+model_name = "openai/gpt-5"
 temperature = 0.1
 max_tokens = 1024
 rpm = 30

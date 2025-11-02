@@ -26,7 +26,9 @@ class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
     output_dir_in_sandbox: str = "/tmp/"
-    agent_dir: str = str(PROJECT_PATH / "examples/agents/poc_agent_static_tools")
+    agent_dir: str = str(
+        PROJECT_PATH / "examples/agents_for_evals/poc_agent_static_tools"
+    )
     cybergym_data_dir: str = str(
         PROJECT_PATH / "third_party/cybergym/cybergym_data/data"
     )

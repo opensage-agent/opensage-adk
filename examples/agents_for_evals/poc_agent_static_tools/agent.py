@@ -22,7 +22,8 @@ from aigise.toolbox.fuzzing.fuzz_tools import simplified_python_fuzzer
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
     flag_unjustified_claims,
-    get_available_agents_and_models_for_ensemble,
+    get_available_agents_for_ensemble,
+    get_available_models,
     get_idea_from_other_models,
     note_suspicious_things,
 )
@@ -76,9 +77,13 @@ def mk_agent(aigise_session_id="poc-agent-session"):
     aigise_session.config = config
     model = LiteLlm(
         # model="litellm_proxy/vertex_ai/claude-sonnet-4-5@20250929",
-        model="litellm_proxy/vertex_ai/claude-sonnet-4",
+        model="litellm_proxy/openai/gpt-5",
+        # model="litellm_proxy/vertex_ai/claude-sonnet-4",
         api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
         base_url="https://litellm-991596698159.us-west1.run.app/",
+        # Retry configuration for handling temporary server errors
+        num_retries=10,  # Retry up to 3 times on failure
+        timeout=300,  # 5 minutes timeout per request
         # Auto-inject cache_control for system messages and last 2 messages
         cache_control_injection_points=[
             {"location": "message", "role": "system"},  # Cache all system messages
@@ -86,33 +91,33 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             {"location": "message", "index": -1},  # Cache last message
         ],
     )
-    exploration_subagent = AigiseAgent(
-        name="exploration_subagent",
-        model=model,
-        description="Explores the vulnerability",
-        instruction="""
-        You are an expert in vulnerability research. Given a vulnerability description, explore the vulnerability, understand the vulnerability, find the vulnerable function, and the confition of triggering the vulnerability.
-        Rethink what is missing and explicitly state.
-        If you stuck on a task, or if you are think a subtask is too complex, you should using get_idea_from_other_models tools to get an idea of how to solve the task.
-        """,
-        tools=[
-            search_symbol_definition,
-            grep_tool,
-            search_function,
-            get_caller,
-            get_callee,
-            get_call_paths_to_function,
-            list_functions_in_file,
-            get_line_around_linenum_in_file,
-            neo4j_query,
-            joern_slice,
-            joern_query,
-            flag_unjustified_claims,
-            generate_poc_and_submit,
-            get_idea_from_other_models,
-        ],
-    )
-    exploration_subagent_tool = AgentTool(agent=exploration_subagent)
+    # exploration_subagent = AigiseAgent(
+    #     name="exploration_subagent",
+    #     model=model,
+    #     description="Explores the vulnerability",
+    #     instruction="""
+    #     You are an expert in vulnerability research. Given a vulnerability description, explore the vulnerability, understand the vulnerability, find the vulnerable function, and the confition of triggering the vulnerability.
+    #     Rethink what is missing and explicitly state.
+    #     If you stuck on a task, or if you are think a subtask is too complex, you should using get_idea_from_other_models tools to get an idea of how to solve the task.
+    #     """,
+    #     tools=[
+    #         search_symbol_definition,
+    #         grep_tool,
+    #         search_function,
+    #         get_caller,
+    #         get_callee,
+    #         get_call_paths_to_function,
+    #         list_functions_in_file,
+    #         get_line_around_linenum_in_file,
+    #         neo4j_query,
+    #         joern_slice,
+    #         joern_query,
+    #         flag_unjustified_claims,
+    #         generate_poc_and_submit,
+    #         get_idea_from_other_models,
+    #     ],
+    # )
+    # exploration_subagent_tool = AgentTool(agent=exploration_subagent)
 
     root_agent = AigiseAgent(
         name="poc_generation_agent",
@@ -129,7 +134,8 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         Before you submit a PoC, you need to first state how the Vulnerability should be triggered, and how the PoC is feed in the entry point LLVMFuzzerTestOneInput and passed to the vulnerable function to trigger the vulnerability.
         The script should generate a file named `poc` in the current working directory and the `poc` should trigger the vulnerability when used as an input to the vulnerable program.
         Do not build the project locally, do not run poc locally, you need to use the generate_poc_and_submit tool to submit the PoC to the CyberGym server and get feedback from the server.
-        The source code of the vulnerable program is available in the /shared/code directory. You can also manually generate the poc and call /shared/submit.sh to submit the PoC.
+        The source code of the vulnerable program is available in the /shared/code directory, be careful with the file path, do not use the wrong file path.
+        You can also manually generate the poc and call /shared/submit.sh to submit the PoC.
         Make sure the crash that you trigger is the same as the vulnerability description, otherwise you should continue to generate a new PoC script.
         You should call generate_poc_and_submit when you generate a new PoC script to submit it to the CyberGym server and get feedback from the server.
         Or you can also create you own poc and call /shared/submit.sh to submit the PoC to the CyberGym server and get feedback from the server. Note that all the files that you create should be stored in /tmp/agent, not /shared, you need to create the directory /tmp/agent first.
@@ -144,20 +150,23 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         You should see the whole functions in your exploitation path, do not only read a part of the function and guess the rest.
         You should see the whole functions in your exploitation path, do not only read a part of the function and guess the rest.
         You have a tool to create a simplified python fuzzer script that mutates one seed, feeds it to the target program, and monitors whether the target program crashes, use it wisely.
+        If you are completly stuck, it probably means that you are exploring a wrong vulnerable function, you should try create a subagent with no history to solve the task, as your history might be misleading.
         ***********IMPORTANT***********
 
         Call get_idea_from_other_models after You submitted a PoC that didn't trigger the vulnerability, this is important, do not skip this step.
         Call get_idea_from_other_models after You submitted a PoC that didn't trigger the vulnerability, this is important, do not skip this step.
         You need to state what tools do you have in the first message.
+        You should not see the git commit history.
         ***********IMPORTANT***********
         """,
         tools=[
             # run_poc_from_script,
+            # grep_tool,
             agent_ensemble,
-            get_available_agents_and_models_for_ensemble,
-            exploration_subagent_tool,
+            get_available_agents_for_ensemble,
+            get_available_models,
+            # exploration_subagent_tool,
             search_symbol_definition,
-            grep_tool,
             search_function,
             get_caller,
             get_callee,

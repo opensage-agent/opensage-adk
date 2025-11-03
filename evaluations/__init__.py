@@ -104,7 +104,7 @@ class Evaluation(abc.ABC):
     cache_dir: str = ""
     max_llm_calls: int = 100
     max_workers: int = 6
-    run_until_explicit_finish: bool = False
+    run_until_explicit_finish: bool = True
     model: str | None = (
         None  # If None, use agent's original model; if set, replace all models
     )
@@ -994,7 +994,11 @@ class Evaluation(abc.ABC):
                         run_config=run_config,
                         new_message=types.Content(
                             role="user",
-                            parts=[types.Part(text="I approve you to continue")],
+                            parts=[
+                                types.Part(
+                                    text="I approve you to continue, if you think the task is complete, you should say so and finish the task by calling the task_completed tool"
+                                )
+                            ],
                         ),
                     ):
                         logger.warning(event)

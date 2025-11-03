@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import tempfile
 
@@ -53,6 +54,23 @@ class JoernInitializer(SandboxInitializer):
 
         # await aigise_session.sandboxes.wait_for_ready("main")
 
+        try:
+            # Wrap Joern initialization with 10-minute timeout
+            await asyncio.wait_for(
+                self._initialize_joern_with_timeout(aigise_session),
+                timeout=600.0,  # 10 minutes
+            )
+        except asyncio.TimeoutError:
+            logger.error(
+                f"Joern initialization timed out after 10 minutes for session {self.aigise_session_id}"
+            )
+        except Exception as e:
+            logger.error(f"Joern initialization failed: {e}")
+
+        await self.ensure_ready()
+
+    async def _initialize_joern_with_timeout(self, aigise_session) -> None:
+        """Execute Joern initialization steps with timeout protection."""
         msg, err = self.run_command_in_container(
             ["bash", "/sandbox_scripts/callgraph/init.sh"]
         )
@@ -80,8 +98,6 @@ class JoernInitializer(SandboxInitializer):
         )
 
         await client.aexecute("importCpg('/cpg.bin')")
-
-        await self.ensure_ready()
 
     async def ensure_ready(self) -> None:
         from aigise.session.aigise_session import get_aigise_session

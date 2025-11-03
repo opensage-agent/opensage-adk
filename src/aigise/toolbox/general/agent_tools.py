@@ -250,11 +250,14 @@ If no unjustified claims are found, simply state that no problematic claims were
 
 
 @safe_tool_execution
-async def get_available_agents_and_models_for_ensemble(tool_context: ToolContext):
+async def get_available_agents_for_ensemble(tool_context: ToolContext):
     """
     Get the available agents for the ensemble.
     Uses AgentEnsembleManager to discover static subagents, agent tools, and dynamic agents.
     Only agents whose tools are all covered by THREAD_SAFE_TOOLS are considered safe for ensemble.
+
+    Returns:
+        Dictionary with safe_agents list, summary, and agent counts
     """
     try:
         # Get session ID from tool context or use default
@@ -301,14 +304,13 @@ async def get_available_agents_and_models_for_ensemble(tool_context: ToolContext
 
         safe_agent_names = [agent["name"] for agent in safe_agents]
 
-        available_models = aigise_session.ensemble.get_available_models_for_ensemble()
-
         return {
             "success": True,
             "safe_agents": safe_agent_names,
+            "safe_agents_details": safe_agents,
+            "unsafe_agents_details": unsafe_agents,
             "summary": ensemble_result["summary"],
             "thread_safe_tools": ensemble_result["thread_safe_tools"],
-            "available_models": available_models,
             "static_agents_count": len(ensemble_result["static_agents"]),
             "dynamic_agents_count": len(ensemble_result["dynamic_agents"]),
             "message": f"Found {len(safe_agents)} thread-safe agents out of {ensemble_result['summary']['total_static_agents'] + ensemble_result['summary']['total_dynamic_agents']} total agents",
@@ -319,6 +321,40 @@ async def get_available_agents_and_models_for_ensemble(tool_context: ToolContext
             "success": False,
             "error": f"Failed to get available agents for ensemble: {str(e)}",
             "safe_agents": [],
+        }
+
+
+@safe_tool_execution
+async def get_available_models(tool_context: ToolContext):
+    """
+    Get the available models configured for ensemble use.
+
+    Returns:
+        Dictionary with available_models list and count
+    """
+    try:
+        # Get session ID from tool context or use default
+        session_id = get_aigise_session_id_from_context(tool_context)
+
+        # Use session-specific AigiseEnsembleManager
+        aigise_session = get_aigise_session(session_id)
+        ensemble_manager = aigise_session.ensemble
+
+        # Get available models for ensemble
+        available_models = ensemble_manager.get_available_models()
+
+        return {
+            "success": True,
+            "available_models": available_models,
+            "models_count": len(available_models),
+            "message": f"Found {len(available_models)} available models for ensemble",
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to get available models for ensemble: {str(e)}",
+            "available_models": [],
         }
 
 

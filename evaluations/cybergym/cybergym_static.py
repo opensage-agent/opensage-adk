@@ -46,6 +46,7 @@ class CyberGym(Evaluation):
         "/scr/zhun/data/playground/cybergym/server/cybergym/server_poc/"
     )
     server_url_host: str = "http://172.16.0.1:8666"
+    run_until_explicit_finish: bool = True
 
     def __post_init__(self):
         """Validate required fields after initialization."""
@@ -211,6 +212,7 @@ class CyberGym(Evaluation):
         vul_crash_tasks = (
             set()
         )  # Track tasks where at least one submission has vul_exit_code != 0
+        successful_task_list = set()  # Track tasks that succeeded
         all_poc_data = []  # Store all poc_data for detailed analysis
 
         lines = result_str.strip().split("\n")
@@ -235,6 +237,10 @@ class CyberGym(Evaluation):
                 if vul_exit_code != 0:
                     vul_crash_tasks.add(task_id)
 
+                # Track successful tasks
+                if is_success:
+                    successful_task_list.add(task_id)
+
                 # Strategy: Any success counts (if any submission succeeds, task is successful)
                 if task_id not in results:
                     results[task_id] = is_success
@@ -255,6 +261,8 @@ class CyberGym(Evaluation):
         logger.warning(f"Total tasks: {total_tasks}")
         logger.warning(f"Successful tasks: {successful_tasks}")
         logger.warning(f"Success rate: {success_rate:.2f}%")
+        if successful_task_list:
+            logger.warning(f"  Successful tasks: {sorted(successful_task_list)}")
         logger.warning(f"Vul crash (vul_exit_code != 0): {vul_crash_count} tasks")
         if vul_crash_tasks:
             logger.warning(f"  Tasks with vul crash: {sorted(vul_crash_tasks)}")
@@ -264,6 +272,7 @@ class CyberGym(Evaluation):
             "agent_id": self.agent_id,
             "total_tasks": total_tasks,
             "successful_tasks": successful_tasks,
+            "successful_task_list": sorted(list(successful_task_list)),
             "success_rate": success_rate,
             "vul_crash_count": vul_crash_count,
             "vul_crash_tasks": sorted(list(vul_crash_tasks)),

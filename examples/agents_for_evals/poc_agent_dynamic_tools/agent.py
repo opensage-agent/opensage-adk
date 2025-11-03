@@ -21,7 +21,8 @@ from aigise.toolbox.finish_task.finish_task import finish_task
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
     flag_unjustified_claims,
-    get_available_agents_and_models_for_ensemble,
+    get_available_agents_for_ensemble,
+    get_available_models,
     get_idea_from_other_models,
 )
 from aigise.toolbox.general.bash_tool import bash_tool

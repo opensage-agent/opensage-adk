@@ -7,9 +7,12 @@ and counts the frequency of each function call.
 """
 
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List
+
+import fire
 
 
 def extract_function_calls(session_trace_path: Path) -> List[str]:
@@ -47,10 +50,23 @@ def extract_function_calls(session_trace_path: Path) -> List[str]:
     return function_calls
 
 
-def main():
-    """Main function: count frequency of all function_calls in the directory."""
+def main(directory: str):
+    """Main function: count frequency of all function_calls in the directory.
+
+    Args:
+        directory: Path to the directory containing subdirectories with session_trace.json files
+    """
     # Target directory
-    base_dir = Path("/scr/hongwei/projects/adk-python/AIgiSE/evals/cybergym/50_feat")
+    base_dir = Path(directory)
+
+    # Check if directory exists
+    if not base_dir.exists():
+        print(f"Error: Directory '{directory}' does not exist")
+        sys.exit(1)
+
+    if not base_dir.is_dir():
+        print(f"Error: '{directory}' is not a directory")
+        sys.exit(1)
 
     # Store all function_calls
     all_function_calls = []
@@ -58,7 +74,10 @@ def main():
     # Iterate through all subdirectories
     subdirs = sorted([d for d in base_dir.iterdir() if d.is_dir()])
 
-    print(f"Scanning {len(subdirs)} subdirectories...\n")
+    if not subdirs:
+        print(f"Warning: No subdirectories found in '{directory}'")
+
+    print(f"Scanning {len(subdirs)} subdirectories in: {base_dir}\n")
 
     for subdir in subdirs:
         session_trace_file = subdir / "session_trace.json"
@@ -106,4 +125,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    fire.Fire(main)

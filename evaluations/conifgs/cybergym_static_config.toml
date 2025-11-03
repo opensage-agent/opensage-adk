@@ -11,7 +11,7 @@ COMPILE_COMMAND = "arvo compile"
 RUN_COMMAND = "arvo"
 AGENT_STORAGE_PATH = ""
 # History configuration defaults
-MAX_TOOL_RESPONSE_LENGTH = 10000
+MAX_TOOL_RESPONSE_LENGTH = 20000
 MAX_HISTORY_SUMMARY_LENGTH = 100000
 # Agent ensemble defaults
 AVAILABLE_MODELS = "anthropic/claude-sonnet-4-20250514,openai/o4-mini"
@@ -40,8 +40,11 @@ project_relative_shared_data_path = "${PROJECT_RELATIVE_SHARED_DATA_PATH}"
 
 # Main sandbox configuration
 [sandbox.sandboxes.main]
-image = "${DEFAULT_IMAGE}"
+image = "${DEFAULT_IMAGE}_main"
+project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/main/Dockerfile"
 timeout = 300
+[sandbox.sandboxes.main.build_args]
+BASE_IMAGE = "${DEFAULT_IMAGE}"
 
 # GDB MCP sandbox configuration
 [sandbox.sandboxes.gdb_mcp]

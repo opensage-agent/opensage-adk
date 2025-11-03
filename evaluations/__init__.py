@@ -86,7 +86,7 @@ class EvaluationTask:
     prompt: str  # Prompt to send to agent
     output_dir: str  # Local output directory
     cache_dir: str  # Sandbox cache directory
-    output_dir_in_sandbox: str | None  # Optional sandbox dir to export
+    output_dir_in_sandbox: str | tuple | None  # Optional sandbox dir(s) to export
     metadata: dict  # Metadata to save
     config_template_path: str = (
         PROJECT_PATH / "src/aigise/templates/configs/default_config.toml"
@@ -108,7 +108,7 @@ class Evaluation(abc.ABC):
     model: str | None = (
         None  # If None, use agent's original model; if set, replace all models
     )
-    output_dir_in_sandbox: str | None = None
+    output_dir_in_sandbox: str | tuple | None = None
     config_template_path: str | None = (
         PROJECT_PATH / "src/aigise/templates/configs/default_config.toml"
     )
@@ -691,8 +691,8 @@ class Evaluation(abc.ABC):
         task_name = self._get_sample_id(sample)
         return str(Path(self.cache_dir) / task_name)
 
-    def _get_output_dir_in_sandbox(self, sample: dict) -> str | None:
-        """Get sandbox output directory to export.
+    def _get_output_dir_in_sandbox(self, sample: dict) -> str | tuple | None:
+        """Get sandbox output directory/directories to export.
 
         Default: self.output_dir_in_sandbox (class attribute)
         Override if you need sample-specific logic.
@@ -701,7 +701,8 @@ class Evaluation(abc.ABC):
             sample: Sample dict from dataset
 
         Returns:
-            Path to sandbox output directory, or None
+            Path(s) to sandbox output directory/directories, or None
+            Can be a single string or a tuple of strings
         """
         return self.output_dir_in_sandbox
 
@@ -1047,22 +1048,45 @@ class Evaluation(abc.ABC):
 
         # 1. Copy output from sandbox (if specified)
         if task.output_dir_in_sandbox:
-            # # Check if under /shared
-            # if not task.output_dir_in_sandbox.startswith("/shared"):
-            #     raise ValueError(
-            #         f"output_dir_in_sandbox must be under /shared, "
-            #         f"got: {task.output_dir_in_sandbox}"
-            #     )
-
             sandbox = aigise_session.sandboxes.get_sandbox("main")
-            sandbox_output_dir = output_path / "sandbox_output"
-            sandbox.copy_directory_from_container(
-                src_path=task.output_dir_in_sandbox, dst_path=str(sandbox_output_dir)
+
+            # Support single string or iterable (list/tuple) of strings
+            paths_to_copy = (
+                [task.output_dir_in_sandbox]
+                if isinstance(task.output_dir_in_sandbox, str)
+                else task.output_dir_in_sandbox
             )
-            logger.warning(
-                f"Copied sandbox output from {task.output_dir_in_sandbox} "
-                f"to {sandbox_output_dir}"
-            )
+
+            for idx, src_path in enumerate(paths_to_copy):
+                # Check if path exists in container before copying
+                check_cmd = f"test -e {src_path}"
+                _, exit_code = sandbox.run_command_in_container(check_cmd)
+
+                if exit_code != 0:
+                    logger.warning(
+                        f"Skipping {src_path} - path does not exist in container"
+                    )
+                    continue
+
+                # Create subdirectory for each path
+                if len(paths_to_copy) == 1:
+                    sandbox_output_dir = output_path / "sandbox_output"
+                else:
+                    # Use path basename or index for subdirectory name
+                    dir_name = Path(src_path).name or f"output_{idx}"
+                    sandbox_output_dir = output_path / "sandbox_output" / dir_name
+
+                sandbox_output_dir.mkdir(parents=True, exist_ok=True)
+
+                try:
+                    sandbox.copy_directory_from_container(
+                        src_path=src_path, dst_path=str(sandbox_output_dir)
+                    )
+                    logger.warning(
+                        f"Copied sandbox output from {src_path} to {sandbox_output_dir}"
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to copy {src_path}: {e}. Skipping.")
 
         # 2. Export Neo4j history database
         await self._export_neo4j_database(aigise_session, output_path / "neo4j_history")

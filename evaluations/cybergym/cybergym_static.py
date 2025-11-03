@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
-    output_dir_in_sandbox: str = "/tmp/"
+    output_dir_in_sandbox: str | tuple = ("/tmp/", "/shared/tmp/")
     agent_dir: str = str(
         PROJECT_PATH / "examples/agents_for_evals/poc_agent_static_tools"
     )
@@ -35,6 +35,7 @@ class CyberGym(Evaluation):
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
+    max_llm_calls: int = 150
     config_template_path: str = str(
         PROJECT_PATH / "evaluations/conifgs/cybergym_static_config.toml"
     )
@@ -75,7 +76,7 @@ class CyberGym(Evaluation):
                 Path(__file__).parent / "metadata" / "task_list_subset", "r"
             ) as f:
                 task_list = f.read().splitlines()
-            task_list = ["arvo:10731"]
+            task_list = task_list[:50]
             dataset = dataset.filter(lambda x: x["task_id"] in task_list)
             logger.warning(
                 f"Filtered dataset to {len(dataset)} tasks from task_list_subset"

@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
-    output_dir_in_sandbox: str = "/tmp/"
+    output_dir_in_sandbox: str | list = ["/tmp/", "/shared/tmp/"]
     agent_dir: str = str(
         PROJECT_PATH / "examples/agents_for_evals/poc_agent_dynamic_tools"
     )

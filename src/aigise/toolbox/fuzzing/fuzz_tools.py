@@ -1,12 +1,12 @@
 """Fuzzing tool implementations."""
 
-from __future__ import annotations
-
 import logging
+import os
+import re
 import tempfile
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from google.adk.tools.tool_context import ToolContext
+from google.adk.tools import ToolContext
 
 from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
 from aigise.utils.agent_utils import (
@@ -18,6 +18,80 @@ logger = logging.getLogger(__name__)
 
 
 @safe_tool_execution
+@requires_sandbox("main")
+async def simplified_python_fuzzer(
+    script: str, *, tool_context: ToolContext
+) -> Dict[str, Any]:
+    r"""
+    create a simplified python fuzzer script that mutates one seed, feeds it to the target program, and monitors whether the target program crashes.
+    The script should follow the following high level design:
+    1. Load the seed file or write your own seed, if you write your own seed file, your seed file should be stored in /tmp, only use one seed file and overwrite it when mutating, you should be aware of the python version, which may not support some features.
+    2. Mutate the seed file, you should consider the format and grammar of the seed file, and mutate it in a way that is likely to trigger the vulnerability, you should concentrate on the part of the seed that you are not sure why it didn't trigger the vulnerability. You should do grammar based mutation, or dictionary based mutation, and pay attention to end of file and end of line. Always have a generation or mutation logic, do not just fuzz a fixed set of inputs.
+    3. Feed the mutated seed file to the target program, you should find how to run the target program, or how to submit the input to a remote server to get feedback from the target program.
+    5. If the target program crashes, save the crash and the corresponding input to a file, that should be stored in /tmp
+    7. Repeat the process for an infinite iterations, until the target program crashes.
+    You should not output print out anything, you should save the crash and the corresponding input to a file
+    You script will be run with the command python3 for one minute.
+    """
+    # 1. Extract the Python code block
+    fuzzer_code = script
+
+    # 3. Get sandbox
+    sandbox = get_sandbox_from_context(tool_context, "main")
+
+    # 4. Create temporary directory and write the fuzzer script
+    with tempfile.TemporaryDirectory() as temp_dir:
+        fuzzer_script_path = os.path.join(temp_dir, "fuzzer.py")
+        with open(fuzzer_script_path, "w", encoding="utf-8") as f:
+            f.write(fuzzer_code)
+
+        # 5. Copy fuzzer script to container
+        container_fuzzer_path = "/tmp/fuzzer.py"
+        try:
+            sandbox.copy_file_to_container(fuzzer_script_path, container_fuzzer_path)
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to copy fuzzer script to container: {str(e)}",
+            }
+
+        # 6. Run the fuzzer script for 60 seconds
+        logger.info("Running fuzzer script for 60 seconds...")
+        output, exit_code = sandbox.run_command_in_container(
+            f"timeout 60s python3 {container_fuzzer_path}",
+            timeout=70,  # Give a bit more time for timeout command to complete
+        )
+
+        # 7. Check for crash files or outputs
+        crash_files, _ = sandbox.run_command_in_container(
+            "find /tmp -name 'crash_*' -o -name 'crash.txt' 2>/dev/null"
+        )
+
+        result = {
+            "success": True,
+            "output": output,
+            "exit_code": exit_code,
+            "crash_files_found": crash_files.strip() if crash_files else "",
+        }
+
+        # 8. If crash files exist, try to read them
+        if crash_files.strip():
+            crash_file_list = [
+                f.strip() for f in crash_files.strip().split("\n") if f.strip()
+            ]
+            result["crash_details"] = []
+            for crash_file in crash_file_list[:5]:  # Limit to first 5 crash files
+                crash_content, _ = sandbox.run_command_in_container(
+                    f"head -n 100 {crash_file} 2>/dev/null"
+                )
+                result["crash_details"].append(
+                    {"file": crash_file, "content": crash_content}
+                )
+
+        return result
+
+
+@safe_tool_execution
 @requires_sandbox("fuzz")
 async def run_fuzzing_campaign(
     duration_minutes: Optional[int],
@@ -25,7 +99,7 @@ async def run_fuzzing_campaign(
     custom_mutator: Optional[str],
     *,
     tool_context: ToolContext,
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """
     Run a fuzzing campaign using AFL++.
 
@@ -154,7 +228,7 @@ async def extract_crashes(
 
 
 @requires_sandbox("fuzz")
-async def check_fuzzing_stats(*, tool_context: ToolContext) -> Dict[str, any]:
+async def check_fuzzing_stats(*, tool_context: ToolContext) -> Dict[str, Any]:
     """
     Check fuzzing coverage and statistics.
 
@@ -184,7 +258,7 @@ async def check_fuzzing_stats(*, tool_context: ToolContext) -> Dict[str, any]:
     return {"success": True, "coverage_info": coverage_info}
 
 
-def _analyze_fuzzing_results(fuzz_sandbox, fuzz_target: str) -> Dict[str, any]:
+def _analyze_fuzzing_results(fuzz_sandbox, fuzz_target: str) -> Dict[str, Any]:
     """Analyze fuzzing results."""
     results = {
         "crashes_found": 0,
@@ -215,7 +289,7 @@ def _analyze_fuzzing_results(fuzz_sandbox, fuzz_target: str) -> Dict[str, any]:
     return results
 
 
-def _parse_fuzzer_stats(stats_output: str) -> Dict[str, any]:
+def _parse_fuzzer_stats(stats_output: str) -> Dict[str, Any]:
     """Parse AFL++ fuzzer statistics."""
     stats = {}
 

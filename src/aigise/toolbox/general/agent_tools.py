@@ -13,6 +13,27 @@ logger = logging.getLogger(__name__)
 
 
 @safe_tool_execution
+async def note_suspicious_things(suspicious_things: str, tool_context: ToolContext):
+    """
+    If you have multiple intereting points or suspicious things to explore, you can call this tool to note them down so that you don't forget them.
+
+    Returns:
+        "Noted"
+    """
+    return "Noted"
+
+
+async def update_plan(plan: str, tool_context: ToolContext):
+    """
+    If you have a new plan or idea, you can call this tool to update your plan.
+
+    Returns:
+        "Plan updated"
+    """
+    return "Plan updated"
+
+
+@safe_tool_execution
 async def get_idea_from_other_models(tool_context: ToolContext):
     """
     Call this to query another model as a consultant to help you solve the task, you should call this frequently to get an idea of how to solve the task.
@@ -59,11 +80,14 @@ async def get_idea_from_other_models(tool_context: ToolContext):
 
 Please provide:
 1. A brief analysis of what the agent has tried so far
-2. Suggestions on what the agent should try next
+2. Suggestions on what the agent should see next
 3. Any potential issues or missing steps you notice
 
 You need to be critical and objective, do not sugarcoat the truth, do not be afraid to tell the agent what they are doing wrong.
-You should also find all unjustified claims and flag them, you should find all the unjustified assumptions and flag them. There are probably something missing or wrong in the task, you need to find it and tell the agent.
+You should also find all unjustified claims and assumptions and flag them.
+There are probably something missing or wrong in the task, you need to find it and tell the agent.
+There are probably some context missing, the agent might not have all the information it needs to solve the task, indicate what needs to be added to the context, e.g., are the exploitation path complete, and are the functions in the exploitation path complete?
+Does the agent only have a part of the functions and starts to guess the rest? Does the agent guess some machanism or logic that don't show up in the code, e.g., processing of a header, a callback, a mechanism of a specific function, etc.?
 
 Keep your response concise and actionable."""
 

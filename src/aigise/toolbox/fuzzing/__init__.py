@@ -1,15 +1,15 @@
 """Fuzzing tools for AIgiSE."""
 
 from .fuzz_tools import (
-    analyze_crash,
-    check_fuzzing_coverage,
-    generate_poc,
+    check_fuzzing_stats,
+    extract_crashes,
     run_fuzzing_campaign,
+    simplified_python_fuzzer,
 )
 
 __all__ = [
     "run_fuzzing_campaign",
-    "analyze_crash",
-    "generate_poc",
-    "check_fuzzing_coverage",
+    "simplified_python_fuzzer",
+    "check_fuzzing_stats",
+    "extract_crashes",
 ]

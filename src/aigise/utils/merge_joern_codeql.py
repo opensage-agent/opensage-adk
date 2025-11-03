@@ -362,7 +362,7 @@ async def import_joern_callgraph(n4j_client: AsyncNeo4jClient, json_outdir: str)
             WITH value._label AS label,
                  value._id AS id,
                  apoc.map.removeKeys(value, ["_label", "_id"]) AS props
-            WITH label, apoc.map.merge(props, {id: id}) AS propsWithId
+            WITH label, apoc.map.merge(props, {{id: id}}) AS propsWithId
             CALL apoc.create.node([label], propsWithId) YIELD node
             RETURN 1
             ',

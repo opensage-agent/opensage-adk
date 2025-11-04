@@ -3,7 +3,7 @@ Integration test for agent ensemble functionality with sample_agent_ensemble age
 
 Tests the complete flow of agent execution with ensemble coordination, verifying:
 1. Input: "calculate 2+9+11, using at least two models"
-2. Expected tool sequence: get_available_agents_and_models_for_ensemble -> agent_ensemble
+2. Expected tool sequence: get_available_agents_for_ensemble -> get_available_models -> agent_ensemble
 3. Expected output: final answer = 22
 
 This test verifies that the ensemble functionality is properly triggered and
@@ -288,8 +288,11 @@ class TestAgentEnsembleIntegration:
                 if "function_call" in item:
                     function_call_names.append(item["function_call"]["name"])
 
-        assert "get_available_agents_and_models_for_ensemble" in function_call_names, (
-            f"Expected get_available_agents_and_models_for_ensemble function call, got {function_call_names}"
+        assert "get_available_agents_for_ensemble" in function_call_names, (
+            f"Expected get_available_agents_for_ensemble function call, got {function_call_names}"
+        )
+        assert "get_available_models" in function_call_names, (
+            f"Expected get_available_models function call, got {function_call_names}"
         )
         assert "agent_ensemble" in function_call_names, (
             f"Expected agent_ensemble function call, got {function_call_names}"
@@ -303,7 +306,8 @@ class TestAgentEnsembleIntegration:
         )
 
         # Note: Based on the log output, we can see that the ensemble manager was invoked:
-        # - "Discovered 1 static agents" - indicates get_available_agents_and_models_for_ensemble was called
+        # - "Discovered 1 static agents" - indicates get_available_agents_for_ensemble was called
+        # - "Found 3 available models for ensemble" - indicates get_available_models was called
         # - Multiple function calls indicate the agent attempted to use ensemble functionality
         # - The result is correct (22), showing the calculation worked
 

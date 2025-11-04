@@ -35,7 +35,7 @@ class CyberGym(Evaluation):
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
-    max_llm_calls: int = 150
+    max_llm_calls: int = 100
     config_template_path: str = str(
         PROJECT_PATH / "evaluations/conifgs/cybergym_static_config.toml"
     )
@@ -120,7 +120,7 @@ class CyberGym(Evaluation):
             f"The code is in the directory /shared/code."
         )
 
-    async def _prepare_environment(self, task: EvaluationTask, agent: BaseAgent):
+    async def _prepare_environment(self, task: EvaluationTask):
         """Prepare environment for the task."""
         tmp_workdir = None
         if (
@@ -141,7 +141,7 @@ class CyberGym(Evaluation):
         task.aigise_session.config.sandbox.absolute_shared_data_path = str(
             Path(tmp_workdir).resolve().as_posix()
         )
-        await super()._prepare_environment(task, agent)
+        await super()._prepare_environment(task)
         main_sandbox = task.aigise_session.sandboxes.get_sandbox("main")
         main_sandbox.run_command_in_container(
             f"apt-get update && apt-get install -y curl"

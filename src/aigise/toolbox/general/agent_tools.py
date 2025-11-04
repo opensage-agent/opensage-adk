@@ -402,7 +402,7 @@ async def agent_ensemble(
     Agent ensemble is a tool that allows launching multiple agents, each with a different model, to perform a task.
     The agent will then aggregate the results from the agents and return the final result.
 
-    Before calling this tool, you must call get_available_agents_and_models_for_ensemble FIRST to get the allowed agents and models, as the allowed agents and models may change over time.
+    Before calling this tool, you must call get_available_agents_for_ensemble and get_available_models FIRST to get the allowed agents and models, as the allowed agents and models may change over time.
 
         Args:
             instruction: The specific instruction/task you want all agents to execute

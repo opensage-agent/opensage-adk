@@ -94,9 +94,8 @@ async def simplified_python_fuzzer(
 @safe_tool_execution
 @requires_sandbox("fuzz")
 async def run_fuzzing_campaign(
-    duration_minutes: Optional[int],
-    seeds: Optional[List[str]],
-    custom_mutator: Optional[str],
+    seeds: Optional[List[str]] = None,
+    custom_mutator: Optional[str] = None,
     *,
     tool_context: ToolContext,
 ) -> Dict[str, Any]:
@@ -105,9 +104,8 @@ async def run_fuzzing_campaign(
 
 
     Args:
-        duration_minutes: Duration of fuzzing in minutes
         seeds: Optional list of path to seed input files or directories.
-            If None, will continue with previous fuzzing campaign state, or use a default seed ("1234").
+            If None, will continue with previous fuzzing campaign state, or use a default seed ("1234"). You should normally create a seed file and indicate its path.
         custom_mutator: Optional path to a custom mutator python script, or the function itself. If not provided, use default mutators.
             It should define a function::
 
@@ -128,8 +126,7 @@ async def run_fuzzing_campaign(
     Returns:
         Dictionary containing fuzzing results and statistics
     """
-    if duration_minutes is None:
-        duration_minutes = 5  # Default to 5 minutes
+    duration_minutes = 1
 
     fuzz_sandbox = get_sandbox_from_context(tool_context, "fuzz")
     config = get_aigise_config_from_context(tool_context)

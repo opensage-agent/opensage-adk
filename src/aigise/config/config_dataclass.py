@@ -7,7 +7,7 @@ Defines all configuration dataclasses with default values and environment variab
 import copy
 import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
@@ -310,7 +310,11 @@ class MCPServiceConfig:
             return self._sse_host
 
         # Otherwise, dynamically get from parent config
-        if self._parent_config and hasattr(self._parent_config, "default_host"):
+        if (
+            self._parent_config
+            and hasattr(self._parent_config, "default_host")
+            and self._parent_config.default_host
+        ):
             return self._parent_config.default_host
 
         # Final fallback
@@ -493,9 +497,73 @@ class AigiseConfig:
         Args:
             toml_path: Path to save TOML file
         """
-        from dataclasses import asdict
+        import inspect
+        from dataclasses import fields, is_dataclass
 
-        config_dict = asdict(self)
+        def to_dict(obj, seen=None):
+            """Recursively convert dataclass to dict, excluding circular references."""
+            if seen is None:
+                seen = set()
+
+            # Handle None and basic types first
+            if obj is None or isinstance(obj, (str, int, float, bool)):
+                return obj
+
+            # Avoid infinite recursion
+            obj_id = id(obj)
+            if obj_id in seen:
+                return None
+
+            if is_dataclass(obj):
+                seen.add(obj_id)
+                result = {}
+                for field in fields(obj):
+                    # Skip private fields (starting with _)
+                    if field.name.startswith("_"):
+                        continue
+                    value = getattr(obj, field.name)
+                    result[field.name] = to_dict(value, seen)
+                seen.remove(obj_id)
+                return result
+            elif isinstance(obj, dict):
+                return {k: to_dict(v, seen) for k, v in obj.items()}
+            elif isinstance(obj, (list, tuple)):
+                return [to_dict(item, seen) for item in obj]
+            elif isinstance(obj, Path):
+                return str(obj)
+            elif hasattr(obj, "__dict__") or hasattr(type(obj), "__dict__"):
+                # Handle objects with properties and attributes
+                seen.add(obj_id)
+                result = {}
+
+                # Get all public attributes including @property
+                for name in dir(obj):
+                    # Skip private/magic attributes
+                    if name.startswith("_"):
+                        continue
+
+                    try:
+                        # Check if it's a callable method (not property)
+                        attr = getattr(type(obj), name, None)
+                        if callable(attr) and not isinstance(attr, property):
+                            # Skip methods
+                            continue
+
+                        # Get value (works for both regular attributes and @property)
+                        value = getattr(obj, name)
+                        if not callable(value):  # Skip bound methods
+                            result[name] = to_dict(value, seen)
+                    except Exception:
+                        # Skip attributes that raise errors when accessed
+                        continue
+
+                seen.remove(obj_id)
+                # Only return dict if we got valid results
+                return result if result else None
+            else:
+                return obj
+
+        config_dict = to_dict(self)
 
         toml_path = Path(toml_path)
         toml_path.parent.mkdir(parents=True, exist_ok=True)

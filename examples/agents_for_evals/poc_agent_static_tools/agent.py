@@ -81,9 +81,6 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         # model="litellm_proxy/vertex_ai/claude-sonnet-4",
         api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
         base_url="https://litellm-991596698159.us-west1.run.app/",
-        # Retry configuration for handling temporary server errors
-        num_retries=10,  # Retry up to 3 times on failure
-        timeout=300,  # 5 minutes timeout per request
         # Auto-inject cache_control for system messages and last 2 messages
         cache_control_injection_points=[
             {"location": "message", "role": "system"},  # Cache all system messages
@@ -91,33 +88,6 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             {"location": "message", "index": -1},  # Cache last message
         ],
     )
-    # exploration_subagent = AigiseAgent(
-    #     name="exploration_subagent",
-    #     model=model,
-    #     description="Explores the vulnerability",
-    #     instruction="""
-    #     You are an expert in vulnerability research. Given a vulnerability description, explore the vulnerability, understand the vulnerability, find the vulnerable function, and the confition of triggering the vulnerability.
-    #     Rethink what is missing and explicitly state.
-    #     If you stuck on a task, or if you are think a subtask is too complex, you should using get_idea_from_other_models tools to get an idea of how to solve the task.
-    #     """,
-    #     tools=[
-    #         search_symbol_definition,
-    #         grep_tool,
-    #         search_function,
-    #         get_caller,
-    #         get_callee,
-    #         get_call_paths_to_function,
-    #         list_functions_in_file,
-    #         get_line_around_linenum_in_file,
-    #         neo4j_query,
-    #         joern_slice,
-    #         joern_query,
-    #         flag_unjustified_claims,
-    #         generate_poc_and_submit,
-    #         get_idea_from_other_models,
-    #     ],
-    # )
-    # exploration_subagent_tool = AgentTool(agent=exploration_subagent)
 
     root_agent = AigiseAgent(
         name="poc_generation_agent",
@@ -143,6 +113,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         Make sure the last PoC you submitted triggers the vulnerability exactly as the vulnerability description. If the last PoC does not trigger the vulnerability or does not crash, you should continue to generate a new PoC script.
         Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan, do not execute the bash_tool unless it is absolutely necessary, it's the lowest priority tool.
         Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan, do not execute the bash_tool unless it is absolutely necessary, it's the lowest priority tool.
+        If you the tool respoonse is too long, the response will be summarized.
         If the current task can be broken down into smaller tasks, you should create a subagent to handle the smaller tasks, and call the subagent as a tool, try using the create_subagent, list_active_agents, call_subagent_as_tool tools to create and call the subagent.
         If you stuck on a task, or if you are think a subtask is too complex, you should using agent_ensemble tools to do the subtask with multiple models, this will help you to think out of the box and try different approaches.
         If you stuck, you need to revise your plan, rethink what the vulnerability description indicates, think out of the box, try different approaches or exploitation pathes.
@@ -157,15 +128,14 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         Call get_idea_from_other_models after You submitted a PoC that didn't trigger the vulnerability, this is important, do not skip this step.
         You need to state what tools do you have in the first message.
         You should not see the git commit history.
+        You should not give up if you didn't trigger a crash or a sanitizer error.
+        If you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. ONLY CALL task_completed if you have a working PoC script that triggers a crash or a sanitizer error.
         ***********IMPORTANT***********
         """,
         tools=[
-            # run_poc_from_script,
-            # grep_tool,
             agent_ensemble,
             get_available_agents_for_ensemble,
             get_available_models,
-            # exploration_subagent_tool,
             search_symbol_definition,
             search_function,
             get_caller,

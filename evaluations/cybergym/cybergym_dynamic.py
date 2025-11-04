@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
-    output_dir_in_sandbox: str | list = ["/tmp/", "/shared/tmp/"]
+    output_dir_in_sandbox: str | tuple = ("/tmp/", "/shared/tmp/")
     agent_dir: str = str(
         PROJECT_PATH / "examples/agents_for_evals/poc_agent_dynamic_tools"
     )
@@ -35,16 +35,21 @@ class CyberGym(Evaluation):
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
+    max_llm_calls: int = 100
     config_template_path: str = str(
         PROJECT_PATH / "evaluations/conifgs/cybergym_dynamic_config.toml"
     )
     use_task_subset: bool = True  # If True, filter using task_list_subset file
+    fuzz_target_metadata_path: str = str(
+        PROJECT_PATH / "evaluations/cybergym/metadata/fuzz_target_mapping.json"
+    )
     # evaluate
     cybergym_dir: str = str(PROJECT_PATH / "third_party/cybergym")
     cybergym_poc_save_dir: str = (
         "/scr/zhun/data/playground/cybergym/server/cybergym/server_poc/"
     )
     server_url_host: str = "http://172.16.0.1:8666"
+    run_until_explicit_finish: bool = True
 
     def __post_init__(self):
         """Validate required fields after initialization."""
@@ -75,7 +80,7 @@ class CyberGym(Evaluation):
                 Path(__file__).parent / "metadata" / "task_list_subset", "r"
             ) as f:
                 task_list = f.read().splitlines()
-            task_list = ["arvo:10731"]
+            task_list = task_list[:1]
             dataset = dataset.filter(lambda x: x["task_id"] in task_list)
             logger.warning(
                 f"Filtered dataset to {len(dataset)} tasks from task_list_subset"
@@ -118,7 +123,7 @@ class CyberGym(Evaluation):
             f"The code is in the directory /shared/code."
         )
 
-    async def _prepare_environment(self, task: EvaluationTask, agent: BaseAgent):
+    async def _prepare_environment(self, task: EvaluationTask):
         """Prepare environment for the task."""
         tmp_workdir = None
         if (
@@ -139,7 +144,7 @@ class CyberGym(Evaluation):
         task.aigise_session.config.sandbox.absolute_shared_data_path = str(
             Path(tmp_workdir).resolve().as_posix()
         )
-        await super()._prepare_environment(task, agent)
+        await super()._prepare_environment(task)
         main_sandbox = task.aigise_session.sandboxes.get_sandbox("main")
         main_sandbox.run_command_in_container(
             f"apt-get update && apt-get install -y curl"
@@ -168,6 +173,10 @@ class CyberGym(Evaluation):
             input_data_path = ""
         image_name = task.sample["task_id"]
         arvo_image_name = "n132/" + image_name + "-vul"
+
+        # Load fuzz target for this task
+        fuzz_target = self._get_fuzz_target_for_task(task.sample["task_id"])
+
         template_variables = {
             "TASK_NAME": task_name,
             "PROJECT_RELATIVE_SHARED_DATA_PATH": input_data_path,
@@ -178,10 +187,33 @@ class CyberGym(Evaluation):
         aigise_session = get_aigise_session(
             task.session_id, config_path=temp_config_path
         )
+
+        # Set fuzz target in config
+        if fuzz_target:
+            aigise_session.config.build.target_binary = fuzz_target
+            logger.info(f"Set fuzz target for {task_name}: {fuzz_target}")
+
         task.aigise_session = aigise_session
 
         # clean up temp config file
         shutil.rmtree(temp_dir, ignore_errors=True)
+
+    def _get_fuzz_target_for_task(self, task_id: str) -> str:
+        """Get fuzz target path for a specific task from metadata.
+
+        Args:
+            task_id: Task ID (e.g., "arvo:12312")
+
+        Returns:
+            Fuzz target path or empty string if not found
+        """
+        try:
+            with open(self.fuzz_target_metadata_path) as f:
+                metadata = json.load(f)
+            return metadata.get(task_id, "")
+        except Exception as e:
+            logger.warning(f"Failed to load fuzz target metadata: {e}")
+            return ""
 
     def evaluate(self) -> dict:
         """Evaluate results by calling cybergym's server."""
@@ -210,6 +242,7 @@ class CyberGym(Evaluation):
         vul_crash_tasks = (
             set()
         )  # Track tasks where at least one submission has vul_exit_code != 0
+        successful_task_list = set()  # Track tasks that succeeded
         all_poc_data = []  # Store all poc_data for detailed analysis
 
         lines = result_str.strip().split("\n")
@@ -234,6 +267,10 @@ class CyberGym(Evaluation):
                 if vul_exit_code != 0:
                     vul_crash_tasks.add(task_id)
 
+                # Track successful tasks
+                if is_success:
+                    successful_task_list.add(task_id)
+
                 # Strategy: Any success counts (if any submission succeeds, task is successful)
                 if task_id not in results:
                     results[task_id] = is_success
@@ -254,6 +291,8 @@ class CyberGym(Evaluation):
         logger.warning(f"Total tasks: {total_tasks}")
         logger.warning(f"Successful tasks: {successful_tasks}")
         logger.warning(f"Success rate: {success_rate:.2f}%")
+        if successful_task_list:
+            logger.warning(f"  Successful tasks: {sorted(successful_task_list)}")
         logger.warning(f"Vul crash (vul_exit_code != 0): {vul_crash_count} tasks")
         if vul_crash_tasks:
             logger.warning(f"  Tasks with vul crash: {sorted(vul_crash_tasks)}")
@@ -263,6 +302,7 @@ class CyberGym(Evaluation):
             "agent_id": self.agent_id,
             "total_tasks": total_tasks,
             "successful_tasks": successful_tasks,
+            "successful_task_list": sorted(list(successful_task_list)),
             "success_rate": success_rate,
             "vul_crash_count": vul_crash_count,
             "vul_crash_tasks": sorted(list(vul_crash_tasks)),

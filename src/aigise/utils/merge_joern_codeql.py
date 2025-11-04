@@ -163,6 +163,8 @@ def load_codeql_results(out_dir: str) -> pd.DataFrame:
     fp_funcs = load_fp_accesses(fp_accesses_path)
     indirect_edges = match_edges(expr_calls, fp_funcs)
 
+    breakpoint()
+
     # 3. insert indirect edges into the DataFrame
     if indirect_edges:
         indirect_df = pd.DataFrame(indirect_edges)
@@ -248,7 +250,7 @@ async def insert_codeql_results_to_cpg(
                 continue
             # create a new method node
             new_id = f"codeql_{idx}"
-            logger.info(f"Creating missing method node: {methods[idx]}")
+            logger.debug(f"Creating missing method node: {methods[idx]}")
             create_cypher = """
             CREATE (m:METHOD)
             SET m.id = $id,

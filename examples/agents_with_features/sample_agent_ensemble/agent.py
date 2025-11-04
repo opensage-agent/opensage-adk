@@ -14,7 +14,8 @@ from aigise.session import get_aigise_session
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
     flag_unjustified_claims,
-    get_available_agents_and_models_for_ensemble,
+    get_available_agents_for_ensemble,
+    get_available_models,
 )
 
 
@@ -71,7 +72,8 @@ def mk_agent(aigise_session_id="sample-ensemble-session"):
         tools=[
             calculation_agent_tool,
             agent_ensemble,
-            get_available_agents_and_models_for_ensemble,
+            get_available_agents_for_ensemble,
+            get_available_models,
         ],
     )
     setup_summarization_callbacks(root_agent)

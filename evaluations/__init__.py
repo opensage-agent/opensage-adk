@@ -66,6 +66,10 @@ def _run_sample_in_process(evaluation_instance: "Evaluation", sample: dict) -> d
     litellm.success_callback = []
     litellm.failure_callback = []
 
+    # Configure retry settings in subprocess
+    litellm.num_retries = evaluation_instance.llm_retry_count
+    litellm.request_timeout = evaluation_instance.llm_retry_timeout
+
     # Run async code in this process's event loop
     return asyncio.run(evaluation_instance._generate_sample(task))
 
@@ -113,8 +117,20 @@ class Evaluation(abc.ABC):
         PROJECT_PATH / "src/aigise/templates/configs/default_config.toml"
     )
     use_multiprocessing: bool = True  # Use multiprocessing (True) or threading (False)
+    llm_retry_count: int = (
+        3  # Number of retries for LLM API calls (e.g., for 502 errors)
+    )
+    llm_retry_timeout: int = 30  # Timeout in seconds for each LLM request
 
     def __post_init__(self) -> None:
+        # Configure LiteLLM global retry settings
+        litellm.num_retries = self.llm_retry_count
+        litellm.request_timeout = self.llm_retry_timeout
+        logger.info(
+            f"Configured LiteLLM retry: num_retries={self.llm_retry_count}, "
+            f"request_timeout={self.llm_retry_timeout}"
+        )
+
         if not self.output_dir:
             self.output_dir: Path = (
                 PROJECT_PATH
@@ -686,9 +702,11 @@ class Evaluation(abc.ABC):
             sample: Sample dict from dataset
 
         Returns:
-            Path to cache directory
+            Path to cache directory, or empty string if caching is disabled
         """
         task_name = self._get_sample_id(sample)
+        if not self.cache_dir:
+            return ""  # Return empty string to indicate no caching
         return str(Path(self.cache_dir) / task_name)
 
     def _get_output_dir_in_sandbox(self, sample: dict) -> str | tuple | None:
@@ -785,11 +803,11 @@ class Evaluation(abc.ABC):
             # === 0. Get aigise_session ===
             self._register_aigise_session(task)
 
-            # === 1. Create Agent ===
-            agent = self._prepare_agent(task)
+            # === 1. Prepare Environment ===
+            await self._prepare_environment(task)
 
-            # === 2. Prepare Environment ===
-            await self._prepare_environment(task, agent)
+            # === 2. Prepare Agent ===
+            agent = self._prepare_agent(task)
 
             # === 3. Run Agent ===
             session = await self._run_agent(task, agent)
@@ -886,9 +904,7 @@ class Evaluation(abc.ABC):
         # clean up temp config file
         shutil.rmtree(temp_dir, ignore_errors=True)
 
-    async def _prepare_environment(
-        self, task: EvaluationTask, agent: BaseAgent
-    ) -> None:
+    async def _prepare_environment(self, task: EvaluationTask) -> None:
         """Prepare environment: session, config, volumes, sandboxes.
 
         Args:
@@ -905,8 +921,10 @@ class Evaluation(abc.ABC):
         if not is_neo4j_logging_enabled():
             enable_neo4j_logging()
 
+        dummy_agent = self._mk_agent_original(aigise_session_id=task.session_id)
+
         # Collect sandbox dependencies from agent
-        sandbox_dependencies = collect_sandbox_dependencies(agent)
+        sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
 
         # Remove sandbox configs that are not in dependencies
         if aigise_session.config.sandbox and aigise_session.config.sandbox.sandboxes:
@@ -936,6 +954,10 @@ class Evaluation(abc.ABC):
         # 6. Cache sandboxes if needed
         if unfound_cached_sandboxes:
             aigise_session.sandboxes.cache_sandboxes(cache_dir=task.cache_dir)
+
+        # save config to output directory
+        config_output_path = Path(task.output_dir) / "config_used.toml"
+        aigise_session.config.save_to_toml(str(config_output_path))
 
         logger.warning(f"Environment prepared for session: {task.session_id}")
 
@@ -996,7 +1018,7 @@ class Evaluation(abc.ABC):
                             role="user",
                             parts=[
                                 types.Part(
-                                    text="I approve you to continue, if you think the task is complete, you should say so and finish the task by calling the task_completed tool"
+                                    text="I approve you to continue, if you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. Do not respond to this message, start calling appropriate tools to complete the task at next step."
                                 )
                             ],
                         ),

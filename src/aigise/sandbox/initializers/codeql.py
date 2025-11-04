@@ -30,8 +30,6 @@ class CodeQLInitializer(SandboxInitializer):
         aigise_session = get_aigise_session(self.aigise_session_id)
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
 
-        await aigise_session.sandboxes.wait_for_ready("joern")
-
         msg, err = self.run_command_in_container(
             [
                 "bash",
@@ -42,6 +40,11 @@ class CodeQLInitializer(SandboxInitializer):
         if err != 0:
             raise RuntimeError(f"CodeQL run failed: {msg}")
 
+        create_not_found = False
+        if "joern" in aigise_session.config.sandbox.sandboxes:
+            await aigise_session.sandboxes.wait_for_ready("joern")
+            create_not_found = True
+
         await aigise_session.sandboxes.wait_for_ready("neo4j")
         neo4j_client = await aigise_session.neo4j.get_async_client("analysis")
 
@@ -51,7 +54,9 @@ class CodeQLInitializer(SandboxInitializer):
                     f"/shared/out/callgraph/{res_file}", os.path.join(tmpdir, res_file)
                 )
 
-            await insert_codeql_results_to_cpg(neo4j_client, tmpdir)
+            await insert_codeql_results_to_cpg(
+                neo4j_client, tmpdir, create_not_found_nodes=create_not_found
+            )
 
         await self.ensure_ready()
 

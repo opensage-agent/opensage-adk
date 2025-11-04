@@ -74,8 +74,13 @@ command = ""
 ports = { "8081/tcp" = "${JOERN_PORT}" }
 
 # CodeQL sandbox configuration
+<<<<<<< HEAD
 [sandbox.sandboxes.codeql]
 image = "${DEFAULT_IMAGE}"
+=======
+# [sandbox.sandboxes.codeql]
+# image = "${DEFAULT_IMAGE}"
+>>>>>>> d3fda96 (fix ensemble test, add debuger, cov, fuzz, codeql to cybergym_dynamic)
 
 # Neo4j sandbox configuration
 [sandbox.sandboxes.neo4j]

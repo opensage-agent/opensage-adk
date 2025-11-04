@@ -23,14 +23,15 @@ async def note_suspicious_things(suspicious_things: str, tool_context: ToolConte
     return "Noted"
 
 
-async def update_plan(plan: str, tool_context: ToolContext):
+@safe_tool_execution
+async def think(thinking: str, tool_context: ToolContext):
     """
-    If you have a new plan or idea, you can call this tool to update your plan.
+    If you have want to do some reasoning, do not output the reasoning in plain text, call this tool to do the reasoning.
 
     Returns:
-        "Plan updated"
+        "Thinking done"
     """
-    return "Plan updated"
+    return "Thinking done"
 
 
 @safe_tool_execution

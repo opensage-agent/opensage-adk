@@ -11,7 +11,7 @@ from google.adk.tools.function_tool import FunctionTool
 
 from aigise.agents.aigise_agent import AigiseAgent
 from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
-from aigise.toolbox.eval_submission.cybergym.submission import submit_submission
+from aigise.toolbox.eval_submission.cybergym.submission import generate_poc_and_submit
 from aigise.toolbox.finish_task.finish_task import finish_task
 from aigise.toolbox.general.bash_tool import bash_tool
 from aigise.toolbox.retrieval.search_tools import (
@@ -44,7 +44,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             # get_callee_by_funcname,
             # get_call_paths_to_function,
             # list_functions_in_file,
-            submit_submission,
+            generate_poc_and_submit,
             finish_task,
             get_line_around_linenum_in_file,
         ],

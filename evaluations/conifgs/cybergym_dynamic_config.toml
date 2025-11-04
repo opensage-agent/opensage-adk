@@ -74,8 +74,8 @@ command = ""
 ports = { "8081/tcp" = "${JOERN_PORT}" }
 
 # CodeQL sandbox configuration
-# [sandbox.sandboxes.codeql]
-# image = "${DEFAULT_IMAGE}"
+[sandbox.sandboxes.codeql]
+image = "${DEFAULT_IMAGE}"
 
 # Neo4j sandbox configuration
 [sandbox.sandboxes.neo4j]
@@ -152,3 +152,4 @@ timeout = 120
 # coverage sandbox
 [sandbox.sandboxes.coverage]
 image = "${DEFAULT_IMAGE}"
+command = "tail -f /dev/null"

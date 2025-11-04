@@ -1018,7 +1018,7 @@ class Evaluation(abc.ABC):
                             role="user",
                             parts=[
                                 types.Part(
-                                    text="I approve you to continue, if you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. Do not respond to this message, start calling appropriate tools to complete the task at next step."
+                                    text="I approve you to continue, if you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. If the task is not finshed, do not respond to this message, start calling appropriate tools to complete the task in the response."
                                 )
                             ],
                         ),

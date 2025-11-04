@@ -31,20 +31,23 @@ class FuzzInitializer(SandboxInitializer):
         aigise_session = get_aigise_session(self.aigise_session_id)
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
 
-        # Wait for main sandbox to be ready
-        await aigise_session.sandboxes.wait_for_ready("main")
+        try:
+            # Wait for main sandbox to be ready
+            await aigise_session.sandboxes.wait_for_ready("main")
 
-        # Extract environment information from arvo script
-        res, exit_code = self.run_command_in_container("cat /bin/arvo")
-        if exit_code != 0:
-            raise RuntimeError(f"Failed to read arvo script: {res}")
-        infos = self._extract_infos_from_arvo_script(res)
+            # Extract environment information from arvo script
+            res, exit_code = self.run_command_in_container("cat /bin/arvo")
+            if exit_code != 0:
+                raise RuntimeError(f"Failed to read arvo script: {res}")
+            infos = self._extract_infos_from_arvo_script(res)
 
-        # Set up fuzzing environment
-        await self._setup_fuzzing_environment(infos)
+            # Set up fuzzing environment
+            await self._setup_fuzzing_environment(infos)
 
-        # Compile with AFL++
-        await self._compile_with_aflpp(infos)
+            # Compile with AFL++
+            await self._compile_with_aflpp(infos)
+        except Exception as e:
+            logger.error(f"Failed to initialize fuzzing environment: {e}")
 
         await self.ensure_ready()
 

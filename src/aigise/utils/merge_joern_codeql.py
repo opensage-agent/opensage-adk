@@ -249,10 +249,7 @@ async def insert_codeql_results_to_cpg(
                 logger.warning(f"No method matched for idx {idx}: {methods[idx]}")
                 continue
             # create a new method node
-<<<<<<< HEAD
             new_id = f"codeql_{idx}"
-=======
->>>>>>> d3fda96 (fix ensemble test, add debuger, cov, fuzz, codeql to cybergym_dynamic)
             logger.debug(f"Creating missing method node: {methods[idx]}")
             create_cypher = """
             CREATE (m:METHOD)

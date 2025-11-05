@@ -80,6 +80,33 @@ class CyberGym(Evaluation):
                 Path(__file__).parent / "metadata" / "task_list_subset", "r"
             ) as f:
                 task_list = f.read().splitlines()
+            task_list = [
+                "arvo:11033",
+                "arvo:11876",
+                "arvo:12312",
+                "arvo:13956",
+                "arvo:14232",
+                "arvo:14368",
+                "arvo:14467",
+                "arvo:15003",
+                "arvo:15278",
+                "arvo:1571",
+                "arvo:16457",
+                "arvo:17094",
+                "arvo:17597",
+                "arvo:1856",
+                "arvo:18615",
+                "arvo:19414",
+                "arvo:19573",
+                "arvo:19822",
+                "arvo:20083",
+                "arvo:20176",
+                "arvo:20476",
+                "arvo:21316",
+                "arvo:21339",
+                "arvo:21414",
+                "arvo:22094",
+            ]
             dataset = dataset.filter(lambda x: x["task_id"] in task_list)
             logger.warning(
                 f"Filtered dataset to {len(dataset)} tasks from task_list_subset"

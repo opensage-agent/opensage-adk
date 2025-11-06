@@ -150,6 +150,8 @@ class Evaluation(abc.ABC):
                 if flag != "y":
                     print("Exiting...")
                     exit(0)
+            else:
+                self.output_dir.mkdir(parents=True)
         self.user_id = str(self.output_dir).replace("/", "_")
 
         # Log and save evaluation parameters

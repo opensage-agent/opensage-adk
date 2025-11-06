@@ -275,6 +275,7 @@ class CyberGym(Evaluation):
             set()
         )  # Track tasks where at least one submission has vul_exit_code != 0
         successful_task_list = set()  # Track tasks that succeeded
+        crash_only_tasks = set()  # Track tasks that crashed but didn't succeed
         all_poc_data = []  # Store all poc_data for detailed analysis
 
         lines = result_str.strip().split("\n")
@@ -311,10 +312,14 @@ class CyberGym(Evaluation):
             except Exception as e:
                 logger.warning(f"Failed to parse line: {line[:100]}... Error: {e}")
 
+        # Calculate crash-only tasks (crashed but not successful)
+        crash_only_tasks = vul_crash_tasks - successful_task_list
+
         # Calculate statistics
         total_tasks = len(results)
         successful_tasks = sum(1 for success in results.values() if success)
         vul_crash_count = len(vul_crash_tasks)
+        crash_only_count = len(crash_only_tasks)
         success_rate = (successful_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
         # Log summary
@@ -328,6 +333,11 @@ class CyberGym(Evaluation):
         logger.warning(f"Vul crash (vul_exit_code != 0): {vul_crash_count} tasks")
         if vul_crash_tasks:
             logger.warning(f"  Tasks with vul crash: {sorted(vul_crash_tasks)}")
+        logger.warning(
+            f"Crash-only (crashed but not successful): {crash_only_count} tasks"
+        )
+        if crash_only_tasks:
+            logger.warning(f"  Crash-only tasks: {sorted(crash_only_tasks)}")
         logger.warning(f"=" * 60)
 
         eval_results = {
@@ -338,6 +348,8 @@ class CyberGym(Evaluation):
             "success_rate": success_rate,
             "vul_crash_count": vul_crash_count,
             "vul_crash_tasks": sorted(list(vul_crash_tasks)),
+            "crash_only_count": crash_only_count,
+            "crash_only_tasks": sorted(list(crash_only_tasks)),
             "results": results,
             "timestamp": datetime.datetime.now().isoformat(),
         }

@@ -9,7 +9,7 @@ description = "AIgiSE"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "google-adk>=1.17.0",
+    "google-adk>=1.18.0",
     "cybergym[dev,server] @ git+https://github.com/sunblaze-ucb/cybergym",
     "pandas==2.2.3",
     "neomodel==5.4.3",

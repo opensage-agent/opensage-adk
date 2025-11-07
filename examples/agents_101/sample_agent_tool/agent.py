@@ -41,6 +41,18 @@ root_agent = Agent(
     """,
     description="A simple math agent that can perform addition operations.",
     tools=[
-        calculation_agent,
+        calculation_tool,
     ],
 )
+
+
+def mk_agent(aigise_session_id: str = None):
+    """Create and return the root agent.
+
+    Args:
+        aigise_session_id: Optional session ID (not used in this simple agent)
+
+    Returns:
+        The configured root agent
+    """
+    return root_agent

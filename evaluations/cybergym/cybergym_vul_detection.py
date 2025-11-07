@@ -224,7 +224,8 @@ def mk_agent(
     # ]
     # aigise_session.config = config
     vul_detect_agent = LlmAgent(
-        name="vulnerability_detection_agent_for_" + function_name,
+        name="vulnerability_detection_agent_for_"
+        + re.sub(r"[^a-zA-Z0-9]", "", function_name),
         model=LiteLlm(model="anthropic/claude-sonnet-4-5-20250929"),
         description="find vulnerabilities existing in this function.",
         instruction="""You are an expert in vulnerability research. Given a function you need to detect if any vulnerability exists in this function.

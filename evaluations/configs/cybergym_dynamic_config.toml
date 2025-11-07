@@ -4,7 +4,7 @@
 # Top-level template variables (UPPERCASE)
 DEFAULT_IMAGE = "ubuntu:20.04"
 NEO4J_PASSWORD = "callgraphn4j!"
-MAIN_MODEL = "anthropic/claude-sonnet-4-5-20250929"
+MAIN_MODEL = "openai/o4-mini"
 TASK_NAME = "my_analysis_task"
 POC_DIR = "/tmp/poc"
 COMPILE_COMMAND = "arvo compile"
@@ -113,7 +113,7 @@ tpm = 30000
 
 # Flag claims model configuration
 [llm.model_configs.flag_claims]
-model_name = "anthropic/claude-sonnet-4-5-20250929"
+model_name = "openai/o4-mini"
 temperature = 0.1
 max_tokens = 1024
 rpm = 30

@@ -37,7 +37,7 @@ class CyberGym(Evaluation):
     agent_id: str = ""
     max_llm_calls: int = 100
     config_template_path: str = str(
-        PROJECT_PATH / "evaluations/conifgs/cybergym_static_config.toml"
+        PROJECT_PATH / "evaluations/configs/cybergym_static_config.toml"
     )
     use_task_subset: bool = True  # If True, filter using task_list_subset file
     # evaluate

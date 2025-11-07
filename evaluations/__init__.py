@@ -485,7 +485,7 @@ class Evaluation(abc.ABC):
                     )
         """
         session_id = str(uuid.uuid4())
-        task_name = self._get_sample_id(sample)
+        task_name = self._get_sample_id(sample) + "_dynamic"
 
         return EvaluationTask(
             session_id=session_id,

@@ -323,42 +323,42 @@ class DynamicAgentManager:
         if not self.storage_path.exists():
             return
 
-        for metadata_file in self.storage_path.glob("*_metadata.json"):
-            try:
-                # Extract agent ID from filename and check if already loaded (optimization)
-                filename = metadata_file.name
-                if filename.endswith("_metadata.json"):
-                    agent_id = filename[: -len("_metadata.json")]
+        # for metadata_file in self.storage_path.glob("*_metadata.json"):
+        #     try:
+        #         # Extract agent ID from filename and check if already loaded (optimization)
+        #         filename = metadata_file.name
+        #         if filename.endswith("_metadata.json"):
+        #             agent_id = filename[: -len("_metadata.json")]
 
-                    # Skip if agent already loaded - avoid file I/O
-                    if agent_id in self._agents and agent_id in self._metadata:
-                        continue
+        #             # Skip if agent already loaded - avoid file I/O
+        #             if agent_id in self._agents and agent_id in self._metadata:
+        #                 continue
 
-                # Only read and parse file if agent is not already loaded
-                with open(metadata_file, "r") as f:
-                    metadata_dict = json.load(f)
+        #         # Only read and parse file if agent is not already loaded
+        #         with open(metadata_file, "r") as f:
+        #             metadata_dict = json.load(f)
 
-                # Convert datetime strings back to datetime objects
-                metadata_dict["created_at"] = datetime.fromisoformat(
-                    metadata_dict["created_at"]
-                )
-                metadata_dict["updated_at"] = datetime.fromisoformat(
-                    metadata_dict["updated_at"]
-                )
-                metadata_dict["status"] = AgentStatus(metadata_dict["status"])
+        #         # Convert datetime strings back to datetime objects
+        #         metadata_dict["created_at"] = datetime.fromisoformat(
+        #             metadata_dict["created_at"]
+        #         )
+        #         metadata_dict["updated_at"] = datetime.fromisoformat(
+        #             metadata_dict["updated_at"]
+        #         )
+        #         metadata_dict["status"] = AgentStatus(metadata_dict["status"])
 
-                metadata = AgentMetadata(**metadata_dict)
+        #         metadata = AgentMetadata(**metadata_dict)
 
-                # Always store metadata
-                self._metadata[metadata.id] = metadata
+        #         # Always store metadata
+        #         self._metadata[metadata.id] = metadata
 
-                # Try to rebuild agent if not in permanent error state and has config
-                # Allow retry for PENDING_TOOLS status, but not for ERROR status
-                if metadata.status != AgentStatus.ERROR and metadata.config:
-                    self._try_rebuild_agent_with_caller_tools(metadata, caller_tools)
+        #         # Try to rebuild agent if not in permanent error state and has config
+        #         # Allow retry for PENDING_TOOLS status, but not for ERROR status
+        #         if metadata.status != AgentStatus.ERROR and metadata.config:
+        #             self._try_rebuild_agent_with_caller_tools(metadata, caller_tools)
 
-            except Exception as e:
-                logger.error(f"Failed to load metadata from {metadata_file}: {e}")
+        #     except Exception as e:
+        #         logger.error(f"Failed to load metadata from {metadata_file}: {e}")
 
     def _try_rebuild_agent_with_caller_tools(
         self, metadata: AgentMetadata, caller_tools: Dict[str, Any]

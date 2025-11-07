@@ -20,7 +20,7 @@ from google.adk import Runner
 from google.adk.agents import LlmAgent, RunConfig
 from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.sessions import InMemorySessionService
+from google.adk.sessions import InMemorySessionService, Session
 from google.genai import types
 from pydantic import BaseModel, Field, RootModel
 
@@ -701,7 +701,7 @@ class CyberGym(Evaluation):
         poc_finding = PoCFinding.model_validate_json(poc_response)
         return poc_finding
 
-    async def _run_agent(self, task: EvaluationTask, agent: adk.Agent) -> AigiseSession:
+    async def _run_agent(self, task: EvaluationTask, agent: adk.Agent) -> Session:
         """Run the agent with the given prompt.
 
         Args:
@@ -722,7 +722,7 @@ class CyberGym(Evaluation):
             if not findings_dir.exists():
                 raise ValueError(
                     f"Resume directory not found: {findings_dir}. "
-                    f"Please provide a valid directory name (e.g., '251107_035410')"
+                    f"Please provide a valid directory name (e.g., '251107_035410/arvo_1065')"
                 )
 
             # Find vulnerability_findings JSON file in the directory
@@ -750,23 +750,25 @@ class CyberGym(Evaluation):
 
         client = await aigise_session.neo4j.get_async_client("analysis")
 
+        # Create session_service at function level to persist across agent calls
+        app_name = self.__class__.__name__.lower()
+        session_service = InMemorySessionService()
+
+        # Create session once at the beginning
+        await session_service.create_session(
+            app_name=app_name,
+            user_id=self.user_id,
+            session_id=task.session_id,
+            state={
+                "aigise_session_id": task.session_id,
+            },
+        )
+
         async def run_agent_in_thread(local_agent, prompt):
-            app_name = self.__class__.__name__.lower()
-            session_service = InMemorySessionService()
             runner = Runner(
                 agent=local_agent,
                 app_name=app_name,
                 session_service=session_service,
-            )
-
-            # 3. Create session with aigise_session_id in state
-            await session_service.create_session(
-                app_name=app_name,
-                user_id=self.user_id,
-                session_id=task.session_id,
-                state={
-                    "aigise_session_id": task.session_id,
-                },
             )
 
             # 4. Run agent with prompt
@@ -878,9 +880,9 @@ class CyberGym(Evaluation):
                 final_results.append(poc_finding)
         # save
         vul_save_path = (
-            Path(self.output_dir) / f"vulnerability_findings_{task.task_name}.json"
+            Path(task.output_dir) / f"vulnerability_findings_{task.task_name}.json"
         )
-        poc_save_path = Path(self.output_dir) / f"poc_findings_{task.task_name}.json"
+        poc_save_path = Path(task.output_dir) / f"poc_findings_{task.task_name}.json"
         with open(vul_save_path, "w") as f:
             json.dump(
                 [vul_finding.model_dump() for vul_finding in vul_findings],
@@ -895,7 +897,14 @@ class CyberGym(Evaluation):
             )
         logger.warning(f"Vulnerability findings saved to: {vul_save_path}")
         logger.warning(f"PoC findings saved to: {poc_save_path}")
-        return aigise_session
+
+        # Get and return the ADK session instead of aigise_session
+        adk_session = await session_service.get_session(
+            app_name=app_name,
+            user_id=self.user_id,
+            session_id=task.session_id,
+        )
+        return adk_session
 
     def evaluate(self) -> dict:
         """Evaluate results by calling cybergym's server."""

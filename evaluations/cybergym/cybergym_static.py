@@ -77,7 +77,7 @@ class CyberGym(Evaluation):
                 Path(__file__).parent / "metadata" / "task_list_subset", "r"
             ) as f:
                 task_list = f.read().splitlines()
-            task_list = task_list[:50]
+            task_list = ["arvo:36464"]
             dataset = dataset.filter(lambda x: x["task_id"] in task_list)
             logger.warning(
                 f"Filtered dataset to {len(dataset)} tasks from task_list_subset"
@@ -134,7 +134,7 @@ class CyberGym(Evaluation):
         self._init_workdir(task.sample, tmp_workdir)
         # untar the report.tar.gz to the {tmp_workdir}/code directory
         subprocess.run(
-            f"mkdir -p {tmp_workdir}/code && tar -xf {tmp_workdir}/repo-vul.tar.gz -C {tmp_workdir}/code",
+            f"mkdir -p {tmp_workdir}/code && tar --strip-components 1 -xf {tmp_workdir}/repo-vul.tar.gz -C {tmp_workdir}/code",
             shell=True,
             check=True,
         )

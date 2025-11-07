@@ -409,60 +409,29 @@ class CyberGym(Evaluation):
                 commit_functions = []
 
                 for file_path in files:
-                    # Get diff with line numbers for this file
-                    diff_cmd = (
-                        f"cd {git_repo_path} && "
-                        f"git diff {commit_hash}~1 {commit_hash} -- {file_path} 2>/dev/null || "
-                        f"git show {commit_hash} -- {file_path}"
-                    )
-                    diff_output, exit_code = main_sandbox.run_command_in_container(
-                        diff_cmd
-                    )
+                    # Query Neo4j to find all functions in this file
+                    query = f"""
+                    MATCH (m:METHOD)
+                    WHERE m.filename CONTAINS '{file_path}'
+                    RETURN DISTINCT m.fullName AS function_name,
+                           m.filename AS file_path,
+                           m.lineNumber AS line_number
+                    """
 
-                    if exit_code != 0 or not diff_output.strip():
-                        continue
-
-                    # Parse diff to get modified line ranges
-                    # Format: @@ -old_start,old_count +new_start,new_count @@
-                    line_ranges = []
-                    for line in diff_output.split("\n"):
-                        if line.startswith("@@"):
-                            match = re.search(r"\+(\d+)(?:,(\d+))?", line)
-                            if match:
-                                start_line = int(match.group(1))
-                                count = int(match.group(2)) if match.group(2) else 1
-                                end_line = start_line + count
-                                line_ranges.append((start_line, end_line))
-
-                    # Query Neo4j to find functions in these line ranges
-                    for start_line, end_line in line_ranges:
-                        # Normalize file path for Neo4j query
-                        query = f"""
-                        MATCH (m:METHOD)
-                        WHERE m.filename CONTAINS '{file_path}'
-                          AND m.lineNumber >= {start_line}
-                          AND m.lineNumber <= {end_line}
-                        RETURN DISTINCT m.fullName AS function_name,
-                               m.filename AS file_path,
-                               m.lineNumber AS line_number
-                        LIMIT 20
-                        """
-
-                        try:
-                            results = await client.run_query(query)
-                            for result in results:
-                                commit_functions.append(
-                                    {
-                                        "function_name": result.get("function_name"),
-                                        "file_path": result.get("file_path"),
-                                        "line_number": result.get("line_number"),
-                                        "commit_date": commit_date,
-                                        "commit_message": commit_message,
-                                        "modified_lines": f"{start_line}-{end_line}",
-                                    }
-                                )
-                        except Exception as e:
-                            logger.debug(f"Query failed for {file_path}: {e}")
+                    try:
+                        results = await client.run_query(query)
+                        for result in results:
+                            commit_functions.append(
+                                {
+                                    "function_name": result.get("function_name"),
+                                    "file_path": result.get("file_path"),
+                                    "line_number": result.get("line_number"),
+                                    "commit_date": commit_date,
+                                    "commit_message": commit_message,
+                                }
+                            )
+                    except Exception as e:
+                        logger.debug(f"Query failed for {file_path}: {e}")
 
                 if commit_functions:
                     modified_functions[commit_hash] = commit_functions
@@ -829,17 +798,48 @@ class CyberGym(Evaluation):
             return resp
 
         # Only run vulnerability detection if not resuming from findings
+        months = 4
         if not vul_findings:
-            # ret = await client.run_query("""MATCH (n:METHOD)
-            # RETURN n.name AS name, n.filename AS filename""")
+            # Get modified functions in last 6 months
             modified_functions = await self._get_modified_functions_last_6_months(
                 aigise_session,
-                months=6,  # 可以调整月数
+                months=months,  # adjust
             )
+
+            # Extract all modified function names into a set for fast lookup
+            modified_function_names = set()
+            for commit_funcs in modified_functions.values():
+                for func_info in commit_funcs:
+                    modified_function_names.add(func_info["function_name"])
+
+            logger.info(
+                f"Found {len(modified_function_names)} unique modified functions in last {months} months"
+            )
+
+            # Get related functions from call graph analysis
             related_functions = await client.run_query(function_query)
-            logger.info("All indexes are now online")
+            logger.info(
+                f"Found {len(related_functions)} related functions from call graph"
+            )
+
+            # Find intersection: related functions that were modified recently
+            # Deduplicate by sink_func, keeping the first occurrence
+            seen_sink_funcs = set()
+            target_functions = []
+            for func in related_functions:
+                if (
+                    func["sink_func"] in modified_function_names
+                    and func["sink_func"] not in seen_sink_funcs
+                ):
+                    target_functions.append(func)
+                    seen_sink_funcs.add(func["sink_func"])
+
+            logger.info(
+                f"Found {len(target_functions)} functions in intersection (related + recently modified)"
+            )
+
             vul_findings = []
-            for func in related_functions[:3]:
+            for func in target_functions:
                 function_name = func["sink_func"]
                 if "<" in function_name:
                     continue

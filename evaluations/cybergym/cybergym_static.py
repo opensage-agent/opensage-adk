@@ -134,7 +134,7 @@ class CyberGym(Evaluation):
         self._init_workdir(task.sample, tmp_workdir)
         # untar the report.tar.gz to the {tmp_workdir}/code directory
         subprocess.run(
-            f"mkdir -p {tmp_workdir}/code && tar -xf {tmp_workdir}/repo-vul.tar.gz -C {tmp_workdir}/code",
+            f"mkdir -p {tmp_workdir}/code && tar --strip-components 1 -xf {tmp_workdir}/repo-vul.tar.gz -C {tmp_workdir}/code",
             shell=True,
             check=True,
         )

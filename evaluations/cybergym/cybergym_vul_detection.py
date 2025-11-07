@@ -298,12 +298,12 @@ class CyberGym(Evaluation):
     def __post_init__(self):
         """Validate required fields after initialization."""
         super().__post_init__()
-        with open(self.successful_project_path) as f:
-            oss_fuzz_successful_projects = json.load(f)
-        self.successful_projects = [
-            project["name"]
-            for project in oss_fuzz_successful_projects["successful_projects"]
-        ]
+        # with open(self.successful_project_path) as f:
+        #     oss_fuzz_successful_projects = json.load(f)
+        # self.successful_projects = [
+        #     project["name"]
+        #     for project in oss_fuzz_successful_projects["successful_projects"]
+        # ]
         if not self.agent_id:
             raise ValueError("agent_id is required for CyberGym evaluation")
 
@@ -532,8 +532,8 @@ class CyberGym(Evaluation):
 
         # Modify task_name to include checkout state for cache differentiation
         if self.checkout_main_branch:
-            if sample["project_name"] not in self.successful_projects:
-                raise
+            # if sample["project_name"] not in self.successful_projects:
+            #     raise
             base_task.task_name = f"{base_task.task_name}_main"
 
         return base_task

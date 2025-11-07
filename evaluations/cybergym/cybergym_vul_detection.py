@@ -411,16 +411,18 @@ class CyberGym(Evaluation):
 
                 for file_path in files:
                     # Query Neo4j to find all functions in this file
-                    query = f"""
+                    query = """
                     MATCH (m:METHOD)
-                    WHERE m.filename CONTAINS '{file_path}'
+                    WHERE m.filename CONTAINS $file_path
                     RETURN DISTINCT m.fullName AS function_name,
                            m.filename AS file_path,
                            m.lineNumber AS line_number
                     """
 
                     try:
-                        results = await client.run_query(query)
+                        results = await client.run_query(
+                            query, {"file_path": file_path}
+                        )
                         for result in results:
                             commit_functions.append(
                                 {
@@ -876,9 +878,9 @@ class CyberGym(Evaluation):
                 final_results.append(poc_finding)
         # save
         vul_save_path = (
-            Path(self.output_dir) / f"vulnerability_findings_{task.session_id}.json"
+            Path(self.output_dir) / f"vulnerability_findings_{task.task_name}.json"
         )
-        poc_save_path = Path(self.output_dir) / f"poc_findings_{task.session_id}.json"
+        poc_save_path = Path(self.output_dir) / f"poc_findings_{task.task_name}.json"
         with open(vul_save_path, "w") as f:
             json.dump(
                 [vul_finding.model_dump() for vul_finding in vul_findings],

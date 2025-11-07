@@ -18,7 +18,6 @@ import litellm
 from google import adk
 from google.adk import Runner
 from google.adk.agents import LlmAgent, RunConfig
-from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.sessions import InMemorySessionService
@@ -278,6 +277,8 @@ class CyberGym(Evaluation):
         "/scr/zhun/data/playground/cybergym/server/cybergym/server_poc/"
     )
     server_url_host: str = "http://127.0.0.1:8666"
+    # git checkout to main/master branch before analysis
+    checkout_main_branch: bool = False
 
     def __post_init__(self):
         """Validate required fields after initialization."""
@@ -285,9 +286,70 @@ class CyberGym(Evaluation):
         if not self.agent_id:
             raise ValueError("agent_id is required for CyberGym evaluation")
 
+    @staticmethod
+    async def _checkout_main_branch_hook(aigise_session) -> None:
+        """Pre-analysis hook to checkout git repository to main/master branch.
+
+        This hook is executed before CodeQL analysis runs, allowing us to
+        analyze the main/master branch instead of the vulnerable commit.
+
+        Args:
+            aigise_session: AigiseSession instance
+        """
+        # Get main sandbox to perform checkout
+        main_sandbox = aigise_session.sandboxes.get_sandbox("main")
+        if not main_sandbox:
+            logger.warning("Main sandbox not found, skipping git checkout")
+            return
+
+        # Find git repository
+        logger.info("Searching for git repository in container...")
+        git_check_result, exit_code = main_sandbox.run_command_in_container(
+            "find /src -name '.git' -type d 2>/dev/null | head -1"
+        )
+
+        if exit_code != 0 or not git_check_result or not git_check_result.strip():
+            logger.warning("No git repository found, skipping checkout")
+            return
+
+        git_repo_path = git_check_result.strip().replace("/.git", "")
+        logger.info(f"Found git repository at: {git_repo_path}")
+
+        # Checkout to main/master branch
+        checkout_result, _ = main_sandbox.run_command_in_container(
+            f"cd {git_repo_path} && "
+            f"(git checkout master 2>/dev/null || git checkout main 2>/dev/null) && "
+            f"git pull origin master 2>/dev/null || git pull origin main 2>/dev/null || true"
+        )
+
+        # Verify result
+        current_branch, _ = main_sandbox.run_command_in_container(
+            f"cd {git_repo_path} && git rev-parse --abbrev-ref HEAD"
+        )
+        current_commit, _ = main_sandbox.run_command_in_container(
+            f"cd {git_repo_path} && git rev-parse HEAD"
+        )
+        logger.warning(
+            f"✓ Git checkout completed: {current_branch.strip()} @ {current_commit.strip()[:8]}"
+        )
+
     def _get_sample_id(self, sample: dict) -> str:
         """Get unique task ID for this sample."""
         return sample["task_id"].replace(":", "_")
+
+    def _create_task(self, sample: dict) -> EvaluationTask:
+        """Create task with modified task_name if checkout_main_branch is enabled.
+
+        Overrides parent method to append '_main' suffix to task_name when
+        checkout_main_branch=True, ensuring cached images are properly differentiated.
+        """
+        base_task = super()._create_task(sample)
+
+        # Modify task_name to include checkout state for cache differentiation
+        if self.checkout_main_branch:
+            base_task.task_name = f"{base_task.task_name}_main"
+
+        return base_task
 
     def _get_dataset(self) -> datasets.Dataset:
         if Path(self.dataset_path).exists():
@@ -361,37 +423,6 @@ class CyberGym(Evaluation):
         )
         main_sandbox.run_command_in_container("rm -rf /tmp/poc")
 
-        # Checkout to main/master branch if git repository exists
-        logger.info("Checking for git repository in container...")
-        git_check_result, exit_code = main_sandbox.run_command_in_container(
-            "find /src -name '.git' -type d 2>/dev/null | head -1"
-        )
-
-        if exit_code == 0 and git_check_result and git_check_result.strip():
-            git_repo_path = git_check_result.strip().replace("/.git", "")
-            logger.warning(f"Found git repository at: {git_repo_path}")
-
-            # Try to checkout to master branch (or main if master doesn't exist)
-            checkout_result, _ = main_sandbox.run_command_in_container(
-                f"cd {git_repo_path} && "
-                f"(git checkout master 2>/dev/null || git checkout main 2>/dev/null) && "
-                f"git pull origin master 2>/dev/null || git pull origin main 2>/dev/null || true"
-            )
-            logger.warning(f"Git checkout result: {checkout_result}")
-
-            # Verify current branch
-            current_branch, _ = main_sandbox.run_command_in_container(
-                f"cd {git_repo_path} && git rev-parse --abbrev-ref HEAD"
-            )
-            current_commit, _ = main_sandbox.run_command_in_container(
-                f"cd {git_repo_path} && git rev-parse HEAD"
-            )
-            logger.warning(
-                f"Current branch: {current_branch.strip()}, commit: {current_commit.strip()}"
-            )
-        else:
-            logger.warning("No git repository found in container, skipping checkout")
-
         if tmp_workdir:
             shutil.rmtree(tmp_workdir, ignore_errors=True)
 
@@ -425,6 +456,15 @@ class CyberGym(Evaluation):
         aigise_session = get_aigise_session(
             task.session_id, config_path=temp_config_path
         )
+
+        # Register a pre-analysis hook if checkout_main_branch is enabled
+        if self.checkout_main_branch:
+            if not "codeql" in aigise_session.config.sandbox.sandboxes:
+                raise ValueError("codeql config not found in aigise_session config")
+            aigise_session.config.sandbox.sandboxes[
+                "codeql"
+            ].pre_analysis_hook = self._checkout_main_branch_hook
+
         task.aigise_session = aigise_session
 
         # clean up temp config file
@@ -555,15 +595,18 @@ class CyberGym(Evaluation):
 
         vul_findings = []
         for func in related_functions[:6]:
-            function_name = func["name"]
+            function_name = func["sink_func"]
             if "<" in function_name:
                 continue
             impl = await client.run_query(
-                "MATCH (m:METHOD) WHERE m.name = $name "
+                "MATCH (m:METHOD) WHERE m.fullName = $name AND m.code IS NOT NULL "
                 "RETURN m.filename as path, m.lineNumber as start,"
                 "m.lineNumberEnd as end, m.code as code",
                 {"name": function_name},
             )
+            if not impl:
+                logger.warning(f"No implementation found for function: {function_name}")
+                continue
             file = impl[0]["path"]
             impl_code = impl[0]["code"]
             vul_finding = await self._detect_vulnerability_with_retry(

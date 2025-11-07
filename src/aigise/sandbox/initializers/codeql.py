@@ -30,6 +30,17 @@ class CodeQLInitializer(SandboxInitializer):
         aigise_session = get_aigise_session(self.aigise_session_id)
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
 
+        # Pre-analysis hook: allow custom code preparation before CodeQL runs
+        if hasattr(
+            aigise_session.config.sandbox.sandboxes["codeql"], "pre_analysis_hook"
+        ):
+            pre_analysis_hook = aigise_session.config.sandbox.sandboxes[
+                "codeql"
+            ].pre_analysis_hook
+            if pre_analysis_hook is not None:
+                logger.info("Executing pre-analysis hook...")
+                await pre_analysis_hook(aigise_session)
+
         msg, err = self.run_command_in_container(
             [
                 "bash",

@@ -139,23 +139,16 @@ def get_line_around_linenum_in_file(
         start = max(0, linenum - context - 1)  # Adjust for 0-based index
         end = min(len(lines), linenum + context)  # Adjust for 0-based index
 
-        dict_result = {"result": []}
+        result = f"# Extracted lines from {filepath} (lines {start + 1} to {end})\n"
 
         for i in range(start, end):
             line_number = i + 1  # Convert to 1-based line number
-            line_content = lines[i] if i < len(lines) else ""
+            line_content = lines[i]
+            result += f"{line_number:4d}|{line_content}\n"
 
-            dict_result["result"].append(
-                {
-                    "filepath": filepath,
-                    "line_number": line_number,
-                    "content": line_content,
-                }
-            )
-
-        return dict_result
+        return result
     except Exception as e:
-        return {"result": [], "error": f"Failed to read file '{filepath}': {e}"}
+        return {"error": f"Failed to read file '{filepath}': {e}"}
 
 
 @safe_tool_execution

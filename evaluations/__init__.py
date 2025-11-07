@@ -623,9 +623,9 @@ class Evaluation(abc.ABC):
         self._prepare_general_env()
 
         # Keep from 50 sample for debugging
-        num_samples = len(dataset)
+        # num_samples = len(dataset)
         # dataset = dataset.select(range(50, num_samples))
-        dataset = dataset.select(range(50))
+        # dataset = dataset.select(range(50))
         for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
             task_name = self._get_sample_id(sample)
             try:

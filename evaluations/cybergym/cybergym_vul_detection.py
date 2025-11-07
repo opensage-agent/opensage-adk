@@ -21,14 +21,13 @@ from google.adk.agents import LlmAgent, RunConfig
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.sessions import InMemorySessionService, Session
+from google.adk.sessions import InMemorySessionService
 from google.genai import types
 from pydantic import BaseModel, Field, RootModel
 
 from aigise import AigiseSession
 from aigise.session import get_aigise_session
 from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
-from aigise.toolbox.eval_submission.cybergym.submission import generate_poc_and_submit
 from aigise.toolbox.finish_task.finish_task import finish_task
 from aigise.toolbox.general.bash_tool import bash_tool
 from aigise.toolbox.retrieval.search_tools import (
@@ -334,7 +333,7 @@ class CyberGym(Evaluation):
         """Get initial prompt for the agent."""
         return "The code is in the directory /shared/code."
 
-    async def _prepare_environment(self, task: EvaluationTask, agent: BaseAgent):
+    async def _prepare_environment(self, task: EvaluationTask):
         """Prepare environment for the task."""
         tmp_workdir = None
         if (
@@ -355,12 +354,44 @@ class CyberGym(Evaluation):
         task.aigise_session.config.sandbox.absolute_shared_data_path = str(
             Path(tmp_workdir).resolve().as_posix()
         )
-        await super()._prepare_environment(task, agent)
+        await super()._prepare_environment(task)
         main_sandbox = task.aigise_session.sandboxes.get_sandbox("main")
         main_sandbox.run_command_in_container(
-            f"apt-get update && apt-get install -y curl"
+            "apt-get update && apt-get install -y curl"
         )
-        main_sandbox.run_command_in_container(f"rm -rf /tmp/poc")
+        main_sandbox.run_command_in_container("rm -rf /tmp/poc")
+
+        # Checkout to main/master branch if git repository exists
+        logger.info("Checking for git repository in container...")
+        git_check_result, exit_code = main_sandbox.run_command_in_container(
+            "find /src -name '.git' -type d 2>/dev/null | head -1"
+        )
+
+        if exit_code == 0 and git_check_result and git_check_result.strip():
+            git_repo_path = git_check_result.strip().replace("/.git", "")
+            logger.warning(f"Found git repository at: {git_repo_path}")
+
+            # Try to checkout to master branch (or main if master doesn't exist)
+            checkout_result, _ = main_sandbox.run_command_in_container(
+                f"cd {git_repo_path} && "
+                f"(git checkout master 2>/dev/null || git checkout main 2>/dev/null) && "
+                f"git pull origin master 2>/dev/null || git pull origin main 2>/dev/null || true"
+            )
+            logger.warning(f"Git checkout result: {checkout_result}")
+
+            # Verify current branch
+            current_branch, _ = main_sandbox.run_command_in_container(
+                f"cd {git_repo_path} && git rev-parse --abbrev-ref HEAD"
+            )
+            current_commit, _ = main_sandbox.run_command_in_container(
+                f"cd {git_repo_path} && git rev-parse HEAD"
+            )
+            logger.warning(
+                f"Current branch: {current_branch.strip()}, commit: {current_commit.strip()}"
+            )
+        else:
+            logger.warning("No git repository found in container, skipping checkout")
+
         if tmp_workdir:
             shutil.rmtree(tmp_workdir, ignore_errors=True)
 
@@ -467,11 +498,10 @@ class CyberGym(Evaluation):
 
         aigise_session = get_aigise_session(task.session_id)
         client = await aigise_session.neo4j.get_async_client("analysis")
-        ret = await client.run_query("""MATCH (n:METHOD)
-RETURN n.name AS name, n.filename AS filename""")
-        # a = await client.run_query(function_query)
+        # ret = await client.run_query("""MATCH (n:METHOD)
+        # RETURN n.name AS name, n.filename AS filename""")
+        related_functions = await client.run_query(function_query)
         logger.info("All indexes are now online")
-        agent_list = []
 
         async def run_agent_in_thread(local_agent, prompt):
             app_name = self.__class__.__name__.lower()
@@ -524,7 +554,7 @@ RETURN n.name AS name, n.filename AS filename""")
             return resp
 
         vul_findings = []
-        for func in ret[:6]:
+        for func in related_functions[:6]:
             function_name = func["name"]
             if "<" in function_name:
                 continue

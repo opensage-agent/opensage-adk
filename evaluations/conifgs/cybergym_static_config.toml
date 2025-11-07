@@ -72,7 +72,9 @@ image = "aigise/joern"
 project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/joern/Dockerfile"
 command = ""
 ports = { "8081/tcp" = "${JOERN_PORT}" }
-
+# CodeQL sandbox configuration
+[sandbox.sandboxes.codeql]
+image = "${DEFAULT_IMAGE}"
 # Neo4j sandbox configuration
 [sandbox.sandboxes.neo4j]
 image = "neo4j:5.26.12-enterprise"

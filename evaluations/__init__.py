@@ -70,6 +70,19 @@ def _run_sample_in_process(evaluation_instance: "Evaluation", sample: dict) -> d
     litellm.num_retries = evaluation_instance.llm_retry_count
     litellm.request_timeout = evaluation_instance.llm_retry_timeout
 
+    # Configure terminal log level in subprocess
+    # This ensures the subprocess respects the parent's log_level setting
+    terminal_log_level = evaluation_instance._terminal_log_level
+    logging.basicConfig(level=terminal_log_level)
+    for logger_name in list(logging.Logger.manager.loggerDict.keys()) + [""]:
+        logger_obj = logging.getLogger(logger_name)
+        for handler in logger_obj.handlers[:]:
+            if (
+                isinstance(handler, logging.StreamHandler)
+                and handler.stream == sys.stderr
+            ):
+                handler.setLevel(terminal_log_level)
+
     # Run async code in this process's event loop
     return asyncio.run(evaluation_instance._generate_sample(task))
 
@@ -109,8 +122,8 @@ class Evaluation(abc.ABC):
     max_llm_calls: int = 100
     max_workers: int = 6
     run_until_explicit_finish: bool = True
-    model: str | None = (
-        None  # If None, use agent's original model; if set, replace all models
+    use_config_model: bool = (
+        False  # If True, use the model specified in the config file
     )
     output_dir_in_sandbox: str | tuple | None = None
     config_template_path: str | None = (
@@ -121,8 +134,32 @@ class Evaluation(abc.ABC):
         3  # Number of retries for LLM API calls (e.g., for 502 errors)
     )
     llm_retry_timeout: int = 30  # Timeout in seconds for each LLM request
+    log_level: str = "INFO"  # Terminal log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
     def __post_init__(self) -> None:
+        # Validate and convert log level
+        self.log_level = self.log_level.upper()
+        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        if self.log_level not in valid_levels:
+            raise ValueError(
+                f"Invalid log_level '{self.log_level}'. Must be one of: {valid_levels}"
+            )
+        self._terminal_log_level = getattr(logging, self.log_level)
+
+        # Configure terminal log level immediately
+        logging.basicConfig(
+            level=self._terminal_log_level,
+            format="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+        # Update existing handlers to use the configured log level
+        for handler in logging.getLogger().handlers[:]:
+            if (
+                isinstance(handler, logging.StreamHandler)
+                and handler.stream == sys.stderr
+            ):
+                handler.setLevel(self._terminal_log_level)
+
         # Configure LiteLLM global retry settings
         litellm.num_retries = self.llm_retry_count
         litellm.request_timeout = self.llm_retry_timeout
@@ -130,6 +167,7 @@ class Evaluation(abc.ABC):
             f"Configured LiteLLM retry: num_retries={self.llm_retry_count}, "
             f"request_timeout={self.llm_retry_timeout}"
         )
+        logger.info(f"Terminal log level set to: {self.log_level}")
 
         if not self.output_dir:
             self.output_dir: Path = (
@@ -153,6 +191,20 @@ class Evaluation(abc.ABC):
             else:
                 self.output_dir.mkdir(parents=True)
         self.user_id = str(self.output_dir).replace("/", "_")
+
+        # Create master log handler - records all logs from start to finish
+        # Note: Use local variable (not self._master_handler) to avoid pickle issues with multiprocessing
+        master_log = self.output_dir / "evaluation_master.log"
+        master_handler = logging.FileHandler(master_log, mode="w")
+        master_handler.setLevel(logging.INFO)
+        master_handler.setFormatter(
+            logging.Formatter(
+                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
+        logging.getLogger().addHandler(master_handler)
+        logger.info(f"Master log handler created: {master_log}")
 
         # Log and save evaluation parameters
         self._log_and_save_parameters()
@@ -244,10 +296,18 @@ class Evaluation(abc.ABC):
                 if hasattr(usage, "cached_content_token_count"):
                     total_cached_tokens += usage.cached_content_token_count or 0
 
+        # Determine model name for logging
+        model_name = "agent_default"
+        if self.use_config_model and task.aigise_session:
+            main_model_config = task.aigise_session.config.llm.model_configs.get("main")
+            if main_model_config:
+                model_name = main_model_config.model_name
+
         cost_info = {
             "session_id": task.session_id,
             "task_name": task.task_name,
-            "model": self.model if self.model else "agent_default",
+            "model": model_name,
+            "use_config_model": self.use_config_model,
             "timestamp": datetime.datetime.now().isoformat(),
             "token_usage": {
                 "total_input_tokens": total_input_tokens,
@@ -260,7 +320,7 @@ class Evaluation(abc.ABC):
 
         logger.warning("=" * 80)
         logger.warning(f"Cost info for session {task.session_id}:")
-        logger.warning(f"  Model: {self.model if self.model else 'agent_default'}")
+        logger.warning(f"  Model: {model_name}")
         logger.warning(f"  LLM calls: {num_llm_calls}")
         logger.warning(f"  Input tokens: {total_input_tokens:,}")
         logger.warning(f"  Output tokens: {total_output_tokens:,}")
@@ -459,66 +519,46 @@ class Evaluation(abc.ABC):
 
         self._prepare_general_env()
 
-        # Configure master log for this evaluation
-        master_log = self.output_dir / "evaluation_master.log"
-        master_handler = logging.FileHandler(master_log, mode="w")
-        master_handler.setLevel(logging.INFO)
-        master_handler.setFormatter(
-            logging.Formatter(
-                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-        )
-        logging.getLogger().addHandler(master_handler)
+        # Execute samples in parallel using process pool
+        with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
+            # Submit all tasks
+            futures = {
+                executor.submit(_run_sample_in_process, self, sample): sample
+                for sample in dataset
+            }
 
-        try:
-            # Execute samples in parallel using process pool
-            with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
-                # Submit all tasks
-                futures = {
-                    executor.submit(_run_sample_in_process, self, sample): sample
-                    for sample in dataset
-                }
+            # Wait for completion with progress bar
+            results = []
+            failed_samples = []
 
-                # Wait for completion with progress bar
-                results = []
-                failed_samples = []
+            for future in tqdm(
+                as_completed(futures),
+                total=len(dataset),
+                desc="Generating samples (multiprocess)",
+            ):
+                sample = futures[future]
+                task_name = self._get_sample_id(sample)
 
-                for future in tqdm(
-                    as_completed(futures),
-                    total=len(dataset),
-                    desc="Generating samples (multiprocess)",
-                ):
-                    sample = futures[future]
-                    task_name = self._get_sample_id(sample)
+                try:
+                    result = future.result()
+                    results.append(result)
+                    logger.info(f"✓ Task {task_name} completed successfully")
+                except Exception as e:
+                    failed_samples.append(task_name)
+                    logger.error(f"✗ Task {task_name} FAILED")
+                    logger.error(f"  Error: {e}")
+                    logger.error(f"  Traceback:\n{traceback.format_exc()}")
 
-                    try:
-                        result = future.result()
-                        results.append(result)
-                        logger.info(f"✓ Task {task_name} completed successfully")
-                    except Exception as e:
-                        failed_samples.append(task_name)
-                        logger.error(f"✗ Task {task_name} FAILED")
-                        logger.error(f"  Error: {e}")
-                        logger.error(f"  Traceback:\n{traceback.format_exc()}")
+                    # Check if subprocess created error.json
+                    error_file = self.output_dir / task_name / "error.json"
+                    if error_file.exists():
+                        logger.error(f"  Detailed error saved to: {error_file}")
 
-                        # Check if subprocess created error.json
-                        error_file = self.output_dir / task_name / "error.json"
-                        if error_file.exists():
-                            logger.error(f"  Detailed error saved to: {error_file}")
-
+        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
+        if failed_samples:
             logger.warning(
-                f"Generated {len(results)}/{len(dataset)} samples successfully"
+                f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
             )
-            if failed_samples:
-                logger.warning(
-                    f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
-                )
-
-        finally:
-            master_handler.flush()
-            logging.getLogger().removeHandler(master_handler)
-            master_handler.close()
 
     def generate_threaded(self) -> None:
         """Generate samples using multithreading (fallback option).
@@ -532,18 +572,6 @@ class Evaluation(abc.ABC):
 
         self._prepare_general_env()
 
-        # Configure master log
-        master_log = self.output_dir / "evaluation_master.log"
-        master_handler = logging.FileHandler(master_log, mode="w")
-        master_handler.setLevel(logging.INFO)
-        master_handler.setFormatter(
-            logging.Formatter(
-                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-        )
-        logging.getLogger().addHandler(master_handler)
-
         # Wrapper to run async _generate_sample in a thread
         def run_sample_in_thread(sample: dict) -> dict:
             # Create task from sample
@@ -551,49 +579,41 @@ class Evaluation(abc.ABC):
             # Run async code in this thread's event loop
             return asyncio.run(self._generate_sample(task))
 
-        try:
-            # Execute samples in parallel using thread pool
-            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                # Submit all tasks
-                futures = {
-                    executor.submit(run_sample_in_thread, sample): sample
-                    for sample in dataset
-                }
+        # Execute samples in parallel using thread pool
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            # Submit all tasks
+            futures = {
+                executor.submit(run_sample_in_thread, sample): sample
+                for sample in dataset
+            }
 
-                # Wait for completion with progress bar
-                results = []
-                failed_samples = []
+            # Wait for completion with progress bar
+            results = []
+            failed_samples = []
 
-                for future in tqdm(
-                    as_completed(futures),
-                    total=len(dataset),
-                    desc="Generating samples (threaded)",
-                ):
-                    sample = futures[future]
-                    task_name = self._get_sample_id(sample)
+            for future in tqdm(
+                as_completed(futures),
+                total=len(dataset),
+                desc="Generating samples (threaded)",
+            ):
+                sample = futures[future]
+                task_name = self._get_sample_id(sample)
 
-                    try:
-                        result = future.result()
-                        results.append(result)
-                        logger.info(f"✓ Task {task_name} completed successfully")
-                    except Exception as e:
-                        failed_samples.append(task_name)
-                        logger.error(f"✗ Task {task_name} FAILED")
-                        logger.error(f"  Error: {e}")
-                        logger.error(f"  Traceback:\n{traceback.format_exc()}")
+                try:
+                    result = future.result()
+                    results.append(result)
+                    logger.info(f"✓ Task {task_name} completed successfully")
+                except Exception as e:
+                    failed_samples.append(task_name)
+                    logger.error(f"✗ Task {task_name} FAILED")
+                    logger.error(f"  Error: {e}")
+                    logger.error(f"  Traceback:\n{traceback.format_exc()}")
 
+        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
+        if failed_samples:
             logger.warning(
-                f"Generated {len(results)}/{len(dataset)} samples successfully"
+                f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
             )
-            if failed_samples:
-                logger.warning(
-                    f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
-                )
-
-        finally:
-            master_handler.flush()
-            logging.getLogger().removeHandler(master_handler)
-            master_handler.close()
 
     def generate_single_thread(self) -> None:
         """Generate samples sequentially in a single thread for debugging."""
@@ -602,45 +622,25 @@ class Evaluation(abc.ABC):
         results = []
         self._prepare_general_env()
 
-        # Configure master log
-        master_log = self.output_dir / "evaluation_master.log"
-        master_handler = logging.FileHandler(master_log, mode="w")
-        master_handler.setLevel(logging.DEBUG)
-        master_handler.setFormatter(
-            logging.Formatter(
-                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-        )
-        logging.getLogger().addHandler(master_handler)
+        # Keep only first sample for debugging
+        dataset = dataset.select([0])
+        for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
+            task_name = self._get_sample_id(sample)
+            try:
+                # Create task from sample
+                task = self._create_task(sample)
+                # Run async code in new event loop for each sample
+                result = asyncio.run(self._generate_sample(task))
+                results.append(result)
+                logger.info(f"✓ Task {task_name} completed")
+            except Exception as e:
+                logger.error(f"✗ Task {task_name} FAILED")
+                logger.error(f"  Error: {e}")
+                logger.error(f"  Traceback:\n{traceback.format_exc()}")
+                # Re-raise for easier debugging
+                raise
 
-        try:
-            # Keep only first sample for debugging
-            dataset = dataset.select([0])
-            for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
-                task_name = self._get_sample_id(sample)
-                try:
-                    # Create task from sample
-                    task = self._create_task(sample)
-                    # Run async code in new event loop for each sample
-                    result = asyncio.run(self._generate_sample(task))
-                    results.append(result)
-                    logger.info(f"✓ Task {task_name} completed")
-                except Exception as e:
-                    logger.error(f"✗ Task {task_name} FAILED")
-                    logger.error(f"  Error: {e}")
-                    logger.error(f"  Traceback:\n{traceback.format_exc()}")
-                    # Re-raise for easier debugging
-                    raise
-
-            logger.warning(
-                f"Generated {len(results)}/{len(dataset)} samples successfully"
-            )
-
-        finally:
-            master_handler.flush()
-            logging.getLogger().removeHandler(master_handler)
-            master_handler.close()
+        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
 
     @abc.abstractmethod
     def _get_sample_id(self, sample: dict) -> str:
@@ -729,16 +729,49 @@ class Evaluation(abc.ABC):
     def _prepare_agent(self, task: EvaluationTask) -> None:
         agent = self._mk_agent_original(aigise_session_id=task.session_id)
 
-        # Only replace models if user explicitly specified a model
-        if self.model is not None:
-            task_model = LiteLlm(model=self.model)
-            self._replace_agent_models_recursive(agent, task_model)
-            logger.warning(
-                f"Replaced all agent models with '{self.model}' for session {task.session_id}"
-            )
+        # Replace models based on use_config_model flag
+        if self.use_config_model:
+            # Get model configuration from aigise session config
+            aigise_session = task.aigise_session
+            if aigise_session and aigise_session.config.llm:
+                # Get main model config from config file
+                main_model_config = aigise_session.config.llm.model_configs.get("main")
+                if main_model_config:
+                    # Convert config to dict and extract all parameters
+                    config_dict = (
+                        main_model_config.model_dump()
+                        if hasattr(main_model_config, "model_dump")
+                        else vars(main_model_config)
+                    )
+
+                    # LiteLlm expects 'model' not 'model_name'
+                    if "model_name" in config_dict:
+                        config_dict["model"] = config_dict.pop("model_name")
+
+                    # Create LiteLlm instance with all config parameters
+                    task_model = LiteLlm(**config_dict)
+                    self._replace_agent_models_recursive(agent, task_model)
+
+                    # Log with key parameters
+                    model_name = config_dict.get("model", "unknown")
+                    logger.warning(
+                        f"Replaced all agent models with config model '{model_name}' "
+                        f"with parameters: {config_dict} for session {task.session_id}"
+                    )
+                else:
+                    logger.warning(
+                        f"No 'main' model config found in aigise config, "
+                        f"using agent's original model for session {task.session_id}"
+                    )
+            else:
+                logger.warning(
+                    f"No LLM config found in aigise session, "
+                    f"using agent's original model for session {task.session_id}"
+                )
         else:
             logger.warning(
-                f"Using agent's original model configuration for session {task.session_id}"
+                f"use_config_model=False, using agent's original model configuration "
+                f"for session {task.session_id}"
             )
 
         setup_summarization_callbacks(agent)
@@ -787,9 +820,9 @@ class Evaluation(abc.ABC):
         root_logger.addHandler(debug_handler)
         root_logger.addHandler(info_handler)
 
-        # Terminal: Set ALL stderr StreamHandlers to INFO level
+        # Terminal: Set ALL stderr StreamHandlers to configured log level
         # Traverse all existing loggers (root and all children)
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=self._terminal_log_level)
         for logger_name in list(logging.Logger.manager.loggerDict.keys()) + [""]:
             logger_obj = logging.getLogger(logger_name)
             for handler in logger_obj.handlers[:]:
@@ -797,7 +830,7 @@ class Evaluation(abc.ABC):
                     isinstance(handler, logging.StreamHandler)
                     and handler.stream == sys.stderr
                 ):
-                    handler.setLevel(logging.INFO)  # Terminal shows only INFO+
+                    handler.setLevel(self._terminal_log_level)
 
         try:
             logger.info(f"Starting task {task.task_name} (session: {task.session_id})")

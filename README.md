@@ -73,6 +73,11 @@ python3 -m cybergym.server \
 python -m evaluations.cybergym.cybergym_static --agent_id=<your_agent_id> run
 ```
 
+run for the zero-day vulnerability detection task
+```shell
+python -m evaluations.cybergym.cybergym_vul_detection run_debug --agent-id aaa --max_llm_calls 100 --cybergym_poc_save_dir ./third_party/cybergym/server_poc --checkout_main_branch
+```
+
 #### Run evaluation (with dynamic tools)
 
 ```shell

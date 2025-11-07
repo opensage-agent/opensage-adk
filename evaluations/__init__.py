@@ -623,7 +623,7 @@ class Evaluation(abc.ABC):
         self._prepare_general_env()
 
         # Keep only first sample for debugging
-        dataset = dataset.select([0])
+        # dataset = dataset.select([0])
         for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
             task_name = self._get_sample_id(sample)
             try:
@@ -638,7 +638,7 @@ class Evaluation(abc.ABC):
                 logger.error(f"  Error: {e}")
                 logger.error(f"  Traceback:\n{traceback.format_exc()}")
                 # Re-raise for easier debugging
-                raise
+                # raise
 
         logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
 

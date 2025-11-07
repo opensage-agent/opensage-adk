@@ -236,6 +236,7 @@ async def test_shared_volume_initialization_and_launch(
             assert shared_volume_id is not None
 
             await manager.launch_all_sandboxes()
+            await manager.initialize_all_sandboxes()
             if sandbox_scenario.backend == "native":
                 assert len(manager._sandboxes) == 3
                 # there is a placeholder sandbox

@@ -347,7 +347,7 @@ class AigiseSandboxManager:
             for sandbox_type in sandbox_configs.keys():
                 self._sandbox_states[sandbox_type] = SandboxState.STARTING
 
-            # Call backend-specific launch method (unified interface)
+            # Call backend-specific launch method (creates containers, not initialized yet)
             sandbox_instances = await backend_class.launch_all_sandboxes(
                 session_id=self.aigise_session_id,
                 sandbox_configs=sandbox_configs,
@@ -355,14 +355,14 @@ class AigiseSandboxManager:
                 scripts_volume_id=self._scripts_volume_id,
             )
 
-            # Store sandbox instances in manager
+            # Store sandbox instances in manager (mark as CREATED, not READY yet)
             for sandbox_type, sandbox_instance in sandbox_instances.items():
                 self._sandboxes[sandbox_type] = sandbox_instance
-                self._sandbox_states[sandbox_type] = SandboxState.READY
+                self._sandbox_states[sandbox_type] = SandboxState.CREATED
 
             logger.info(
                 f"Successfully launched {len(sandbox_instances)} sandboxes for session {self.aigise_session_id}, "
-                f"sandbox types: {list(sandbox_instances.keys())}"
+                f"sandbox types: {list(sandbox_instances.keys())} (not yet initialized)"
             )
 
         except Exception as e:
@@ -371,6 +371,75 @@ class AigiseSandboxManager:
             )
             # Set all sandbox states to error
             for sandbox_type in config.sandbox.sandboxes:
+                self._sandbox_states[sandbox_type] = SandboxState.ERROR
+            raise
+
+    async def initialize_all_sandboxes(self) -> None:
+        """Initialize all created sandboxes.
+
+        This should be called after launch_all_sandboxes() and after
+        registering any hooks.
+
+        Example:
+            # Create sandboxes
+            await aigise_session.sandboxes.launch_all_sandboxes()
+
+            # Initialize
+            await aigise_session.sandboxes.initialize_all_sandboxes()
+        """
+        if not self._sandboxes:
+            logger.warning(
+                f"No sandboxes to initialize for session {self.aigise_session_id}"
+            )
+            return
+
+        try:
+            # Filter out sandboxes that are already READY
+            sandboxes_to_init = {}
+            already_ready = []
+
+            for sandbox_type, sandbox_instance in self._sandboxes.items():
+                state = self._sandbox_states.get(sandbox_type)
+                if state == SandboxState.READY:
+                    already_ready.append(sandbox_type)
+                else:
+                    sandboxes_to_init[sandbox_type] = sandbox_instance
+
+            if already_ready:
+                logger.info(
+                    f"Skipping initialization for already ready sandboxes: {already_ready}"
+                )
+
+            if not sandboxes_to_init:
+                logger.info("All sandboxes are already initialized")
+                return
+
+            # Get backend class
+            backend_type = getattr(self.config.sandbox, "backend", "native")
+            backend_class = get_backend_class(backend_type)
+
+            logger.info(
+                f"Initializing {len(sandboxes_to_init)} sandboxes for session {self.aigise_session_id}: "
+                f"{list(sandboxes_to_init.keys())}"
+            )
+
+            # Call backend-specific initialize method
+            await backend_class.initialize_all_sandboxes(sandboxes_to_init)
+
+            # Update all initialized sandbox states to READY
+            for sandbox_type in sandboxes_to_init.keys():
+                self._sandbox_states[sandbox_type] = SandboxState.READY
+
+            logger.info(
+                f"Successfully initialized {len(sandboxes_to_init)} sandboxes for session {self.aigise_session_id}"
+            )
+
+        except Exception as e:
+            logger.error(
+                f"Failed to initialize sandboxes for session {self.aigise_session_id}: {e}"
+            )
+            # Set all sandbox states to error
+            for sandbox_type in self._sandboxes.keys():
                 self._sandbox_states[sandbox_type] = SandboxState.ERROR
             raise
 

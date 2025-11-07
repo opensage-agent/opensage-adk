@@ -1069,7 +1069,11 @@ class NativeDockerSandbox(BaseSandbox):
     async def create_single_sandbox(
         cls, session_id: str, sandbox_type: str, container_config
     ) -> tuple[str, "NativeDockerSandbox"]:
-        """Create a single sandbox instance asynchronously."""
+        """Create a single sandbox instance without initialization.
+
+        This method only creates the Docker container and sandbox instance.
+        Call initialize_all_sandboxes() afterwards to initialize.
+        """
 
         logger.info(f"Launching {sandbox_type} sandbox for session {session_id}")
 
@@ -1092,16 +1096,41 @@ class NativeDockerSandbox(BaseSandbox):
             sandbox_type=sandbox_type,
         )
 
-        # TODO: do we need to wait for container to be fully ready?
+        # Store using_cached flag for later initialization
+        sandbox_instance._using_cached = container_config.using_cached
 
-        # Perform async initializer initialization only if not using cached image
-        if not container_config.using_cached:
-            await sandbox_instance.async_initialize()
-        else:
-            await sandbox_instance.ensure_ready()
-
-        logger.info(f"Successfully launched {sandbox_type} sandbox")
+        logger.info(
+            f"Successfully created {sandbox_type} sandbox (not yet initialized)"
+        )
         return sandbox_type, sandbox_instance
+
+    @classmethod
+    async def initialize_all_sandboxes(cls, sandbox_instances: dict) -> None:
+        """Initialize all sandbox instances concurrently.
+
+        This should be called after launch_all_sandboxes() and after
+        registering any hooks.
+
+        Args:
+            sandbox_instances: Dict of sandbox_type -> NativeDockerSandbox instance
+        """
+        if not sandbox_instances:
+            logger.warning("No sandbox instances to initialize")
+            return
+
+        init_tasks = []
+        for sandbox_type, sandbox_instance in sandbox_instances.items():
+            logger.info(f"Initializing {sandbox_type} sandbox...")
+
+            if sandbox_instance._using_cached:
+                init_tasks.append(sandbox_instance.ensure_ready())
+            else:
+                init_tasks.append(sandbox_instance.async_initialize())
+
+        # Initialize all sandboxes concurrently
+        await asyncio.gather(*init_tasks)
+
+        logger.info(f"Successfully initialized {len(sandbox_instances)} sandboxes")
 
     @classmethod
     def _find_available_loopback_ip(cls, config) -> str:
@@ -1302,6 +1331,8 @@ class NativeDockerSandbox(BaseSandbox):
                 backend_type=cls.backend_type,
                 sandbox_type="placeholder",
             )
+            # Placeholder is always "cached" (already exists), won't be initialized
+            placeholder_sandbox._using_cached = True
             sandbox_instances["_placeholder"] = placeholder_sandbox
             logger.info("Registered placeholder container as a managed sandbox")
 

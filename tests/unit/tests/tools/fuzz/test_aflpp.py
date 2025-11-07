@@ -22,6 +22,7 @@ async def aigise_session():
 
         aigise_session.sandboxes.initialize_shared_volumes()
         await aigise_session.sandboxes.launch_all_sandboxes()
+        await aigise_session.sandboxes.initialize_all_sandboxes()
         yield aigise_session
     finally:
         if aigise_session is not None:

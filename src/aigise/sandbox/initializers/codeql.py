@@ -29,45 +29,37 @@ class CodeQLInitializer(SandboxInitializer):
 
         aigise_session = get_aigise_session(self.aigise_session_id)
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
-
-        # Pre-analysis hook: allow custom code preparation before CodeQL runs
-        if hasattr(
-            aigise_session.config.sandbox.sandboxes["codeql"], "pre_analysis_hook"
-        ):
-            pre_analysis_hook = aigise_session.config.sandbox.sandboxes[
-                "codeql"
-            ].pre_analysis_hook
-            if pre_analysis_hook is not None:
-                logger.info("Executing pre-analysis hook...")
-                await pre_analysis_hook(aigise_session)
-
-        msg, err = self.run_command_in_container(
-            [
-                "bash",
-                "/sandbox_scripts/callgraph/run_codeql.sh",
-                aigise_session.config.build.compile_command,
-            ]
-        )
-        if err != 0:
-            raise RuntimeError(f"CodeQL run failed: {msg}")
-
-        create_not_found = False
-        if "joern" in aigise_session.config.sandbox.sandboxes:
-            await aigise_session.sandboxes.wait_for_ready("joern")
-            create_not_found = True
-
-        await aigise_session.sandboxes.wait_for_ready("neo4j")
-        neo4j_client = await aigise_session.neo4j.get_async_client("analysis")
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            for res_file in ["results.csv", "fp_accesses.csv", "expr_calls.csv"]:
-                self.copy_file_from_container(
-                    f"/shared/out/callgraph/{res_file}", os.path.join(tmpdir, res_file)
-                )
-
-            await insert_codeql_results_to_cpg(
-                neo4j_client, tmpdir, create_not_found_nodes=create_not_found
+        try:
+            msg, err = self.run_command_in_container(
+                [
+                    "bash",
+                    "/sandbox_scripts/callgraph/run_codeql.sh",
+                    aigise_session.config.build.compile_command,
+                ]
             )
+            if err != 0:
+                raise RuntimeError(f"CodeQL run failed: {msg}")
+
+            create_not_found = False
+            if "joern" in aigise_session.config.sandbox.sandboxes:
+                await aigise_session.sandboxes.wait_for_ready("joern")
+                create_not_found = True
+
+            await aigise_session.sandboxes.wait_for_ready("neo4j")
+            neo4j_client = await aigise_session.neo4j.get_async_client("analysis")
+
+            with tempfile.TemporaryDirectory() as tmpdir:
+                for res_file in ["results.csv", "fp_accesses.csv", "expr_calls.csv"]:
+                    self.copy_file_from_container(
+                        f"/shared/out/callgraph/{res_file}",
+                        os.path.join(tmpdir, res_file),
+                    )
+
+                await insert_codeql_results_to_cpg(
+                    neo4j_client, tmpdir, create_not_found_nodes=create_not_found
+                )
+        except Exception as e:
+            logger.error(f"CodeQL initialization failed: {e}")
 
         await self.ensure_ready()
 

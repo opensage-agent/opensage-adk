@@ -1387,7 +1387,6 @@ class K8sSandbox(BaseSandbox):
         )
 
         sandbox_instances: Dict[str, BaseSandbox] = {}
-        init_tasks = []
         from aigise.sandbox.factory import create_sandbox_class, get_initializer_class
 
         for sandbox_type, config in sandbox_configs.items():
@@ -1407,23 +1406,52 @@ class K8sSandbox(BaseSandbox):
                 backend_type=cls.backend_type,
                 sandbox_type=sandbox_type,
             )
-            sandbox_instances[sandbox_type] = sandbox_instance
 
+            # Store using_cached flag for later initialization
+            sandbox_instance._using_cached = config.using_cached
+
+            # Apply cached rootfs if needed
             restore_tar = (
                 (config.extra or {}).get("cached_rootfs_tar") if config.extra else None
             )
             if restore_tar:
                 sandbox_instance._apply_cached_rootfs(restore_tar)
 
-            if not config.using_cached:
-                init_tasks.append(sandbox_instance.async_initialize())
-            else:
-                init_tasks.append(sandbox_instance.ensure_ready())
+            sandbox_instances[sandbox_type] = sandbox_instance
 
+        logger.info(
+            f"Successfully created {len(sandbox_instances)} sandbox instances (not yet initialized)"
+        )
+        return sandbox_instances
+
+    @classmethod
+    async def initialize_all_sandboxes(cls, sandbox_instances: dict) -> None:
+        """Initialize all sandbox instances concurrently.
+
+        This should be called after launch_all_sandboxes() and after
+        registering any hooks.
+
+        Args:
+            sandbox_instances: Dict of sandbox_type -> K8sSandbox instance
+        """
+        if not sandbox_instances:
+            logger.warning("No sandbox instances to initialize")
+            return
+
+        init_tasks = []
+        for sandbox_type, sandbox_instance in sandbox_instances.items():
+            logger.info(f"Initializing {sandbox_type} sandbox...")
+
+            if sandbox_instance._using_cached:
+                init_tasks.append(sandbox_instance.ensure_ready())
+            else:
+                init_tasks.append(sandbox_instance.async_initialize())
+
+        # Initialize all sandboxes concurrently
         if init_tasks:
             await asyncio.gather(*init_tasks)
 
-        return sandbox_instances
+        logger.info(f"Successfully initialized {len(sandbox_instances)} sandboxes")
 
     # ------------------------------------------------------------------
     # Cache support placeholder (kept for parity with BaseSandbox contract)

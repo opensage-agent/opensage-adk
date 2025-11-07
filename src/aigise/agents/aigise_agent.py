@@ -135,6 +135,7 @@ class AigiseAgent(LlmAgent):
                     await aigise_session.sandboxes.launch_all_sandboxes(
                         sandbox_types=sandbox_dependencies
                     )
+                    await aigise_session.sandboxes.initialize_all_sandboxes()
                     logger.info(
                         f"Sandboxes launched successfully for agent '{self.name}'"
                     )

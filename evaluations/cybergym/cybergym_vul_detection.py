@@ -286,52 +286,60 @@ class CyberGym(Evaluation):
         if not self.agent_id:
             raise ValueError("agent_id is required for CyberGym evaluation")
 
-    @staticmethod
-    async def _checkout_main_branch_hook(aigise_session) -> None:
-        """Pre-analysis hook to checkout git repository to main/master branch.
-
-        This hook is executed before CodeQL analysis runs, allowing us to
-        analyze the main/master branch instead of the vulnerable commit.
+    def _before_initialize_hooks(self, aigise_session: AigiseSession) -> None:
+        """Run before initialize hooks.
 
         Args:
             aigise_session: AigiseSession instance
         """
-        # Get main sandbox to perform checkout
-        main_sandbox = aigise_session.sandboxes.get_sandbox("main")
-        if not main_sandbox:
-            logger.warning("Main sandbox not found, skipping git checkout")
-            return
+        print("Test before initialize hooks")
+        if self.checkout_main_branch:
+            # Iterate through all sandboxes
+            for sandbox_type, sandbox in aigise_session.sandboxes._sandboxes.items():
+                logger.info(f"Checking git repository in {sandbox_type} sandbox...")
 
-        # Find git repository
-        logger.info("Searching for git repository in container...")
-        git_check_result, exit_code = main_sandbox.run_command_in_container(
-            "find /src -name '.git' -type d 2>/dev/null | head -1"
-        )
+                # Find git repository
+                git_check_result, exit_code = sandbox.run_command_in_container(
+                    "find /src -name '.git' -type d 2>/dev/null | head -1"
+                )
 
-        if exit_code != 0 or not git_check_result or not git_check_result.strip():
-            logger.warning("No git repository found, skipping checkout")
-            return
+                if (
+                    exit_code != 0
+                    or not git_check_result
+                    or not git_check_result.strip()
+                ):
+                    logger.info(f"No git repository found in {sandbox_type}, skipping")
+                    continue
 
-        git_repo_path = git_check_result.strip().replace("/.git", "")
-        logger.info(f"Found git repository at: {git_repo_path}")
+                git_repo_path = git_check_result.strip().replace("/.git", "")
+                logger.info(
+                    f"Found git repository in {sandbox_type} at: {git_repo_path}"
+                )
 
-        # Checkout to main/master branch
-        checkout_result, _ = main_sandbox.run_command_in_container(
-            f"cd {git_repo_path} && "
-            f"(git checkout master 2>/dev/null || git checkout main 2>/dev/null) && "
-            f"git pull origin master 2>/dev/null || git pull origin main 2>/dev/null || true"
-        )
+                # Checkout to main/master branch
+                checkout_result, _ = sandbox.run_command_in_container(
+                    f"cd {git_repo_path} && "
+                    f"(git checkout master 2>/dev/null || git checkout main 2>/dev/null) && "
+                    f"git pull origin master 2>/dev/null || git pull origin main 2>/dev/null || true"
+                )
 
-        # Verify result
-        current_branch, _ = main_sandbox.run_command_in_container(
-            f"cd {git_repo_path} && git rev-parse --abbrev-ref HEAD"
-        )
-        current_commit, _ = main_sandbox.run_command_in_container(
-            f"cd {git_repo_path} && git rev-parse HEAD"
-        )
-        logger.warning(
-            f"✓ Git checkout completed: {current_branch.strip()} @ {current_commit.strip()[:8]}"
-        )
+                # Verify result
+                current_branch, _ = sandbox.run_command_in_container(
+                    f"cd {git_repo_path} && git rev-parse --abbrev-ref HEAD"
+                )
+                current_commit, _ = sandbox.run_command_in_container(
+                    f"cd {git_repo_path} && git rev-parse HEAD"
+                )
+                logger.warning(
+                    f"✓ [{sandbox_type}] Git checkout completed: {current_branch.strip()} @ {current_commit.strip()[:8]}"
+                )
+
+            # we also need to do arvo compile here for the main sandbox
+            main_sandbox = aigise_session.sandboxes.get_sandbox("main")
+            exit_code, output = main_sandbox.run_command_in_container("arvo compile")
+            if exit_code != 0:
+                logger.error(f"Arvo compile failed: {output}")
+                raise RuntimeError(f"Arvo compile failed: {output}")
 
     def _get_sample_id(self, sample: dict) -> str:
         """Get unique task ID for this sample."""
@@ -456,14 +464,6 @@ class CyberGym(Evaluation):
         aigise_session = get_aigise_session(
             task.session_id, config_path=temp_config_path
         )
-
-        # Register a pre-analysis hook if checkout_main_branch is enabled
-        if self.checkout_main_branch:
-            if not "codeql" in aigise_session.config.sandbox.sandboxes:
-                raise ValueError("codeql config not found in aigise_session config")
-            aigise_session.config.sandbox.sandboxes[
-                "codeql"
-            ].pre_analysis_hook = self._checkout_main_branch_hook
 
         task.aigise_session = aigise_session
 

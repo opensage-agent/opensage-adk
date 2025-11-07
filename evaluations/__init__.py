@@ -910,6 +910,14 @@ class Evaluation(abc.ABC):
         with open(config_path, "w") as f:
             f.write(content)
 
+    def _before_initialize_hooks(self, aigise_session: AigiseSession) -> None:
+        """Run before initialize hooks.
+
+        Args:
+            task: EvaluationTask instance with all task data
+        """
+        pass
+
     def _register_aigise_session(self, task: EvaluationTask):
         """Register AigiseSession with task-specific config.
 
@@ -983,10 +991,15 @@ class Evaluation(abc.ABC):
         # 4. Initialize shared volumes
         aigise_session.sandboxes.initialize_shared_volumes()
 
-        # 5. Launch all sandboxes
+        # 5. Launch all sandboxes (create containers only, not initialized yet)
         await aigise_session.sandboxes.launch_all_sandboxes()
 
-        # 6. Cache sandboxes if needed
+        self._before_initialize_hooks(aigise_session)
+
+        # 6. Initialize all sandboxes
+        await aigise_session.sandboxes.initialize_all_sandboxes()
+
+        # 7. Cache sandboxes if needed
         if unfound_cached_sandboxes:
             aigise_session.sandboxes.cache_sandboxes(cache_dir=task.cache_dir)
 

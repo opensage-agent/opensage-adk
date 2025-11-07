@@ -75,7 +75,13 @@ python -m evaluations.cybergym.cybergym_static --agent_id=<your_agent_id> run
 
 run for the zero-day vulnerability detection task
 ```shell
-python -m evaluations.cybergym.cybergym_vul_detection run_debug --agent-id aaa --max_llm_calls 100 --cybergym_poc_save_dir ./third_party/cybergym/server_poc --checkout_main_branch
+python -m evaluations.cybergym.cybergym_vul_detection run_debug --agent-id aaa --max_llm_calls 100 --cybergym_poc_save_dir ./third_party/cybergym/server_poc --checkout_main_branch --start_idx 0 --end_idx 50 # claude 251107_195759
+
+python -m evaluations.cybergym.cybergym_vul_detection run_debug --agent-id aaa --max_llm_calls 100 --cybergym_poc_save_dir ./third_party/cybergym/server_poc --checkout_main_branch --model_name="openai/gpt-5" --start_idx 50 --end_idx 100 # hongwei
+
+LITELLM_PROXY_API_KEY=sk-9Vhm-q_FsrTpwiB-1Z6zXQ LITELLM_PROXY_API_BASE=https://litellm-991596698159.us-west1.run.app/ python -m evaluations.cybergym.cybergym_vul_detection run_debug --agent-id aaa --max_llm_calls 100 --cybergym_poc_save_dir ./third_party/cybergym/server_poc --checkout_main_branch --model_name="litellm_proxy/openai/gpt-5-2025-08-07" --start_idx 100 --end_idx 150 # 251107_220244
+
+OPENROUTER_API_KEY=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 python -m evaluations.cybergym.cybergym_vul_detection run_debug --agent-id aaa --max_llm_calls 100 --cybergym_poc_save_dir ./third_party/cybergym/server_poc --checkout_main_branch --model_name="openrouter/openai/gpt-5" --start_idx 150 --end_idx 200 # 251107_221056
 ```
 
 #### Run evaluation (with dynamic tools)

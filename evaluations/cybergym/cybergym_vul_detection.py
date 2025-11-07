@@ -309,7 +309,7 @@ class CyberGym(Evaluation):
 
     @staticmethod
     async def _get_modified_functions_last_6_months(
-        aigise_session, months: int = 6
+        aigise_session, months: int = 6, project_name: str = ""
     ) -> dict[str, list[dict[str, Any]]]:
         """Get functions modified in the last N months by analyzing git history.
 
@@ -322,6 +322,7 @@ class CyberGym(Evaluation):
         Args:
             aigise_session: AigiseSession instance
             months: Number of months to look back (default: 6)
+            project_name: Project name to help locate git repository (default: "")
 
         Returns:
             Dict mapping commit hash to list of modified function info:
@@ -342,10 +343,21 @@ class CyberGym(Evaluation):
             logger.warning("Main sandbox not found")
             return {}
 
-        # Find git repository
-        git_check_result, exit_code = main_sandbox.run_command_in_container(
-            "find /src -name '.git' -type d 2>/dev/null | head -1"
-        )
+        # Find git repository - check current directory first, then project directory
+        find_cmd = f"""
+        if [ -d .git ]; then
+            echo "$PWD/.git"
+            exit 0
+        else
+            PROJECT_DIR=$(find /src -type d -name "*{project_name}*" 2>/dev/null | head -1)
+            if [ -n "$PROJECT_DIR" ] && [ -d "$PROJECT_DIR/.git" ]; then
+                echo "$PROJECT_DIR/.git"
+                exit 0
+            fi
+        fi
+        exit 1
+        """
+        git_check_result, exit_code = main_sandbox.run_command_in_container(find_cmd)
 
         if exit_code != 0 or not git_check_result or not git_check_result.strip():
             logger.warning("No git repository found")
@@ -452,22 +464,39 @@ class CyberGym(Evaluation):
         logger.info(f"Found {len(modified_functions)} commits with modified functions")
         return modified_functions
 
-    def _before_initialize_hooks(self, aigise_session: AigiseSession) -> None:
+    def _before_initialize_hooks(
+        self, aigise_session: AigiseSession, task: EvaluationTask
+    ) -> None:
         """Run before initialize hooks.
 
         Args:
             aigise_session: AigiseSession instance
+            task: EvaluationTask instance with all task data
         """
         print("Test before initialize hooks")
         if self.checkout_main_branch:
+            # Get project name from task
+            project_name = task.sample.get("project_name", "")
+
             # Iterate through all sandboxes
             for sandbox_type, sandbox in aigise_session.sandboxes._sandboxes.items():
                 logger.info(f"Checking git repository in {sandbox_type} sandbox...")
 
-                # Find git repository
-                git_check_result, exit_code = sandbox.run_command_in_container(
-                    "find /src -name '.git' -type d 2>/dev/null | head -1"
-                )
+                # Find git repository - check current directory first, then project directory
+                find_cmd = f"""
+                if [ -d .git ]; then
+                    echo "$PWD/.git"
+                    exit 0
+                else
+                    PROJECT_DIR=$(find /src -type d -name "*{project_name}*" 2>/dev/null | head -1)
+                    if [ -n "$PROJECT_DIR" ] && [ -d "$PROJECT_DIR/.git" ]; then
+                        echo "$PROJECT_DIR/.git"
+                        exit 0
+                    fi
+                fi
+                exit 1
+                """
+                git_check_result, exit_code = sandbox.run_command_in_container(find_cmd)
 
                 if (
                     exit_code != 0
@@ -475,7 +504,9 @@ class CyberGym(Evaluation):
                     or not git_check_result.strip()
                 ):
                     logger.info(f"No git repository found in {sandbox_type}, skipping")
-                    continue
+                    raise RuntimeError(
+                        "No git repository found to checkout main/master branch"
+                    )
 
                 git_repo_path = git_check_result.strip().replace("/.git", "")
                 logger.info(
@@ -818,10 +849,14 @@ class CyberGym(Evaluation):
         # Only run vulnerability detection if not resuming from findings
         months = 4
         if not vul_findings:
+            # Get project name from task
+            project_name = task.sample.get("project_name", "")
+
             # Get modified functions in last 6 months
             modified_functions = await self._get_modified_functions_last_6_months(
                 aigise_session,
                 months=months,  # adjust
+                project_name=project_name,
             )
 
             # Extract all modified function names into a set for fast lookup

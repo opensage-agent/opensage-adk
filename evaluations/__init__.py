@@ -912,10 +912,13 @@ class Evaluation(abc.ABC):
         with open(config_path, "w") as f:
             f.write(content)
 
-    def _before_initialize_hooks(self, aigise_session: AigiseSession) -> None:
+    def _before_initialize_hooks(
+        self, aigise_session: AigiseSession, task: EvaluationTask
+    ) -> None:
         """Run before initialize hooks.
 
         Args:
+            aigise_session: AigiseSession instance
             task: EvaluationTask instance with all task data
         """
         pass
@@ -996,7 +999,7 @@ class Evaluation(abc.ABC):
         # 5. Launch all sandboxes (create containers only, not initialized yet)
         await aigise_session.sandboxes.launch_all_sandboxes()
 
-        self._before_initialize_hooks(aigise_session)
+        self._before_initialize_hooks(aigise_session, task)
 
         # 6. Initialize all sandboxes
         await aigise_session.sandboxes.initialize_all_sandboxes()

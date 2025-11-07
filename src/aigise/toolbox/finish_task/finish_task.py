@@ -11,6 +11,7 @@ def finish_task(tool_context: ToolContext) -> str:
         tool_context: The tool context
 
     Returns:
-        None
+        "Task finished"
     """
-    tool_context._invocation_context.session.state["task_finished"] = True
+    tool_context.state["task_finished"] = True
+    return "Task finished"

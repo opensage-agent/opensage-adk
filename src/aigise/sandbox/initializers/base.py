@@ -47,16 +47,20 @@ class DefaultInitializer(SandboxInitializer):
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
 
         async def verify_connection(url: str) -> bool:
-            """Check if MCP SSE server is ready by testing initial response."""
-            import httpx
+            """Check if MCP SSE server is ready by establishing a real connection."""
+            from mcp.client.sse import sse_client
 
             try:
-                async with httpx.AsyncClient(timeout=2.0) as client:
-                    async with client.stream("GET", url) as response:
-                        # If we can receive response (status code + headers), server is ready
-                        return response.status_code == 200
-                        # Don't read body, exit context manager to auto-close connection
-            except Exception:
+                # Use real MCP client for proper connection and cleanup
+                async with asyncio.timeout(10.0):
+                    async with sse_client(url, timeout=5.0, sse_read_timeout=10.0) as (
+                        read,
+                        write,
+                    ):
+                        # Successfully connected and initialized
+                        return True
+            except Exception as e:
+                logger.debug(f"MCP connection verify failed for {url}: {e}")
                 return False
 
         try:

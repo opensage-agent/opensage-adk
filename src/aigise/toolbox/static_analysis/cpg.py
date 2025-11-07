@@ -243,7 +243,8 @@ async def get_call_paths_to_function(
     tool_context: ToolContext,
 ) -> dict:
     """
-    Get a path from each entrypoint to a specified end function in the codebase.
+    Get a path in the call graph from a source function to a specified destination function in the codebase.
+    Note that LLVMFuzzerTestOneInput is the default source function name if not provided, it may not exist in the codebase or not captured by the call graph.
 
     Args:
         dst_function_name (str): The name of the destination function to search for.

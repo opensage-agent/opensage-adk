@@ -163,6 +163,8 @@ def load_codeql_results(out_dir: str) -> pd.DataFrame:
     fp_funcs = load_fp_accesses(fp_accesses_path)
     indirect_edges = match_edges(expr_calls, fp_funcs)
 
+    breakpoint()
+
     # 3. insert indirect edges into the DataFrame
     if indirect_edges:
         indirect_df = pd.DataFrame(indirect_edges)
@@ -176,7 +178,7 @@ def load_codeql_results(out_dir: str) -> pd.DataFrame:
         # 4. Append the indirect edges to the main DataFrame
         df = pd.concat([df, indirect_df], ignore_index=True)
 
-        return df
+    return df
 
 
 async def insert_codeql_results_to_cpg(
@@ -244,12 +246,15 @@ async def insert_codeql_results_to_cpg(
             continue
         if not method_ids:
             if not create_not_found_nodes:
-                raise ValueError(f"No method matched for idx {idx}: {methods[idx]}")
+                logger.warning(f"No method matched for idx {idx}: {methods[idx]}")
+                continue
             # create a new method node
-            logger.info(f"Creating missing method node: {methods[idx]}")
+            new_id = f"codeql_{idx}"
+            logger.debug(f"Creating missing method node: {methods[idx]}")
             create_cypher = """
             CREATE (m:METHOD)
-            SET m.name = $name,
+            SET m.id = $id,
+                m.name = $name,
                 m.fullName = $name,
                 m.filename = $path,
                 m.lineNumber = $start_line,
@@ -260,6 +265,7 @@ async def insert_codeql_results_to_cpg(
             await n4j_client.run_query(
                 create_cypher,
                 {
+                    "id": new_id,
                     "name": methods[idx][0],
                     "path": methods[idx][1],
                     "start_line": methods[idx][2],
@@ -268,8 +274,11 @@ async def insert_codeql_results_to_cpg(
                     "end_col": methods[idx][5],
                 },
             )
+            id_map[idx] = new_id
+            continue
+
         if len(method_ids) > 1:
-            raise ValueError(f"Multiple methods matched for idx {idx}: {method_ids}")
+            logger.warning(f"Multiple methods matched for idx {idx}: {method_ids}")
         if method_ids:
             id_map[idx] = method_ids[0]
 
@@ -293,6 +302,8 @@ async def insert_codeql_results_to_cpg(
         )
 
     logger.info(f"Inserting {len(rows)} call graph edges")
+    if not rows:
+        return
 
     cypher = """
     UNWIND $rows AS row
@@ -360,9 +371,9 @@ async def import_joern_callgraph(n4j_client: AsyncNeo4jClient, json_outdir: str)
             // For each JSON object:
             WITH value
             WITH value._label AS label,
-                 value._id AS id,
+                 toString(value._id) AS id,
                  apoc.map.removeKeys(value, ["_label", "_id"]) AS props
-            WITH label, apoc.map.merge(props, {id: id}) AS propsWithId
+            WITH label, apoc.map.merge(props, {{id: id}}) AS propsWithId
             CALL apoc.create.node([label], propsWithId) YIELD node
             RETURN 1
             ',
@@ -393,7 +404,7 @@ async def import_joern_callgraph(n4j_client: AsyncNeo4jClient, json_outdir: str)
             '
             // For each JSON object:
             WITH value
-            MATCH (a:{n} {{id: value._1}}), (b:{m} {{id: value._2}})
+            MATCH (a:{n} {{id: toString(value._1)}}), (b:{m} {{id: toString(value._2)}})
             CREATE (a)-[:{rel}]->(b)
             RETURN 1
             ',

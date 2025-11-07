@@ -1,7 +1,9 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
+from google.adk.models.base_llm import BaseLlm
+from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import Runner
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 from google.adk.tools.agent_tool import AgentTool
@@ -20,6 +22,7 @@ from aigise.utils.agent_utils import (
 async def create_subagent(
     agent_name: str,
     instruction: str,
+    model_name: str,
     tools_list: List[str],
     tool_context: ToolContext,
     description: Optional[str] = None,
@@ -31,6 +34,7 @@ async def create_subagent(
     Args:
         agent_name: Custom name for the agent
         instruction: Custom instruction for the agent
+        model_name: Model to use for the agent (e.g., "anthropic/claude-sonnet-4", "openai/gpt-5")
         tools_list: List of tool names to assign to the agent
         description: Optional description for the agent
 
@@ -41,6 +45,13 @@ async def create_subagent(
         session_id = get_aigise_session_id_from_context(tool_context)
         session = get_aigise_session(session_id)
         manager = session.agents
+        ensemble_manager = session.ensemble
+        available_models = ensemble_manager.get_available_models()
+        if model_name not in available_models:
+            return {
+                "success": False,
+                "error": f"Model '{model_name}' not available. Available models: {available_models}",
+            }
 
         current_agent = tool_context._invocation_context.agent
         available_tools = extract_tools_from_agent(current_agent)
@@ -67,7 +78,7 @@ async def create_subagent(
         config = {
             "name": agent_name,
             "instruction": instruction + "\nyou must use the tools provided.",
-            "model": "anthropic/claude-sonnet-4-20250514",
+            "model": model_name,
             "description": description
             or f"Agent {agent_name} with tools: {', '.join(tools_list)}",
             "tool_names": tools_list,
@@ -84,10 +95,11 @@ async def create_subagent(
             "success": True,
             "agent_id": agent_id,
             "agent_name": agent_name,
+            "model": model_name,
             "tools_assigned": tools_list,
             "instruction": instruction,
             "description": config["description"],
-            "message": f"Successfully created agent '{agent_name}' with tools: {', '.join(tools_list)}",
+            "message": f"Successfully created agent '{agent_name}' with model '{model_name}' and tools: {', '.join(tools_list)}",
         }
 
     except Exception as e:

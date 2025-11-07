@@ -22,12 +22,12 @@ class CoverageInitializer(SandboxInitializer):
         )
 
         msg, err = self.run_command_in_container(
-            command=["bash", "/sandbox_scripts/ossfuzz/compile_coverage.sh"]
+            command=["bash", "/sandbox_scripts/ossfuzz/compile_coverage.sh"],
+            timeout=600,
         )
 
         if err:
             logger.error(f"Coverage initialization error: {msg}")
-            raise RuntimeError(f"Coverage initialization failed: {msg}")
 
         await self.ensure_ready()
 

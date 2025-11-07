@@ -13,6 +13,28 @@ logger = logging.getLogger(__name__)
 
 
 @safe_tool_execution
+async def note_suspicious_things(suspicious_things: str, tool_context: ToolContext):
+    """
+    If you have multiple intereting points or suspicious things to explore, you can call this tool to note them down so that you don't forget them.
+
+    Returns:
+        "Noted"
+    """
+    return "Noted"
+
+
+@safe_tool_execution
+async def think(thinking: str, tool_context: ToolContext):
+    """
+    If you have want to do some reasoning, do not output the reasoning in plain text, call this tool to do the reasoning.
+
+    Returns:
+        "Thinking done"
+    """
+    return "Thinking done"
+
+
+@safe_tool_execution
 async def get_idea_from_other_models(tool_context: ToolContext):
     """
     Call this to query another model as a consultant to help you solve the task, you should call this frequently to get an idea of how to solve the task.
@@ -59,11 +81,14 @@ async def get_idea_from_other_models(tool_context: ToolContext):
 
 Please provide:
 1. A brief analysis of what the agent has tried so far
-2. Suggestions on what the agent should try next
+2. Suggestions on what the agent should see next
 3. Any potential issues or missing steps you notice
 
 You need to be critical and objective, do not sugarcoat the truth, do not be afraid to tell the agent what they are doing wrong.
-You should also find all unjustified claims and flag them, you should find all the unjustified assumptions and flag them. There are probably something missing or wrong in the task, you need to find it and tell the agent.
+You should also find all unjustified claims and assumptions and flag them.
+There are probably something missing or wrong in the task, you need to find it and tell the agent.
+There are probably some context missing, the agent might not have all the information it needs to solve the task, indicate what needs to be added to the context, e.g., are the exploitation path complete, and are the functions in the exploitation path complete?
+Does the agent only have a part of the functions and starts to guess the rest? Does the agent guess some machanism or logic that don't show up in the code, e.g., processing of a header, a callback, a mechanism of a specific function, etc.?
 
 Keep your response concise and actionable."""
 
@@ -226,11 +251,14 @@ If no unjustified claims are found, simply state that no problematic claims were
 
 
 @safe_tool_execution
-async def get_available_agents_and_models_for_ensemble(tool_context: ToolContext):
+async def get_available_agents_for_ensemble(tool_context: ToolContext):
     """
     Get the available agents for the ensemble.
     Uses AgentEnsembleManager to discover static subagents, agent tools, and dynamic agents.
     Only agents whose tools are all covered by THREAD_SAFE_TOOLS are considered safe for ensemble.
+
+    Returns:
+        Dictionary with safe_agents list, summary, and agent counts
     """
     try:
         # Get session ID from tool context or use default
@@ -277,14 +305,13 @@ async def get_available_agents_and_models_for_ensemble(tool_context: ToolContext
 
         safe_agent_names = [agent["name"] for agent in safe_agents]
 
-        available_models = aigise_session.ensemble.get_available_models_for_ensemble()
-
         return {
             "success": True,
             "safe_agents": safe_agent_names,
+            "safe_agents_details": safe_agents,
+            "unsafe_agents_details": unsafe_agents,
             "summary": ensemble_result["summary"],
             "thread_safe_tools": ensemble_result["thread_safe_tools"],
-            "available_models": available_models,
             "static_agents_count": len(ensemble_result["static_agents"]),
             "dynamic_agents_count": len(ensemble_result["dynamic_agents"]),
             "message": f"Found {len(safe_agents)} thread-safe agents out of {ensemble_result['summary']['total_static_agents'] + ensemble_result['summary']['total_dynamic_agents']} total agents",
@@ -295,6 +322,40 @@ async def get_available_agents_and_models_for_ensemble(tool_context: ToolContext
             "success": False,
             "error": f"Failed to get available agents for ensemble: {str(e)}",
             "safe_agents": [],
+        }
+
+
+@safe_tool_execution
+async def get_available_models(tool_context: ToolContext):
+    """
+    Get the available models configured for ensemble use.
+
+    Returns:
+        Dictionary with available_models list and count
+    """
+    try:
+        # Get session ID from tool context or use default
+        session_id = get_aigise_session_id_from_context(tool_context)
+
+        # Use session-specific AigiseEnsembleManager
+        aigise_session = get_aigise_session(session_id)
+        ensemble_manager = aigise_session.ensemble
+
+        # Get available models for ensemble
+        available_models = ensemble_manager.get_available_models()
+
+        return {
+            "success": True,
+            "available_models": available_models,
+            "models_count": len(available_models),
+            "message": f"Found {len(available_models)} available models for ensemble",
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to get available models for ensemble: {str(e)}",
+            "available_models": [],
         }
 
 
@@ -342,7 +403,7 @@ async def agent_ensemble(
     Agent ensemble is a tool that allows launching multiple agents, each with a different model, to perform a task.
     The agent will then aggregate the results from the agents and return the final result.
 
-    Before calling this tool, you must call get_available_agents_and_models_for_ensemble FIRST to get the allowed agents and models, as the allowed agents and models may change over time.
+    Before calling this tool, you must call get_available_agents_for_ensemble and get_available_models FIRST to get the allowed agents and models, as the allowed agents and models may change over time.
 
         Args:
             instruction: The specific instruction/task you want all agents to execute

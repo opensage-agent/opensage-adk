@@ -139,10 +139,10 @@ class AigiseAgent(LlmAgent):
                         f"Sandboxes launched successfully for agent '{self.name}'"
                     )
                 else:
-                    logger.debug(f"Agent '{self.name}' has no sandbox dependencies")
+                    logger.info(f"Agent '{self.name}' has no sandbox dependencies")
             except Exception as e:
                 # Silent failure for non-AIgiSE scenarios or when no sandbox config
-                logger.debug(f"Sandbox launch skipped for agent '{self.name}': {e}")
+                logger.error(f"Sandbox launch skipped for agent '{self.name}': {e}")
 
         if (
             not hasattr(self, "before_agent_callback")

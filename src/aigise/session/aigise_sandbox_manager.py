@@ -444,7 +444,7 @@ class AigiseSandboxManager:
             task_name = config.task_name
 
             # Determine cache directory
-            if cache_dir is None:
+            if not cache_dir:  # Handle both None and empty string
                 cache_dir = f"./sandbox_cache/{task_name}"
 
             # Ensure cache directory exists

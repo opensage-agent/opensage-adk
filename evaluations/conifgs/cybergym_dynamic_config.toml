@@ -73,6 +73,15 @@ project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/joern/Docke
 command = ""
 ports = { "8081/tcp" = "${JOERN_PORT}" }
 
+# CodeQL sandbox configuration
+<<<<<<< HEAD
+[sandbox.sandboxes.codeql]
+image = "${DEFAULT_IMAGE}"
+=======
+# [sandbox.sandboxes.codeql]
+# image = "${DEFAULT_IMAGE}"
+>>>>>>> d3fda96 (fix ensemble test, add debuger, cov, fuzz, codeql to cybergym_dynamic)
+
 # Neo4j sandbox configuration
 [sandbox.sandboxes.neo4j]
 image = "neo4j:5.26.12-enterprise"
@@ -137,3 +146,15 @@ sse_port = "${GDB_PORT}"
 # PDB MCP service configuration
 [mcp.services.pdb_mcp]
 sse_port = "${PDB_PORT}"
+
+
+# Fuzzing sandbox configuration
+[sandbox.sandboxes.fuzz]
+image = "${DEFAULT_IMAGE}"
+command = "tail -f /dev/null"
+timeout = 120
+
+# coverage sandbox
+[sandbox.sandboxes.coverage]
+image = "${DEFAULT_IMAGE}"
+command = "tail -f /dev/null"

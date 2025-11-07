@@ -200,31 +200,12 @@ def get_aigise_session_id_from_context(context) -> str:
     return "default"
 
 
-async def discover_all_agents_async(
-    root_agent: BaseAgent, context: Optional[ReadonlyContext] = None
-) -> List[BaseAgent]:
-    """Recursively discover all agents in the agent tree.
-
-    Args:
-        root_agent: The root agent to start discovery from
-        context: Optional context for tool resolution
-
-    Returns:
-        List of all discovered agents including root, sub-agents, and tool agents
-    """
-    discovered_names: Set[str] = set()
-    agents: List[BaseAgent] = []
-    await _discover_agents_recursive(root_agent, agents, discovered_names, context)
-    return agents
-
-
-async def _discover_agents_recursive(
+def _discover_agents_recursive(
     agent: BaseAgent,
     agents: List[BaseAgent],
     discovered_names: Set[str],
-    context: Optional[ReadonlyContext] = None,
 ) -> None:
-    """Recursively discover agents."""
+    """Recursively discover agents (synchronous version, skips toolsets)."""
     # Avoid infinite loops by tracking agent names
     if agent.name in discovered_names:
         return
@@ -234,46 +215,15 @@ async def _discover_agents_recursive(
 
     # 1. Discover sub-agents
     for sub_agent in agent.sub_agents:
-        await _discover_agents_recursive(sub_agent, agents, discovered_names, context)
+        _discover_agents_recursive(sub_agent, agents, discovered_names)
 
     # 2. Discover agents in tools (only for LlmAgent)
     if isinstance(agent, LlmAgent):
-        try:
-            tools = await agent.canonical_tools(context)
-            await _discover_agents_from_tools(tools, agents, discovered_names, context)
-        except Exception as e:
-            print(f"Warning: Failed to get tools for agent {agent.name}: {e}")
-
-
-async def _discover_agents_from_tools(
-    tools: List[BaseTool],
-    agents: List[BaseAgent],
-    discovered_names: Set[str],
-    context: Optional[ReadonlyContext] = None,
-) -> None:
-    """Discover agents from tools."""
-    for tool in tools:
-        # Check if tool is an AgentTool
-        if isinstance(tool, AgentTool):
-            await _discover_agents_recursive(
-                tool.agent, agents, discovered_names, context
-            )
-
-        # Check if tool has nested agents (for complex tools)
-        if hasattr(tool, "agent") and isinstance(tool.agent, BaseAgent):
-            await _discover_agents_recursive(
-                tool.agent, agents, discovered_names, context
-            )
-
-        # Handle toolsets that might contain agent tools
-        if isinstance(tool, BaseToolset):
-            try:
-                nested_tools = await tool.get_tools(context)
-                await _discover_agents_from_tools(
-                    nested_tools, agents, discovered_names, context
-                )
-            except Exception as e:
-                print(f"Warning: Failed to get tools from toolset {tool}: {e}")
+        # Directly access agent.tools without canonical_tools to avoid async
+        # Only process AgentTool instances, skip callables and toolsets
+        for tool_union in agent.tools:
+            if isinstance(tool_union, AgentTool):
+                _discover_agents_recursive(tool_union.agent, agents, discovered_names)
 
 
 def register_callback_to_all_agents(
@@ -303,21 +253,6 @@ def register_callback_to_all_agents(
             results[agent.name] = False
 
     return results
-
-
-def register_callback_to_all_agents_single(
-    agents: List[BaseAgent], callback: _SingleAfterToolCallback
-) -> Dict[str, bool]:
-    """Register a single after_tool_callback to all agents.
-
-    Args:
-        agents: List of agents to register callback to
-        callback: The callback function to register
-
-    Returns:
-        Dict mapping agent names to registration success status
-    """
-    return register_callback_to_all_agents(agents, [callback])
 
 
 def _add_callbacks_to_agent(
@@ -365,44 +300,26 @@ def _add_callbacks_to_agent(
 def discover_all_agents(
     root_agent: BaseAgent, context: Optional[ReadonlyContext] = None
 ) -> List[BaseAgent]:
-    """Synchronously discover all agents by running async operations in a separate thread.
+    """Discover all agents without creating temporary event loops.
 
-    This function provides a synchronous interface but handles async toolsets internally
-    by creating a new event loop in a separate thread. Works in any context.
+    This function discovers sub-agents and AgentTools only. Toolsets (like MCPToolset)
+    are intentionally skipped to avoid event loop conflicts.
 
     Args:
         root_agent: The root agent to start discovery from
-        context: Optional context for tool resolution
+        context: Optional context (unused, kept for API compatibility)
 
     Returns:
-        List of all discovered agents including root, sub-agents, and tool agents
+        List of all discovered agents including root, sub-agents, and agents in AgentTools
 
     Note:
-        This will block for network I/O operations (MCPToolset, ToolboxToolset, etc.)
-        but provides a synchronous interface. Uses ThreadPoolExecutor to avoid
-        event loop conflicts.
+        This is a lightweight synchronous operation that doesn't trigger network I/O.
+        Toolsets will be expanded later when the agent actually runs in the main event loop.
     """
-    import asyncio
-    import concurrent.futures
-
-    def run_async_in_thread():
-        """Run the async discovery in a new thread with its own event loop."""
-        # Create new event loop for this thread
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            # Run the async function
-            return loop.run_until_complete(
-                discover_all_agents_async(root_agent, context)
-            )
-        finally:
-            # Clean up the loop
-            loop.close()
-
-    # Execute in thread pool to avoid event loop conflicts
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(run_async_in_thread)
-        return future.result()  # This blocks until completion
+    discovered_names: Set[str] = set()
+    agents: List[BaseAgent] = []
+    _discover_agents_recursive(root_agent, agents, discovered_names)
+    return agents
 
 
 def extract_tools_from_agent(agent) -> Dict[str, Any]:

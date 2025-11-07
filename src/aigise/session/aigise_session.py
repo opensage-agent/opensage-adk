@@ -129,8 +129,12 @@ class AigiseSessionRegistry:
 
     # Setup signal handlers directly
     def _signal_handler(signum, frame):
-        logger.info(f"Received signal {signum}, cleaning up all sessions...")
-        AigiseSessionRegistry.cleanup_all_sessions()
+        # Use print instead of logger to avoid reentrant logging errors
+        print(f"Received signal {signum}, cleaning up all sessions...", flush=True)
+        try:
+            AigiseSessionRegistry.cleanup_all_sessions()
+        except Exception:
+            pass  # Ignore errors during signal handler cleanup
         os._exit(0)
 
     def _cleanup_at_exit():

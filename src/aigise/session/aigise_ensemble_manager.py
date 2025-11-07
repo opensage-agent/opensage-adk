@@ -373,7 +373,7 @@ class AigiseEnsembleManager:
 
         return result
 
-    def get_available_models_for_ensemble(self) -> List[str]:
+    def get_available_models(self) -> List[str]:
         """Get available models for ensemble from configuration."""
         config = self.config
         if (

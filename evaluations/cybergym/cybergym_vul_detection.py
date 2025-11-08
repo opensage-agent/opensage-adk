@@ -409,21 +409,7 @@ class CyberGym(Evaluation):
                 ]
 
                 # Filter for source code files
-                source_extensions = (
-                    ".c",
-                    ".cpp",
-                    ".cc",
-                    ".cxx",
-                    ".h",
-                    ".hpp",
-                    ".java",
-                    ".py",
-                    ".js",
-                    ".ts",
-                    ".go",
-                    ".rs",
-                )
-                files = [f for f in files if f.endswith(source_extensions)]
+                # files = [f for f in files if f.endswith(source_extensions)]
 
                 commit_functions = []
 
@@ -663,7 +649,7 @@ class CyberGym(Evaluation):
         Returns:
             None
         """
-        # Copy config template to a temporary file for this task
+        # Copy the config template to a temporary file for this task
         config_template = Path(task.config_template_path)
         temp_dir = tempfile.mkdtemp(prefix=f"aigise_{task.session_id}_")
         temp_config_path = Path(temp_dir) / config_template.name

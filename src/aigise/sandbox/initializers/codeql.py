@@ -36,7 +36,7 @@ class CodeQLInitializer(SandboxInitializer):
                     "/sandbox_scripts/callgraph/run_codeql.sh",
                     aigise_session.config.build.compile_command,
                 ],
-                timeout=1800,
+                timeout=1200,
             )
             if err != 0:
                 raise RuntimeError(f"CodeQL run failed: {msg}")
@@ -61,7 +61,7 @@ class CodeQLInitializer(SandboxInitializer):
                 )
         except Exception as e:
             logger.error(f"CodeQL initialization failed: {e}")
-
+            raise
         await self.ensure_ready()
 
     async def ensure_ready(self) -> None:

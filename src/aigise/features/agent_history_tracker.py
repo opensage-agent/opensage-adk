@@ -144,8 +144,10 @@ class Neo4jMonkeyPatchManager:
             async for event in runner.run_async(
                 user_id=session.user_id, session_id=session.id, new_message=content
             ):
-                # Log subagent events
-                logger.warning(f"[SUBAGENT:{self.agent.name}] {event}")
+                # Log subagent events (use model_dump to avoid depth limit)
+                logger.warning(
+                    f"[SUBAGENT:{self.agent.name}] {event.model_dump_json(exclude_none=True)}"
+                )
 
                 # Forward state delta to parent session.
                 if event.actions.state_delta:

@@ -1052,7 +1052,7 @@ class Evaluation(abc.ABC):
                     role="user", parts=[types.Part(text=task.prompt)]
                 ),
             ):
-                logger.warning(event)
+                logger.warning(event.model_dump_json(exclude_none=True))
                 all_events.append(event)
 
             if self.run_until_explicit_finish:
@@ -1071,7 +1071,7 @@ class Evaluation(abc.ABC):
                             ],
                         ),
                     ):
-                        logger.warning(event)
+                        logger.warning(event.model_dump_json(exclude_none=True))
                         all_events.append(event)
 
                     # get the session object to check if the task is finished, get_session returns a deepcopy of the session

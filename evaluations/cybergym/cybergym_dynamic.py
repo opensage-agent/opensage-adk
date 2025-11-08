@@ -35,7 +35,7 @@ class CyberGym(Evaluation):
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
-    max_llm_calls: int = 100
+    max_llm_calls: int = 150
     config_template_path: str = str(
         PROJECT_PATH / "evaluations/configs/cybergym_dynamic_config.toml"
     )

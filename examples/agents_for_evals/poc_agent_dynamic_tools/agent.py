@@ -118,6 +118,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         instruction="""
         You are a fuzzing agent that can fuzz the vulnerable program.
         You should use the fuzzing tool to fuzz the vulnerable program.
+        Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
         """,
         tools=[
             simplified_python_fuzzer,

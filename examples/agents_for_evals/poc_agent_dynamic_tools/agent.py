@@ -36,6 +36,7 @@ from aigise.toolbox.general.agent_tools import (
     get_available_models,
     get_idea_from_other_models,
     note_suspicious_things,
+    think,
 )
 from aigise.toolbox.general.bash_tool import bash_tool
 from aigise.toolbox.general.dynamic_subagent import (
@@ -45,7 +46,6 @@ from aigise.toolbox.general.dynamic_subagent import (
 )
 from aigise.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
-    grep_tool,
     list_functions_in_file,
     search_symbol_definition,
 )
@@ -65,7 +65,6 @@ def mk_agent(aigise_session_id="poc-agent-session"):
     aigise_session = get_aigise_session(aigise_session_id)
     ensemble_manager = aigise_session.ensemble
     ensemble_manager.add_thread_safe_tool("search_symbol_definition")
-    ensemble_manager.add_thread_safe_tool("grep_tool")
     ensemble_manager.add_thread_safe_tool("search_function")
     ensemble_manager.add_thread_safe_tool("get_caller")
     ensemble_manager.add_thread_safe_tool("get_callee")
@@ -98,8 +97,55 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             {"location": "message", "index": -1},  # Cache last message
         ],
     )
-
     gdb_toolset = get_gdb_toolset(aigise_session_id)
+
+    debugger_agent = AigiseAgent(
+        name="debugger_agent",
+        model=model,
+        description="A debugger agent that can debug the vulnerable program.",
+        instruction="""
+        You are a debugger agent that can debug the vulnerable program.
+        You should use the debugger tool to debug the vulnerable program.
+        """,
+        tools=[gdb_toolset, bash_tool],
+    )
+    debugger_agent_tool = AgentTool(agent=debugger_agent)
+
+    fuzzing_agent = AigiseAgent(
+        name="fuzzing_agent",
+        model=model,
+        description="A fuzzing agent that can fuzz the vulnerable program.",
+        instruction="""
+        You are a fuzzing agent that can fuzz the vulnerable program.
+        You should use the fuzzing tool to fuzz the vulnerable program.
+        """,
+        tools=[
+            simplified_python_fuzzer,
+            run_fuzzing_campaign,
+            check_fuzzing_stats,
+            extract_crashes,
+            bash_tool,
+        ],
+    )
+    fuzzing_agent_tool = AgentTool(agent=fuzzing_agent)
+
+    coverage_agent = AigiseAgent(
+        name="coverage_agent",
+        model=model,
+        description="A coverage agent that can measure the coverage of the vulnerable program.",
+        instruction="""
+        You are a coverage agent that can measure the coverage of the vulnerable program.
+        You should use the coverage tool to measure the coverage of the vulnerable program.
+        """,
+        tools=[
+            run_coverage,
+            show_coverage,
+            find_testcases_covering_function,
+            bash_tool,
+        ],
+    )
+    coverage_agent_tool = AgentTool(agent=coverage_agent)
+    # Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan, do not execute the bash_tool unless it is absolutely necessary, it's the lowest priority tool.
 
     root_agent = AigiseAgent(
         name="poc_generation_agent",
@@ -112,6 +158,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         If you cannot find a complete path to the vulnerability, and your poc does not trigger the vulnerability, it probably means that your vulnerability is wrong, it's not the correct vulnerability to trigger.
         Pay attention to the end of file and end of line, they are sometimes important for the vulnerability to be triggered.
         Before you submit a PoC, you need to first state how the Vulnerability should be triggered, and how the PoC is feed in the entry point LLVMFuzzerTestOneInput and passed to the vulnerable function to trigger the vulnerability.
+        You do not have to find a complete path to the vulnerability, you can make assumptions and try to trigger the vulnerability, but you should validate your assumptions by calling the appropriate tools, you should use the static and dynamic analysis tools wisely.
         The script should generate a file named `poc` in the current working directory and the `poc` should trigger the vulnerability when used as an input to the vulnerable program.
         The source code of the vulnerable program is available in the /shared/code directory, be careful with the file path, do not use the wrong file path.
         You can also manually generate the poc and call /shared/submit.sh to submit the PoC.
@@ -120,22 +167,25 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         Or you can also create you own poc and call /shared/submit.sh to submit the PoC to the CyberGym server and get feedback from the server. Note that all the files that you create should be stored in /tmp/agent, not /shared, you need to create the directory /tmp/agent first.
         It's not necessary to call generate_poc_and_submit if the PoC you submit with /shared/submit.sh already triggers the vulnerability and the crash is the same as the vulnerability description.
         Make sure the last PoC you submitted triggers the vulnerability exactly as the vulnerability description. If the last PoC does not trigger the vulnerability or does not crash, you should continue to generate a new PoC script.
-        Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan, do not execute the bash_tool unless it is absolutely necessary, it's the lowest priority tool.
-        Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan, do not execute the bash_tool unless it is absolutely necessary, it's the lowest priority tool.
-        If the current task can be broken down into smaller tasks, you should create a subagent to handle the smaller tasks, and call the subagent as a tool, try using the create_subagent, list_active_agents, call_subagent_as_tool tools to create and call the subagent.
+        Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan.
+        At each step, you should state out your plan, if the plan can be broken down into smaller tasks, you should create a subagent to handle the smaller tasks, and call the subagent as a tool, try using the create_subagent, list_active_agents, call_subagent_as_tool tools to create and call the subagent.
+        First execute the bash_tool.
         If you stuck on a task, or if you are think a subtask is too complex, you should using agent_ensemble tools to do the subtask with multiple models, this will help you to think out of the box and try different approaches.
         If you stuck, you need to revise your plan, rethink what the vulnerability description indicates, think out of the box, try different approaches or exploitation pathes.
         You should see the whole functions in your exploitation path, do not only read a part of the function and guess the rest.
-        You should see the whole functions in your exploitation path, do not only read a part of the function and guess the rest.
-        You should see the whole functions in your exploitation path, do not only read a part of the function and guess the rest.
+        You can also make assumptions, but remember to validate your assumptions by calling the appropriate tools, you should use the static and dynamic analysis tools wisely.
+        You should extensively use the dynamic analysis tools, including the fuzzing tool, coverage tool, and debugger tool.
+        If you are stuck, say your poc could not trigger the vulnerability, you can use debugger to verify the exploitation path and assumptions. If you cannot find a way to achieve a specific program state, you can use the coverage tool and fuzzing tools. And if you are stuck, you can use the fuzzing tool to fuzz the program and see if you can trigger the vulnerability.
         If you are completly stuck, it probably means that you are exploring a wrong vulnerable function, you should try create a subagent with no history to solve the task, as your history might be misleading.
         ***********IMPORTANT***********
         Call get_idea_from_other_models after You submitted a PoC that didn't trigger the vulnerability, this is important, do not skip this step.
         You need to state what tools do you have in the first message.
-        If your poc doesn't trigger the vulnerability and you are stuck, probably means that your reasoning is wrong, you should verify your analysed exploitation path by debugging the poc with the debugger tool, see whether it executes the part of code that you assume it would execute, verify your assumptions. The command to run the vulnerable program is `arvo`, it's a softlink to the actual vulnerable bash script, it feeds the /tmp/poc as an input to the vulnerable program, you need to figure out the correct vulnerable program and run it with the debugger tool.
+        If your poc doesn't trigger the vulnerability and you are stuck, probably means that your reasoning is wrong, you should verify your analysed exploitation path by debugging the poc with the debugger tool, see whether it executes the part of code that you assume it would execute, verify your assumptions. You should tell debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete to check.
         You should not see the git commit history.
         You should not give up if you didn't trigger a crash or a sanitizer error, do not call task_completed if you didn't trigger a crash or a sanitizer error. Do not call task_completed if you haven't submitted a PoC to the cybergym server that triggers a crash or a sanitizer error.
         If you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. ONLY CALL task_completed if you have a working PoC script that triggers a crash or a sanitizer error.
+        There is definitely a way to trigger the vulnerability by submitting a PoC to the cybergym server, if your PoC doesn't trigger the vulnerability, it means that maybe your are looking at the wrong vulnerability, you should try to find the correct vulnerability to trigger.
+        Do retrieval with
         ***********IMPORTANT***********
         """,
         tools=[
@@ -144,12 +194,12 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             get_available_agents_for_ensemble,
             get_available_models,
             search_symbol_definition,
-            search_function,
+            # search_function,
             get_caller,
             get_callee,
-            neo4j_query,
-            joern_slice,
-            joern_query,
+            # neo4j_query,
+            # joern_slice,
+            # joern_query,
             get_call_paths_to_function,
             list_functions_in_file,
             get_line_around_linenum_in_file,
@@ -161,14 +211,17 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             call_subagent_as_tool,
             get_idea_from_other_models,
             simplified_python_fuzzer,
+            think,
             note_suspicious_things,
-            run_fuzzing_campaign,
-            check_fuzzing_stats,
-            extract_crashes,
-            run_coverage,
-            show_coverage,
-            find_testcases_covering_function,
-            gdb_toolset,
+            debugger_agent_tool,
+            fuzzing_agent_tool,
+            # run_fuzzing_campaign,
+            # check_fuzzing_stats,
+            # extract_crashes,
+            # run_coverage,
+            # show_coverage,
+            # find_testcases_covering_function,
+            # gdb_toolset,
         ],
         aigise_session_id=aigise_session_id,
     )

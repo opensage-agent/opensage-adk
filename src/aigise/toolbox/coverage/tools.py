@@ -114,6 +114,7 @@ async def upload_testcase_to_database(
 async def run_coverage(testcase_path: str, *, tool_context: ToolContext) -> dict:
     """
     Tool to run code coverage analysis on a specified file within the sandbox environment.
+    The testcase_path should be under the /shared directory, if it's not, you should first copy it to the /shared directory.
 
     Args:
         file_path (str): The absoluate path to the file for which to run coverage analysis.

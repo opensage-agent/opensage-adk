@@ -127,7 +127,7 @@ def get_line_around_linenum_in_file(
     Args:
         filepath (str): The path to the file.
         linenum (int): The line number to retrieve.
-        context (int): The number of lines of context to include before and after the specified line.
+        context (int): The number of lines of context to include before and after the specified line, DO NOT BE more than 50 lines.
     Returns:
         dict: A dictionary with key "result" pointing to a list of line information.
     """
@@ -155,13 +155,17 @@ def get_line_around_linenum_in_file(
 @requires_sandbox("main")
 def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> dict:
     """
-    Search the codebase inside the running container for a given symbol definition.
+    Search the codebase inside the running container for the definition of a given symbol.
+    If the symbol is a method in a class, do not include the class name in the symbol name.
+    Do not include any punctuation such as parentheses in the symbol name.
     Args:
         symbol_name (str): The name of the symbol to search for.
     Returns:
         dict: A dictionary with key "result" pointing to a list of symbol information.
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
+
+    # Generate tags file if not exists or regenerate
     output, exit_code = sandbox.run_command_in_container(
         f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R /shared/code"
     )
@@ -172,7 +176,7 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
         if exit_code != 0:
             return {
                 "result": [],
-                "error": f"Failed to install ctags and run ctags command: {output}, do not call this tool again.",
+                "error": f"Failed to install ctags: {output}, do not call this tool again.",
             }
         output, exit_code = sandbox.run_command_in_container(
             f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R /shared/code"
@@ -182,35 +186,26 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
                 "result": [],
                 "error": f"Failed to run ctags command: {output}, do not call this tool again.",
             }
-    tags_content = sandbox.extract_file_from_container("/shared/.tags")
-    results = []
-    for line in tags_content.splitlines():
-        if line.startswith("!_TAG_"):
-            continue
 
-        try:
-            parts = line.split(';"')[0].split("\t")
+    # First, try exact match (symbol name at start of line followed by tab)
+    grep_output, grep_exit = sandbox.run_command_in_container(
+        f"grep -i '^{symbol_name}\t' /shared/.tags"
+    )
 
-            if len(parts) >= 3:
-                symbol = parts[0].strip()
-                file_path = parts[1].strip()
-                line_number = parts[2].strip()
+    if grep_exit == 0:
+        # Exact match found
+        return {"result": grep_output}
 
-                if symbol == symbol_name:
-                    kind = None
-                    if ';"' in line:
-                        ext_part = line.split(';"', 1)[1].strip()
-                        if ext_part:
-                            kind = ext_part.split()[0] if ext_part.split() else None
+    # If no exact match, try fuzzy match (symbol name anywhere in line)
+    grep_output, grep_exit = sandbox.run_command_in_container(
+        f"grep -i '{symbol_name}' /shared/.tags"
+    )
 
-                    results.append(
-                        {
-                            "symbol": symbol,
-                            "file": file_path,
-                            "line": line_number,
-                            "kind": kind,
-                        }
-                    )
-        except (IndexError, ValueError):
-            continue
-    return {"result": results}
+    if grep_exit != 0:
+        # No matches found at all
+        return {"result": ""}
+
+    # Return fuzzy match results with warning
+    return {
+        "result": f"Note: No exact match found for '{symbol_name}'. Showing fuzzy matches:\n\n{grep_output}"
+    }

@@ -35,7 +35,8 @@ class CodeQLInitializer(SandboxInitializer):
                     "bash",
                     "/sandbox_scripts/callgraph/run_codeql.sh",
                     aigise_session.config.build.compile_command,
-                ]
+                ],
+                timeout=1800,
             )
             if err != 0:
                 raise RuntimeError(f"CodeQL run failed: {msg}")

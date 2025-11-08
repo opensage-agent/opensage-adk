@@ -498,7 +498,7 @@ class CyberGym(Evaluation):
                 """
                 git_check_result, exit_code = sandbox.run_command_in_container(find_cmd)
 
-                if (
+                if sandbox_type == "main" and (
                     exit_code != 0
                     or not git_check_result
                     or not git_check_result.strip()

@@ -41,10 +41,11 @@ class CodeQLInitializer(SandboxInitializer):
             if err != 0:
                 raise RuntimeError(f"CodeQL run failed: {msg}")
 
-            create_not_found = False
+            # Always create nodes from CodeQL results
+            # If Joern exists, wait for it to be ready first (for potential merging)
+            create_not_found = True
             if "joern" in aigise_session.config.sandbox.sandboxes:
                 await aigise_session.sandboxes.wait_for_ready("joern")
-                create_not_found = True
 
             await aigise_session.sandboxes.wait_for_ready("neo4j")
             neo4j_client = await aigise_session.neo4j.get_async_client("analysis")

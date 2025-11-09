@@ -53,7 +53,7 @@ if os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"):
 
 vul_system_prompt = """
 This function is called {function_name}, detect if any vulnerability exists in this function.
-This function is defined in {file} from {start} to {end}.
+This function is defined in {file}, line number from {start} to {end}.
 """
 
 function_query = """MATCH (start:METHOD)
@@ -961,8 +961,8 @@ class CyberGym(Evaluation):
                     )
                     continue
                 file = impl[0]["path"]
-                start = int(impl[0]["start"])
-                end = int(impl[0]["end"])
+                start = impl[0]["start"]
+                end = impl[0]["end"]
                 try:
                     vul_finding = await self._detect_vulnerability_with_retry(
                         function_name,

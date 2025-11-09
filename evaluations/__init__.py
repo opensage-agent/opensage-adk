@@ -1176,7 +1176,7 @@ class Evaluation(abc.ABC):
         # 4. Save metadata
         info = {
             "metadata": task.metadata,
-            "session": session.model_dump(),
+            "session": session.model_dump() if session else None,
         }
         with open(output_path / "metadata.json", "w") as f:
             json.dump(json.loads(jsonpickle.encode(info)), f, indent=2)
@@ -1229,6 +1229,12 @@ class Evaluation(abc.ABC):
             session: ADK Session object
             output_path: Path to save trace file
         """
+        if not session or not session.events:
+            logger.warning(
+                "Session or session events are not available. Skipping session trace export."
+            )
+            return
+
         # Save complete JSON dump
         with open(output_path, "w") as f:
             f.write(session.model_dump_json(indent=2, exclude_none=True))

@@ -46,7 +46,7 @@ class JoernInitializer(SandboxInitializer):
         assert isinstance(self, BaseSandbox)
 
         logger.info(
-            f"Async initializing Joern environment for session {self.aigise_session_id}..."
+            f"Async creating Joern environment for session {self.aigise_session_id}..."
         )
 
         aigise_session = get_aigise_session(self.aigise_session_id)
@@ -62,7 +62,7 @@ class JoernInitializer(SandboxInitializer):
             )
         except asyncio.TimeoutError:
             logger.error(
-                f"Joern initialization timed out after 10 minutes for session {self.aigise_session_id}"
+                f"Joern initialization failed; timed out after 10 minutes for session {self.aigise_session_id}"
             )
         except Exception as e:
             logger.error(f"Joern initialization failed: {e}")
@@ -107,4 +107,7 @@ class JoernInitializer(SandboxInitializer):
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
         aigise_session.sandboxes.set_sandbox_state(
             self.sandbox_type, SandboxState.READY
+        )
+        logger.info(
+            f"Joern environment successfully initialized for session {self.aigise_session_id}"
         )

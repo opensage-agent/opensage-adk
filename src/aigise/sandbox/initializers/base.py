@@ -83,3 +83,6 @@ class DefaultInitializer(SandboxInitializer):
         aigise_session.sandboxes.set_sandbox_state(
             self.sandbox_type, SandboxState.READY
         )
+        logger.info(
+            f"main environment successfully initialized for session {self.aigise_session_id}"
+        )

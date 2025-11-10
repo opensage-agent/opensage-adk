@@ -24,7 +24,7 @@ class CodeQLInitializer(SandboxInitializer):
         assert isinstance(self, BaseSandbox)
 
         logger.info(
-            f"Async initializing CodeQL environment for session {self.aigise_session_id}..."
+            f"Async creating CodeQL environment for session {self.aigise_session_id}..."
         )
 
         aigise_session = get_aigise_session(self.aigise_session_id)
@@ -73,4 +73,7 @@ class CodeQLInitializer(SandboxInitializer):
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
         aigise_session.sandboxes.set_sandbox_state(
             self.sandbox_type, SandboxState.READY
+        )
+        logger.info(
+            f"CodeQL environment successfully initialized for session {self.aigise_session_id}"
         )

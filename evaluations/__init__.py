@@ -84,7 +84,18 @@ def _run_sample_in_process(evaluation_instance: "Evaluation", sample: dict) -> d
                 handler.setLevel(terminal_log_level)
 
     # Run async code in this process's event loop
-    return asyncio.run(evaluation_instance._generate_sample(task))
+    try:
+        return asyncio.run(evaluation_instance._generate_sample(task))
+    except Exception as e:
+        # Convert all exceptions to RuntimeError to ensure pickle-ability
+        # This prevents ProcessPool from breaking when serializing exceptions
+        import traceback
+
+        error_msg = (
+            f"{e.__class__.__module__}.{e.__class__.__name__}: {str(e)}\n\n"
+            f"Original traceback:\n{traceback.format_exc()}"
+        )
+        raise RuntimeError(error_msg) from None
 
 
 @dataclass

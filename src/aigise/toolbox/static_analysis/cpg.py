@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Optional
 
 from google.adk.tools.tool_context import ToolContext
@@ -207,11 +208,15 @@ async def get_caller(
         function_name (str): The name of the function to search for.
         file_path (Optional[str]): The file path where the function is defined. It can be empty,
             in which case it will match all functions with the same name.
+            This should be a relative path, relative to the root of the codebase. If it is a full path, you should convert it to a relative path.
     Returns:
         dict: A dictionary with key "result" pointing to a list of caller information.
     """
+    if file_path and os.path.isabs(file_path):
+        return "The input file path is a full path, you should convert it to a relative path, relative to the root of the codebase."
     client = await get_neo4j_client_from_context(tool_context, "analysis")
-    return await _get_caller_helper(client, function_name, file_path)
+    result = await _get_caller_helper(client, function_name, file_path)
+    return result
 
 
 @safe_tool_execution
@@ -225,11 +230,15 @@ async def get_callee(
         function_name (str): The name of the function to search for.
         file_path (Optional[str]): The file path where the function is defined. It can be empty,
             in which case it will match all functions with the same name.
+            This should be a relative path, relative to the root of the codebase. If it is a full path, you should convert it to a relative path.
     Returns:
         dict: A dictionary with key "result" pointing to a list of callee information.
     """
+    if file_path and os.path.isabs(file_path):
+        return "The input file path is a full path, you should convert it to a relative path, relative to the root of the codebase."
     client = await get_neo4j_client_from_context(tool_context, "analysis")
-    return await _get_callee_helper(client, function_name, file_path)
+    result = await _get_callee_helper(client, function_name, file_path)
+    return result
 
 
 @safe_tool_execution
@@ -249,15 +258,19 @@ async def get_call_paths_to_function(
     Args:
         dst_function_name (str): The name of the destination function to search for.
         dst_file_path (Optional[str]): The file path where the destination function is defined.
-            It can be empty, in which case it will match all functions with the same name.
+            It can be empty, in which case it will match all functions with the same name. This should be a relative path, relative to the root of the codebase.
         src_function_name (Optional[str]): The name of the source function to search for.
             It can be empty, in which case it will match "LLVMFuzzerTestOneInput" by default.
         src_file_path (Optional[str]): The file path where the source function is defined.
-            It can be empty, in which case it will match all functions with the same name.
+            It can be empty, in which case it will match all functions with the same name. This should be a relative path, relative to the root of the codebase.
 
     Returns:
         dict: A dictionary with key "result" pointing to a list of path information.
     """
+    if dst_file_path and os.path.isabs(dst_file_path):
+        return "The input file path is a full path, you should convert it to a relative path, relative to the root of the codebase."
+    if src_file_path and os.path.isabs(src_file_path):
+        return "The input file path is a full path, you should convert it to a relative path, relative to the root of the codebase."
     client = await get_neo4j_client_from_context(tool_context, "analysis")
 
     dict_result = {"result": []}

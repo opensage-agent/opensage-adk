@@ -57,13 +57,33 @@ async def get_idea_from_other_models(tool_context: ToolContext):
         agent = tool_context._invocation_context.agent
         agent_instruction = getattr(agent, "instruction", "")
 
+        def _format_event_to_text(event) -> str:
+            """Format event to text, including all information (text, function_call, function_response)."""
+            parts_text = []
+
+            if event.content and event.content.parts:
+                for part in event.content.parts:
+                    if part.text:
+                        parts_text.append(part.text)
+                    elif part.function_call:
+                        parts_text.append(
+                            f"[TOOL_CALL] {part.function_call.name}({part.function_call.args})"
+                        )
+                    elif part.function_response:
+                        parts_text.append(
+                            f"[TOOL_RESULT] {part.function_response.name}: {part.function_response.response}"
+                        )
+
+            if parts_text:
+                return f"[{event.author}]: {' | '.join(parts_text)}"
+            return ""
+
         # Build conversation history summary for context
         history_text = []
         for event in session.events:
-            if event.content and event.content.parts:
-                for part in event.content.parts:
-                    if hasattr(part, "text") and part.text:
-                        history_text.append(f"[{event.author}]: {part.text}")
+            formatted = _format_event_to_text(event)
+            if formatted:
+                history_text.append(formatted)
 
         context_summary = (
             "\n".join(history_text) if history_text else "No recent history"

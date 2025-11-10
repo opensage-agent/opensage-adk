@@ -55,10 +55,10 @@ async def simplified_python_fuzzer(
                 "error": f"Failed to copy fuzzer script to container: {str(e)}",
             }
 
-        # 6. Run the fuzzer script for 60 seconds
-        logger.info("Running fuzzer script for 60 seconds...")
+        # 6. Run the fuzzer script for 180 seconds
+        logger.info("Running fuzzer script for 180 seconds...")
         output, exit_code = sandbox.run_command_in_container(
-            f"timeout 60s python3 {container_fuzzer_path}",
+            f"timeout 180s python3 {container_fuzzer_path}",
             timeout=70,  # Give a bit more time for timeout command to complete
         )
 
@@ -126,7 +126,7 @@ async def run_fuzzing_campaign(
     Returns:
         Dictionary containing fuzzing results and statistics
     """
-    duration_minutes = 1
+    duration_minutes = 3
 
     fuzz_sandbox = get_sandbox_from_context(tool_context, "fuzz")
     config = get_aigise_config_from_context(tool_context)

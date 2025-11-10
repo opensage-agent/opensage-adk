@@ -84,7 +84,18 @@ def _run_sample_in_process(evaluation_instance: "Evaluation", sample: dict) -> d
                 handler.setLevel(terminal_log_level)
 
     # Run async code in this process's event loop
-    return asyncio.run(evaluation_instance._generate_sample(task))
+    try:
+        return asyncio.run(evaluation_instance._generate_sample(task))
+    except Exception as e:
+        # Convert all exceptions to RuntimeError to ensure pickle-ability
+        # This prevents ProcessPool from breaking when serializing exceptions
+        import traceback
+
+        error_msg = (
+            f"{e.__class__.__module__}.{e.__class__.__name__}: {str(e)}\n\n"
+            f"Original traceback:\n{traceback.format_exc()}"
+        )
+        raise RuntimeError(error_msg) from None
 
 
 @dataclass
@@ -485,7 +496,7 @@ class Evaluation(abc.ABC):
                     )
         """
         session_id = str(uuid.uuid4())
-        task_name = self._get_sample_id(sample)
+        task_name = self._get_sample_id(sample) + "_dynamic"
 
         return EvaluationTask(
             session_id=session_id,
@@ -1057,7 +1068,7 @@ class Evaluation(abc.ABC):
                     role="user", parts=[types.Part(text=task.prompt)]
                 ),
             ):
-                logger.warning(event)
+                logger.warning(event.model_dump_json(exclude_none=True))
                 all_events.append(event)
 
             if self.run_until_explicit_finish:
@@ -1076,7 +1087,7 @@ class Evaluation(abc.ABC):
                             ],
                         ),
                     ):
-                        logger.warning(event)
+                        logger.warning(event.model_dump_json(exclude_none=True))
                         all_events.append(event)
 
                     # get the session object to check if the task is finished, get_session returns a deepcopy of the session

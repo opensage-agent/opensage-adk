@@ -141,15 +141,38 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     if len(events) <= 2:  # Skip if too few events
         return None
 
-    # Calculate total text length
-    total_text_length = 0
-    all_contents = ""
-    for event in events:
+    # Calculate total content length (including text, function_call, function_response)
+    def _estimate_event_length(event) -> int:
+        """Estimate character length of event when converted to message."""
+        import json
+
+        total_chars = 0
         if event.content and event.content.parts:
             for part in event.content.parts:
-                if hasattr(part, "text") and part.text:
-                    all_contents += part.text
-                    total_text_length += len(part.text)
+                # Text content
+                if part.text:
+                    total_chars += len(part.text)
+                # Function call (serialize to JSON)
+                elif part.function_call:
+                    fc_json = json.dumps(
+                        {
+                            "name": part.function_call.name,
+                            "args": part.function_call.args,
+                        }
+                    )
+                    total_chars += len(fc_json)
+                # Function response (serialize to JSON)
+                elif part.function_response:
+                    fr_json = json.dumps(
+                        {
+                            "name": part.function_response.name,
+                            "response": part.function_response.response,
+                        }
+                    )
+                    total_chars += len(fr_json)
+        return total_chars
+
+    total_text_length = sum(_estimate_event_length(event) for event in events)
 
     aigise_session_id = get_aigise_session_id_from_context(tool_context)
     # Import here to avoid circular import
@@ -166,6 +189,9 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     if total_text_length <= int(MAX_HISTORY_SUMMARY_LENGTH) - int(
         MAX_TOOL_RESPONSE_LENGTH
     ):
+        logger.info(
+            f"History text length {total_text_length} is less than the threshold {MAX_HISTORY_SUMMARY_LENGTH - MAX_TOOL_RESPONSE_LENGTH}, skipping summarization"
+        )
         return None
 
     # BUGFIX: Disable history summarization in parallel agent scenarios

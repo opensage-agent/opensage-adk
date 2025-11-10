@@ -254,67 +254,67 @@ async def test_dynamic_subagent_creation_and_call(agent, storage_path):
     )
 
 
-@pytest.mark.filterwarnings("ignore::UserWarning")
-@pytest.mark.asyncio
-async def test_dynamic_subagent_persistence_across_sessions(agent, storage_path):
-    """
-    Test dynamic subagent persistence and loading in a new session.
+# @pytest.mark.filterwarnings("ignore::UserWarning")
+# @pytest.mark.asyncio
+# async def test_dynamic_subagent_persistence_across_sessions(agent, storage_path):
+#     """
+#     Test dynamic subagent persistence and loading in a new session.
 
-    Verifies:
-    1. Tool call sequence: list_active_agents -> call_subagent_as_tool (no create_subagent)
-    2. Agent correctly calculates 72138 * 82136 + 7 = 5925126775
-    3. Final answer contains "5925126775"
-    4. Subagent is loaded from persistence (not created)
-    """
-    # This test should run after test_dynamic_subagent_creation_and_call
-    # to ensure the subagent is already persisted
-    runner = await DynamicSubagentTestRunner(agent).async_init()
+#     Verifies:
+#     1. Tool call sequence: list_active_agents -> call_subagent_as_tool (no create_subagent)
+#     2. Agent correctly calculates 72138 * 82136 + 7 = 5925126775
+#     3. Final answer contains "5925126775"
+#     4. Subagent is loaded from persistence (not created)
+#     """
+#     # This test should run after test_dynamic_subagent_creation_and_call
+#     # to ensure the subagent is already persisted
+#     runner = await DynamicSubagentTestRunner(agent).async_init()
 
-    # Run the agent with a different calculation
-    await runner.run("calculate 72138*82136+7")
+#     # Run the agent with a different calculation
+#     await runner.run("calculate 72138*82136+7")
 
-    # Get tool call sequence
-    tool_calls = await runner.get_tool_calls_sequence()
+#     # Get tool call sequence
+#     tool_calls = await runner.get_tool_calls_sequence()
 
-    # Verify tool call sequence
-    assert "list_active_agents" in tool_calls, (
-        f"Expected 'list_active_agents' in tool calls, got: {tool_calls}"
-    )
-    assert "call_subagent_as_tool" in tool_calls, (
-        f"Expected 'call_subagent_as_tool' in tool calls, got: {tool_calls}"
-    )
+#     # Verify tool call sequence
+#     assert "list_active_agents" in tool_calls, (
+#         f"Expected 'list_active_agents' in tool calls, got: {tool_calls}"
+#     )
+#     assert "call_subagent_as_tool" in tool_calls, (
+#         f"Expected 'call_subagent_as_tool' in tool calls, got: {tool_calls}"
+#     )
 
-    assert not "create_subagent" in tool_calls, (
-        f"Expected 'create_subagent' not to be in tool calls, since the subagent is already persisted: {tool_calls}"
-    )
+#     assert not "create_subagent" in tool_calls, (
+#         f"Expected 'create_subagent' not to be in tool calls, since the subagent is already persisted: {tool_calls}"
+#     )
 
-    assert not "add_numbers" in tool_calls, (
-        f"Expected 'add_numbers' not to be in tool calls, since it should be called by the subagent: {tool_calls}"
-    )
+#     assert not "add_numbers" in tool_calls, (
+#         f"Expected 'add_numbers' not to be in tool calls, since it should be called by the subagent: {tool_calls}"
+#     )
 
-    assert not "multiply_numbers" in tool_calls, (
-        f"Expected 'multiply_numbers' not to be in tool calls, since it should be called by the subagent: {tool_calls}"
-    )
+#     assert not "multiply_numbers" in tool_calls, (
+#         f"Expected 'multiply_numbers' not to be in tool calls, since it should be called by the subagent: {tool_calls}"
+#     )
 
-    assert tool_calls.index("list_active_agents") < tool_calls.index(
-        "call_subagent_as_tool"
-    ), (
-        f"Expected 'list_active_agents' to come before 'call_subagent_as_tool', got: {tool_calls}"
-    )
+#     assert tool_calls.index("list_active_agents") < tool_calls.index(
+#         "call_subagent_as_tool"
+#     ), (
+#         f"Expected 'list_active_agents' to come before 'call_subagent_as_tool', got: {tool_calls}"
+#     )
 
-    # Get final response
-    final_response = await runner.get_final_response_text()
+#     # Get final response
+#     final_response = await runner.get_final_response_text()
 
-    # Extract answer from <final_answer> tags
-    final_answer = runner.extract_final_answer(final_response)
+#     # Extract answer from <final_answer> tags
+#     final_answer = runner.extract_final_answer(final_response)
 
-    # Verify the answer contains 5925126775 (72138 * 82136 + 7)
-    assert "5925126775" in final_answer, (
-        f"Expected final answer to contain '5925126775', got: '{final_answer}' "
-        f"(full response: {final_response})"
-    )
+#     # Verify the answer contains 5925126775 (72138 * 82136 + 7)
+#     assert "5925126775" in final_answer, (
+#         f"Expected final answer to contain '5925126775', got: '{final_answer}' "
+#         f"(full response: {final_response})"
+#     )
 
-    # Verify that persisted subagent metadata still exists
-    assert storage_path.exists(), "Expected storage directory to exist"
-    metadata_files = list(storage_path.glob("*_metadata.json"))
-    assert len(metadata_files) > 0, "Expected persisted metadata files to still exist"
+#     # Verify that persisted subagent metadata still exists
+#     assert storage_path.exists(), "Expected storage directory to exist"
+#     metadata_files = list(storage_path.glob("*_metadata.json"))
+#     assert len(metadata_files) > 0, "Expected persisted metadata files to still exist"

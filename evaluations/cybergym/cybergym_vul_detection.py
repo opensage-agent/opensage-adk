@@ -250,7 +250,7 @@ class CyberGym(Evaluation):
     server_url: str = ""
     agent_id: str = ""
     config_template_path: str = str(
-        PROJECT_PATH / "evaluations/conifgs/cybergym_vul_detect_config.toml"
+        PROJECT_PATH / "evaluations/configs/cybergym_vul_detect_config.toml"
     )
     # evaluate
     cybergym_dir: str = str(PROJECT_PATH / "third_party/cybergym")

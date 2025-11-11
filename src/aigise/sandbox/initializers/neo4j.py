@@ -17,7 +17,11 @@ class Neo4jInitializer(SandboxInitializer):
 
     async def async_initialize(self) -> None:
         """Initialize Neo4j environment (async version)."""
-        await self.ensure_ready()
+        try:
+            await self.ensure_ready()
+        except Exception as e:
+            logger.error(f"Neo4j initialization failed: {e}")
+            raise
 
     async def ensure_ready(self) -> None:
         from aigise.session.aigise_session import get_aigise_session
@@ -28,10 +32,12 @@ class Neo4jInitializer(SandboxInitializer):
             ["mkdir", "-p", "/shared/neo4j/import"]
         )
         if err != 0:
-            raise RuntimeError(f"Neo4j import dir creation failed: {msg}")
+            raise RuntimeError(
+                f"Neo4j initialization failed: import dir creation failed: {msg}"
+            )
 
         logger.info(
-            f"Async initializing Neo4j environment for session {self.aigise_session_id}..."
+            f"Async creating Neo4j environment for session {self.aigise_session_id}..."
         )
         aigise_session = get_aigise_session(self.aigise_session_id)
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
@@ -43,4 +49,7 @@ class Neo4jInitializer(SandboxInitializer):
 
         aigise_session.sandboxes.set_sandbox_state(
             self.sandbox_type, SandboxState.READY
+        )
+        logger.info(
+            f"Neo4j environment successfully initialized for session {self.aigise_session_id}"
         )

@@ -24,7 +24,7 @@ class CodeQLInitializer(SandboxInitializer):
         assert isinstance(self, BaseSandbox)
 
         logger.info(
-            f"Async initializing CodeQL environment for session {self.aigise_session_id}..."
+            f"Async creating CodeQL environment for session {self.aigise_session_id}..."
         )
 
         aigise_session = get_aigise_session(self.aigise_session_id)
@@ -35,15 +35,17 @@ class CodeQLInitializer(SandboxInitializer):
                     "bash",
                     "/sandbox_scripts/callgraph/run_codeql.sh",
                     aigise_session.config.build.compile_command,
-                ]
+                ],
+                timeout=1200,
             )
             if err != 0:
                 raise RuntimeError(f"CodeQL run failed: {msg}")
 
-            create_not_found = False
+            # Always create nodes from CodeQL results
+            # If Joern exists, wait for it to be ready first (for potential merging)
+            create_not_found = True
             if "joern" in aigise_session.config.sandbox.sandboxes:
                 await aigise_session.sandboxes.wait_for_ready("joern")
-                create_not_found = True
 
             await aigise_session.sandboxes.wait_for_ready("neo4j")
             neo4j_client = await aigise_session.neo4j.get_async_client("analysis")
@@ -60,7 +62,7 @@ class CodeQLInitializer(SandboxInitializer):
                 )
         except Exception as e:
             logger.error(f"CodeQL initialization failed: {e}")
-
+            raise
         await self.ensure_ready()
 
     async def ensure_ready(self) -> None:
@@ -71,4 +73,7 @@ class CodeQLInitializer(SandboxInitializer):
         aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
         aigise_session.sandboxes.set_sandbox_state(
             self.sandbox_type, SandboxState.READY
+        )
+        logger.info(
+            f"CodeQL environment successfully initialized for session {self.aigise_session_id}"
         )

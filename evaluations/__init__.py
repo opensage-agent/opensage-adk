@@ -633,8 +633,10 @@ class Evaluation(abc.ABC):
         results = []
         self._prepare_general_env()
 
-        # Keep only first sample for debugging
-        # dataset = dataset.select([0])
+        # Keep from 50 sample for debugging
+        # num_samples = len(dataset)
+        # dataset = dataset.select(range(50, num_samples))
+        # dataset = dataset.select(range(50))
         for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
             task_name = self._get_sample_id(sample)
             try:
@@ -921,10 +923,13 @@ class Evaluation(abc.ABC):
         with open(config_path, "w") as f:
             f.write(content)
 
-    def _before_initialize_hooks(self, aigise_session: AigiseSession) -> None:
+    def _before_initialize_hooks(
+        self, aigise_session: AigiseSession, task: EvaluationTask
+    ) -> None:
         """Run before initialize hooks.
 
         Args:
+            aigise_session: AigiseSession instance
             task: EvaluationTask instance with all task data
         """
         pass
@@ -1005,7 +1010,7 @@ class Evaluation(abc.ABC):
         # 5. Launch all sandboxes (create containers only, not initialized yet)
         await aigise_session.sandboxes.launch_all_sandboxes()
 
-        self._before_initialize_hooks(aigise_session)
+        self._before_initialize_hooks(aigise_session, task)
 
         # 6. Initialize all sandboxes
         await aigise_session.sandboxes.initialize_all_sandboxes()
@@ -1182,7 +1187,7 @@ class Evaluation(abc.ABC):
         # 4. Save metadata
         info = {
             "metadata": task.metadata,
-            "session": session.model_dump(),
+            "session": session.model_dump() if session else None,
         }
         with open(output_path / "metadata.json", "w") as f:
             json.dump(json.loads(jsonpickle.encode(info)), f, indent=2)
@@ -1235,6 +1240,12 @@ class Evaluation(abc.ABC):
             session: ADK Session object
             output_path: Path to save trace file
         """
+        if not session or not session.events:
+            logger.warning(
+                "Session or session events are not available. Skipping session trace export."
+            )
+            return
+
         # Save complete JSON dump
         with open(output_path, "w") as f:
             f.write(session.model_dump_json(indent=2, exclude_none=True))

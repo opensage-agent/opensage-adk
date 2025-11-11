@@ -1123,6 +1123,7 @@ class NativeDockerSandbox(BaseSandbox):
             logger.info(f"Initializing {sandbox_type} sandbox...")
 
             if sandbox_instance._using_cached:
+                logger.info(f"Using cached {sandbox_type} sandbox...")
                 init_tasks.append(sandbox_instance.ensure_ready())
             else:
                 init_tasks.append(sandbox_instance.async_initialize())

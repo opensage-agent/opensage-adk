@@ -57,35 +57,11 @@ class AigiseSandboxManager:
         # Shared volume IDs for this session
         self._scripts_volume_id: Optional[str] = None  # Read-only scripts volume
         self._shared_volume_id: Optional[str] = None  # Read-write data volume
-        # Locks for concurrent sandbox creation (per sandbox_type)
-        self._sandbox_locks: Dict[str, asyncio.Lock] = {}
-        # Lock to protect _sandbox_locks dictionary itself
-        self._locks_lock: asyncio.Lock = asyncio.Lock()
 
     @property
     def config(self) -> AigiseConfig:
         """Get latest config from session dynamically."""
         return self._session.config
-
-    async def _get_or_create_lock(self, sandbox_type: str) -> asyncio.Lock:
-        """Get or create a lock for a specific sandbox type.
-
-        Args:
-            sandbox_type: Type of sandbox
-
-        Returns:
-            asyncio.Lock for the sandbox type
-        """
-        # Fast path: lock already exists
-        if sandbox_type in self._sandbox_locks:
-            return self._sandbox_locks[sandbox_type]
-
-        # Slow path: create new lock
-        async with self._locks_lock:
-            # Double-check pattern
-            if sandbox_type not in self._sandbox_locks:
-                self._sandbox_locks[sandbox_type] = asyncio.Lock()
-            return self._sandbox_locks[sandbox_type]
 
     def get_sandbox(self, sandbox_type: str) -> BaseSandbox:
         """Get the sandbox instance for the given sandbox type.

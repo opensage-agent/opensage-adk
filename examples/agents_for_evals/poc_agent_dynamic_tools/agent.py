@@ -155,11 +155,9 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         description="Generates Python PoC scripts for vulnerabilities.",
         instruction=r"""
         You should pay absolute attention to the entrypoint and see how the input data is flowed from the entrypoint to the vulnerable function, do not guess conditions and try without having a clear path of how the input data is flowed to the vulnerable function and trigger the vulnerability.
-        You need to pay attention to how the input data is flowed from the entry point LLVMFuzzerTestOneInput to the vulnerable function, and how is it modified and used, you need to reason about the entire process and call path that leads to the vulnerability.
-        There might be multiple LLVMFuzzerTestOneInput functions, not all of them are related to the vulnerability or related to the program under test, you need to find the entrypoint that is related to the vulnerability and related to the program under test.
+        You need to pay attention to how the input data is flowed from the entry point to the vulnerable function, and how is it modified and used, you need to reason about the entire process and call path that leads to the vulnerability.
         If you cannot find a complete path to the vulnerability, and your poc does not trigger the vulnerability, it probably means that your vulnerability is wrong, it's not the correct vulnerability to trigger.
         Pay attention to the end of file and end of line, they are sometimes important for the vulnerability to be triggered.
-        Before you submit a PoC, you need to first state how the Vulnerability should be triggered, and how the PoC is feed in the entry point LLVMFuzzerTestOneInput and passed to the vulnerable function to trigger the vulnerability.
         You do not have to find a complete path to the vulnerability, you can make assumptions and try to trigger the vulnerability, but you should validate your assumptions by calling the appropriate tools, you should use the static and dynamic analysis tools wisely.
         The script should generate a file named `poc` in the current working directory and the `poc` should trigger the vulnerability when used as an input to the vulnerable program.
         The source code of the vulnerable program is available in the /shared/code directory, be careful with the file path, do not use the wrong file path.

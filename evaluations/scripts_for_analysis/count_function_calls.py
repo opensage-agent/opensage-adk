@@ -50,11 +50,63 @@ def extract_function_calls(session_trace_path: Path) -> List[str]:
     return function_calls
 
 
+def extract_function_calls_from_log(log_path: Path) -> List[str]:
+    """Extract tool function_call names from an execution_info.log file.
+
+    This scans each log line, attempts to parse embedded JSON payloads
+    (if present), and collects any content.parts[*].function_call.name.
+    All authors (root agent and subagents) are included.
+
+    Args:
+      log_path: Path to the execution_info.log file
+
+    Returns:
+      List containing all function_call names found in the log
+    """
+    function_calls = []
+
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                # Fast path: find the first JSON object on the line
+                brace_idx = line.find("{")
+                if brace_idx == -1:
+                    continue
+                candidate = line[brace_idx:].strip()
+                # Best-effort JSON decode; skip non-JSON lines
+                try:
+                    obj = json.loads(candidate)
+                except json.JSONDecodeError:
+                    continue
+
+                content = obj.get("content")
+                if not isinstance(content, dict):
+                    continue
+                parts = content.get("parts", [])
+                if not isinstance(parts, list):
+                    continue
+
+                for part in parts:
+                    if not isinstance(part, dict):
+                        continue
+                    if "function_call" in part:
+                        function_call = part.get("function_call", {})
+                        if isinstance(function_call, dict):
+                            name = function_call.get("name", "")
+                            if name:
+                                function_calls.append(name)
+    except FileNotFoundError as e:
+        print(f"Warning: Unable to open log file {log_path}: {e}")
+
+    return function_calls
+
+
 def main(directory: str):
     """Main function: count frequency of all function_calls in the directory.
 
     Args:
-        directory: Path to the directory containing subdirectories with session_trace.json files
+        directory: Path to the directory containing subdirectories with
+          execution_info.log and/or session_trace.json files
     """
     # Target directory
     base_dir = Path(directory)
@@ -80,14 +132,19 @@ def main(directory: str):
     print(f"Scanning {len(subdirs)} subdirectories in: {base_dir}\n")
 
     for subdir in subdirs:
+        log_file = subdir / "execution_info.log"
         session_trace_file = subdir / "session_trace.json"
 
-        if session_trace_file.exists():
+        if log_file.exists():
+            function_calls = extract_function_calls_from_log(log_file)
+            all_function_calls.extend(function_calls)
+            # print(f"✓ {subdir.name}: Found {len(function_calls)} function_calls in execution_info.log")
+        elif session_trace_file.exists():
             function_calls = extract_function_calls(session_trace_file)
             all_function_calls.extend(function_calls)
             # print(f"✓ {subdir.name}: Found {len(function_calls)} function_calls")
         else:
-            print(f"✗ {subdir.name}: session_trace.json not found")
+            print(f"✗ {subdir.name}: execution_info.log / session_trace.json not found")
 
     # Count frequency
     function_call_counter = Counter(all_function_calls)

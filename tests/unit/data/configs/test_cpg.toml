@@ -26,11 +26,15 @@ project_relative_shared_data_path = "tests/unit/data/arvo_51603_vul_code.tar.gz"
 [sandbox.sandboxes.main]
 image = "${DEFAULT_IMAGE}"
 timeout = 300
+[sandbox.sandboxes.main.extra]
+initializer_timeout_sec = 1800
 
 # CodeQL sandbox configuration
 [sandbox.sandboxes.codeql]
 image = "${DEFAULT_IMAGE}"
 command = "tail -f /dev/null"
+[sandbox.sandboxes.codeql.extra]
+initializer_timeout_sec = 1800
 
 # Joern sandbox
 [sandbox.sandboxes.joern]
@@ -38,6 +42,8 @@ image = "aigise/joern"
 project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/joern/Dockerfile"
 command = ""
 ports = { "8081/tcp" = 8081 }
+[sandbox.sandboxes.joern.extra]
+initializer_timeout_sec = 1800
 
 # Neo4j sandbox configuration
 [sandbox.sandboxes.neo4j]
@@ -55,6 +61,8 @@ NEO4J_apoc_export_file_enabled = "true"
 [sandbox.sandboxes.neo4j.ports]
 "7474/tcp" = 7474 # HTTP port (standard)
 "7687/tcp" = 7687 # Bolt port (standard)
+[sandbox.sandboxes.neo4j.extra]
+initializer_timeout_sec = 1800
 
 [build]
 compile_command = "arvo compile"

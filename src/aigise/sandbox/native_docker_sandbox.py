@@ -1122,11 +1122,28 @@ class NativeDockerSandbox(BaseSandbox):
         for sandbox_type, sandbox_instance in sandbox_instances.items():
             logger.info(f"Initializing {sandbox_type} sandbox...")
 
-            if sandbox_instance._using_cached:
-                logger.info(f"Using cached {sandbox_type} sandbox...")
-                init_tasks.append(sandbox_instance.ensure_ready())
-            else:
-                init_tasks.append(sandbox_instance.async_initialize())
+            # Build the initializer coroutine
+            init_coro = (
+                sandbox_instance.ensure_ready()
+                if getattr(sandbox_instance, "_using_cached", False)
+                else sandbox_instance.async_initialize()
+            )
+
+            # Determine per-sandbox timeout: read from container_config.extra,
+            # fallback to 30 minutes (1800s) by default.
+            timeout_seconds = 1800
+            container_cfg = getattr(sandbox_instance, "container_config_obj", None)
+            if container_cfg and getattr(container_cfg, "extra", None):
+                try:
+                    timeout_seconds = int(
+                        container_cfg.extra.get("initializer_timeout_sec", 1800)
+                    )
+                except Exception:
+                    # Keep default on parse issues
+                    timeout_seconds = 1800
+
+            # Wrap with asyncio.wait_for to enforce timeout
+            init_tasks.append(asyncio.wait_for(init_coro, timeout=timeout_seconds))
 
         # Initialize all sandboxes concurrently
         await asyncio.gather(*init_tasks)

@@ -80,7 +80,9 @@ class CyberGym(Evaluation):
                 Path(__file__).parent / "metadata" / "task_list_subset", "r"
             ) as f:
                 task_list = f.read().splitlines()
-            task_list = task_list[:50]
+            task_list = [
+                "arvo:19414",
+            ]
             dataset = dataset.filter(lambda x: x["task_id"] in task_list)
             logger.warning(
                 f"Filtered dataset to {len(dataset)} tasks from task_list_subset"
@@ -147,6 +149,7 @@ class CyberGym(Evaluation):
             Path(tmp_workdir).resolve().as_posix()
         )
         await super()._prepare_environment(task)
+        breakpoint()
         main_sandbox = task.aigise_session.sandboxes.get_sandbox("main")
         main_sandbox.run_command_in_container(
             f"apt-get update && apt-get install -y curl"

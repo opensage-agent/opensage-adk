@@ -45,6 +45,8 @@ project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/main/Docker
 timeout = 300
 [sandbox.sandboxes.main.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"
+[sandbox.sandboxes.main.extra]
+initializer_timeout_sec = 1800
 
 # GDB MCP sandbox configuration
 [sandbox.sandboxes.gdb_mcp]
@@ -55,6 +57,8 @@ command = ""
 BASE_IMAGE = "${DEFAULT_IMAGE}"
 [sandbox.sandboxes.gdb_mcp.ports]
 "1111/tcp" = "${GDB_PORT}"
+[sandbox.sandboxes.gdb_mcp.extra]
+initializer_timeout_sec = 1800
 
 # PDB MCP sandbox configuration
 [sandbox.sandboxes.pdb_mcp]
@@ -65,10 +69,14 @@ command = ""
 BASE_IMAGE = "${DEFAULT_IMAGE}"
 [sandbox.sandboxes.pdb_mcp.ports]
 "1112/tcp" = "${PDB_PORT}"
+[sandbox.sandboxes.pdb_mcp.extra]
+initializer_timeout_sec = 1800
 
 # CodeQL sandbox configuration
 [sandbox.sandboxes.codeql]
 image = "${DEFAULT_IMAGE}"
+[sandbox.sandboxes.codeql.extra]
+initializer_timeout_sec = 1800
 
 # Joern sandbox
 [sandbox.sandboxes.joern]
@@ -79,6 +87,8 @@ command = ""
 JAVA_OPTS = "-Xmx16G -Xms4G"
 [sandbox.sandboxes.joern.ports]
 "8081/tcp" = "${JOERN_PORT}"
+[sandbox.sandboxes.joern.extra]
+initializer_timeout_sec = 1800
 
 # Neo4j sandbox configuration
 [sandbox.sandboxes.neo4j]
@@ -96,6 +106,8 @@ NEO4J_apoc_export_file_enabled = "true"
 [sandbox.sandboxes.neo4j.ports]
 "7474/tcp" = "${NEO4J_HTTP_PORT}" # HTTP port
 "7687/tcp" = "${NEO4J_BOLT_PORT}" # Bolt port
+[sandbox.sandboxes.neo4j.extra]
+initializer_timeout_sec = 1800
 
 [llm]
 # Main model configuration

@@ -26,12 +26,16 @@ project_relative_shared_data_path = "tests/unit/data/arvo_51603_vul_code.tar.gz"
 [sandbox.sandboxes.main]
 image = "${DEFAULT_IMAGE}"
 timeout = 300
+[sandbox.sandboxes.main.extra]
+initializer_timeout_sec = 1800
 
 # Fuzzing sandbox configuration
 [sandbox.sandboxes.fuzz]
 image = "${DEFAULT_IMAGE}"
 command = "tail -f /dev/null"
 timeout = 600
+[sandbox.sandboxes.fuzz.extra]
+initializer_timeout_sec = 1800
 
 # Skip CodeQL sandbox for fuzz tests to avoid timeout issues
 # [sandbox.sandboxes.codeql]

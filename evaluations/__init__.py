@@ -128,6 +128,7 @@ class Evaluation(abc.ABC):
     agent_dir: str  # directory containing agent.py with mk_agent function
     dataset_hf_split: str = "train"
     output_dir: str | None = None
+    use_cache: bool = True  # Only load/cache sandboxes if True
     input_data_path: str = ""
     cache_dir: str = ""
     max_llm_calls: int = 100
@@ -1000,9 +1001,11 @@ class Evaluation(abc.ABC):
                 )
 
         # 3. Load cached sandboxes
-        unfound_cached_sandboxes = (
-            aigise_session.sandboxes.load_sandbox_caches_to_config()
-        )
+        unfound_cached_sandboxes = []
+        if self.use_cache:
+            unfound_cached_sandboxes = (
+                aigise_session.sandboxes.load_sandbox_caches_to_config()
+            )
 
         # 4. Initialize shared volumes
         aigise_session.sandboxes.initialize_shared_volumes()
@@ -1016,7 +1019,7 @@ class Evaluation(abc.ABC):
         await aigise_session.sandboxes.initialize_all_sandboxes()
 
         # 7. Cache sandboxes if needed
-        if unfound_cached_sandboxes:
+        if self.use_cache and unfound_cached_sandboxes:
             aigise_session.sandboxes.cache_sandboxes(cache_dir=task.cache_dir)
 
         # save config to output directory

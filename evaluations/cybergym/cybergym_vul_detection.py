@@ -885,6 +885,10 @@ class CyberGym(Evaluation):
             logger.info(
                 f"Found {len(target_functions)} functions in intersection (related + recently modified)"
             )
+            # save function names
+            with open(Path(task.output_dir) / "target_functions.json", "w") as f:
+                json.dump(target_functions, f, indent=2)
+
             if len(target_functions) > self.max_target_functions:
                 target_functions = target_functions[: self.max_target_functions]
                 logger.info(f"Choose the first {self.max_target_functions} functions")

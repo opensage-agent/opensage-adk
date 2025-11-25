@@ -260,9 +260,9 @@ class CyberGym(Evaluation):
         PROJECT_PATH / "oss_fuzz_successful_projects.json"
     )
     checkout_main_branch: bool = True
-    # Resume from existing vulnerability findings (e.g., "251107_035410")
     # If provided, skip vulnerability detection and directly generate PoCs
-    resume_from_findings: str | None = None
+    resume_from_findings: bool = False
+    skip_finished: bool = False
     # Dataset filtering: filter dataset to range(dataset_start_idx, dataset_end_idx)
     start_idx: int = 0
     end_idx: int | None = None
@@ -754,27 +754,35 @@ class CyberGym(Evaluation):
 
         aigise_session = get_aigise_session(task.session_id)
 
+        # Check if we should skip this task because it's already finished
+        output_dir = Path(task.output_dir)
+        if self.skip_finished:
+            vul_files = list(output_dir.glob("vulnerability_findings_*.json"))
+            poc_files = list(output_dir.glob("poc_findings_*.json"))
+            if vul_files and poc_files:
+                logger.warning(
+                    f"Skipping task {task.task_name}: already has vulnerability_findings and poc_findings files"
+                )
+                # Return a mock session to indicate completion
+                session_service = InMemorySessionService()
+                session = await session_service.create_session(
+                    app_name="mock",
+                    user_id=self.user_id,
+                    session_id=task.session_id,
+                )
+                return session
+
         # Check if we should resume from existing findings
         vul_findings = None
         if self.resume_from_findings:
-            findings_dir = Path(self.output_dir.parent) / self.resume_from_findings
-            if not findings_dir.exists():
+            vul_files = list(output_dir.glob("vulnerability_findings_*.json"))
+            if not vul_files:
                 raise ValueError(
-                    f"Resume directory not found: {findings_dir}. "
-                    f"Please provide a valid directory name (e.g., '251107_035410/arvo_1065')"
-                )
-
-            # Find vulnerability_findings JSON file in the directory
-            vul_findings_files = list(
-                findings_dir.glob("vulnerability_findings_*.json")
-            )
-            if not vul_findings_files:
-                raise ValueError(
-                    f"No vulnerability findings file found in {findings_dir}. "
+                    f"No vulnerability findings file found in {output_dir}. "
                     f"Expected file pattern: vulnerability_findings_*.json"
                 )
 
-            vul_findings_path = vul_findings_files[0]
+            vul_findings_path = vul_files[0]
             logger.warning(f"Resuming from existing findings: {vul_findings_path}")
 
             # Load vulnerability findings

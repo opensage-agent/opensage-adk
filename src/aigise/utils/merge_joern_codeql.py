@@ -156,6 +156,10 @@ def load_codeql_results(out_dir: str) -> pd.DataFrame:
     fp_accesses_path = out_dir / "fp_accesses.csv"
     # 1. Load the main call graph DataFrame from direct calls
     df = pd.read_csv(results_csv_path, header=0)
+    # Ensure numeric columns are consistent types to avoid sort errors
+    for col in df.select_dtypes(include=["object", "float"]).columns:
+        if "line" in col or "col" in col:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
     df["call_type"] = "direct"
 
     # 2. Load expr_calls and fp_accesses, then match indirect calls

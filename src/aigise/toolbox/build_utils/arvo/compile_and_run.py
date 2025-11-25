@@ -114,6 +114,20 @@ def run_poc_from_script(
             output, exit_code = run_poc_in_sandbox(tool_context)
             if exit_code != 0:
                 return f"[ERROR] Running PoC in container failed (code {exit_code}):\n{output}"
+            # succeed, save to file
+            if hasattr(config, "current_function"):
+                func = config.current_function
+                backup_poc_path = config.build.poc_dir + f"_{func}"
+                backup_output_path = config.build.poc_dir + f"_{func}_output.txt"
+                backup_script_path = config.build.poc_dir + f"_{func}_script.py"
+
+                poc_output_temp_path = os.path.join(temp_dir, "poc_output.txt")
+                with open(poc_output_temp_path, "w") as f:
+                    f.write(output)
+
+                sandbox.copy_file_to_container(poc_path, backup_poc_path)
+                sandbox.copy_file_to_container(poc_output_temp_path, backup_output_path)
+                sandbox.copy_file_to_container(script_path, backup_script_path)
             return output
         except Exception as e:
             return f"[ERROR] Failed to run PoC in container: {str(e)}"
@@ -148,7 +162,4 @@ def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     config = get_aigise_config_from_context(tool_context)
     poc_command = config.build.run_command
     output = sandbox.run_command_in_container(poc_command)
-    # save it to file
-    with open("poc_output.txt", "w") as f:
-        f.write(output[0])
     return output

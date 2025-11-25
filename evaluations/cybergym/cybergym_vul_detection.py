@@ -905,6 +905,7 @@ class CyberGym(Evaluation):
                 function_name = func["sink_func"]
                 if "<" in function_name:
                     continue
+                aigise_session.config.current_function = function_name
                 impl = await client.run_query(
                     "MATCH (m:METHOD) WHERE m.fullName = $name "
                     "RETURN m.filename as path, m.lineNumber as start,"

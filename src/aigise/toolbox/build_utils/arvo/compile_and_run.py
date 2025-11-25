@@ -147,4 +147,8 @@ def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     sandbox = get_sandbox_from_context(tool_context, "main")
     config = get_aigise_config_from_context(tool_context)
     poc_command = config.build.run_command
-    return sandbox.run_command_in_container(poc_command)
+    output = sandbox.run_command_in_container(poc_command)
+    # save it to file
+    with open("poc_output.txt", "w") as f:
+        f.write(output[0])
+    return output

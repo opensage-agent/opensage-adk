@@ -164,10 +164,13 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
         dict: A dictionary with key "result" pointing to a list of symbol information.
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
+    from aigise import get_aigise_session
 
+    aigise_session = get_aigise_session(sandbox.aigise_session_id)
+    src_dir_path = getattr(aigise_session, "src_dir_in_sandbox", None) or "/shared/code"
     # Generate tags file if not exists or regenerate
     output, exit_code = sandbox.run_command_in_container(
-        f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R /shared/code"
+        f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R {src_dir_path}"
     )
     if exit_code != 0:
         output, exit_code = sandbox.run_command_in_container(
@@ -179,7 +182,7 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
                 "error": f"Failed to install ctags: {output}, do not call this tool again.",
             }
         output, exit_code = sandbox.run_command_in_container(
-            f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R /shared/code"
+            f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R {src_dir_path}"
         )
         if exit_code != 0:
             return {

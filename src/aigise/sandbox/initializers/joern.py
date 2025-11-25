@@ -81,7 +81,11 @@ class JoernInitializer(SandboxInitializer):
             raise RuntimeError(f"Joern code copy failed: {msg}")
 
         msg, err = self.run_command_in_container(
-            ["bash", "/sandbox_scripts/callgraph/run_joern.sh", "/shared/code"]
+            [
+                "bash",
+                "/sandbox_scripts/callgraph/run_joern.sh",
+                getattr(aigise_session, "src_dir_in_sandbox", None) or "/shared/code",
+            ]
         )
         if err != 0:
             raise RuntimeError(f"Joern run failed: {msg}")

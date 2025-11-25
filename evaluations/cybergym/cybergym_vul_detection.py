@@ -268,6 +268,7 @@ class CyberGym(Evaluation):
     end_idx: int | None = None
     # Model selection: model to use for agents
     model_name: str = "gemini-3-pro-preview"
+    max_target_functions: int = 100
 
     def __post_init__(self):
         """Validate required fields after initialization."""
@@ -884,7 +885,9 @@ class CyberGym(Evaluation):
             logger.info(
                 f"Found {len(target_functions)} functions in intersection (related + recently modified)"
             )
-
+            if len(target_functions) > self.max_target_functions:
+                target_functions = target_functions[: self.max_target_functions]
+                logger.info(f"Choose the first {self.max_target_functions} functions")
             vul_findings = []
             for func in target_functions:
                 function_name = func["sink_func"]
@@ -935,7 +938,11 @@ class CyberGym(Evaluation):
                 except Exception as e:
                     logger.warning(f"Failed to generate poc: {e}")
                     poc_finding = PoCFinding(is_success=False, reason=str(e))
-                final_results.append(poc_finding)
+            else:
+                poc_finding = PoCFinding(
+                    is_success=False, reason="No vulnerabilities found"
+                )
+            final_results.append(poc_finding)
         # save
         vul_save_path = (
             Path(task.output_dir) / f"vulnerability_findings_{task.task_name}.json"

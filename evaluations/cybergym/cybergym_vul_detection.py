@@ -777,23 +777,24 @@ class CyberGym(Evaluation):
         if self.resume_from_findings:
             vul_files = list(output_dir.glob("vulnerability_findings_*.json"))
             if not vul_files:
-                raise ValueError(
+                logger.warning(
                     f"No vulnerability findings file found in {output_dir}. "
-                    f"Expected file pattern: vulnerability_findings_*.json"
                 )
+            else:
+                vul_findings_path = vul_files[0]
+                logger.warning(f"Resuming from existing findings: {vul_findings_path}")
 
-            vul_findings_path = vul_files[0]
-            logger.warning(f"Resuming from existing findings: {vul_findings_path}")
+                # Load vulnerability findings
+                with open(vul_findings_path, "r") as f:
+                    vul_findings_data = json.load(f)
 
-            # Load vulnerability findings
-            with open(vul_findings_path, "r") as f:
-                vul_findings_data = json.load(f)
-
-            # Convert to VulFinding objects
-            vul_findings = [VulFinding.model_validate(vf) for vf in vul_findings_data]
-            logger.warning(
-                f"Loaded {len(vul_findings)} vulnerability findings from {vul_findings_path}"
-            )
+                # Convert to VulFinding objects
+                vul_findings = [
+                    VulFinding.model_validate(vf) for vf in vul_findings_data
+                ]
+                logger.warning(
+                    f"Loaded {len(vul_findings)} vulnerability findings from {vul_findings_path}"
+                )
 
         client = await aigise_session.neo4j.get_async_client("analysis")
 

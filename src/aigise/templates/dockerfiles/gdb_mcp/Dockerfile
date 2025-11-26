@@ -23,6 +23,9 @@ RUN uv pip install mcp
 RUN uv pip install pygdbmi
 RUN uv pip install loguru
 
+# overwrite IoManager.py to fix stderr reading issue to show asan messages
+COPY ./artifacts/IoManager.py /app/.venv/lib/python3.12/site-packages/pygdbmi/IoManager.py
+
 # Expose port for MCP server
 EXPOSE 1111
 

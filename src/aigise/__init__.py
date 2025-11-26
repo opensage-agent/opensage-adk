@@ -37,6 +37,14 @@ import litellm
 
 litellm.disable_streaming_logging = True
 
+# Apply AIgiSE patches on import (wrappers are toggleable at runtime)
+try:
+    from .patches import apply_all as _apply_all_patches
+
+    _apply_all_patches()
+except Exception as _patch_err:
+    logging.getLogger(__name__).warning(f"Failed to apply AIgiSE patches: {_patch_err}")
+
 # Export version
 __version__ = "1.0.0"
 

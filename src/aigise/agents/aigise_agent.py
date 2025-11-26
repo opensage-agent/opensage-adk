@@ -2,6 +2,8 @@ import logging
 from typing import List, Optional
 
 from google.adk.agents.llm_agent import LlmAgent
+from google.adk.events.event import Event
+from google.adk.events.event_actions import EventActions
 from google.adk.tools.agent_tool import AgentTool
 from pydantic import Field
 
@@ -95,6 +97,7 @@ class AigiseAgent(LlmAgent):
 
     def _setup_aigise_callback(self):
         """Set up callback to ensure aigise_session_id is stored and sandboxes are ready."""
+        # Idempotent guard to avoid duplicate registrations
 
         async def aigise_before_agent_callback(callback_context):
             session = callback_context._invocation_context.session
@@ -106,6 +109,19 @@ class AigiseAgent(LlmAgent):
                     self.aigise_session_id if self.aigise_session_id else session.id
                 )
                 session.state["aigise_session_id"] = session_id_to_use
+                # Persist the aigise_session_id immediately via a state_delta-only event
+                try:
+                    delta = {"aigise_session_id": session_id_to_use}
+                    persist_event = Event(
+                        invocation_id=callback_context._invocation_context.invocation_id,
+                        author=self.name,
+                        actions=EventActions(state_delta=delta),
+                    )
+                    await callback_context._invocation_context.session_service.append_event(
+                        session=session, event=persist_event
+                    )
+                except Exception as _e:
+                    logger.error(f"Skip immediate state persist: {_e}")
 
             # 2. Collect sandbox dependencies and launch required sandboxes
             try:
@@ -153,9 +169,19 @@ class AigiseAgent(LlmAgent):
         elif not isinstance(self.before_agent_callback, list):
             self.before_agent_callback = [self.before_agent_callback]
 
-        self.before_agent_callback = [
-            aigise_before_agent_callback
-        ] + self.before_agent_callback
+        # Only register if a callback with the same name is not already present
+        _has_aigise_cb = False
+        for _cb in self.before_agent_callback:
+            try:
+                if getattr(_cb, "__name__", None) == "aigise_before_agent_callback":
+                    _has_aigise_cb = True
+                    break
+            except Exception:
+                continue
+        if not _has_aigise_cb:
+            self.before_agent_callback = [
+                aigise_before_agent_callback
+            ] + self.before_agent_callback
 
         # Also set as attribute for Neo4j monkey patch to find and call early
         object.__setattr__(

@@ -58,7 +58,7 @@ class JoernInitializer(SandboxInitializer):
             # Wrap Joern initialization with 10-minute timeout
             await asyncio.wait_for(
                 self._initialize_joern_with_timeout(aigise_session),
-                timeout=600.0,  # 10 minutes
+                timeout=1200.0,  # 10 minutes
             )
         except asyncio.TimeoutError:
             logger.error(
@@ -72,7 +72,8 @@ class JoernInitializer(SandboxInitializer):
     async def _initialize_joern_with_timeout(self, aigise_session) -> None:
         """Execute Joern initialization steps with timeout protection."""
         msg, err = self.run_command_in_container(
-            ["bash", "/sandbox_scripts/callgraph/init.sh"]
+            ["bash", "/sandbox_scripts/callgraph/init.sh"],
+            timeout=1200,
         )
         if err != 0:
             raise RuntimeError(f"Joern init failed: {msg}")
@@ -81,7 +82,8 @@ class JoernInitializer(SandboxInitializer):
             raise RuntimeError(f"Joern code copy failed: {msg}")
 
         msg, err = self.run_command_in_container(
-            ["bash", "/sandbox_scripts/callgraph/run_joern.sh"]
+            ["bash", "/sandbox_scripts/callgraph/run_joern.sh"],
+            timeout=1200,
         )
         if err != 0:
             raise RuntimeError(f"Joern run failed: {msg}")

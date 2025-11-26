@@ -13,6 +13,7 @@ AGENT_STORAGE_PATH = ""
 # History configuration defaults
 MAX_TOOL_RESPONSE_LENGTH = 10000
 MAX_HISTORY_SUMMARY_LENGTH = 100000
+COMPACTION_PERCENT = 100
 # Agent ensemble defaults
 AVAILABLE_MODELS = "anthropic/claude-sonnet-4-20250514,openai/gpt-5,openai/o4-mini"
 # Host and Ports
@@ -136,7 +137,13 @@ tpm = 30000
 
 [history]
 max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
+enable_quota_countdown = true
+
+[history.events_compaction]
+# Trigger when either budget is exceeded
 max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+compaction_percent = "${COMPACTION_PERCENT}"
+
 
 [agent_ensemble]
 thread_safe_tools = []

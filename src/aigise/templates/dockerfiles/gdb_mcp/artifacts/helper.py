@@ -107,7 +107,7 @@ class GdbController:
         # pygdbmi
 
         # Send command and manually collect responses
-        responses = self.controller.write(command)
+        responses = self.controller.write(command, timeout_sec=timeout_sec)
 
         collected: list[dict] = []
         for response in responses:

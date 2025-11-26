@@ -218,6 +218,37 @@ class K8sSandbox(BaseSandbox):
         kubeconfig: Optional[str],
     ) -> Optional[str]:
         try:
+            # Resolve tolerations from session config using session_id (volume_name_prefix)
+            def _resolve_tolerations_from_session(
+                session_id: str,
+            ) -> Optional[list[dict]]:
+                try:
+                    from aigise.session.aigise_session import (
+                        get_aigise_session,  # lazy import
+                    )
+
+                    sess = get_aigise_session(session_id)
+                    cfg = getattr(sess, "config", None)
+                    sbx_cfg = getattr(cfg, "sandbox", None)
+                    # 1) Prefer global sandbox-level tolerations if provided
+                    global_tol = getattr(sbx_cfg, "tolerations", None)
+                    if isinstance(global_tol, list) and global_tol:
+                        return global_tol
+                    sandboxes = getattr(sbx_cfg, "sandboxes", {}) or {}
+                    merged: list[dict] = []
+                    for c in sandboxes.values():
+                        extra = getattr(c, "extra", {}) or {}
+                        t = extra.get("tolerations")
+                        if isinstance(t, list):
+                            for item in t:
+                                if isinstance(item, dict) and item not in merged:
+                                    merged.append(item)
+                    return merged or None
+                except Exception:
+                    pass
+                return None
+
+            tolerations = _resolve_tolerations_from_session(volume_name_prefix)
             result = cls._run_kubectl_class(
                 ["get", "storageclass", "-o", "json"],
                 namespace=namespace,
@@ -668,6 +699,7 @@ class K8sSandbox(BaseSandbox):
         namespace: str,
         context: Optional[str],
         kubeconfig: Optional[str],
+        tolerations: Optional[list[dict]] = None,
     ) -> None:
         init_pod_name = cls._sanitize_name(f"init-{pvc_name}-{int(time.time())}")
         init_manifest = {
@@ -698,6 +730,8 @@ class K8sSandbox(BaseSandbox):
                 ],
             },
         }
+        if tolerations:
+            init_manifest["spec"]["tolerations"] = tolerations
 
         with tempfile.NamedTemporaryFile(
             "w", suffix=".yaml", delete=False
@@ -774,6 +808,7 @@ class K8sSandbox(BaseSandbox):
         context: str,
         kubeconfig: str,
         source_path: Path = None,
+        tolerations: Optional[list[dict]] = None,
     ) -> str:
         """Helper method to create a single PVC and populate it with data.
 
@@ -879,6 +914,7 @@ class K8sSandbox(BaseSandbox):
                             namespace=namespace,
                             context=context,
                             kubeconfig=kubeconfig,
+                            tolerations=tolerations,
                         )
                 else:
                     cls._copy_path_to_pvc(
@@ -887,6 +923,7 @@ class K8sSandbox(BaseSandbox):
                         namespace=namespace,
                         context=context,
                         kubeconfig=kubeconfig,
+                        tolerations=tolerations,
                     )
             elif source_path.is_file():
                 cls._copy_path_to_pvc(
@@ -895,6 +932,7 @@ class K8sSandbox(BaseSandbox):
                     namespace=namespace,
                     context=context,
                     kubeconfig=kubeconfig,
+                    tolerations=tolerations,
                 )
             else:
                 logger.warning(
@@ -951,6 +989,22 @@ class K8sSandbox(BaseSandbox):
         kubeconfig = cls._resolve_kubeconfig_from_env()
 
         try:
+            # Resolve tolerations strictly from sandbox.tolerations (global-only)
+            tolerations: Optional[list[dict]] = None
+            try:
+                from aigise.session.aigise_session import (
+                    get_aigise_session,  # lazy import
+                )
+
+                sess = get_aigise_session(volume_name_prefix)
+                cfg = getattr(sess, "config", None)
+                sbx_cfg = getattr(cfg, "sandbox", None)
+                global_tol = getattr(sbx_cfg, "tolerations", None)
+                if isinstance(global_tol, list) and global_tol:
+                    tolerations = global_tol
+            except Exception:
+                tolerations = None
+
             # Create PVC names
             scripts_pvc_name = cls._sanitize_name(
                 f"{volume_name_prefix}_sandbox_scripts"
@@ -960,7 +1014,12 @@ class K8sSandbox(BaseSandbox):
             # 1. Create and populate scripts PVC
             scripts_path = Path(PROJECT_PATH) / "src" / "aigise" / "sandbox_scripts"
             scripts_pvc_id = cls._create_and_populate_pvc(
-                scripts_pvc_name, namespace, context, kubeconfig, scripts_path
+                scripts_pvc_name,
+                namespace,
+                context,
+                kubeconfig,
+                scripts_path,
+                tolerations=tolerations,
             )
             logger.info(
                 f"Created sandbox scripts PVC: {scripts_pvc_id} from {scripts_path}"
@@ -968,7 +1027,12 @@ class K8sSandbox(BaseSandbox):
 
             # 2. Create and populate data PVC
             data_pvc_id = cls._create_and_populate_pvc(
-                data_pvc_name, namespace, context, kubeconfig, init_data_path
+                data_pvc_name,
+                namespace,
+                context,
+                kubeconfig,
+                init_data_path,
+                tolerations=tolerations,
             )
             logger.info(f"Created shared data PVC: {data_pvc_id} from {init_data_path}")
 
@@ -1013,6 +1077,8 @@ class K8sSandbox(BaseSandbox):
                     ],
                 },
             }
+            if tolerations:
+                chmod_pod_spec["spec"]["tolerations"] = tolerations
 
             try:
                 # Create chmod pod
@@ -1353,6 +1419,26 @@ class K8sSandbox(BaseSandbox):
                 "containers": containers,
             },
         }
+        # Resolve tolerations from provided configs. Use only global sandbox-level.
+        try:
+            tol: Optional[list[dict]] = None
+            try:
+                from aigise.session.aigise_session import (
+                    get_aigise_session,  # lazy import
+                )
+
+                sess = get_aigise_session(session_id)
+                cfg = getattr(sess, "config", None)
+                sbx_cfg = getattr(cfg, "sandbox", None)
+                global_tol = getattr(sbx_cfg, "tolerations", None)
+                if isinstance(global_tol, list) and global_tol:
+                    tol = global_tol
+            except Exception:
+                pass
+            if tol:
+                pod_manifest["spec"]["tolerations"] = tol
+        except Exception:
+            pass
         if volume_defs:
             pod_manifest["spec"]["volumes"] = volume_defs
 
@@ -1425,7 +1511,9 @@ class K8sSandbox(BaseSandbox):
         return sandbox_instances
 
     @classmethod
-    async def initialize_all_sandboxes(cls, sandbox_instances: dict) -> None:
+    async def initialize_all_sandboxes(
+        cls, sandbox_instances: dict, *, continue_on_error: bool = False
+    ) -> dict:
         """Initialize all sandbox instances concurrently.
 
         This should be called after launch_all_sandboxes() and after
@@ -1433,25 +1521,44 @@ class K8sSandbox(BaseSandbox):
 
         Args:
             sandbox_instances: Dict of sandbox_type -> K8sSandbox instance
+            continue_on_error: If True, continue on failures and return a map
+                of sandbox_type -> Exception | None. If False, propagate errors.
         """
         if not sandbox_instances:
             logger.warning("No sandbox instances to initialize")
-            return
+            return {}
 
-        init_tasks = []
+        init_entries = []
         for sandbox_type, sandbox_instance in sandbox_instances.items():
             logger.info(f"Initializing {sandbox_type} sandbox...")
 
-            if sandbox_instance._using_cached:
-                init_tasks.append(sandbox_instance.ensure_ready())
-            else:
-                init_tasks.append(sandbox_instance.async_initialize())
+            init_coro = (
+                sandbox_instance.ensure_ready()
+                if sandbox_instance._using_cached
+                else sandbox_instance.async_initialize()
+            )
+            init_entries.append((sandbox_type, init_coro))
 
         # Initialize all sandboxes concurrently
-        if init_tasks:
-            await asyncio.gather(*init_tasks)
+        tasks = [entry[1] for entry in init_entries]
+        if tasks:
+            if continue_on_error:
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                result_map = {}
+                for (sandbox_type, _), res in zip(init_entries, results):
+                    if isinstance(res, Exception):
+                        logger.error(
+                            f"Initialization failed for sandbox '{sandbox_type}': {res}"
+                        )
+                        result_map[sandbox_type] = res
+                    else:
+                        result_map[sandbox_type] = None
+                return result_map
+            else:
+                await asyncio.gather(*tasks)
 
         logger.info(f"Successfully initialized {len(sandbox_instances)} sandboxes")
+        return {sandbox_type: None for sandbox_type, _ in init_entries}
 
     # ------------------------------------------------------------------
     # Cache support placeholder (kept for parity with BaseSandbox contract)

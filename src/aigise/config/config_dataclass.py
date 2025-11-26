@@ -189,6 +189,9 @@ class SandboxConfig:
     project_relative_shared_data_path: Optional[str] = None
     absolute_shared_data_path: Optional[str] = None
     backend: str = "native"
+    # Global tolerations applied to all k8s pods (init/chmod/session). If set,
+    # overrides/augments any per-container tolerations in ContainerConfig.extra.
+    tolerations: Optional[list[dict]] = None
 
     def get_sandbox_config(self, sandbox_type: str) -> Optional[ContainerConfig]:
         """Get configuration for a specific sandbox type."""
@@ -248,8 +251,22 @@ class LLMConfig:
 class HistoryConfig:
     """Tool configuration."""
 
+    # Maximum length of a single tool response before special handling (other features may use this)
     max_tool_response_length: int = 10000
-    max_history_summary_length: int = 100000
+    # Whether to show remaining LLM call quota after each tool response (non-live)
+    enable_quota_countdown: bool = False
+
+    # Events compaction-based history summarization settings
+    @dataclass
+    class EventsCompactionConfig:
+        max_history_summary_length: Optional[int] = (
+            100000  # Character budget threshold for compaction
+        )
+        compaction_percent: int = 50
+
+    events_compaction: EventsCompactionConfig = field(
+        default_factory=EventsCompactionConfig
+    )
 
 
 @dataclass

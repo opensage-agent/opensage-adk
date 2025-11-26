@@ -29,6 +29,10 @@ from aigise.toolbox.general.dynamic_subagent import (
     create_subagent,
     list_active_agents,
 )
+from aigise.utils.agent_utils import (
+    discover_all_agents,
+    register_callback_to_all_agents,
+)
 
 
 def add_numbers(a: float, b: float) -> float:
@@ -92,10 +96,8 @@ def calculate_area_and_perimeter(
 
 def mk_agent(aigise_session_id="sample-summarization-session"):
     enable_neo4j_logging()
-    os.environ["MAX_HISTORY_SUMMARY_LENGTH"] = (
-        "1100"  # triggers summarization if the past history is longer than 1100-1000 = 100 bytes s
-    )
-    os.environ["MAX_TOOL_RESPONSE_LENGTH"] = "1000"
+    os.environ["MAX_HISTORY_SUMMARY_LENGTH"] = "300"
+    os.environ["MAX_TOOL_RESPONSE_LENGTH"] = "100"
 
     # Create agents inside mk_agent to avoid reusing instances across multiple calls
     geometry_calculator = AigiseAgent(

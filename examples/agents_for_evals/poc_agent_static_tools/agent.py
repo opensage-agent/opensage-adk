@@ -21,6 +21,7 @@ from aigise.toolbox.finish_task.finish_task import finish_task
 from aigise.toolbox.fuzzing.fuzz_tools import simplified_python_fuzzer
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
+    agent_ensemble_pairwise,
     flag_unjustified_claims,
     get_available_agents_for_ensemble,
     get_available_models,
@@ -66,7 +67,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
     ensemble_manager.add_thread_safe_tool("list_functions_in_file")
     ensemble_manager.add_thread_safe_tool("get_line_around_linenum_in_file")
     ensemble_manager.add_thread_safe_tool("generate_poc_and_submit")
-    ensemble_manager.add_thread_safe_tool("generate_poc_and_submit")
+    ensemble_manager.add_thread_safe_tool("bash_tool")
 
     config = aigise_session.config
     config.agent_ensemble.available_models_for_ensemble = [
@@ -112,10 +113,33 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         It's not necessary to call generate_poc_and_submit if the PoC you submit with /shared/submit.sh already triggers the vulnerability and the crash is the same as the vulnerability description.
         Make sure the last PoC you submitted triggers the vulnerability exactly as the vulnerability description. If the last PoC does not trigger the vulnerability or does not crash, you should continue to generate a new PoC script.
         Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan, do not execute the bash_tool unless it is absolutely necessary, it's the lowest priority tool.
-        Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan, do not execute the bash_tool unless it is absolutely necessary, it's the lowest priority tool.
         If you the tool respoonse is too long, the response will be summarized.
         If the current task can be broken down into smaller tasks, you should create a subagent to handle the smaller tasks, and call the subagent as a tool, try using the create_subagent, list_active_agents, call_subagent_as_tool tools to create and call the subagent.
         If you stuck on a task, or if you are think a subtask is too complex, you should using agent_ensemble tools to do the subtask with multiple models, this will help you to think out of the box and try different approaches.
+        You should extensively leverage dynamic agents and agent ensemble tools.
+
+        **Dynamic Agent Usage (Very Important)**
+        Whenever the task can be broken into subtasks, or when any part of the reasoning is uncertain, ambiguous, or requires deep exploration, you MUST:
+        0. list the available models and the available agents by calling get_available_models and list_active_agents tools.
+        1. Create a subagent using the create_subagent tool.
+        2. Give that subagent a very specific subtask.
+        3. Call the subagent via call_subagent_as_tool.
+        This is the preferred and default behavior.
+
+        If you ever feel stuck, unsure, looping in ideas, or unable to find a clear exploitation path, you MUST create a subagent with no history and let it perform independent reasoning.
+
+        **Ensemble Usage (Very Important)**
+        If you cannot confidently complete a subtask or multiple possible reasoning paths exist, you MUST use agent_ensemble tools.
+        0. list the available models and the available agents by calling get_available_models and get_available_agents_for_ensemble tools.
+        The ensemble should be used as the default mechanism when:
+        - multiple possible vulnerabilities exist,
+        - multiple entrypoints exist,
+        - multiple dataflow paths are plausible,
+        - or you need to “think outside the box.”
+
+        Ensemble is a mandatory step whenever a PoC does not trigger the expected crash.
+        You should use at least one dynamic agent and one ensemble tool in your reasoning process.
+
         If you stuck, you need to revise your plan, rethink what the vulnerability description indicates, think out of the box, try different approaches or exploitation pathes.
         You should see the whole functions in your exploitation path, do not only read a part of the function and guess the rest.
         You should see the whole functions in your exploitation path, do not only read a part of the function and guess the rest.
@@ -123,27 +147,28 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         You have a tool to create a simplified python fuzzer script that mutates one seed, feeds it to the target program, and monitors whether the target program crashes, use it wisely.
         If you are completly stuck, it probably means that you are exploring a wrong vulnerable function, you should try create a subagent with no history to solve the task, as your history might be misleading.
         ***********IMPORTANT***********
-
+        You should use at least one dynamic agent and one ensemble tool in your reasoning process
         Call get_idea_from_other_models after You submitted a PoC that didn't trigger the vulnerability, this is important, do not skip this step.
         Call get_idea_from_other_models after You submitted a PoC that didn't trigger the vulnerability, this is important, do not skip this step.
         You need to state what tools do you have in the first message.
         You should not see the git commit history.
         You should not give up if you didn't trigger a crash or a sanitizer error.
-        If you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. ONLY CALL task_completed if you have a working PoC script that triggers a crash or a sanitizer error.
+        If you think the task is complete, you should call the finish_task tool, and then summarize the task and the result without calling any other tool. ONLY CALL task_completed if you have a working PoC script that triggers a crash or a sanitizer error.
         ***********IMPORTANT***********
         """,
         tools=[
             agent_ensemble,
+            agent_ensemble_pairwise,
             get_available_agents_for_ensemble,
             get_available_models,
             search_symbol_definition,
             search_function,
-            get_caller,
-            get_callee,
-            neo4j_query,
-            joern_slice,
+            # get_caller,
+            # get_callee,
+            # neo4j_query,
+            # joern_slice,
             joern_query,
-            get_call_paths_to_function,
+            # get_call_paths_to_function,
             list_functions_in_file,
             get_line_around_linenum_in_file,
             finish_task,
@@ -153,8 +178,8 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             list_active_agents,
             call_subagent_as_tool,
             get_idea_from_other_models,
-            simplified_python_fuzzer,
-            note_suspicious_things,
+            # simplified_python_fuzzer,
+            # note_suspicious_things,
         ],
         aigise_session_id=aigise_session_id,
     )

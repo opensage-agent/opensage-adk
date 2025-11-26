@@ -17,7 +17,11 @@ from typing import Any, Dict, Optional, Set
 
 from aigise.config.config_dataclass import AigiseConfig
 from aigise.sandbox import BaseSandbox
-from aigise.sandbox.factory import get_backend_class
+from aigise.sandbox.factory import (
+    create_sandbox_class,
+    get_backend_class,
+    get_initializer_class,
+)
 from aigise.sandbox.utils import can_pull_image, image_exists_locally
 from aigise.session.sandbox_state import SandboxState
 from aigise.utils.project_info import PROJECT_PATH
@@ -350,7 +354,9 @@ class AigiseSandboxManager:
                 self._sandbox_states[sandbox_type] = SandboxState.ERROR
             raise
 
-    async def initialize_all_sandboxes(self) -> None:
+    async def initialize_all_sandboxes(
+        self, *, continue_on_error: bool = False
+    ) -> None:
         """Initialize all created sandboxes.
 
         This should be called after launch_all_sandboxes() and after
@@ -400,11 +406,41 @@ class AigiseSandboxManager:
             )
 
             # Call backend-specific initialize method
-            await backend_class.initialize_all_sandboxes(sandboxes_to_init)
+            # When continue_on_error=True, backend returns a map of sandbox_type -> Exception | None
+            result_map = await backend_class.initialize_all_sandboxes(
+                sandboxes_to_init, continue_on_error=continue_on_error
+            )
 
-            # Update all initialized sandbox states to READY
-            for sandbox_type in sandboxes_to_init.keys():
-                self._sandbox_states[sandbox_type] = SandboxState.READY
+            # If backend didn't return a map (older implementations), assume all succeeded
+            if result_map is None:
+                for sandbox_type in sandboxes_to_init.keys():
+                    self._sandbox_states[sandbox_type] = SandboxState.READY
+            else:
+                # Update states per sandbox based on results
+                failed = []
+                succeeded = []
+                for sandbox_type, exc in result_map.items():
+                    if exc is None:
+                        self._sandbox_states[sandbox_type] = SandboxState.READY
+                        succeeded.append(sandbox_type)
+                    else:
+                        self._sandbox_states[sandbox_type] = SandboxState.ERROR
+                        failed.append((sandbox_type, exc))
+
+                if succeeded:
+                    logger.info(
+                        f"Successfully initialized sandboxes: {sorted(succeeded)}"
+                    )
+                if failed:
+                    for sandbox_type, exc in failed:
+                        logger.error(
+                            f"Sandbox '{sandbox_type}' failed to initialize: {exc}"
+                        )
+                    if not continue_on_error:
+                        # Paranoia: if flag is False but we got failures in map, raise
+                        raise RuntimeError(
+                            f"Failed to initialize sandboxes: {[s for s, _ in failed]}"
+                        )
 
             logger.info(
                 f"Successfully initialized {len(sandboxes_to_init)} sandboxes for session {self.aigise_session_id}"
@@ -418,6 +454,67 @@ class AigiseSandboxManager:
             for sandbox_type in self._sandboxes.keys():
                 self._sandbox_states[sandbox_type] = SandboxState.ERROR
             raise
+
+    async def attach_sandbox(
+        self,
+        sandbox_type: str,
+        *,
+        container_id: Optional[str] = None,
+        pod_name: Optional[str] = None,
+        container_name: Optional[str] = None,
+    ) -> None:
+        """Attach to an existing container/Pod and register it to this session,
+        then call ensure_ready.
+
+        - native (Docker): requires container_id
+        - k8s: requires pod_name + container_name
+        """
+        backend_type = getattr(self.config.sandbox, "backend", "native")
+        backend_class = get_backend_class(backend_type)
+
+        # Build or create a ContainerConfig entry for this sandbox based on current config
+        container_config = self.config.get_sandbox_config(sandbox_type)
+        if not container_config:
+            from aigise.config.config_dataclass import ContainerConfig
+
+            container_config = ContainerConfig()
+            if getattr(self.config, "sandbox", None):
+                self.config.sandbox.add_or_update_sandbox(
+                    sandbox_type, container_config
+                )
+
+        # Inject identifiers based on backend
+        if backend_type == "native":
+            if not container_id:
+                raise ValueError("attach(native) requires container_id")
+            container_config.container_id = container_id
+        elif backend_type == "k8s":
+            if not pod_name or not container_name:
+                raise ValueError("attach(k8s) requires pod_name and container_name")
+            container_config.pod_name = pod_name
+            container_config.container_name = container_name
+        else:
+            raise ValueError(f"Unsupported backend: {backend_type}")
+
+        initializer_class = get_initializer_class(sandbox_type)
+        sandbox_class = create_sandbox_class(backend_class, initializer_class)
+
+        sandbox_instance: BaseSandbox = sandbox_class(
+            container_config,
+            session_id=self.aigise_session_id,
+            backend_type=backend_type,
+            sandbox_type=sandbox_type,
+        )
+
+        self._sandboxes[sandbox_type] = sandbox_instance
+        self._sandbox_states[sandbox_type] = SandboxState.CREATED
+
+        # Ensure ready
+        await sandbox_instance.ensure_ready()
+        self._sandbox_states[sandbox_type] = SandboxState.READY
+        logger.info(
+            f"Attached sandbox '{sandbox_type}' (backend={backend_type}) for session {self.aigise_session_id}"
+        )
 
     async def wait_for_ready(self, sandbox_type: str) -> None:
         """Wait for a specific sandbox to be ready."""

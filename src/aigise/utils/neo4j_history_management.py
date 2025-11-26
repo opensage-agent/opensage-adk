@@ -380,6 +380,21 @@ async def create_raw_tool_response_node(
     client = await get_neo4j_client_from_context(tool_context, "history")
     session_id = tool_context._invocation_context.session.id
 
+    # Normalize summary: persist exactly the tagged summary block if present
+    try:
+        import re as _re
+
+        _pattern = r"<Summary by aigise>(.*?)</Summary by aigise>"
+        if isinstance(summary, str):
+            _m = _re.search(_pattern, summary, _re.DOTALL)
+            summary_to_store = _m.group(0) if _m else summary
+        else:
+            _s = str(summary)
+            _m = _re.search(_pattern, _s, _re.DOTALL)
+            summary_to_store = _m.group(0) if _m else _s
+    except Exception:
+        summary_to_store = str(summary)
+
     query = """
     MATCH (a:AgentRun {session_id: $session_id})
     CREATE (r:RawToolResponse {
@@ -404,7 +419,7 @@ async def create_raw_tool_response_node(
                 "tool_name": tool.name,
                 "tool_args": str(args),
                 "raw_content": str(tool_response),
-                "summary": summary,
+                "summary": summary_to_store,
                 "created_at": datetime.now().isoformat(),
             },
         )
@@ -451,7 +466,7 @@ async def _create_summarize_relation(
             )
             return True
         else:
-            logger.info(f"No matching RawToolResponse found for summary content")
+            logger.error(f"No matching RawToolResponse found for summary content")
             return False
 
     except Exception as e:
@@ -526,7 +541,7 @@ async def log_single_event_neo4j(
     """Process a single event, create event node if it doesn't exist."""
     # Use history client for agent history operations
     try:
-        # Check if event already exists, event nodes are created after the agent loop yields one, or
+        # Check if event already exists, event nodes are created after the agent loop yields one
         if not await _event_exists(event.id, session_id, context):
             # Create event node
             await _create_event_node(event, session_id, context)
@@ -590,11 +605,12 @@ async def create_history_summary_node(
 
         # Extract summary content
         summary_content = ""
-        if summary_event.content and summary_event.content.parts:
-            for part in summary_event.content.parts:
-                if hasattr(part, "text") and part.text:
+        comp = getattr(getattr(summary_event, "actions", None), "compaction", None)
+        compacted = getattr(comp, "compacted_content", None) if comp else None
+        if compacted and getattr(compacted, "parts", None):
+            for part in compacted.parts:
+                if getattr(part, "text", None):
                     summary_content += part.text
-
         params = {
             "event_id": summary_event.id,
             "session_id": session_id,

@@ -20,6 +20,7 @@ def run_poc_from_script(
 ) -> str:
     r"""
     Execute a PoC generation script, which will save a generated poc, we execute the generated poc and capture its output.
+    The poc_generation_script should generate a file named `poc` in the current working directory, this tool will copy the poc file to /tmp/poc in the container containing the vulnerable program, and then execute `arvo`, which will automatically feed /tmp/poc as an input to the vulnerable program.
 
     Args:
         poc_generation_script (str): A Python script provided as a string that, when executed,

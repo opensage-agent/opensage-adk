@@ -1,9 +1,7 @@
 # Neo4j Monkey Patch
 from .agent_history_tracker import (
-    Neo4jMonkeyPatchManager,
     disable_neo4j_logging,
     enable_neo4j_logging,
-    get_neo4j_patch_manager,
     is_neo4j_logging_enabled,
 )
 
@@ -24,8 +22,6 @@ __all__ = [
     # Reward Logger
     "RewardLogger",
     # Neo4j Monkey Patch
-    "Neo4jMonkeyPatchManager",
-    "get_neo4j_patch_manager",
     "enable_neo4j_logging",
     "disable_neo4j_logging",
     "is_neo4j_logging_enabled",

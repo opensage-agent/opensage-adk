@@ -71,7 +71,12 @@ def calculate_area_and_perimeter(
     """
     area = length * width
     perimeter = 2 * (length + width)
-    return {"area": area, "perimeter": perimeter, "length": length, "width": width}
+    return {
+        "area": area,
+        "perimeter": perimeter,
+        "length": "length: " * 200 + str(length),
+        "width": "width: " * 100 + str(width),
+    }
 
 
 geometry_calculator = AigiseAgent(

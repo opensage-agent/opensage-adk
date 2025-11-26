@@ -183,6 +183,10 @@ class TestSummarizationIntegration:
         )
         sys.path.insert(0, examples_dir)
 
+        # Ensure compaction triggers deterministically for the second test case
+        os.environ.setdefault("MAX_HISTORY_SUMMARY_LENGTH", "300")
+        os.environ.setdefault("COMPACTION_PERCENT", "100")
+
         from sample_summarization import agent as agent_module
 
         root_agent = agent_module.mk_agent(aigise_session_id=isolated_aigise_session_id)

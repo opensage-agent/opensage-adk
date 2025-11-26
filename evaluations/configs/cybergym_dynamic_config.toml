@@ -12,7 +12,7 @@ RUN_COMMAND = "arvo"
 AGENT_STORAGE_PATH = ""
 # History configuration defaults
 MAX_TOOL_RESPONSE_LENGTH = 15000
-MAX_HISTORY_SUMMARY_LENGTH = 450000
+MAX_HISTORY_SUMMARY_LENGTH = 200000
 # Agent ensemble defaults
 AVAILABLE_MODELS = "anthropic/claude-sonnet-4-5-20250929,openai/gpt-5,openai/o4-mini"
 # Host and Ports
@@ -111,7 +111,6 @@ initializer_timeout_sec = 1800
 [llm.model_configs.main]
 model_name = "${MAIN_MODEL}"
 temperature = 0.7
-max_tokens = 4096
 rpm = 60
 tpm = 60000
 
@@ -119,21 +118,27 @@ tpm = 60000
 [llm.model_configs.summarize]
 model_name = "${MAIN_MODEL}"
 temperature = 0.3
-max_tokens = 2048
 rpm = 30
 tpm = 30000
 
 # Flag claims model configuration
 [llm.model_configs.flag_claims]
-model_name = "anthropic/claude-sonnet-4-5-20250929"
+model_name = "openai/gpt-5"
 temperature = 0.1
-max_tokens = 1024
 rpm = 30
 tpm = 30000
 
 [history]
 max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
+enable_quota_countdown = true
 max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+
+[history.events_compaction]
+# Trigger when either budget is exceeded
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+compaction_percent = 50
+#
+
 
 [agent_ensemble]
 thread_safe_tools = []

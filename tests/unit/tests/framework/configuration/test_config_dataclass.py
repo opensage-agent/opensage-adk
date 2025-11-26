@@ -210,11 +210,16 @@ class TestDataclassCreation:
     def test_history_config_creation(self):
         """Test HistoryConfig creation."""
         config = HistoryConfig(
-            max_tool_response_length=2000, max_history_summary_length=80000
+            max_tool_response_length=2000,
+            events_compaction=HistoryConfig.EventsCompactionConfig(
+                max_history_summary_length=80000,
+                compaction_percent=60,
+            ),
         )
 
         assert config.max_tool_response_length == 2000
-        assert config.max_history_summary_length == 80000
+        assert config.events_compaction.max_history_summary_length == 80000
+        assert config.events_compaction.compaction_percent == 60
 
     def test_agent_ensemble_config_creation(self):
         """Test AgentEnsembleConfig creation."""

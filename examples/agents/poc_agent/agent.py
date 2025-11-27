@@ -29,7 +29,7 @@ from aigise.toolbox.static_analysis.call_graph import (
 def mk_agent(aigise_session_id="poc-agent-session"):
     return AigiseAgent(
         name="poc_generation_agent",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="openai/o4-mini"),
         description="Generates Python PoC scripts for vulnerabilities.",
         instruction="""
         You are an expert in vulnerability research. Given one or more of the following: a vulnerability description, target function, and patch diff, generate a Python script that triggers the vulnerability and causes a crash.

@@ -628,7 +628,7 @@ class TestDynamicAgentManager:
             creator="test-creator",
         )
 
-        await self.manager._persist_agent_metadata("test-id", metadata)
+        self.manager._persist_agent_metadata("test-id", metadata)
 
         # Verify file was created
         metadata_file = self.manager.storage_path / "test-id_metadata.json"

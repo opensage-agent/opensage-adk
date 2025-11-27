@@ -94,7 +94,7 @@ def calculate_area_and_perimeter(
     }
 
 
-def mk_agent(aigise_session_id="sample-summarization-session"):
+def mk_agent():
     enable_neo4j_logging()
     os.environ["MAX_HISTORY_SUMMARY_LENGTH"] = "300"
     os.environ["MAX_TOOL_RESPONSE_LENGTH"] = "100"
@@ -103,7 +103,7 @@ def mk_agent(aigise_session_id="sample-summarization-session"):
     geometry_calculator = AigiseAgent(
         name="geometry_calculator",
         description="Calculates geometric properties like area and perimeter of shapes",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="openai/gpt-5"),
         instruction="""You are a geometry calculator agent. You specialize in calculating geometric properties.
 Use the provided tools to calculate areas, perimeters, and other geometric measurements.
 Always explain the geometric concepts involved and show the calculation steps.
@@ -119,7 +119,7 @@ Formulate the final answer as a single number inside <final_answer>...</final_an
     math_calculator = AigiseAgent(
         name="math_calculator",
         description="Calculates multiplication",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="openai/gpt-5"),
         instruction="""You are a math calculator agent. You specialize in calculating mathematical properties.
 Use the provided tools to calculate addition and multiplication.
 Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
@@ -130,7 +130,7 @@ Formulate the final answer as a single number inside <final_answer>...</final_an
     root_agent = AigiseAgent(
         name="calculation_orchestrator",
         description="Main agent that coordinates mathematical and geometric calculations with Neo4j history logging",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="openai/gpt-5"),
         instruction="""You are a calculation orchestrator. You help users with various mathematical and geometric calculations.
       Formulate the final answer as a single number inside <final_answer> ...</final_answer> tags.
       """,
@@ -144,7 +144,6 @@ Formulate the final answer as a single number inside <final_answer>...</final_an
             subtract_numbers,
         ],
         sub_agents=[math_calculator],
-        aigise_session_id=aigise_session_id,
     )
 
     setup_summarization_callbacks(root_agent)

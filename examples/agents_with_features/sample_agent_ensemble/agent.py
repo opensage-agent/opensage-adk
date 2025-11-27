@@ -33,7 +33,7 @@ def calculate_add(a: float, b: float) -> float:
 
 
 calculation_agent = LlmAgent(
-    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+    model=LiteLlm(model="openai/o4-mini"),
     name="calculation_agent",
     instruction="""
     You are a helpful math assistant. You can help users with basic arithmetic operations.
@@ -47,19 +47,18 @@ calculation_agent_tool = AgentTool(agent=calculation_agent)
 enable_neo4j_logging()
 
 
-def mk_agent(aigise_session_id="sample-ensemble-session"):
+def mk_agent(aigise_session_id="sample-agent-ensemble-session"):
     aigise_session = get_aigise_session(aigise_session_id)
     ensemble_manager = aigise_session.ensemble
     ensemble_manager.add_thread_safe_tool("calculate_add")
     config = aigise_session.config
     config.agent_ensemble.available_models_for_ensemble = [
-        "anthropic/claude-sonnet-4-20250514",
         "openai/o4-mini",
+        "openai/gpt-5",
     ]
     aigise_session.config = config
     root_agent = AigiseAgent(
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
-        aigise_session_id=aigise_session_id,
+        model=LiteLlm(model="openai/gpt-5"),
         name="simple_math_agent",
         instruction="""
         You are a helpful math assistant. You can help users with basic arithmetic operations.

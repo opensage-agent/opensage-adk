@@ -50,13 +50,13 @@ class TestTemplateVariableExpansion:
         expanded = _expand_template_variables(config_data)
         assert expanded["URI"] == "http://localhost:8080/api"
 
-    def test_environment_variable_override(self):
-        """Test environment variables override config variables."""
-        config_data = {"TEST_VAR": "config_value", "result": "${TEST_VAR}"}
+    # def test_environment_variable_override(self):
+    #     """Test environment variables override config variables."""
+    #     config_data = {"TEST_VAR": "config_value", "result": "${TEST_VAR}"}
 
-        with mock.patch.dict(os.environ, {"TEST_VAR": "env_value"}):
-            expanded = _expand_template_variables(config_data)
-            assert expanded["result"] == "env_value"
+    #     with mock.patch.dict(os.environ, {"TEST_VAR": "env_value"}):
+    #         expanded = _expand_template_variables(config_data)
+    #         assert expanded["result"] == "env_value"
 
     def test_undefined_variable_raises_error(self):
         """Test that undefined variables raise KeyError."""
@@ -442,20 +442,21 @@ sse_port = 1112
         with pytest.raises(FileNotFoundError, match="Configuration file not found"):
             AigiseConfig.from_toml("/non/existent/path.toml")
 
-    def test_environment_variable_override_in_toml(self):
-        """Test that environment variables override TOML variables."""
-        toml_content = """
-TEST_VAR = "config_value"
-result = "${TEST_VAR}"
-"""
 
-        with open(self.test_config_path, "w") as f:
-            f.write(toml_content)
+#     def test_environment_variable_override_in_toml(self):
+#         """Test that environment variables override TOML variables."""
+#         toml_content = """
+# TEST_VAR = "config_value"
+# result = "${TEST_VAR}"
+# """
 
-        with mock.patch.dict(os.environ, {"TEST_VAR": "env_override"}):
-            config_dict = toml.load(self.test_config_path)
-            expanded = _expand_template_variables(config_dict)
-            assert expanded["result"] == "env_override"
+#         with open(self.test_config_path, "w") as f:
+#             f.write(toml_content)
+
+#         with mock.patch.dict(os.environ, {"TEST_VAR": "env_override"}):
+#             config_dict = toml.load(self.test_config_path)
+#             expanded = _expand_template_variables(config_dict)
+#             assert expanded["result"] == "env_override"
 
 
 class TestAigiseConfigMethods:

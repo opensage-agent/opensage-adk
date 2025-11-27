@@ -62,7 +62,6 @@ from aigise.toolbox.static_analysis.cpg import (
 
 
 def mk_agent(aigise_session_id="poc-agent-session"):
-    enable_neo4j_logging()
     model = LiteLlm(
         # model="litellm_proxy/vertex_ai/claude-sonnet-4-5@20250929",
         model="litellm_proxy/openai/gpt-5",
@@ -89,7 +88,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
         If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
         """,
-        tools=[gdb_toolset, bash_tool, complain],
+        tools=[bash_tool, complain],
     )
     root_agent = debugger_agent
     setup_summarization_callbacks(root_agent)

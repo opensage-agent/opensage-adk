@@ -123,43 +123,43 @@ class AigiseAgent(LlmAgent):
                 except Exception as _e:
                     logger.error(f"Skip immediate state persist: {_e}")
 
-            # 2. Collect sandbox dependencies and launch required sandboxes
-            try:
-                from aigise.session import get_aigise_session
-                from aigise.toolbox.decorators import collect_sandbox_dependencies
-                from aigise.utils.agent_utils import get_aigise_session_id_from_context
+            # # 2. Collect sandbox dependencies and launch required sandboxes
+            # try:
+            #     from aigise.session import get_aigise_session
+            #     from aigise.toolbox.decorators import collect_sandbox_dependencies
+            #     from aigise.utils.agent_utils import get_aigise_session_id_from_context
 
-                # Get the root agent to collect all dependencies
-                root_agent = self.root_agent
+            #     # Get the root agent to collect all dependencies
+            #     root_agent = self.root_agent
 
-                # Collect all sandbox dependencies from the agent tree
-                sandbox_dependencies = collect_sandbox_dependencies(root_agent)
-                logger.info(f"Collected sandbox dependencies: {sandbox_dependencies}")
-                if sandbox_dependencies:
-                    logger.info(
-                        f"Agent '{self.name}' requires sandboxes: {sandbox_dependencies}"
-                    )
+            #     # Collect all sandbox dependencies from the agent tree
+            #     sandbox_dependencies = collect_sandbox_dependencies(root_agent)
+            #     logger.info(f"Collected sandbox dependencies: {sandbox_dependencies}")
+            #     if sandbox_dependencies:
+            #         logger.info(
+            #             f"Agent '{self.name}' requires sandboxes: {sandbox_dependencies}"
+            #         )
 
-                    # Get AIgiSE session
-                    aigise_session_id = get_aigise_session_id_from_context(
-                        callback_context._invocation_context
-                    )
-                    aigise_session = get_aigise_session(aigise_session_id)
+            #         # Get AIgiSE session
+            #         aigise_session_id = get_aigise_session_id_from_context(
+            #             callback_context._invocation_context
+            #         )
+            #         aigise_session = get_aigise_session(aigise_session_id)
 
-                    # Launch only the required sandboxes
-                    # launch_all_sandboxes has defensive check, safe to call multiple times
-                    await aigise_session.sandboxes.launch_all_sandboxes(
-                        sandbox_types=sandbox_dependencies
-                    )
-                    await aigise_session.sandboxes.initialize_all_sandboxes()
-                    logger.info(
-                        f"Sandboxes launched successfully for agent '{self.name}'"
-                    )
-                else:
-                    logger.info(f"Agent '{self.name}' has no sandbox dependencies")
-            except Exception as e:
-                # Silent failure for non-AIgiSE scenarios or when no sandbox config
-                logger.error(f"Sandbox launch skipped for agent '{self.name}': {e}")
+            #         # Launch only the required sandboxes
+            #         # launch_all_sandboxes has defensive check, safe to call multiple times
+            #         await aigise_session.sandboxes.launch_all_sandboxes(
+            #             sandbox_types=sandbox_dependencies
+            #         )
+            #         await aigise_session.sandboxes.initialize_all_sandboxes()
+            #         logger.info(
+            #             f"Sandboxes launched successfully for agent '{self.name}'"
+            #         )
+            #     else:
+            #         logger.info(f"Agent '{self.name}' has no sandbox dependencies")
+            # except Exception as e:
+            #     # Silent failure for non-AIgiSE scenarios or when no sandbox config
+            #     logger.error(f"Sandbox launch skipped for agent '{self.name}': {e}")
 
         if (
             not hasattr(self, "before_agent_callback")

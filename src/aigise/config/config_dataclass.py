@@ -39,10 +39,10 @@ def _expand_template_variables(config_data: dict) -> dict:
 
     # 2. Define variable lookup function
     def get_variable_value(var_name: str) -> str:
-        # First check environment variables (highest priority)
-        env_value = os.getenv(var_name)
-        if env_value is not None:
-            return env_value
+        # # First check environment variables (highest priority)
+        # env_value = os.getenv(var_name)
+        # if env_value is not None:
+        #     return env_value
 
         # Then check top-level variables (fallback)
         if var_name in template_variables:

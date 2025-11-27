@@ -74,17 +74,18 @@ class FuzzInitializer(SandboxInitializer):
         return infos
 
     async def _setup_fuzzing_environment(self, infos: dict[str, str]) -> None:
-        """Set up the fuzzing environment."""
-        logger.info("Setting up fuzzing environment...")
+        pass
+        # """Set up the fuzzing environment."""
+        # logger.info("Setting up fuzzing environment...")
 
-        # Copy source code from /shared/code to /src for compilation
-        logger.info("Copying source code from /shared/code to /src...")
-        copy_cmd = "cp -r /shared/code/* /src/"
-        msg, err = self.run_command_in_container(copy_cmd, timeout=1200)
-        if err != 0:
-            raise RuntimeError(f"Failed to copy source code: {msg}")
+        # # Copy source code from /shared/code to /src for compilation
+        # logger.info("Copying source code from /shared/code to /src...")
+        # copy_cmd = "cp -r /shared/code/* /src/"
+        # msg, err = self.run_command_in_container(copy_cmd, timeout=1200)
+        # if err != 0:
+        #     raise RuntimeError(f"Failed to copy source code: {msg}")
 
-        logger.info(f"Fuzzing environment verified: {infos}")
+        # logger.info(f"Fuzzing environment verified: {infos}")
 
     async def _compile_with_aflpp(self, infos: dict[str, str]) -> None:
         """Compile the project with AFL++."""

@@ -108,3 +108,16 @@ Use git subtree to add third_party dependencies that we want to edit. Example:
 ```bash
 git subtree add --prefix third_party/cybergym https://github.com/sunblaze-ucb/cybergym.git main --squash
 ```
+
+## Debug
+
+Run a single-agent web UI (Dev UI) backed by AIgiSE services for debugging:
+
+```bash
+# from the repo root
+uv run aigise web \
+  --config /abs/path/to/your_config.toml \
+  --agent  /abs/path/to/agents/<your_agent_dir> \
+  --port   <your_preferred_port> \
+  --neo4j_logging   # optional, enable Neo4j event logging
+```

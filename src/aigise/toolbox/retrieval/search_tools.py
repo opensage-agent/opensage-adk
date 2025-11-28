@@ -156,8 +156,9 @@ def get_line_around_linenum_in_file(
 def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> dict:
     """
     Search the codebase inside the running container for the definition of a given symbol.
-    If the symbol is a method in a class, do not include the class name in the symbol name.
-    Do not include any punctuation such as parentheses in the symbol name.
+    If the symbol is a method in a class, do not include the class name in the symbol_name.
+    E.g. if the symbol name is "MyClass::myMethod", do not include "MyClass" in the symbol_name, only include "myMethod".
+    Do not include any punctuation such as parentheses in the symbol_name.
     Args:
         symbol_name (str): The name of the symbol to search for.
     Returns:
@@ -187,6 +188,12 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
                 "error": f"Failed to run ctags command: {output}, do not call this tool again.",
             }
 
+    res = ""
+    if "::" in symbol_name:
+        symbol_name = symbol_name.split("::")[-1]
+        res += f"Detected `::` in symbol_name. If you are looking for the definition of a method in a class, do not include the class name in the symbol_name. E.g. if the symbol name is 'MyClass::myMethod', do not include 'MyClass' in the symbol_name, only include 'myMethod'."
+        res += f"Searching for '{symbol_name}':\n"
+
     # First, try exact match (symbol name at start of line followed by tab)
     grep_output, grep_exit = sandbox.run_command_in_container(
         f"grep -i '^{symbol_name}\t' /shared/.tags"
@@ -194,7 +201,8 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
 
     if grep_exit == 0:
         # Exact match found
-        return {"result": grep_output}
+        res += grep_output
+        return {"result": res}
 
     # If no exact match, try fuzzy match (symbol name anywhere in line)
     grep_output, grep_exit = sandbox.run_command_in_container(
@@ -203,9 +211,10 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
 
     if grep_exit != 0:
         # No matches found at all
-        return {"result": ""}
+        return {"result": res + "No matches found."}
 
     # Return fuzzy match results with warning
     return {
-        "result": f"Note: No exact match found for '{symbol_name}'. Showing fuzzy matches:\n\n{grep_output}"
+        "result": res
+        + f"Note: No exact match found for '{symbol_name}'. Showing fuzzy matches:\n\n{grep_output}"
     }

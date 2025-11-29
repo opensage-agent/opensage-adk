@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import subprocess
@@ -12,6 +13,8 @@ from aigise.utils.agent_utils import (
     get_sandbox_from_context,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @safe_tool_execution
 @requires_sandbox("main")
@@ -19,8 +22,7 @@ def run_poc_from_script(
     poc_generation_script: str, *, tool_context: ToolContext
 ) -> str:
     r"""
-    Execute a PoC generation script, which will save a generated poc, we execute the generated poc and capture its output.
-    The poc_generation_script should generate a file named `poc` in the current working directory, this tool will copy the poc file to /tmp/poc in the container containing the vulnerable program, and then execute `arvo`, which will automatically feed /tmp/poc as an input to the vulnerable program.
+    Execute a PoC generation script, which will save a generated poc, we execute the generated poc and capture its output. return code == 0 means failed, return code != 0, and some errors are triggered (e.g. sanitizer triggered) means success.
 
     Args:
         poc_generation_script (str): A Python script provided as a string that, when executed,
@@ -99,7 +101,7 @@ def run_poc_from_script(
         # 4. Verify that the PoC file was created
         poc_path = os.path.join(temp_dir, "poc")
         if not os.path.isfile(poc_path):
-            return "[WARN] No PoC file named 'poc' was generated."
+            return "[WARN] No PoC file named 'poc' was generated. Do you generate the poc file under the current working directory? (e.g. `./poc`)"
 
         # 5. Copy the PoC into the container using session-specific config
         config = get_aigise_config_from_context(tool_context)
@@ -114,8 +116,29 @@ def run_poc_from_script(
         try:
             output, exit_code = run_poc_in_sandbox(tool_context)
             if exit_code != 0:
-                return f"[ERROR] Running PoC in container failed (code {exit_code}):\n{output}"
-            return output
+                # maybe succeed, save to file
+                alias = tool_context.state.get("alias", None)
+                if alias:
+                    backup_poc_path = config.build.poc_dir + f"_{alias}"
+                    backup_output_path = config.build.poc_dir + f"_{alias}_output.txt"
+                    backup_script_path = config.build.poc_dir + f"_{alias}_script.py"
+
+                    poc_output_temp_path = os.path.join(temp_dir, "poc_output.txt")
+                    with open(poc_output_temp_path, "w") as f:
+                        f.write(output)
+
+                    sandbox.copy_file_to_container(poc_path, backup_poc_path)
+                    sandbox.copy_file_to_container(
+                        poc_output_temp_path, backup_output_path
+                    )
+                    sandbox.copy_file_to_container(script_path, backup_script_path)
+                else:
+                    logger.warning("Cannot find alias, poc and output are not saved.")
+                if "sanitizer" in output.lower():
+                    return f"[Highly Possible Successful Poc]\nRunning PoC in container failed (code {exit_code}):\n{output}\nThis return suggests the sanitizer is triggered, which means the poc is successful. Please check the output carefully."
+                else:
+                    return f"[Maybe Successful Poc]\nRunning PoC in container failed (code {exit_code}):\n{output}\nThis return may means the sanitizer is triggered. Please check if the sanitizer is triggered, in which case the poc is successful."
+            return f"[Failed Poc]\n{output}\nThis return means the poc generation is failed. You should **not** return `is_success=true` in this case. Please try harder to make `return_code!=0` and trigger some errors."
         except Exception as e:
             return f"[ERROR] Failed to run PoC in container: {str(e)}"
 
@@ -148,4 +171,5 @@ def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     sandbox = get_sandbox_from_context(tool_context, "main")
     config = get_aigise_config_from_context(tool_context)
     poc_command = config.build.run_command
-    return sandbox.run_command_in_container(poc_command)
+    output = sandbox.run_command_in_container(poc_command)
+    return output

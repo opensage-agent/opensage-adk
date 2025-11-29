@@ -67,11 +67,11 @@ BASE_IMAGE = "${DEFAULT_IMAGE}"
 "1112/tcp" = "${PDB_PORT}"
 
 # Joern sandbox
-# [sandbox.sandboxes.joern]
-# image = "aigise/joern"
-# project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/joern/Dockerfile"
-# command = ""
-# ports = { "8081/tcp" = "${JOERN_PORT}" }
+#[sandbox.sandboxes.joern]
+#image = "aigise/joern"
+#project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/joern/Dockerfile"
+#command = ""
+#ports = { "8081/tcp" = "${JOERN_PORT}" }
 # CodeQL sandbox configuration
 
 [sandbox.sandboxes.codeql]

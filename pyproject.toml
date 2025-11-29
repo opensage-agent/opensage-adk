@@ -10,6 +10,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "google-adk>=1.18.0",
+    "langfuse",
+    "openinference-instrumentation-google-adk",
     "cybergym[dev,server] @ git+https://github.com/sunblaze-ucb/cybergym",
     "pandas==2.2.3",
     "neomodel==5.4.3",

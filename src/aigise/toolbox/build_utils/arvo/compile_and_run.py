@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import subprocess
@@ -11,6 +12,8 @@ from aigise.utils.agent_utils import (
     get_aigise_config_from_context,
     get_sandbox_from_context,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @safe_tool_execution
@@ -115,19 +118,22 @@ def run_poc_from_script(
             if exit_code != 0:
                 # maybe succeed, save to file
                 func = tool_context.state.get("alias", None)
-                if not func:
-                    func = tool_context.state.get("aigise_session_id", "")
-                backup_poc_path = config.build.poc_dir + f"_{func}"
-                backup_output_path = config.build.poc_dir + f"_{func}_output.txt"
-                backup_script_path = config.build.poc_dir + f"_{func}_script.py"
+                if func:
+                    backup_poc_path = config.build.poc_dir + f"_{func}"
+                    backup_output_path = config.build.poc_dir + f"_{func}_output.txt"
+                    backup_script_path = config.build.poc_dir + f"_{func}_script.py"
 
-                poc_output_temp_path = os.path.join(temp_dir, "poc_output.txt")
-                with open(poc_output_temp_path, "w") as f:
-                    f.write(output)
+                    poc_output_temp_path = os.path.join(temp_dir, "poc_output.txt")
+                    with open(poc_output_temp_path, "w") as f:
+                        f.write(output)
 
-                sandbox.copy_file_to_container(poc_path, backup_poc_path)
-                sandbox.copy_file_to_container(poc_output_temp_path, backup_output_path)
-                sandbox.copy_file_to_container(script_path, backup_script_path)
+                    sandbox.copy_file_to_container(poc_path, backup_poc_path)
+                    sandbox.copy_file_to_container(
+                        poc_output_temp_path, backup_output_path
+                    )
+                    sandbox.copy_file_to_container(script_path, backup_script_path)
+                else:
+                    logger.warning("Cannot find alias, poc and output are not saved.")
                 if "sanitizer" in output.lower():
                     return f"[Highly Possible Successful Poc]\nRunning PoC in container failed (code {exit_code}):\n{output}\nThis return suggests the sanitizer is triggered, which means the poc is successful. Please check the output carefully."
                 else:

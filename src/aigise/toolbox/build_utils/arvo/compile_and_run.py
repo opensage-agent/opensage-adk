@@ -117,11 +117,11 @@ def run_poc_from_script(
             output, exit_code = run_poc_in_sandbox(tool_context)
             if exit_code != 0:
                 # maybe succeed, save to file
-                func = tool_context.state.get("alias", None)
-                if func:
-                    backup_poc_path = config.build.poc_dir + f"_{func}"
-                    backup_output_path = config.build.poc_dir + f"_{func}_output.txt"
-                    backup_script_path = config.build.poc_dir + f"_{func}_script.py"
+                alias = tool_context.state.get("alias", None)
+                if alias:
+                    backup_poc_path = config.build.poc_dir + f"_{alias}"
+                    backup_output_path = config.build.poc_dir + f"_{alias}_output.txt"
+                    backup_script_path = config.build.poc_dir + f"_{alias}_script.py"
 
                     poc_output_temp_path = os.path.join(temp_dir, "poc_output.txt")
                     with open(poc_output_temp_path, "w") as f:

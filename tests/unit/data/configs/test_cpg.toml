@@ -41,7 +41,7 @@ initializer_timeout_sec = 1800
 image = "aigise/joern"
 project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/joern/Dockerfile"
 command = ""
-ports = { "8081/tcp" = 8081 }
+ports = { "8081/tcp" = 18087 }
 [sandbox.sandboxes.joern.extra]
 initializer_timeout_sec = 1800
 

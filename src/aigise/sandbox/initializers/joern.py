@@ -98,6 +98,7 @@ class JoernInitializer(SandboxInitializer):
 
         await import_joern_callgraph(neo4j_client, "/")
         await update_joern_cpg(neo4j_client, fix_identical_methods=True)
+        breakpoint()
 
         client = JoernClient(
             server_endpoint=f"{aigise_session.config.default_host}:18087"

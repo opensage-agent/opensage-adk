@@ -374,6 +374,7 @@ class AigiseConfig:
     build: BuildConfig = None
     mcp: MCPConfig = None
     task_name: str = None
+    src_dir_in_sandbox: str = None
     agent_storage_path: Optional[str] = None
     default_host: str = None
 

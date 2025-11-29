@@ -87,7 +87,7 @@ class JoernInitializer(SandboxInitializer):
                 "/sandbox_scripts/callgraph/run_joern.sh",
                 aigise_session.config.src_dir_in_sandbox,
             ],
-          timeout=1200
+            timeout=1200,
         )
         if err != 0:
             raise RuntimeError(f"Joern run failed: {msg}")

@@ -1,6 +1,7 @@
 # AIgiSE config for sample_reward_func
 
 task_name = "sample_reward_func_task"
+src_dir_in_sandbox = "/shared/code"
 
 [sandbox]
 backend = "native"

@@ -8,7 +8,7 @@ MAIN_MODEL = "anthropic/claude-sonnet-4-20250514"
 TASK_NAME = "test_fuzz"
 
 # History configuration defaults
-
+src_dir_in_sandbox = "/shared/code"
 task_name = "${TASK_NAME}"
 
 [neo4j]

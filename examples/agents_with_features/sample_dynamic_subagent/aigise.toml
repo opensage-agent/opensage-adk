@@ -1,6 +1,7 @@
 # AIgiSE config for sample_dynamic_subagent
 
 task_name = "sample_dynamic_subagent_task"
+src_dir_in_sandbox = "/shared/code"
 agent_storage_path = "/tmp/dynamic_agent_test/agent_storage"
 
 [sandbox]

@@ -1,7 +1,7 @@
 # AIgiSE config for sample_agent_ensemble
 
 task_name = "sample_agent_ensemble_task"
-
+src_dir_in_sandbox = "/shared/code"
 [sandbox]
 backend = "native"
 

@@ -7,7 +7,9 @@ RUN mkdir /app
 WORKDIR /app
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-RUN curl -qsL 'https://install.pwndbg.re' | sh -s -- -t pwndbg-gdb
+# RUN curl -qsL 'https://install.pwndbg.re' | sh -s -- -t pwndbg-gdb
+RUN wget https://github.com/pwndbg/pwndbg/releases/download/2024.08.29/pwndbg_2024.08.29_amd64.deb && dpkg -i pwndbg_2024.08.29_amd64.deb
+
 ENV PATH="/root/.local/bin:$PATH"
 
 # disable pwndbg colors

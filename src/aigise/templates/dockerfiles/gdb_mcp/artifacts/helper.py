@@ -106,6 +106,8 @@ class GdbController:
         # pygdbmi
 
         # Send command and manually collect responses
+        collected: list[dict] = []
+
         try:
             responses = self.controller.write(command, timeout_sec=timeout_sec)
         except Exception as e:
@@ -118,7 +120,6 @@ class GdbController:
                 "state": self._state,
             }
 
-        collected: list[dict] = []
         for response in responses:
             logger.debug(f"GDB response: {response}")
             if response.get("type") != "notify":
@@ -151,6 +152,8 @@ class GdbController:
         elif message == "stopped":
             self._state = "stopped"
             payload = response.get("payload", {})
+            if payload == None:
+                payload = {}
             # Extract stop reason if available
             reason = payload.get("reason", "unknown")
             logger.debug(f"Inferior state: STOPPED (reason: {reason})")
@@ -162,6 +165,8 @@ class GdbController:
         elif message == "thread-group-started":
             # This happens when attaching to a process
             payload = response.get("payload", {})
+            if payload == None:
+                payload = {}
             self._inferior_pid = payload.get("pid")
             logger.debug(f"Thread group started, PID: {self._inferior_pid}")
 

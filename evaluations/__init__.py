@@ -1060,16 +1060,43 @@ class Evaluation(abc.ABC):
             },
         )
 
-        # 4. Run agent with prompt
-        run_config = RunConfig(max_llm_calls=self.max_llm_calls)
+        # Helper to track remaining LLM-call budget across multiple runner invocations.
+        remaining_llm_calls = self.max_llm_calls
+
+        def _build_run_config() -> RunConfig:
+            """Construct RunConfig reflecting the remaining LLM quota."""
+            if remaining_llm_calls is None:
+                return RunConfig(max_llm_calls=self.max_llm_calls)
+            return RunConfig(max_llm_calls=remaining_llm_calls)
+
+        async def _update_remaining_and_get_session() -> Session | None:
+            """Refresh the cached session and update remaining call budget."""
+            nonlocal remaining_llm_calls
+            session_snapshot = await session_service.get_session(
+                app_name=app_name,
+                user_id=self.user_id,
+                session_id=task.session_id,
+            )
+            if (
+                self.max_llm_calls > 0
+                and session_snapshot
+                and session_snapshot.state
+                and "_adk" in session_snapshot.state
+            ):
+                used_calls = int(
+                    session_snapshot.state.get("_adk", {}).get("llm_calls_used", 0) or 0
+                )
+                remaining_llm_calls = max(0, self.max_llm_calls - used_calls)
+            return session_snapshot
 
         all_events = []
+        session_snapshot: Session | None = None
 
         try:
             async for event in runner.run_async(
                 user_id=self.user_id,
                 session_id=task.session_id,
-                run_config=run_config,
+                run_config=_build_run_config(),
                 new_message=types.Content(
                     role="user", parts=[types.Part(text=task.prompt)]
                 ),
@@ -1077,13 +1104,25 @@ class Evaluation(abc.ABC):
                 logger.warning(event.model_dump_json())
                 all_events.append(event)
 
+            session_snapshot = await _update_remaining_and_get_session()
+
             if self.run_until_explicit_finish:
-                task_finished = False
+                task_finished = (
+                    session_snapshot.state.get("task_finished", False)
+                    if session_snapshot
+                    else False
+                )
                 while not task_finished:
+                    if self.max_llm_calls > 0 and remaining_llm_calls <= 0:
+                        logger.warning(
+                            "LLM-call budget exhausted before task signaled completion; stopping follow-up loop."
+                        )
+                        break
+
                     async for event in runner.run_async(
                         user_id=self.user_id,
                         session_id=task.session_id,
-                        run_config=run_config,
+                        run_config=_build_run_config(),
                         new_message=types.Content(
                             role="user",
                             parts=[
@@ -1096,15 +1135,13 @@ class Evaluation(abc.ABC):
                         logger.warning(event.model_dump_json(exclude_none=True))
                         all_events.append(event)
 
-                    # get the session object to check if the task is finished, get_session returns a deepcopy of the session
-                    # need to call get_session to get the latest status of the session
-                    session = await session_service.get_session(
-                        app_name=app_name,
-                        user_id=self.user_id,
-                        session_id=task.session_id,
-                    )
+                    session_snapshot = await _update_remaining_and_get_session()
 
-                    task_finished = session.state.get("task_finished", False)
+                    task_finished = (
+                        session_snapshot.state.get("task_finished", False)
+                        if session_snapshot
+                        else False
+                    )
 
         except LlmCallsLimitExceededError as e:
             logger.warning(
@@ -1112,9 +1149,11 @@ class Evaluation(abc.ABC):
             )
 
         await runner.close()
-        session = await session_service.get_session(
-            app_name=app_name, user_id=self.user_id, session_id=task.session_id
-        )
+        if not session_snapshot:
+            session_snapshot = await session_service.get_session(
+                app_name=app_name, user_id=self.user_id, session_id=task.session_id
+            )
+        session = session_snapshot
         # set our collected events to the session object, since the original events may be lost due to summarization
         session.events = all_events
 

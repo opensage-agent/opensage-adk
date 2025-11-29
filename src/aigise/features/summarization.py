@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import math
 from datetime import datetime
@@ -50,6 +51,35 @@ def _estimate_event_chars(event: Event) -> int:
                     )
                 )
     return total_chars
+
+
+def _render_event_parts_for_context(event: Event) -> List[str]:
+    """Render event text/tool call/response parts for prompt context."""
+    lines: List[str] = []
+    if not getattr(event, "content", None) or not event.content.parts:
+        return lines
+    for part in event.content.parts:
+        if getattr(part, "text", None):
+            lines.append(part.text)
+        elif getattr(part, "function_call", None):
+            fc = part.function_call
+            name = getattr(fc, "name", "unknown_tool")
+            args = getattr(fc, "args", {})
+            try:
+                args_str = json.dumps(args, ensure_ascii=False)
+            except Exception:
+                args_str = str(args)
+            lines.append(f"[ToolCall] {name}({args_str})")
+        elif getattr(part, "function_response", None):
+            fr = part.function_response
+            name = getattr(fr, "name", "unknown_tool")
+            resp = getattr(fr, "response", {})
+            try:
+                resp_str = json.dumps(resp, ensure_ascii=False)
+            except Exception:
+                resp_str = str(resp)
+            lines.append(f"[ToolResponse] {name} -> {resp_str}")
+    return lines
 
 
 def _group_invocation_rounds(events: List[Event], branch: Optional[str]) -> List[str]:
@@ -115,15 +145,52 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
     llm_request = LlmRequest()
     llm_request.config = types.GenerateContentConfig()
 
+    # Build recent context window (up to last 10 events).
+    recent_context_lines: List[str] = []
+    try:
+        session = getattr(tool_context._invocation_context, "session", None)
+        events: List[Event] = list(getattr(session, "events", []) or [])
+    except Exception:
+        events = []
+    event_blocks: List[str] = []
+    block_lengths: List[int] = []
+    if events:
+        for event in events[-10:]:
+            rendered_parts = _render_event_parts_for_context(event)
+            if not rendered_parts:
+                continue
+            author = getattr(event, "author", "unknown")
+            timestamp = getattr(event, "timestamp", None)
+            header = f"{author}" if timestamp is None else f"{author} @ {timestamp}"
+            block_lines = [f"{header}:"] + [f"  {line}" for line in rendered_parts]
+            block = "\n".join(block_lines)
+            event_blocks.append(block)
+            block_lengths.append(len(block) + 1)  # include newline between blocks
+    if event_blocks:
+        max_context_len = 50000
+        total_len = sum(block_lengths)
+        while event_blocks and total_len > max_context_len:
+            removed_len = block_lengths.pop(0)
+            event_blocks.pop(0)
+            total_len -= removed_len
+        context_block = "\n".join(event_blocks)
+    else:
+        context_block = "<no recent context captured>"
+
     summary_prompt = (
-        "Please summarize the following tool execution concisely:\n\n"
+        "Please summarize the following tool execution concisely.\n\n"
+        f"Recent context (last {min(len(events), 10)} events):\n{context_block}\n\n"
         f"Tool: {getattr(tool, 'name', 'unknown')}\n"
         f"Arguments: {args}\n"
-        f"Response: {raw[:50000]}{'...' if len(raw) > 50000 else ''}\n\n"
+        f"Response: {raw[:70000]}{'...' if len(raw) > 70000 else ''}\n\n"
         "Instructions:\n"
-        "1. Provide a brief 3–5 sentence summary of the key points.\n"
-        "2. Then attach the most critical key information from the Response verbatim.\n\n"
+        "1. Use the recent context to infer the most likely intent/purpose of this tool call."
+        " State it as 'Inferred Intent: ...'.\n"
+        "2. Provide a brief 6-9 sentence summary that focuses on details relevant to that intent."
+        " Emphasize which parts of the response are critical for the inferred goal.\n"
+        "3. Then attach the most critical key information from the Response verbatim.\n\n"
         "Output format:\n"
+        "Inferred Intent: ...\n"
         "Summary:\n"
         "- ...\n\n"
         "Key Information (verbatim):\n"
@@ -138,6 +205,13 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
     except Exception as e:
         logger.error(f"Error summarizing tool response: {e}")
         summary = raw[:1000] + ("..." if len(raw) > 1000 else "")
+    summary = (
+        """
+    The tool response is too long, so we need to summarize it. We inferred the intent for you to call this tool and kept critical information related to the inferred intent.
+    If the inferred intent of calling this tool doesn't match your expectation, you should call the appropriate tool with appropriate arguments to get the details. Here are the inferred intent and the summary:
+    """
+        + summary
+    )
 
     tagged_summary = f"<Summary by aigise>{summary}</Summary by aigise>"
 
@@ -352,8 +426,26 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
                     for part in content.parts:
                         if getattr(part, "text", None):
                             folded_chars += len(part.text)
+                        elif getattr(part, "function_call", None):
+                            folded_chars += len(
+                                json.dumps(
+                                    {
+                                        "name": part.function_call.name,
+                                        "args": part.function_call.args,
+                                    }
+                                )
+                            )
+                        elif getattr(part, "function_response", None):
+                            folded_chars += len(
+                                json.dumps(
+                                    {
+                                        "name": part.function_response.name,
+                                        "response": part.function_response.response,
+                                    }
+                                )
+                            )
         except Exception as _e:
-            logger.warning(f"Failed to build folded contents for budget calc: {_e}")
+            logger.error(f"Failed to build folded contents for budget calc: {_e}")
 
     total_chars = (
         folded_chars

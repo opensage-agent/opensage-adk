@@ -105,16 +105,3 @@ class JoernInitializer(SandboxInitializer):
         )
 
         await client.aexecute("importCpg('/cpg.bin')")
-
-    async def ensure_ready(self) -> None:
-        from aigise.session.aigise_session import get_aigise_session
-
-        aigise_session = get_aigise_session(self.aigise_session_id)
-
-        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
-        aigise_session.sandboxes.set_sandbox_state(
-            self.sandbox_type, SandboxState.READY
-        )
-        logger.info(
-            f"Joern environment successfully initialized for session {self.aigise_session_id}"
-        )

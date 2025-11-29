@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 async def complain(complaint: str, tool_context: ToolContext):
     """
     If you have a complaint, you should call this tool to complain about it. E.g., if a tool is hard to use, if the task is not clear, if a file or folder is supposed to be there but is not, etc. We will take your complaint into consideration and improve the tooling.
+    If there is a description that contradicts with the reality, you should call this tool to complain about it.
 
     Returns:
         "Complained, we will take your complaint into consideration and improve the tooling."

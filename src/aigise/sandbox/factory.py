@@ -7,10 +7,11 @@ from typing import Optional, Type
 from aigise.sandbox.initializers import (
     CodeQLInitializer,
     CoverageInitializer,
-    DefaultInitializer,
+    DebuggerInitializer,
     FuzzInitializer,
     JoernInitializer,
     Neo4jInitializer,
+    SandboxInitializer,
 )
 
 from .base_sandbox import BaseSandbox
@@ -32,6 +33,7 @@ SANDBOX_INITIALIZERS = {
     "fuzz": FuzzInitializer,
     "neo4j": Neo4jInitializer,
     "coverage": CoverageInitializer,
+    "debugger": DebuggerInitializer,
 }
 
 
@@ -101,6 +103,6 @@ def get_initializer_class(sandbox_type: str) -> Type:
         sandbox_type: The type of sandbox functionality needed
 
     Returns:
-        The initializer class, or DefaultInitializer if not found
+        The initializer class, or the base SandboxInitializer if not found
     """
-    return SANDBOX_INITIALIZERS.get(sandbox_type, DefaultInitializer)
+    return SANDBOX_INITIALIZERS.get(sandbox_type, SandboxInitializer)

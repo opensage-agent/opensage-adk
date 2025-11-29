@@ -100,14 +100,3 @@ class FuzzInitializer(SandboxInitializer):
             raise RuntimeError(f"AFL++ compilation failed: {msg}")
 
         logger.info("AFL++ compilation completed successfully")
-
-    async def ensure_ready(self) -> None:
-        """Ensure the sandbox is ready."""
-        from aigise.session.aigise_session import get_aigise_session
-
-        aigise_session = get_aigise_session(self.aigise_session_id)
-        # register once here since when using cache, we only call ensure_ready
-        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
-        aigise_session.sandboxes.set_sandbox_state(
-            self.sandbox_type, SandboxState.READY
-        )

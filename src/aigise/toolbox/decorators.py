@@ -8,6 +8,7 @@ before actually creating any sandboxes.
 from __future__ import annotations
 
 import asyncio
+import logging
 import traceback
 from functools import wraps
 from typing import Callable, TypeVar
@@ -16,6 +17,7 @@ from google.adk.agents.base_agent import BaseAgent
 from google.adk.tools.agent_tool import AgentTool
 
 F = TypeVar("F", bound=Callable)
+logger = logging.getLogger(__name__)
 
 
 def requires_sandbox(*sandbox_types: str) -> Callable[[F], F]:
@@ -83,6 +85,9 @@ def safe_tool_execution(func: F) -> F:
         try:
             return await func(*args, **kwargs)
         except Exception as e:
+            logger.error(
+                "Tool %s raised: %s", getattr(func, "__name__", func), e, exc_info=True
+            )
             error_msg = f"Failed: {type(e).__name__}: {str(e)}\n\nBacktrace:\n{traceback.format_exc()}"
             return {"error": error_msg, "success": False}
 
@@ -91,6 +96,9 @@ def safe_tool_execution(func: F) -> F:
         try:
             return func(*args, **kwargs)
         except Exception as e:
+            logger.error(
+                "Tool %s raised: %s", getattr(func, "__name__", func), e, exc_info=True
+            )
             error_msg = f"Failed: {type(e).__name__}: {str(e)}\n\nBacktrace:\n{traceback.format_exc()}"
             return {"error": error_msg, "success": False}
 

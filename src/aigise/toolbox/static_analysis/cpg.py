@@ -20,12 +20,14 @@ async def search_function(function_name: str, *, tool_context: ToolContext) -> d
     Tool to search for a function in the codebase.
     Input is a function name, output is a dictionary containing the implementation of the function.
     Args:
-        function_name (str): The name of the function to search for.
+        function_name (str): The name of the function to search for. Do not include the class name if the function is a method in a class. E.g. if the function name is "MyClass::myMethod", do not include "MyClass" in the function_name, only include "myMethod".
     Returns:
         dict: A dictionary containing function details if found
             (including file path, start line, end line, and first several lines of code),
             else None.
     """
+    if "::" in function_name:
+        function_name = function_name.split("::")[-1]
     client = await get_neo4j_client_from_context(tool_context, "analysis")
 
     results = await client.run_query(
@@ -197,7 +199,7 @@ async def _get_callee_helper(
 @safe_tool_execution
 @requires_sandbox("neo4j", "codeql", "joern")
 async def get_caller(
-    function_name: str, file_path: Optional[str], *, tool_context: ToolContext
+    function_name: str, file_path: Optional[str] = None, *, tool_context: ToolContext
 ) -> dict:
     """
     Tool to get the caller of a function in the codebase.
@@ -205,7 +207,7 @@ async def get_caller(
     the caller function name, file path, and start/end line numbers.
 
     Args:
-        function_name (str): The name of the function to search for.
+        function_name (str): The name of the function to search for. Do not include the class name if the function is a method in a class. E.g. if the function name is "MyClass::myMethod", do not include "MyClass" in the function_name, only include "myMethod".
         file_path (Optional[str]): The file path where the function is defined. It can be empty,
             in which case it will match all functions with the same name.
             This should be a relative path, relative to the root of the codebase. If it is a full path, you should convert it to a relative path.
@@ -214,6 +216,8 @@ async def get_caller(
     """
     if file_path and os.path.isabs(file_path):
         return "The input file path is a full path, you should convert it to a relative path, relative to the root of the codebase."
+    if "::" in function_name:
+        function_name = function_name.split("::")[-1]
     client = await get_neo4j_client_from_context(tool_context, "analysis")
     result = await _get_caller_helper(client, function_name, file_path)
     return result
@@ -222,12 +226,12 @@ async def get_caller(
 @safe_tool_execution
 @requires_sandbox("neo4j", "codeql", "joern")
 async def get_callee(
-    function_name: str, file_path: Optional[str], *, tool_context: ToolContext
+    function_name: str, file_path: Optional[str] = None, *, tool_context: ToolContext
 ) -> dict:
     """
     Tool to get the callee of a function in the codebase by function name and file path.
     Args:
-        function_name (str): The name of the function to search for.
+        function_name (str): The name of the function to search for. Do not include the class name if the function is a method in a class. E.g. if the function name is "MyClass::myMethod", do not include "MyClass" in the function_name, only include "myMethod".
         file_path (Optional[str]): The file path where the function is defined. It can be empty,
             in which case it will match all functions with the same name.
             This should be a relative path, relative to the root of the codebase. If it is a full path, you should convert it to a relative path.
@@ -236,6 +240,8 @@ async def get_callee(
     """
     if file_path and os.path.isabs(file_path):
         return "The input file path is a full path, you should convert it to a relative path, relative to the root of the codebase."
+    if "::" in function_name:
+        function_name = function_name.split("::")[-1]
     client = await get_neo4j_client_from_context(tool_context, "analysis")
     result = await _get_callee_helper(client, function_name, file_path)
     return result
@@ -245,9 +251,9 @@ async def get_callee(
 @requires_sandbox("neo4j", "codeql", "joern")
 async def get_call_paths_to_function(
     dst_function_name: str,
-    dst_file_path: Optional[str],
-    src_function_name: Optional[str],
-    src_file_path: Optional[str],
+    dst_file_path: Optional[str] = None,
+    src_function_name: Optional[str] = None,
+    src_file_path: Optional[str] = None,
     *,
     tool_context: ToolContext,
 ) -> dict:
@@ -256,10 +262,10 @@ async def get_call_paths_to_function(
     Note that LLVMFuzzerTestOneInput is the default source function name if not provided, it may not exist in the codebase or not captured by the call graph.
 
     Args:
-        dst_function_name (str): The name of the destination function to search for.
+        dst_function_name (str): The name of the destination function to search for. Do not include the class name if the function is a method in a class. E.g. if the function name is "MyClass::myMethod", do not include "MyClass" in the function_name, only include "myMethod".
         dst_file_path (Optional[str]): The file path where the destination function is defined.
             It can be empty, in which case it will match all functions with the same name. This should be a relative path, relative to the root of the codebase.
-        src_function_name (Optional[str]): The name of the source function to search for.
+        src_function_name (Optional[str]): The name of the source function to search for. Do not include the class name if the function is a method in a class. E.g. if the function name is "MyClass::myMethod", do not include "MyClass" in the function_name, only include "myMethod".
             It can be empty, in which case it will match "LLVMFuzzerTestOneInput" by default.
         src_file_path (Optional[str]): The file path where the source function is defined.
             It can be empty, in which case it will match all functions with the same name. This should be a relative path, relative to the root of the codebase.
@@ -271,13 +277,16 @@ async def get_call_paths_to_function(
         return "The input file path is a full path, you should convert it to a relative path, relative to the root of the codebase."
     if src_file_path and os.path.isabs(src_file_path):
         return "The input file path is a full path, you should convert it to a relative path, relative to the root of the codebase."
-    client = await get_neo4j_client_from_context(tool_context, "analysis")
-
-    dict_result = {"result": []}
-
+    if "::" in dst_function_name:
+        dst_function_name = dst_function_name.split("::")[-1]
     # Default source function name to LLVMFuzzerTestOneInput if not provided
     if not src_function_name:
         src_function_name = "LLVMFuzzerTestOneInput"
+    if "::" in src_function_name:
+        src_function_name = src_function_name.split("::")[-1]
+    client = await get_neo4j_client_from_context(tool_context, "analysis")
+
+    dict_result = {"result": []}
 
     # Build the WHERE clauses based on whether file paths are provided
     if dst_file_path:

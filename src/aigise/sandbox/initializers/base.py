@@ -14,28 +14,8 @@ logger = logging.getLogger(__name__)
 class SandboxInitializer(ABC):
     """Base class for sandbox functionality initializers."""
 
-    @abstractmethod
     async def async_initialize(self) -> None:
-        """
-        Initialize initializer-specific functionality (asynchronous version).
-
-        This method is called after the sandbox backend is initialized
-        and should set up any tool-specific environment or dependencies.
-        Use this for operations that require async I/O.
-        """
-        pass
-
-    @abstractmethod
-    async def ensure_ready(self) -> None:
-        """Ensure the sandbox is ready."""
-        pass
-
-
-class DefaultInitializer(SandboxInitializer):
-    """Default initializer with no special initialization."""
-
-    async def async_initialize(self) -> None:
-        """Wait for MCP server to be ready."""
+        """Initialize sandbox initializer (async version)."""
 
         await self.ensure_ready()
 

@@ -113,10 +113,10 @@ def run_poc_from_script(
         try:
             output, exit_code = run_poc_in_sandbox(tool_context)
             if exit_code != 0:
-                # succeed, save to file
+                # maybe succeed, save to file
                 func = tool_context.state.get("alias", None)
                 if not func:
-                    func = tool_context.state.get("aigise_session_id")
+                    func = tool_context.state.get("aigise_session_id", "")
                 backup_poc_path = config.build.poc_dir + f"_{func}"
                 backup_output_path = config.build.poc_dir + f"_{func}_output.txt"
                 backup_script_path = config.build.poc_dir + f"_{func}_script.py"

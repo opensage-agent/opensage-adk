@@ -2,6 +2,8 @@ import logging
 from typing import List, Optional
 
 from google.adk.agents.llm_agent import LlmAgent
+from google.adk.events.event import Event
+from google.adk.events.event_actions import EventActions
 from google.adk.tools.agent_tool import AgentTool
 from pydantic import Field
 
@@ -95,6 +97,7 @@ class AigiseAgent(LlmAgent):
 
     def _setup_aigise_callback(self):
         """Set up callback to ensure aigise_session_id is stored and sandboxes are ready."""
+        # Idempotent guard to avoid duplicate registrations
 
         async def aigise_before_agent_callback(callback_context):
             session = callback_context._invocation_context.session
@@ -106,44 +109,57 @@ class AigiseAgent(LlmAgent):
                     self.aigise_session_id if self.aigise_session_id else session.id
                 )
                 session.state["aigise_session_id"] = session_id_to_use
-
-            # 2. Collect sandbox dependencies and launch required sandboxes
-            try:
-                from aigise.session import get_aigise_session
-                from aigise.toolbox.decorators import collect_sandbox_dependencies
-                from aigise.utils.agent_utils import get_aigise_session_id_from_context
-
-                # Get the root agent to collect all dependencies
-                root_agent = self.root_agent
-
-                # Collect all sandbox dependencies from the agent tree
-                sandbox_dependencies = collect_sandbox_dependencies(root_agent)
-                logger.info(f"Collected sandbox dependencies: {sandbox_dependencies}")
-                if sandbox_dependencies:
-                    logger.info(
-                        f"Agent '{self.name}' requires sandboxes: {sandbox_dependencies}"
+                # Persist the aigise_session_id immediately via a state_delta-only event
+                try:
+                    delta = {"aigise_session_id": session_id_to_use}
+                    persist_event = Event(
+                        invocation_id=callback_context._invocation_context.invocation_id,
+                        author=self.name,
+                        actions=EventActions(state_delta=delta),
                     )
+                    await callback_context._invocation_context.session_service.append_event(
+                        session=session, event=persist_event
+                    )
+                except Exception as _e:
+                    logger.error(f"Skip immediate state persist: {_e}")
 
-                    # Get AIgiSE session
-                    aigise_session_id = get_aigise_session_id_from_context(
-                        callback_context._invocation_context
-                    )
-                    aigise_session = get_aigise_session(aigise_session_id)
+            # # 2. Collect sandbox dependencies and launch required sandboxes
+            # try:
+            #     from aigise.session import get_aigise_session
+            #     from aigise.toolbox.decorators import collect_sandbox_dependencies
+            #     from aigise.utils.agent_utils import get_aigise_session_id_from_context
 
-                    # Launch only the required sandboxes
-                    # launch_all_sandboxes has defensive check, safe to call multiple times
-                    await aigise_session.sandboxes.launch_all_sandboxes(
-                        sandbox_types=sandbox_dependencies
-                    )
-                    await aigise_session.sandboxes.initialize_all_sandboxes()
-                    logger.info(
-                        f"Sandboxes launched successfully for agent '{self.name}'"
-                    )
-                else:
-                    logger.info(f"Agent '{self.name}' has no sandbox dependencies")
-            except Exception as e:
-                # Silent failure for non-AIgiSE scenarios or when no sandbox config
-                logger.error(f"Sandbox launch skipped for agent '{self.name}': {e}")
+            #     # Get the root agent to collect all dependencies
+            #     root_agent = self.root_agent
+
+            #     # Collect all sandbox dependencies from the agent tree
+            #     sandbox_dependencies = collect_sandbox_dependencies(root_agent)
+            #     logger.info(f"Collected sandbox dependencies: {sandbox_dependencies}")
+            #     if sandbox_dependencies:
+            #         logger.info(
+            #             f"Agent '{self.name}' requires sandboxes: {sandbox_dependencies}"
+            #         )
+
+            #         # Get AIgiSE session
+            #         aigise_session_id = get_aigise_session_id_from_context(
+            #             callback_context._invocation_context
+            #         )
+            #         aigise_session = get_aigise_session(aigise_session_id)
+
+            #         # Launch only the required sandboxes
+            #         # launch_all_sandboxes has defensive check, safe to call multiple times
+            #         await aigise_session.sandboxes.launch_all_sandboxes(
+            #             sandbox_types=sandbox_dependencies
+            #         )
+            #         await aigise_session.sandboxes.initialize_all_sandboxes()
+            #         logger.info(
+            #             f"Sandboxes launched successfully for agent '{self.name}'"
+            #         )
+            #     else:
+            #         logger.info(f"Agent '{self.name}' has no sandbox dependencies")
+            # except Exception as e:
+            #     # Silent failure for non-AIgiSE scenarios or when no sandbox config
+            #     logger.error(f"Sandbox launch skipped for agent '{self.name}': {e}")
 
         if (
             not hasattr(self, "before_agent_callback")
@@ -153,9 +169,19 @@ class AigiseAgent(LlmAgent):
         elif not isinstance(self.before_agent_callback, list):
             self.before_agent_callback = [self.before_agent_callback]
 
-        self.before_agent_callback = [
-            aigise_before_agent_callback
-        ] + self.before_agent_callback
+        # Only register if a callback with the same name is not already present
+        _has_aigise_cb = False
+        for _cb in self.before_agent_callback:
+            try:
+                if getattr(_cb, "__name__", None) == "aigise_before_agent_callback":
+                    _has_aigise_cb = True
+                    break
+            except Exception:
+                continue
+        if not _has_aigise_cb:
+            self.before_agent_callback = [
+                aigise_before_agent_callback
+            ] + self.before_agent_callback
 
         # Also set as attribute for Neo4j monkey patch to find and call early
         object.__setattr__(

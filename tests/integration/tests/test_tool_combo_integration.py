@@ -10,14 +10,20 @@ This test verifies that:
 import importlib
 import logging
 import re
+import uuid
 import warnings
 from typing import List
 
 import pytest
 from google.adk import Runner
 from google.adk.events import Event
-from google.adk.sessions import InMemorySessionService
 from google.genai import types
+
+from aigise.features.aigise_in_memory_session_service import (
+    AigiseInMemorySessionService,
+)
+from aigise.session import get_aigise_session
+from aigise.toolbox.decorators import collect_sandbox_dependencies
 
 logger = logging.getLogger(__name__)
 
@@ -34,20 +40,48 @@ class ToolComboTestRunner:
 
     def __init__(self, agent):
         self.agent = agent
-        self.session_service = InMemorySessionService()
+        self.session_service = AigiseInMemorySessionService()
         self.agent_client = Runner(
             app_name=self.app_name,
             agent=agent,
             session_service=self.session_service,
         )
-        self.current_session_id = None
+        self.current_session_id = str(uuid.uuid4())
 
     async def async_init(self):
-        """Initialize async resources."""
-        session = await self.session_service.create_session(
-            app_name=self.app_name, user_id=self.user_id
+        """Initialize AIgiSE env and ADK session."""
+        # Prepare AIgiSE environment
+        aigise_session = get_aigise_session(
+            aigise_session_id=self.current_session_id, config_path=None
         )
-        self.current_session_id = session.id
+        # Force storage path via config to avoid env coupling
+        aigise_session.config.agent_storage_path = "/tmp/tool_combo_test/agent_storage"
+        try:
+            deps = collect_sandbox_dependencies(self.agent)
+            if (
+                aigise_session.config.sandbox
+                and aigise_session.config.sandbox.sandboxes
+                and deps
+            ):
+                unused = [
+                    s
+                    for s in list(aigise_session.config.sandbox.sandboxes.keys())
+                    if s not in deps
+                ]
+                for s in unused:
+                    del aigise_session.config.sandbox.sandboxes[s]
+        except Exception:
+            pass
+        aigise_session.sandboxes.initialize_shared_volumes()
+        await aigise_session.sandboxes.launch_all_sandboxes()
+        await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
+
+        await self.session_service.create_session(
+            app_name=self.app_name,
+            user_id=self.user_id,
+            session_id=self.current_session_id,
+            state={"aigise_session_id": self.current_session_id},
+        )
         return self
 
     async def run(self, prompt: str) -> List[Event]:
@@ -118,6 +152,16 @@ def agent():
     import sys
     import uuid
 
+    from google.adk.models.lite_llm import LiteLlm
+
+    from aigise.features.agent_history_tracker import disable_neo4j_logging
+
+    # Disable Neo4j logging for this non-Neo4j test
+    try:
+        disable_neo4j_logging()
+    except Exception:
+        pass
+
     # Add examples directory to Python path
     examples_dir = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
@@ -129,16 +173,14 @@ def agent():
     # Import the agent module
     from sample_tool_combo import agent as agent_module
 
-    # Create agent with unique session ID
-    aigise_session_id = str(uuid.uuid4())
-    agent_instance = agent_module.mk_agent(aigise_session_id=aigise_session_id)
+    agent_instance = agent_module.mk_agent()
 
     yield agent_instance
 
-    # Cleanup: Remove session to cleanup all resources (containers, etc.)
-    from aigise.session.aigise_session import cleanup_aigise_session
+    # Cleanup: Remove sessions and resources
+    from aigise.session.aigise_session import AigiseSessionRegistry
 
-    cleanup_aigise_session(aigise_session_id)
+    AigiseSessionRegistry.cleanup_all_sessions()
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning")

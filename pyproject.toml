@@ -30,7 +30,12 @@ dependencies = [
     "datasets>=2.0.0",
     "dacite>=1.8.0",
     "cxxfilt>=0.3.0",
+    "click>=8.1.8,<9.0.0",
+    "uvicorn>=0.34.0,<1.0.0",
 ]
+
+[project.scripts]
+aigise = "aigise.cli.aigise_cli:main"
 
 [dependency-groups]
 dev = [

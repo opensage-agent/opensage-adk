@@ -1,10 +1,13 @@
 import asyncio
 import logging
-import os
+import math
 from datetime import datetime
+from typing import List, Optional, Set
 
 from google.adk.agents.base_agent import BaseAgent
+from google.adk.apps.llm_event_summarizer import LlmEventSummarizer
 from google.adk.events.event import Event
+from google.adk.events.event_actions import EventActions, EventCompaction
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.genai import types
@@ -19,21 +22,67 @@ from aigise.utils.agent_utils import (
 logger = logging.getLogger(__name__)
 
 
+def _estimate_event_chars(event: Event) -> int:
+    """Estimate character length of an event's content for budgeting."""
+    import json
+
+    total_chars = 0
+    if event.content and event.content.parts:
+        for part in event.content.parts:
+            if part.text:
+                total_chars += len(part.text)
+            elif part.function_call:
+                total_chars += len(
+                    json.dumps(
+                        {
+                            "name": part.function_call.name,
+                            "args": part.function_call.args,
+                        }
+                    )
+                )
+            elif part.function_response:
+                total_chars += len(
+                    json.dumps(
+                        {
+                            "name": part.function_response.name,
+                            "response": part.function_response.response,
+                        }
+                    )
+                )
+    return total_chars
+
+
+def _group_invocation_rounds(events: List[Event], branch: Optional[str]) -> List[str]:
+    """Return ordered unique invocation_ids for the given branch."""
+    seen: Set[str] = set()
+    ordered: List[str] = []
+    for ev in events:
+        if branch and ev.branch and ev.branch != branch:
+            continue
+        inv = getattr(ev, "invocation_id", None)
+        if not inv:
+            continue
+        if inv not in seen:
+            seen.add(inv)
+            ordered.append(inv)
+    return ordered
+
+
 async def _get_summary_async(model, llm_request):
-    """Get summary from model asynchronously"""
+    """Get summary from model asynchronously."""
     summary_parts = []
     async for llm_response in model.generate_content_async(llm_request):
         if llm_response.content and llm_response.content.parts:
             for part in llm_response.content.parts:
-                if part.text:
+                if getattr(part, "text", None):
                     summary_parts.append(part.text)
     return "".join(summary_parts).strip()
 
 
 async def tool_response_summarizer_callback(tool, args, tool_context, tool_response):
     """
-    Summarize the tool response.
-    If neo4j logging is enabled, create a new node in the neo4j database containing the summary of the original tool response, pointing to the original tool response node.
+    Summarize long tool responses and optionally persist to Neo4j.
+    Returns a tagged summary string, or None if not needed.
     """
     # Import here to avoid circular import
     from aigise.session import get_aigise_session
@@ -41,333 +90,580 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
     aigise_session_id = get_aigise_session_id_from_context(tool_context)
     aigise_session = get_aigise_session(aigise_session_id)
 
-    MAX_TOOL_RESPONSE_LENGTH = aigise_session.config.history.max_tool_response_length
-    if len(str(tool_response)) < MAX_TOOL_RESPONSE_LENGTH:
+    max_len = getattr(
+        getattr(aigise_session.config, "history", None),
+        "max_tool_response_length",
+        10000,
+    )
+    raw = str(tool_response)
+    if len(raw) < int(max_len):
         return None
+    logger.info(
+        f"Tool response length: {len(raw)}, max_len: {max_len}, triggering summarization"
+    )
 
-    model_name = aigise_session.config.llm.summarize_model
-    if not model_name:
-        logger.warning(
-            "summarize model not configured in LLM settings, trying to use agent model"
-        )
-        agent = tool_context._invocation_context.agent
+    model_name = getattr(aigise_session.config.llm, "summarize_model", None)
+    agent = tool_context._invocation_context.agent
+    if model_name:
+        model = LiteLlm(model=model_name)
+    else:
         if not hasattr(agent, "canonical_model"):
-            logger.warning("Agent has no model, skipping summarization")
+            logger.warning("Agent has no model, skipping tool response summarization")
             return None
         model = agent.canonical_model
-    else:
-        model = LiteLlm(model=model_name)
 
-    tool_response = str(tool_response)
-
-    async def run_summary():
-        llm_request = LlmRequest()
-        llm_request.config = types.GenerateContentConfig()
-
-        summary_prompt = f"""Please summarize the following tool execution concisely:
-
-        Tool: {tool.name}
-        Arguments: {args}
-        Response: {str(tool_response)[:50000]}{"..." if len(str(tool_response)) > 50000 else ""}
-
-        Instructions:
-        1. First, provide a brief 3–5 sentence summary of the key points.
-        2. Then, attach the most critical key information from the Response **verbatim** (do not rephrase), so that the evidence for your summary is preserved.
-        For example, if the Response is a very long build failure log, only include the error messages or essential lines that clearly reveal the nature of the failure.
-
-        Output format:
-        Summary:
-        - [your 3–5 sentence summary here]
-
-        Key Information (verbatim):
-        - [verbatim key information from the Response here]
-
-        """
-
-        llm_request.contents = [
-            types.Content(
-                role="user", parts=[types.Part.from_text(text=summary_prompt)]
-            )
-        ]
-        summary = await _get_summary_async(model, llm_request)
-
-        return summary
-
-    try:
-        summary = await run_summary()
-    except Exception as e:
-        logger.error(f"Error summarizing tool response: {e}")
-        tool_response = str(tool_response)
-        summary = (
-            tool_response[:1000] + "..." if len(tool_response) > 1000 else tool_response
-        )
-
-    summary = "<Summary by aigise>" + summary + "</Summary by aigise>"
-
-    if is_neo4j_logging_enabled():
-        from aigise.utils.neo4j_history_management import (
-            create_raw_tool_response_node,
-        )
-
-        await create_raw_tool_response_node(
-            tool, args, tool_context, tool_response, summary
-        )
-
-    return summary
-
-
-async def history_summarizer_callback(tool, args, tool_context, tool_response):
-    """
-    Summarize the history.
-    If neo4j logging is enabled, create a new node in the neo4j database containing the summary of the original events,
-    pointing to the original events,
-    detach the original events from the agent run node.
-
-    Args:
-        tool: The tool that was executed
-        args: Arguments passed to the tool
-        tool_context: Context for the tool execution
-        tool_response: Response from the tool
-    """
-    session = tool_context._invocation_context.session
-    agent = tool_context._invocation_context.agent
-
-    if not hasattr(agent, "canonical_model"):
-        logger.warning("Agent has no model, skipping history summarization")
-        return None
-
-    # Get all events from session history
-    events = session.events
-    if len(events) <= 2:  # Skip if too few events
-        return None
-
-    # Calculate total content length (including text, function_call, function_response)
-    def _estimate_event_length(event) -> int:
-        """Estimate character length of event when converted to message."""
-        import json
-
-        total_chars = 0
-        if event.content and event.content.parts:
-            for part in event.content.parts:
-                # Text content
-                if part.text:
-                    total_chars += len(part.text)
-                # Function call (serialize to JSON)
-                elif part.function_call:
-                    fc_json = json.dumps(
-                        {
-                            "name": part.function_call.name,
-                            "args": part.function_call.args,
-                        }
-                    )
-                    total_chars += len(fc_json)
-                # Function response (serialize to JSON)
-                elif part.function_response:
-                    fr_json = json.dumps(
-                        {
-                            "name": part.function_response.name,
-                            "response": part.function_response.response,
-                        }
-                    )
-                    total_chars += len(fr_json)
-        return total_chars
-
-    total_text_length = sum(_estimate_event_length(event) for event in events)
-
-    aigise_session_id = get_aigise_session_id_from_context(tool_context)
-    # Import here to avoid circular import
-    from aigise.session import get_aigise_session
-
-    aigise_session = get_aigise_session(aigise_session_id)
-
-    MAX_HISTORY_SUMMARY_LENGTH = (
-        aigise_session.config.history.max_history_summary_length
-    )
-    MAX_TOOL_RESPONSE_LENGTH = aigise_session.config.history.max_tool_response_length
-
-    # Check if summarization is needed
-    if total_text_length <= int(MAX_HISTORY_SUMMARY_LENGTH) - int(
-        MAX_TOOL_RESPONSE_LENGTH
-    ):
-        logger.info(
-            f"History text length {total_text_length} is less than the threshold {MAX_HISTORY_SUMMARY_LENGTH - MAX_TOOL_RESPONSE_LENGTH}, skipping summarization"
-        )
-        return None
-
-    # BUGFIX: Disable history summarization in parallel agent scenarios
-    # to avoid race conditions where multiple agents simultaneously modify session.events
-    current_branch = tool_context._invocation_context.branch
-    if current_branch and "." in current_branch:
-        logger.warning(
-            f"Skipping history summarization in parallel agent context (branch={current_branch}) "
-            "to prevent concurrent session.events modifications that break tool_call/tool_response pairing"
-        )
-        return None
-
-    logger.info(
-        f"History text length {total_text_length} exceeds threshold {MAX_HISTORY_SUMMARY_LENGTH - MAX_TOOL_RESPONSE_LENGTH}, triggering summarization..."
-    )
-
-    # Find incomplete tool calls (no corresponding tool response)
-    def get_function_call_id(func_call):
-        return func_call.id
-
-    def get_function_response_id(func_response):
-        return func_response.id
-
-    # Collect all tool call IDs
-    tool_call_ids = set()
-    for event in events:
-        if event.content and event.content.parts:
-            for part in event.content.parts:
-                if hasattr(part, "function_call") and part.function_call:
-                    tool_call_ids.add(get_function_call_id(part.function_call))
-
-    # Find tool responses
-    responded_tool_calls = set()
-    for event in events:
-        if event.content and event.content.parts:
-            for part in event.content.parts:
-                if hasattr(part, "function_response") and part.function_response:
-                    responded_tool_calls.add(
-                        get_function_response_id(part.function_response)
-                    )
-
-    # Identify events to keep (incomplete tool calls and recent events)
-    events_to_keep = []
-    events_to_summarize = []
-
-    for event in events:
-        should_keep = False
-        if event.content and event.content.parts:
-            for part in event.content.parts:
-                # Keep tool calls that haven't been responded to
-                if hasattr(part, "function_call") and part.function_call:
-                    call_id = get_function_call_id(part.function_call)
-                    # Check if this function call has been responded to
-                    # Note: We use function name matching since responses don't include args
-                    if call_id not in responded_tool_calls:
-                        should_keep = True
-                        break
-
-        if should_keep:
-            events_to_keep.append(event)
-        else:
-            events_to_summarize.append(event)
-
-    if not events_to_summarize:
-        return None
-
-    model_name = aigise_session.config.llm.summarize_model
-    if not model_name:
-        logger.warning(
-            "summarize model not configured in LLM settings, trying to use agent model"
-        )
-        model = agent.canonical_model
-    else:
-        model = LiteLlm(model=model_name)
-
-    # Generate summary using LLM directly with await
-    try:
-        summary_text = await _summarize_events_async(model, events_to_summarize)
-    except Exception as e:
-        logger.error(f"Error summarizing history: {e}")
-        return None
-
-    # Create new summary event
-    latest_timestamp = max(
-        [event.timestamp for event in events_to_summarize],
-        default=datetime.now().timestamp(),
-    )
-    summary_timestamp = latest_timestamp
-
-    # Create summary event content
-    summary_content = types.Content(
-        role="user",
-        parts=[types.Part.from_text(text=f"[History Summary] {summary_text}")],
-    )
-
-    # Create new event with proper fields
-    # Ensure branch is a valid string or None (handle mock objects in tests)
-    current_branch = tool_context._invocation_context.branch
-    branch_value = (
-        current_branch if isinstance(current_branch, (str, type(None))) else None
-    )
-
-    summary_event = Event(
-        invocation_id=tool_context._invocation_context.invocation_id,
-        author="user",  # History summaries are treated as user messages
-        timestamp=summary_timestamp,
-        content=summary_content,
-        branch=branch_value,  # Inherit branch from context
-    )
-
-    # Update session events: new summary + kept events
-    session.events = [summary_event] + events_to_keep
-
-    logger.info(
-        f"History summarized: {len(events_to_summarize)} events → 1 summary event"
-    )
-
-    # Handle Neo4j operations if enabled
-    if is_neo4j_logging_enabled():
-        from aigise.utils.neo4j_history_management import (
-            create_history_summary_node,
-        )
-
-        await create_history_summary_node(
-            tool_context, summary_event, events_to_summarize
-        )
-
-    return None
-
-
-async def _summarize_events_async(model, events_to_summarize):
-    """Summarize a list of events using the LLM"""
-    # Prepare events text
-    events_text = []
-    for i, event in enumerate(events_to_summarize):
-        event_text = f"Event {i + 1} ({event.timestamp}):\n"
-        if event.content and event.content.parts:
-            for part in event.content.parts:
-                if hasattr(part, "text") and part.text:
-                    event_text += f"  Text: {part.text}\n"
-                elif hasattr(part, "function_call") and part.function_call:
-                    event_text += f"  Tool Call: {part.function_call.name}({part.function_call.args})\n"
-                elif hasattr(part, "function_response") and part.function_response:
-                    event_text += f"  Tool Response: {str(part.function_response.response)[:500]}...\n"
-        events_text.append(event_text)
-
-    combined_events = "\n".join(events_text)
-
-    summary_prompt = f"""Please create a concise summary of the following conversation history:
-
-{combined_events}
-
-Instructions:
-1. Summarize the key topics, decisions, and outcomes
-2. Preserve important context and facts
-3. Keep the summary under 1000 words
-4. Focus on actionable information and key insights
-
-The history events might contain several sub-goals, you should summarize each sub-goal separately, but omit or only mention in high level the detailed steps within each sub-goal.
-The overall task may be not completed, you should summarize the progress of the overall task.
-
-Summary:"""
     llm_request = LlmRequest()
     llm_request.config = types.GenerateContentConfig()
+
+    summary_prompt = (
+        "Please summarize the following tool execution concisely:\n\n"
+        f"Tool: {getattr(tool, 'name', 'unknown')}\n"
+        f"Arguments: {args}\n"
+        f"Response: {raw[:50000]}{'...' if len(raw) > 50000 else ''}\n\n"
+        "Instructions:\n"
+        "1. Provide a brief 3–5 sentence summary of the key points.\n"
+        "2. Then attach the most critical key information from the Response verbatim.\n\n"
+        "Output format:\n"
+        "Summary:\n"
+        "- ...\n\n"
+        "Key Information (verbatim):\n"
+        "- ...\n"
+    )
     llm_request.contents = [
         types.Content(role="user", parts=[types.Part.from_text(text=summary_prompt)])
     ]
 
-    return await _get_summary_async(model, llm_request)
+    try:
+        summary = await _get_summary_async(model, llm_request)
+    except Exception as e:
+        logger.error(f"Error summarizing tool response: {e}")
+        summary = raw[:1000] + ("..." if len(raw) > 1000 else "")
+
+    tagged_summary = f"<Summary by aigise>{summary}</Summary by aigise>"
+
+    # Append quota countdown line if enabled
+    try:
+        enable_quota = bool(
+            getattr(
+                getattr(aigise_session.config, "history", None),
+                "enable_quota_countdown",
+                True,
+            )
+        )
+    except Exception:
+        enable_quota = False
+    if enable_quota:
+        inv_ctx = tool_context._invocation_context
+        try:
+            limit = int(
+                getattr(getattr(inv_ctx, "run_config", None), "max_llm_calls", 0) or 0
+            )
+        except Exception:
+            limit = 0
+        try:
+            used = int(
+                getattr(
+                    getattr(inv_ctx, "_invocation_cost_manager", None),
+                    "_number_of_llm_calls",
+                    0,
+                )
+                or 0
+            )
+        except Exception:
+            used = 0
+        if limit > 0:
+            remaining = max(0, limit - used)
+            tagged_summary += f"\n[Quota] You have {remaining} LLM calls remaining"
+        else:
+            tagged_summary += "\n[Quota] LLM calls: unlimited"
+
+    if is_neo4j_logging_enabled():
+        from aigise.utils.neo4j_history_management import create_raw_tool_response_node
+
+        await create_raw_tool_response_node(
+            tool, args, tool_context, tool_response, tagged_summary
+        )
+
+    return tagged_summary
+
+
+class AigiseFullEventSummarizer:
+    """Summarizer including text, tool calls/responses, and previous compaction text."""
+
+    def __init__(self, model: LiteLlm):
+        self._model = model
+
+    def _format_event_to_text(self, event: Event) -> List[str]:
+        lines: List[str] = []
+        if not event.content or not event.content.parts:
+            return lines
+        author = getattr(event, "author", "unknown")
+        for part in event.content.parts:
+            if getattr(part, "text", None):
+                lines.append(f"{author}: {part.text}")
+            elif getattr(part, "function_call", None):
+                fc = part.function_call
+                name = getattr(fc, "name", "unknown_tool")
+                args = getattr(fc, "args", {})
+                try:
+                    import json as _json
+
+                    args_str = _json.dumps(args, ensure_ascii=False)
+                except Exception:
+                    args_str = str(args)
+                lines.append(f"{author}: [ToolCall] {name}({args_str})")
+            elif getattr(part, "function_response", None):
+                fr = part.function_response
+                name = getattr(fr, "name", "unknown_tool")
+                resp = getattr(fr, "response", {})
+                try:
+                    import json as _json
+
+                    resp_str = _json.dumps(resp, ensure_ascii=False)
+                except Exception:
+                    resp_str = str(resp)
+                lines.append(f"{author}: [ToolResponse] {name} -> {resp_str}")
+        return lines
+
+    async def maybe_summarize_events(
+        self,
+        *,
+        events: List[Event],
+        previous_compaction_text: Optional[
+            str
+        ] = None,  # kept for compatibility, ignored
+        folded_context_text: Optional[str] = None,
+    ) -> Optional[types.Content]:
+        if not events:
+            return None
+
+        lines: List[str] = []
+        # Provide folded full-history as background context
+        if folded_context_text:
+            lines.append("[Context]")
+            lines.append(folded_context_text)
+            lines.append("")
+
+        # Explicitly mark the window that should be summarized
+        lines.append("[WindowToSummarize]")
+        for ev in events:
+            # Skip compaction events as sources; their text is injected via previous_compaction_text
+            if getattr(ev, "actions", None) and getattr(ev.actions, "compaction", None):
+                continue
+            # Add a per-event header to make authorship/timing explicit
+            try:
+                _ev_author = getattr(ev, "author", "unknown")
+                _ev_ts = getattr(ev, "timestamp", None)
+                if _ev_ts is not None:
+                    lines.append(f"[Event author={_ev_author} ts={_ev_ts}]")
+                else:
+                    lines.append(f"[Event author={_ev_author}]")
+            except Exception:
+                # In case of unexpected event shape, still attempt to render parts
+                lines.append("[Event]")
+            lines.extend(self._format_event_to_text(ev))
+
+        prompt = (
+            "You are given background context under [Context] (if present), and a "
+            "target window under [WindowToSummarize]. Only summarize the content "
+            "under [WindowToSummarize]; do not re-summarize [Context]. First, provide "
+            "a very detailed process narrative (more than 10 sentences) that "
+            "describes the process in order. Cover: actors/roles, "
+            "intents/goals, inputs/outputs, tools used (names and key arguments), "
+            "errors/exceptions, intermediate results, decisions made, alternatives "
+            "and rationale, do not include timestamps/ids. Then provide a focused "
+            "and detailed breakdown with the following sections:\n"
+            "1) Key Points: bullet list of the most important facts/decisions.\n"
+            "2) Incorrect Attempts: what was tried, why it was wrong/failed.\n"
+            "3) Lessons Learned: actionable takeaways to guide next steps.\n"
+            "4) Task Status:\n"
+            "   - Started: tasks that began in this window.\n"
+            "   - Completed: tasks finished in this window.\n"
+            "   - Not Completed: tasks still pending or blocked.\n\n" + "\n".join(lines)
+        )
+
+        llm_request = LlmRequest()
+        llm_request.config = types.GenerateContentConfig()
+        llm_request.contents = [
+            types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
+        ]
+
+        try:
+            summary_text = await _get_summary_async(self._model, llm_request)
+        except Exception as e:
+            logger.error(f"Error generating compaction summary: {e}")
+            return None
+
+        if not summary_text:
+            return None
+
+        return types.Content(
+            role="model", parts=[types.Part.from_text(text=summary_text)]
+        )
+
+
+async def history_summarizer_callback(tool, args, tool_context, tool_response):
+    """
+    Compaction-based history summarization:
+    - Decide a stable window (older events) to compact based on thresholds
+    - Create a compaction Event via LlmEventSummarizer
+    - Append compaction event; do not delete/overwrite original events
+    - Neo4j: record summary node and link to the original window
+    """
+    # Import here to avoid circular import
+    from aigise.session import get_aigise_session
+
+    session = tool_context._invocation_context.session
+    agent = tool_context._invocation_context.agent
+    current_branch = tool_context._invocation_context.branch
+    if not hasattr(agent, "canonical_model"):
+        logger.warning("Agent has no model, skipping history compaction")
+        return None
+
+    events: List[Event] = session.events or []
+    if len(events) < 2:
+        return None
+
+    aigise_session_id = get_aigise_session_id_from_context(tool_context)
+    aigise_session = get_aigise_session(aigise_session_id)
+    comp_cfg = getattr(aigise_session.config.history, "events_compaction", None)
+
+    budget_chars = (
+        getattr(comp_cfg, "max_history_summary_length", None) if comp_cfg else None
+    )
+    compaction_percent = getattr(comp_cfg, "compaction_percent", 50) if comp_cfg else 50
+
+    # Trigger check: use consumption-side folded view of current branch full history
+    try:
+        from google.adk.flows.llm_flows.contents import (
+            _get_contents as _adk_get_contents,
+        )
+    except Exception:
+        _adk_get_contents = None
+
+    folded_chars = None
+    if _adk_get_contents is not None:
+        try:
+            agent_name = getattr(agent, "name", "") or ""
+            folded_contents = _adk_get_contents(current_branch, events, agent_name)
+            folded_chars = 0
+            for content in folded_contents or []:
+                if getattr(content, "parts", None):
+                    for part in content.parts:
+                        if getattr(part, "text", None):
+                            folded_chars += len(part.text)
+        except Exception as _e:
+            logger.warning(f"Failed to build folded contents for budget calc: {_e}")
+
+    total_chars = (
+        folded_chars
+        if folded_chars is not None
+        else sum(_estimate_event_chars(e) for e in events)
+    )
+    effective_budget = None
+    if budget_chars is not None:
+        # Mirror legacy behavior: subtract tool response threshold to reserve headroom
+        try:
+            tool_resp_budget = int(
+                getattr(aigise_session.config.history, "max_tool_response_length", 0)
+            )
+        except Exception:
+            tool_resp_budget = 0
+        effective_budget = int(budget_chars) - tool_resp_budget
+        if effective_budget < 0:
+            effective_budget = 0
+    trigger_by_budget = effective_budget is not None and total_chars > effective_budget
+    if not trigger_by_budget:
+        logger.info(
+            f"No compaction triggered by budget (folded view): "
+            f"{total_chars} <= {effective_budget}"
+        )
+        return None
+    else:
+        logger.info(
+            f"Compaction triggered by budget (folded view): "
+            f"{total_chars} > {effective_budget}"
+        )
+
+    # Determine last compaction boundary and its text (for context)
+    last_compaction_end_ts: float = float("-inf")
+    previous_compaction_text: Optional[str] = None
+    for ev in reversed(events):
+        if getattr(ev, "actions", None) and getattr(ev.actions, "compaction", None):
+            if current_branch and ev.branch and ev.branch != current_branch:
+                continue
+            comp = ev.actions.compaction
+            if getattr(comp, "end_timestamp", None) is not None:
+                last_compaction_end_ts = max(last_compaction_end_ts, comp.end_timestamp)
+            compacted = getattr(comp, "compacted_content", None)
+            if compacted and getattr(compacted, "parts", None):
+                try:
+                    prev_text_parts = [
+                        p.text for p in compacted.parts if getattr(p, "text", None)
+                    ]
+                    if prev_text_parts:
+                        previous_compaction_text = "\n".join(prev_text_parts)
+                        break
+                except Exception:
+                    pass
+
+    # Find first user request timestamp on this branch (production-side constraint)
+    first_user_ts: Optional[float] = None
+    for ev in events:
+        if current_branch and ev.branch and ev.branch != current_branch:
+            continue
+        if (
+            getattr(ev, "author", None) == "user"
+            and getattr(ev, "timestamp", None) is not None
+        ):
+            if first_user_ts is None or ev.timestamp < first_user_ts:
+                first_user_ts = ev.timestamp
+
+    # Candidates: after last end ts, same branch, exclude compaction events
+    candidates: List[Event] = []
+    for ev in events:
+        if current_branch and ev.branch and ev.branch != current_branch:
+            continue
+        if getattr(ev, "actions", None) and getattr(ev.actions, "compaction", None):
+            continue
+        if ev.timestamp is None or ev.timestamp > last_compaction_end_ts:
+            candidates.append(ev)
+
+    if not candidates:
+        logger.info(f"No compaction triggered by candidates: {candidates}")
+        return None
+
+    pct = int(compaction_percent)
+    pct = max(0, min(100, pct))
+    window_size = max(1, math.floor(len(candidates) * pct / 100)) if pct > 0 else 0
+    if window_size <= 0:
+        logger.info(
+            f"No compaction triggered by window size: {window_size}, percentage: {pct}"
+        )
+        return None
+
+    # Build a maximal legal prefix window [0..k) that guarantees pairing:
+    # - Within the chosen prefix, every function_call id must have a matching
+    #   function_response id, and vice versa.
+    k = 0
+    pending_calls: Set[str] = set()
+    pending_resps: Set[str] = set()
+    seen_calls: Set[str] = set()
+    seen_resps: Set[str] = set()
+
+    limit = min(window_size, len(candidates))
+    for i in range(limit):
+        ev = candidates[i]
+        call_ids: List[str] = []
+        resp_ids: List[str] = []
+        if ev.content and ev.content.parts:
+            for part in ev.content.parts:
+                fc = getattr(part, "function_call", None)
+                if fc and getattr(fc, "id", None):
+                    call_ids.append(fc.id)
+                fr = getattr(part, "function_response", None)
+                if fr and getattr(fr, "id", None):
+                    resp_ids.append(fr.id)
+
+        # Update pending with calls first
+        for cid in call_ids:
+            seen_calls.add(cid)
+            if cid in pending_resps:
+                pending_resps.discard(cid)
+            else:
+                pending_calls.add(cid)
+
+        # Then update with responses
+        for rid in resp_ids:
+            seen_resps.add(rid)
+            if rid in pending_calls:
+                pending_calls.discard(rid)
+            else:
+                pending_resps.add(rid)
+
+        # If no pending on both sides, prefix [0..i] is legal
+        if not pending_calls and not pending_resps:
+            k = i + 1
+
+    if k == 0:
+        return None
+    window_events: List[Event] = candidates[:k]
+
+    # Enforce: window start must be > first_user_ts (if known)
+    if first_user_ts is not None:
+        trimmed_window: List[Event] = []
+        for ev in window_events:
+            ts = getattr(ev, "timestamp", None)
+            if ts is None or ts > first_user_ts:
+                trimmed_window.append(ev)
+        if not trimmed_window:
+            logger.info(
+                f"No compaction triggered by events in window after user query: {len(window_events)}"
+            )
+            return None
+        window_events = trimmed_window
+    if len(window_events) <= 2:
+        logger.info(
+            f"No compaction triggered by actual events in window: {len(window_events)}"
+        )
+        return None
+
+    # Choose summarization model
+    model_name = getattr(aigise_session.config.llm, "summarize_model", None)
+    if model_name:
+        summarizer_model = LiteLlm(model=model_name)
+    else:
+        summarizer_model = agent.canonical_model
+
+    summarizer = AigiseFullEventSummarizer(model=summarizer_model)
+    # Build folded full-history context text for the summarizer (current branch)
+    folded_context_text: Optional[str] = None
+    if _adk_get_contents is not None:
+        try:
+            agent_name = getattr(agent, "name", "") or ""
+            folded_contents = _adk_get_contents(current_branch, events, agent_name)
+            ctx_parts: List[str] = []
+            for content in folded_contents or []:
+                if getattr(content, "parts", None):
+                    for part in content.parts:
+                        if getattr(part, "text", None):
+                            ctx_parts.append(part.text)
+            folded_context_text = "\n".join(ctx_parts) if ctx_parts else None
+        except Exception as _e:
+            logger.warning(f"Failed to build folded context text: {_e}")
+
+    compacted_content = await summarizer.maybe_summarize_events(
+        events=window_events,
+        previous_compaction_text=previous_compaction_text,
+        folded_context_text=folded_context_text,
+    )
+    if not compacted_content:
+        logger.info(f"No compaction generated by model, skipping compaction")
+        return None
+
+    start_ts = window_events[0].timestamp
+    end_ts = window_events[-1].timestamp
+    compaction = EventCompaction(
+        start_timestamp=start_ts,
+        end_timestamp=end_ts,
+        compacted_content=compacted_content,
+    )
+    actions = EventActions(compaction=compaction)
+    compaction_event = Event(
+        author="user", actions=actions, invocation_id=Event.new_id()
+    )
+
+    # Attach current branch to compaction event
+    compaction_event.branch = current_branch
+    # Use current invocation_id for traceability if available
+    compaction_event.invocation_id = getattr(
+        tool_context._invocation_context,
+        "invocation_id",
+        compaction_event.invocation_id,
+    )
+    session_service = tool_context._invocation_context.session_service
+    await session_service.append_event(session=session, event=compaction_event)
+
+    # Neo4j persistence aligned with previous summarization semantics
+    if is_neo4j_logging_enabled():
+        from aigise.utils.neo4j_history_management import create_history_summary_node
+
+        await create_history_summary_node(tool_context, compaction_event, window_events)
+
+    logger.info(
+        f"History compaction appended. Window size={len(window_events)}; "
+        f"inv_id={compaction_event.invocation_id}"
+    )
+    return None
+
+
+async def quota_after_tool_callback(tool, args, tool_context, tool_response):
+    """
+    Append quota countdown to tool responses (non-live):
+    - If string result: append a line.
+    - If dict result: inject _quota_info = {used, remaining, limit}.
+    - Otherwise: no-op.
+    """
+    # Import here to avoid circular import
+    from aigise.session import get_aigise_session
+
+    try:
+        aigise_session_id = get_aigise_session_id_from_context(tool_context)
+        aigise_session = get_aigise_session(aigise_session_id)
+    except Exception:
+        aigise_session = None
+
+    enable_quota = True
+    if aigise_session and getattr(aigise_session, "config", None):
+        try:
+            enable_quota = bool(
+                getattr(
+                    getattr(aigise_session.config, "history", None),
+                    "enable_quota_countdown",
+                    True,
+                )
+            )
+        except Exception:
+            enable_quota = True
+    if not enable_quota:
+        return None
+
+    inv_ctx = tool_context._invocation_context
+    try:
+        limit = int(
+            getattr(getattr(inv_ctx, "run_config", None), "max_llm_calls", 0) or 0
+        )
+    except Exception:
+        limit = 0
+    try:
+        used = int(
+            getattr(
+                getattr(inv_ctx, "_invocation_cost_manager", None),
+                "_number_of_llm_calls",
+                0,
+            )
+            or 0
+        )
+    except Exception:
+        used = 0
+    remaining = None
+    if limit > 0:
+        try:
+            remaining = max(0, int(limit) - int(used))
+        except Exception:
+            remaining = None
+
+    # String response: append line
+    if isinstance(tool_response, str):
+        if limit > 0 and remaining is not None:
+            return tool_response + f"\n[Quota] You have {remaining} LLM calls remaining"
+        return tool_response + "\n[Quota] LLM calls: unlimited"
+
+    # Dict response: inject _quota_info
+    if isinstance(tool_response, dict):
+        result = dict(tool_response)
+        result["_quota_info"] = {
+            "used": int(used) if isinstance(used, (int, float)) else used,
+            "remaining": (int(remaining) if remaining is not None else None),
+            "limit": int(limit) if isinstance(limit, (int, float)) else limit,
+        }
+        return result
+
+    # Other types: do nothing
+    return None
 
 
 def setup_summarization_callbacks(root_agent: BaseAgent):
-    """Example of how to add tool name printer callback to all agents."""
+    """Register summarization callbacks to all agents (history + tool response)."""
     agents = discover_all_agents(root_agent)
+    # Register order matters: summarizer first, then quota appender.
     results = register_callback_to_all_agents(
-        agents, [history_summarizer_callback, tool_response_summarizer_callback]
+        agents,
+        [
+            history_summarizer_callback,
+            tool_response_summarizer_callback,
+            quota_after_tool_callback,
+        ],
     )
     agent_names = [agent.name for agent in agents]
     logger.info(

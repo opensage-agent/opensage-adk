@@ -24,13 +24,16 @@ from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.run_config import RunConfig
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService, Session
+from google.adk.sessions import Session
 from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
 from huggingface_hub import pause_space
 from tqdm import tqdm
 
 from aigise.config import AigiseConfig
+from aigise.features.aigise_in_memory_session_service import (
+    AigiseInMemorySessionService,
+)
 from aigise.features.summarization import setup_summarization_callbacks
 from aigise.session import get_aigise_session
 from aigise.session.aigise_session import AigiseSession
@@ -497,7 +500,7 @@ class Evaluation(abc.ABC):
                     )
         """
         session_id = str(uuid.uuid4())
-        task_name = self._get_sample_id(sample) + "_dynamic"
+        task_name = self._get_sample_id(sample)
 
         return EvaluationTask(
             session_id=session_id,
@@ -858,6 +861,11 @@ class Evaluation(abc.ABC):
             # === 2. Prepare Agent ===
             agent = self._prepare_agent(task)
 
+            # === 2.5 Save Config ===
+            config_output_path = Path(task.output_dir) / "config_used.toml"
+            task.aigise_session.config.save_to_toml(str(config_output_path))
+            logger.warning(f"Config saved to {config_output_path}")
+
             # === 3. Run Agent ===
             session = await self._run_agent(task, agent)
 
@@ -1016,17 +1024,12 @@ class Evaluation(abc.ABC):
         self._before_initialize_hooks(aigise_session, task)
 
         # 6. Initialize all sandboxes
-        await aigise_session.sandboxes.initialize_all_sandboxes()
+        # continue_on_error=True is important for the evaluation to continue even if some sandboxes fail to initialize
+        await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
 
         # 7. Cache sandboxes if needed
         if self.use_cache and unfound_cached_sandboxes:
             aigise_session.sandboxes.cache_sandboxes(cache_dir=task.cache_dir)
-
-        # save config to output directory
-        config_output_path = Path(task.output_dir) / "config_used.toml"
-        aigise_session.config.save_to_toml(str(config_output_path))
-
-        logger.warning(f"Environment prepared for session: {task.session_id}")
 
     async def _run_agent(self, task: EvaluationTask, agent: adk.Agent) -> "Session":
         """Run agent with the given prompt.
@@ -1040,7 +1043,7 @@ class Evaluation(abc.ABC):
         """
         # 2. Create runner and session service
         app_name = self.__class__.__name__.lower()
-        session_service = InMemorySessionService()
+        session_service = AigiseInMemorySessionService()
         runner = Runner(
             agent=agent,
             app_name=app_name,
@@ -1071,7 +1074,7 @@ class Evaluation(abc.ABC):
                     role="user", parts=[types.Part(text=task.prompt)]
                 ),
             ):
-                logger.warning(event.model_dump_json(exclude_none=True))
+                logger.warning(event.model_dump_json())
                 all_events.append(event)
 
             if self.run_until_explicit_finish:
@@ -1085,7 +1088,7 @@ class Evaluation(abc.ABC):
                             role="user",
                             parts=[
                                 types.Part(
-                                    text="I approve you to continue, if you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. If the task is not finshed, do not respond to this message, start calling appropriate tools to complete the task in the response."
+                                    text="I approve you to continue, if you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. If the task is not finshed, do not respond to this message in natural language, start calling appropriate tools to complete the task. DO NOT respond to this message."
                                 )
                             ],
                         ),

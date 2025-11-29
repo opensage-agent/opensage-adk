@@ -64,13 +64,13 @@ def multiply_by_two(result: float) -> Dict[str, Any]:
     }
 
 
-def mk_agent(aigise_session_id="sample-tool-combo-session"):
+def mk_agent():
     # two-step operation, shows intermediate steps
     simple_combo_with_history = ToolCombo(
         name="simple_combo_with_history",
         tool_sequences=[add_numbers, multiply_by_two],
         description="Simple two-step calculation: Add two numbers and multiply by 2. Shows intermediate steps.",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="openai/o4-mini"),
         return_history=True,
     )
 
@@ -79,12 +79,12 @@ def mk_agent(aigise_session_id="sample-tool-combo-session"):
         name="simple_combo_without_history",
         tool_sequences=[add_numbers, multiply_by_two],
         description="Simple two-step calculation: Add two numbers and multiply by 2. Only shows final result.",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="openai/o4-mini"),
         return_history=False,
     )
     root_agent = AigiseAgent(
         name="tool_combo_demo_agent",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="openai/o4-mini"),
         description="Demonstrates ToolCombo functionality with return_history True and False settings.",
         instruction="""
         You are a calculator agent that demonstrates different ToolCombo configurations.
@@ -95,7 +95,6 @@ def mk_agent(aigise_session_id="sample-tool-combo-session"):
             simple_combo_with_history,
             simple_combo_without_history,
         ],
-        aigise_session_id=aigise_session_id,
     )
     return root_agent
 

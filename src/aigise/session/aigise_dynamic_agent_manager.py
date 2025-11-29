@@ -164,7 +164,7 @@ class DynamicAgentManager:
 
             # Persist if requested
             if persist:
-                await self._persist_agent_metadata(agent_id, metadata)
+                self._persist_agent_metadata(agent_id, metadata)
 
             logger.info(
                 f"Created AigiseAgent {agent_id} ({agent_name}) "
@@ -203,7 +203,7 @@ class DynamicAgentManager:
         self._metadata[agent_id].updated_at = datetime.now()
 
         # Persist changes
-        await self._persist_agent_metadata(agent_id, self._metadata[agent_id])
+        self._persist_agent_metadata(agent_id, self._metadata[agent_id])
 
         logger.info(f"Updated agent {agent_id} status: {old_status} -> {status}")
         return True
@@ -261,7 +261,7 @@ class DynamicAgentManager:
             parent_children = self._metadata[metadata.parent_id].children_ids
             if agent_id in parent_children:
                 parent_children.remove(agent_id)
-                await self._persist_agent_metadata(
+                self._persist_agent_metadata(
                     metadata.parent_id, self._metadata[metadata.parent_id]
                 )
 
@@ -294,9 +294,7 @@ class DynamicAgentManager:
             "status_counts": status_counts,
         }
 
-    async def _persist_agent_metadata(
-        self, agent_id: str, metadata: AgentMetadata
-    ) -> None:
+    def _persist_agent_metadata(self, agent_id: str, metadata: AgentMetadata) -> None:
         """Persist agent metadata to storage.
 
         Args:

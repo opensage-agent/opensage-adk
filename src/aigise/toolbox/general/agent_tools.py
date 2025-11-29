@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from google.adk.models.lite_llm import LiteLlm
@@ -10,6 +11,17 @@ from aigise.toolbox.decorators import safe_tool_execution
 from aigise.utils.agent_utils import get_aigise_session_id_from_context
 
 logger = logging.getLogger(__name__)
+
+
+@safe_tool_execution
+async def complain(complaint: str, tool_context: ToolContext):
+    """
+    If you have a complaint, you should call this tool to complain about it. E.g., if a tool is hard to use, if the task is not clear, if a file or folder is supposed to be there but is not, etc. We will take your complaint into consideration and improve the tooling.
+
+    Returns:
+        "Complained, we will take your complaint into consideration and improve the tooling."
+    """
+    return "Complained, we will take your complaint into consideration and improve the tooling."
 
 
 @safe_tool_execution
@@ -109,6 +121,7 @@ You should also find all unjustified claims and assumptions and flag them.
 There are probably something missing or wrong in the task, you need to find it and tell the agent.
 There are probably some context missing, the agent might not have all the information it needs to solve the task, indicate what needs to be added to the context, e.g., are the exploitation path complete, and are the functions in the exploitation path complete?
 Does the agent only have a part of the functions and starts to guess the rest? Does the agent guess some machanism or logic that don't show up in the code, e.g., processing of a header, a callback, a mechanism of a specific function, etc.?
+Note that there is definitely a way to trigger the vulnerability and trigger a sanitizer error, with exit code not equal to 0, do not question this. If the agent cannot find a way to trigger the vulnerability, it might mean that the vulnerability it is exploring is wrong.
 
 Keep your response concise and actionable."""
 
@@ -276,6 +289,9 @@ async def get_available_agents_for_ensemble(tool_context: ToolContext):
     Get the available agents for the ensemble.
     Uses AgentEnsembleManager to discover static subagents, agent tools, and dynamic agents.
     Only agents whose tools are all covered by THREAD_SAFE_TOOLS are considered safe for ensemble.
+
+    Note that maybe there are no agents that are suitable for the current task, you should create a dynamic subagent that is suitable for the current task and then call it by agent_ensemble tool.
+    Pick up thread-safe tools for dynamic agents if you want to create one for the current task.
 
     Returns:
         Dictionary with safe_agents list, summary, and agent counts
@@ -456,7 +472,7 @@ async def agent_ensemble(
         if agent_name not in safe_agent_names:
             return {
                 "success": False,
-                "error": f"Agent '{agent_name}' is not in the safe agents list. Available agents: {safe_agent_names}",
+                "error": f"Agent '{agent_name}' is not in the safe agents list. Available agents: {safe_agent_names}, if no agents are suitable for the current task, you should create a dynamic subagent that is suitable for the current task by calling the create_subagent tool and then call it by agent_ensemble tool. Pick up thread-safe tools for dynamic agents if you want to create one for the current task.",
                 "safe_agents": safe_agent_names,
             }
 
@@ -488,4 +504,144 @@ async def agent_ensemble(
             "error": f"Agent ensemble failed: {str(e)}",
             "instruction": instruction,
             "agent_name": agent_name,
+        }
+
+
+@safe_tool_execution
+async def agent_ensemble_pairwise(
+    instructions: list[str],
+    agent_name: str,
+    model_names: list[str],
+    history_passed_in: bool,
+    tool_context: ToolContext,
+):
+    """
+    Launch multiple agents in parallel, each with its own instruction and model.
+    call this tool when you have multiple tasks to complete, for example, you have different approaches to solve the task, you can use this tool to try different approaches in parallel.
+    - instructions: list of per-agent instructions
+    - model_names: list of per-agent model names (same length as instructions)
+    - agent_name: target agent to launch (must be in safe agents list)
+    - history_passed_in: whether to include folded history in each instruction
+
+    Examples:
+      1) Two tasks on the same model
+         instructions = [
+           "Summarize repo READMEs",
+           "Extract CVEs from logs",
+         ]
+         model_names = [
+           "openai/gpt-5",
+           "openai/gpt-5",
+         ]
+
+      2) Three tasks with mixed models
+         instructions = [
+           "Generate remediation plan",
+           "List risky endpoints from code",
+           "Draft incident report",
+         ]
+         model_names = [
+           "anthropic/claude-sonnet-4-20250514",
+           "openai/gpt-5",
+           "openai/gpt-5",
+         ]
+    real instructions should be more specific and detailed, not just a general task description.
+    """
+    try:
+        # Validate inputs
+        if not isinstance(instructions, list) or not isinstance(model_names, list):
+            return {
+                "success": False,
+                "error": "instructions and model_names must be lists",
+            }
+        if len(instructions) == 0 or len(model_names) == 0:
+            return {"success": False, "error": "lists must be non-empty"}
+        if len(instructions) != len(model_names):
+            return {
+                "success": False,
+                "error": f"lists must have equal length: got {len(instructions)} vs {len(model_names)}",
+            }
+        for i, (ins, mdl) in enumerate(zip(instructions, model_names)):
+            if not isinstance(ins, str) or not isinstance(mdl, str):
+                return {
+                    "success": False,
+                    "error": f"instructions[{i}] and model_names[{i}] must be strings",
+                }
+
+        # Get session and validate agent
+        session_id = get_aigise_session_id_from_context(tool_context)
+        aigise_session = get_aigise_session(session_id)
+        current_agent = tool_context._invocation_context.agent
+
+        ensemble_result = aigise_session.ensemble.get_ensemble_ready_agents(
+            current_agent=current_agent, include_dynamic=True
+        )
+        safe_agent_names = [agent.name for agent in ensemble_result["safe_agents"]]
+        if agent_name not in safe_agent_names:
+            return {
+                "success": False,
+                "error": f"Agent '{agent_name}' is not in the safe agents list. Available agents: {safe_agent_names}, if no agents are suitable for the current task, you should create a dynamic subagent that is suitable for the current task by calling the create_subagent tool and then call it by agent_ensemble tool. Pick up thread-safe tools for dynamic agents if you want to create one for the current task.",
+                "safe_agents": safe_agent_names,
+            }
+
+        target_agent_info = None
+        for agent in ensemble_result["safe_agents"]:
+            if agent.name == agent_name:
+                target_agent_info = agent
+                break
+        if not target_agent_info:
+            return {
+                "success": False,
+                "error": f"Failed to find agent info for '{agent_name}'",
+            }
+
+        # Build and run tasks in parallel (one model per instruction)
+        async def _run_one(instr: str, model_name: str):
+            full_instruction = _build_full_instruction(
+                instr, history_passed_in, tool_context
+            )
+            return await aigise_session.ensemble.execute_agent_ensemble(
+                full_instruction=full_instruction,
+                target_agent_info=target_agent_info,
+                model_name_to_count={model_name: 1},
+                current_agent=current_agent,
+                tool_context=tool_context,
+            )
+
+        tasks = [_run_one(instr, mdl) for instr, mdl in zip(instructions, model_names)]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        aggregated = []
+        for idx, (instr, mdl, res) in enumerate(
+            zip(instructions, model_names, results)
+        ):
+            if isinstance(res, Exception):
+                aggregated.append(
+                    {
+                        "index": idx,
+                        "instruction": instr,
+                        "model_name": mdl,
+                        "success": False,
+                        "error": str(res),
+                    }
+                )
+            else:
+                aggregated.append(
+                    {
+                        "index": idx,
+                        "instruction": instr,
+                        "model_name": mdl,
+                        "success": True
+                        if isinstance(res, dict) and res.get("success", True)
+                        else True,
+                        "result": res,
+                    }
+                )
+
+        return {"success": True, "results": aggregated}
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Agent ensemble pairwise failed: {str(e)}",
         }

@@ -313,10 +313,10 @@ accuracy_logger = RewardLogger(
 )
 
 
-def mk_agent(aigise_session_id="sample-reward-func-session"):
+def mk_agent():
     root_agent = AigiseAgent(
         name="math_reward_demo_agent",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="openai/gpt-5"),
         description="Demonstrates RewardLogger functionality with tool_name and agent_name configurations.",
         instruction="""
         You are a mathematical operations agent that demonstrates reward logging functionality.
@@ -333,7 +333,6 @@ def mk_agent(aigise_session_id="sample-reward-func-session"):
             explanation_logger,
             accuracy_logger,
         ],
-        aigise_session_id=aigise_session_id,
     )
     return root_agent
 

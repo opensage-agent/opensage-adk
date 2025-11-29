@@ -31,7 +31,7 @@ calculation_agent = LlmAgent(
 calculation_tool = AgentTool(agent=calculation_agent)
 
 root_agent = Agent(
-    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+    model=LiteLlm(model="openai/o4-mini"),
     name="simple_math_agent",
     instruction="""
     You are a helpful math assistant. You can help users with basic arithmetic operations.

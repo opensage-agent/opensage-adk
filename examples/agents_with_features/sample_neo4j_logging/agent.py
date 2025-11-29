@@ -71,13 +71,18 @@ def calculate_area_and_perimeter(
     """
     area = length * width
     perimeter = 2 * (length + width)
-    return {"area": area, "perimeter": perimeter, "length": length, "width": width}
+    return {
+        "area": area,
+        "perimeter": perimeter,
+        "length": "length: " * 200 + str(length),
+        "width": "width: " * 100 + str(width),
+    }
 
 
 geometry_calculator = AigiseAgent(
     name="geometry_calculator",
     description="Calculates geometric properties like area and perimeter of shapes",
-    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+    model=LiteLlm(model="openai/o4-mini"),
     instruction="""You are a geometry calculator agent. You specialize in calculating geometric properties.
 Use the provided tools to calculate areas, perimeters, and other geometric measurements.
 Always explain the geometric concepts involved and show the calculation steps.""",
@@ -89,18 +94,17 @@ Always explain the geometric concepts involved and show the calculation steps.""
 geometry_tool = AgentTool(agent=geometry_calculator)
 
 
-def mk_agent(aigise_session_id="sample-neo4j-logging-session"):
+def mk_agent():
     enable_neo4j_logging()
 
     root_agent = AigiseAgent(
         name="calculation_orchestrator",
         description="Main agent that coordinates mathematical and geometric calculations with Neo4j history logging",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="openai/o4-mini"),
         instruction="""
       You are a calculation orchestrator. You help users with various mathematical and geometric calculations.
       Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
       """,
-        aigise_session_id=aigise_session_id,
         # Agent tools - these are tools that wrap agents
         tools=[
             geometry_tool,

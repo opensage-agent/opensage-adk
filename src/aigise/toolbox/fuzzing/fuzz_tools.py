@@ -26,12 +26,14 @@ async def simplified_python_fuzzer(
     create a simplified python fuzzer script that mutates one seed, feeds it to the target program, and monitors whether the target program crashes.
     The script should follow the following high level design:
     1. Load the seed file or write your own seed, if you write your own seed file, your seed file should be stored in /tmp, only use one seed file and overwrite it when mutating, you should be aware of the python version, which may not support some features.
-    2. Mutate the seed file, you should consider the format and grammar of the seed file, and mutate it in a way that is likely to trigger the vulnerability, you should concentrate on the part of the seed that you are not sure why it didn't trigger the vulnerability. You should do grammar based mutation, or dictionary based mutation, and pay attention to end of file and end of line. Always have a generation or mutation logic, do not just fuzz a fixed set of inputs.
+    2. Mutate the seed file, you should consider the format and grammar of the seed file, and mutate it in a way that is likely to trigger the vulnerability, you should concentrate on the part of the seed that you are not sure why it didn't trigger the vulnerability. You should do grammar based mutation, and pay attention to end of file and end of line. Always have a generation or mutation logic, do not just fuzz a fixed set of inputs.
     3. Feed the mutated seed file to the target program, you should find how to run the target program, or how to submit the input to a remote server to get feedback from the target program.
     5. If the target program crashes, save the crash and the corresponding input to a file, that should be stored in /tmp
     7. Repeat the process for an infinite iterations, until the target program crashes.
     You should not output print out anything, you should save the crash and the corresponding input to a file
     You script will be run with the command python3 for one minute.
+    ** IMPORTANT **
+    Before you start to call this tool, you should first reason about the structure of the target harness, and how the input is encoded and passed to the target program, you should perform grammar based mutation instead of just fuzzing a fixed set of inputs.
     """
     # 1. Extract the Python code block
     fuzzer_code = script

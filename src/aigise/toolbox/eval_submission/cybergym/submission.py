@@ -34,6 +34,7 @@ def generate_poc_and_submit(
 ) -> str:
     r"""
     Execute a PoC generation script, which will save a generated poc, we execute the generated poc and capture its output.
+    If the exit code is equal to 0, it means that the poc did not trigger the vulnerability.
 
     Args:
         poc_generation_script (str): A Python script provided as a string that, when executed,

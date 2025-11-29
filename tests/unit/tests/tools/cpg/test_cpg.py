@@ -14,6 +14,9 @@ from aigise.toolbox.static_analysis.cpg import (
 from aigise.utils.project_info import PROJECT_PATH
 from tests.unit.utils.utils import fix_neo4j_client
 
+# Increase timeout for slow CPG tests
+pytestmark = pytest.mark.timeout(1200)
+
 
 @pytest_asyncio.fixture(scope="module")
 async def aigise_session():

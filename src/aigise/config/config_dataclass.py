@@ -39,10 +39,10 @@ def _expand_template_variables(config_data: dict) -> dict:
 
     # 2. Define variable lookup function
     def get_variable_value(var_name: str) -> str:
-        # First check environment variables (highest priority)
-        env_value = os.getenv(var_name)
-        if env_value is not None:
-            return env_value
+        # # First check environment variables (highest priority)
+        # env_value = os.getenv(var_name)
+        # if env_value is not None:
+        #     return env_value
 
         # Then check top-level variables (fallback)
         if var_name in template_variables:
@@ -189,6 +189,9 @@ class SandboxConfig:
     project_relative_shared_data_path: Optional[str] = None
     absolute_shared_data_path: Optional[str] = None
     backend: str = "native"
+    # Global tolerations applied to all k8s pods (init/chmod/session). If set,
+    # overrides/augments any per-container tolerations in ContainerConfig.extra.
+    tolerations: Optional[list[dict]] = None
 
     def get_sandbox_config(self, sandbox_type: str) -> Optional[ContainerConfig]:
         """Get configuration for a specific sandbox type."""
@@ -248,8 +251,22 @@ class LLMConfig:
 class HistoryConfig:
     """Tool configuration."""
 
+    # Maximum length of a single tool response before special handling (other features may use this)
     max_tool_response_length: int = 10000
-    max_history_summary_length: int = 100000
+    # Whether to show remaining LLM call quota after each tool response (non-live)
+    enable_quota_countdown: bool = False
+
+    # Events compaction-based history summarization settings
+    @dataclass
+    class EventsCompactionConfig:
+        max_history_summary_length: Optional[int] = (
+            100000  # Character budget threshold for compaction
+        )
+        compaction_percent: int = 50
+
+    events_compaction: EventsCompactionConfig = field(
+        default_factory=EventsCompactionConfig
+    )
 
 
 @dataclass

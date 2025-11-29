@@ -122,6 +122,13 @@ tpm = 30000
 max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
 max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
 
+[history.events_compaction]
+# Trigger when either budget is exceeded
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+compaction_percent = 50
+#
+
+
 [agent_ensemble]
 thread_safe_tools = []
 available_models_for_ensemble = "${AVAILABLE_MODELS}"

@@ -110,9 +110,9 @@ def divide_numbers(a: float, b: float) -> Dict[str, Any]:
     }
 
 
-def mk_agent(aigise_session_id="sample-dynamic-subagent-session"):
+def mk_agent():
     root_agent = AigiseAgent(
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="openai/gpt-5"),
         name="math_root_agent",
         instruction="""
         You are a root math agent responsible for coordinating mathematical calculations through specialized sub-agents.
@@ -130,7 +130,6 @@ def mk_agent(aigise_session_id="sample-dynamic-subagent-session"):
             multiply_numbers,
             divide_numbers,
         ],
-        aigise_session_id=aigise_session_id,
     )
     return root_agent
 

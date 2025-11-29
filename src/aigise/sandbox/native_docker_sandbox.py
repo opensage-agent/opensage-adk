@@ -1105,7 +1105,9 @@ class NativeDockerSandbox(BaseSandbox):
         return sandbox_type, sandbox_instance
 
     @classmethod
-    async def initialize_all_sandboxes(cls, sandbox_instances: dict) -> None:
+    async def initialize_all_sandboxes(
+        cls, sandbox_instances: dict, *, continue_on_error: bool = False
+    ) -> dict:
         """Initialize all sandbox instances concurrently.
 
         This should be called after launch_all_sandboxes() and after
@@ -1113,12 +1115,15 @@ class NativeDockerSandbox(BaseSandbox):
 
         Args:
             sandbox_instances: Dict of sandbox_type -> NativeDockerSandbox instance
+            continue_on_error: If True, continue initializing other sandboxes when
+                one fails, and return a map of sandbox_type -> Exception | None
+                instead of raising. If False, propagate errors.
         """
         if not sandbox_instances:
             logger.warning("No sandbox instances to initialize")
-            return
+            return {}
 
-        init_tasks = []
+        init_entries = []
         for sandbox_type, sandbox_instance in sandbox_instances.items():
             logger.info(f"Initializing {sandbox_type} sandbox...")
 
@@ -1143,12 +1148,28 @@ class NativeDockerSandbox(BaseSandbox):
                     timeout_seconds = 1800
 
             # Wrap with asyncio.wait_for to enforce timeout
-            init_tasks.append(asyncio.wait_for(init_coro, timeout=timeout_seconds))
+            init_entries.append(
+                (sandbox_type, asyncio.wait_for(init_coro, timeout=timeout_seconds))
+            )
 
         # Initialize all sandboxes concurrently
-        await asyncio.gather(*init_tasks)
-
-        logger.info(f"Successfully initialized {len(sandbox_instances)} sandboxes")
+        tasks = [entry[1] for entry in init_entries]
+        if continue_on_error:
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            result_map = {}
+            for (sandbox_type, _task), res in zip(init_entries, results):
+                if isinstance(res, Exception):
+                    logger.error(
+                        f"Initialization failed for sandbox '{sandbox_type}': {res}"
+                    )
+                    result_map[sandbox_type] = res
+                else:
+                    result_map[sandbox_type] = None
+            return result_map
+        else:
+            await asyncio.gather(*tasks)
+            logger.info(f"Successfully initialized {len(sandbox_instances)} sandboxes")
+            return {sandbox_type: None for sandbox_type, _ in init_entries}
 
     @classmethod
     def _find_available_loopback_ip(cls, config) -> str:

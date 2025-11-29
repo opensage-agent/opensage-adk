@@ -6,6 +6,7 @@ Each tool returns immediate results suitable for LLM interaction.
 """
 
 import logging
+import signal
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -84,8 +85,6 @@ class GdbController:
                 "--interpreter=mi3",
                 "--quiet",
                 "--nh",
-                "-ex",
-                "set detach-on-fork off",
             ]
         )
         self._initialized = False
@@ -107,7 +106,17 @@ class GdbController:
         # pygdbmi
 
         # Send command and manually collect responses
-        responses = self.controller.write(command)
+        try:
+            responses = self.controller.write(command, timeout_sec=timeout_sec)
+        except Exception as e:
+            self._state = "stopped"
+            self.controller.gdb_process.send_signal(signal.SIGINT)
+            return {
+                "command": command,
+                "responses": collected,
+                "success": False,
+                "state": self._state,
+            }
 
         collected: list[dict] = []
         for response in responses:

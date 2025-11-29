@@ -15,8 +15,13 @@ import warnings
 
 import pytest
 from google.adk import Runner
-from google.adk.sessions import InMemorySessionService
 from google.genai import types
+
+from aigise.features.aigise_in_memory_session_service import (
+    AigiseInMemorySessionService,
+)
+from aigise.session import get_aigise_session
+from aigise.toolbox.decorators import collect_sandbox_dependencies
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +30,9 @@ warnings.filterwarnings("ignore", message=".*Pydantic serializer warnings.*")
 warnings.filterwarnings("ignore", message=".*PydanticSerializationUnexpectedValue.*")
 
 # Import these later to avoid circular import issues
+
+# Increase timeout for this integration file (Neo4j cold start + summarization)
+pytestmark = pytest.mark.timeout(900)
 
 
 class TestSummarizationIntegration:
@@ -47,12 +55,6 @@ class TestSummarizationIntegration:
         test_storage_dir = "/tmp/summarization_test/agent_storage"
         os.makedirs(test_storage_dir, exist_ok=True)
 
-        # Store original AGENT_STORAGE_PATH
-        original_agent_storage_path = os.environ.get("AGENT_STORAGE_PATH")
-
-        # Set test environment variable
-        os.environ["AGENT_STORAGE_PATH"] = test_storage_dir
-
         # Database name that will be created
         database_name = f"agent-history"
 
@@ -60,13 +62,12 @@ class TestSummarizationIntegration:
             "aigise_session_id": aigise_session_id,
             "test_storage_dir": test_storage_dir,
             "database_name": database_name,
-            "original_agent_storage_path": original_agent_storage_path,
         }
 
-        # Cleanup: Remove session to cleanup all resources (containers, etc.)
-        from aigise.session.aigise_session import cleanup_aigise_session
+        # Cleanup: Remove sessions and resources
+        from aigise.session.aigise_session import AigiseSessionRegistry
 
-        cleanup_aigise_session(aigise_session_id)
+        AigiseSessionRegistry.cleanup_all_sessions()
 
     async def _cleanup_test_database(self, aigise_session_id: str, database_name: str):
         """Clean up the test database."""
@@ -96,17 +97,10 @@ class TestSummarizationIntegration:
             aigise_session_id = test_env["aigise_session_id"]
             database_name = test_env["database_name"]
             test_storage_dir = test_env["test_storage_dir"]
-            original_agent_storage_path = test_env["original_agent_storage_path"]
 
             # Clean up temporary storage directory
             if os.path.exists(test_storage_dir):
                 shutil.rmtree(test_storage_dir)
-
-            # Restore original environment variable
-            if original_agent_storage_path is not None:
-                os.environ["AGENT_STORAGE_PATH"] = original_agent_storage_path
-            else:
-                os.environ.pop("AGENT_STORAGE_PATH", None)
 
             # Drop the test database
             await self._cleanup_test_database(aigise_session_id, database_name)
@@ -126,10 +120,11 @@ class TestSummarizationIntegration:
         print("\n=== TEST CASE 1: Geometric area calculation ===")
         session_result_1 = await self._run_isolated_test_case(
             {
-                "input": "calculate the area of a rectangle of length 19 and width 18",
+                "input": "calculate the area of a rectangle of length 19 and width 18, you should use the geometry_calculator tool",
                 "expected_result": 342,  # 19 * 18 = 342
                 "description": "geometric area calculation with tool summarization",
-            }
+            },
+            test_env["test_storage_dir"],
         )
         session_results.append(session_result_1)
 
@@ -138,10 +133,11 @@ class TestSummarizationIntegration:
 
         session_result_2 = await self._run_isolated_test_case(
             {
-                "input": "calculate 21*29*23",
+                "input": "calculate 21*29*23, you should use the math_calculator subagent",
                 "expected_result": 14007,  # 21 * 29 * 23 = 14007
                 "description": "multiplication calculation to trigger history summarization",
-            }
+            },
+            test_env["test_storage_dir"],
         )
         session_results.append(session_result_2)
 
@@ -163,7 +159,7 @@ class TestSummarizationIntegration:
         # Manual cleanup
         await self._manual_cleanup(test_env)
 
-    async def _run_isolated_test_case(self, test_case):
+    async def _run_isolated_test_case(self, test_case, storage_dir: str):
         """Run a single test case with completely isolated environment."""
         # Generate unique shared session ID for this test case
         isolated_aigise_session_id = str(uuid.uuid4())
@@ -185,10 +181,41 @@ class TestSummarizationIntegration:
 
         from sample_summarization import agent as agent_module
 
-        root_agent = agent_module.mk_agent(aigise_session_id=isolated_aigise_session_id)
+        root_agent = agent_module.mk_agent()
+
+        # Prepare AIgiSE environment for this isolated test case
+        config_path = os.path.join(
+            examples_dir,
+            "sample_summarization",
+            "aigise.toml",
+        )
+        aigise_session = get_aigise_session(
+            aigise_session_id=isolated_aigise_session_id, config_path=config_path
+        )
+        # Force storage path via config to avoid env coupling
+        aigise_session.config.agent_storage_path = storage_dir
+        try:
+            deps = collect_sandbox_dependencies(root_agent)
+            if (
+                aigise_session.config.sandbox
+                and aigise_session.config.sandbox.sandboxes
+                and deps
+            ):
+                unused = [
+                    s
+                    for s in list(aigise_session.config.sandbox.sandboxes.keys())
+                    if s not in deps
+                ]
+                for s in unused:
+                    del aigise_session.config.sandbox.sandboxes[s]
+        except Exception:
+            pass
+        aigise_session.sandboxes.initialize_shared_volumes()
+        await aigise_session.sandboxes.launch_all_sandboxes()
+        await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
 
         # Create completely isolated session service and runner
-        session_service = InMemorySessionService()
+        session_service = AigiseInMemorySessionService()
         runner = Runner(
             app_name="summarization_test",
             agent=root_agent,

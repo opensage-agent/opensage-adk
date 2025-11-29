@@ -8,12 +8,23 @@ from google.adk.agents.llm_agent import LlmAgent, _SingleAfterToolCallback
 from google.adk.agents.readonly_context import ReadonlyContext
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
-from google.adk.tools.base_tool import BaseTool
-from google.adk.tools.base_toolset import BaseToolset
 from google.adk.tools.tool_context import ToolContext
 
+from aigise import AigiseSession
 from aigise.config.config_dataclass import AigiseConfig
 from aigise.session.joern_client import JoernClient
+
+
+def get_aigise_session_from_context(
+    context: InvocationContext | ToolContext,
+) -> AigiseSession:
+    """Get AIgiSE session from context using new AigiseSession architecture."""
+    # Lazy import to avoid circular dependency
+    from aigise.session import get_aigise_session
+
+    aigise_session_id = get_aigise_session_id_from_context(context)
+    aigise_session = get_aigise_session(aigise_session_id)
+    return aigise_session
 
 
 def get_aigise_config_from_context(

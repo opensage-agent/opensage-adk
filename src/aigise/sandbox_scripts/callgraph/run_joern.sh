@@ -2,7 +2,7 @@
 
 set -e
 
-CODE_DIR="${1:-/shared/code}"
+CODE_DIR="$1"
 # OUT_PATH="/shared/out/callgraph/joern_export.xml"
 # OUT_DIR="/shared/out/callgraph"
 OUT_DIR="/shared/neo4j/import"

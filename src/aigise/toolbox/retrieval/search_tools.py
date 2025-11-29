@@ -167,7 +167,7 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
     from aigise import get_aigise_session
 
     aigise_session = get_aigise_session(sandbox.aigise_session_id)
-    src_dir_path = getattr(aigise_session, "src_dir_in_sandbox", None) or "/shared/code"
+    src_dir_path = aigise_session.config.src_dir_in_sandbox
     # Generate tags file if not exists or regenerate
     output, exit_code = sandbox.run_command_in_container(
         f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R {src_dir_path}"

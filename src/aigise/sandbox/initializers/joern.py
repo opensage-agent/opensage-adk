@@ -84,7 +84,7 @@ class JoernInitializer(SandboxInitializer):
             [
                 "bash",
                 "/sandbox_scripts/callgraph/run_joern.sh",
-                getattr(aigise_session, "src_dir_in_sandbox", None) or "/shared/code",
+                aigise_session.config.src_dir_in_sandbox,
             ]
         )
         if err != 0:

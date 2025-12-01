@@ -140,7 +140,7 @@ async def run_coverage(testcase_path: str, *, tool_context: ToolContext) -> dict
         return {"error": "Coverage analysis failed"}
 
     report_msg, err = cov_sandbox.run_command_in_container(
-        f"cat {saved_testcase_dir}/report.txt"
+        f"sed -n '1p;$p' {saved_testcase_dir}/report.txt"
     )
     if err != 0:
         logger.error(f"Reading coverage report failed, stderr: {report_msg}")

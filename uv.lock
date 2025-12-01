@@ -12,6 +12,7 @@ name = "aigise"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "cxxfilt" },
     { name = "cybergym", extra = ["dev", "server"] },
     { name = "dacite" },
@@ -32,6 +33,7 @@ dependencies = [
     { name = "requests" },
     { name = "toml" },
     { name = "tree-sitter-languages" },
+    { name = "uvicorn" },
     { name = "websockets" },
 ]
 
@@ -47,6 +49,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.1.8,<9.0.0" },
     { name = "cxxfilt", specifier = ">=0.3.0" },
     { name = "cybergym", extras = ["dev", "server"], git = "https://github.com/sunblaze-ucb/cybergym" },
     { name = "dacite", specifier = ">=1.8.0" },
@@ -67,6 +70,7 @@ requires-dist = [
     { name = "requests", specifier = "==2.32.4" },
     { name = "toml", specifier = ">=0.10.2" },
     { name = "tree-sitter-languages", specifier = "==1.10.2" },
+    { name = "uvicorn", specifier = ">=0.34.0,<1.0.0" },
     { name = "websockets", specifier = ">=15.0.1" },
 ]
 

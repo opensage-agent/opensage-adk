@@ -72,7 +72,7 @@ class Summary(msgspec.Struct):
     mcdc: MCDCCoverage | None = None
 
 
-class CoverageSegment(NamedTuple):
+class CoverageSegment(msgspec.Struct, array_like=True):
     """
     Describes a segment of the file with a counter.
     Array format: [Line, Col, Count, HasCount, IsRegionEntry, IsGapRegion]
@@ -83,10 +83,10 @@ class CoverageSegment(NamedTuple):
     count: int
     has_count: bool
     is_region_entry: bool
-    is_gap_region: bool
+    is_gap_region: bool = False
 
 
-class CountedRegion(NamedTuple):
+class CountedRegion(msgspec.Struct, array_like=True):
     """
     Single region with execution count.
     Array format: [LineStart, ColumnStart, LineEnd, ColumnEnd, ExecutionCount, FileID, ExpandedFileID, Kind]
@@ -102,7 +102,7 @@ class CountedRegion(NamedTuple):
     kind: int
 
 
-class Branch(NamedTuple):
+class Branch(msgspec.Struct, array_like=True):
     """Describes a branch with execution counts."""
 
     line_start: int

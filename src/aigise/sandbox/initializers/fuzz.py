@@ -50,6 +50,7 @@ class FuzzInitializer(SandboxInitializer):
             await self._compile_with_aflpp(infos)
         except Exception as e:
             logger.error(f"Failed to initialize fuzzing environment: {e}")
+            raise
 
         await self.ensure_ready()
 

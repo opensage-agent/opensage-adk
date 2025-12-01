@@ -375,85 +375,53 @@ class AigiseSandboxManager:
             )
             return
 
-        try:
-            # Filter out sandboxes that are already READY
-            sandboxes_to_init = {}
-            already_ready = []
+        # Filter out sandboxes that are already READY
+        sandboxes_to_init = {}
+        already_ready = []
 
-            for sandbox_type, sandbox_instance in self._sandboxes.items():
-                state = self._sandbox_states.get(sandbox_type)
-                if state == SandboxState.READY:
-                    already_ready.append(sandbox_type)
-                else:
-                    sandboxes_to_init[sandbox_type] = sandbox_instance
-
-            if already_ready:
-                logger.info(
-                    f"Skipping initialization for already ready sandboxes: {already_ready}"
-                )
-
-            if not sandboxes_to_init:
-                logger.info("All sandboxes are already initialized")
-                return
-
-            # Get backend class
-            backend_type = getattr(self.config.sandbox, "backend", "native")
-            backend_class = get_backend_class(backend_type)
-
-            logger.info(
-                f"Initializing {len(sandboxes_to_init)} sandboxes for session {self.aigise_session_id}: "
-                f"{list(sandboxes_to_init.keys())}"
-            )
-
-            # Call backend-specific initialize method
-            # When continue_on_error=True, backend returns a map of sandbox_type -> Exception | None
-            result_map = await backend_class.initialize_all_sandboxes(
-                sandboxes_to_init, continue_on_error=continue_on_error
-            )
-
-            # If backend didn't return a map (older implementations), assume all succeeded
-            if result_map is None:
-                for sandbox_type in sandboxes_to_init.keys():
-                    self._sandbox_states[sandbox_type] = SandboxState.READY
+        for sandbox_type, sandbox_instance in self._sandboxes.items():
+            state = self._sandbox_states.get(sandbox_type)
+            if state == SandboxState.READY:
+                already_ready.append(sandbox_type)
             else:
-                # Update states per sandbox based on results
-                failed = []
-                succeeded = []
-                for sandbox_type, exc in result_map.items():
-                    if exc is None:
-                        self._sandbox_states[sandbox_type] = SandboxState.READY
-                        succeeded.append(sandbox_type)
-                    else:
-                        self._sandbox_states[sandbox_type] = SandboxState.ERROR
-                        failed.append((sandbox_type, exc))
+                sandboxes_to_init[sandbox_type] = sandbox_instance
 
-                if succeeded:
-                    logger.info(
-                        f"Successfully initialized sandboxes: {sorted(succeeded)}"
-                    )
-                if failed:
-                    for sandbox_type, exc in failed:
-                        logger.error(
-                            f"Sandbox '{sandbox_type}' failed to initialize: {exc}"
-                        )
-                    if not continue_on_error:
-                        # Paranoia: if flag is False but we got failures in map, raise
-                        raise RuntimeError(
-                            f"Failed to initialize sandboxes: {[s for s, _ in failed]}"
-                        )
-
+        if already_ready:
             logger.info(
-                f"Successfully initialized {len(sandboxes_to_init)} sandboxes for session {self.aigise_session_id}"
+                f"Skipping initialization for already ready sandboxes: {already_ready}"
             )
 
-        except Exception as e:
-            logger.error(
-                f"Failed to initialize sandboxes for session {self.aigise_session_id}: {e}"
-            )
-            # Set all sandbox states to error
-            for sandbox_type in self._sandboxes.keys():
-                self._sandbox_states[sandbox_type] = SandboxState.ERROR
-            raise
+        if not sandboxes_to_init:
+            logger.info("All sandboxes are already initialized")
+            return
+
+        # Get backend class
+        backend_type = getattr(self.config.sandbox, "backend", "native")
+        backend_class = get_backend_class(backend_type)
+
+        logger.info(
+            f"Initializing {len(sandboxes_to_init)} sandboxes for session {self.aigise_session_id}: "
+            f"{list(sandboxes_to_init.keys())}"
+        )
+
+        # If continue_on_error is True, the backend will return a map of sandbox_type -> Exception | None instead of raising an exception.
+        result_map = await backend_class.initialize_all_sandboxes(
+            sandboxes_to_init, continue_on_error=continue_on_error
+        )
+
+        failed = []
+        succeeded = []
+        for sandbox_type, exc in (result_map or {}).items():
+            if exc is None:
+                succeeded.append(sandbox_type)
+            else:
+                failed.append((sandbox_type, exc))
+
+        if succeeded:
+            logger.info(f"Successfully initialized sandboxes: {sorted(succeeded)}")
+        if failed:
+            for sandbox_type, exc in failed:
+                logger.error(f"Sandbox '{sandbox_type}' failed to initialize: {exc}")
 
     async def attach_sandbox(
         self,
@@ -518,8 +486,15 @@ class AigiseSandboxManager:
 
     async def wait_for_ready(self, sandbox_type: str) -> None:
         """Wait for a specific sandbox to be ready."""
-        while self._sandbox_states[sandbox_type] != SandboxState.READY:
+        while (
+            self._sandbox_states[sandbox_type] != SandboxState.READY
+            and self._sandbox_states[sandbox_type] != SandboxState.ERROR
+        ):
             await asyncio.sleep(1)
+        if self._sandbox_states[sandbox_type] == SandboxState.ERROR:
+            raise RuntimeError(
+                f"Waiting for sandbox '{sandbox_type}' to be ready failed: Sandbox '{sandbox_type}' failed to initialize"
+            )
 
     def _cleanup_sandbox(self, sandbox: BaseSandbox) -> None:
         """Cleanup a specific sandbox instance.

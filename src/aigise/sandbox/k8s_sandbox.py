@@ -15,11 +15,12 @@ import tarfile
 import tempfile
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Awaitable, Dict, Optional
 
 import yaml
 
 from aigise.config import ContainerConfig
+from aigise.session.sandbox_state import SandboxState
 from aigise.utils.parser import get_function_info
 
 from .base_sandbox import BaseSandbox
@@ -1510,6 +1511,73 @@ class K8sSandbox(BaseSandbox):
         )
         return sandbox_instances
 
+    @staticmethod
+    async def _run_initializer_with_tracking(
+        sandbox_type: str,
+        sandbox_instance: "K8sSandbox",
+        init_coro: Awaitable[None],
+    ) -> None:
+        """Await initialization, update state, and emit logs."""
+        final_state: Optional[SandboxState] = None
+        sandboxes = None
+        aigise_session_id = getattr(sandbox_instance, "aigise_session_id", None)
+        if aigise_session_id:
+            try:
+                from aigise.session.aigise_session import get_aigise_session
+
+                sandboxes = get_aigise_session(aigise_session_id).sandboxes
+            except Exception as exc:  # pylint: disable=broad-except
+                logger.warning(
+                    "Failed to retrieve sandbox manager for session %s: %s",
+                    aigise_session_id,
+                    exc,
+                )
+        try:
+            await init_coro
+        except Exception as exc:  # pylint: disable=broad-except
+            final_state = SandboxState.ERROR
+            setattr(sandbox_instance, "state", final_state)
+            if sandboxes:
+                try:
+                    sandboxes.set_sandbox_state(sandbox_type, final_state)
+                except Exception as state_exc:  # pylint: disable=broad-except
+                    logger.warning(
+                        "Failed to set sandbox '%s' state to %s: %s",
+                        sandbox_type,
+                        final_state.value,
+                        state_exc,
+                    )
+            logger.error(
+                "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
+                sandbox_type,
+                aigise_session_id,
+                final_state.value,
+                exc,
+                exc_info=exc,
+            )
+            raise
+        else:
+            final_state = SandboxState.READY
+            setattr(sandbox_instance, "state", final_state)
+            if sandboxes:
+                try:
+                    sandboxes.set_sandbox_state(sandbox_type, final_state)
+                except Exception as state_exc:  # pylint: disable=broad-except
+                    logger.warning(
+                        "Failed to set sandbox '%s' state to %s: %s",
+                        sandbox_type,
+                        final_state.value,
+                        state_exc,
+                    )
+        finally:
+            state_value = final_state.value if final_state else "unknown"
+            logger.info(
+                "sandbox '%s' (session %s) state=%s - Initialization finished",
+                sandbox_type,
+                aigise_session_id,
+                state_value,
+            )
+
     @classmethod
     async def initialize_all_sandboxes(
         cls, sandbox_instances: dict, *, continue_on_error: bool = False
@@ -1537,7 +1605,14 @@ class K8sSandbox(BaseSandbox):
                 if sandbox_instance._using_cached
                 else sandbox_instance.async_initialize()
             )
-            init_entries.append((sandbox_type, init_coro))
+            init_entries.append(
+                (
+                    sandbox_type,
+                    cls._run_initializer_with_tracking(
+                        sandbox_type, sandbox_instance, init_coro
+                    ),
+                )
+            )
 
         # Initialize all sandboxes concurrently
         tasks = [entry[1] for entry in init_entries]
@@ -1556,8 +1631,6 @@ class K8sSandbox(BaseSandbox):
                 return result_map
             else:
                 await asyncio.gather(*tasks)
-
-        logger.info(f"Successfully initialized {len(sandbox_instances)} sandboxes")
         return {sandbox_type: None for sandbox_type, _ in init_entries}
 
     # ------------------------------------------------------------------

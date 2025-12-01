@@ -14,12 +14,13 @@ import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Awaitable, Dict, Optional, Union
 
 import docker
 from docker.errors import APIError, NotFound
 
 from aigise.config import ContainerConfig
+from aigise.session.sandbox_state import SandboxState
 
 logger = logging.getLogger(__name__)
 from aigise.sandbox.base_sandbox import BaseSandbox
@@ -1104,6 +1105,73 @@ class NativeDockerSandbox(BaseSandbox):
         )
         return sandbox_type, sandbox_instance
 
+    @staticmethod
+    async def _run_initializer_with_tracking(
+        sandbox_type: str,
+        sandbox_instance: "NativeDockerSandbox",
+        init_coro: Awaitable[None],
+    ) -> None:
+        """Await initialization, set state, and emit logs."""
+        final_state: Optional[SandboxState] = None
+        sandboxes = None
+        aigise_session_id = getattr(sandbox_instance, "aigise_session_id", None)
+        if aigise_session_id:
+            try:
+                from aigise.session.aigise_session import get_aigise_session
+
+                sandboxes = get_aigise_session(aigise_session_id).sandboxes
+            except Exception as exc:  # pylint: disable=broad-except
+                logger.warning(
+                    "Failed to retrieve sandbox manager for session %s: %s",
+                    aigise_session_id,
+                    exc,
+                )
+        try:
+            await init_coro
+        except Exception as exc:  # pylint: disable=broad-except
+            final_state = SandboxState.ERROR
+            setattr(sandbox_instance, "state", final_state)
+            if sandboxes:
+                try:
+                    sandboxes.set_sandbox_state(sandbox_type, final_state)
+                except Exception as state_exc:  # pylint: disable=broad-except
+                    logger.warning(
+                        "Failed to set sandbox '%s' state to %s: %s",
+                        sandbox_type,
+                        final_state.value,
+                        state_exc,
+                    )
+            logger.error(
+                "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
+                sandbox_type,
+                aigise_session_id,
+                final_state.value,
+                exc,
+                exc_info=exc,
+            )
+            raise
+        else:
+            final_state = SandboxState.READY
+            setattr(sandbox_instance, "state", final_state)
+            if sandboxes:
+                try:
+                    sandboxes.set_sandbox_state(sandbox_type, final_state)
+                except Exception as state_exc:  # pylint: disable=broad-except
+                    logger.warning(
+                        "Failed to set sandbox '%s' state to %s: %s",
+                        sandbox_type,
+                        final_state.value,
+                        state_exc,
+                    )
+        finally:
+            state_value = final_state.value if final_state else "unknown"
+            logger.info(
+                "sandbox '%s' (session %s) state=%s - Initialization finished",
+                sandbox_type,
+                aigise_session_id,
+                state_value,
+            )
+
     @classmethod
     async def initialize_all_sandboxes(
         cls, sandbox_instances: dict, *, continue_on_error: bool = False
@@ -1149,7 +1217,14 @@ class NativeDockerSandbox(BaseSandbox):
 
             # Wrap with asyncio.wait_for to enforce timeout
             init_entries.append(
-                (sandbox_type, asyncio.wait_for(init_coro, timeout=timeout_seconds))
+                (
+                    sandbox_type,
+                    cls._run_initializer_with_tracking(
+                        sandbox_type,
+                        sandbox_instance,
+                        asyncio.wait_for(init_coro, timeout=timeout_seconds),
+                    ),
+                )
             )
 
         # Initialize all sandboxes concurrently

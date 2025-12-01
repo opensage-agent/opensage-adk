@@ -27,6 +27,7 @@ class DebuggerInitializer(SandboxInitializer):
         )
         if err:
             logger.error("Debugger compilation failed: %s", msg)
+            raise
         else:
             logger.info("Debugger compilation completed successfully.")
 

@@ -64,8 +64,10 @@ class JoernInitializer(SandboxInitializer):
             logger.error(
                 f"Joern initialization failed; timed out after 10 minutes for session {self.aigise_session_id}"
             )
+            raise
         except Exception as e:
             logger.error(f"Joern initialization failed: {e}")
+            raise
 
         await self.ensure_ready()
 
@@ -98,7 +100,6 @@ class JoernInitializer(SandboxInitializer):
 
         await import_joern_callgraph(neo4j_client, "/")
         await update_joern_cpg(neo4j_client, fix_identical_methods=True)
-        breakpoint()
 
         client = JoernClient(
             server_endpoint=f"{aigise_session.config.default_host}:18087"

@@ -15,14 +15,6 @@ logger = logging.getLogger(__name__)
 class Neo4jInitializer(SandboxInitializer):
     """Initializer that initializes Neo4j code analysis capabilities to sandboxes."""
 
-    async def async_initialize(self) -> None:
-        """Initialize Neo4j environment (async version)."""
-        try:
-            await self.ensure_ready()
-        except Exception as e:
-            logger.error(f"Neo4j initialization failed: {e}")
-            raise
-
     async def ensure_ready(self) -> None:
         from aigise.session.aigise_session import get_aigise_session
 

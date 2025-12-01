@@ -63,4 +63,5 @@ class CodeQLInitializer(SandboxInitializer):
         except Exception as e:
             logger.error(f"CodeQL initialization failed: {e}")
             raise
+
         await self.ensure_ready()

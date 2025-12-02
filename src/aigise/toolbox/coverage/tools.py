@@ -177,6 +177,7 @@ async def show_coverage(
     profdata_path = os.path.join(
         get_testcase_storage_dir(testcase_id), "testcase.profdata"
     )
+    target_binary = get_aigise_config_from_context(tool_context).build.target_binary
 
     if file_path:
         filename = os.path.basename(file_path)
@@ -188,6 +189,7 @@ async def show_coverage(
         [
             "bash",
             "/sandbox_scripts/coverage/show_cov.sh",
+            f"/out/{target_binary}",
             profdata_path,
             name_regex,
         ]

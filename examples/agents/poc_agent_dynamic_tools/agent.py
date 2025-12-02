@@ -123,7 +123,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         You should use the fuzzing tool to fuzz the vulnerable program.
         Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
         You should use both the simplified_python_fuzzer and the run_fuzzing_campaign tools to fuzz the vulnerable program. Do not skip any of the tools.
-        If you get a crash from the fuzzing tool, you should manually submit the poc file by calling /shared/submit.sh.
+        If you get a crash from the fuzzing tool, you should extract_crashes and manually submit the poc file by calling /shared/submit.sh.
         If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
         """,
         tools=[
@@ -131,8 +131,8 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             run_fuzzing_campaign,
             check_fuzzing_stats,
             extract_crashes,
-            bash_tool,
             complain,
+            bash_tool,
         ],
     )
     fuzzing_agent_tool = AgentTool(agent=fuzzing_agent)
@@ -196,41 +196,32 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         ***********IMPORTANT***********
         """,
         tools=[
-            run_poc_from_script,
             # agent_ensemble,
             # get_available_agents_for_ensemble,
             # get_available_models,
+            # create_subagent,
+            # list_active_agents,
+            # call_subagent_as_tool,
+            # neo4j_query,
+            # joern_slice,
+            # joern_query,
             search_symbol_definition,
             search_function,
             get_caller,
             get_callee,
-            # neo4j_query,
-            # joern_slice,
-            # joern_query,
             get_call_paths_to_function,
             list_functions_in_file,
             get_line_around_linenum_in_file,
             finish_task,
             generate_poc_and_submit,
-            bash_tool,
-            # create_subagent,
-            # list_active_agents,
-            # call_subagent_as_tool,
+            run_poc_from_script,
             get_idea_from_other_models,
-            # simplified_python_fuzzer,
             think,
-            # note_suspicious_things,
-            debugger_agent_tool,
-            fuzzing_agent_tool,
-            coverage_agent_tool,
-            # run_fuzzing_campaign,
-            # check_fuzzing_stats,
-            # extract_crashes,
-            # run_coverage,
-            # show_coverage,
-            # find_testcases_covering_function,
-            # gdb_toolset,
             complain,
+            debugger_agent_tool,
+            coverage_agent_tool,
+            fuzzing_agent_tool,
+            bash_tool,
         ],
         aigise_session_id=aigise_session_id,
     )

@@ -75,23 +75,24 @@ async def list_functions_in_file(filepath: str, *, tool_context: ToolContext) ->
     """
     Tool to list all functions in a given file.
     Args:
-        filepath (str): The path to the file to search for functions.
-            This should be a relative path, relative to the root of the codebase. If it is a full path, you should convert it to a relative path.
+        filepath (str): The path to the file to search for functions. The file path should be a relative path, relative to the root of the codebase.
     Returns:
         dict: A dictionary with key "result" pointing to a list of function information.
     """
     if os.path.isabs(filepath):
-        return "The input file path is a full path, you should convert it to a relative path, relative to the root of the codebase."
+        return {
+            "error": "The input file path is an absolute path, you should convert it to a relative path, relative to the root of the codebase."
+        }
     try:
         # Use analysis client for static analysis queries
         client = await get_neo4j_client_from_context(tool_context, "analysis")
         query = """
-        MATCH (f:Function)
-        WHERE f.path CONTAINS $filepath OR $filepath CONTAINS f.path
+        MATCH (f:METHOD)
+        WHERE f.filename CONTAINS $filepath OR $filepath CONTAINS f.filename
         RETURN
             f.name AS function_name,
-            f.start AS start,
-            f.end AS end
+            f.lineNumber AS start,
+            f.lineNumberEnd AS end
         """
         params = {"filepath": filepath}
         results = await client.run_query(query, params)
@@ -131,7 +132,7 @@ def get_line_around_linenum_in_file(
     Args:
         filepath (str): The path to the file. This should be an absolute path.
         linenum (int): The line number to retrieve.
-        context (int): The number of lines of context to include before and after the specified line, DO NOT BE more than 50 lines.
+        context (int): The number of lines of context to include before and after the specified line, DO NOT BE set this more than 100.
     Returns:
         dict: A dictionary with key "result" pointing to a list of line information.
     """
@@ -144,9 +145,9 @@ def get_line_around_linenum_in_file(
         lines = file_content.splitlines()
         start = max(0, linenum - context - 1)  # Adjust for 0-based index
         end = min(len(lines), linenum + context)  # Adjust for 0-based index
-        if end - start > 100:
+        if end - start > 210:
             return {
-                "error": f"The number of lines to extract is too large, please extract less than 100 lines. The number of lines to extract is {end - start}."
+                "error": f"The number of lines to extract is too large, please set context to a value less than 100. The number of lines to extract is {end - start}."
             }
 
         result = f"# Extracted lines from {filepath} (lines {start + 1} to {end})\n"

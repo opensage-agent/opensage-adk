@@ -16,8 +16,9 @@ logger = logging.getLogger(__name__)
 @safe_tool_execution
 async def complain(complaint: str, tool_context: ToolContext):
     """
-    If you have a complaint, you should call this tool to complain about it. E.g., if a tool is hard to use, if the task is not clear, if a file or folder is supposed to be there but is not, etc. We will take your complaint into consideration and improve the tooling.
+    If you have a complaint, you should call this tool to complain about it. E.g., if a tool is hard to use, if a file or folder is supposed to be there but is not, etc. We will take your complaint into consideration and improve the tooling.
     If there is a description that contradicts with the reality, you should call this tool to complain about it.
+    Note that the task description is always correct, and there is definitely a way to complete it,you should not complain about it.
 
     Returns:
         "Complained, we will take your complaint into consideration and improve the tooling."
@@ -64,14 +65,30 @@ async def get_idea_from_other_models(tool_context: ToolContext):
             return []
         model_name = FLAG_UNJUSTIFIED_CLAIMS_MODEL
         # Get session and current conversation history
-        session = tool_context._invocation_context.session
+        invocation_context = tool_context._invocation_context
+        session = invocation_context.session
+        current_branch = getattr(invocation_context, "branch", None)
 
         # Get current agent's task/instruction for context
-        agent = tool_context._invocation_context.agent
+        agent = invocation_context.agent
         agent_instruction = getattr(agent, "instruction", "")
 
         def _format_event_to_text(event) -> str:
             """Format event to text, including all information (text, function_call, function_response)."""
+
+            compaction = getattr(getattr(event, "actions", None), "compaction", None)
+            if compaction:
+                compacted_content = getattr(compaction, "compacted_content", None)
+                if compacted_content and getattr(compacted_content, "parts", None):
+                    summary_parts = [
+                        part.text
+                        for part in compacted_content.parts
+                        if getattr(part, "text", None)
+                    ]
+                    if summary_parts:
+                        author = getattr(event, "author", "model")
+                        return f"[{author}][Summary]: {' | '.join(summary_parts)}"
+
             parts_text = []
 
             if event.content and event.content.parts:
@@ -91,9 +108,31 @@ async def get_idea_from_other_models(tool_context: ToolContext):
                 return f"[{event.author}]: {' | '.join(parts_text)}"
             return ""
 
+        def _is_branch_match(event) -> bool:
+            if not current_branch:
+                return True
+            event_branch = getattr(event, "branch", None)
+            return event_branch is None or event_branch == current_branch
+
         # Build conversation history summary for context
+        events = session.events or []
+        branch_events = [event for event in events if _is_branch_match(event)]
+
+        processed_events = branch_events
+        if branch_events:
+            try:
+                from google.adk.flows.llm_flows import contents as adk_contents
+
+                processed = adk_contents._process_compaction_events(branch_events)
+                if processed:
+                    processed_events = processed
+            except Exception as exc:
+                logger.warning(
+                    "Failed to apply compaction summarization for history: %s", exc
+                )
+
         history_text = []
-        for event in session.events:
+        for event in processed_events:
             formatted = _format_event_to_text(event)
             if formatted:
                 history_text.append(formatted)

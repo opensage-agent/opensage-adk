@@ -303,9 +303,6 @@ class AigiseFullEventSummarizer:
         self,
         *,
         events: List[Event],
-        previous_compaction_text: Optional[
-            str
-        ] = None,  # kept for compatibility, ignored
         folded_context_text: Optional[str] = None,
     ) -> Optional[types.Content]:
         if not events:
@@ -321,7 +318,7 @@ class AigiseFullEventSummarizer:
         # Explicitly mark the window that should be summarized
         lines.append("[WindowToSummarize]")
         for ev in events:
-            # Skip compaction events as sources; their text is injected via previous_compaction_text
+            # Skip compaction events as sources; their summaries already exist downstream
             if getattr(ev, "actions", None) and getattr(ev.actions, "compaction", None):
                 continue
             # Add a per-event header to make authorship/timing explicit
@@ -477,9 +474,8 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
             f"{total_chars} > {effective_budget}"
         )
 
-    # Determine last compaction boundary and its text (for context)
+    # Determine last compaction boundary for windowing
     last_compaction_end_ts: float = float("-inf")
-    previous_compaction_text: Optional[str] = None
     for ev in reversed(events):
         if getattr(ev, "actions", None) and getattr(ev.actions, "compaction", None):
             if current_branch and ev.branch and ev.branch != current_branch:
@@ -487,17 +483,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
             comp = ev.actions.compaction
             if getattr(comp, "end_timestamp", None) is not None:
                 last_compaction_end_ts = max(last_compaction_end_ts, comp.end_timestamp)
-            compacted = getattr(comp, "compacted_content", None)
-            if compacted and getattr(compacted, "parts", None):
-                try:
-                    prev_text_parts = [
-                        p.text for p in compacted.parts if getattr(p, "text", None)
-                    ]
-                    if prev_text_parts:
-                        previous_compaction_text = "\n".join(prev_text_parts)
-                        break
-                except Exception:
-                    pass
+            break
 
     # Find first user request timestamp on this branch (production-side constraint)
     first_user_ts: Optional[float] = None
@@ -626,7 +612,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
 
     compacted_content = await summarizer.maybe_summarize_events(
         events=window_events,
-        previous_compaction_text=previous_compaction_text,
         folded_context_text=folded_context_text,
     )
     if not compacted_content:

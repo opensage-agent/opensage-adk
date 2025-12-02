@@ -196,7 +196,7 @@ async def test_tool_combo_with_history(agent):
     runner = await ToolComboTestRunner(agent).async_init()
 
     # Run the agent with the test query
-    events = await runner.run("calculate (2+3)*2, with history")
+    events = await runner.run("calculate (2+3)*2, with history, use the tool combo")
 
     # Get tool call sequence
     tool_calls = await runner.get_tool_calls_sequence()
@@ -253,7 +253,7 @@ async def test_tool_combo_without_history(agent):
     runner = await ToolComboTestRunner(agent).async_init()
 
     # Run the agent with the test query
-    events = await runner.run("calculate (2+3)*2, without history")
+    events = await runner.run("calculate (2+3)*2, without history, use the tool combo")
 
     # Get tool call sequence
     tool_calls = await runner.get_tool_calls_sequence()
@@ -300,7 +300,7 @@ async def test_both_combos_produce_same_result(agent):
     """
     # Test with history
     runner_with_history = await ToolComboTestRunner(agent).async_init()
-    await runner_with_history.run("calculate (2+3)*2, with history")
+    await runner_with_history.run("calculate (2+3)*2, with history, use the tool combo")
     response_with_history = await runner_with_history.get_final_response_text()
     answer_with_history = runner_with_history.extract_final_answer(
         response_with_history
@@ -308,7 +308,9 @@ async def test_both_combos_produce_same_result(agent):
 
     # Test without history
     runner_without_history = await ToolComboTestRunner(agent).async_init()
-    await runner_without_history.run("calculate (2+3)*2, without history")
+    await runner_without_history.run(
+        "calculate (2+3)*2, without history, use the tool combo"
+    )
     response_without_history = await runner_without_history.get_final_response_text()
     answer_without_history = runner_without_history.extract_final_answer(
         response_without_history

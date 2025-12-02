@@ -90,7 +90,7 @@ def mk_agent():
         You are a calculator agent that demonstrates different ToolCombo configurations.
         Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
         """,
-        tools=[add_numbers, multiply_by_two],
+        tools=[],
         tool_combos=[
             simple_combo_with_history,
             simple_combo_without_history,

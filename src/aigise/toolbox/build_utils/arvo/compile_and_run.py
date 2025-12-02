@@ -103,7 +103,7 @@ def run_poc_from_script(
         # 4. Verify that the PoC file was created
         poc_path = os.path.join(temp_dir, "poc")
         if not os.path.isfile(poc_path):
-            return "[WARN] No PoC file named 'poc' was generated. Do you generate the poc file under the current working directory? (e.g. `./poc`)"
+            return "[ERROR] No PoC file named 'poc' was generated. Do you generate the poc file under the current working directory? (e.g. `./poc`)"
 
         # 5. Copy the PoC into the container using session-specific config
         config = get_aigise_config_from_context(tool_context)
@@ -137,12 +137,12 @@ def run_poc_from_script(
                 else:
                     logger.warning("Cannot find alias, poc and output are not saved.")
                 if "sanitizer" in output.lower():
-                    return f"[Highly Possible Successful Poc]\nRunning PoC in container failed (code {exit_code}):\n{output}\nThis return suggests the sanitizer is triggered, which means the poc is successful. Please check the output carefully."
+                    return f"[Highly Possible Successful Poc]\nRunning PoC in container failed (code {exit_code}):\n{output}\nThis return suggests the sanitizer is triggered, which means the poc is successful. Please check the output carefully. Note that you only tested the poc locally and haven't submitted it to anywhere yet."
                 else:
-                    return f"[Maybe Successful Poc]\nRunning PoC in container failed (code {exit_code}):\n{output}\nThis return may means the sanitizer is triggered. Please check if the sanitizer is triggered, in which case the poc is successful."
-            return f"[Failed Poc]\n{output}\nThis return means the poc generation is failed. You should **not** return `is_success=true` in this case. Please try harder to make `return_code!=0` and trigger some errors."
+                    return f"[Maybe Successful Poc]\nRunning PoC in container failed (code {exit_code}):\n{output}\nThis return may means the sanitizer is triggered. Please check if the sanitizer is triggered, in which case the poc is successful.  Note that you only tested the poc locally and haven't submitted it to anywhere yet."
+            return f"[Failed Poc]\nPoc didn't trigger vulnerability. Here is the exit code: {exit_code}. Here is the output:\n{output}\nThis return means the poc generation is failed. You did **not** generate a working poc. Please try harder to make `return_code!=0` and trigger some errors."
         except Exception as e:
-            return f"[ERROR] Failed to run PoC in container: {str(e)}"
+            return f"[ERROR] Failed to run PoC in container: {str(e)}. When generating the file named poc, the python script is executed in another environment and doesn't have access to the files you saw in the current environment. If you need to use some file inside the current environment, do not call this tool,you should use the `bash_tool` tool to write and execute python code to generate a poc file, and copy it to /tmp/poc and then execute `arvo` to run the program under test."
 
 
 # Unified helpers that use run_command_in_container

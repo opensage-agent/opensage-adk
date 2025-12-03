@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import logging
-import os
-import tempfile
+import re
 
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.session.sandbox_state import SandboxState
@@ -40,8 +39,11 @@ class FuzzInitializer(SandboxInitializer):
                 "cat /bin/arvo", timeout=1200
             )
             if exit_code != 0:
-                raise RuntimeError(f"Failed to read arvo script: {res}")
-            infos = self._extract_infos_from_arvo_script(res)
+                infos = self._extract_infos_from_ossfuzz(
+                    aigise_session.sandboxes.get_sandbox("main")
+                )
+            else:
+                infos = self._extract_infos_from_arvo_script(res)
 
             # Set up fuzzing environment
             await self._setup_fuzzing_environment(infos)
@@ -54,10 +56,30 @@ class FuzzInitializer(SandboxInitializer):
 
         await self.ensure_ready()
 
+    def _extract_infos_from_ossfuzz(self, sandbox: BaseSandbox) -> dict[str, str]:
+        infos = {}
+        for env in ["SANITIZER", "FUZZING_LANGUAGE", "ARCHITECTURE"]:
+            res, exit_code = sandbox.run_command_in_container(
+                f"echo ${env}", timeout=1200
+            )
+            if exit_code != 0:
+                raise RuntimeError(f"Failed to get {env}: {res}")
+            infos[env] = res.strip()
+        # find fuzz target from /usr/local/bin/run_poc
+        res, exit_code = sandbox.run_command_in_container(
+            "cat /usr/local/bin/run_poc", timeout=1200
+        )
+        if exit_code != 0:
+            raise RuntimeError(f"Failed to read run_poc script: {res}")
+        for line in res.splitlines():
+            m = re.match(r"^\s+/out/(\S+)\s+/tmp/poc", line)
+            if m:
+                infos["FUZZ_TARGET"] = m.group(1)
+                break
+        return infos
+
     def _extract_infos_from_arvo_script(self, arvo_script: str) -> dict[str, str]:
         """Extract information from arvo script."""
-        import re
-
         infos = {}
         # find 'export XXX=YYYY' in arvo_script
         env_names = ["SANITIZER", "FUZZING_LANGUAGE", "ARCHITECTURE"]

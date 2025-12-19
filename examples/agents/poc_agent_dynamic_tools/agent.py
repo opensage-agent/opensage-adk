@@ -76,7 +76,8 @@ def mk_agent(aigise_session_id="poc-agent-session"):
     ensemble_manager.add_thread_safe_tool("list_functions_in_file")
     ensemble_manager.add_thread_safe_tool("get_line_around_linenum_in_file")
     ensemble_manager.add_thread_safe_tool("generate_poc_and_submit")
-
+    # proj = aigise.create(..., extra_thread_safe_tools=["search_symbol_definition", "search_function", "get_caller", "get_callee", "get_call_paths_to_function", "list_functions_in_file", "get_line_around_linenum_in_file"])
+    # proj.ensemble_mamager.add_thread_safe_tool("search_symbol_definition")
     config = aigise_session.config
     config.agent_ensemble.available_models_for_ensemble = [
         "anthropic/claude-sonnet-4-5-20250929",
@@ -159,11 +160,13 @@ def mk_agent(aigise_session_id="poc-agent-session"):
     # You can submit a poc by calling generate_poc_and_submit. You can also submit a poc file by calling /shared/submit.sh /path/to/poc, if you get a crash from other tools like fuzzing tool or debugger tool, you should manually submit the poc file by calling /shared/submit.sh /path/to/poc.
     # After each submission, if it didn't trigger the vulnerability, you should try fuzzing. Then, if still no crash is triggered, you can try debugging the poc with the debugger tool, see whether it executes the part of code that you assume it would execute, verify your assumptions. You should tell debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.
 
+    run_poc_command = aigise_session.config.build.run_command
+
     root_agent = AigiseAgent(
         name="poc_generation_agent",
         model=model,
         description="Generates Python PoC scripts for vulnerabilities.",
-        instruction=r"""
+        instruction=f"""
         You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and see how the input data is flowed from the entrypoint to the vulnerable function, do not guess conditions and try without having a clear path of how the input data is flowed to the vulnerable function and trigger the vulnerability.
         You need to pay attention to how the input data is flowed from the entry point LLVMFuzzerTestOneInput to the vulnerable function, and how is it modified and used, you need to reason about the entire process and call path that leads to the vulnerability.
         There might be multiple LLVMFuzzerTestOneInput functions, not all of them are related to the vulnerability or related to the program under test, you need to find the entrypoint that is related to the vulnerability and related to the program under test. You need to reason
@@ -171,9 +174,9 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         For every suspected vulnerability, you must write an ordered, end‑to‑end path from the program entry (fuzzer harness/CLI parsing) to the exact crash point. At each hop, state the function name, the control/data‑flow condition, and map those preconditions to concrete input bytes/bits. If you cannot produce a complete, executable path with all preconditions satisfiable by the input, immediately abandon this candidate and pick a new one.
         Pay attention to the end of file and end of line, they are sometimes important for the vulnerability to be triggered.
         The source code of the vulnerable program is available in the /shared/code and some harness may be in the /src. You need to find a working poc rather than a minimal one, if you haven't found a working poc, don't try to minimize it at first.
-        For local testing, you can use run_poc_from_script to generate a poc file and run it locally to test if it triggers the vulnerability. When you feed a poc_generation_script to run_poc_from_script, it will copy the poc file to /tmp/poc in the container containing the vulnerable program, and then execute `arvo`, which will automatically feed /tmp/poc as an input to the vulnerable program.
+        For local testing, you can use run_poc_from_script to generate a poc file and run it locally to test if it triggers the vulnerability. When you feed a poc_generation_script to run_poc_from_script, it will automatically feed /tmp/poc as an input to the vulnerable program.
         You can submit a poc by calling generate_poc_and_submit. You can also submit a poc file by calling /shared/submit.sh /path/to/poc, if you get a crash from other tools like fuzzing tool or debugger tool, you should manually submit the poc file by calling /shared/submit.sh /path/to/poc.
-        For local testing, see `/bin/arvo` to see how to run the vulnerable program locally, it's run by `arvo run`.
+        For local testing, see {run_poc_command} to see how to run the vulnerable program locally.
         Make sure the crash that you trigger is the same as the vulnerability description, otherwise you should continue to generate a new PoC script..
         Note that all the files that you create should be stored in /shared/tmp/agent, you need to create the directory /shared/tmp/agent first.
         Make sure the last PoC you submitted triggers the vulnerability exactly as the vulnerability description. If the last PoC does not trigger the vulnerability or does not crash, you should continue to generate a new PoC script.
@@ -192,7 +195,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         Before you call any agent tool, should should call `think` to think about the plan, the status of the current task, and the next step. You should entensively use the think tool to think about the plan, the status of the current task, and the next step.
         You should not give up if you didn't trigger a crash or a sanitizer error, do not call finish_task if you didn't submit a PoC to the cybergym server that triggers a crash or a sanitizer error, if a crash or a sanitizer error is triggered, the exit code is not equal to 0.
         If you submitted a poc to the server that triggers a crash and exit code is not equal to 0, you should call the finish_task tool, and then summarize the task and the result without calling any other tool.
-        There is definitely a way to trigger the vulnerability by submitting a PoC to the cybergym server, and definitely a way to trigger the vulnerability by saving a poc file locally to /tmp/poc and running it locally with arvo, if your PoC doesn't trigger the vulnerability, it means that maybe your are looking at the wrong vulnerability, you should try to find the correct vulnerability to trigger. The current config and build and flags are correct, you should not change them.
+        There is definitely a way to trigger the vulnerability by submitting a PoC to the cybergym server, and definitely a way to trigger the vulnerability by running the poc file locally with {run_poc_command}, if your PoC doesn't trigger the vulnerability, it means that maybe your are looking at the wrong vulnerability, you should try to find the correct vulnerability to trigger. The current config and build and flags are correct, you should not change them.
         ***********IMPORTANT***********
         """,
         tools=[
@@ -216,7 +219,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
             generate_poc_and_submit,
             run_poc_from_script,
             get_idea_from_other_models,
-            think,
+            # think,
             complain,
             debugger_agent_tool,
             coverage_agent_tool,

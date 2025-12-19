@@ -28,6 +28,8 @@ from aigise.sandbox.utils import can_pull_image, image_exists_locally
 from aigise.utils.parser import get_function_info
 from aigise.utils.project_info import PROJECT_PATH
 
+client = docker.DockerClient(base_url="unix://var/run/docker.sock", timeout=300)
+
 
 @dataclass
 class DockerBuildResult:

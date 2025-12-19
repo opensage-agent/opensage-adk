@@ -1087,6 +1087,9 @@ class Evaluation(abc.ABC):
                     session_snapshot.state.get("_adk", {}).get("llm_calls_used", 0) or 0
                 )
                 remaining_llm_calls = max(0, self.max_llm_calls - used_calls)
+            logger.warning(f"Remaining LLM calls: {remaining_llm_calls}")
+            logger.warning(f"Used LLM calls: {used_calls}")
+            logger.warning(f"Max LLM calls: {self.max_llm_calls}")
             return session_snapshot
 
         all_events = []

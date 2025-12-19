@@ -88,7 +88,7 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
         If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
         """,
-        tools=[bash_tool, complain],
+        tools=[bash_tool, complain, gdb_toolset],
     )
     root_agent = debugger_agent
     setup_summarization_callbacks(root_agent)

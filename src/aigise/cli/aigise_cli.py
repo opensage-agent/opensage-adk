@@ -24,6 +24,7 @@ from aigise.cli.aigise_web_app import AigiseWebServer
 from aigise.features.aigise_in_memory_session_service import (
     AigiseInMemorySessionService,
 )
+from aigise.plugins import load_plugins
 from aigise.session import get_aigise_session
 from aigise.toolbox.decorators import collect_sandbox_dependencies
 
@@ -240,6 +241,14 @@ def cli_web(
     # 2) Load the agent and bind to the prepared session (no reload/auto-discovery)
     mk_agent = _load_mk_agent_from_dir(agent_dir)
     root_agent = mk_agent(aigise_session_id=session_id)
+    aigise_session = get_aigise_session(session_id)
+    enabled_plugins = []
+    if aigise_session and getattr(aigise_session, "config", None):
+        enabled_plugins = (
+            getattr(getattr(aigise_session.config, "plugins", None), "enabled", [])
+            or []
+        )
+    plugins = load_plugins(enabled_plugins)
 
     # 3) Build services (use AigiseInMemorySessionService and pre-create the ADK session)
     # Infer app name as the parent folder of the agent directory.
@@ -269,13 +278,14 @@ def cli_web(
         logo_text=None,
         logo_image_url=None,
         url_prefix=None,
+        plugins=plugins,
     )
     # Pre-create the session using the server's inferred app_name to avoid mismatch
     asyncio.run(
         session_service.create_session(
             app_name=web_server.app_name,
             user_id="user",
-            state={},
+            state={"aigise_session_id": session_id},
             session_id=session_id,
         )
     )

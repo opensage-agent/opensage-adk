@@ -48,3 +48,10 @@ max_tokens = 2048
 model_name = "openai/gpt-5"
 temperature = 0.3
 max_tokens = 2048
+
+[plugins]
+enabled = [
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+    "quota_after_tool_plugin",
+]

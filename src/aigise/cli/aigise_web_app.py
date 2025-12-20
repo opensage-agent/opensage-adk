@@ -30,6 +30,7 @@ from google.adk.cli.adk_web_server import (
     RunAgentRequest,
 )
 from google.adk.events.event import Event
+from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.runners import Runner
 from google.adk.utils.context_utils import Aclosing
 from google.genai import types
@@ -96,6 +97,7 @@ class AigiseWebServer:
         credential_service,
         eval_sets_manager=None,
         eval_set_results_manager=None,
+        plugins: Optional[list[BasePlugin]] = None,
         logo_text: Optional[str] = None,
         logo_image_url: Optional[str] = None,
         url_prefix: Optional[str] = None,
@@ -110,6 +112,7 @@ class AigiseWebServer:
         self.credential_service = credential_service
         self.eval_sets_manager = eval_sets_manager
         self.eval_set_results_manager = eval_set_results_manager
+        self.plugins = plugins or []
         self.logo_text = logo_text
         self.logo_image_url = logo_image_url
         self.url_prefix = url_prefix
@@ -118,7 +121,9 @@ class AigiseWebServer:
     async def get_runner_async(self) -> Runner:
         if self._runner:
             return self._runner
-        agentic_app = App(name=self.app_name, root_agent=self.root_agent, plugins=[])
+        agentic_app = App(
+            name=self.app_name, root_agent=self.root_agent, plugins=self.plugins
+        )
         self._runner = Runner(
             app=agentic_app,
             artifact_service=self.artifact_service,

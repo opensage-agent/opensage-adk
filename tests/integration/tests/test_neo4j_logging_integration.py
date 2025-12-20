@@ -15,11 +15,13 @@ import warnings
 
 import pytest
 from google.adk import Runner
+from google.adk.apps.app import App
 from google.genai import types
 
 from aigise.features.aigise_in_memory_session_service import (
     AigiseInMemorySessionService,
 )
+from aigise.plugins import load_plugins
 from aigise.session import get_aigise_session
 from aigise.toolbox.decorators import collect_sandbox_dependencies
 
@@ -126,7 +128,7 @@ class TestNeo4jLoggingIntegration:
 
         from sample_neo4j_logging import agent as agent_module
 
-        root_agent = agent_module.mk_agent()
+        root_agent = agent_module.mk_agent(aigise_session_id=aigise_session_id)
 
         # Prepare AIgiSE environment for given aigise_session_id
         config_path = os.path.join(
@@ -161,9 +163,18 @@ class TestNeo4jLoggingIntegration:
 
         # Create session service and runner
         session_service = AigiseInMemorySessionService()
+        enabled_plugins = (
+            getattr(getattr(aigise_session.config, "plugins", None), "enabled", [])
+            or []
+        )
+        plugins = load_plugins(enabled_plugins)
+        agentic_app = App(
+            name="neo4j_logging_test",
+            root_agent=root_agent,
+            plugins=plugins,
+        )
         runner = Runner(
-            app_name="neo4j_logging_test",
-            agent=root_agent,
+            app=agentic_app,
             session_service=session_service,
         )
 

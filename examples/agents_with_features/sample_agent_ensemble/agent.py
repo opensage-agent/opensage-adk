@@ -6,10 +6,7 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 
 from aigise.agents.aigise_agent import AigiseAgent
-from aigise.features import (
-    enable_neo4j_logging,
-    setup_summarization_callbacks,
-)
+from aigise.features import enable_neo4j_logging
 from aigise.session import get_aigise_session
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
@@ -47,7 +44,7 @@ calculation_agent_tool = AgentTool(agent=calculation_agent)
 enable_neo4j_logging()
 
 
-def mk_agent(aigise_session_id="sample-agent-ensemble-session"):
+def mk_agent(aigise_session_id: str):
     aigise_session = get_aigise_session(aigise_session_id)
     ensemble_manager = aigise_session.ensemble
     ensemble_manager.add_thread_safe_tool("calculate_add")
@@ -75,8 +72,4 @@ def mk_agent(aigise_session_id="sample-agent-ensemble-session"):
             get_available_models,
         ],
     )
-    setup_summarization_callbacks(root_agent)
     return root_agent
-
-
-root_agent = mk_agent()

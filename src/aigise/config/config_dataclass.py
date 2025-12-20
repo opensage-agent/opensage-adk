@@ -270,6 +270,13 @@ class HistoryConfig:
 
 
 @dataclass
+class PluginsConfig:
+    """Configuration for AIgiSE plugins."""
+
+    enabled: List[str] = field(default_factory=list)
+
+
+@dataclass
 class AgentEnsembleConfig:
     """Agent ensemble configuration."""
 
@@ -370,6 +377,7 @@ class AigiseConfig:
     sandbox: SandboxConfig = None
     llm: LLMConfig = None
     history: HistoryConfig = None
+    plugins: PluginsConfig = field(default_factory=PluginsConfig)
     agent_ensemble: AgentEnsembleConfig = None
     build: BuildConfig = None
     mcp: MCPConfig = None

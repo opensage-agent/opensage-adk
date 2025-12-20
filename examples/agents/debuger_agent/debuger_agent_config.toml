@@ -175,3 +175,10 @@ image = "${DEFAULT_IMAGE}"
 command = "tail -f /dev/null"
 [sandbox.sandboxes.coverage.extra]
 initializer_timeout_sec = 1800
+
+[plugins]
+enabled = [
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+    "quota_after_tool_plugin",
+]

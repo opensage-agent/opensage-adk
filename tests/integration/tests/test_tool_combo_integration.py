@@ -16,12 +16,14 @@ from typing import List
 
 import pytest
 from google.adk import Runner
+from google.adk.apps.app import App
 from google.adk.events import Event
 from google.genai import types
 
 from aigise.features.aigise_in_memory_session_service import (
     AigiseInMemorySessionService,
 )
+from aigise.plugins import load_plugins
 from aigise.session import get_aigise_session
 from aigise.toolbox.decorators import collect_sandbox_dependencies
 
@@ -41,11 +43,7 @@ class ToolComboTestRunner:
     def __init__(self, agent):
         self.agent = agent
         self.session_service = AigiseInMemorySessionService()
-        self.agent_client = Runner(
-            app_name=self.app_name,
-            agent=agent,
-            session_service=self.session_service,
-        )
+        self.agent_client = None
         self.current_session_id = str(uuid.uuid4())
 
     async def async_init(self):
@@ -75,6 +73,21 @@ class ToolComboTestRunner:
         aigise_session.sandboxes.initialize_shared_volumes()
         await aigise_session.sandboxes.launch_all_sandboxes()
         await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
+
+        enabled_plugins = (
+            getattr(getattr(aigise_session.config, "plugins", None), "enabled", [])
+            or []
+        )
+        plugins = load_plugins(enabled_plugins)
+        agentic_app = App(
+            name=self.app_name,
+            root_agent=self.agent,
+            plugins=plugins,
+        )
+        self.agent_client = Runner(
+            app=agentic_app,
+            session_service=self.session_service,
+        )
 
         await self.session_service.create_session(
             app_name=self.app_name,
@@ -173,8 +186,7 @@ def agent():
     # Import the agent module
     from sample_tool_combo import agent as agent_module
 
-    agent_instance = agent_module.mk_agent()
-
+    agent_instance = agent_module.mk_agent(aigise_session_id=str(uuid.uuid4()))
     yield agent_instance
 
     # Cleanup: Remove sessions and resources

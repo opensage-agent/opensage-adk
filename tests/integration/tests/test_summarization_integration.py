@@ -15,11 +15,13 @@ import warnings
 
 import pytest
 from google.adk import Runner
+from google.adk.apps.app import App
 from google.genai import types
 
 from aigise.features.aigise_in_memory_session_service import (
     AigiseInMemorySessionService,
 )
+from aigise.plugins import load_plugins
 from aigise.session import get_aigise_session
 from aigise.toolbox.decorators import collect_sandbox_dependencies
 
@@ -181,7 +183,7 @@ class TestSummarizationIntegration:
 
         from sample_summarization import agent as agent_module
 
-        root_agent = agent_module.mk_agent()
+        root_agent = agent_module.mk_agent(aigise_session_id=isolated_aigise_session_id)
 
         # Prepare AIgiSE environment for this isolated test case
         config_path = os.path.join(
@@ -216,9 +218,18 @@ class TestSummarizationIntegration:
 
         # Create completely isolated session service and runner
         session_service = AigiseInMemorySessionService()
+        enabled_plugins = (
+            getattr(getattr(aigise_session.config, "plugins", None), "enabled", [])
+            or []
+        )
+        plugins = load_plugins(enabled_plugins)
+        agentic_app = App(
+            name="summarization_test",
+            root_agent=root_agent,
+            plugins=plugins,
+        )
         runner = Runner(
-            app_name="summarization_test",
-            agent=root_agent,
+            app=agentic_app,
             session_service=session_service,
         )
 

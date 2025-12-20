@@ -64,7 +64,7 @@ def multiply_by_two(result: float) -> Dict[str, Any]:
     }
 
 
-def mk_agent():
+def mk_agent(aigise_session_id: str):
     # two-step operation, shows intermediate steps
     simple_combo_with_history = ToolCombo(
         name="simple_combo_with_history",
@@ -97,6 +97,3 @@ def mk_agent():
         ],
     )
     return root_agent
-
-
-root_agent = mk_agent()

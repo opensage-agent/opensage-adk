@@ -168,8 +168,7 @@ class TestDynamicAgentManager:
         assert manager.storage_path == Path("/tmp/aigise_agent_storage")
 
     @patch("aigise.session.aigise_dynamic_agent_manager.AigiseAgent")
-    @patch("aigise.features.summarization.setup_summarization_callbacks")
-    def test_create_agent_instance(self, mock_setup_callbacks, mock_aigise_agent):
+    def test_create_agent_instance(self, mock_aigise_agent):
         """Test _create_agent_instance method."""
         mock_agent = MagicMock()
         mock_aigise_agent.return_value = mock_agent
@@ -196,9 +195,6 @@ class TestDynamicAgentManager:
             expected_config = config.copy()
             expected_config["model"] = mock_model
             mock_aigise_agent.assert_called_once_with(**expected_config)
-
-            # Verify summarization callbacks were set up
-            mock_setup_callbacks.assert_called_once_with(mock_agent)
 
             assert result == mock_agent
 

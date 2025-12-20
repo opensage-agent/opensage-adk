@@ -10,10 +10,6 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 
 from aigise.agents.aigise_agent import AigiseAgent
-from aigise.features import (
-    enable_neo4j_logging,
-    setup_summarization_callbacks,
-)
 from aigise.session import get_aigise_session
 from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
 from aigise.toolbox.coverage.tools import (
@@ -61,7 +57,7 @@ from aigise.toolbox.static_analysis.cpg import (
 )
 
 
-def mk_agent(aigise_session_id="poc-agent-session"):
+def mk_agent(aigise_session_id: str):
     model = LiteLlm(
         # model="litellm_proxy/vertex_ai/claude-sonnet-4-5@20250929",
         model="litellm_proxy/openai/gpt-5",
@@ -91,8 +87,4 @@ def mk_agent(aigise_session_id="poc-agent-session"):
         tools=[bash_tool, complain, gdb_toolset],
     )
     root_agent = debugger_agent
-    setup_summarization_callbacks(root_agent)
     return root_agent
-
-
-root_agent = mk_agent()

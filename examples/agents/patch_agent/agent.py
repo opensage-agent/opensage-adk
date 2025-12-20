@@ -17,7 +17,7 @@ from aigise.toolbox.retrieval.search_tools import (
 )
 
 
-def mk_agent(aigise_session_id="patch-agent-session"):
+def mk_agent(aigise_session_id: str):
     return AigiseAgent(
         name="patch_generation_agent",
         model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
@@ -30,8 +30,4 @@ def mk_agent(aigise_session_id="patch-agent-session"):
             bash_tool,
             get_line_around_linenum_in_file,
         ],
-        aigise_session_id=aigise_session_id,
     )
-
-
-root_agent = mk_agent()

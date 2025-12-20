@@ -19,3 +19,11 @@ BASE_IMAGE = "ubuntu:20.04"
 model_name = "openai/o4-mini"
 temperature = 0.2
 max_tokens = 2048
+
+
+[plugins]
+enabled = [
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+    "quota_after_tool_plugin",
+]

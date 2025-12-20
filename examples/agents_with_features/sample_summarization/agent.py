@@ -23,7 +23,6 @@ from google.adk.tools.tool_context import ToolContext
 
 from aigise.agents.aigise_agent import AigiseAgent
 from aigise.features import enable_neo4j_logging
-from aigise.features.summarization import setup_summarization_callbacks
 from aigise.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
@@ -94,7 +93,7 @@ def calculate_area_and_perimeter(
     }
 
 
-def mk_agent():
+def mk_agent(aigise_session_id: str):
     enable_neo4j_logging()
     os.environ["MAX_HISTORY_SUMMARY_LENGTH"] = "300"
     os.environ["MAX_TOOL_RESPONSE_LENGTH"] = "100"
@@ -146,8 +145,4 @@ Formulate the final answer as a single number inside <final_answer>...</final_an
         sub_agents=[math_calculator],
     )
 
-    setup_summarization_callbacks(root_agent)
     return root_agent
-
-
-root_agent = mk_agent()

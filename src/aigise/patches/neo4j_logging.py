@@ -6,9 +6,9 @@ import traceback
 from typing import Any, Callable, Optional
 
 from google.adk.agents.base_agent import BaseAgent
-from google.adk.agents.callback_context import CallbackContext
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.run_config import RunConfig
+from google.adk.apps.app import App
 from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
 from google.adk.runners import Runner
 from google.adk.tools._forwarding_artifact_service import ForwardingArtifactService
@@ -211,9 +211,22 @@ def apply() -> None:
             AigiseInMemorySessionService,
         )
 
+        parent_plugins = []
+        try:
+            parent_plugins = list(
+                tool_context._invocation_context.plugin_manager.plugins
+            )
+        except Exception as plugin_error:
+            logger.debug("Failed to reuse parent plugins: %s", plugin_error)
+
+        agentic_app = App(
+            name=agent_tool.agent.name,
+            root_agent=agent_tool.agent,
+            plugins=parent_plugins,
+        )
+
         runner = Runner(
-            app_name=agent_tool.agent.name,
-            agent=agent_tool.agent,
+            app=agentic_app,
             artifact_service=ForwardingArtifactService(tool_context),
             session_service=AigiseInMemorySessionService(),
             memory_service=InMemoryMemoryService(),

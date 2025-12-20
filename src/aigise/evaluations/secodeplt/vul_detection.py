@@ -11,6 +11,7 @@ from typing import Any, Callable, Coroutine, Optional, TypeVar
 
 import datasets
 import fire
+from evaluations import Evaluation, EvaluationTask
 from google import adk
 from google.adk import Runner
 from google.adk.agents import LlmAgent, RunConfig
@@ -43,7 +44,6 @@ from aigise.toolbox.static_analysis.cpg import (
     search_function,
 )
 from aigise.utils.project_info import PROJECT_PATH
-from evaluations import Evaluation, EvaluationTask
 
 logger = logging.getLogger(__name__)
 langfuse = get_client()

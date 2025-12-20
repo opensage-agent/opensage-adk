@@ -22,6 +22,7 @@ from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.run_config import RunConfig
+from google.adk.apps.app import App
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import Runner
 from google.adk.sessions import Session
@@ -34,7 +35,7 @@ from aigise.config import AigiseConfig
 from aigise.features.aigise_in_memory_session_service import (
     AigiseInMemorySessionService,
 )
-from aigise.features.summarization import setup_summarization_callbacks
+from aigise.plugins import load_plugins
 from aigise.session import get_aigise_session
 from aigise.session.aigise_session import AigiseSession
 from aigise.toolbox.decorators import collect_sandbox_dependencies
@@ -797,8 +798,6 @@ class Evaluation(abc.ABC):
                 f"for session {task.session_id}"
             )
 
-        setup_summarization_callbacks(agent)
-        logger.warning(f"Setup summarization callbacks for session {task.session_id}")
         return agent
 
     async def _generate_sample(self, task: EvaluationTask) -> dict:
@@ -1050,9 +1049,24 @@ class Evaluation(abc.ABC):
         # 2. Create runner and session service
         app_name = self.__class__.__name__.lower()
         session_service = AigiseInMemorySessionService()
+        enabled_plugins = []
+        if task.aigise_session and getattr(task.aigise_session, "config", None):
+            enabled_plugins = (
+                getattr(
+                    getattr(task.aigise_session.config, "plugins", None), "enabled", []
+                )
+                or []
+            )
+        plugins = load_plugins(enabled_plugins)
+        if plugins:
+            logger.warning(
+                "Loaded plugins for session %s: %s",
+                task.session_id,
+                ", ".join(plugin.name for plugin in plugins),
+            )
+        app = App(name=app_name, root_agent=agent, plugins=plugins)
         runner = Runner(
-            agent=agent,
-            app_name=app_name,
+            app=app,
             session_service=session_service,
         )
 

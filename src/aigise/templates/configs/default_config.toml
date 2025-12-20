@@ -145,6 +145,13 @@ enable_quota_countdown = true
 max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
 compaction_percent = "${COMPACTION_PERCENT}"
 
+[plugins]
+enabled = [
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+    "quota_after_tool_plugin",
+]
+
 
 [agent_ensemble]
 thread_safe_tools = []

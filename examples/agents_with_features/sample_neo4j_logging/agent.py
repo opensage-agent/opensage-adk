@@ -94,7 +94,7 @@ Always explain the geometric concepts involved and show the calculation steps.""
 geometry_tool = AgentTool(agent=geometry_calculator)
 
 
-def mk_agent():
+def mk_agent(aigise_session_id: str):
     enable_neo4j_logging()
 
     root_agent = AigiseAgent(
@@ -116,6 +116,3 @@ def mk_agent():
         ],
     )
     return root_agent
-
-
-root_agent = mk_agent()

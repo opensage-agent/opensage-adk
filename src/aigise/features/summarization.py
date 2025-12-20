@@ -728,21 +728,3 @@ async def quota_after_tool_callback(tool, args, tool_context, tool_response):
 
     # Other types: do nothing
     return None
-
-
-def setup_summarization_callbacks(root_agent: BaseAgent):
-    """Register summarization callbacks to all agents (history + tool response)."""
-    agents = discover_all_agents(root_agent)
-    # Register order matters: summarizer first, then quota appender.
-    results = register_callback_to_all_agents(
-        agents,
-        [
-            history_summarizer_callback,
-            tool_response_summarizer_callback,
-            quota_after_tool_callback,
-        ],
-    )
-    agent_names = [agent.name for agent in agents]
-    logger.info(
-        f"✅ Registered summarization callbacks to {sum(results.values())} agents: {agent_names}"
-    )

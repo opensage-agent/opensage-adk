@@ -113,10 +113,6 @@ class DynamicAgentManager:
         # Create AigiseAgent
         agent = AigiseAgent(**kwargs)
 
-        # Setup summarization callbacks
-        from aigise.features.summarization import setup_summarization_callbacks
-
-        setup_summarization_callbacks(agent)
         return agent
 
     async def create_agent(

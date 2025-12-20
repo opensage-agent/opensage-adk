@@ -2,7 +2,23 @@ import asyncio
 import types as _types
 
 import pytest
+from google.adk.agents.base_agent import BaseAgent
 from google.adk.tools.agent_tool import AgentTool
+
+
+class _StubAgent(BaseAgent):
+    """Minimal BaseAgent implementation for testing AgentTool patch."""
+
+    async def _run_async_impl(self, ctx):
+        if False:
+            yield  # pragma: no cover
+        return
+
+    async def _run_live_impl(self, ctx):
+        if False:
+            yield  # pragma: no cover
+        return
+
 
 from aigise.features import agent_history_tracker
 
@@ -56,17 +72,9 @@ class _DummySessionService:
 
 
 class _DummyRunner:
-    def __init__(
-        self,
-        *,
-        app_name,
-        agent,
-        artifact_service,
-        session_service,
-        memory_service,
-        credential_service,
-    ):
-        self.session_service = session_service
+    def __init__(self, **kwargs):
+        # Tests only need the injected session_service; ignore plugin/app args.
+        self.session_service = kwargs["session_service"]
         self._last_run_config = None
 
     async def close(self):
@@ -98,7 +106,7 @@ async def test_agenttool_runs_with_remaining_quota_and_merges_child_usage(monkey
 
     monkeypatch.setattr(patch_mod, "Runner", _runner_ctor, raising=True)
 
-    dummy_agent = _types.SimpleNamespace(name="child_agent", description="desc")
+    dummy_agent = _StubAgent(name="child_agent", description="desc")
     tool = AgentTool(agent=dummy_agent, skip_summarization=False)
 
     res = await tool.run_async(args={"request": "hello"}, tool_context=tool_context)
@@ -131,7 +139,7 @@ async def test_agenttool_passes_zero_remaining_when_parent_exhausted(monkeypatch
 
     monkeypatch.setattr(patch_mod, "Runner", _runner_ctor, raising=True)
 
-    dummy_agent = _types.SimpleNamespace(name="child_agent", description="desc")
+    dummy_agent = _StubAgent(name="child_agent", description="desc")
     tool = AgentTool(agent=dummy_agent, skip_summarization=False)
 
     await tool.run_async(args={"request": "hello"}, tool_context=tool_context)

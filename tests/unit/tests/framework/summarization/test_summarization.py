@@ -13,8 +13,12 @@ from google.genai import types
 from aigise.features.summarization import (
     _get_summary_async,
     history_summarizer_callback,
-    setup_summarization_callbacks,
     tool_response_summarizer_callback,
+)
+from aigise.plugins.history_summarizer_plugin import HistorySummarizerPlugin
+from aigise.plugins.quota_after_tool_plugin import QuotaAfterToolPlugin
+from aigise.plugins.tool_response_summarizer_plugin import (
+    ToolResponseSummarizerPlugin,
 )
 
 
@@ -898,67 +902,85 @@ class TestHistorySummarizer:
             mock_lite_llm.assert_called_once_with(model="anthropic/claude-3-5-sonnet")
 
 
-class TestSetupSummarizationCallbacks:
-    """Test setup function for summarization callbacks."""
+class TestSummarizationPlugins:
+    """Test plugin wrappers for summarization callbacks."""
 
-    def test_setup_summarization_callbacks(self):
-        """Test setting up summarization callbacks on agents."""
-        # Create mock agents
-        root_agent = MagicMock()
-        sub_agent1 = MagicMock()
-        sub_agent2 = MagicMock()
+    @pytest.mark.asyncio
+    async def test_history_summarizer_plugin_delegates(self):
+        """Plugin should forward to history_summarizer_callback."""
+        plugin = HistorySummarizerPlugin()
+        mock_tool = MagicMock()
+        mock_args = {"foo": "bar"}
+        mock_context = MagicMock()
+        mock_result = {"ok": True}
 
-        root_agent.name = "root"
-        sub_agent1.name = "sub1"
-        sub_agent2.name = "sub2"
+        async def _mock_callback(tool, tool_args, tool_context, result):
+            assert tool is mock_tool
+            assert tool_args is mock_args
+            assert tool_context is mock_context
+            assert result is mock_result
+            return "history-summary"
 
-        with (
-            patch("aigise.features.summarization.discover_all_agents") as mock_discover,
-            patch(
-                "aigise.features.summarization.register_callback_to_all_agents"
-            ) as mock_register,
-        ):
-            # Mock discovered agents
-            all_agents = [root_agent, sub_agent1, sub_agent2]
-            mock_discover.return_value = all_agents
+        with patch(
+            "aigise.plugins.history_summarizer_plugin.summarization.history_summarizer_callback",
+            new=AsyncMock(side_effect=_mock_callback),
+        ) as mock_cb:
+            response = await plugin.after_tool_callback(
+                tool=mock_tool,
+                tool_args=mock_args,
+                tool_context=mock_context,
+                result=mock_result,
+            )
 
-            # Mock successful registration
-            mock_register.return_value = {
-                root_agent: 2,  # 2 callbacks registered
-                sub_agent1: 2,
-                sub_agent2: 2,
-            }
+        mock_cb.assert_awaited_once()
+        assert response == "history-summary"
 
-            setup_summarization_callbacks(root_agent)
+    @pytest.mark.asyncio
+    async def test_tool_response_plugin_delegates(self):
+        """Plugin should forward to tool_response_summarizer_callback."""
+        plugin = ToolResponseSummarizerPlugin()
+        mock_tool = MagicMock()
+        mock_args = {"foo": "bar"}
+        mock_context = MagicMock()
+        mock_result = {"value": 42}
 
-            # Verify discovery was called
-            mock_discover.assert_called_once_with(root_agent)
+        with patch(
+            "aigise.plugins.tool_response_summarizer_plugin.summarization.tool_response_summarizer_callback",
+            new=AsyncMock(return_value="<summary>"),
+        ) as mock_cb:
+            response = await plugin.after_tool_callback(
+                tool=mock_tool,
+                tool_args=mock_args,
+                tool_context=mock_context,
+                result=mock_result,
+            )
 
-            # Verify registration was called with correct callbacks
-            mock_register.assert_called_once()
-            call_args = mock_register.call_args
-            assert call_args[0][0] == all_agents  # First arg: agents list
-            callbacks = call_args[0][1]  # Second arg: callbacks list
-            assert len(callbacks) == 3
-            assert history_summarizer_callback in callbacks
-            assert tool_response_summarizer_callback in callbacks
+        mock_cb.assert_awaited_once_with(
+            mock_tool, mock_args, mock_context, mock_result
+        )
+        assert response == "<summary>"
 
-    def test_setup_summarization_callbacks_no_agents(self):
-        """Test setup with no agents discovered."""
-        root_agent = MagicMock()
-        root_agent.name = "root"
+    @pytest.mark.asyncio
+    async def test_quota_plugin_delegates(self):
+        """Plugin should forward to quota_after_tool_callback."""
+        plugin = QuotaAfterToolPlugin()
+        mock_tool = MagicMock()
+        mock_args = {"foo": "bar"}
+        mock_context = MagicMock()
+        mock_result = {"value": 42}
 
-        with (
-            patch("aigise.features.summarization.discover_all_agents") as mock_discover,
-            patch(
-                "aigise.features.summarization.register_callback_to_all_agents"
-            ) as mock_register,
-        ):
-            # Mock no agents discovered
-            mock_discover.return_value = []
-            mock_register.return_value = {}
+        with patch(
+            "aigise.plugins.quota_after_tool_plugin.summarization.quota_after_tool_callback",
+            new=AsyncMock(return_value={"_quota_info": {"remaining": 3}}),
+        ) as mock_cb:
+            response = await plugin.after_tool_callback(
+                tool=mock_tool,
+                tool_args=mock_args,
+                tool_context=mock_context,
+                result=mock_result,
+            )
 
-            setup_summarization_callbacks(root_agent)
-
-            mock_discover.assert_called_once_with(root_agent)
-            mock_register.assert_called_once_with([], mock.ANY)
+        mock_cb.assert_awaited_once_with(
+            mock_tool, mock_args, mock_context, mock_result
+        )
+        assert response == {"_quota_info": {"remaining": 3}}

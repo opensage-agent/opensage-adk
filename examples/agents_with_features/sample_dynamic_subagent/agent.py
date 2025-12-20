@@ -110,7 +110,7 @@ def divide_numbers(a: float, b: float) -> Dict[str, Any]:
     }
 
 
-def mk_agent():
+def mk_agent(aigise_session_id: str):
     root_agent = AigiseAgent(
         model=LiteLlm(model="openai/gpt-5"),
         name="math_root_agent",
@@ -132,6 +132,3 @@ def mk_agent():
         ],
     )
     return root_agent
-
-
-root_agent = mk_agent()

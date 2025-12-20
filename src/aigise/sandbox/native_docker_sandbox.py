@@ -88,7 +88,8 @@ def build_image_from_dockerfile(
 
     try:
         # Prepare docker build command
-        cmd = ["docker", "build", "-t", image_name]
+        # --load ensures the image is loaded into the local daemon (required for buildx)
+        cmd = ["docker", "build", "--load", "-t", image_name]
 
         # Add build args if provided
         if build_args:

@@ -78,6 +78,100 @@ async def _record_agent_call(
         logger.error(f"Failed to create agent call relation: {e}")
 
 
+async def _wrapped_base_agent_run(self, invocation_context):
+    logging_enabled = _enabled
+    if logging_enabled:
+        from aigise.utils.neo4j_history_management import (  # type: ignore
+            find_agent_run_by_session_id,
+            log_single_event_neo4j,
+            record_agent_end,
+            record_agent_start,
+            store_session_state,
+        )
+
+        if hasattr(self, "aigise_before_agent_callback") and callable(
+            getattr(self, "aigise_before_agent_callback")
+        ):
+            callback_context = CallbackContext(invocation_context)
+            await self.aigise_before_agent_callback(callback_context)
+
+        await record_agent_start(self, invocation_context)
+
+    session_id = invocation_context.session.id
+    last_event = None
+    try:
+        async for event in _orig_base_agent_run(self, invocation_context):
+            if logging_enabled:
+                try:
+                    await log_single_event_neo4j(event, session_id, invocation_context)
+                except Exception as event_error:
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    if exc_traceback:
+                        traceback.print_tb(exc_traceback)
+                    logger.error(f"Failed to process event: {event_error}")
+                    raise
+
+            last_event = event
+            yield event
+
+    except Exception as e:
+        if logging_enabled:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            if exc_traceback:
+                traceback.print_tb(exc_traceback)
+            logger.error(f"Failed to record agent run: {e}")
+            await record_agent_end(invocation_context, "", "error")
+        raise
+
+    finally:
+        if logging_enabled:
+            try:
+                final_session_state = invocation_context.session.state
+                found_session = await find_agent_run_by_session_id(
+                    session_id, invocation_context
+                )
+                if found_session:
+                    await store_session_state(
+                        session_id, final_session_state, invocation_context
+                    )
+            except Exception as state_error:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                if exc_traceback:
+                    traceback.print_tb(exc_traceback)
+                logger.error(f"Failed to store final session state: {state_error}")
+
+            try:
+                output_content = ""
+                if last_event and last_event.content and last_event.content.parts:
+                    output_content = "\n".join(
+                        p.text
+                        for p in last_event.content.parts
+                        if hasattr(p, "text") and p.text
+                    )
+                await record_agent_end(invocation_context, output_content, "completed")
+            except Exception as e:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                if exc_traceback:
+                    traceback.print_tb(exc_traceback)
+                logger.error(f"Failed to record agent end: {e}")
+                await record_agent_end(invocation_context, "", "error")
+
+        # Write child's used llm calls into its session.state for parent to read
+        try:
+            used_child = int(
+                getattr(
+                    getattr(invocation_context, "_invocation_cost_manager", None),
+                    "_number_of_llm_calls",
+                    0,
+                )
+                or 0
+            )
+            invocation_context.session.state.setdefault("_adk", {})
+            invocation_context.session.state["_adk"]["llm_calls_used"] = used_child
+        except Exception as _e:
+            logger.debug(f"skip writing child llm_calls_used: {_e}")
+
+
 def apply() -> None:
     """Monkey-patch BaseAgent.run_async and AgentTool.run_async with toggle."""
     global _patched, _orig_agent_tool_run, _orig_base_agent_run
@@ -261,103 +355,6 @@ def apply() -> None:
         else:
             tool_result = merged_text
         return tool_result
-
-    async def _wrapped_base_agent_run(self, invocation_context):
-        logging_enabled = _enabled
-        if logging_enabled:
-            from aigise.utils.neo4j_history_management import (  # type: ignore
-                find_agent_run_by_session_id,
-                log_single_event_neo4j,
-                record_agent_end,
-                record_agent_start,
-                store_session_state,
-            )
-
-            if hasattr(self, "aigise_before_agent_callback") and callable(
-                getattr(self, "aigise_before_agent_callback")
-            ):
-                callback_context = CallbackContext(invocation_context)
-                await self.aigise_before_agent_callback(callback_context)
-
-            await record_agent_start(self, invocation_context)
-
-        session_id = invocation_context.session.id
-        last_event = None
-        try:
-            async for event in _orig_base_agent_run(self, invocation_context):
-                if logging_enabled:
-                    try:
-                        await log_single_event_neo4j(
-                            event, session_id, invocation_context
-                        )
-                    except Exception as event_error:
-                        exc_type, exc_value, exc_traceback = sys.exc_info()
-                        if exc_traceback:
-                            traceback.print_tb(exc_traceback)
-                        logger.error(f"Failed to process event: {event_error}")
-                        raise
-
-                last_event = event
-                yield event
-
-        except Exception as e:
-            if logging_enabled:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                if exc_traceback:
-                    traceback.print_tb(exc_traceback)
-                logger.error(f"Failed to record agent run: {e}")
-                await record_agent_end(invocation_context, "", "error")
-            raise
-
-        finally:
-            if logging_enabled:
-                try:
-                    final_session_state = invocation_context.session.state
-                    found_session = await find_agent_run_by_session_id(
-                        session_id, invocation_context
-                    )
-                    if found_session:
-                        await store_session_state(
-                            session_id, final_session_state, invocation_context
-                        )
-                except Exception as state_error:
-                    exc_type, exc_value, exc_traceback = sys.exc_info()
-                    if exc_traceback:
-                        traceback.print_tb(exc_traceback)
-                    logger.error(f"Failed to store final session state: {state_error}")
-
-                try:
-                    output_content = ""
-                    if last_event and last_event.content and last_event.content.parts:
-                        output_content = "\n".join(
-                            p.text
-                            for p in last_event.content.parts
-                            if hasattr(p, "text") and p.text
-                        )
-                    await record_agent_end(
-                        invocation_context, output_content, "completed"
-                    )
-                except Exception as e:
-                    exc_type, exc_value, exc_traceback = sys.exc_info()
-                    if exc_traceback:
-                        traceback.print_tb(exc_traceback)
-                    logger.error(f"Failed to record agent end: {e}")
-                    await record_agent_end(invocation_context, "", "error")
-
-            # Write child's used llm calls into its session.state for parent to read
-            try:
-                used_child = int(
-                    getattr(
-                        getattr(invocation_context, "_invocation_cost_manager", None),
-                        "_number_of_llm_calls",
-                        0,
-                    )
-                    or 0
-                )
-                invocation_context.session.state.setdefault("_adk", {})
-                invocation_context.session.state["_adk"]["llm_calls_used"] = used_child
-            except Exception as _e:
-                logger.debug(f"skip writing child llm_calls_used: {_e}")
 
     AgentTool.run_async = _wrapped_agent_tool_run
     BaseAgent.run_async = _wrapped_base_agent_run

@@ -530,7 +530,7 @@ class Evaluation(abc.ABC):
         """
         from concurrent.futures import ProcessPoolExecutor, as_completed
 
-        dataset = self._get_dataset()
+        self.dataset = self._get_dataset()
 
         self._prepare_general_env()
 
@@ -539,7 +539,7 @@ class Evaluation(abc.ABC):
             # Submit all tasks
             futures = {
                 executor.submit(_run_sample_in_process, self, sample): sample
-                for sample in dataset
+                for sample in self.dataset
             }
 
             # Wait for completion with progress bar
@@ -548,7 +548,7 @@ class Evaluation(abc.ABC):
 
             for future in tqdm(
                 as_completed(futures),
-                total=len(dataset),
+                total=len(self.dataset),
                 desc="Generating samples (multiprocess)",
             ):
                 sample = futures[future]
@@ -569,7 +569,9 @@ class Evaluation(abc.ABC):
                     if error_file.exists():
                         logger.error(f"  Detailed error saved to: {error_file}")
 
-        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
+        logger.warning(
+            f"Generated {len(results)}/{len(self.dataset)} samples successfully"
+        )
         if failed_samples:
             logger.warning(
                 f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
@@ -583,7 +585,7 @@ class Evaluation(abc.ABC):
         """
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
-        dataset = self._get_dataset()
+        self.dataset = self._get_dataset()
 
         self._prepare_general_env()
 
@@ -599,7 +601,7 @@ class Evaluation(abc.ABC):
             # Submit all tasks
             futures = {
                 executor.submit(run_sample_in_thread, sample): sample
-                for sample in dataset
+                for sample in self.dataset
             }
 
             # Wait for completion with progress bar
@@ -608,7 +610,7 @@ class Evaluation(abc.ABC):
 
             for future in tqdm(
                 as_completed(futures),
-                total=len(dataset),
+                total=len(self.dataset),
                 desc="Generating samples (threaded)",
             ):
                 sample = futures[future]
@@ -624,7 +626,9 @@ class Evaluation(abc.ABC):
                     logger.error(f"  Error: {e}")
                     logger.error(f"  Traceback:\n{traceback.format_exc()}")
 
-        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
+        logger.warning(
+            f"Generated {len(results)}/{len(self.dataset)} samples successfully"
+        )
         if failed_samples:
             logger.warning(
                 f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
@@ -633,7 +637,7 @@ class Evaluation(abc.ABC):
     def generate_single_thread(self) -> None:
         """Generate samples sequentially in a single thread for debugging."""
 
-        dataset = self._get_dataset()
+        self.dataset = self._get_dataset()
         results = []
         self._prepare_general_env()
 
@@ -641,7 +645,7 @@ class Evaluation(abc.ABC):
         # num_samples = len(dataset)
         # dataset = dataset.select(range(50, num_samples))
         # dataset = dataset.select(range(50))
-        for sample in tqdm(dataset, desc="Generating samples (single-threaded)"):
+        for sample in tqdm(self.dataset, desc="Generating samples (single-threaded)"):
             task_name = self._get_sample_id(sample)
             try:
                 # Create task from sample
@@ -657,7 +661,9 @@ class Evaluation(abc.ABC):
                 # Re-raise for easier debugging
                 # raise
 
-        logger.warning(f"Generated {len(results)}/{len(dataset)} samples successfully")
+        logger.warning(
+            f"Generated {len(results)}/{len(self.dataset)} samples successfully"
+        )
 
     @abc.abstractmethod
     def _get_sample_id(self, sample: dict) -> str:

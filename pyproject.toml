@@ -83,3 +83,6 @@ markers = [
     "k8s_backend: tests for the Kubernetes sandbox backend",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
+
+[tool.setuptools.package-data]
+aigise = ["examples/**"]

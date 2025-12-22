@@ -570,6 +570,11 @@ class Evaluation(abc.ABC):
                     if error_file.exists():
                         logger.error(f"  Detailed error saved to: {error_file}")
 
+        self.customized_modify_and_save_results(
+            results=results,
+            failed_samples=failed_samples,
+            mode="multiprocess",
+        )
         logger.warning(
             f"Generated {len(results)}/{len(self.dataset)} samples successfully"
         )
@@ -627,6 +632,11 @@ class Evaluation(abc.ABC):
                     logger.error(f"  Error: {e}")
                     logger.error(f"  Traceback:\n{traceback.format_exc()}")
 
+        self.customized_modify_and_save_results(
+            results=results,
+            failed_samples=failed_samples,
+            mode="threaded",
+        )
         logger.warning(
             f"Generated {len(results)}/{len(self.dataset)} samples successfully"
         )
@@ -640,6 +650,7 @@ class Evaluation(abc.ABC):
 
         self.dataset = self._get_dataset()
         results = []
+        failed_samples = []
         self._prepare_general_env()
 
         # Keep from 50 sample for debugging
@@ -656,15 +667,25 @@ class Evaluation(abc.ABC):
                 results.append(result)
                 logger.info(f"✓ Task {task_name} completed")
             except Exception as e:
+                failed_samples.append(task_name)
                 logger.error(f"✗ Task {task_name} FAILED")
                 logger.error(f"  Error: {e}")
                 logger.error(f"  Traceback:\n{traceback.format_exc()}")
                 # Re-raise for easier debugging
                 # raise
 
+        self.customized_modify_and_save_results(
+            results=results,
+            failed_samples=failed_samples,
+            mode="single_thread",
+        )
         logger.warning(
             f"Generated {len(results)}/{len(self.dataset)} samples successfully"
         )
+        if failed_samples:
+            logger.warning(
+                f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
+            )
 
     @abc.abstractmethod
     def _get_sample_id(self, sample: dict) -> str:
@@ -947,6 +968,23 @@ class Evaluation(abc.ABC):
             task: EvaluationTask instance with all task data
         """
         pass
+
+    def customized_modify_and_save_results(
+        self,
+        *,
+        results: list | None,
+        failed_samples: list[str] | None,
+        mode: str,
+    ) -> None:
+        """Hook for subclasses to post-process and persist aggregated results.
+
+        Args:
+            results: Successful sample outputs collected during generation.
+            failed_samples: Task identifiers that failed to complete.
+            mode: Execution mode that produced the results (multiprocess, threaded,
+                or single_thread).
+        """
+        _ = (results, failed_samples, mode)
 
     def _register_aigise_session(self, task: EvaluationTask):
         """Register AigiseSession with task-specific config.

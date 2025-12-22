@@ -120,6 +120,7 @@ class CyberGym(Evaluation):
 
     async def _prepare_environment(self, task: EvaluationTask):
         """Prepare environment for the task."""
+        #### Note: this is cybergym specific logic to copy task-specific data to the sandbox
         tmp_workdir = None
         if (
             task.aigise_session.config.sandbox.absolute_shared_data_path
@@ -139,6 +140,7 @@ class CyberGym(Evaluation):
         task.aigise_session.config.sandbox.absolute_shared_data_path = str(
             Path(tmp_workdir).resolve().as_posix()
         )
+        #### End of cybergym specific logic to copy task-specific data to the sandbox
         await super()._prepare_environment(task)
         main_sandbox = task.aigise_session.sandboxes.get_sandbox("main")
         main_sandbox.run_command_in_container(

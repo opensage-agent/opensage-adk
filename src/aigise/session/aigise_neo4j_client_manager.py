@@ -63,6 +63,7 @@ class AigiseNeo4jClientManager:
         database_mapping = {
             "history": f"agent-history",
             "analysis": f"analysis",
+            "memory": f"memory",
             "default": "neo4j",
         }
         return database_mapping.get(client_type, client_type)
@@ -95,7 +96,7 @@ class AigiseNeo4jClientManager:
 
     async def get_async_client(
         self,
-        client_type: Literal["history", "analysis", "default"] = "history",
+        client_type: Literal["history", "analysis", "memory", "default"] = "history",
         database_name: Optional[str] = None,
     ):
         """Get async Neo4j client for a specific type.

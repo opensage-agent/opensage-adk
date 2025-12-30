@@ -15,7 +15,7 @@ import toml
 from dacite import Config as DaciteConfig
 from dacite import from_dict
 
-from aigise.utils.project_info import PROJECT_PATH
+from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
 
 
 def _expand_template_variables(config_data: dict) -> dict:
@@ -397,14 +397,7 @@ class AigiseConfig:
     def from_toml(cls, config_path: Optional[str] = None) -> "AigiseConfig":
         """Create configuration from TOML file with template variable expansion."""
         if config_path is None:
-            config_path = (
-                PROJECT_PATH
-                / "src"
-                / "aigise"
-                / "templates"
-                / "configs"
-                / "default_config.toml"
-            )
+            config_path = SRC_PATH / "templates/configs/default_config.toml"
 
         config_path = Path(config_path)
         if not config_path.exists():

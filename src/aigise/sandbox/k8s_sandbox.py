@@ -983,7 +983,7 @@ class K8sSandbox(BaseSandbox):
         Returns:
             Tuple of (scripts_pvc_name, data_pvc_name)
         """
-        from aigise.utils.project_info import PROJECT_PATH
+        from aigise.utils.project_info import SRC_PATH
 
         namespace = cls._resolve_namespace_from_env()
         context = cls._resolve_context_from_env()
@@ -1013,7 +1013,7 @@ class K8sSandbox(BaseSandbox):
             data_pvc_name = cls._sanitize_name(f"{volume_name_prefix}_shared")
 
             # 1. Create and populate scripts PVC
-            scripts_path = Path(PROJECT_PATH) / "src" / "aigise" / "sandbox_scripts"
+            scripts_path = SRC_PATH / "sandbox_scripts"
             scripts_pvc_id = cls._create_and_populate_pvc(
                 scripts_pvc_name,
                 namespace,

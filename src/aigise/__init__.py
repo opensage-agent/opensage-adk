@@ -52,6 +52,8 @@ __version__ = "1.0.0"
 
 # Primary session interface
 # For backward compatibility and advanced usage
+# RL Framework integration (slime, verl, areal, etc.)
+from .rl_integration import Client, RLSession, create
 from .session import (
     AigiseSandboxManager,
     AigiseSession,
@@ -67,6 +69,10 @@ __all__ = [
     "cleanup_aigise_session",
     "setup_aigise_logging",
     "log_to_tmp_folder",
+    # RL Framework integration
+    "create",
+    "Client",
+    "RLSession",
     # Advanced/internal usage
     "AigiseSession",
     "AigiseSessionRegistry",

@@ -14,7 +14,7 @@ import fire
 from google.adk.agents.base_agent import BaseAgent
 
 from aigise.session import get_aigise_session
-from aigise.utils.project_info import PROJECT_PATH
+from aigise.utils.project_info import PROJECT_PATH, SRC_PATH, find_path
 
 from .. import Evaluation, EvaluationTask
 
@@ -26,7 +26,7 @@ class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
     output_dir_in_sandbox: str | tuple = ("/tmp/", "/shared/tmp/")
-    agent_dir: str = str(PROJECT_PATH / "examples/agents/poc_agent_dynamic_tools")
+    agent_dir: str = str(find_path("examples", "agents", "poc_agent_dynamic_tools"))
     cybergym_data_dir: str = str(
         PROJECT_PATH / "third_party/cybergym/cybergym_data/data"
     )
@@ -35,7 +35,7 @@ class CyberGym(Evaluation):
     agent_id: str = ""
     max_llm_calls: int = 400
     config_template_path: str = str(
-        PROJECT_PATH / "evaluations/configs/cybergym_dynamic_config.toml"
+        SRC_PATH / "evaluations/configs/cybergym_dynamic_config.toml"
     )
     use_task_subset: bool = True  # If True, filter using task_list_subset file
     fuzz_target_metadata_path: str = str(

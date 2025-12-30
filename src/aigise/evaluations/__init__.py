@@ -12,7 +12,7 @@ import traceback
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import datasets
 import fire
@@ -23,6 +23,7 @@ from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.run_config import RunConfig
 from google.adk.apps.app import App
+from google.adk.models import BaseLlm
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import Runner
 from google.adk.sessions import Session
@@ -39,9 +40,30 @@ from aigise.plugins import load_plugins
 from aigise.session import get_aigise_session
 from aigise.session.aigise_session import AigiseSession
 from aigise.toolbox.decorators import collect_sandbox_dependencies
-from aigise.utils.project_info import PROJECT_PATH
+from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
 
 logger = logging.getLogger(__name__)
+
+# Registry for Evaluation subclasses
+_EVALUATION_REGISTRY: dict[str, type["Evaluation"]] = {}
+
+
+def get_evaluation_class(name: str) -> type["Evaluation"] | None:
+    """Get registered Evaluation class by name (case-insensitive).
+
+    Args:
+        name: Benchmark name (e.g., "secodeplt", "cybergym")
+
+    Returns:
+        Evaluation subclass or None if not found
+    """
+    return _EVALUATION_REGISTRY.get(name.lower())
+
+
+def list_evaluations() -> list[str]:
+    """List all registered evaluation names."""
+    return list(_EVALUATION_REGISTRY.keys())
+
 
 import litellm
 
@@ -120,14 +142,28 @@ class EvaluationTask:
     cache_dir: str  # Sandbox cache directory
     output_dir_in_sandbox: str | tuple | None  # Optional sandbox dir(s) to export
     metadata: dict  # Metadata to save
-    config_template_path: str = (
-        PROJECT_PATH / "src/aigise/templates/configs/default_config.toml"
+    config_template_path: str | Path = (
+        SRC_PATH / "templates/configs/default_config.toml"
     )
     aigise_session: AigiseSession | None = None
+    model: Any = None  # Optional model override (BaseLlm instance or string model name)
 
 
 @dataclass
 class Evaluation(abc.ABC):
+    """Base class for all evaluation benchmarks.
+
+    Subclasses are automatically registered and can be looked up by name
+    using get_evaluation_class(). Registration uses the lowercase class name.
+
+    Example:
+        class SeCodePLT(Evaluation):  # Registered as "secodeplt"
+            ...
+
+        # Later, retrieve with:
+        cls = get_evaluation_class("secodeplt")
+    """
+
     dataset_path: str  # HuggingFace dataset name (e.g., "org/dataset") or local path
     agent_dir: str  # directory containing agent.py with mk_agent function
     dataset_hf_split: str = "train"
@@ -142,8 +178,8 @@ class Evaluation(abc.ABC):
         False  # If True, use the model specified in the config file
     )
     output_dir_in_sandbox: str | tuple | None = None
-    config_template_path: str | None = (
-        PROJECT_PATH / "src/aigise/templates/configs/default_config.toml"
+    config_template_path: str | Path | None = (
+        SRC_PATH / "templates/configs/default_config.toml"
     )
     use_multiprocessing: bool = True  # Use multiprocessing (True) or threading (False)
     llm_retry_count: int = (
@@ -151,6 +187,14 @@ class Evaluation(abc.ABC):
     )
     llm_retry_timeout: int = 30  # Timeout in seconds for each LLM request
     log_level: str = "INFO"  # Terminal log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+    def __init_subclass__(cls, **kwargs):
+        """Auto-register Evaluation subclasses."""
+        super().__init_subclass__(**kwargs)
+        # Register by lowercase class name
+        name = cls.__name__.lower()
+        _EVALUATION_REGISTRY[name] = cls
+        logger.debug(f"Registered evaluation: {name} -> {cls.__name__}")
 
     def __post_init__(self) -> None:
         # Validate and convert log level
@@ -416,7 +460,7 @@ class Evaluation(abc.ABC):
         return mk_agent
 
     def _replace_agent_models_recursive(
-        self, agent: BaseAgent, model: LiteLlm, visited: set[str] | None = None
+        self, agent: BaseAgent, model: BaseLlm, visited: set[str] | None = None
     ) -> None:
         """Recursively replace model for all agents in the agent tree.
 
@@ -425,7 +469,7 @@ class Evaluation(abc.ABC):
 
         Args:
             agent: Root agent to start replacement
-            model: LiteLlm instance to replace with
+            model: BaseLlm instance to replace with (LiteLlm, ArealLlm, etc.)
             visited: Set of visited agent names to avoid infinite loops
         """
         if visited is None:
@@ -436,12 +480,17 @@ class Evaluation(abc.ABC):
             return
         visited.add(agent.name)
 
+        # Get model name for logging (handle different model types)
+        model_name = getattr(model, "model_name", None) or getattr(
+            model, "model", "unknown"
+        )
+
         # Replace model if agent is LlmAgent
         if isinstance(agent, LlmAgent):
             try:
                 agent.model = model
                 logger.debug(
-                    f"Replaced model for agent '{agent.name}', current model: {agent.model.model_name}"
+                    f"Replaced model for agent '{agent.name}', current model: {model_name}"
                 )
             except Exception:
                 # Fallback for frozen Pydantic models
@@ -771,15 +820,26 @@ class Evaluation(abc.ABC):
         """
         return self.output_dir_in_sandbox
 
-    def _prepare_agent(self, task: EvaluationTask) -> None:
-        agent = self._mk_agent_original(aigise_session_id=task.session_id)
+    def _prepare_agent(self, task: EvaluationTask) -> BaseAgent | None:
+        """Prepare agent with the correct model.
 
-        # Replace models based on use_config_model flag
-        if self.use_config_model:
-            # Get model configuration from aigise session config
+        Model selection priority:
+        1. task.model (RL integration or explicit override)
+        2. self.use_config_model (from config file)
+        3. Agent's default model (specified in mk_agent)
+        """
+        # Determine which model to use
+        model_to_use = None
+        model_source = "agent default"
+
+        if task.model is not None:
+            # Priority 1: task.model (RL integration or explicit override)
+            model_to_use = task.model
+            model_source = "task.model (RL integration)"
+        elif self.use_config_model:
+            # Priority 2: config model
             aigise_session = task.aigise_session
             if aigise_session and aigise_session.config.llm:
-                # Get main model config from config file
                 main_model_config = aigise_session.config.llm.model_configs.get("main")
                 if main_model_config:
                     # Convert config to dict and extract all parameters
@@ -794,30 +854,45 @@ class Evaluation(abc.ABC):
                         config_dict["model"] = config_dict.pop("model_name")
 
                     # Create LiteLlm instance with all config parameters
-                    task_model = LiteLlm(**config_dict)
-                    self._replace_agent_models_recursive(agent, task_model)
+                    model_to_use = LiteLlm(**config_dict)
+                    model_source = (
+                        f"config model '{config_dict.get('model', 'unknown')}'"
+                    )
 
-                    # Log with key parameters
-                    model_name = config_dict.get("model", "unknown")
+        # Try to create agent with model parameter
+        try:
+            import inspect
+
+            sig = inspect.signature(self._mk_agent_original)
+            if "model" in sig.parameters:
+                # mk_agent supports model parameter - use it
+                agent = self._mk_agent_original(
+                    aigise_session_id=task.session_id, model=model_to_use
+                )
+                logger.warning(
+                    f"Created agent with model from {model_source} (session {task.session_id})"
+                )
+            else:
+                # mk_agent doesn't support model parameter - fallback to replacement
+                agent = self._mk_agent_original(aigise_session_id=task.session_id)
+                if model_to_use is not None:
+                    self._replace_agent_models_recursive(agent, model_to_use)
                     logger.warning(
-                        f"Replaced all agent models with config model '{model_name}' "
-                        f"with parameters: {config_dict} for session {task.session_id}"
+                        f"Replaced agent models with {model_source} via recursive replacement "
+                        f"(session {task.session_id})"
                     )
                 else:
                     logger.warning(
-                        f"No 'main' model config found in aigise config, "
-                        f"using agent's original model for session {task.session_id}"
+                        f"Using agent's default model (session {task.session_id})"
                     )
-            else:
-                logger.warning(
-                    f"No LLM config found in aigise session, "
-                    f"using agent's original model for session {task.session_id}"
-                )
-        else:
+        except Exception as e:
+            # Fallback: try without model parameter
             logger.warning(
-                f"use_config_model=False, using agent's original model configuration "
-                f"for session {task.session_id}"
+                f"Failed to create agent with model parameter, falling back: {e}"
             )
+            agent = self._mk_agent_original(aigise_session_id=task.session_id)
+            if model_to_use is not None:
+                self._replace_agent_models_recursive(agent, model_to_use)
 
         return agent
 
@@ -1381,6 +1456,80 @@ class Evaluation(abc.ABC):
             f.write("\n".join(output_lines))
 
         logger.warning(f"Session trace exported to {output_path}")
+
+    # ========== RL Integration Methods ==========
+    # These class methods are used by BenchmarkInterface for RL framework integration.
+    # Override in subclasses to provide benchmark-specific logic.
+
+    @classmethod
+    def get_prompt(cls, sample: Any) -> str:
+        """Extract prompt from RL sample for agent execution.
+
+        Override this method in subclasses to provide benchmark-specific
+        prompt extraction logic.
+
+        Args:
+            sample: Sample object from RL framework
+
+        Returns:
+            Prompt string to send to agent
+        """
+        # Default: try common attributes
+        if hasattr(sample, "prompt"):
+            prompt = sample.prompt
+            if isinstance(prompt, list):
+                # Chat format - extract last user message
+                for msg in reversed(prompt):
+                    if msg.get("role") == "user":
+                        return msg.get("content", "")
+            return str(prompt)
+        return ""
+
+    @classmethod
+    async def reward_func(cls, args: Any, sample: Any, **kwargs) -> dict:
+        """Calculate reward for RL training.
+
+        Override this method in subclasses to provide benchmark-specific
+        reward calculation logic.
+
+        Args:
+            args: Rollout arguments from RL framework
+            sample: Sample with agent response
+            **kwargs: Additional arguments
+
+        Returns:
+            Reward dict with 'score' and optional metadata
+        """
+        return {"score": 0.0, "status": "not_implemented"}
+
+    @classmethod
+    def preprocess_sample(cls, sample: Any) -> Any:
+        """Preprocess sample before agent execution.
+
+        Override this method in subclasses if preprocessing is needed.
+
+        Args:
+            sample: Sample object from RL framework
+
+        Returns:
+            Preprocessed sample (may be same object)
+        """
+        return sample
+
+    @classmethod
+    def postprocess_response(cls, sample: Any, response: str) -> Any:
+        """Postprocess agent response before reward calculation.
+
+        Override this method in subclasses if postprocessing is needed.
+
+        Args:
+            sample: Sample object
+            response: Agent response text
+
+        Returns:
+            Updated sample
+        """
+        return sample
 
     def evaluate(self) -> None:
         raise NotImplementedError

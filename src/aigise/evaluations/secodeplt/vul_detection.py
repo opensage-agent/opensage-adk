@@ -11,7 +11,6 @@ from typing import Any, Callable, Coroutine, Optional, TypeVar
 
 import datasets
 import fire
-from evaluations import Evaluation, EvaluationTask
 from google import adk
 from google.adk import Runner
 from google.adk.agents import LlmAgent, RunConfig
@@ -22,11 +21,10 @@ from google.adk.planners import BasePlanner, BuiltInPlanner
 from google.adk.plugins import ReflectAndRetryToolPlugin
 from google.adk.sessions import InMemorySessionService, Session
 from google.genai import types
-from langfuse import get_client
-from openinference.instrumentation.google_adk import GoogleADKInstrumentor
 from pydantic import BaseModel, ConfigDict, Field
 
 from aigise import AigiseSession
+from aigise.evaluations import Evaluation, EvaluationTask
 from aigise.session import get_aigise_session
 from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
 from aigise.toolbox.general.bash_tool import bash_tool
@@ -43,18 +41,25 @@ from aigise.toolbox.static_analysis.cpg import (
     neo4j_query,
     search_function,
 )
-from aigise.utils.project_info import PROJECT_PATH
+from aigise.utils.project_info import PROJECT_PATH, SRC_PATH, find_path
 
 logger = logging.getLogger(__name__)
-langfuse = get_client()
 
-# Verify connection
-if langfuse.auth_check():
-    print("Langfuse client is authenticated and ready!")
-else:
-    print("Authentication failed. Please check your credentials and host.")
+try:
+    from langfuse import get_client
+    from openinference.instrumentation.google_adk import GoogleADKInstrumentor
 
-GoogleADKInstrumentor().instrument()
+    langfuse = get_client()
+    # Verify connection
+    if langfuse.auth_check():
+        print("Langfuse client is authenticated and ready!")
+    else:
+        print("Authentication failed. Please check your credentials and host.")
+    GoogleADKInstrumentor().instrument()
+except ImportError:
+    logger.info(
+        "Langfuse not available. To enable tracing, install with: pip install aigise[langfuse]"
+    )
 
 vul_system_prompt = """
 This function is called {function_name}, detect if any vulnerability exists in this function.
@@ -364,12 +369,12 @@ class SeCodePLT(Evaluation):
     dataset_path: str = "aigise/secodeplt"
     dataset_hf_split: str = "train"
     output_dir_in_sandbox: str = "/tmp/"
-    agent_dir: str = str(PROJECT_PATH / "examples/agents/vul_agent_static_tools")
+    agent_dir: str = str(find_path("examples", "agents", "vul_agent_static_tools"))
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
     config_template_path: str = str(
-        PROJECT_PATH / "evaluations/configs/vul_detect_config.toml"
+        SRC_PATH / "evaluations/configs/vul_detect_config.toml"
     )
     # evaluate
 
@@ -809,6 +814,10 @@ class SeCodePLT(Evaluation):
         from aigise.session import get_aigise_session
 
         aigise_session = get_aigise_session(task.session_id)
+
+        # Override self.model with task.model if present (for RL integration)
+        if task.model is not None:
+            self.model = task.model
 
         # Check if we should skip this task because it's already finished
         output_dir = Path(task.output_dir)
@@ -1268,62 +1277,98 @@ class SeCodePLT(Evaluation):
         logger.warning(f"Vulnerability evaluation results saved to: {eval_file}")
         # self._evaluate_poc()
 
+    # ========== RL Integration Methods ==========
 
-async def reward_func(
-    args: Any,
-    sample: Any,
-    **kwargs,
-) -> float | dict:
-    """Reward function for vulnerability detection tasks.
+    @classmethod
+    def get_prompt(cls, sample: Any) -> str:
+        """Extract prompt from RL sample for vulnerability detection.
 
-    This function is used by RL frameworks (slime, verl, etc.) to calculate
-    rewards for vulnerability detection samples.
+        This method is used by RL frameworks (slime, verl, etc.) to extract
+        the initial prompt from a sample.
 
-    Args:
-        args: Rollout arguments from RL framework
-        sample: Sample with response
-        **kwargs: Additional arguments
+        Args:
+            sample: Sample object from RL framework
 
-    Returns:
-        Reward value or dict with reward and metadata
-    """
-    # Get sample status
-    sample_status = getattr(sample, "status", None)
-    if hasattr(sample_status, "value"):
-        status_value = sample_status.value
-    else:
-        status_value = str(sample_status) if sample_status else "pending"
+        Returns:
+            Prompt string for the agent
+        """
+        # Try to get prompt attribute
+        if hasattr(sample, "prompt"):
+            prompt = sample.prompt
+            if isinstance(prompt, list):
+                # Chat format - extract last user message
+                for msg in reversed(prompt):
+                    if msg.get("role") == "user":
+                        return msg.get("content", "")
+                return ""
+            return str(prompt)
 
-    # Parse response for vulnerability findings
-    response = getattr(sample, "response", "")
-    vulnerabilities_found = 0
+        # Try to get from metadata
+        if hasattr(sample, "metadata") and sample.metadata:
+            metadata = sample.metadata
+            # SeCodePLT specific: construct prompt from basedir
+            if "basedir" in metadata:
+                return f"The code is in the directory {metadata['basedir']}."
 
-    try:
-        # Try to parse as VulFinding
-        finding = VulFinding.model_validate_json(response)
-        vulnerabilities_found = len(finding.vulnerabilities)
-    except Exception:
-        # Try to extract from raw response
-        if "vulnerability" in response.lower():
-            vulnerabilities_found = 1
+        return ""
 
-    # Calculate reward
-    if status_value == "completed":
-        if vulnerabilities_found > 0:
-            reward = 1.0  # Found vulnerabilities
+    @classmethod
+    async def reward_func(
+        cls,
+        args: Any,
+        sample: Any,
+        **kwargs,
+    ) -> float | dict:
+        """Reward function for vulnerability detection tasks.
+
+        This method is used by RL frameworks (slime, verl, etc.) to calculate
+        rewards for vulnerability detection samples.
+
+        Args:
+            args: Rollout arguments from RL framework
+            sample: Sample with response
+            **kwargs: Additional arguments
+
+        Returns:
+            Reward value or dict with reward and metadata
+        """
+        # Get sample status
+        sample_status = getattr(sample, "status", None)
+        if hasattr(sample_status, "value"):
+            status_value = sample_status.value
         else:
-            reward = 0.5  # Completed but no findings
-    elif status_value == "aborted":
-        reward = -1.0
-    else:
-        reward = 0.0
+            status_value = str(sample_status) if sample_status else "pending"
 
-    return {
-        "score": reward,
-        "status": status_value,
-        "vulnerabilities_found": vulnerabilities_found,
-        "response_length": getattr(sample, "response_length", 0),
-    }
+        # Parse response for vulnerability findings
+        response = getattr(sample, "response", "")
+        vulnerabilities_found = 0
+
+        try:
+            # Try to parse as VulFinding
+            finding = VulFinding.model_validate_json(response)
+            vulnerabilities_found = len(finding.vulnerabilities)
+        except Exception:
+            # Try to extract from raw response
+            if "vulnerability" in response.lower():
+                vulnerabilities_found = 1
+
+        # Calculate reward
+        if status_value == "completed":
+            if vulnerabilities_found > 0:
+                reward = 1.0  # Found vulnerabilities
+            else:
+                reward = 0.5  # Completed but no findings
+        elif status_value == "aborted":
+            reward = -1.0
+        else:
+            reward = 0.0
+
+        return {
+            "score": reward,
+            "status": status_value,
+            "vulnerabilities_found": vulnerabilities_found,
+            "response_length": getattr(sample, "response_length", 0),
+        }
 
 
 if __name__ == "__main__":

@@ -971,7 +971,7 @@ class NativeDockerSandbox(BaseSandbox):
         Returns:
             Tuple of (scripts_volume_id, data_volume_id)
         """
-        from aigise.utils.project_info import PROJECT_PATH
+        from aigise.utils.project_info import SRC_PATH
 
         try:
             # Create volume names
@@ -979,7 +979,7 @@ class NativeDockerSandbox(BaseSandbox):
             data_volume_name = f"{volume_name_prefix}_shared"
 
             # 1. Create and populate scripts volume
-            scripts_path = Path(PROJECT_PATH) / "src" / "aigise" / "sandbox_scripts"
+            scripts_path = SRC_PATH / "sandbox_scripts"
             scripts_volume_id = cls._create_and_populate_volume(
                 scripts_volume_name, scripts_path
             )

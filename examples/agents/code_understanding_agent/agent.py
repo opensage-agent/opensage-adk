@@ -98,6 +98,13 @@ def create_code_understanding_agent(
     return agent
 
 
+def mk_agent(aigise_session_id: str):
+    return create_code_understanding_agent(
+        model=LiteLlm(model="openai/gpt-5"),
+        name="code_understanding_agent",
+    )
+
+
 def create_code_understanding_agent_tool(
     model: BaseLlm,
     name: str = "code_understanding_agent",

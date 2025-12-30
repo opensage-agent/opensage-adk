@@ -21,6 +21,11 @@ from google.adk.evaluation.local_eval_sets_manager import LocalEvalSetsManager
 from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
 
 from aigise.cli.aigise_web_app import AigiseWebServer
+from aigise.cli.dependency_check import (
+    verify_codeql,
+    verify_docker,
+    verify_kubectl,
+)
 from aigise.features.aigise_in_memory_session_service import (
     AigiseInMemorySessionService,
 )
@@ -304,3 +309,64 @@ def cli_web(
     )
     server = uvicorn.Server(config)
     server.run()
+
+
+@main.command("dependency-check")
+def cli_dependency_check():
+    """Check AIgiSE external dependencies.
+
+    Checks for manually installed dependencies:
+    - CodeQL: Required for CodeQL static analysis features
+    - Docker: Required for native Docker sandbox backend
+    - kubectl: Required for Kubernetes sandbox backend
+
+    All dependencies are optional unless you plan to use the corresponding features.
+    """
+    click.secho("Checking AIgiSE dependencies...\n", fg="cyan", bold=True)
+
+    results = [
+        verify_codeql(),
+        verify_docker(),
+        verify_kubectl(),
+    ]
+
+    success_count = sum(1 for r in results if r.success)
+    total_count = len(results)
+
+    # Display results
+    for result in results:
+        click.echo(f"Checking {result.name}...")
+        if result.success:
+            click.secho(f"  ✓ {result.message}", fg="green")
+        else:
+            # Use warning for optional dependencies, error for required
+            if result.required:
+                click.secho(f"  ✗ {result.message}", fg="red", bold=True)
+            else:
+                click.secho(f"  ⚠ {result.message}", fg="yellow")
+                if result.optional_reason:
+                    click.secho(
+                        f"    Note: {result.optional_reason}", fg="yellow", dim=True
+                    )
+        click.echo()
+
+    # Summary
+    click.secho("=" * 60, fg="cyan")
+    if success_count == total_count:
+        click.secho(
+            f"✓ All dependencies available ({success_count}/{total_count})",
+            fg="green",
+            bold=True,
+        )
+    else:
+        click.secho(
+            f"⚠ Some dependencies missing ({success_count}/{total_count} available)",
+            fg="yellow",
+            bold=True,
+        )
+        click.secho(
+            "\nNote: Missing dependencies are optional unless you plan to use "
+            "the corresponding features.",
+            fg="yellow",
+        )
+    click.secho("=" * 60, fg="cyan")

@@ -1,5 +1,7 @@
 # AIgiSE
 
+> **📖 Full Documentation**: See [docs/wiki/index.md](docs/wiki/index.md) for complete documentation.
+
 ## Setup
 
 ### Python Environment
@@ -112,7 +114,19 @@ Use git subtree to add third_party dependencies that we want to edit. Example:
 git subtree add --prefix third_party/cybergym https://github.com/sunblaze-ucb/cybergym.git main --squash
 ```
 
-## Debug
+## CLI Commands
+
+### Dependency Check
+
+Check if external dependencies are properly installed:
+
+```bash
+uv run aigise dependency-check
+```
+
+This verifies CodeQL, Docker, and kubectl installations. All dependencies are optional unless you plan to use the corresponding features.
+
+### Web UI
 
 Run a single-agent web UI (Dev UI) backed by AIgiSE services for debugging:
 
@@ -124,3 +138,5 @@ uv run aigise web \
   --port   <your_preferred_port> \
   --neo4j_logging   # optional, enable Neo4j event logging
 ```
+
+For more details, see the [full documentation](docs/wiki/index.md).

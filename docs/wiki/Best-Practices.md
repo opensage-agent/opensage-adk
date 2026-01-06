@@ -15,10 +15,23 @@
 
 ## Tool Development
 
-- ✅ Use `@requires_sandbox` decorator for sandbox-dependent tools
-- ✅ Extract session from context using utility functions
-- ✅ Handle errors gracefully with informative messages
-- ✅ Use async/await for I/O operations
+### Agent Skills (Bash Scripts)
+
+- ✅ Create structured directory with `SKILL.md` and `scripts/` subdirectory
+- ✅ Document all parameters in `SKILL.md` with types and descriptions
+- ✅ Specify sandbox requirements in `## Requires Sandbox` section
+- ✅ Return JSON output for structured results
+- ✅ Use proper exit codes (0 for success, non-zero for errors)
+- ✅ Handle errors gracefully with informative JSON error messages
+- ✅ Use positional and named parameters appropriately
+- ✅ Set appropriate timeout values
+
+### MCP Toolsets
+
+- ✅ Use `@safe_tool_execution` decorator
+- ✅ Use `@requires_sandbox` to specify required sandbox types
+- ✅ Return `MCPToolset` instances from getter functions
+- ✅ Document connection parameters and usage
 
 ## Configuration
 

@@ -969,19 +969,20 @@ class K8sSandbox(BaseSandbox):
     @classmethod
     def create_shared_volume(
         cls, volume_name_prefix: str, init_data_path: Path = None
-    ) -> tuple[str, str]:
-        """Create and initialize two shared PVCs.
+    ) -> tuple[str, str, str]:
+        """Create and initialize three shared PVCs.
 
-        Creates two PVCs:
+        Creates three PVCs:
         1. Read-only PVC with sandbox scripts (mapped to /sandbox_scripts)
         2. Read-write PVC with user data (mapped to /shared)
+        3. Read-write PVC with bash tools (mapped to /bash_tools)
 
         Args:
             volume_name_prefix: Prefix for PVC names (e.g., session_id)
             init_data_path: Path to initial data to copy into the rw PVC (optional)
 
         Returns:
-            Tuple of (scripts_pvc_name, data_pvc_name)
+            Tuple of (scripts_pvc_name, data_pvc_name, tools_pvc_name)
         """
         from aigise.utils.project_info import SRC_PATH
 
@@ -1011,6 +1012,7 @@ class K8sSandbox(BaseSandbox):
                 f"{volume_name_prefix}_sandbox_scripts"
             )
             data_pvc_name = cls._sanitize_name(f"{volume_name_prefix}_shared")
+            tools_pvc_name = cls._sanitize_name(f"{volume_name_prefix}_bash_tools")
 
             # 1. Create and populate scripts PVC
             scripts_path = SRC_PATH / "sandbox_scripts"
@@ -1036,6 +1038,18 @@ class K8sSandbox(BaseSandbox):
                 tolerations=tolerations,
             )
             logger.info(f"Created shared data PVC: {data_pvc_id} from {init_data_path}")
+
+            # 3. Create and populate tools PVC
+            tools_path = Path(PROJECT_PATH) / "src" / "aigise" / "bash_tools"
+            tools_pvc_id = cls._create_and_populate_pvc(
+                tools_pvc_name,
+                namespace,
+                context,
+                kubeconfig,
+                tools_path,
+                tolerations=tolerations,
+            )
+            logger.info(f"Created bash tools PVC: {tools_pvc_id} from {tools_path}")
 
             # 3. Set permissions to 777 on data PVC to ensure write access
             import json
@@ -1132,7 +1146,7 @@ class K8sSandbox(BaseSandbox):
                     f"Failed to set permissions on PVC {data_pvc_id}: {chmod_error}"
                 )
 
-            return (scripts_pvc_id, data_pvc_id)
+            return (scripts_pvc_id, data_pvc_id, tools_pvc_id)
 
         except Exception as e:
             logger.error(f"Failed to create shared PVCs: {e}")
@@ -1158,19 +1172,23 @@ class K8sSandbox(BaseSandbox):
 
     @classmethod
     def delete_shared_volumes(
-        cls, scripts_volume_id: str = None, data_volume_id: str = None
+        cls,
+        scripts_volume_id: str = None,
+        data_volume_id: str = None,
+        tools_volume_id: str = None,
     ) -> None:
         """Delete shared PVCs.
 
         Args:
             scripts_volume_id: ID of the scripts PVC to delete (with or without pvc/ prefix)
             data_volume_id: ID of the data PVC to delete (with or without pvc/ prefix)
+            tools_volume_id: ID of the tools PVC to delete (with or without pvc/ prefix)
         """
         namespace = cls._resolve_namespace_from_env()
         context = cls._resolve_context_from_env()
         kubeconfig = cls._resolve_kubeconfig_from_env()
 
-        for volume_id in [scripts_volume_id, data_volume_id]:
+        for volume_id in [scripts_volume_id, data_volume_id, tools_volume_id]:
             if volume_id:
                 # Remove pvc/ prefix if present
                 pvc_name = volume_id.replace("pvc/", "")
@@ -1343,6 +1361,7 @@ class K8sSandbox(BaseSandbox):
         sandbox_configs: dict,
         shared_volume_id: str = None,
         scripts_volume_id: str = None,
+        tools_volume_id: str = None,
     ) -> dict:
         namespace = cls._resolve_common_setting(
             sandbox_configs,
@@ -1394,6 +1413,9 @@ class K8sSandbox(BaseSandbox):
                     # Mark scripts_volume_id as PVC
                     elif scripts_volume_id and parts[0] == scripts_volume_id:
                         parts[0] = f"pvc/{scripts_volume_id}"
+                    # Mark tools_volume_id as PVC
+                    elif tools_volume_id and parts[0] == tools_volume_id:
+                        parts[0] = f"pvc/{tools_volume_id}"
                     new_volumes.append(":".join(parts))
                 config.volumes = new_volumes
 

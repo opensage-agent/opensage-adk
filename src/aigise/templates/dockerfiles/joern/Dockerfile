@@ -7,7 +7,21 @@ ENV JOERN_VERSION="v4.0.407" \
     LANG="C.UTF-8"
 
 RUN apt update && \
-    apt install -y wget git unzip
+    apt install -y wget git unzip curl && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+RUN mkdir /app
+WORKDIR /app
+
+
+ENV PATH="/root/.local/bin:$PATH"
+
+# Create a local venv and install deps into it.
+RUN uv venv --python 3.12
+ENV PATH="/app/.venv/bin:/root/.local/bin:$PATH"
+RUN uv pip install httpx websockets
 
 # install jdk21 sbt
 RUN mkdir -p /data \

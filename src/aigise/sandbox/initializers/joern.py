@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import shlex
 import tempfile
 
 import networkx as nx
@@ -69,6 +70,9 @@ class JoernInitializer(SandboxInitializer):
             logger.error(f"Joern initialization failed: {e}")
             raise
 
+        # Write Joern server host to ~/.bashrc
+        self._write_joern_env_to_bashrc(aigise_session)
+
         await self.ensure_ready()
 
     async def _initialize_joern_with_timeout(self, aigise_session) -> None:
@@ -106,3 +110,47 @@ class JoernInitializer(SandboxInitializer):
         )
 
         await client.aexecute("importCpg('/cpg.bin')")
+
+    def _write_joern_env_to_bashrc(self, aigise_session) -> None:
+        """Write Joern server host environment variable to /shared/bashrc."""
+        assert isinstance(self, BaseSandbox)
+
+        # Get this container's IP address
+        msg, err = self.run_command_in_container(["hostname", "-I"])
+        if err != 0 or not msg.strip():
+            logger.warning("Failed to get container IP, using fallback host")
+            joern_host = "127.0.0.1"
+        else:
+            # hostname -I returns space-separated IPs, take the first one
+            joern_host = msg.strip().split()[0]
+
+        # Joern server listens on port 8081 inside the container
+        # (port 18087 is the host mapping, not the container port)
+        joern_port = 8081
+
+        # Escape values for safe use in bash script
+        joern_host_escaped = shlex.quote(joern_host)
+        joern_port_escaped = shlex.quote(str(joern_port))
+
+        # Create bash script to append to /shared/bashrc (avoid duplicates)
+        bash_script = f"""
+# Ensure /shared directory exists
+mkdir -p /shared
+
+# Check if Joern env vars already exist
+if ! grep -q "export JOERN_SERVER_HOST=" /shared/bashrc 2>/dev/null; then
+    echo '' >> /shared/bashrc
+    echo '# Joern server settings' >> /shared/bashrc
+    echo export JOERN_SERVER_HOST={joern_host_escaped} >> /shared/bashrc
+    echo export JOERN_SERVER_PORT={joern_port_escaped} >> /shared/bashrc
+fi
+"""
+
+        msg, err = self.run_command_in_container(["bash", "-c", bash_script])
+        if err != 0:
+            logger.warning(f"Failed to write Joern env vars to /shared/bashrc: {msg}")
+        else:
+            logger.info(
+                f"Joern environment variables written to /shared/bashrc: "
+                f"JOERN_SERVER_HOST={joern_host}, JOERN_SERVER_PORT={joern_port}"
+            )

@@ -1,27 +1,27 @@
-# aigise web - Interactive Development Entry Point
+# sage-x web - Interactive Development Entry Point
 
-The `aigise web` command starts an interactive web UI for developing and debugging agents.
+The `sage-x web` command starts an interactive web UI for developing and debugging agents.
 
 ## CLI Commands
 
-### aigise web
+### sage-x web
 
 Starts an interactive web UI for agent development and debugging.
 
 ```bash
-uv run aigise web \
+uv run sage-x web \
   --config /path/to/config.toml \
   --agent /path/to/agent_dir \
   --port 8000 \
   --neo4j_logging  # optional
 ```
 
-### aigise dependency-check
+### sage-x dependency-check
 
 Checks if external dependencies are properly installed.
 
 ```bash
-uv run aigise dependency-check
+uv run sage-x dependency-check
 ```
 
 This command verifies:
@@ -37,7 +37,7 @@ All dependencies are optional unless you plan to use the corresponding features.
 **Example Output:**
 
 ```
-Checking AIgiSE dependencies...
+Checking SAGE-X dependencies...
 
 Checking CodeQL...
   ✓ CodeQL binary found at /path/to/codeql
@@ -69,7 +69,7 @@ the corresponding features.
 ### Step 2: Optional Neo4j Logging Setup
 
 If `--neo4j_logging` flag is provided:
-1. Imports `enable_neo4j_logging` from `aigise.features.agent_history_tracker`
+1. Imports `enable_neo4j_logging` from `<package>.features.agent_history_tracker`
 2. Enables Neo4j logging via monkey patches
 3. This allows event logging to Neo4j for analysis
 

@@ -957,19 +957,20 @@ class NativeDockerSandbox(BaseSandbox):
     @classmethod
     def create_shared_volume(
         cls, volume_name_prefix: str, init_data_path: Path = None
-    ) -> tuple[str, str]:
-        """Create and initialize two shared volumes.
+    ) -> tuple[str, str, str]:
+        """Create and initialize three shared volumes.
 
-        Creates two volumes:
+        Creates three volumes:
         1. Read-only volume with sandbox scripts (mapped to /sandbox_scripts)
         2. Read-write volume with user data (mapped to /shared)
+        3. Read-write volume with bash tools (mapped to /bash_tools)
 
         Args:
             volume_name_prefix: Prefix for volume names (e.g., session_id)
             init_data_path: Path to initial data to copy into the rw volume (optional)
 
         Returns:
-            Tuple of (scripts_volume_id, data_volume_id)
+            Tuple of (scripts_volume_id, data_volume_id, tools_volume_id)
         """
         from aigise.utils.project_info import SRC_PATH
 
@@ -995,7 +996,17 @@ class NativeDockerSandbox(BaseSandbox):
                 f"Created shared data volume: {data_volume_id} from {init_data_path}"
             )
 
-            # 3. Set permissions to 777 on data volume to ensure write access
+            # 3. Create and populate tools volume
+            tools_volume_name = f"{volume_name_prefix}_bash_tools"
+            tools_path = Path(PROJECT_PATH) / "src" / "aigise" / "bash_tools"
+            tools_volume_id = cls._create_and_populate_volume(
+                tools_volume_name, tools_path
+            )
+            logger.info(
+                f"Created bash tools volume: {tools_volume_id} from {tools_path}"
+            )
+
+            # 4. Set permissions to 777 on data volume to ensure write access
             chmod_result = subprocess.run(
                 [
                     "docker",
@@ -1021,7 +1032,7 @@ class NativeDockerSandbox(BaseSandbox):
                     f"Failed to set permissions on volume {data_volume_id}: {chmod_result.stderr}"
                 )
 
-            return (scripts_volume_id, data_volume_id)
+            return (scripts_volume_id, data_volume_id, tools_volume_id)
 
         except Exception as e:
             logger.error(f"Failed to create shared volumes: {e}")
@@ -1037,21 +1048,30 @@ class NativeDockerSandbox(BaseSandbox):
                     capture_output=True,
                     check=False,
                 )
+                subprocess.run(
+                    ["docker", "volume", "rm", tools_volume_name],
+                    capture_output=True,
+                    check=False,
+                )
             except Exception:
                 pass
             raise
 
     @classmethod
     def delete_shared_volumes(
-        cls, scripts_volume_id: str = None, data_volume_id: str = None
+        cls,
+        scripts_volume_id: str = None,
+        data_volume_id: str = None,
+        tools_volume_id: str = None,
     ) -> None:
         """Delete shared volumes.
 
         Args:
             scripts_volume_id: ID of the scripts volume to delete
             data_volume_id: ID of the data volume to delete
+            tools_volume_id: ID of the tools volume to delete
         """
-        for volume_id in [scripts_volume_id, data_volume_id]:
+        for volume_id in [scripts_volume_id, data_volume_id, tools_volume_id]:
             if volume_id:
                 try:
                     result = subprocess.run(
@@ -1251,7 +1271,7 @@ class NativeDockerSandbox(BaseSandbox):
 
     @classmethod
     def _find_available_loopback_ip(cls, config) -> str:
-        """Find an available IP address in 127.0.0.0/24 range (127.0.0.1-127.0.0.255).
+        """Find an available IP address in 127.0.0.0/24 range (127.0.0.2-127.0.0.254).
 
         Checks all ports that will be used:
         - Placeholder port: 7777
@@ -1290,7 +1310,7 @@ class NativeDockerSandbox(BaseSandbox):
 
         # Keep trying random IPs until one is available
 
-        octets = list(range(2, 256))  # Skip 127.0.0.1
+        octets = list(range(2, 255))  # Skip 127.0.0.1
         attempt = 0
 
         while True:
@@ -1356,6 +1376,7 @@ class NativeDockerSandbox(BaseSandbox):
         sandbox_configs: dict,
         shared_volume_id: str = None,
         scripts_volume_id: str = None,
+        tools_volume_id: str = None,
     ) -> dict:
         """Launch all sandbox instances as separate Docker containers.
 
@@ -1364,6 +1385,7 @@ class NativeDockerSandbox(BaseSandbox):
             sandbox_configs: Dictionary of sandbox_type -> ContainerConfig
             shared_volume_id: Optional shared volume to mount to all sandboxes (unused, configs already updated)
             scripts_volume_id: Optional scripts volume to mount to all sandboxes (unused, configs already updated)
+            tools_volume_id: Optional tools volume to mount to all sandboxes (unused, configs already updated)
 
         Returns:
             Dictionary mapping sandbox_type to NativeDockerSandbox instance

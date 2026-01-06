@@ -1,40 +1,115 @@
 # Common Patterns
 
-## Pattern: Session-Scoped Tool
+## Pattern: Agent Skill (Bash Script Tool)
 
-```python
-@requires_sandbox("main")
-async def my_tool(param: str, tool_context: ToolContext) -> dict:
-    from aigise import get_aigise_session
-    from aigise.utils.agent_utils import get_aigise_session_id_from_context
+Agent Skills are bash scripts organized in a structured format with `SKILL.md` metadata:
 
-    session_id = get_aigise_session_id_from_context(tool_context)
-    session = get_aigise_session(session_id)
-    sandbox = session.sandboxes.get_sandbox("main")
-    # ... use sandbox ...
+```
+src/aigise/bash_tools/
+└── category/
+    └── tool-name/
+        ├── SKILL.md
+        └── scripts/
+            └── tool_script.sh
 ```
 
-## Pattern: Multi-Sandbox Tool
+**SKILL.md example:**
 
-```python
-@requires_sandbox("main", "joern")
-async def analyze_code(path: str, tool_context: ToolContext) -> dict:
-    session_id = get_aigise_session_id_from_context(tool_context)
-    session = get_aigise_session(session_id)
+```markdown
+---
+name: my-tool
+description: Tool description
+---
 
-    main_sandbox = session.sandboxes.get_sandbox("main")
-    joern_sandbox = session.sandboxes.get_sandbox("joern")
-    # ... use both sandboxes ...
+# My Tool
+
+## Parameters
+
+### input (required, positional position 0)
+
+**Type**: `str`
+
+Input parameter description.
+
+### --option (optional, named parameter)
+
+**Type**: `str`
+
+Option description.
+
+## Requires Sandbox
+
+main
+
+## Timeout
+
+60 seconds
 ```
 
-## Pattern: Dynamic Tool Loading
+**Bash script example:**
+
+```bash
+#!/bin/bash
+
+INPUT="$1"
+OPTION=""
+
+# Parse named parameters
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --option)
+            OPTION="$2"
+            shift 2
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+# Tool logic
+RESULT=$(process "$INPUT" "$OPTION")
+
+# Return JSON
+echo "{\"success\": true, \"result\": \"$RESULT\"}"
+```
+
+## Pattern: Multi-Sandbox Skill
+
+For tools that require multiple sandboxes, specify in `SKILL.md`:
+
+```markdown
+## Requires Sandbox
+
+main, joern
+```
+
+The framework automatically ensures both sandboxes are available before executing the tool.
+
+## Pattern: MCP Toolset
+
+MCP toolsets provide integration with external services:
 
 ```python
-# Tools are automatically loaded from:
-# - src/aigise/sandbox_scripts/bash_tools/
-# - ~/.local/plugins/aigise/tools/
-# Each tool directory should have SKILL.md with metadata
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
+from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
+from aigise.utils.agent_utils import get_mcp_url_from_session_id
+
+@safe_tool_execution
+@requires_sandbox("gdb_mcp")
+def get_gdb_toolset(aigise_session_id: str) -> MCPToolset:
+    """Create MCPToolset for GDB debugging."""
+    url = get_mcp_url_from_session_id("gdb_mcp", aigise_session_id)
+    return MCPToolset(connection_params=SseConnectionParams(url=url))
 ```
+
+## Pattern: Dynamic Tool Discovery
+
+Tools are automatically discovered from:
+- `src/aigise/bash_tools/` (built-in tools)
+- `~/.local/plugins/aigise/tools/` (user plugins)
+
+The framework scans for `SKILL.md` files and loads them automatically. No manual registration needed.
 
 ## Pattern: Agent Composition
 

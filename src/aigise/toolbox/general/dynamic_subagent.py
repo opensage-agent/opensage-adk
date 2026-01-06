@@ -24,6 +24,7 @@ async def create_subagent(
     instruction: str,
     model_name: str,
     tools_list: List[str],
+    enabled_skills: Union[List[str], str],
     tool_context: ToolContext,
     description: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -36,6 +37,10 @@ async def create_subagent(
         instruction: Custom instruction for the agent
         model_name: Model to use for the agent (e.g., "anthropic/claude-sonnet-4", "openai/gpt-5")
         tools_list: List of tool names to assign to the agent
+        enabled_skills: Controls which bash tools are loaded.
+                      - None: Load NO bash tools.
+                      - "all": Load ALL found bash tools.
+                      - List[str]: Load specific tools by name (e.g. ["fuzz/simplified-python-fuzzer"]).
         description: Optional description for the agent
 
     Returns:
@@ -83,6 +88,7 @@ async def create_subagent(
             or f"Agent {agent_name} with tools: {', '.join(tools_list)}",
             "tool_names": tools_list,
             "tools": tools_to_add,
+            "enabled_skills": enabled_skills,
         }
 
         agent_id, agent_instance = await manager.create_agent(
@@ -97,6 +103,7 @@ async def create_subagent(
             "agent_name": agent_name,
             "model": model_name,
             "tools_assigned": tools_list,
+            "enabled_skills": enabled_skills,
             "instruction": instruction,
             "description": config["description"],
             "message": f"Successfully created agent '{agent_name}' with model '{model_name}' and tools: {', '.join(tools_list)}",
@@ -145,7 +152,7 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
         caller_tools = extract_tools_from_agent(caller_agent)
 
         # Load persisted agents on demand, rebuilding with caller tools if possible
-        manager._load_persisted_agents_on_demand(caller_tools)
+        manager._load_persisted_agents_on_demand(caller_tools, caller_agent)
 
         # Get all dynamic agents (both in-memory and restored) for current session
         all_agents = manager.list_agents()
@@ -156,12 +163,19 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
             # Try to get agent instance from current session
             agent_instance = manager.get_agent(agent_metadata.id)
 
-            # Determine tool names
+            # Determine tool names and enabled_skills
             if agent_instance:
                 tool_names = _extract_tool_names_from_agent(agent_instance)
+                # Get enabled_skills from agent_instance
+                enabled_skills = getattr(agent_instance, "_enabled_skills", None)
             else:
-                # Agent not loaded, get tool names from metadata
+                # Agent not loaded, get tool names and enabled_skills from metadata
                 tool_names = _extract_tool_names_from_metadata(agent_metadata)
+                enabled_skills = (
+                    agent_metadata.config.get("enabled_skills")
+                    if agent_metadata.config
+                    else None
+                )
             if agent_instance is not None:
                 active_agents.append(
                     {
@@ -173,6 +187,7 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
                         )
                         if agent_metadata.config
                         else "anthropic/claude-sonnet-4-20250514",
+                        "enabled_skills": enabled_skills,
                         "type": "dynamic_agent",
                     }
                 )

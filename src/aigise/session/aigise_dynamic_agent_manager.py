@@ -15,7 +15,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.models.lite_llm import LiteLlm
@@ -141,7 +141,20 @@ class DynamicAgentManager:
             agent = self._create_agent_instance(**agent_config)
 
             # Create metadata (exclude tools - cannot be serialized)
+            # Note: enabled_skills is included in metadata_config for persistence
             metadata_config = {k: v for k, v in config.items() if k not in ["tools"]}
+
+            # Verify enabled_skills is included in metadata_config
+            if "enabled_skills" in config:
+                if "enabled_skills" not in metadata_config:
+                    logger.warning(
+                        f"enabled_skills was in config but not in metadata_config for agent {agent_id}"
+                    )
+                else:
+                    logger.debug(
+                        f"Storing enabled_skills={metadata_config['enabled_skills']} "
+                        f"for agent {agent_id}"
+                    )
 
             metadata = AgentMetadata(
                 id=agent_id,
@@ -308,11 +321,14 @@ class DynamicAgentManager:
         with open(metadata_file, "w") as f:
             json.dump(metadata_dict, f, indent=2)
 
-    def _load_persisted_agents_on_demand(self, caller_tools: Dict[str, Any]) -> None:
+    def _load_persisted_agents_on_demand(
+        self, caller_tools: Dict[str, Any], caller_agent: Optional[BaseAgent] = None
+    ) -> None:
         """Load persisted agents on demand, rebuilding with caller tools if possible.
 
         Args:
             caller_tools: Dictionary mapping tool names to tool instances from caller agent
+            caller_agent: Optional caller agent instance (for enabled_skills check)
         """
         if not self.storage_path.exists():
             return
@@ -354,16 +370,104 @@ class DynamicAgentManager:
         #     except Exception as e:
         #         logger.error(f"Failed to load metadata from {metadata_file}: {e}")
 
+    def _check_enabled_skills_coverage(
+        self,
+        agent_required_skills: Optional[Union[List[str], str]],
+        caller_skills: Optional[Union[List[str], str]],
+    ) -> bool:
+        """Check if caller's enabled_skills covers agent's required enabled_skills.
+
+        Supports prefix matching: e.g., caller's "fuzz" covers agent's
+        "fuzz/simplified-python-fuzzer".
+
+        Args:
+            agent_required_skills: Agent's required enabled_skills (None, "all", or List[str])
+            caller_skills: Caller's enabled_skills (None, "all", or List[str])
+
+        Returns:
+            True if caller covers agent's requirements, False otherwise
+        """
+        # Case 1: Agent requires no tools
+        if agent_required_skills is None:
+            return True  # Caller can always cover (agent needs nothing)
+
+        # Case 2: Agent requires all tools
+        if agent_required_skills == "all":
+            # Only caller with "all" can cover
+            return caller_skills == "all"
+
+        # Case 3: Agent requires specific tools (List[str])
+        if isinstance(agent_required_skills, list):
+            agent_set = set(agent_required_skills)
+
+            # If caller has "all", it covers everything
+            if caller_skills == "all":
+                return True
+
+            # If caller has None, it covers nothing
+            if caller_skills is None:
+                return False
+
+            # If caller has a list, check if it covers all agent's required tools
+            if isinstance(caller_skills, list):
+                caller_set = set(caller_skills)
+
+                # Check each agent required skill
+                for agent_skill in agent_set:
+                    # Check exact match or prefix match
+                    # e.g., caller has "fuzz" and agent needs "fuzz/simplified-python-fuzzer"
+                    # or caller has "fuzz/simplified-python-fuzzer" and agent needs "fuzz/simplified-python-fuzzer"
+                    covered = False
+                    for caller_skill in caller_set:
+                        # Exact match
+                        if agent_skill == caller_skill:
+                            covered = True
+                            break
+                        # Prefix match: caller_skill is a prefix of agent_skill
+                        # e.g., "fuzz" covers "fuzz/simplified-python-fuzzer"
+                        if agent_skill.startswith(caller_skill + "/"):
+                            covered = True
+                            break
+                    if not covered:
+                        return False
+
+                return True
+
+        # Should not reach here, but return False for safety
+        return False
+
     def _try_rebuild_agent_with_caller_tools(
-        self, metadata: AgentMetadata, caller_tools: Dict[str, Any]
+        self,
+        metadata: AgentMetadata,
+        caller_tools: Dict[str, Any],
+        caller_agent: Optional[BaseAgent] = None,
     ) -> None:
         """Try to rebuild an agent with tools from caller if all required tools are available.
 
         Args:
             metadata: Agent metadata containing config and tool requirements
             caller_tools: Available tools from caller agent
+            caller_agent: Optional caller agent instance (for enabled_skills check)
         """
         required_tool_names = metadata.config.get("tool_names", [])
+        agent_required_skills = (
+            metadata.config.get("enabled_skills") if metadata.config else None
+        )
+
+        # Check enabled_skills coverage if both agent and caller have enabled_skills
+        if agent_required_skills is not None and caller_agent is not None:
+            caller_skills = getattr(caller_agent, "_enabled_skills", None)
+            if not self._check_enabled_skills_coverage(
+                agent_required_skills, caller_skills
+            ):
+                logger.debug(
+                    f"Cannot restore agent {metadata.id}: caller's enabled_skills "
+                    f"({caller_skills}) does not cover agent's required enabled_skills "
+                    f"({agent_required_skills})"
+                )
+                metadata.status = AgentStatus.PENDING_TOOLS
+                metadata.updated_at = datetime.now()
+                return
 
         # If no tools required, create agent without tools
         if not required_tool_names:
@@ -372,6 +476,9 @@ class DynamicAgentManager:
                     k: v for k, v in metadata.config.items() if k not in ["tool_names"]
                 }
                 agent_config["tools"] = []  # Explicitly set empty tools list
+                # Ensure enabled_skills is passed
+                if agent_required_skills is not None:
+                    agent_config["enabled_skills"] = agent_required_skills
                 agent = self._create_agent_instance(**agent_config)
                 self._agents[metadata.id] = agent
                 # Set to ACTIVE status on successful rebuild (clear any previous error states)
@@ -406,6 +513,9 @@ class DynamicAgentManager:
                 k: v for k, v in metadata.config.items() if k not in ["tool_names"]
             }
             agent_config["tools"] = tools_to_assign
+            # Ensure enabled_skills is passed
+            if agent_required_skills is not None:
+                agent_config["enabled_skills"] = agent_required_skills
 
             # Create agent with tools directly
             agent = self._create_agent_instance(**agent_config)

@@ -1,13 +1,262 @@
 import logging
-from typing import List, Optional
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Union
 
+import yaml
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
 from pydantic import Field
 
 from aigise.features.tool_combo import ToolCombo
+from aigise.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
+
+
+class ToolLoader:
+    """Loads tools from local filesystem into sandboxes."""
+
+    def __init__(
+        self,
+        search_paths: Optional[List[Path]] = None,
+        enabled_skills: Optional[Union[List[str], str]] = None,
+    ):
+        """Initialize ToolLoader.
+
+        Args:
+            search_paths: List of paths to search for tools.
+            enabled_skills: Controls which tools are loaded.
+                          - None (default): Load NO tools.
+                          - "all": Load ALL found tools.
+                          - List[str]: Load specific tools by name (e.g. "fuzz/simplified-python-fuzzer").
+        """
+        self._filter_skills: Optional[Set[str]] = None
+
+        if enabled_skills == "all":
+            self._filter_skills = None  # No filtering, load all
+        elif enabled_skills is None:
+            self._filter_skills = set()  # Filter everything (load nothing)
+        else:
+            self._filter_skills = set(enabled_skills)  # Filter by allowlist
+
+        if search_paths:
+            self.search_paths = search_paths
+        else:
+            self.search_paths = [
+                PROJECT_PATH / "src/aigise/bash_tools",
+                Path.home() / ".local/plugins/aigise/tools",
+            ]
+
+    def load_tools(self) -> List[Dict[str, Any]]:
+        """
+        Synchronously load all tools found in search paths, ONLY returning metadata.
+        Does NOT copy files to sandbox.
+
+        Structure supported:
+        - root/tool_name/SKILL.md -> sandbox=None
+        - root/sandbox_name/tool_name/SKILL.md -> sandbox="sandbox_name"
+
+        Returns:
+            List of tool metadata extracted from SKILL.md for all found tools.
+        """
+        discovered_tools = set()
+        loaded_tools_metadata = []
+
+        for search_path in self.search_paths:
+            if not search_path.exists():
+                continue
+
+            # Scan root level items
+            for item in search_path.iterdir():
+                if not item.is_dir():
+                    continue
+
+                # Check if item is a direct tool
+                if (item / "SKILL.md").exists():
+                    # Root level tool
+                    self._process_tool(
+                        item, item.name, None, discovered_tools, loaded_tools_metadata
+                    )
+                else:
+                    # Treat as category/sandbox directory, scan children
+                    sandbox_name = item.name
+                    for subitem in item.iterdir():
+                        if subitem.is_dir() and (subitem / "SKILL.md").exists():
+                            tool_name = f"{sandbox_name}/{subitem.name}"
+                            self._process_tool(
+                                subitem,
+                                tool_name,
+                                sandbox_name,
+                                discovered_tools,
+                                loaded_tools_metadata,
+                            )
+
+        return loaded_tools_metadata
+
+    def _process_tool(
+        self,
+        tool_path: Path,
+        tool_name: str,
+        sandbox_name: Optional[str],
+        discovered_tools: set,
+        loaded_tools_metadata: list,
+    ) -> None:
+        """Helper to process a single tool synchronously (metadata only)."""
+
+        # Filter by enabled_skills if specified
+        if self._filter_skills is not None:
+            # Check exact match. We don't partial match here, user must specify exact tool name.
+            if tool_name not in self._filter_skills:
+                return
+
+        if tool_name not in discovered_tools:
+            discovered_tools.add(tool_name)
+
+            metadata = self._parse_skill_metadata(tool_path, tool_name)
+            if metadata:
+                # Inject sandbox if not present in metadata
+                if sandbox_name and "sandbox" not in metadata:
+                    metadata["sandbox"] = sandbox_name
+                loaded_tools_metadata.append(metadata)
+
+    def _parse_skill_metadata(
+        self, tool_path: Path, tool_name: str
+    ) -> Optional[Dict[str, Any]]:
+        """Parse SKILL.md metadata."""
+        skill_file = tool_path / "SKILL.md"
+        if not skill_file.exists():
+            logger.warning(f"SKILL.md not found for tool {tool_name} at {tool_path}")
+            return None
+
+        try:
+            content = skill_file.read_text()
+            # Extract YAML frontmatter
+            if content.startswith("---"):
+                parts = content.split("---", 2)
+                if len(parts) >= 3:
+                    yaml_content = parts[1]
+                    data = yaml.safe_load(yaml_content)
+                    if isinstance(data, dict):
+                        # Ensure path and description are present
+                        # Use tool_name as path if not specified
+                        if "path" not in data:
+                            data["path"] = tool_name
+                        return data
+        except Exception as e:
+            logger.error(f"Failed to parse SKILL.md for {tool_name}: {e}")
+
+        return None
+
+    @staticmethod
+    def generate_system_prompt_part(
+        tools_metadata: List[Dict[str, Any]],
+        sandbox_name: Optional[str] = None,
+        remote_root: str = "/bash_tools",
+    ) -> tuple[str, Set[str]]:
+        """Generate system prompt from tool metadata.
+
+        Returns:
+            Tuple of (prompt_text, required_sandboxes)
+            - prompt_text: The generated prompt text
+            - required_sandboxes: Set of sandbox types required by the tools
+        """
+        lines = []
+        required_sandboxes: Set[str] = set()
+
+        for tool in tools_metadata:
+            path = tool.get("path", "")
+            description = tool.get("description", "")
+
+            # Construct absolute path if it looks like a relative tool name
+            if path and not path.startswith("/"):
+                path = f"{remote_root}/{path}"
+
+            # Use sandbox from metadata if not provided in args
+            current_sandbox = tool.get("sandbox") or sandbox_name
+            if current_sandbox:
+                required_sandboxes.add(current_sandbox)
+
+            if path and description:
+                lines.append(f"- path: {path}")
+                if current_sandbox:
+                    lines.append(f"  sandbox: {current_sandbox}")
+                lines.append(f"  description: {description}")
+                lines.append("")
+
+        prompt_text = "\n".join(lines)
+        return prompt_text, required_sandboxes
+
+    @staticmethod
+    def generate_sandbox_structure_description(required_sandboxes: Set[str]) -> str:
+        """Generate description of sandbox structure for required sandboxes.
+
+        Args:
+            required_sandboxes: Set of sandbox type names that are actually required
+
+        Returns:
+            Description text about sandbox structure and mount points
+        """
+        if not required_sandboxes:
+            return ""
+
+        # Sort for consistent output
+        sandbox_list = sorted(required_sandboxes)
+
+        lines = [
+            "\n## Sandbox Environment",
+            "",
+            "The following sandboxes are available for the tools you can use:",
+            "",
+        ]
+
+        for sandbox_type in sandbox_list:
+            lines.append(
+                f"- **{sandbox_type}**: A containerized environment for running {sandbox_type}-specific operations"
+            )
+
+        lines.extend(
+            [
+                "",
+                "### Shared Mount Points",
+                "",
+                "All sandboxes share the following mount points:",
+                "",
+                "- **`/shared`**: Read-write shared directory accessible across all sandboxes. ",
+                "  Use this for storing data that needs to be shared between sandboxes or persisted.",
+                "",
+                "- **`/sandbox_scripts`**: Read-only shared directory containing sandbox initialization scripts. ",
+                "  This contains utility scripts that are available to all sandboxes but cannot be modified.",
+                "",
+                "- **`/bash_tools`**: Read-write directory containing bash tool scripts (Skills). ",
+                "  This is where the tool paths mentioned above are located. Each tool directory contains:",
+                "  - A `scripts/` subdirectory with executable scripts",
+                "  - A `SKILL.md` file with documentation",
+                "",
+                "### Python Environment",
+                "",
+                "**Python is managed by `uv`**: the sandbox image creates a project-local virtual environment under `/app` using `uv`.",
+                "",
+                "Key points:",
+                "- A venv is created at **`/app/.venv`** via `RUN uv venv --python 3.12`",
+                "- Python deps are installed **into that venv** via `uv pip install ...`",
+                "- Prefer running Python via the venv interpreter explicitly:",
+                "  - `/app/.venv/bin/python -c '...'\n  - `/app/.venv/bin/pip list`",
+                "- Note: command execution is non-persistent, so `source /app/.venv/bin/activate` will not carry over to the next command; prefer explicit `/app/.venv/bin/python ...`",
+                "",
+                "### Command Execution Model",
+                "",
+                "**Important**: Commands are executed as **non-persistent sessions**. Each command runs as a new independent process via `bash -c` or `sh -c`, not in a persistent interactive shell session.",
+                "",
+                "This means:",
+                "- Each command starts with a fresh environment (environment variables, working directory, shell state are not preserved between commands)",
+                "- To persist state between commands, use files in `/shared` directory or explicitly set environment variables in each command",
+                "- Interactive commands that require TTY (like `vim`, `less`, `top`) may not work as expected",
+                "- To change directory or set environment variables, include them in the command itself (e.g., `cd /path && command` or `VAR=value command`)",
+                "",
+            ]
+        )
+
+        return "\n".join(lines)
 
 
 class AigiseAgent(LlmAgent):
@@ -18,6 +267,7 @@ class AigiseAgent(LlmAgent):
         *args,
         tools: Optional[List] = None,
         tool_combos: Optional[List[ToolCombo]] = None,
+        enabled_skills: Optional[Union[List[str], str]] = None,
         **kwargs,
     ):
         tools = list(tools) if tools else []
@@ -35,3 +285,91 @@ class AigiseAgent(LlmAgent):
 
         # Initialize the parent class first
         super().__init__(*args, **kwargs)
+        # Store enabled_skills for dependency collection
+        self._enabled_skills = enabled_skills
+        loader = ToolLoader(
+            enabled_skills=enabled_skills
+        )  # No sandbox needed for metadata
+        metadata = loader.load_tools()
+        tool_prompt, required_sandboxes = ToolLoader.generate_system_prompt_part(
+            metadata
+        )
+
+        if tool_prompt:
+            # Preamble describing the skill structure
+            description_preamble = (
+                "Each tool path provided below represents a 'Skill' directory which follows a specific structure:\n"
+                "- It contains a `scripts` directory with the executable scripts/tools.\n"
+                "- It contains a `SKILL.md` file which serves as documentation.\n"
+                "You are encouraged to inspect these files (e.g., using `ls -R <path>` or `cat <path>/SKILL.md`) "
+                "to better understand the tool's usage and available scripts before invocation.\n"
+            )
+
+            # Generate sandbox structure description based on required sandboxes
+            sandbox_description = ToolLoader.generate_sandbox_structure_description(
+                required_sandboxes
+            )
+
+            # logger.info(
+            #     "Injecting dynamically loaded tool descriptions into agent instruction:\n\n"
+            #     + tool_prompt
+            # )
+            self.instruction += f"\n\nHere are the available bash tools you can use:\n{description_preamble}\n{tool_prompt}{sandbox_description}"
+        else:
+            logger.info("No dynamically loaded tool descriptions found")
+
+    def update_enabled_skills(
+        self, enabled_skills: Optional[Union[List[str], str]]
+    ) -> None:
+        """Update enabled_skills and regenerate system prompt with new bash tools.
+
+        This method:
+        1. Updates the _enabled_skills attribute
+        2. Removes the old bash tools section from instruction
+        3. Generates new tool prompt based on new enabled_skills
+        4. Appends the new tool prompt to instruction
+
+        Args:
+            enabled_skills: New enabled_skills value (None, "all", or List[str])
+        """
+        import re
+
+        # Update enabled_skills
+        self._enabled_skills = enabled_skills
+
+        # Remove old tool prompt section from instruction
+        # Pattern matches from "Here are the available bash tools" to end of string
+        pattern = r"\n\nHere are the available bash tools you can use:.*"
+        self.instruction = re.sub(pattern, "", self.instruction, flags=re.DOTALL)
+
+        # Generate new tool prompt based on new enabled_skills
+        loader = ToolLoader(enabled_skills=enabled_skills)
+        metadata = loader.load_tools()
+        tool_prompt, required_sandboxes = ToolLoader.generate_system_prompt_part(
+            metadata
+        )
+
+        if tool_prompt:
+            # Preamble describing the skill structure
+            description_preamble = (
+                "Each tool path provided below represents a 'Skill' directory which follows a specific structure:\n"
+                "- It contains a `scripts` directory with the executable scripts/tools.\n"
+                "- It contains a `SKILL.md` file which serves as documentation.\n"
+                "You are encouraged to inspect these files (e.g., using `ls -R <path>` or `cat <path>/SKILL.md`) "
+                "to better understand the tool's usage and available scripts before invocation.\n"
+            )
+
+            # Generate sandbox structure description based on required sandboxes
+            sandbox_description = ToolLoader.generate_sandbox_structure_description(
+                required_sandboxes
+            )
+
+            # Append new tool prompt to instruction
+            self.instruction += f"\n\nHere are the available bash tools you can use:\n{description_preamble}\n{tool_prompt}{sandbox_description}"
+            logger.info(
+                f"Updated enabled_skills and regenerated system prompt for agent '{self.name}'"
+            )
+        else:
+            logger.info(
+                f"Updated enabled_skills to {enabled_skills}, no bash tools found"
+            )

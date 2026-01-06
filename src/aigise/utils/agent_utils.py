@@ -369,23 +369,28 @@ def extract_tools_from_agent(agent) -> Dict[str, Any]:
 
 def _copy_agent_with_updated_model(base_agent_info, model_name: str):
     """
-    Create a new agent instance with a specific model, based on an existing agent.
+    Create a new AigiseAgent instance with a specific model, based on an existing AigiseAgent.
 
     Args:
-        base_agent_info: EnsembleAgentInfo object containing the base agent
+        base_agent_info: EnsembleAgentInfo object containing the base agent (must be AigiseAgent)
         model_name: The model name to use (e.g., "anthropic/claude-sonnet-4")
 
     Returns:
-        New LlmAgent instance with the specified model
+        New AigiseAgent instance with the specified model and same enabled_skills
     """
+    from aigise.agents.aigise_agent import AigiseAgent
+
     if not base_agent_info.agent_instance or not isinstance(
-        base_agent_info.agent_instance, LlmAgent
+        base_agent_info.agent_instance, AigiseAgent
     ):
         raise ValueError(
-            f"Base agent must be an LlmAgent instance, got {type(base_agent_info.agent_instance)}"
+            f"Base agent must be an AigiseAgent instance, got {type(base_agent_info.agent_instance)}"
         )
 
     base_agent = base_agent_info.agent_instance
+
+    # Get enabled_skills from the AigiseAgent instance
+    enabled_skills = getattr(base_agent, "_enabled_skills", None)
 
     # Use the official copy method provided by BaseAgent (Pydantic model_copy)
     try:
@@ -395,6 +400,15 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
                 "name": f"{base_agent.name}_{model_name.replace('/', '_').replace('-', '_')}",
             }
         )
+
+        # Copy enabled_skills attribute (copy() doesn't copy private attributes)
+        new_agent._enabled_skills = enabled_skills
+
+        # If enabled_skills exists, update the system prompt
+        # (instruction was copied, but we need to regenerate tool_prompt if needed)
+        # Actually, since we're copying, the instruction already has the tool_prompt
+        # But we should ensure _enabled_skills is set correctly
+        # The instruction should already be correct from the copy
 
         return new_agent
 
@@ -406,17 +420,19 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
 
         new_model = LiteLlm(model=model_name)
 
-        # Create new agent with the same configuration but different model
-        new_agent = LlmAgent(
+        # Create new AigiseAgent with the same configuration but different model
+        new_agent = AigiseAgent(
             model=new_model,
             name=f"{base_agent.name}_{model_name.replace('/', '_').replace('-', '_')}",
             instruction=base_agent.instruction,
             description=base_agent.description
             or f"{base_agent.name} using {model_name}",
             tools=base_agent.tools,
+            enabled_skills=enabled_skills,  # Pass enabled_skills from original agent
             sub_agents=base_agent.sub_agents
             if hasattr(base_agent, "sub_agents")
             else None,
+            tool_combos=getattr(base_agent, "tool_combos", None),
             # Copy additional configuration fields
             global_instruction=getattr(base_agent, "global_instruction", ""),
             generate_content_config=getattr(

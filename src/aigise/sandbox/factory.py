@@ -10,6 +10,7 @@ from aigise.sandbox.initializers import (
     DebuggerInitializer,
     FuzzInitializer,
     JoernInitializer,
+    MainInitializer,
     Neo4jInitializer,
     SandboxInitializer,
 )
@@ -28,6 +29,7 @@ SANDBOX_BACKENDS = {
 
 # Registry of available initializers
 SANDBOX_INITIALIZERS = {
+    "main": MainInitializer,
     "codeql": CodeQLInitializer,
     "joern": JoernInitializer,
     "fuzz": FuzzInitializer,

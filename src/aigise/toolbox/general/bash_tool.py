@@ -6,7 +6,7 @@ from aigise.utils.agent_utils import get_sandbox_from_context
 
 @safe_tool_execution
 @requires_sandbox("main")
-def bash_tool(command: str, tool_context: ToolContext) -> str:
+def bash_tool_main(command: str, tool_context: ToolContext) -> str:
     """Execute a bash command and return the output.
     Call this tool only if other tools cannot handle your current needs.
 

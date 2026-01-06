@@ -17,6 +17,19 @@ def calculate_add(a: float, b: float) -> float:
     return a + b
 
 
+def calculate_subtract(a: float, b: float) -> float:
+    """Calculate the difference of two numbers.
+
+    Args:
+        a: The first number to subtract.
+        b: The second number to subtract.
+
+    Returns:
+        The difference of a and b.
+    """
+    return a - b
+
+
 calculation_agent = LlmAgent(
     model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
     name="calculation_agent",

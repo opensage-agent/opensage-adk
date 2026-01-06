@@ -15,7 +15,7 @@ SAGE-X uses TOML (Tom's Obvious, Minimal Language) format for configuration file
 
 Configuration files are loaded in the following order:
 
-1. **Default Configuration**: `src/aigise/templates/configs/default_config.toml` (used when no config is specified)
+1. **Default Configuration**: `src/<package>/templates/configs/default_config.toml` (used when no config is specified)
 2. **Custom Configuration**: Path specified via `config_path` parameter when creating `AigiseSession`
 
 ## Configuration Structure
@@ -117,6 +117,24 @@ auto_cleanup = true
 Configures the Neo4j graph database connection.
 
 **Section:** `[neo4j]`
+
+## Sandbox Images & Requirements (Practical Notes)
+
+Some sandboxes require Python tooling inside their Docker images. In the default
+configuration template (`src/<package>/templates/configs/default_config.toml`):
+
+- **`sandbox.sandboxes.main`**
+  - Built from `src/<package>/templates/dockerfiles/main/Dockerfile`
+  - Provides `python3` via `/app/.venv/bin/python`
+  - Installs Python package `neo4j` (used by `src/<package>/sandbox/initializers/main.py`)
+
+- **`sandbox.sandboxes.joern`**
+  - Built from `src/<package>/templates/dockerfiles/joern/Dockerfile`
+  - Provides `python3` via `/app/.venv/bin/python`
+  - Installs Python packages `httpx` and `websockets` (used by Joern query helper scripts)
+
+These images install Python deps using `uv` in the Dockerfile (create `/app/.venv`
+and run `uv pip install ...`), rather than at runtime inside a running container.
 
 | Field | Type | Description | Default |
 |-------|------|-------------|---------|
@@ -539,7 +557,7 @@ sse_port = 1111
 ```python
 from aigise.session import AigiseSession
 
-# Uses default config from src/aigise/templates/configs/default_config.toml
+# Uses default config from src/<package>/templates/configs/default_config.toml
 session = AigiseSession(aigise_session_id="my_session")
 ```
 

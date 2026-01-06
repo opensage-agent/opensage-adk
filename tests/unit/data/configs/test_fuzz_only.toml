@@ -1,0 +1,34 @@
+# Configuration for tests that only need main and fuzz sandboxes
+# Template variables: ${VAR_NAME} will be expanded from top-level variables or environment
+
+# Top-level template variables (UPPERCASE)
+DEFAULT_IMAGE = "n132/arvo:51603-vul"
+MAIN_MODEL = "anthropic/claude-sonnet-4-20250514"
+TASK_NAME = "test_fuzz_only"
+
+# History configuration defaults
+src_dir_in_sandbox = "/shared/code"
+task_name = "${TASK_NAME}"
+
+[sandbox]
+default_image = "${DEFAULT_IMAGE}"
+backend = "native"
+project_relative_shared_data_path = "tests/unit/data/arvo_51603_vul_code.tar.gz"
+
+# Main sandbox configuration
+[sandbox.sandboxes.main]
+image = "${DEFAULT_IMAGE}"
+timeout = 300
+[sandbox.sandboxes.main.extra]
+initializer_timeout_sec = 1800
+
+# Fuzzing sandbox configuration
+[sandbox.sandboxes.fuzz]
+image = "${DEFAULT_IMAGE}"
+command = "tail -f /dev/null"
+timeout = 600
+[sandbox.sandboxes.fuzz.extra]
+initializer_timeout_sec = 1800
+
+[build]
+compile_command = "arvo compile"

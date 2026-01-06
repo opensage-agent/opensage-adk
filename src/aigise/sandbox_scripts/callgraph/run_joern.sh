@@ -11,7 +11,16 @@ mkdir -p $OUT_DIR
 
 joern-parse "$CODE_DIR" -o cpg.bin
 
-joern --script /sandbox_scripts/callgraph/extract_call.scala --param cpgFile=cpg.bin --param outDir=$OUT_DIR
+# Move cpg.bin to /cpg.bin so it's accessible from root
+if [ -f cpg.bin ]; then
+    mv cpg.bin /cpg.bin
+    echo "CPG file created at /cpg.bin"
+else
+    echo "Error: cpg.bin was not created" >&2
+    exit 1
+fi
+
+joern --script /sandbox_scripts/callgraph/extract_call.scala --param cpgFile=/cpg.bin --param outDir=$OUT_DIR
 
 # joern-export cpg.bin --out=graphml --repr=all --format=graphml
 # cp graphml/export.xml $OUT_PATH

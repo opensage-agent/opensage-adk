@@ -21,6 +21,26 @@
 - Check logs for initialization errors
 - Wait for sandbox to be ready: `await session.sandboxes.wait_for_ready("main")`
 
+### `python3` not found / `neo4j` missing inside main sandbox
+
+**Problem**:
+- Sandbox initialization fails with errors like:
+  - `exec: "python3": executable file not found in $PATH`
+  - `ModuleNotFoundError: No module named 'neo4j'`
+
+**Cause**:
+- The sandbox container image does not include Python tooling and dependencies required by the sandbox initializer.
+  For example, `main` requires `python3` + the Python package `neo4j`.
+
+**Solutions**:
+- Ensure your `main` sandbox image is built from `src/<package>/templates/dockerfiles/main/Dockerfile`
+- Ensure your `main` sandbox image is built from `src/<package>/templates/dockerfiles/main/Dockerfile`
+  (default config uses `${DEFAULT_IMAGE}_main` with `project_relative_dockerfile_path`).
+- Inside the container, prefer the venv interpreter:
+  - `/app/.venv/bin/python -c "import neo4j"`
+- If you are attaching to an existing container, confirm that container was created from the correct image
+  (attach does not “upgrade” a container’s dependencies).
+
 ### Tool not found
 
 **Problem**: Agent cannot find or use a tool

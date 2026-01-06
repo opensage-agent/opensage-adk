@@ -70,19 +70,20 @@ class BaseSandbox(ABC):
     @abstractmethod
     def create_shared_volume(
         cls, volume_name_prefix: str, init_data_path: Path = None
-    ) -> tuple[str, str]:
-        """Create and initialize two shared volumes.
+    ) -> tuple[str, str, str]:
+        """Create and initialize three shared volumes.
 
-        Creates two volumes:
+        Creates three volumes:
         1. Read-only volume with sandbox scripts (mapped to /sandbox_scripts)
         2. Read-write volume with user data (mapped to /shared)
+        3. Read-write volume with bash tools (mapped to /bash_tools)
 
         Args:
             volume_name_prefix: Prefix for volume names (e.g., session_id)
             init_data_path: Path to initial data to copy into the rw volume (optional)
 
         Returns:
-            Tuple of (scripts_volume_id, data_volume_id)
+            Tuple of (scripts_volume_id, data_volume_id, tools_volume_id)
         """
         pass
 
@@ -102,6 +103,7 @@ class BaseSandbox(ABC):
         sandbox_configs: dict,
         shared_volume_id: str = None,
         scripts_volume_id: str = None,
+        tools_volume_id: str = None,
     ) -> dict:
         """Launch all sandbox instances for a session.
 
@@ -110,6 +112,7 @@ class BaseSandbox(ABC):
             sandbox_configs: Dictionary of sandbox_type -> ContainerConfig
             shared_volume_id: Optional shared volume to mount to all sandboxes
             scripts_volume_id: Optional scripts volume to mount to all sandboxes
+            tools_volume_id: Optional tools volume to mount to all sandboxes
         Returns:
             Dictionary mapping sandbox_type to sandbox instance or connection info
         """
@@ -140,7 +143,10 @@ class BaseSandbox(ABC):
     @classmethod
     @abstractmethod
     def delete_shared_volumes(
-        cls, scripts_volume_id: str = None, data_volume_id: str = None
+        cls,
+        scripts_volume_id: str = None,
+        data_volume_id: str = None,
+        tools_volume_id: str = None,
     ) -> None:
         """Delete shared volumes."""
         pass

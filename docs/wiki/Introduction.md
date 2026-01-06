@@ -54,7 +54,7 @@ This design enables:
 - System has continuous self-expansion potential
 
 **Implementation:**
-- `ToolLoader` dynamically discovers tools from `src/aigise/sandbox_scripts/bash_tools/`
+- `ToolLoader` dynamically discovers tools from `src/aigise/bash_tools/`
 - Tools structured as "Skills" with metadata (`SKILL.md`)
 - `bash_tool` enables execution of arbitrary commands, allowing agents to create new tools
 

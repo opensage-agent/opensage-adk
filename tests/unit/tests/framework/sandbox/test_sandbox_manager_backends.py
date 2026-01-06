@@ -23,7 +23,7 @@ from aigise.session.aigise_sandbox_manager import AigiseSandboxManager
 class SandboxBackendScenario:
     name: str
     backend: str
-    default_image: str = "alpine:latest"
+    default_image: str = "ubuntu:20.04"
 
     def ensure_available(self) -> None:  # pragma: no cover - implemented by subclasses
         raise NotImplementedError
@@ -31,8 +31,14 @@ class SandboxBackendScenario:
     def build_config(self) -> AigiseConfig:
         config = AigiseConfig()
         config.task_name = f"{self.name}_test_task"
+        # For tests that involve attaching to the "main" sandbox, we want the
+        # main container to have python3 and the neo4j python package available
+        # (required by MainInitializer). We achieve this by building a dedicated
+        # main image from the project Dockerfile.
         main_config = ContainerConfig(
-            image=self.default_image,
+            image=f"{self.default_image}_main",
+            project_relative_dockerfile_path="src/aigise/templates/dockerfiles/main/Dockerfile",
+            build_args={"BASE_IMAGE": self.default_image},
             environment={"TEST_ENV": "main"},
             timeout=30,
         )

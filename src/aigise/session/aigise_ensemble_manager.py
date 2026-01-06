@@ -21,6 +21,7 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
+from aigise.agents.aigise_agent import AigiseAgent
 from aigise.session.aigise_dynamic_agent_manager import DynamicAgentManager
 from aigise.utils.agent_utils import (
     _copy_agent_with_updated_model,
@@ -41,6 +42,9 @@ class EnsembleAgentInfo:
     agent_type: str  # "dynamic_agent", "adk_subagent", "agent_tool"
     agent_instance: Optional[BaseAgent] = None
     source_path: Optional[str] = None  # For tracking where the agent was found
+    enabled_skills: Optional[Union[List[str], str]] = (
+        None  # enabled_skills from AigiseAgent
+    )
 
 
 class AigiseEnsembleManager:
@@ -159,25 +163,28 @@ class AigiseEnsembleManager:
 
             current_path = f"{path}.sub_agents[{i}]" if path else f"sub_agents[{i}]"
 
-            # Only include LlmAgent subagents
-            if isinstance(sub_agent, LlmAgent):
+            # Only include AigiseAgent subagents (ensemble only supports AigiseAgent)
+            if isinstance(sub_agent, AigiseAgent):
                 tools = self._extract_tool_names_from_agent(sub_agent)
                 model = (
                     str(sub_agent.model)
                     if hasattr(sub_agent, "model") and sub_agent.model
                     else "default"
                 )
+                # Extract enabled_skills from AigiseAgent
+                enabled_skills = getattr(sub_agent, "_enabled_skills", None)
 
                 discovered.append(
                     EnsembleAgentInfo(
                         name=sub_agent.name,
                         description=sub_agent.description
-                        or f"ADK LlmAgent subagent: {sub_agent.name}",
+                        or f"AigiseAgent subagent: {sub_agent.name}",
                         tools=tools,
                         model=model,
                         agent_type="adk_subagent",
                         agent_instance=sub_agent,
                         source_path=current_path,
+                        enabled_skills=enabled_skills,
                     )
                 )
 
@@ -208,25 +215,28 @@ class AigiseEnsembleManager:
                     f"{path}.tools[{i}].agent" if path else f"tools[{i}].agent"
                 )
 
-                # Only include LlmAgent instances in AgentTools
-                if isinstance(tool_agent, LlmAgent):
+                # Only include AigiseAgent instances in AgentTools (ensemble only supports AigiseAgent)
+                if isinstance(tool_agent, AigiseAgent):
                     tools = self._extract_tool_names_from_agent(tool_agent)
                     model = (
                         str(tool_agent.model)
                         if hasattr(tool_agent, "model") and tool_agent.model
                         else "default"
                     )
+                    # Extract enabled_skills from AigiseAgent
+                    enabled_skills = getattr(tool_agent, "_enabled_skills", None)
 
                     discovered.append(
                         EnsembleAgentInfo(
                             name=tool_agent.name,
                             description=tool_agent.description
-                            or f"AgentTool LlmAgent: {tool_agent.name}",
+                            or f"AgentTool AigiseAgent: {tool_agent.name}",
                             tools=tools,
                             model=model,
                             agent_type="agent_tool",
                             agent_instance=tool_agent,
                             source_path=current_path,
+                            enabled_skills=enabled_skills,
                         )
                     )
 
@@ -319,7 +329,9 @@ class AigiseEnsembleManager:
         if include_dynamic:
             try:
                 caller_tools = extract_tools_from_agent(current_agent)
-                self.agent_manager._load_persisted_agents_on_demand(caller_tools)
+                self.agent_manager._load_persisted_agents_on_demand(
+                    caller_tools, current_agent
+                )
 
                 # Get dynamic agents from this session's agent manager (includes loaded ones)
                 all_dynamic = self.agent_manager.list_agents()
@@ -327,12 +339,17 @@ class AigiseEnsembleManager:
                 dynamic_agents = []
                 for agent_metadata in all_dynamic:
                     agent_instance = self.agent_manager.get_agent(agent_metadata.id)
-                    if agent_instance:
+                    # Only include AigiseAgent instances (ensemble only supports AigiseAgent)
+                    if agent_instance and isinstance(agent_instance, AigiseAgent):
                         tools = self._extract_tool_names_from_agent(agent_instance)
                         model = (
                             agent_metadata.config.get("model", "default")
                             if agent_metadata.config
                             else "default"
+                        )
+                        # Extract enabled_skills from AigiseAgent
+                        enabled_skills = getattr(
+                            agent_instance, "_enabled_skills", None
                         )
 
                         dynamic_agents.append(
@@ -345,6 +362,7 @@ class AigiseEnsembleManager:
                                 agent_type="dynamic_agent",
                                 agent_instance=agent_instance,
                                 source_path=f"dynamic_agent:{agent_metadata.id}",
+                                enabled_skills=enabled_skills,
                             )
                         )
 
@@ -403,6 +421,17 @@ class AigiseEnsembleManager:
         Returns:
             Dictionary with success status and aggregated response or error details
         """
+        from aigise.agents.aigise_agent import AigiseAgent
+
+        # Validate that target agent is AigiseAgent
+        if not target_agent_info.agent_instance or not isinstance(
+            target_agent_info.agent_instance, AigiseAgent
+        ):
+            return {
+                "success": False,
+                "error": f"Agent '{target_agent_info.name}' must be an AigiseAgent instance for ensemble. Got: {type(target_agent_info.agent_instance)}",
+            }
+
         try:
             # Create multiple agent execution tasks
             agent_tasks = []
@@ -426,6 +455,7 @@ Please provide your unique perspective and analysis. Consider that other agents 
 """
 
                     # Create new agent instance with the specified model
+                    # enabled_skills will be automatically extracted from target_agent_info
                     try:
                         agent_with_model = _copy_agent_with_updated_model(
                             target_agent_info, model_name

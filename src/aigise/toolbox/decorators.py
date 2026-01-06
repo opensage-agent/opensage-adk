@@ -9,9 +9,15 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import traceback
 from functools import wraps
-from typing import Callable, TypeVar
+from pathlib import Path
+from typing import Callable, List, Optional, Set, TypeVar, Union
+
+from aigise.utils.project_info import SRC_PATH
+
+logger = logging.getLogger(__name__)
 
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.tools.agent_tool import AgentTool
@@ -165,10 +171,120 @@ def collect_sandbox_dependencies(agent) -> set[str]:
         for step in agent.steps:
             if hasattr(step, "agent"):
                 dependencies.update(collect_sandbox_dependencies(step.agent))
+
+    # Collect dependencies from dynamic bash skills (SKILL.md)
+    # Get enabled_skills from agent if it's an AigiseAgent
+    enabled_skills = None
+    if hasattr(agent, "_enabled_skills"):
+        enabled_skills = agent._enabled_skills
+
+    skill_deps = _collect_dynamic_skill_dependencies(enabled_skills=enabled_skills)
+    logger.info(
+        "Collecting dynamic skill dependencies: %s",
+        skill_deps,
+    )
+    dependencies.update(skill_deps)
+
     dependencies.add("main")
     from aigise.features import is_neo4j_logging_enabled
 
     if is_neo4j_logging_enabled():
         dependencies.add("neo4j")
 
+    return dependencies
+
+
+def _collect_dynamic_skill_dependencies(
+    enabled_skills: Optional[Union[List[str], str]] = None,
+) -> set[str]:
+    """Scan all available bash skills for sandbox requirements defined in SKILL.md.
+
+    This manually scans the search paths (mirroring ToolLoader defaults) and parses
+    the '## Requires Sandbox' section from SKILL.md files.
+
+    Args:
+        enabled_skills: Optional filter to only collect dependencies from enabled tools.
+                       - None: Collect from no tools (returns empty set)
+                       - "all": Collect from all tools
+                       - List[str]: Only collect from specified tools
+    """
+
+    dependencies = set()
+
+    # Determine filter set based on enabled_skills (mirroring ToolLoader logic)
+    filter_skills: Optional[Set[str]] = None
+    if enabled_skills == "all":
+        filter_skills = None  # No filtering, collect all
+    elif enabled_skills is None:
+        # None means no tools enabled, return empty set
+        return set()
+    elif isinstance(enabled_skills, list):
+        filter_skills = set(enabled_skills)  # Filter by allowlist
+    else:
+        filter_skills = None  # Unknown type, collect all
+
+    search_paths = [
+        SRC_PATH / "aigise/bash_tools",
+        Path.home() / ".local/plugins/aigise/tools",
+    ]
+
+    def parse_skill_md(file_path: Path) -> set[str]:
+        deps = set()
+        try:
+            content = file_path.read_text(encoding="utf-8")
+            # Regex to find "## Requires Sandbox" section and capture content until next "##" or EOF
+            match = re.search(
+                r"^## Requires Sandbox\s*\n(.*?)(?=\n## |\Z)",
+                content,
+                re.MULTILINE | re.DOTALL,
+            )
+            if match:
+                section_content = match.group(1)
+                # Parse comma-separated values, ignoring empty lines
+                for line in section_content.splitlines():
+                    line = line.strip()
+                    if line:
+                        for part in line.split(","):
+                            clean_part = part.strip()
+                            if clean_part:
+                                deps.add(clean_part)
+        except Exception as e:
+            logger.warning(
+                f"Failed to parse SKILL.md sandbox requirements at {file_path}: {e}"
+            )
+        logger.info("Collected dependencies: %s from %s", deps, file_path)
+        return deps
+
+    processed_tools = set()
+
+    for search_path in search_paths:
+        if not search_path.exists():
+            continue
+
+        # Logic mirrors ToolLoader: check root items
+        for item in search_path.iterdir():
+            if not item.is_dir():
+                continue
+
+            # Check if item is a tool (has SKILL.md inside)
+            skill_md = item / "SKILL.md"
+            if skill_md.exists():
+                tool_name = item.name
+                # Apply filter if enabled_skills is specified
+                if filter_skills is not None and tool_name not in filter_skills:
+                    continue
+                if tool_name not in processed_tools:
+                    dependencies.update(parse_skill_md(skill_md))
+                    processed_tools.add(tool_name)
+            else:
+                # Treat as category/sandbox directory, check children
+                for subitem in item.iterdir():
+                    if subitem.is_dir() and (subitem / "SKILL.md").exists():
+                        tool_name = f"{item.name}/{subitem.name}"
+                        # Apply filter if enabled_skills is specified
+                        if filter_skills is not None and tool_name not in filter_skills:
+                            continue
+                        if tool_name not in processed_tools:
+                            dependencies.update(parse_skill_md(subitem / "SKILL.md"))
+                            processed_tools.add(tool_name)
     return dependencies

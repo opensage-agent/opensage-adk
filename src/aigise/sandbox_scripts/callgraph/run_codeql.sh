@@ -12,15 +12,17 @@ fi
 WORK_DIR="/work"
 BUILD_COMMAND="$1"
 CODEQL_BIN="/sandbox_scripts/codeql/codeql"
-DATABASE_PATH="/work/.aigise-codeql-database"
+DATABASE_PATH="$WORK_DIR/.aigise-codeql-database"
 QUERY_DIR="/sandbox_scripts/callgraph/codeql_queries"
 OUT_DIR="/shared/out/callgraph"
 
-cp -r $QUERY_DIR /work/.codeql_queries
-QUERY_DIR="/work/.codeql_queries"
-
 mkdir -p $WORK_DIR
 mkdir -p $OUT_DIR
+
+cp -r $QUERY_DIR $WORK_DIR/.codeql_queries
+QUERY_DIR="$WORK_DIR/.codeql_queries"
+
+
 
 echo "Starting CodeQL analysis with build command: $BUILD_COMMAND"
 

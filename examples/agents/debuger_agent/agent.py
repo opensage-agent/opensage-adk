@@ -35,7 +35,7 @@ from aigise.toolbox.general.agent_tools import (
     note_suspicious_things,
     think,
 )
-from aigise.toolbox.general.bash_tool import bash_tool
+from aigise.toolbox.general.bash_tool import bash_tool_main
 from aigise.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
@@ -84,7 +84,7 @@ def mk_agent(aigise_session_id: str):
         You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
         If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
         """,
-        tools=[bash_tool, complain, gdb_toolset],
+        tools=[bash_tool_main, complain, gdb_toolset],
     )
     root_agent = debugger_agent
     return root_agent

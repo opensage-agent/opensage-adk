@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -40,11 +40,25 @@ class ToolCombo:
     def __init__(
         self,
         name: str,
-        tool_sequences: List[Any],
+        tool_sequences: List[Union[Dict[str, Any], BaseTool, LlmAgent, callable]],
         description: str = "",
         model: Union[str, BaseLlm] = "",
         return_history: bool = True,
     ):
+        """
+        Initialize ToolCombo.
+
+        Args:
+            name: Name of the ToolCombo
+            tool_sequences: List of tools or tool configs. Each item can be:
+                - A dict containing:
+                    - "tool": The tool to use (BaseTool, LlmAgent, or callable)
+                    - "enabled_skills": Allowed bash tools (None, "all", or List[str])
+                - Or directly a tool (BaseTool, LlmAgent, or callable function)
+            description: Description of the ToolCombo
+            model: Model to use for agents
+            return_history: Whether to return history
+        """
         self.name = name
         self.tool_sequences = tool_sequences
         self.description = description
@@ -52,8 +66,10 @@ class ToolCombo:
         self.return_history = return_history
 
         sub_agents = []
-        for idx, tool in enumerate(self.tool_sequences):
-            sub_agent = self._wrap_tool_as_agent(tool, idx, len(self.tool_sequences))
+        for idx, tool_config in enumerate(self.tool_sequences):
+            sub_agent = self._wrap_tool_as_agent(
+                tool_config, idx, len(self.tool_sequences)
+            )
             sub_agents.append(sub_agent)
 
         if sub_agents and self.return_history:
@@ -80,17 +96,40 @@ class ToolCombo:
             )
             self.agent_tool = AgentTool(agent=self.sequential_agent)
 
-    def _wrap_tool_as_agent(self, tool: Any, idx: int, total_tools: int) -> LlmAgent:
-        """Wrap a tool as an LlmAgent for use in the SequentialAgent.
+    def _wrap_tool_as_agent(
+        self,
+        tool_config: Union[Dict[str, Any], BaseTool, LlmAgent, callable],
+        idx: int,
+        total_tools: int,
+    ) -> LlmAgent:
+        """Wrap a tool config as an AigiseAgent for use in the SequentialAgent.
 
         Args:
-            tool: The tool to wrap (can be BaseTool, LlmAgent, or callable)
+            tool_config: Either:
+                - Dict containing:
+                    - "tool": The tool to wrap (BaseTool, LlmAgent, or callable)
+                    - "enabled_skills": Allowed bash tools (None, "all", or List[str])
+                - Or directly a tool (BaseTool, LlmAgent, or callable function)
             idx: Index of the tool in the sequence
             total_tools: Total number of tools in the sequence
 
         Returns:
-            LlmAgent: The wrapped agent
+            AigiseAgent: The wrapped agent (or LlmAgent if tool is already an agent)
         """
+        # Handle both dict format and direct tool format
+        if isinstance(tool_config, dict):
+            # Dict format: {"tool": ..., "enabled_skills": ...}
+            if "tool" not in tool_config:
+                raise ValueError(
+                    f"Tool config at index {idx} must contain 'tool' key. Got: {tool_config}"
+                )
+            tool = tool_config["tool"]
+            enabled_skills = tool_config.get("enabled_skills", None)
+        else:
+            # Direct tool format: tool is passed directly
+            tool = tool_config
+            enabled_skills = None
+
         # If it's already an agent, return as is
         if isinstance(tool, LlmAgent):
             return tool
@@ -98,7 +137,7 @@ class ToolCombo:
         # Validate that tool is a valid tool type
         if not isinstance(tool, BaseTool) and not callable(tool):
             raise ValueError(
-                f"Tool at index {idx} must be a BaseTool, LlmAgent, or callable function"
+                f"Tool at index {idx} must be a BaseTool, LlmAgent, or callable function. Got: {type(tool)}"
             )
 
         is_last = idx == total_tools - 1
@@ -131,11 +170,14 @@ class ToolCombo:
         elif not is_last:
             instruction += f"\n\nYour result will be passed to the next step: '{self._get_tool_name(idx + 1)}'"
 
-        # Otherwise, wrap the tool as a minimal LlmAgent with the specified model
-        return LlmAgent(
+        # Create AigiseAgent with tool and enabled_skills restrictions
+        from aigise.agents.aigise_agent import AigiseAgent
+
+        return AigiseAgent(
             name=f"{self.name}_step_{idx}",
             model=self.model,
             tools=[tool],
+            enabled_skills=enabled_skills,
             instruction=instruction,
             output_key=f"{self.name}_step_{idx}_result",
         )
@@ -144,7 +186,11 @@ class ToolCombo:
         """Get the name of a tool at the given index."""
         if idx >= len(self.tool_sequences):
             return "unknown"
-        tool = self.tool_sequences[idx]
+        tool_config = self.tool_sequences[idx]
+
+        # Extract tool from config dict
+        tool = tool_config.get("tool") if isinstance(tool_config, dict) else tool_config
+
         if hasattr(tool, "name"):
             return tool.name
         elif hasattr(tool, "__name__"):
@@ -155,7 +201,7 @@ class ToolCombo:
     def _build_sequence_overview(self) -> str:
         """Build a string overview of the entire ToolCombo sequence."""
         overview_lines = []
-        for idx, tool in enumerate(self.tool_sequences):
+        for idx, tool_config in enumerate(self.tool_sequences):
             tool_name = self._get_tool_name(idx)
             overview_lines.append(f"  Step {idx + 1}: {tool_name}")
         return "\n".join(overview_lines)

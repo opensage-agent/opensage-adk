@@ -10,7 +10,7 @@ from aigise.toolbox.code_understanding import (
     list_cached_questions,
     lookup_similar_answers,
 )
-from aigise.toolbox.general.bash_tool import bash_tool
+from aigise.toolbox.general.bash_tool import bash_tool_main
 from aigise.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
     grep_tool,
@@ -82,7 +82,7 @@ def create_code_understanding_agent(
         grep_tool,
         list_functions_in_file,
         get_line_around_linenum_in_file,
-        bash_tool,
+        bash_tool_main,
     ]
     all_tools = cache_tools + code_tools
 

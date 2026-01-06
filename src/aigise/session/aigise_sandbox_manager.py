@@ -60,6 +60,7 @@ class AigiseSandboxManager:
         self._sandbox_states: Dict[str, SandboxState] = {}
         # Shared volume IDs for this session
         self._scripts_volume_id: Optional[str] = None  # Read-only scripts volume
+        self._tools_volume_id: Optional[str] = None  # Read-only tools volume
         self._shared_volume_id: Optional[str] = None  # Read-write data volume
 
     @property
@@ -178,24 +179,27 @@ class AigiseSandboxManager:
                         / config.sandbox.project_relative_shared_data_path
                     )
 
-                # Call class method to create two shared volumes
-                scripts_volume_id, data_volume_id = backend_class.create_shared_volume(
-                    self.aigise_session_id,
-                    shared_data_path,
+                # Call class method to create three shared volumes
+                scripts_volume_id, data_volume_id, tools_volume_id = (
+                    backend_class.create_shared_volume(
+                        self.aigise_session_id,
+                        shared_data_path,
+                    )
                 )
 
                 # Store volume IDs
                 self._scripts_volume_id = scripts_volume_id
                 self._shared_volume_id = data_volume_id
+                self._tools_volume_id = tools_volume_id
 
-                # Update all sandbox configs to mount both volumes
+                # Update all sandbox configs to mount all volumes
                 self._add_shared_volumes_to_all_configs(
-                    scripts_volume_id, data_volume_id
+                    scripts_volume_id, data_volume_id, tools_volume_id
                 )
 
                 logger.info(
                     f"Initialized shared volumes for session {self.aigise_session_id}: "
-                    f"scripts={scripts_volume_id}, data={data_volume_id}"
+                    f"scripts={scripts_volume_id}, data={data_volume_id}, tools={tools_volume_id}"
                 )
 
             except Exception as e:
@@ -215,13 +219,14 @@ class AigiseSandboxManager:
         return self._shared_volume_id
 
     def _add_shared_volumes_to_all_configs(
-        self, scripts_volume_id: str, data_volume_id: str
+        self, scripts_volume_id: str, data_volume_id: str, tools_volume_id: str
     ) -> None:
         """Add shared volume mounts to all sandbox configurations.
 
         Args:
             scripts_volume_id: The scripts volume identifier (read-only)
             data_volume_id: The data volume identifier (read-write)
+            tools_volume_id: The tools volume identifier (read-write)
         """
         try:
             config = self.config
@@ -230,6 +235,7 @@ class AigiseSandboxManager:
 
             scripts_mount = f"{scripts_volume_id}:/sandbox_scripts:ro"
             data_mount = f"{data_volume_id}:/shared:rw"
+            tools_mount = f"{tools_volume_id}:/bash_tools:rw"
 
             for sandbox_type, sandbox_config in config.sandbox.sandboxes.items():
                 # Initialize volumes list if it doesn't exist
@@ -250,9 +256,16 @@ class AigiseSandboxManager:
                         f"Added data volume mount to {sandbox_type}: {data_mount}"
                     )
 
+                # Add tools volume mount if not already present
+                if tools_mount not in sandbox_config.volumes:
+                    sandbox_config.volumes.append(tools_mount)
+                    logger.debug(
+                        f"Added tools volume mount to {sandbox_type}: {tools_mount}"
+                    )
+
             logger.info(
                 f"Updated all sandbox configs with shared volumes: "
-                f"scripts={scripts_volume_id}, data={data_volume_id}"
+                f"scripts={scripts_volume_id}, data={data_volume_id}, tools={tools_volume_id}"
             )
 
         except Exception as e:
@@ -333,6 +346,7 @@ class AigiseSandboxManager:
                 sandbox_configs=sandbox_configs,
                 shared_volume_id=self._shared_volume_id,
                 scripts_volume_id=self._scripts_volume_id,
+                tools_volume_id=self._tools_volume_id,
             )
 
             # Store sandbox instances in manager (mark as CREATED, not READY yet)
@@ -523,13 +537,14 @@ class AigiseSandboxManager:
                 logger.warning(f"Error cleaning up sandbox {sandbox_type}: {e}")
 
         # Delete shared volumes if they exist
-        if self._scripts_volume_id or self._shared_volume_id:
+        if self._scripts_volume_id or self._shared_volume_id or self._tools_volume_id:
             try:
                 backend_type = getattr(self.config.sandbox, "backend", "native")
                 backend_class = get_backend_class(backend_type)
                 backend_class.delete_shared_volumes(
                     scripts_volume_id=self._scripts_volume_id,
                     data_volume_id=self._shared_volume_id,
+                    tools_volume_id=self._tools_volume_id,
                 )
                 logger.info("Deleted shared volumes")
             except Exception as e:
@@ -539,6 +554,7 @@ class AigiseSandboxManager:
         self._sandboxes.clear()
         self._sandbox_states.clear()
         self._scripts_volume_id = None
+        self._tools_volume_id = None
         self._shared_volume_id = None
         logger.info("Completed cleanup")
 

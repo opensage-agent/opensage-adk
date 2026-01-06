@@ -11,6 +11,7 @@ from .coverage import CoverageInitializer
 from .debugger import DebuggerInitializer
 from .fuzz import FuzzInitializer
 from .joern import JoernInitializer
+from .main import MainInitializer
 from .neo4j import Neo4jInitializer
 
 __all__ = [
@@ -21,4 +22,5 @@ __all__ = [
     "FuzzInitializer",
     "Neo4jInitializer",
     "DebuggerInitializer",
+    "MainInitializer",
 ]

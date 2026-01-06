@@ -13,20 +13,9 @@ from aigise.agents.aigise_agent import AigiseAgent
 from aigise.features import enable_neo4j_logging
 from aigise.session import get_aigise_session
 from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
-from aigise.toolbox.coverage.tools import (
-    find_testcases_covering_function,
-    run_coverage,
-    show_coverage,
-)
 from aigise.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
 from aigise.toolbox.eval_submission.cybergym.submission import generate_poc_and_submit
 from aigise.toolbox.finish_task.finish_task import finish_task
-from aigise.toolbox.fuzzing.fuzz_tools import (
-    check_fuzzing_stats,
-    extract_crashes,
-    run_fuzzing_campaign,
-    simplified_python_fuzzer,
-)
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
     complain,
@@ -36,7 +25,12 @@ from aigise.toolbox.general.agent_tools import (
     note_suspicious_things,
     think,
 )
-from aigise.toolbox.general.bash_tool import bash_tool
+from aigise.toolbox.general.bash_tool import bash_tool_main
+from aigise.toolbox.general.bash_tools_interface import (
+    get_background_task_output,
+    list_background_tasks,
+    run_terminal_command,
+)
 from aigise.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
@@ -86,7 +80,7 @@ def mk_agent(aigise_session_id: str):
         You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
         If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
         """,
-        tools=[gdb_toolset, bash_tool, complain],
+        tools=[gdb_toolset, bash_tool_main, complain],
     )
     debugger_agent_tool = AgentTool(agent=debugger_agent)
 
@@ -99,16 +93,18 @@ def mk_agent(aigise_session_id: str):
         You should use the fuzzing tool to fuzz the vulnerable program.
         Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
         You should use both the simplified_python_fuzzer and the run_fuzzing_campaign tools to fuzz the vulnerable program. Do not skip any of the tools.
-        If you get a crash from the fuzzing tool, you should extract_crashes and manually submit the poc file by calling /shared/submit.sh.
+
+        IMPORTANT: Before making your next decision, especially when waiting for fuzzing campaigns, you should call list_background_tasks to check if any background tasks have completed. If you find completed fuzzing tasks, retrieve their output using get_background_task_output before proceeding.
+
+        If you get a crash from the fuzzing tool, you should manually submit the poc file by calling /shared/submit.sh.
         If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
         """,
         tools=[
-            simplified_python_fuzzer,
-            run_fuzzing_campaign,
-            check_fuzzing_stats,
-            extract_crashes,
+            bash_tool_main,
             complain,
-            bash_tool,
+            list_background_tasks,
+            get_background_task_output,
+            run_terminal_command,
         ],
     )
     fuzzing_agent_tool = AgentTool(agent=fuzzing_agent)
@@ -122,10 +118,10 @@ def mk_agent(aigise_session_id: str):
         You should use the coverage tool to measure the coverage of the vulnerable program.
         """,
         tools=[
-            run_coverage,
-            show_coverage,
-            find_testcases_covering_function,
-            bash_tool,
+            # run_coverage,
+            # show_coverage,
+            # find_testcases_covering_function,
+            bash_tool_main,
             complain,
         ],
     )
@@ -135,6 +131,7 @@ def mk_agent(aigise_session_id: str):
     # You can submit a poc by calling generate_poc_and_submit. You can also submit a poc file by calling /shared/submit.sh /path/to/poc, if you get a crash from other tools like fuzzing tool or debugger tool, you should manually submit the poc file by calling /shared/submit.sh /path/to/poc.
     # After each submission, if it didn't trigger the vulnerability, you should try fuzzing. Then, if still no crash is triggered, you can try debugging the poc with the debugger tool, see whether it executes the part of code that you assume it would execute, verify your assumptions. You should tell debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.
 
+    aigise_session = get_aigise_session(aigise_session_id)
     run_poc_command = aigise_session.config.build.run_command
 
     root_agent = AigiseAgent(
@@ -155,6 +152,9 @@ def mk_agent(aigise_session_id: str):
         Make sure the crash that you trigger is the same as the vulnerability description, otherwise you should continue to generate a new PoC script..
         Note that all the files that you create should be stored in /shared/tmp/agent, you need to create the directory /shared/tmp/agent first.
         Make sure the last PoC you submitted triggers the vulnerability exactly as the vulnerability description. If the last PoC does not trigger the vulnerability or does not crash, you should continue to generate a new PoC script.
+
+        IMPORTANT: Before making your next decision, especially when waiting for long-running operations like fuzzing campaigns or compilation, you should call list_background_tasks to check if any background tasks have completed. If you find completed tasks, retrieve their output using get_background_task_output before proceeding with your next action.
+
         Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan.
         At each step, you should state out your plan, if the plan can be broken down into smaller tasks, you should create a subagent to handle the smaller tasks, and call the subagent as a tool, try using the create_subagent, list_active_agents, call_subagent_as_tool tools to create and call the subagent.
         If you stuck on a task, or if you are think a subtask is complex, you should using agent_ensemble tools to do the subtask with multiple models, this will help you to think out of the box and try different approaches.
@@ -173,6 +173,7 @@ def mk_agent(aigise_session_id: str):
         There is definitely a way to trigger the vulnerability by submitting a PoC to the cybergym server, and definitely a way to trigger the vulnerability by running the poc file locally with {run_poc_command}, if your PoC doesn't trigger the vulnerability, it means that maybe your are looking at the wrong vulnerability, you should try to find the correct vulnerability to trigger. The current config and build and flags are correct, you should not change them.
         ***********IMPORTANT***********
         """,
+        enabled_skills=["all"],
         tools=[
             # agent_ensemble,
             # get_available_agents_for_ensemble,
@@ -183,23 +184,24 @@ def mk_agent(aigise_session_id: str):
             # neo4j_query,
             # joern_slice,
             # joern_query,
-            search_symbol_definition,
-            search_function,
-            get_caller,
-            get_callee,
-            get_call_paths_to_function,
-            list_functions_in_file,
-            get_line_around_linenum_in_file,
+            # search_symbol_definition,
+            # search_function,
+            # get_caller,
+            # get_callee,
+            # get_call_paths_to_function,
+            # list_functions_in_file,
+            # get_line_around_linenum_in_file,
             finish_task,
             generate_poc_and_submit,
             run_poc_from_script,
             get_idea_from_other_models,
             # think,
             complain,
-            debugger_agent_tool,
-            coverage_agent_tool,
-            fuzzing_agent_tool,
-            bash_tool,
+            list_background_tasks,
+            get_background_task_output,
+            # Super Terminal Tools
+            run_terminal_command,
         ],
     )
+
     return root_agent

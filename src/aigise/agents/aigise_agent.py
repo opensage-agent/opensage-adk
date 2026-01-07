@@ -25,12 +25,14 @@ class ToolLoader:
 
         Args:
             search_paths: List of paths to search for tools.
-            enabled_skills: Controls which tools are loaded.
-                          - None (default): Load NO tools.
-                          - "all": Load ALL found tools.
-                          - List[str]: Load specific tools by name (e.g. "fuzz/simplified-python-fuzzer").
+            enabled_skills: Controls which skills are loaded.
+                          - None (default): Load NO skills.
+                          - "all": Load ONLY top-level skills: `<root>/*/SKILL.md`.
+                          - List[str]: Load skills by exact path to the skill directory
+                            under the root (e.g. "fuzz" or "fuzz/run-fuzzing-campaign").
         """
         self._filter_skills: Optional[Set[str]] = None
+        self._enabled_skills = enabled_skills
 
         if enabled_skills == "all":
             self._filter_skills = None  # No filtering, load all
@@ -66,19 +68,71 @@ class ToolLoader:
             if not search_path.exists():
                 continue
 
-            # Scan root level items
+            # enabled_skills behavior:
+            # - None: load nothing
+            # - "all": load only top-level skills (search_path/*/SKILL.md), do not descend
+            # - List[str]: resolve each entry directly to <search_path>/<entry>/SKILL.md
+            if self._enabled_skills is None:
+                continue
+
+            if self._enabled_skills == "all":
+                for item in search_path.iterdir():
+                    if not item.is_dir():
+                        continue
+                    if (item / "SKILL.md").exists():
+                        self._process_tool(
+                            item,
+                            item.name,
+                            None,
+                            discovered_tools,
+                            loaded_tools_metadata,
+                        )
+                continue
+
+            if isinstance(self._enabled_skills, list):
+                for entry in self._enabled_skills:
+                    entry_path = Path(entry)
+                    if entry_path.is_absolute():
+                        logger.warning(
+                            "enabled_skills entry must be relative to the skill root; "
+                            "skipping absolute path: %s",
+                            entry,
+                        )
+                        continue
+
+                    tool_dir = (search_path / entry).resolve()
+                    if not tool_dir.is_dir():
+                        continue
+                    if not (tool_dir / "SKILL.md").exists():
+                        continue
+
+                    tool_name = entry
+                    # For nested skills, keep old behavior: infer sandbox_name from first segment.
+                    sandbox_name = (
+                        tool_name.split("/", 1)[0] if "/" in tool_name else None
+                    )
+                    self._process_tool(
+                        tool_dir,
+                        tool_name,
+                        sandbox_name,
+                        discovered_tools,
+                        loaded_tools_metadata,
+                    )
+                continue
+
+            # Fallback: keep the old scan behavior (should not happen in practice).
             for item in search_path.iterdir():
                 if not item.is_dir():
                     continue
-
-                # Check if item is a direct tool
                 if (item / "SKILL.md").exists():
-                    # Root level tool
                     self._process_tool(
-                        item, item.name, None, discovered_tools, loaded_tools_metadata
+                        item,
+                        item.name,
+                        None,
+                        discovered_tools,
+                        loaded_tools_metadata,
                     )
                 else:
-                    # Treat as category/sandbox directory, scan children
                     sandbox_name = item.name
                     for subitem in item.iterdir():
                         if subitem.is_dir() and (subitem / "SKILL.md").exists():
@@ -137,6 +191,10 @@ class ToolLoader:
                     yaml_content = parts[1]
                     data = yaml.safe_load(yaml_content)
                     if isinstance(data, dict):
+                        # Backwards compat: bash_tools SKILL.md uses should_run_in_sandbox.
+                        # Normalize to "sandbox" so prompt generation can compute required sandboxes.
+                        if "sandbox" not in data and "should_run_in_sandbox" in data:
+                            data["sandbox"] = data["should_run_in_sandbox"]
                         # Ensure path and description are present
                         # Use tool_name as path if not specified
                         if "path" not in data:
@@ -360,8 +418,9 @@ overview and persist the documentation structure into Neo4j.
             # Preamble describing the skill structure
             description_preamble = (
                 "Each tool path provided below represents a 'Skill' directory which follows a specific structure:\n"
-                "- It contains a `scripts` directory with the executable scripts/tools.\n"
                 "- It contains a `SKILL.md` file which serves as documentation.\n"
+                "- Some Skills are **toolsets/groupings** and may not include a `scripts/` directory.\n"
+                "- Executable Skills include a `scripts/` directory with the runnable scripts/tools.\n"
                 "You are encouraged to inspect these files (e.g., using `ls -R <path>` or `cat <path>/SKILL.md`) "
                 "to better understand the tool's usage and available scripts before invocation.\n"
             )
@@ -414,8 +473,9 @@ overview and persist the documentation structure into Neo4j.
             # Preamble describing the skill structure
             description_preamble = (
                 "Each tool path provided below represents a 'Skill' directory which follows a specific structure:\n"
-                "- It contains a `scripts` directory with the executable scripts/tools.\n"
                 "- It contains a `SKILL.md` file which serves as documentation.\n"
+                "- Some Skills are **toolsets/groupings** and may not include a `scripts/` directory.\n"
+                "- Executable Skills include a `scripts/` directory with the runnable scripts/tools.\n"
                 "You are encouraged to inspect these files (e.g., using `ls -R <path>` or `cat <path>/SKILL.md`) "
                 "to better understand the tool's usage and available scripts before invocation.\n"
             )

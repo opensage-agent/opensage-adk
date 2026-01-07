@@ -372,7 +372,9 @@ def _parse_skill_md_config(content: str) -> Dict[str, Any]:
     return config
 
 
-def _load_bash_tools_from_skills() -> List[BashToolMetadata]:
+def _load_bash_tools_from_skills(
+    start_dir: str | None = None,
+) -> List[BashToolMetadata]:
     """
     Load metadata for all bash tools from skill directories.
 
@@ -395,122 +397,132 @@ def _load_bash_tools_from_skills() -> List[BashToolMetadata]:
         logger.warning(f"Bash tools directory not found: {BASH_TOOLS_DIR}")
         return []
 
+    base_dir = BASH_TOOLS_DIR
+    if start_dir:
+        # Allow callers to list tools under a specific subdirectory, e.g.
+        # "fuzz" or "static_analysis/get-caller".
+        base_dir = (BASH_TOOLS_DIR / start_dir).resolve()
+        if not base_dir.exists() or not base_dir.is_dir():
+            logger.warning(
+                "Start directory not found for bash tools discovery: %s", base_dir
+            )
+            return []
+
     tools = []
 
-    # Iterate through all subdirectories (support nested structure like ToolLoader)
-    for item in BASH_TOOLS_DIR.iterdir():
+    def _is_executable_skill_dir(skill_dir: Path) -> bool:
+        """Returns True if directory looks like an executable skill (has scripts)."""
+        if not (skill_dir / "SKILL.md").exists():
+            return False
+        scripts_dir = skill_dir / "scripts"
+        if not scripts_dir.exists():
+            return False
+        script_files = list(scripts_dir.glob("*.sh")) + list(scripts_dir.glob("*.py"))
+        return bool(script_files)
+
+    # Collect candidate executable skill directories under base_dir.
+    # - If base_dir itself is a tool dir, include it.
+    # - Always scan up to 2 levels to support layouts like:
+    #   - root/tool/SKILL.md
+    #   - root/group/tool/SKILL.md  (where group may also have SKILL.md)
+    skill_dirs_to_process: list[Path] = []
+
+    if _is_executable_skill_dir(base_dir):
+        skill_dirs_to_process.append(base_dir)
+
+    for item in base_dir.iterdir():
         if not item.is_dir():
             continue
 
-        # Check if item is a direct tool (has SKILL.md)
-        skill_md_path = item / "SKILL.md"
-        if skill_md_path.exists():
-            # Root level tool - process it
-            skill_dirs_to_process = [(item, "")]
-        else:
-            # Treat as category/sandbox directory, scan all children
-            category_name = item.name
-            skill_dirs_to_process = []
-            for subitem in item.iterdir():
-                if subitem.is_dir() and (subitem / "SKILL.md").exists():
-                    skill_dirs_to_process.append((subitem, f"{category_name}/"))
+        if _is_executable_skill_dir(item):
+            skill_dirs_to_process.append(item)
+
+        for subitem in item.iterdir():
+            if subitem.is_dir() and _is_executable_skill_dir(subitem):
+                skill_dirs_to_process.append(subitem)
 
         # Process all found skill directories
-        for skill_dir, category_prefix in skill_dirs_to_process:
-            skill_md_path = skill_dir / "SKILL.md"
+    for skill_dir in skill_dirs_to_process:
+        skill_md_path = skill_dir / "SKILL.md"
 
-            # Read SKILL.md
-            with open(skill_md_path, "r", encoding="utf-8") as f:
-                content = f.read()
+        # Read SKILL.md
+        with open(skill_md_path, "r", encoding="utf-8") as f:
+            content = f.read()
 
-            # Parse YAML frontmatter
-            frontmatter_match = re.match(
-                r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL
-            )
-            if not frontmatter_match:
-                logger.warning(f"No YAML frontmatter found in {skill_md_path}")
-                continue
+        # Parse YAML frontmatter
+        frontmatter_match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
+        if not frontmatter_match:
+            logger.warning(f"No YAML frontmatter found in {skill_md_path}")
+            continue
 
-            frontmatter_text = frontmatter_match.group(1)
+        frontmatter_text = frontmatter_match.group(1)
 
-            # Simple YAML parsing (extract name, description, and returns_json)
-            name_match = re.search(r"^name:\s*(.+)$", frontmatter_text, re.MULTILINE)
-            desc_match = re.search(
-                r"^description:\s*(.+)$", frontmatter_text, re.MULTILINE
-            )
-            returns_json_match = re.search(
-                r"^returns_json:\s*(.+)$", frontmatter_text, re.MULTILINE
-            )
+        # Simple YAML parsing (extract name, description, and returns_json)
+        name_match = re.search(r"^name:\s*(.+)$", frontmatter_text, re.MULTILINE)
+        desc_match = re.search(r"^description:\s*(.+)$", frontmatter_text, re.MULTILINE)
+        returns_json_match = re.search(
+            r"^returns_json:\s*(.+)$", frontmatter_text, re.MULTILINE
+        )
 
-            if not name_match or not desc_match:
-                logger.warning(f"Missing name or description in {skill_md_path}")
-                continue
+        if not name_match or not desc_match:
+            logger.warning(f"Missing name or description in {skill_md_path}")
+            continue
 
-            tool_name = name_match.group(1).strip()
-            description = desc_match.group(1).strip()
+        tool_name = name_match.group(1).strip()
+        description = desc_match.group(1).strip()
 
-            # Check if returns_json is explicitly set in frontmatter
-            returns_json_from_frontmatter = False
-            if returns_json_match:
-                value = returns_json_match.group(1).strip().lower()
-                returns_json_from_frontmatter = value in ("true", "1", "yes")
+        # Check if returns_json is explicitly set in frontmatter
+        returns_json_from_frontmatter = False
+        if returns_json_match:
+            value = returns_json_match.group(1).strip().lower()
+            returns_json_from_frontmatter = value in ("true", "1", "yes")
 
-            # Find scripts in scripts directory
-            scripts_dir = skill_dir / "scripts"
-            if not scripts_dir.exists():
-                logger.warning(f"No scripts directory found in {skill_dir}")
-                continue
+        # Find scripts in scripts directory (guaranteed by _is_executable_skill_dir)
+        scripts_dir = skill_dir / "scripts"
+        script_files = list(scripts_dir.glob("*.sh")) + list(scripts_dir.glob("*.py"))
+        script_file = script_files[0]  # Use first found script file
 
-            # Find script files (.sh or .py)
-            script_files = list(scripts_dir.glob("*.sh")) + list(
-                scripts_dir.glob("*.py")
-            )
-            if not script_files:
-                logger.warning(f"No .sh or .py files found in {scripts_dir}")
-                continue
+        # Build script path in container (relative to CONTAINER_BASH_TOOLS_DIR).
+        #
+        # We use the path relative to BASH_TOOLS_DIR so start_dir does not affect
+        # the resulting container script path.
+        rel_skill_dir = skill_dir.relative_to(BASH_TOOLS_DIR)
+        script_path = f"{rel_skill_dir}/scripts/{script_file.name}"
 
-            # Use first found script file
-            script_file = script_files[0]
+        # Parse configuration from SKILL.md content
+        config = _parse_skill_md_config(content)
 
-            # Build script path in container (relative to CONTAINER_BASH_TOOLS_DIR)
-            # For nested tools: category/tool_name/scripts/script.sh
-            # For root tools: tool_name/scripts/script.sh
-            script_path = (
-                f"{category_prefix}{skill_dir.name}/scripts/{script_file.name}"
-            )
+        # Prefer explicit returns_json from frontmatter, fallback to parsed config
+        returns_json = (
+            returns_json_from_frontmatter
+            if returns_json_match
+            else config["returns_json"]
+        )
 
-            # Parse configuration from SKILL.md content
-            config = _parse_skill_md_config(content)
+        metadata = BashToolMetadata(
+            name=tool_name,
+            script_path=script_path,
+            description=description,
+            parameters=config["parameters"],
+            sandbox_types=config["sandbox_types"],
+            timeout=config["timeout"],
+            returns_json=returns_json,
+        )
+        tools.append(metadata)
 
-            # Prefer explicit returns_json from frontmatter, fallback to parsed config
-            returns_json = (
-                returns_json_from_frontmatter
-                if returns_json_match
-                else config["returns_json"]
-            )
-
-            metadata = BashToolMetadata(
-                name=tool_name,
-                script_path=script_path,
-                description=description,
-                parameters=config["parameters"],
-                sandbox_types=config["sandbox_types"],
-                timeout=config["timeout"],
-                returns_json=returns_json,
-            )
-            tools.append(metadata)
-
-            logger.info(
-                f"Loaded skill '{tool_name}' from {skill_md_path}: "
-                f"sandbox={config['sandbox_types']}, timeout={config['timeout']}s, "
-                f"params={len(config['parameters'])}, returns_json={returns_json}"
-            )
+        logger.info(
+            f"Loaded skill '{tool_name}' from {skill_md_path}: "
+            f"sandbox={config['sandbox_types']}, timeout={config['timeout']}s, "
+            f"params={len(config['parameters'])}, returns_json={returns_json}"
+        )
 
     return tools
 
 
 @safe_tool_execution
-def list_available_scripts(tool_context: ToolContext) -> str:
+def list_available_scripts(
+    tool_context: ToolContext, start_dir: str | None = None
+) -> str:
     """List all available bash scripts and their usage.
 
     Use this tool to discover what bash scripts are available in the sandbox
@@ -519,11 +531,13 @@ def list_available_scripts(tool_context: ToolContext) -> str:
 
     Args:
         tool_context: Tool context from the agent
+        start_dir: Optional subdirectory under bash_tools to start discovery from,
+            e.g. "fuzz" or "static_analysis". If omitted, scans all bash_tools.
 
     Returns:
         str: Formatted list of available scripts and usage instructions
     """
-    tools_metadata = _load_bash_tools_from_skills()
+    tools_metadata = _load_bash_tools_from_skills(start_dir=start_dir)
 
     if not tools_metadata:
         return "No bash tools found in skills directories."

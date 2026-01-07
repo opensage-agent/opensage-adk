@@ -6,6 +6,8 @@ This module provides a unified interface for invoking scripts under
 of these tools for agent use.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import shlex
@@ -521,7 +523,7 @@ def _load_bash_tools_from_skills(
 
 @safe_tool_execution
 def list_available_scripts(
-    tool_context: ToolContext, start_dir: str | None = None
+    start_dir: Optional[str] = None, *, tool_context: ToolContext
 ) -> str:
     """List all available bash scripts and their usage.
 
@@ -599,7 +601,8 @@ def run_terminal_command(
     background: bool = False,
     timeout: int = 60,
     sandbox_name: str = "main",
-    tool_context: ToolContext = None,
+    *,
+    tool_context: ToolContext,
 ) -> Dict[str, Any]:
     """Execute a command in the sandbox terminal.
 
@@ -764,7 +767,7 @@ def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
 
 @safe_tool_execution
 def get_background_task_output(
-    task_id: str, tool_context: ToolContext
+    task_id: str, *, tool_context: ToolContext
 ) -> Dict[str, Any]:
     """Retrieve the output and exit code from a specific background task.
 

@@ -269,9 +269,16 @@ def apply() -> None:
                 new_message=content,
                 run_config=RunConfig(max_llm_calls=remaining),
             ):
-                logger.warning(
-                    f"[SUBAGENT:{agent_tool.agent.name}] {event.model_dump_json(exclude_none=True)}"
-                )
+                try:
+                    logger.warning(
+                        f"[SUBAGENT:{agent_tool.agent.name}] {event.model_dump_json(exclude_none=True)}"
+                    )
+                except Exception as json_error:
+                    # Handle Neo4j DateTime serialization error
+                    logger.warning(
+                        f"[SUBAGENT:{agent_tool.agent.name}] Event serialization failed: {json_error}, "
+                        f"event_id={event.id}, event_type={getattr(event, 'type', 'unknown')}"
+                    )
                 if event.actions.state_delta:
                     tool_context.state.update(event.actions.state_delta)
                 last_event = event

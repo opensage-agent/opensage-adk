@@ -6,18 +6,10 @@ from google.adk.tools.agent_tool import AgentTool
 from aigise.agents.aigise_agent import AigiseAgent
 from aigise.toolbox.code_understanding import (
     cache_qa_pair,
+    create_cache_relation,
     get_cached_answer_by_id,
     list_cached_questions,
     lookup_similar_answers,
-)
-from aigise.toolbox.general.docs_memory_graph import (
-    create_doc_node,
-    ensure_docs_graph_indexes,
-    get_doc_node,
-    ingest_docs_to_neo4j,
-    run_neo4j_query,
-    search_doc_nodes,
-    update_doc_node,
 )
 from aigise.toolbox.general.history_management import (
     get_all_events_for_summarization,
@@ -25,6 +17,11 @@ from aigise.toolbox.general.history_management import (
     get_full_tool_res,
     get_full_tool_res_and_grep,
     list_all_events_for_session,
+)
+from aigise.toolbox.neo4j import (
+    list_node_types,
+    list_relations,
+    run_neo4j_query,
 )
 
 logger = logging.getLogger(__name__)
@@ -58,19 +55,16 @@ def create_memory_management_agent(
         list_all_events_for_session,
         get_full_tool_res,
         get_all_events_for_summarization,
-        ensure_docs_graph_indexes,
-        ingest_docs_to_neo4j,
-        get_doc_node,
-        search_doc_nodes,
-        create_doc_node,
-        update_doc_node,
         run_neo4j_query,
+        list_node_types,
+        list_relations,
     ]
     long_term_memory_tools = [
         list_cached_questions,
         lookup_similar_answers,
         get_cached_answer_by_id,
         cache_qa_pair,
+        create_cache_relation,
     ]
     all_tools = short_term_memory_tools + long_term_memory_tools
 

@@ -324,14 +324,10 @@ class ToolLoader:
                 "Database organization (selected by `client_type`):",
                 "- **history**: Agent execution history (e.g. `AgentRun`, `Event`, `RawToolResponse`; relationships like `HAS_EVENT`, `SUMMARIZES_TOOL_RESPONSE`)",
                 "- **analysis**: Static analysis / code graph data (Joern/CodeQL-related)",
-                "- **memory**: Long-term memory (e.g. Q&A cache `QACache`, documentation graph `DocNode`)",
-                "",
-                "Documentation graph (in **memory** DB):",
-                "- Each file/folder under `/docs` is stored as a **`DocNode`** keyed by full repo path (e.g. `/docs/wiki/Getting-Started.md`)",
-                "- Parent/child structure uses **`(parent)-[:CONTAINS]->(child)`** edges",
+                "- **memory**: Long-term memory (e.g. Q&A cache `QACache`)",
                 "",
                 "Querying:",
-                "- Prefer using the `memory_management_agent` tool. It exposes helpers like `search_doc_nodes`, `get_doc_node`, `update_doc_node`, and `run_neo4j_query`.",
+                "- Prefer using the `memory_management_agent` tool. It exposes helpers like `cache_qa_pair`, `get_cached_answer_by_id`, `create_cache_relation`, `list_node_types`, `list_relations`, and `run_neo4j_query`.",
                 "- `run_neo4j_query` can target different DBs via `client_type` (default: `memory`).",
                 "",
             ]
@@ -391,26 +387,70 @@ class AigiseAgent(LlmAgent):
             # Put this at the very front so it is followed even when the
             # instruction grows via dynamically injected tool descriptions.
             repo_first_prompt = """
-Before doing anything else, you must first build a lightweight repository
-overview and persist the documentation structure into Neo4j.
+Before doing anything else, you must first build comprehensive repository
+documentation and persist it into Neo4j.
 
-1) Repository overview (write files, do not just describe it):
-   - Create a mirror directory tree under `/shared/repo_overview/` that matches
-     the repository hierarchy.
-   - For each folder, create a Markdown file inside the mirrored folder with the
-     same name as the folder: `<folder>/<folder>.md`.
-   - For each file:
-     - If the file is named `aaa`, the overview file name should be `aaa.md`.
-     - If the file is named `aaa.py`, the overview file name should be
-       `aaa.py.md`.
-   - For every folder/file overview entry, write **no more than 3 sentences**
-     describing what it does.
+**CRITICAL: Start by carefully reading the README file(s) in the repository.**
+The README contains essential information about the project's purpose, architecture,
+and structure. Use this as the foundation for your documentation.
 
-2) Documentation graph ingestion (Neo4j):
-   - Use the `memory_management_agent` tool to ingest the `/docs` directory into
-     Neo4j.
-   - Model each folder/file as a node, and connect parent -> child using a
-     `CONTAINS` relationship.
+**Step 1: Determine Documentation Structure**
+
+1) Analyze the repository:
+   - Read and analyze the README file(s) FIRST to understand the project's purpose,
+     architecture, and key components
+   - Examine the repository file tree to identify major components, modules, and
+     features
+   - Based on README and code structure, design a logical documentation structure
+
+2) Documentation structure should include:
+   - **Overview**: Project introduction, purpose, and high-level architecture (heavily based on README)
+   - **Core Components**: Major modules, features, or subsystems
+   - **Architecture**: System design, data flow, component relationships
+   - **API/Interfaces**: If applicable, API documentation or key interfaces
+   - **Setup/Deployment**: Installation, configuration, deployment instructions
+   - Additional sections as needed based on repository analysis
+
+3) Create the structure outline:
+   - List all planned documentation pages with titles and brief descriptions
+   - Identify relationships between pages (which pages should link to others)
+
+**Step 2: Write Documentation Pages**
+
+1) Create documentation files under `/docs` directory:
+   - Use descriptive filenames (e.g., `Overview.md`, `Architecture.md`, `API.md`)
+   - Each page should be a standalone Markdown file
+
+2) For each documentation page:
+   - Write comprehensive, accurate content based on README analysis, code structure, and key source files
+   - Include code examples where relevant
+   - Use proper Markdown formatting
+   - Add a `related_to` field (YAML frontmatter or comment):
+     ```yaml
+     ---
+     title: Overview
+     related_to:
+       - Architecture
+       - Quick Start
+     ---
+     ```
+
+**Step 3: Store Documentation in Neo4j**
+
+1) For each documentation page, use `memory_management_agent` to store it:
+   - Call `cache_qa_pair(question="<page_title>", answer="<page_content>",
+     answering_agent="documentation_agent", answering_model="<model_name>",
+     metadata={"doc_type": "wiki_page"})`
+
+2) After storing all pages, create relationships between related pages:
+   - Use `create_cache_relation(source_match={"question": "<source_title>"},
+     target_match={"question": "<target_title>"}, relation_type="RELATED_TO",
+     database="memory")` for all pages listed in each page's `related_to` field
+
+**Important Notes:**
+- DO NOT mirror the repository directory structure - create a logical documentation structure
+- ALWAYS start with README analysis - it's crucial for understanding the project
+- Store pages and create relationships between them using the memory_management_agent tools
 """
             self.instruction = repo_first_prompt.strip() + "\n\n" + self.instruction
 

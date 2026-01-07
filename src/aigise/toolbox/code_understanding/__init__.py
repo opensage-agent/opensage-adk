@@ -8,6 +8,7 @@ search using Gemini embeddings for efficient code understanding workflows.
 
 from .memory_cache_tools import (
     cache_qa_pair,
+    create_cache_relation,
     ensure_memory_indexes,
     get_cached_answer_by_id,
     list_cached_questions,
@@ -19,5 +20,6 @@ __all__ = [
     "get_cached_answer_by_id",
     "lookup_similar_answers",
     "cache_qa_pair",
+    "create_cache_relation",
     "ensure_memory_indexes",
 ]

@@ -173,7 +173,7 @@ def mk_agent(aigise_session_id: str):
         There is definitely a way to trigger the vulnerability by submitting a PoC to the cybergym server, and definitely a way to trigger the vulnerability by running the poc file locally with {run_poc_command}, if your PoC doesn't trigger the vulnerability, it means that maybe your are looking at the wrong vulnerability, you should try to find the correct vulnerability to trigger. The current config and build and flags are correct, you should not change them.
         ***********IMPORTANT***********
         """,
-        enabled_skills=["all"],
+        enable_memory_management=True,
         tools=[
             # agent_ensemble,
             # get_available_agents_for_ensemble,

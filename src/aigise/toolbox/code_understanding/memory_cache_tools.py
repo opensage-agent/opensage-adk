@@ -6,6 +6,8 @@ question-answer pairs from a dedicated Neo4j "memory" database. Supports
 both exact match and vector similarity search using Gemini embeddings.
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import logging
@@ -202,9 +204,9 @@ async def get_cached_answer_by_id(
 async def lookup_similar_answers(
     question: str,
     *,
-    tool_context: ToolContext,
     top_k: int = 3,
     similarity_threshold: float = 0.7,
+    tool_context: ToolContext,
 ) -> Dict[str, Any]:
     """
     Look up similar cached answers using vector similarity search.
@@ -309,9 +311,9 @@ async def cache_qa_pair(
     answering_agent: str,
     answering_model: str,
     *,
-    tool_context: ToolContext,
     metadata: Optional[Dict[str, Any]] = None,
     store_embedding: bool = True,
+    tool_context: ToolContext,
 ) -> Dict[str, Any]:
     """
     Cache a question-answer pair in Neo4j for future retrieval.
@@ -442,6 +444,134 @@ async def cache_qa_pair(
         return response
 
     return {"success": False, "error": "No result returned from cache operation"}
+
+
+@safe_tool_execution
+async def create_cache_relation(
+    source_match: Dict[str, Any],
+    target_match: Dict[str, Any],
+    relation_type: str,
+    *,
+    source_node_type: str = "QACache",
+    target_node_type: str = "QACache",
+    relation_properties: Optional[Dict[str, Any]] = None,
+    database: str = "memory",
+    tool_context: ToolContext,
+) -> Dict[str, Any]:
+    """Create a relationship between two nodes in Neo4j.
+
+    This is a generic tool that can create any relationship type between any node
+    types. Use this to connect documentation pages, Q&A pairs, or any other nodes.
+
+    Args:
+        source_match: Dictionary of property-value pairs to match the source node.
+                     Example: {"question": "Overview"} or {"qa_id": "123"}
+        target_match: Dictionary of property-value pairs to match the target node.
+                     Example: {"question": "Architecture"} or {"qa_id": "456"}
+        relation_type: Type of relationship to create (e.g., "RELATED_TO",
+                      "DEPENDS_ON", "REFERENCES")
+        source_node_type: Label/type of the source node. Default is "QACache".
+        target_node_type: Label/type of the target node. Default is "QACache".
+        relation_properties: Optional dictionary of properties to set on the
+                           relationship. Example: {"created_at": "2024-01-01",
+                           "weight": 0.8}
+        database: Neo4j database type ("memory", "history", "analysis", etc.).
+                 Default is "memory".
+
+    Returns:
+        Dictionary with:
+        - success: True if relationship was created successfully
+        - relation_type: The relationship type that was created
+        - source: Information about the source node
+        - target: Information about the target node
+        - message: Success or error message
+    """
+    client = await get_neo4j_client_from_context(tool_context, database)
+    timestamp = datetime.now().isoformat()
+
+    # Build WHERE clause for source node matching
+    source_where_parts = [f"source.{k} = ${f'source_{k}'}" for k in source_match.keys()]
+    source_where = " AND ".join(source_where_parts)
+
+    # Build WHERE clause for target node matching
+    target_where_parts = [f"target.{k} = ${f'target_{k}'}" for k in target_match.keys()]
+    target_where = " AND ".join(target_where_parts)
+
+    # Build SET clause for relationship properties
+    relation_set_parts = []
+    params = {}
+
+    # Add source match parameters
+    for k, v in source_match.items():
+        params[f"source_{k}"] = v
+
+    # Add target match parameters
+    for k, v in target_match.items():
+        params[f"target_{k}"] = v
+
+    # Add relationship properties (including default timestamp)
+    if relation_properties:
+        for k, v in relation_properties.items():
+            relation_set_parts.append(f"r.{k} = ${f'rel_{k}'}")
+            params[f"rel_{k}"] = v
+
+    relation_set_parts.append("r.created_at = $timestamp")
+    params["timestamp"] = timestamp
+
+    relation_set = ", ".join(relation_set_parts) if relation_set_parts else ""
+
+    # Build Cypher query
+    query = f"""
+    MATCH (source:{source_node_type})
+    WHERE {source_where}
+    MATCH (target:{target_node_type})
+    WHERE {target_where}
+    MERGE (source)-[r:{relation_type}]->(target)
+    {f"SET {relation_set}" if relation_set else ""}
+    RETURN source.question as source_question,
+           source.qa_id as source_qa_id,
+           target.question as target_question,
+           target.qa_id as target_qa_id,
+           type(r) as relation_type
+    LIMIT 1
+    """
+
+    try:
+        result = await client.run_query(query, params)
+
+        if result and len(result) > 0:
+            row = result[0]
+            logger.info(
+                f"Created {relation_type} relationship: "
+                f"{row['source_question']} -> {row['target_question']}"
+            )
+            return {
+                "success": True,
+                "relation_type": relation_type,
+                "source": {
+                    "question": row.get("source_question"),
+                    "qa_id": row.get("source_qa_id"),
+                },
+                "target": {
+                    "question": row.get("target_question"),
+                    "qa_id": row.get("target_qa_id"),
+                },
+                "message": f"Successfully created {relation_type} relationship",
+            }
+        else:
+            return {
+                "success": False,
+                "error": (
+                    "No matching nodes found. Check that source_match and "
+                    "target_match correctly identify existing nodes."
+                ),
+            }
+    except Exception as e:
+        logger.error(f"Failed to create relationship: {e}")
+        return {
+            "success": False,
+            "error": f"Failed to create relationship: {str(e)}",
+        }
 
 
 async def ensure_memory_indexes(tool_context: ToolContext) -> bool:

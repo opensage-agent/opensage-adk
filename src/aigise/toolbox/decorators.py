@@ -85,6 +85,13 @@ def safe_tool_execution(func: F) -> F:
     Returns:
         dict with "error" key containing failure message and backtrace
     """
+    from types import FunctionType
+
+    # Preserve original function's __globals__ for type hint resolution.
+    # When ADK calls typing.get_type_hints() on the wrapper, it uses the wrapper's
+    # __globals__ to resolve type annotations. By using the original function's
+    # __globals__, we ensure all types (like ToolContext, Dict, etc.) are accessible.
+    original_globals = func.__globals__
 
     @wraps(func)
     async def async_wrapper(*args, **kwargs):
@@ -107,6 +114,56 @@ def safe_tool_execution(func: F) -> F:
             )
             error_msg = f"Failed: {type(e).__name__}: {str(e)}\n\nBacktrace:\n{traceback.format_exc()}"
             return {"error": error_msg, "success": False}
+
+    # Recreate wrapper functions with a merged globals dict:
+    # - Start from the decorators module globals (so logger/traceback/etc exist at runtime)
+    # - Add missing names from the original function globals (so type hints like
+    #   ToolContext can be resolved by typing.get_type_hints()).
+    async_globals = dict(async_wrapper.__globals__)
+    for key, value in original_globals.items():
+        async_globals.setdefault(key, value)
+    sync_globals = dict(sync_wrapper.__globals__)
+    for key, value in original_globals.items():
+        sync_globals.setdefault(key, value)
+
+    async_wrapper = FunctionType(
+        async_wrapper.__code__,
+        async_globals,
+        async_wrapper.__name__,
+        async_wrapper.__defaults__,
+        async_wrapper.__closure__,
+    )
+    sync_wrapper = FunctionType(
+        sync_wrapper.__code__,
+        sync_globals,
+        sync_wrapper.__name__,
+        sync_wrapper.__defaults__,
+        sync_wrapper.__closure__,
+    )
+
+    # Preserve metadata from @wraps
+    for attr in (
+        "__module__",
+        "__name__",
+        "__qualname__",
+        "__doc__",
+        "__annotations__",
+    ):
+        if hasattr(func, attr):
+            setattr(async_wrapper, attr, getattr(func, attr))
+            setattr(sync_wrapper, attr, getattr(func, attr))
+
+    # Preserve signature behavior for ADK tool schema generation.
+    async_wrapper.__wrapped__ = func
+    sync_wrapper.__wrapped__ = func
+    try:
+        import inspect
+
+        sig = inspect.signature(func)
+        async_wrapper.__signature__ = sig
+        sync_wrapper.__signature__ = sig
+    except (TypeError, ValueError):
+        pass
 
     # Return appropriate wrapper based on function type
     if asyncio.iscoroutinefunction(func):

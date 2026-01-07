@@ -2,7 +2,7 @@
 # Template variables: ${VAR_NAME} will be expanded from top-level variables or environment
 
 # Top-level template variables (UPPERCASE)
-DEFAULT_IMAGE = "ubuntu:20.04"
+DEFAULT_IMAGE = "n132/arvo:10400-vul"
 NEO4J_PASSWORD = "callgraphn4j!"
 MAIN_MODEL = "openai/o4-mini"
 TASK_NAME = "my_analysis_task"

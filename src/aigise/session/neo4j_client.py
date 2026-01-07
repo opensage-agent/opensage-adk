@@ -1,10 +1,175 @@
 import asyncio
 import logging
 from contextlib import contextmanager
+from typing import Any
 
 from neo4j import AsyncGraphDatabase, GraphDatabase
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_str_fallback(value: Any, type_name: str = "") -> str:
+    """Safely convert a value to string with fallback.
+
+    Args:
+        value: The value to convert.
+        type_name: Optional type name for error messages.
+
+    Returns:
+        String representation of the value, or a safe placeholder if conversion fails.
+    """
+    try:
+        return str(value)
+    except Exception as e:
+        logger.warning(
+            f"Failed to convert {type_name or type(value).__name__} to string: {e}"
+        )
+        return f"<non-serializable: {type(value).__name__}>"
+
+
+def _convert_neo4j_types_to_native(value: Any) -> Any:
+    """Recursively convert Neo4j special types to Python native types.
+
+    This function handles all Neo4j types that are not directly JSON serializable.
+    It uses a generic approach with multiple fallback layers:
+    1. Try specific conversion methods (to_native(), dict conversion, etc.)
+    2. Fallback to str() representation
+    3. Final fallback to safe placeholder string
+
+    Args:
+        value: The value to convert (can be dict, list, or any Neo4j type).
+
+    Returns:
+        Converted value with Neo4j types replaced by Python native types.
+        Always returns a JSON-serializable type.
+    """
+    # Handle dict recursively
+    if isinstance(value, dict):
+        try:
+            return {k: _convert_neo4j_types_to_native(v) for k, v in value.items()}
+        except Exception as e:
+            logger.warning(f"Failed to convert dict recursively: {e}")
+            return _safe_str_fallback(value, "dict")
+
+    # Handle list recursively
+    if isinstance(value, list):
+        try:
+            return [_convert_neo4j_types_to_native(item) for item in value]
+        except Exception as e:
+            logger.warning(f"Failed to convert list recursively: {e}")
+            return _safe_str_fallback(value, "list")
+
+    # Handle Neo4j special types by checking module name
+    # This is more generic than checking specific type names
+    try:
+        module_name = type(value).__module__
+    except Exception:
+        # If we can't even get the module name, return safe placeholder
+        return _safe_str_fallback(value)
+
+    # Handle all neo4j.time types (DateTime, Date, Time, LocalDateTime, etc.)
+    if module_name == "neo4j.time":
+        # Most temporal types have to_native() method
+        if hasattr(value, "to_native"):
+            try:
+                return value.to_native()
+            except Exception as e:
+                logger.debug(f"to_native() failed for {type(value).__name__}: {e}")
+                # Fallback to string if to_native() fails
+                return _safe_str_fallback(value, type(value).__name__)
+        else:
+            # Duration and other types without to_native()
+            return _safe_str_fallback(value, type(value).__name__)
+
+    # Handle neo4j.spatial types (Point, CartesianPoint, WGS84Point, etc.)
+    if module_name.startswith("neo4j.spatial") or module_name.startswith(
+        "neo4j._spatial"
+    ):
+        # Convert Point-like objects to dict with coordinates
+        try:
+            if hasattr(value, "x") and hasattr(value, "y"):
+                result = {"x": value.x, "y": value.y}
+                if hasattr(value, "z") and value.z is not None:
+                    result["z"] = value.z
+                if hasattr(value, "srid"):
+                    result["srid"] = value.srid
+                return result
+        except Exception as e:
+            logger.debug(f"Failed to convert spatial type to dict: {e}")
+        # Fallback to string representation
+        return _safe_str_fallback(value, type(value).__name__)
+
+    # Handle neo4j.graph types (Node, Relationship, Path)
+    if module_name.startswith("neo4j.graph") or module_name.startswith("neo4j._graph"):
+        # Convert graph objects to dict representation
+        try:
+            if hasattr(value, "id"):
+                result = {"id": value.id}
+                if hasattr(value, "labels"):
+                    try:
+                        result["labels"] = list(value.labels) if value.labels else []
+                    except Exception:
+                        result["labels"] = []
+                if hasattr(value, "properties"):
+                    try:
+                        result["properties"] = _convert_neo4j_types_to_native(
+                            dict(value.properties)
+                        )
+                    except Exception:
+                        result["properties"] = {}
+                if hasattr(value, "type"):
+                    result["type"] = value.type
+                if hasattr(value, "start_node"):
+                    try:
+                        result["start_node"] = _convert_neo4j_types_to_native(
+                            value.start_node
+                        )
+                    except Exception:
+                        result["start_node"] = _safe_str_fallback(value.start_node)
+                if hasattr(value, "end_node"):
+                    try:
+                        result["end_node"] = _convert_neo4j_types_to_native(
+                            value.end_node
+                        )
+                    except Exception:
+                        result["end_node"] = _safe_str_fallback(value.end_node)
+                if hasattr(value, "nodes"):
+                    try:
+                        result["nodes"] = [
+                            _convert_neo4j_types_to_native(n) for n in value.nodes
+                        ]
+                    except Exception:
+                        result["nodes"] = []
+                if hasattr(value, "relationships"):
+                    try:
+                        result["relationships"] = [
+                            _convert_neo4j_types_to_native(r)
+                            for r in value.relationships
+                        ]
+                    except Exception:
+                        result["relationships"] = []
+                return result
+        except Exception as e:
+            logger.debug(f"Failed to convert graph type to dict: {e}")
+        # Fallback to string representation
+        return _safe_str_fallback(value, type(value).__name__)
+
+    # Handle any other neo4j.* types that might exist
+    if module_name.startswith("neo4j."):
+        # Try to_native() first for any neo4j type
+        if hasattr(value, "to_native"):
+            try:
+                return value.to_native()
+            except Exception as e:
+                logger.debug(f"to_native() failed for {type(value).__name__}: {e}")
+        # Fallback to string representation
+        return _safe_str_fallback(value, type(value).__name__)
+
+    # Return unchanged if not a Neo4j special type
+    # Python native types (int, str, float, bool, None) are already JSON serializable
+    # If there are other non-serializable types, they will be caught during actual
+    # JSON serialization and can be handled at that level
+    return value
 
 
 class AsyncNeo4jClient:
@@ -140,7 +305,9 @@ class AsyncNeo4jClient:
     async def run_query(self, query, parameters=None, **kwargs):
         async with self.driver.session(database=self.database) as session:
             result = await session.run(query, parameters, **kwargs)
-            return await result.data()
+            data = await result.data()
+            # Convert Neo4j special types to Python native types for JSON serialization
+            return _convert_neo4j_types_to_native(data)
 
     @contextmanager
     async def session(self, database=None):

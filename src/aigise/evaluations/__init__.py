@@ -173,7 +173,7 @@ class Evaluation(abc.ABC):
     cache_dir: str = ""
     max_llm_calls: int = 100
     max_workers: int = 6
-    run_until_explicit_finish: bool = True
+    run_until_explicit_finish: bool = False
     use_config_model: bool = (
         False  # If True, use the model specified in the config file
     )

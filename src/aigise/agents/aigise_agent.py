@@ -256,6 +256,28 @@ class ToolLoader:
             ]
         )
 
+        if "neo4j" in required_sandboxes:
+            idx = lines.index("### Python Environment")
+            lines[idx:idx] = [
+                "### Neo4j (Databases & Schemas)",
+                "",
+                "The `neo4j` sandbox provides Neo4j as structured storage.",
+                "",
+                "Database organization (selected by `client_type`):",
+                "- **history**: Agent execution history (e.g. `AgentRun`, `Event`, `RawToolResponse`; relationships like `HAS_EVENT`, `SUMMARIZES_TOOL_RESPONSE`)",
+                "- **analysis**: Static analysis / code graph data (Joern/CodeQL-related)",
+                "- **memory**: Long-term memory (e.g. Q&A cache `QACache`, documentation graph `DocNode`)",
+                "",
+                "Documentation graph (in **memory** DB):",
+                "- Each file/folder under `/docs` is stored as a **`DocNode`** keyed by full repo path (e.g. `/docs/wiki/Getting-Started.md`)",
+                "- Parent/child structure uses **`(parent)-[:CONTAINS]->(child)`** edges",
+                "",
+                "Querying:",
+                "- Prefer using the `memory_management_agent` tool. It exposes helpers like `search_doc_nodes`, `get_doc_node`, `update_doc_node`, and `run_neo4j_query`.",
+                "- `run_neo4j_query` can target different DBs via `client_type` (default: `memory`).",
+                "",
+            ]
+
         return "\n".join(lines)
 
 
@@ -268,6 +290,7 @@ class AigiseAgent(LlmAgent):
         tools: Optional[List] = None,
         tool_combos: Optional[List[ToolCombo]] = None,
         enabled_skills: Optional[Union[List[str], str]] = None,
+        enable_memory_management: bool = False,
         **kwargs,
     ):
         tools = list(tools) if tools else []
@@ -279,6 +302,17 @@ class AigiseAgent(LlmAgent):
             else:
                 if combo.agent_tool not in tools:
                     tools.append(combo.agent_tool)
+
+        if enable_memory_management:
+            # Lazy import to avoid circular dependencies at module import time.
+            from aigise.util_agents.memory_management_agent.agent import (
+                create_memory_management_agent_tool,
+            )
+
+            model = kwargs.get("model", "")
+            memory_management_tool = create_memory_management_agent_tool(model=model)
+            if memory_management_tool not in tools:
+                tools.append(memory_management_tool)
 
         kwargs["sub_agents"] = sub_agents
         kwargs["tools"] = tools
@@ -294,6 +328,33 @@ class AigiseAgent(LlmAgent):
         tool_prompt, required_sandboxes = ToolLoader.generate_system_prompt_part(
             metadata
         )
+
+        if enable_memory_management:
+            # Put this at the very front so it is followed even when the
+            # instruction grows via dynamically injected tool descriptions.
+            repo_first_prompt = """
+Before doing anything else, you must first build a lightweight repository
+overview and persist the documentation structure into Neo4j.
+
+1) Repository overview (write files, do not just describe it):
+   - Create a mirror directory tree under `/shared/repo_overview/` that matches
+     the repository hierarchy.
+   - For each folder, create a Markdown file inside the mirrored folder with the
+     same name as the folder: `<folder>/<folder>.md`.
+   - For each file:
+     - If the file is named `aaa`, the overview file name should be `aaa.md`.
+     - If the file is named `aaa.py`, the overview file name should be
+       `aaa.py.md`.
+   - For every folder/file overview entry, write **no more than 3 sentences**
+     describing what it does.
+
+2) Documentation graph ingestion (Neo4j):
+   - Use the `memory_management_agent` tool to ingest the `/docs` directory into
+     Neo4j.
+   - Model each folder/file as a node, and connect parent -> child using a
+     `CONTAINS` relationship.
+"""
+            self.instruction = repo_first_prompt.strip() + "\n\n" + self.instruction
 
         if tool_prompt:
             # Preamble describing the skill structure

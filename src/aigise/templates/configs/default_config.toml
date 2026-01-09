@@ -103,17 +103,6 @@ JAVA_OPTS = "-Xmx16G -Xms4G"
 [sandbox.sandboxes.joern.extra]
 initializer_timeout_sec = 1800
 
-# Coverage sandbox configuration (Python 3.12 + neo4j + msgspec).
-[sandbox.sandboxes.coverage]
-image = "${TASK_NAME}_coverage"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/coverage/Dockerfile"
-command = "tail -f /dev/null"
-timeout = 300
-[sandbox.sandboxes.coverage.build_args]
-BASE_IMAGE = "${DEFAULT_IMAGE}"
-[sandbox.sandboxes.coverage.extra]
-initializer_timeout_sec = 1800
-
 # Neo4j sandbox configuration
 [sandbox.sandboxes.neo4j]
 image = "neo4j:5.26.12-enterprise"

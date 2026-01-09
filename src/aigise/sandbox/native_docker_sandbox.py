@@ -25,6 +25,7 @@ from aigise.session.sandbox_state import SandboxState
 logger = logging.getLogger(__name__)
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.sandbox.utils import can_pull_image, image_exists_locally
+from aigise.utils.bash_tools_staging import build_bash_tools_staging_dir
 from aigise.utils.parser import get_function_info
 from aigise.utils.project_info import PROJECT_PATH
 
@@ -956,7 +957,10 @@ class NativeDockerSandbox(BaseSandbox):
 
     @classmethod
     def create_shared_volume(
-        cls, volume_name_prefix: str, init_data_path: Path = None
+        cls,
+        volume_name_prefix: str,
+        init_data_path: Path = None,
+        tools_top_roots: set[str] | None = None,
     ) -> tuple[str, str, str]:
         """Create and initialize three shared volumes.
 
@@ -968,6 +972,8 @@ class NativeDockerSandbox(BaseSandbox):
         Args:
             volume_name_prefix: Prefix for volume names (e.g., session_id)
             init_data_path: Path to initial data to copy into the rw volume (optional)
+            tools_top_roots: Optional set of top-level bash_tools roots to stage.
+                If None, stage all bash tools (built-in + plugins).
 
         Returns:
             Tuple of (scripts_volume_id, data_volume_id, tools_volume_id)
@@ -996,15 +1002,18 @@ class NativeDockerSandbox(BaseSandbox):
                 f"Created shared data volume: {data_volume_id} from {init_data_path}"
             )
 
-            # 3. Create and populate tools volume
+            # 3. Create and populate tools volume (built-in + plugin tools staged on host)
             tools_volume_name = f"{volume_name_prefix}_bash_tools"
-            tools_path = Path(PROJECT_PATH) / "src" / "aigise" / "bash_tools"
-            tools_volume_id = cls._create_and_populate_volume(
-                tools_volume_name, tools_path
-            )
-            logger.info(
-                f"Created bash tools volume: {tools_volume_id} from {tools_path}"
-            )
+            with build_bash_tools_staging_dir(roots_to_copy=tools_top_roots) as staging:
+                tools_volume_id = cls._create_and_populate_volume(
+                    tools_volume_name, staging
+                )
+                logger.info(
+                    "Created bash tools volume: %s from staging dir %s (roots=%s)",
+                    tools_volume_id,
+                    staging,
+                    "ALL" if tools_top_roots is None else sorted(tools_top_roots),
+                )
 
             # 4. Set permissions to 777 on data volume to ensure write access
             chmod_result = subprocess.run(

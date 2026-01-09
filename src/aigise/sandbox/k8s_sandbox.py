@@ -21,6 +21,7 @@ import yaml
 
 from aigise.config import ContainerConfig
 from aigise.session.sandbox_state import SandboxState
+from aigise.utils.bash_tools_staging import build_bash_tools_staging_dir
 from aigise.utils.parser import get_function_info
 
 from .base_sandbox import BaseSandbox
@@ -968,7 +969,10 @@ class K8sSandbox(BaseSandbox):
 
     @classmethod
     def create_shared_volume(
-        cls, volume_name_prefix: str, init_data_path: Path = None
+        cls,
+        volume_name_prefix: str,
+        init_data_path: Path = None,
+        tools_top_roots: set[str] | None = None,
     ) -> tuple[str, str, str]:
         """Create and initialize three shared PVCs.
 
@@ -980,6 +984,8 @@ class K8sSandbox(BaseSandbox):
         Args:
             volume_name_prefix: Prefix for PVC names (e.g., session_id)
             init_data_path: Path to initial data to copy into the rw PVC (optional)
+            tools_top_roots: Optional set of top-level bash_tools roots to stage.
+                If None, stage all bash tools (built-in + plugins).
 
         Returns:
             Tuple of (scripts_pvc_name, data_pvc_name, tools_pvc_name)
@@ -1039,17 +1045,22 @@ class K8sSandbox(BaseSandbox):
             )
             logger.info(f"Created shared data PVC: {data_pvc_id} from {init_data_path}")
 
-            # 3. Create and populate tools PVC
-            tools_path = Path(PROJECT_PATH) / "src" / "aigise" / "bash_tools"
-            tools_pvc_id = cls._create_and_populate_pvc(
-                tools_pvc_name,
-                namespace,
-                context,
-                kubeconfig,
-                tools_path,
-                tolerations=tolerations,
-            )
-            logger.info(f"Created bash tools PVC: {tools_pvc_id} from {tools_path}")
+            # 3. Create and populate tools PVC (built-in + plugin tools staged on host)
+            with build_bash_tools_staging_dir(roots_to_copy=tools_top_roots) as staging:
+                tools_pvc_id = cls._create_and_populate_pvc(
+                    tools_pvc_name,
+                    namespace,
+                    context,
+                    kubeconfig,
+                    staging,
+                    tolerations=tolerations,
+                )
+                logger.info(
+                    "Created bash tools PVC: %s from staging dir %s (roots=%s)",
+                    tools_pvc_id,
+                    staging,
+                    "ALL" if tools_top_roots is None else sorted(tools_top_roots),
+                )
 
             # 3. Set permissions to 777 on data PVC to ensure write access
             import json

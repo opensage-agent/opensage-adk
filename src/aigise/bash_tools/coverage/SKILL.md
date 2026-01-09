@@ -25,4 +25,4 @@ These tools are designed to work with the coverage sandbox type, which provides 
 
 ## Requires Sandbox
 
-coverage
+coverage, neo4j

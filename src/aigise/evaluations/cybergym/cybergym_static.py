@@ -33,7 +33,7 @@ class CyberGym(Evaluation):
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
-    max_llm_calls: int = 150
+    max_llm_calls: int = 400
     config_template_path: str = str(
         SRC_PATH / "evaluations/configs/cybergym_static_config.toml"
     )
@@ -45,6 +45,7 @@ class CyberGym(Evaluation):
     )
     server_url_host: str = "http://172.16.0.1:8666"
     run_until_explicit_finish: bool = True
+    use_cache: bool = True
 
     def __post_init__(self):
         """Validate required fields after initialization."""
@@ -75,7 +76,7 @@ class CyberGym(Evaluation):
                 Path(__file__).parent / "metadata" / "task_list_subset", "r"
             ) as f:
                 task_list = f.read().splitlines()
-            task_list = task_list[:50]
+            task_list = task_list[:1]
             dataset = dataset.filter(lambda x: x["task_id"] in task_list)
             logger.warning(
                 f"Filtered dataset to {len(dataset)} tasks from task_list_subset"

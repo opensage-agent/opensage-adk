@@ -134,7 +134,7 @@ Ensure your fuzzer script saves crash information using these naming conventions
 
 ## Requires Sandbox
 
-main, fuzz
+main
 
 ## Timeout
 

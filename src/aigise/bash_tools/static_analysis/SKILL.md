@@ -33,4 +33,4 @@ These tools work with joern and main sandbox types, depending on the specific to
 
 ## Requires Sandbox
 
-joern, main
+joern, main, neo4j, codeql

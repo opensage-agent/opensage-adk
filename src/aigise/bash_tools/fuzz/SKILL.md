@@ -28,4 +28,4 @@ These tools work with fuzz and main sandbox types, depending on the specific too
 
 ## Requires Sandbox
 
-fuzz, main
+fuzz

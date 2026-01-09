@@ -53,11 +53,8 @@ from aigise.toolbox.static_analysis.cpg import (
 
 
 def mk_agent(aigise_session_id: str):
-    enable_neo4j_logging()
     model = LiteLlm(
-        # model="litellm_proxy/vertex_ai/claude-sonnet-4-5@20250929",
         model="litellm_proxy/openai/gpt-5",
-        # model="litellm_proxy/vertex_ai/claude-sonnet-4",
         api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
         base_url="https://litellm-991596698159.us-west1.run.app/",
         # Auto-inject cache_control for system messages and last 2 messages
@@ -80,7 +77,13 @@ def mk_agent(aigise_session_id: str):
         You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
         If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
         """,
-        tools=[gdb_toolset, bash_tool_main, complain],
+        tools=[
+            gdb_toolset,
+            complain,
+            list_background_tasks,
+            get_background_task_output,
+            run_terminal_command,
+        ],
     )
     debugger_agent_tool = AgentTool(agent=debugger_agent)
 
@@ -100,12 +103,12 @@ def mk_agent(aigise_session_id: str):
         If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
         """,
         tools=[
-            bash_tool_main,
             complain,
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
         ],
+        enabled_skills=["fuzz"],
     )
     fuzzing_agent_tool = AgentTool(agent=fuzzing_agent)
 
@@ -118,12 +121,12 @@ def mk_agent(aigise_session_id: str):
         You should use the coverage tool to measure the coverage of the vulnerable program.
         """,
         tools=[
-            # run_coverage,
-            # show_coverage,
-            # find_testcases_covering_function,
-            bash_tool_main,
+            list_background_tasks,
+            get_background_task_output,
+            run_terminal_command,
             complain,
         ],
+        enabled_skills=["coverage"],
     )
     coverage_agent_tool = AgentTool(agent=coverage_agent)
     # Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan, do not execute the bash_tool unless it is absolutely necessary, it's the lowest priority tool.
@@ -173,7 +176,6 @@ def mk_agent(aigise_session_id: str):
         There is definitely a way to trigger the vulnerability by submitting a PoC to the cybergym server, and definitely a way to trigger the vulnerability by running the poc file locally with {run_poc_command}, if your PoC doesn't trigger the vulnerability, it means that maybe your are looking at the wrong vulnerability, you should try to find the correct vulnerability to trigger. The current config and build and flags are correct, you should not change them.
         ***********IMPORTANT***********
         """,
-        enable_memory_management=True,
         tools=[
             # agent_ensemble,
             # get_available_agents_for_ensemble,
@@ -197,11 +199,15 @@ def mk_agent(aigise_session_id: str):
             get_idea_from_other_models,
             # think,
             complain,
+            # Super Terminal Tools
             list_background_tasks,
             get_background_task_output,
-            # Super Terminal Tools
             run_terminal_command,
+            debugger_agent_tool,
+            fuzzing_agent_tool,
+            coverage_agent_tool,
         ],
+        enabled_skills="all",
     )
 
     return root_agent

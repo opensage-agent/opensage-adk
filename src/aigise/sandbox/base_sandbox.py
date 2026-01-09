@@ -69,7 +69,10 @@ class BaseSandbox(ABC):
     @classmethod
     @abstractmethod
     def create_shared_volume(
-        cls, volume_name_prefix: str, init_data_path: Path = None
+        cls,
+        volume_name_prefix: str,
+        init_data_path: Path = None,
+        tools_top_roots: set[str] | None = None,
     ) -> tuple[str, str, str]:
         """Create and initialize three shared volumes.
 
@@ -81,6 +84,8 @@ class BaseSandbox(ABC):
         Args:
             volume_name_prefix: Prefix for volume names (e.g., session_id)
             init_data_path: Path to initial data to copy into the rw volume (optional)
+            tools_top_roots: Optional set of top-level bash_tools roots to stage.
+                If None, stage all bash tools.
 
         Returns:
             Tuple of (scripts_volume_id, data_volume_id, tools_volume_id)

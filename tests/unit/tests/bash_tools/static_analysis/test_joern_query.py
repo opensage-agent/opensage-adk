@@ -46,7 +46,7 @@ async def test_joern_query_basic(aigise_session: AigiseSession):
     result = run_terminal_command(
         command=f'python3 /bash_tools/static_analysis/joern-query/scripts/joern_query.py "{query}"',
         tool_context=mock_context,
-        sandbox_name="main",
+        sandbox_name="joern",
     )
 
     # Debug: print actual result
@@ -85,7 +85,7 @@ async def test_joern_query_complex(aigise_session: AigiseSession):
     result = run_terminal_command(
         command=f'python3 /bash_tools/static_analysis/joern-query/scripts/joern_query.py "{query}"',
         tool_context=mock_context,
-        sandbox_name="main",
+        sandbox_name="joern",
     )
 
     # Debug: print actual result

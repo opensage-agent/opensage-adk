@@ -248,7 +248,6 @@ def _parse_skill_md_config(content: str) -> Dict[str, Any]:
 
     Extracts:
     - Parameters: Parse parameter definitions from ## Parameters section
-    - Sandbox Types: Parse from ## Sandbox Types section
     - Timeout: Parse from ## Timeout section
     - Returns JSON: Determine if returns JSON from ## Return Value section
 
@@ -266,15 +265,6 @@ def _parse_skill_md_config(content: str) -> Dict[str, Any]:
         "timeout": 60,
         "returns_json": False,
     }
-
-    # Parse Sandbox Types
-    sandbox_match = re.search(
-        r"## Sandbox Types\s*\n\s*.*?(?:use in|designed for)\s+\*\*(\w+)\*\*",
-        content,
-        re.IGNORECASE,
-    )
-    if sandbox_match:
-        config["sandbox_types"] = [sandbox_match.group(1).lower()]
 
     # Parse Timeout
     timeout_match = re.search(
@@ -384,9 +374,9 @@ def _load_bash_tools_from_skills(
     - SKILL.md: Contains YAML frontmatter (name, description) and markdown documentation
     - scripts/: Contains actual bash scripts
 
-    Configuration information is parsed from SKILL.md markdown content:
+    Configuration information is parsed from SKILL.md:
+    - YAML frontmatter: should_run_in_sandbox (preferred) / sandbox (fallback)
     - Parameters: From ## Parameters section
-    - Sandbox Types: From ## Sandbox Types section
     - Timeout: From ## Timeout section
     - Returns JSON: From ## Return Value section
 
@@ -459,11 +449,16 @@ def _load_bash_tools_from_skills(
 
         frontmatter_text = frontmatter_match.group(1)
 
-        # Simple YAML parsing (extract name, description, and returns_json)
+        # Simple YAML parsing (extract name, description, returns_json, and sandbox)
         name_match = re.search(r"^name:\s*(.+)$", frontmatter_text, re.MULTILINE)
         desc_match = re.search(r"^description:\s*(.+)$", frontmatter_text, re.MULTILINE)
         returns_json_match = re.search(
             r"^returns_json:\s*(.+)$", frontmatter_text, re.MULTILINE
+        )
+        sandbox_frontmatter_match = re.search(
+            r"^(?:should_run_in_sandbox|sandbox):\s*(.+)$",
+            frontmatter_text,
+            re.MULTILINE,
         )
 
         if not name_match or not desc_match:
@@ -491,8 +486,19 @@ def _load_bash_tools_from_skills(
         rel_skill_dir = skill_dir.relative_to(BASH_TOOLS_DIR)
         script_path = f"{rel_skill_dir}/scripts/{script_file.name}"
 
-        # Parse configuration from SKILL.md content
+        # Parse configuration from SKILL.md content (parameters/timeout/returns_json).
         config = _parse_skill_md_config(content)
+
+        # Derive sandbox types from YAML frontmatter (do NOT parse from markdown headings).
+        if sandbox_frontmatter_match:
+            sandbox_value = sandbox_frontmatter_match.group(1).strip()
+            # Strip simple surrounding quotes.
+            if (sandbox_value.startswith('"') and sandbox_value.endswith('"')) or (
+                sandbox_value.startswith("'") and sandbox_value.endswith("'")
+            ):
+                sandbox_value = sandbox_value[1:-1].strip()
+            if sandbox_value:
+                config["sandbox_types"] = [sandbox_value.lower()]
 
         # Prefer explicit returns_json from frontmatter, fallback to parsed config
         returns_json = (
@@ -549,6 +555,8 @@ def list_available_scripts(
     for meta in tools_metadata:
         output.append(f"\nName: {meta.name}")
         output.append(f"Description: {meta.description}")
+        should_run_in_sandbox = meta.sandbox_types[0] if meta.sandbox_types else "main"
+        output.append(f"should_run_in_sandbox: {should_run_in_sandbox}")
 
         # Generate usage string
         usage_parts = [meta.name]

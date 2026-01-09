@@ -281,7 +281,7 @@ def _collect_dynamic_skill_dependencies(
         filter_skills = None  # Unknown type, collect all
 
     search_paths = [
-        SRC_PATH / "aigise/bash_tools",
+        SRC_PATH / "bash_tools",
         Path.home() / ".local/plugins/aigise/tools",
     ]
 

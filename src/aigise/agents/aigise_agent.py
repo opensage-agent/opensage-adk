@@ -292,7 +292,7 @@ class ToolLoader:
                 "",
                 "### Python Environment",
                 "",
-                "**Python is managed by `uv`**: the sandbox image creates a project-local virtual environment under `/app` using `uv`.",
+                "**Python is managed by `uv`**: the sandbox image creates a project-local virtual environment under `/app` using `uv` for the main sandbox",
                 "",
                 "Key points:",
                 "- A venv is created at **`/app/.venv`** via `RUN uv venv --python 3.12`",

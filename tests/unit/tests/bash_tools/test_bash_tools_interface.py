@@ -377,6 +377,7 @@ class TestListAvailableScripts:
 
         assert isinstance(result, str)
         assert "Available Bash Scripts" in result
+        assert "should_run_in_sandbox:" in result
 
     def test_list_available_scripts_no_tools(self):
         """Test list_available_scripts when no tools are found."""

@@ -149,8 +149,15 @@ class AigiseSandboxManager:
         """
         self._sandbox_states[sandbox_type] = state
 
-    def initialize_shared_volumes(self) -> None:
-        """Initialize shared volume if configured in global sandbox config."""
+    def initialize_shared_volumes(
+        self, *, tools_top_roots: set[str] | None = None
+    ) -> None:
+        """Initialize shared volumes (scripts/shared-data/tools).
+
+        Args:
+            tools_top_roots: Optional set of top-level bash_tools roots to stage
+                into the tools volume/PVC. If None, stage all tools.
+        """
         try:
             config = self.config
 
@@ -184,6 +191,7 @@ class AigiseSandboxManager:
                     backend_class.create_shared_volume(
                         self.aigise_session_id,
                         shared_data_path,
+                        tools_top_roots,
                     )
                 )
 

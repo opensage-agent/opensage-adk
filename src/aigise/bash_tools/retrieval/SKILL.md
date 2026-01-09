@@ -28,4 +28,4 @@ These tools are designed to work with the main sandbox type and provide fast cod
 
 ## Requires Sandbox
 
-main
+main, codeql, joern, neo4j

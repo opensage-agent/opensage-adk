@@ -80,6 +80,17 @@ image = "${DEFAULT_IMAGE}"
 [sandbox.sandboxes.codeql.extra]
 initializer_timeout_sec = 1800
 
+# Coverage sandbox configuration
+[sandbox.sandboxes.coverage]
+image = "${DEFAULT_IMAGE}_coverage"
+project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/coverage/Dockerfile"
+command = "tail -f /dev/null"
+timeout = 300
+[sandbox.sandboxes.coverage.build_args]
+BASE_IMAGE = "${DEFAULT_IMAGE}"
+[sandbox.sandboxes.coverage.extra]
+initializer_timeout_sec = 1800
+
 # Joern sandbox
 [sandbox.sandboxes.joern]
 image = "aigise/joern"

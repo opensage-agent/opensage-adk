@@ -32,6 +32,7 @@ from aigise.features.aigise_in_memory_session_service import (
 from aigise.plugins import load_plugins
 from aigise.session import get_aigise_session
 from aigise.toolbox.decorators import collect_sandbox_dependencies
+from aigise.utils.bash_tools_staging import compute_bash_tools_top_roots
 
 logger = logging.getLogger(__name__)
 
@@ -92,10 +93,12 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
     )
 
     # 1.5) Collect sandbox dependencies from the specified agent, and prune config
+    tools_top_roots = None
     try:
         mk_agent = _load_mk_agent_from_dir(agent_dir)
         dummy_agent = mk_agent(aigise_session_id=session_id)
         sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
+        tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
         if (
             aigise_session.config.sandbox
             and aigise_session.config.sandbox.sandboxes
@@ -117,7 +120,7 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
         logger.warning("Sandbox dependency pruning skipped due to error: %s", e)
 
     # 2) Initialize shared volumes
-    aigise_session.sandboxes.initialize_shared_volumes()
+    aigise_session.sandboxes.initialize_shared_volumes(tools_top_roots=tools_top_roots)
 
     # 3) Launch sandboxes (create containers)
     await aigise_session.sandboxes.launch_all_sandboxes()

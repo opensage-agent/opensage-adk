@@ -25,25 +25,31 @@ from aigise.toolbox.general.agent_tools import (
     note_suspicious_things,
 )
 from aigise.toolbox.general.bash_tool import bash_tool_main
+
+# from aigise.toolbox.retrieval.search_tools import (
+#     get_line_around_linenum_in_file,
+#     grep_tool,
+#     list_functions_in_file,
+#     search_symbol_definition,
+# )
+# from aigise.toolbox.static_analysis.cpg import (
+#     get_call_paths_to_function,
+#     get_callee,
+#     get_caller,
+#     joern_query,
+#     joern_slice,
+#     neo4j_query,
+#     search_function,
+# )
+from aigise.toolbox.general.bash_tools_interface import (
+    get_background_task_output,
+    list_background_tasks,
+    run_terminal_command,
+)
 from aigise.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
     list_active_agents,
-)
-from aigise.toolbox.retrieval.search_tools import (
-    get_line_around_linenum_in_file,
-    grep_tool,
-    list_functions_in_file,
-    search_symbol_definition,
-)
-from aigise.toolbox.static_analysis.cpg import (
-    get_call_paths_to_function,
-    get_callee,
-    get_caller,
-    joern_query,
-    joern_slice,
-    neo4j_query,
-    search_function,
 )
 
 
@@ -120,8 +126,6 @@ def mk_agent(aigise_session_id: str):
         If you are completly stuck, it probably means that you are exploring a wrong vulnerable function, you should try create a subagent with no history to solve the task, as your history might be misleading.
         ***********IMPORTANT***********
         You should use at least one dynamic agent and one ensemble tool in your reasoning process
-        Call get_idea_from_other_models after You submitted a PoC that didn't trigger the vulnerability, this is important, do not skip this step.
-        Call get_idea_from_other_models after You submitted a PoC that didn't trigger the vulnerability, this is important, do not skip this step.
         You need to state what tools do you have in the first message.
         You should not see the git commit history.
         You should not give up if you didn't trigger a crash or a sanitizer error.
@@ -133,25 +137,17 @@ def mk_agent(aigise_session_id: str):
             agent_ensemble_pairwise,
             get_available_agents_for_ensemble,
             get_available_models,
-            search_symbol_definition,
-            search_function,
-            # get_caller,
-            # get_callee,
-            # neo4j_query,
-            # joern_slice,
-            joern_query,
-            # get_call_paths_to_function,
-            list_functions_in_file,
-            get_line_around_linenum_in_file,
             finish_task,
             generate_poc_and_submit,
-            bash_tool_main,
             create_subagent,
             list_active_agents,
             call_subagent_as_tool,
             get_idea_from_other_models,
-            # simplified_python_fuzzer,
-            # note_suspicious_things,
+            # Super Terminal Tools
+            list_background_tasks,
+            get_background_task_output,
+            run_terminal_command,
         ],
+        enabled_skills=["new_tool_creator", "retrieval", "static_analysis", "neo4j"],
     )
     return root_agent

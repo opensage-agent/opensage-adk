@@ -11,7 +11,9 @@ RUN mkdir -p /app
 # Install Python 3.12 using uv
 ENV PATH="/root/.local/bin:$PATH"
 
-# Create a local venv (like gdb_mcp) and install deps into it.
+# Create a local venv and install deps into it.
 RUN uv venv --python 3.12 /app/.venv
 ENV PATH="/app/.venv/bin:/root/.local/bin:$PATH"
-RUN uv pip install --python /app/.venv/bin/python neo4j
+
+# Required by standalone bash tools uploader scripts.
+RUN uv pip install --python /app/.venv/bin/python neo4j msgspec

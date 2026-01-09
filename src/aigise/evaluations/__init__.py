@@ -40,6 +40,7 @@ from aigise.plugins import load_plugins
 from aigise.session import get_aigise_session
 from aigise.session.aigise_session import AigiseSession
 from aigise.toolbox.decorators import collect_sandbox_dependencies
+from aigise.utils.bash_tools_staging import compute_bash_tools_top_roots
 from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
 
 logger = logging.getLogger(__name__)
@@ -168,7 +169,7 @@ class Evaluation(abc.ABC):
     agent_dir: str  # directory containing agent.py with mk_agent function
     dataset_hf_split: str = "train"
     output_dir: str | None = None
-    use_cache: bool = True  # Only load/cache sandboxes if True
+    use_cache: bool = False  # Only load/cache sandboxes if True
     input_data_path: str = ""
     cache_dir: str = ""
     max_llm_calls: int = 100
@@ -187,6 +188,7 @@ class Evaluation(abc.ABC):
     )
     llm_retry_timeout: int = 30  # Timeout in seconds for each LLM request
     log_level: str = "INFO"  # Terminal log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+    neo4j_logging: bool = False  # Whether to enable Neo4j logging for this run
 
     def __init_subclass__(cls, **kwargs):
         """Auto-register Evaluation subclasses."""
@@ -1098,19 +1100,27 @@ class Evaluation(abc.ABC):
         """
         aigise_session = task.aigise_session
 
-        # 1. Enable Neo4j logging
+        # 1. Configure Neo4j logging
         from aigise.features.agent_history_tracker import (
+            disable_neo4j_logging,
             enable_neo4j_logging,
             is_neo4j_logging_enabled,
         )
 
-        if not is_neo4j_logging_enabled():
-            enable_neo4j_logging()
+        if self.neo4j_logging:
+            if not is_neo4j_logging_enabled():
+                enable_neo4j_logging()
+                logger.warning("Neo4j logging enabled (neo4j_logging=True).")
+        else:
+            if is_neo4j_logging_enabled():
+                disable_neo4j_logging()
+                logger.warning("Neo4j logging disabled (neo4j_logging=False).")
 
         dummy_agent = self._mk_agent_original(aigise_session_id=task.session_id)
 
         # Collect sandbox dependencies from agent
         sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
+        tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
 
         # Remove sandbox configs that are not in dependencies
         if aigise_session.config.sandbox and aigise_session.config.sandbox.sandboxes:
@@ -1134,7 +1144,9 @@ class Evaluation(abc.ABC):
             )
 
         # 4. Initialize shared volumes
-        aigise_session.sandboxes.initialize_shared_volumes()
+        aigise_session.sandboxes.initialize_shared_volumes(
+            tools_top_roots=tools_top_roots
+        )
 
         # 5. Launch all sandboxes (create containers only, not initialized yet)
         await aigise_session.sandboxes.launch_all_sandboxes()

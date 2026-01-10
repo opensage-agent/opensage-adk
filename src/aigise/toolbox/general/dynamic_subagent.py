@@ -166,7 +166,8 @@ async def create_subagent(
             "model": model_name,
             "tools_assigned": tools_list,
             "enabled_skills": enabled_skills,
-            "instruction": instruction,
+            # Return the effective instruction used by the created subagent.
+            "instruction": config["instruction"],
             "description": config["description"],
             "message": f"Successfully created agent '{agent_name}' with model '{model_name}' and tools: {', '.join(tools_list)}",
         }

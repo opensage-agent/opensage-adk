@@ -17,8 +17,11 @@ project_relative_shared_data_path = "tests/unit/data/arvo_51603_vul_code.tar.gz"
 
 # Main sandbox configuration only
 [sandbox.sandboxes.main]
-image = "${DEFAULT_IMAGE}"
+image = "${TASK_NAME}_main"
+project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/main/Dockerfile"
 timeout = 300
+[sandbox.sandboxes.main.build_args]
+BASE_IMAGE = "${DEFAULT_IMAGE}"
 [sandbox.sandboxes.main.extra]
 initializer_timeout_sec = 1800
 

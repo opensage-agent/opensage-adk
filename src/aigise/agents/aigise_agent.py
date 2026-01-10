@@ -245,11 +245,14 @@ class ToolLoader:
         return prompt_text, required_sandboxes
 
     @staticmethod
-    def generate_sandbox_structure_description(required_sandboxes: Set[str]) -> str:
+    def generate_sandbox_structure_description(
+        required_sandboxes: Set[str], *, enable_memory_management: bool = False
+    ) -> str:
         """Generate description of sandbox structure for required sandboxes.
 
         Args:
             required_sandboxes: Set of sandbox type names that are actually required
+            enable_memory_management: Whether long-term memory tools are enabled.
 
         Returns:
             Description text about sandbox structure and mount points
@@ -316,7 +319,7 @@ class ToolLoader:
 
         if "neo4j" in required_sandboxes:
             idx = lines.index("### Python Environment")
-            lines[idx:idx] = [
+            neo4j_lines = [
                 "### Neo4j (Databases & Schemas)",
                 "",
                 "The `neo4j` sandbox provides Neo4j as structured storage.",
@@ -325,12 +328,19 @@ class ToolLoader:
                 "- **history**: Agent execution history (e.g. `AgentRun`, `Event`, `RawToolResponse`; relationships like `HAS_EVENT`, `SUMMARIZES_TOOL_RESPONSE`)",
                 "- **analysis**: Static analysis / code graph data (Joern/CodeQL-related)",
                 "- **memory**: Long-term memory (e.g. Q&A cache `QACache`)",
-                "",
-                "Querying:",
-                "- Prefer using the `memory_management_agent` tool. It exposes helpers like `cache_qa_pair`, `get_cached_answer_by_id`, `create_cache_relation`, `list_node_types`, `list_relations`, and `run_neo4j_query`.",
-                "- `run_neo4j_query` can target different DBs via `client_type` (default: `memory`).",
+                "- Note: Some databases may not be available depending on sandbox configuration.",
                 "",
             ]
+            if enable_memory_management:
+                neo4j_lines.extend(
+                    [
+                        "Query long-term memory:",
+                        "- Prefer using the `memory_management_agent` tool. It exposes helpers like `cache_qa_pair`, `get_cached_answer_by_id`, `create_cache_relation`, `list_node_types`, `list_relations`, and `run_neo4j_query`.",
+                        "- `run_neo4j_query` can target different DBs via `client_type` (default: `memory`).",
+                        "",
+                    ]
+                )
+            lines[idx:idx] = neo4j_lines
 
         return "\n".join(lines)
 
@@ -373,6 +383,7 @@ class AigiseAgent(LlmAgent):
 
         # Initialize the parent class first
         super().__init__(*args, **kwargs)
+        self._enable_memory_management = enable_memory_management
         # Store enabled_skills for dependency collection
         self._enabled_skills = enabled_skills
         loader = ToolLoader(
@@ -467,7 +478,8 @@ and structure. Use this as the foundation for your documentation.
 
             # Generate sandbox structure description based on required sandboxes
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
-                required_sandboxes
+                required_sandboxes,
+                enable_memory_management=self._enable_memory_management,
             )
 
             # logger.info(
@@ -522,7 +534,8 @@ and structure. Use this as the foundation for your documentation.
 
             # Generate sandbox structure description based on required sandboxes
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
-                required_sandboxes
+                required_sandboxes,
+                enable_memory_management=self._enable_memory_management,
             )
 
             # Append new tool prompt to instruction

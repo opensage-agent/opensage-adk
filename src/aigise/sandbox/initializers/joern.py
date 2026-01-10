@@ -86,7 +86,6 @@ class JoernInitializer(SandboxInitializer):
 
         if err != 0:
             raise RuntimeError(f"Joern code copy failed: {msg}")
-
         msg, err = self.run_command_in_container(
             [
                 "bash",
@@ -95,6 +94,7 @@ class JoernInitializer(SandboxInitializer):
             ],
             timeout=1200,
         )
+
         if err != 0:
             raise RuntimeError(f"Joern run failed: {msg}")
 

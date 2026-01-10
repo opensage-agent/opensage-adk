@@ -89,12 +89,6 @@ async def _wrapped_base_agent_run(self, invocation_context):
             store_session_state,
         )
 
-        if hasattr(self, "aigise_before_agent_callback") and callable(
-            getattr(self, "aigise_before_agent_callback")
-        ):
-            callback_context = CallbackContext(invocation_context)
-            await self.aigise_before_agent_callback(callback_context)
-
         await record_agent_start(self, invocation_context)
 
     session_id = invocation_context.session.id
@@ -307,6 +301,7 @@ def apply() -> None:
                 fallback_last_event = ev
             if fallback_last_event:
                 last_event = fallback_last_event
+            # if child agent tool raises an error, we consider it has used all the remaining llm calls
             session.state["_adk"]["llm_calls_used"] = remaining_for_this_child
 
         return last_event, session

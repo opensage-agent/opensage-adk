@@ -3,6 +3,8 @@
 **/codeql/
 **/logs/
 
+**tmp**/
+
 .run
 .DS_Store
 *codeqldb*

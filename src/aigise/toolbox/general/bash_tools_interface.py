@@ -627,11 +627,11 @@ def run_terminal_command(
     it will automatically be executed in the correct sandbox environment (e.g., 'fuzz').
     Otherwise, it runs in the specified sandbox (default: 'main').
 
-    The command you pass in is run by `bash -c` inside the sandbox container (via
-    a wrapper script in `BashTaskManager.start_bg_task()`), so `command` should
-    be written as a normal one-line bash command and may include `&&`, `|`, `>`,
-    etc. Avoid unescaped single quotes (`'`) in `command` (they can break the
-    wrapper's outer quoting); prefer double quotes or escape single quotes.
+    The command you pass in is executed inside the sandbox container as a
+    non-interactive process (not a persistent shell session). For background
+    execution, the command is written to a temporary script file and then run by
+    `bash`, which avoids most wrapper quoting/escaping pitfalls and supports
+    multi-line commands. Shell operators like `&&`, `|`, and `>` work as usual.
 
     Args:
         command: The full command line to execute (e.g., "run_fuzzing_campaign target 30 | grep found")

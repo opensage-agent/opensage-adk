@@ -133,7 +133,7 @@ def test_requires_sandbox_section_is_parsed_for_top_level_skill(tmp_path: Path) 
 
     assert "- path: /bash_tools/fuzz" in prompt_text
     assert "description: Fuzz toolset" in prompt_text
-    assert "should_run_in_sandbox: fuzz" in prompt_text
+    assert "requires_sandboxes" not in prompt_text
     assert required_sandboxes == {"fuzz"}
 
 

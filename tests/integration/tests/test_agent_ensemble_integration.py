@@ -203,7 +203,7 @@ class TestAgentEnsembleIntegration:
         )
 
         # Test with the required input
-        test_input = "calculate 2+9+11, using at least two models"
+        test_input = "calculate 2+9+11, using at least two model, use agent ensemble"
         expected_result = 22
 
         print(f"\n=== Testing Agent Ensemble Calculation ===")

@@ -33,7 +33,7 @@ class CyberGym(Evaluation):
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
-    max_llm_calls: int = 400
+    max_llm_calls: int = 200
     config_template_path: str = str(
         SRC_PATH / "evaluations/configs/cybergym_static_config.toml"
     )

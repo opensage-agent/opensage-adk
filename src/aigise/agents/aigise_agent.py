@@ -417,10 +417,6 @@ class ToolLoader:
                 lines.append(f"  description: {description}")
                 if should_run_in_sandbox:
                     lines.append(f"  should_run_in_sandbox: {should_run_in_sandbox}")
-                if isinstance(requires_sandboxes, list) and requires_sandboxes:
-                    lines.append(
-                        "  requires_sandboxes: %s" % ", ".join(requires_sandboxes)
-                    )
                 lines.append("")
 
         prompt_text = "\n".join(lines)

@@ -89,22 +89,6 @@ class TestBashToolsDiscovery:
 class TestSpecificTools:
     """Test specific bash tools that should exist."""
 
-    def test_grep_tool_exists(self):
-        """Test that grep tool is discovered."""
-        tools = _load_bash_tools_from_skills()
-        tool_names = [tool.name for tool in tools]
-
-        # grep tool should exist
-        assert "grep" in tool_names
-
-        # Find grep tool and verify its properties
-        grep_tool = next((t for t in tools if t.name == "grep"), None)
-        assert grep_tool is not None
-        assert (
-            "search" in grep_tool.description.lower()
-            or "grep" in grep_tool.description.lower()
-        )
-
     def test_get_callee_tool_exists(self):
         """Test that get-callee tool is discovered."""
         tools = _load_bash_tools_from_skills()

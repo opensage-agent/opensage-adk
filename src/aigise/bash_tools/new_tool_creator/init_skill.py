@@ -3,7 +3,7 @@
 Skill Initializer - Creates a new skill from template
 
 Usage:
-    init_skill.py <skill-name> --path <path>
+    init_skill.py <skill-name> --path <path> --should_run_in_sandbox <sandbox> --returns_json <true|false> [--requires_sandboxes "a,b,c"|"none"]
 
 This script is restricted to only create tools under bash_tools/new_tools/.
 The path must be within the bash_tools/new_tools/ directory structure.
@@ -13,6 +13,7 @@ Examples:
     init_skill.py my-api-helper --path /path/to/bash_tools/new_tools/retrieval
 """
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -28,6 +29,8 @@ BASH_TOOLS_DIR = (
 SKILL_TEMPLATE = """---
 name: {skill_name}
 description: [TODO: Complete and informative explanation of what the tool does and when to use it. Include WHEN to use this tool - specific scenarios, file types, or tasks that trigger it.]
+should_run_in_sandbox: {should_run_in_sandbox}
+returns_json: {returns_json}
 ---
 
 # {skill_title}
@@ -83,7 +86,10 @@ Returns a JSON object:
 
 ## Requires Sandbox
 
-[TODO: Specify required sandbox type(s), e.g., "main" or "main, fuzz"]
+[Optional dependency environments. List extra sandboxes that must be available for
+this tool to work (NOT the execution sandbox). If none, write "none".]
+
+{requires_sandboxes}
 
 ## Timeout
 
@@ -171,7 +177,9 @@ def title_case_skill_name(skill_name):
     return " ".join(word.capitalize() for word in skill_name.split("-"))
 
 
-def init_skill(skill_name, path):
+def init_skill(
+    skill_name, path, *, should_run_in_sandbox, returns_json, requires_sandboxes
+):
     """
     Initialize a new skill directory with template SKILL.md.
 
@@ -216,7 +224,12 @@ def init_skill(skill_name, path):
     # Convert hyphen-case to snake_case for script name
     script_name = skill_name.replace("-", "_")
     skill_content = SKILL_TEMPLATE.format(
-        skill_name=skill_name, skill_title=skill_title, script_name=script_name
+        skill_name=skill_name,
+        skill_title=skill_title,
+        script_name=script_name,
+        should_run_in_sandbox=should_run_in_sandbox,
+        returns_json=returns_json,
+        requires_sandboxes=requires_sandboxes,
     )
 
     skill_md_path = skill_dir / "SKILL.md"
@@ -253,30 +266,53 @@ def init_skill(skill_name, path):
 
 
 def main():
-    if len(sys.argv) < 4 or sys.argv[2] != "--path":
-        print("Usage: init_skill.py <skill-name> --path <path>")
-        print("\nSkill name requirements:")
-        print("  - Hyphen-case identifier (e.g., 'data-analyzer')")
-        print("  - Lowercase letters, digits, and hyphens only")
-        print("  - Max 40 characters")
-        print("  - Must match directory name exactly")
-        print("\nPath restrictions:")
-        print("  - Path must be within bash_tools/new_tools/")
-        print("  - Example: /path/to/bash_tools/new_tools/general")
-        print("\nExamples:")
-        bash_tools_example = BASH_TOOLS_DIR / "new_tools"
-        print(f"  init_skill.py my-new-skill --path {bash_tools_example}/general")
-        print(f"  init_skill.py my-api-helper --path {bash_tools_example}/retrieval")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Initialize a new bash_tools Skill under bash_tools/new_tools/."
+    )
+    parser.add_argument("skill_name", help="Hyphen-case skill name (directory name).")
+    parser.add_argument(
+        "--path",
+        required=True,
+        help="Target parent directory under bash_tools/new_tools/ (e.g. .../new_tools/general).",
+    )
+    parser.add_argument(
+        "--should_run_in_sandbox",
+        required=True,
+        help="Execution sandbox for this Skill (where scripts run).",
+    )
+    parser.add_argument(
+        "--returns_json",
+        required=True,
+        choices=["true", "false"],
+        help="Whether the tool returns JSON (true|false).",
+    )
+    parser.add_argument(
+        "--requires_sandboxes",
+        default="none",
+        help=(
+            "Dependency sandboxes required to be available (comma-separated), "
+            "or 'none'. This is NOT the execution sandbox."
+        ),
+    )
 
-    skill_name = sys.argv[1]
-    path = sys.argv[3]
+    args = parser.parse_args()
+    skill_name = args.skill_name
+    path = args.path
+    should_run_in_sandbox = args.should_run_in_sandbox
+    returns_json = args.returns_json
+    requires_sandboxes = args.requires_sandboxes
 
     print(f"🚀 Initializing skill: {skill_name}")
     print(f"   Location: {path}")
     print()
 
-    result = init_skill(skill_name, path)
+    result = init_skill(
+        skill_name,
+        path,
+        should_run_in_sandbox=should_run_in_sandbox,
+        returns_json=returns_json,
+        requires_sandboxes=requires_sandboxes,
+    )
 
     if result:
         sys.exit(0)

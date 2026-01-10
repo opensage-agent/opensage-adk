@@ -14,19 +14,16 @@ source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "cxxfilt" },
-    { name = "cybergym", extra = ["dev", "server"] },
     { name = "dacite" },
     { name = "datasets" },
     { name = "docker" },
     { name = "fire" },
     { name = "google-adk" },
     { name = "jsonpickle" },
-    { name = "langfuse" },
     { name = "litellm" },
     { name = "msgspec" },
     { name = "neomodel" },
     { name = "networkx" },
-    { name = "openinference-instrumentation-google-adk" },
     { name = "pandas" },
     { name = "pip" },
     { name = "python-dotenv" },
@@ -36,6 +33,28 @@ dependencies = [
     { name = "tree-sitter-languages" },
     { name = "uvicorn" },
     { name = "websockets" },
+]
+
+[package.optional-dependencies]
+cybergym = [
+    { name = "cybergym", extra = ["dev", "server"] },
+]
+full = [
+    { name = "cybergym", extra = ["dev", "server"] },
+    { name = "langfuse" },
+    { name = "openinference-instrumentation-google-adk" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp-proto-grpc" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
+]
+langfuse = [
+    { name = "langfuse" },
+    { name = "openinference-instrumentation-google-adk" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp-proto-grpc" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
 ]
 
 [package.dev-dependencies]
@@ -55,21 +74,26 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aigise", extras = ["langfuse", "cybergym"], marker = "extra == 'full'" },
     { name = "click", specifier = ">=8.1.8,<9.0.0" },
     { name = "cxxfilt", specifier = ">=0.3.0" },
-    { name = "cybergym", extras = ["dev", "server"], git = "https://github.com/sunblaze-ucb/cybergym" },
+    { name = "cybergym", extras = ["dev", "server"], marker = "extra == 'cybergym'", git = "https://github.com/sunblaze-ucb/cybergym" },
     { name = "dacite", specifier = ">=1.8.0" },
     { name = "datasets", specifier = ">=2.0.0" },
     { name = "docker", specifier = "==7.1.0" },
     { name = "fire", specifier = ">=0.6.0" },
-    { name = "google-adk", specifier = ">=1.18.0" },
+    { name = "google-adk", specifier = "<=1.21.0" },
     { name = "jsonpickle", specifier = ">=3.0.0" },
-    { name = "langfuse" },
+    { name = "langfuse", marker = "extra == 'langfuse'", specifier = "==3.11.1" },
     { name = "litellm", specifier = ">=1.74.7" },
     { name = "msgspec", specifier = ">=0.19.0" },
     { name = "neomodel", specifier = "==5.4.3" },
     { name = "networkx", specifier = ">=3.4.2" },
-    { name = "openinference-instrumentation-google-adk" },
+    { name = "openinference-instrumentation-google-adk", marker = "extra == 'langfuse'", specifier = "==0.1.8" },
+    { name = "opentelemetry-api", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
+    { name = "opentelemetry-exporter-otlp-proto-grpc", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
+    { name = "opentelemetry-exporter-otlp-proto-http", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
+    { name = "opentelemetry-sdk", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
     { name = "pandas", specifier = "==2.2.3" },
     { name = "pip" },
     { name = "python-dotenv", specifier = "==1.1.0" },
@@ -80,6 +104,7 @@ requires-dist = [
     { name = "uvicorn", specifier = ">=0.34.0,<1.0.0" },
     { name = "websockets", specifier = ">=15.0.1" },
 ]
+provides-extras = ["langfuse", "cybergym", "full"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -1982,7 +2007,7 @@ wheels = [
 
 [[package]]
 name = "langfuse"
-version = "3.10.1"
+version = "3.11.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "backoff" },
@@ -1996,9 +2021,9 @@ dependencies = [
     { name = "requests" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0f/82/030029b3490a90d25dff46e0e29230eb07c55a32ea6876a2397d7d0184b0/langfuse-3.10.1.tar.gz", hash = "sha256:11152b77f1869c55b42c3be8fba779cd9102bef171a597ea4baeca8a8000d11f", size = 222084, upload-time = "2025-11-19T17:50:00.755Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/70/a4/f7c5919a1e7c26904dd0caa52dc90b75e616d94bece157429169ffce264a/langfuse-3.11.1.tar.gz", hash = "sha256:52bdb5bae2bb7c2add22777a0f88a1a5c96f90ec994935b773992153e57e94f8", size = 230854, upload-time = "2025-12-19T14:31:11.372Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0d/83/254c8d38bd46e9c49cc2814da0ece5cb361315e6728578112ffae9bffbe8/langfuse-3.10.1-py3-none-any.whl", hash = "sha256:78582905874e17f923a3fa6eba9d1a15e1547139bbd5c11d498ce90670e1fdae", size = 391696, upload-time = "2025-11-19T17:49:59.069Z" },
+    { url = "https://files.pythonhosted.org/packages/3a/ff/256e5814227373179e6c70c05ecead72b19dcda3cd2e0004bd643f64c70e/langfuse-3.11.1-py3-none-any.whl", hash = "sha256:f489c97fb2231b14e75383100158cdd6a158b87c1e9c9f96b2cdcbc015c48319", size = 413776, upload-time = "2025-12-19T14:31:10.166Z" },
 ]
 
 [[package]]
@@ -2589,7 +2614,7 @@ wheels = [
 
 [[package]]
 name = "openinference-instrumentation-google-adk"
-version = "0.1.6"
+version = "0.1.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "openinference-instrumentation" },
@@ -2600,9 +2625,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ac/57/67726039822ed94e27932b1d7298cb255a4a271af66cef5cedff9b54d2ee/openinference_instrumentation_google_adk-0.1.6.tar.gz", hash = "sha256:9c19669c0b830156bdcfe912e616b14500e32f3869f05979059737243ee4d364", size = 11849, upload-time = "2025-10-10T03:49:13.916Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5d/bd/3958ddd56b4da78006a0deb264d2bc3a437149ff80e9c9ed44c32c58d732/openinference_instrumentation_google_adk-0.1.8.tar.gz", hash = "sha256:b522b296aa8491ed83e9af7bde5f227e455604330398c878cbc4e2ae2943b2ae", size = 11933, upload-time = "2025-12-12T00:59:58.763Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/7c/ad27e45075049ddd034ba96dabeb7a488f743824ed7c4c9f47512e263085/openinference_instrumentation_google_adk-0.1.6-py3-none-any.whl", hash = "sha256:a18ae167260411a005b4a3981de6f6f6c049c6bc09f02ff6a5964fbfe77d0801", size = 13654, upload-time = "2025-10-10T03:48:51.706Z" },
+    { url = "https://files.pythonhosted.org/packages/60/80/0a17f68779a493a2afbc625d7a45c356b2a269a7f7fb5f7124c34bf3b256/openinference_instrumentation_google_adk-0.1.8-py3-none-any.whl", hash = "sha256:4155b814e104b369cb942ff3f8c67def0846072ef9603851fb610e825620bf5f", size = 13736, upload-time = "2025-12-12T00:59:57.549Z" },
 ]
 
 [[package]]
@@ -2682,6 +2707,24 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/dc/6c/10018cbcc1e6fff23aac67d7fd977c3d692dbe5f9ef9bb4db5c1268726cc/opentelemetry_exporter_otlp_proto_common-1.37.0.tar.gz", hash = "sha256:c87a1bdd9f41fdc408d9cc9367bb53f8d2602829659f2b90be9f9d79d0bfe62c", size = 20430, upload-time = "2025-09-11T10:29:03.605Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/08/13/b4ef09837409a777f3c0af2a5b4ba9b7af34872bc43609dda0c209e4060d/opentelemetry_exporter_otlp_proto_common-1.37.0-py3-none-any.whl", hash = "sha256:53038428449c559b0c564b8d718df3314da387109c4d36bd1b94c9a641b0292e", size = 18359, upload-time = "2025-09-11T10:28:44.939Z" },
+]
+
+[[package]]
+name = "opentelemetry-exporter-otlp-proto-grpc"
+version = "1.37.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "googleapis-common-protos" },
+    { name = "grpcio" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp-proto-common" },
+    { name = "opentelemetry-proto" },
+    { name = "opentelemetry-sdk" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d1/11/4ad0979d0bb13ae5a845214e97c8d42da43980034c30d6f72d8e0ebe580e/opentelemetry_exporter_otlp_proto_grpc-1.37.0.tar.gz", hash = "sha256:f55bcb9fc848ce05ad3dd954058bc7b126624d22c4d9e958da24d8537763bec5", size = 24465, upload-time = "2025-09-11T10:29:04.172Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/39/17/46630b74751031a658706bef23ac99cdc2953cd3b2d28ec90590a0766b3e/opentelemetry_exporter_otlp_proto_grpc-1.37.0-py3-none-any.whl", hash = "sha256:aee5104835bf7993b7ddaaf380b6467472abaedb1f1dbfcc54a52a7d781a3890", size = 19305, upload-time = "2025-09-11T10:28:45.776Z" },
 ]
 
 [[package]]

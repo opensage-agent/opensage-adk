@@ -1041,6 +1041,33 @@ class NativeDockerSandbox(BaseSandbox):
                     f"Failed to set permissions on volume {data_volume_id}: {chmod_result.stderr}"
                 )
 
+            # 5. Set permissions to 777 on tools volume to ensure all bash tools are
+            # executable/writeable across sandboxes.
+            chmod_result = subprocess.run(
+                [
+                    "docker",
+                    "run",
+                    "--rm",
+                    "-v",
+                    f"{tools_volume_id}:/target",
+                    "alpine",
+                    "sh",
+                    "-c",
+                    "chmod -R 777 /target",
+                ],
+                capture_output=True,
+                text=True,
+            )
+
+            if chmod_result.returncode == 0:
+                logger.info(
+                    f"Set permissions 777 on bash tools volume: {tools_volume_id}"
+                )
+            else:
+                logger.warning(
+                    f"Failed to set permissions on volume {tools_volume_id}: {chmod_result.stderr}"
+                )
+
             return (scripts_volume_id, data_volume_id, tools_volume_id)
 
         except Exception as e:

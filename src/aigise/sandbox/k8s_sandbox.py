@@ -1157,6 +1157,96 @@ class K8sSandbox(BaseSandbox):
                     f"Failed to set permissions on PVC {data_pvc_id}: {chmod_error}"
                 )
 
+            # 4. Set permissions to 777 on tools PVC to ensure all bash tools are
+            # executable/writeable across sandboxes.
+            chmod_tools_pod_name = cls._sanitize_name(f"chmod-{tools_pvc_name}")
+            chmod_tools_pod_spec = {
+                "apiVersion": "v1",
+                "kind": "Pod",
+                "metadata": {
+                    "name": chmod_tools_pod_name,
+                    "namespace": namespace,
+                },
+                "spec": {
+                    "restartPolicy": "Never",
+                    "containers": [
+                        {
+                            "name": "chmod-container",
+                            "image": "alpine:latest",
+                            "command": [
+                                "sh",
+                                "-c",
+                                "chmod -R 777 /target && echo 'Permissions set successfully'",
+                            ],
+                            "volumeMounts": [
+                                {
+                                    "name": "target-volume",
+                                    "mountPath": "/target",
+                                }
+                            ],
+                        }
+                    ],
+                    "volumes": [
+                        {
+                            "name": "target-volume",
+                            "persistentVolumeClaim": {
+                                "claimName": tools_pvc_id,
+                            },
+                        }
+                    ],
+                },
+            }
+            if tolerations:
+                chmod_tools_pod_spec["spec"]["tolerations"] = tolerations
+
+            try:
+                cls._run_kubectl_class(
+                    ["apply", "-f", "-"],
+                    input_data=json.dumps(chmod_tools_pod_spec),
+                    namespace=namespace,
+                    context=context,
+                    kubeconfig=kubeconfig,
+                )
+                logger.info(f"Created chmod pod: {chmod_tools_pod_name}")
+
+                for _ in range(30):
+                    result = cls._run_kubectl_class(
+                        [
+                            "get",
+                            "pod",
+                            chmod_tools_pod_name,
+                            "-o",
+                            "jsonpath={.status.phase}",
+                        ],
+                        namespace=namespace,
+                        context=context,
+                        kubeconfig=kubeconfig,
+                        check=False,
+                    )
+                    if result.stdout.strip() == "Succeeded":
+                        logger.info(
+                            f"Set permissions 777 on bash tools PVC: {tools_pvc_id}"
+                        )
+                        break
+                    elif result.stdout.strip() == "Failed":
+                        logger.warning(
+                            f"Failed to set permissions on PVC {tools_pvc_id}"
+                        )
+                        break
+                    time.sleep(1)
+
+                cls._run_kubectl_class(
+                    ["delete", "pod", chmod_tools_pod_name],
+                    namespace=namespace,
+                    context=context,
+                    kubeconfig=kubeconfig,
+                    check=False,
+                )
+            except Exception as chmod_error:
+                logger.warning(
+                    f"Failed to set permissions on PVC {tools_pvc_id}: {chmod_error}"
+                )
+
             return (scripts_pvc_id, data_pvc_id, tools_pvc_id)
 
         except Exception as e:

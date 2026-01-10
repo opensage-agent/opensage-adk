@@ -88,4 +88,3 @@ def add_neo4j_args(parser):
         "--neo4j-password",
         help="Neo4j Password (defaults to NEO4J_PASSWORD env var)",
     )
-    group.add_argument("--neo4j-database", help="Neo4j Database", default="neo4j")

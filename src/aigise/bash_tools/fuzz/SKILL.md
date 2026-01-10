@@ -1,6 +1,6 @@
 ---
 name: fuzz
-description: Fuzzing tools for automated bug discovery. These tools support running fuzzing campaigns with AFL++, extracting crash information, checking fuzzing statistics, and simplified Python fuzzing workflows.
+description: Fuzzing tools for automated bug discovery. These tools support running fuzzing campaigns with AFL++, extracting crash information, and simplified Python fuzzing workflows.
 ---
 
 # Fuzzing Tools
@@ -11,7 +11,6 @@ Category of tools for automated fuzzing and bug discovery using AFL++ and other 
 
 - **run-fuzzing-campaign**: Run a complete AFL++ fuzzing campaign with configurable duration, seeds, and custom mutators
 - **extract-crashes**: Extract and analyze crash information from fuzzing results
-- **check-fuzzing-stats**: Check fuzzing statistics and progress from AFL++ campaigns
 - **simplified-python-fuzzer**: Simplified Python-based fuzzing tool for quick testing
 
 ## Usage

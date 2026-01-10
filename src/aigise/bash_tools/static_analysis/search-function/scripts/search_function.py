@@ -23,6 +23,7 @@ def main():
     add_neo4j_args(parser)
 
     args = parser.parse_args()
+    args.neo4j_database = "analysis"
     function_name = args.function_name
 
     if "::" in function_name:

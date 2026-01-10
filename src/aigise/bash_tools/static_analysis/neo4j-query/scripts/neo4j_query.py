@@ -15,6 +15,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run custom Neo4j query.")
     parser.add_argument("query", help="The Cypher query string")
     parser.add_argument("--params", help="JSON dict of parameters", default="{}")
+    parser.add_argument("--neo4j-database", help="Neo4j Database")
 
     add_neo4j_args(parser)
 

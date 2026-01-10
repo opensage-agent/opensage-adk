@@ -16,7 +16,7 @@ Category of tools for advanced static code analysis using Joern and Neo4j. These
 - **get-caller**: Get callers of a specific function
 - **get-callee**: Get callees (functions called by) a specific function
 - **get-call-paths-to-function**: Find all call paths leading to a function
-- **check-connection**: Check Neo4j connection status
+
 
 ## Usage
 

@@ -12,6 +12,11 @@ class BashTaskManager:
         # Storage for tasks: task_id -> task_info
         self.tasks: Dict[str, Dict[str, Any]] = {}
 
+    @staticmethod
+    def _heredoc_delimiter(task_id: str, *, purpose: str) -> str:
+        """Return a heredoc delimiter unlikely to appear in user content."""
+        return f"__AIGISE_TASK_{task_id}_{purpose}__"
+
     def start_bg_task(
         self, sandbox, command: str, sandbox_name: str = "main"
     ) -> tuple[Optional[str], str]:
@@ -29,52 +34,66 @@ class BashTaskManager:
         exit_code_file = f"/tmp/task_{task_id}.exit"
         log_file = f"/tmp/task_{task_id}.log"
         pid_file = f"/tmp/task_{task_id}.pid"
+        cmd_file = f"/tmp/task_{task_id}.cmd.sh"
+        wrapper_file = f"/tmp/task_{task_id}.wrapper.sh"
 
-        # Create a wrapper script that:
-        # 1. Runs the command in a new session (detached from parent)
-        # 2. Saves the actual command PID to a file
-        # 3. Waits for completion and saves exit code
+        # Instead of interpolating the user's command into a quoted `bash -c '...'`
+        # string (which is very fragile for quotes/newlines), write the command to a
+        # temp script file in the container and execute that script.
+        cmd_delim = self._heredoc_delimiter(task_id, purpose="CMD")
+        wrapper_delim = self._heredoc_delimiter(task_id, purpose="WRAPPER")
+
+        cmd_script = f"""#!/bin/bash
+{command}
+"""
+
+        # Wrapper script responsibilities:
+        # 1) Detach from parent using setsid.
+        # 2) Source /shared/bashrc to load env vars.
+        # 3) Run the command script in background, capture PID, wait, record exit code.
         wrapper_script = f"""#!/bin/bash
-            # Use setsid to run command in a new session, completely detached
-            # This prevents zombie processes
-            # Source /shared/bashrc to load environment variables (e.g., NEO4J_HOST)
-            setsid bash -c '
-                if [ -f /shared/bashrc ]; then
-                    source /shared/bashrc
-                fi
-                ({command}) > {log_file} 2>&1 &
-                COMMAND_PID=$!
-                echo $COMMAND_PID > {pid_file}
-                wait $COMMAND_PID
-                echo $? > {exit_code_file}
-            ' >/dev/null 2>&1 &
+set -euo pipefail
 
-            # Wait for PID file to be written (up to 2 seconds)
-            count=0
-            while [ ! -f {pid_file} ] && [ $count -lt 20 ]; do
-                sleep 0.1
-                count=$((count+1))
-            done
+setsid bash -c '
+  if [ -f /shared/bashrc ]; then
+    source /shared/bashrc
+  fi
+  bash {cmd_file} > {log_file} 2>&1 &
+  COMMAND_PID=$!
+  echo $COMMAND_PID > {pid_file}
+  wait $COMMAND_PID
+  echo $? > {exit_code_file}
+' >/dev/null 2>&1 &
 
-            # Read and print the PID
-            if [ -f {pid_file} ]; then
-                cat {pid_file}
-            else
-                echo "ERROR: PID file not created" >&2
-                exit 1
-            fi
-            """
+# Wait for PID file to be written (up to 2 seconds)
+count=0
+while [ ! -f {pid_file} ] && [ $count -lt 20 ]; do
+  sleep 0.1
+  count=$((count+1))
+done
 
-        # Write wrapper script to temp file in container
-        script_file = f"/tmp/task_{task_id}.sh"
-        write_script_cmd = f"cat > {script_file} << 'EOFSCRIPT'\n{wrapper_script}\nEOFSCRIPT\nchmod +x {script_file}"
+# Read and print the PID
+if [ -f {pid_file} ]; then
+  cat {pid_file}
+else
+  echo "ERROR: PID file not created" >&2
+  exit 1
+fi
+"""
 
-        output, exit_code = sandbox.run_command_in_container(write_script_cmd)
+        write_files_cmd = (
+            f"cat > {cmd_file} << '{cmd_delim}'\n{cmd_script}\n{cmd_delim}\n"
+            f"chmod +x {cmd_file}\n"
+            f"cat > {wrapper_file} << '{wrapper_delim}'\n{wrapper_script}\n{wrapper_delim}\n"
+            f"chmod +x {wrapper_file}"
+        )
+
+        output, exit_code = sandbox.run_command_in_container(write_files_cmd)
         if exit_code != 0:
-            return None, f"Failed to create wrapper script: {output}"
+            return None, f"Failed to create task scripts: {output}"
 
         # Execute the wrapper script
-        output, exit_code = sandbox.run_command_in_container(f"bash {script_file}")
+        output, exit_code = sandbox.run_command_in_container(["bash", wrapper_file])
 
         logger.info(
             f"Background task scheduled using wait command with exit code: {exit_code}"
@@ -99,6 +118,8 @@ class BashTaskManager:
             "exit_code_file": exit_code_file,
             "pid_file": pid_file,
             "status": "running",
+            "cmd_file": cmd_file,
+            "wrapper_file": wrapper_file,
         }
 
         return (
@@ -229,7 +250,8 @@ class BashTaskManager:
             task.get("log_file"),
             task.get("exit_code_file"),
             task.get("pid_file"),
-            f"/tmp/task_{task_id}.sh",  # wrapper script
+            task.get("cmd_file"),
+            task.get("wrapper_file"),
         ]
 
         cleanup_success = True

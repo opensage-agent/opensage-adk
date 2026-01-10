@@ -2,26 +2,16 @@ import argparse
 import os
 import sys
 
-# Add path to find common_utils in static_analysis
-# retrieval/list-functions/scripts -> retrieval/list-functions -> retrieval -> bash_tools -> (static_analysis/common_utils)
+# Ensure retrieval/common_utils is importable:
+# retrieval/list-functions/scripts -> retrieval
 current_dir = os.path.dirname(os.path.abspath(__file__))
-bash_tools_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
-static_analysis_dir = os.path.join(bash_tools_dir, "static_analysis")
+retrieval_dir = os.path.dirname(os.path.dirname(current_dir))
 
-if static_analysis_dir not in sys.path:
-    sys.path.append(static_analysis_dir)
+if retrieval_dir not in sys.path:
+    sys.path.append(retrieval_dir)
 
-try:
-    from common_utils.neo4j_utils import Neo4jUtils, add_neo4j_args
-except ImportError:
-    try:
-        from aigise.bash_tools.static_analysis.common_utils.neo4j_utils import (
-            Neo4jUtils,
-            add_neo4j_args,
-        )
-    except ImportError:
-        print("Error: neo4j_utils not found.")
-        sys.exit(1)
+
+from common_utils.neo4j_utils import Neo4jUtils, add_neo4j_args
 
 
 def main():
@@ -31,6 +21,7 @@ def main():
     add_neo4j_args(parser)
 
     args = parser.parse_args()
+    args.neo4j_database = "analysis"
     filepath = args.file
 
     if os.path.isabs(filepath):

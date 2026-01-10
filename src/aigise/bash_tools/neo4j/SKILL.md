@@ -9,17 +9,16 @@ Category of tools for interacting with Neo4j graph databases. These tools help q
 
 ## Available Tools
 
-- **get-address**: Get Neo4j database address and connection information
+- **run-neo4j-query**: Run an arbitrary Cypher query against Neo4j and return JSON records
 
 ## Usage
 
-These tools are designed to work with main sandbox type and help manage database connections and queries for code analysis workflows.
+Use these tools to run Cypher queries against Neo4j for code analysis workflows.
 
 ## Common Use Cases
 
-- Retrieving Neo4j connection information
-- Managing database connections for code analysis
-- Supporting graph-based code queries and analysis
+- Running Cypher queries for code graph exploration and analysis
+- Inspecting nodes/edges produced by static analysis pipelines
 
 ## Requires Sandbox
 

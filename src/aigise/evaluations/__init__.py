@@ -1122,8 +1122,26 @@ class Evaluation(abc.ABC):
         sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
         tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
 
-        # Remove sandbox configs that are not in dependencies
+        # Strong behavior:
+        # - If dependencies mention sandboxes that are not configured, drop them and warn.
+        # - If config contains sandboxes that are not needed, remove them and warn.
         if aigise_session.config.sandbox and aigise_session.config.sandbox.sandboxes:
+            configured_sandboxes = set(aigise_session.config.sandbox.sandboxes.keys())
+
+            missing_in_config = sorted(
+                sb for sb in sandbox_dependencies if sb not in configured_sandboxes
+            )
+            if missing_in_config:
+                sandbox_dependencies = set(sandbox_dependencies) - set(
+                    missing_in_config
+                )
+                logger.warning(
+                    "Removed sandbox dependencies not present in config: %s. "
+                    "Configured sandboxes: %s",
+                    missing_in_config,
+                    sorted(configured_sandboxes),
+                )
+
             sandboxes_to_remove = [
                 sandbox_type
                 for sandbox_type in aigise_session.config.sandbox.sandboxes.keys()

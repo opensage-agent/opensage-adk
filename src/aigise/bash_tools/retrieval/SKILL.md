@@ -1,31 +1,27 @@
 ---
 name: retrieval
-description: Code retrieval and search tools. These tools help search, read, and analyze code files, functions, and symbols in the codebase.
+description: Code retrieval tools. This category currently includes symbol lookup and function listing (via Neo4j-backed queries).
 ---
 
 # Retrieval Tools
 
-Category of tools for searching, retrieving, and analyzing code from the codebase. These tools provide various ways to find and read code files, functions, and symbols.
+Category of tools for searching and retrieving code structure information (symbols, functions).
 
 ## Available Tools
 
-- **grep**: Search the codebase for regex patterns recursively
-- **search-symbol**: Search for specific symbols (functions, classes, variables) in the codebase
-- **read-file**: Read and display file contents with optional line range support
-- **list-functions**: List all functions in specified files or directories
+- **search-symbol**: Search the codebase for the definition of a given symbol (ctags-style output)
+- **list-functions**: List functions in a file via Neo4j queries over the code property graph
 
 ## Usage
 
-These tools are designed to work with the main sandbox type and provide fast code search and retrieval capabilities.
+Use `search-symbol` to quickly locate definitions, and `list-functions` to enumerate functions with locations (requires Neo4j-backed graph data).
 
 ## Common Use Cases
 
-- Searching for specific patterns, functions, or classes in code
-- Reading source files for analysis
-- Finding symbol definitions and usages
-- Listing available functions in code modules
-- Code exploration and navigation
+- Finding where a symbol is defined
+- Locating candidate functions for further analysis
+- Enumerating functions in a file with start/end line numbers
 
 ## Requires Sandbox
 
-main, codeql, joern, neo4j
+main, neo4j, codeql, joern

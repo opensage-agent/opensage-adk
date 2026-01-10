@@ -22,6 +22,7 @@ def main():
     add_neo4j_args(parser)
 
     args = parser.parse_args()
+    args.neo4j_database = "analysis"
     dst_function_name = args.dst_function_name
     dst_file_path = args.dst_file
     src_function_name = args.src_function

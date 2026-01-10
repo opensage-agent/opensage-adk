@@ -12,6 +12,30 @@ Run an arbitrary Cypher query against Neo4j and return JSON results.
 This tool is designed to run **standalone inside the sandbox** (from
 `/bash_tools`), without any ADK tool context.
 
+## Usage
+
+Basic query:
+
+```bash
+scripts/run_neo4j_query.sh "MATCH (n) RETURN n LIMIT 1"
+```
+
+With parameters:
+
+```bash
+scripts/run_neo4j_query.sh \
+  "MATCH (n {name: \$name}) RETURN n" \
+  --params '{"name":"Alice"}'
+```
+
+With explicit database:
+
+```bash
+scripts/run_neo4j_query.sh \
+  "SHOW DATABASES YIELD name RETURN name" \
+  --database "analysis"
+```
+
 ## Parameters
 
 ### query (required, positional position 0)
@@ -20,13 +44,13 @@ This tool is designed to run **standalone inside the sandbox** (from
 
 The Cypher query string to execute.
 
-### params (optional)
+### --params (optional, named parameter)
 
 **Type**: `str`
 
 Optional JSON object string for query parameters. Default: `{}`.
 
-### database (optional)
+### --database (optional, named parameter)
 
 **Type**: `str`
 

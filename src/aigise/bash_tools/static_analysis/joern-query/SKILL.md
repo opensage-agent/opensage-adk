@@ -1,6 +1,6 @@
 ---
 name: joern-query
-description: Tool to run a custom Joern query against the code property graph.
+description: Tool to run a custom Joern query against the code property graph (you may need to importCpg("/cpg.bin") first).
 should_run_in_sandbox: joern
 returns_json: false
 
@@ -14,6 +14,12 @@ Tool to run a custom Joern query against the code property graph.
 
 ```bash
 python3 scripts/joern_query.py "query_string"
+```
+
+If you see `No projects loaded`, import the CPG first:
+
+```bash
+python3 scripts/joern_query.py 'importCpg("/cpg.bin")'
 ```
 
 ## Parameters

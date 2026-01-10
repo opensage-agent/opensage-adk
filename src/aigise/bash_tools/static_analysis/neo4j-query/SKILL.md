@@ -13,13 +13,13 @@ Tool to run a custom Neo4j query against the code property graph.
 ## Usage
 
 ```bash
-python3 scripts/neo4j_query.py "query_string" --params '{"key": "value"}'
+python3 scripts/neo4j_query.py "query_string" --params '{"key": "value"}' --neo4j-database analysis
 ```
 
 With optional Neo4j connection parameters:
 
 ```bash
-python3 scripts/neo4j_query.py "query_string" --params '{"key": "value"}' --neo4j-host "IP" --neo4j-port 7687
+python3 scripts/neo4j_query.py "query_string" --params '{"key": "value"}' --neo4j-database analysis --neo4j-host "IP" --neo4j-port 7687
 ```
 
 ## Parameters
@@ -30,7 +30,10 @@ python3 scripts/neo4j_query.py "query_string" --params '{"key": "value"}' --neo4
 - `neo4j-port`: (Optional) Bolt port of Neo4j container. Defaults to `NEO4J_PORT` environment variable or 7687.
 - `neo4j-user`: (Optional) Neo4j user. Defaults to `NEO4J_USER` environment variable or "neo4j".
 - `neo4j-password`: (Optional) Neo4j password. Defaults to `NEO4J_PASSWORD` environment variable.
-- `neo4j-database`: (Optional) Database name. Defaults to "neo4j".
+- `neo4j-database`: Neo4j database name to query. Use one of:
+  - `analysis`: Static analysis / code property graph data.
+  - `memory`: Long-term memory (e.g., QA pairs).
+  - `history`: Current agent + sub-agent execution history/events.
 
 **Note:** Neo4j connection parameters are automatically read from environment variables set in `~/.bashrc` by `Neo4jInitializer`. You only need to specify them explicitly if you want to override the defaults.
 

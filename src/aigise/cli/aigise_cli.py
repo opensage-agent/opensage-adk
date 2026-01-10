@@ -99,11 +99,23 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
         dummy_agent = mk_agent(aigise_session_id=session_id)
         sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
         tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
-        if (
-            aigise_session.config.sandbox
-            and aigise_session.config.sandbox.sandboxes
-            and sandbox_dependencies
-        ):
+        if aigise_session.config.sandbox and aigise_session.config.sandbox.sandboxes:
+            configured_sandboxes = set(aigise_session.config.sandbox.sandboxes.keys())
+
+            missing_in_config = sorted(
+                sb for sb in sandbox_dependencies if sb not in configured_sandboxes
+            )
+            if missing_in_config:
+                sandbox_dependencies = set(sandbox_dependencies) - set(
+                    missing_in_config
+                )
+                logger.warning(
+                    "Removed sandbox dependencies not present in config: %s. "
+                    "Configured sandboxes: %s",
+                    missing_in_config,
+                    sorted(configured_sandboxes),
+                )
+
             sandboxes_to_remove = [
                 s_type
                 for s_type in list(aigise_session.config.sandbox.sandboxes.keys())

@@ -55,8 +55,8 @@ class ToolLoader:
         Does NOT copy files to sandbox.
 
         Structure supported:
-        - root/tool_name/SKILL.md -> sandbox=None
-        - root/sandbox_name/tool_name/SKILL.md -> sandbox="sandbox_name"
+        - root/tool_name/SKILL.md
+        - root/group_name/tool_name/SKILL.md
 
         Returns:
             List of tool metadata extracted from SKILL.md for all found tools.
@@ -107,7 +107,6 @@ class ToolLoader:
                         continue
 
                     tool_name = entry
-                    # For nested skills, keep old behavior: infer sandbox_name from first segment.
                     sandbox_name = (
                         tool_name.split("/", 1)[0] if "/" in tool_name else None
                     )
@@ -147,6 +146,45 @@ class ToolLoader:
 
         return loaded_tools_metadata
 
+    def load_tools_recursive(self) -> List[Dict[str, Any]]:
+        """Recursively load tool metadata for every directory containing SKILL.md.
+
+        This is intended for prompt generation: it enumerates *all* skills under the
+        skill root(s) regardless of category depth.
+
+        Returns:
+            List of tool metadata extracted from SKILL.md for all found tools.
+        """
+        discovered_tools = set()
+        loaded_tools_metadata = []
+
+        for search_path in self.search_paths:
+            if not search_path.exists():
+                continue
+
+            if self._enabled_skills is None:
+                continue
+
+            # Note: we intentionally do not support "all" vs allowlist semantics here;
+            # callers decide when to use recursive loading.
+            for skill_file in search_path.rglob("SKILL.md"):
+                tool_dir = skill_file.parent
+                try:
+                    tool_name = str(tool_dir.relative_to(search_path))
+                except ValueError:
+                    continue
+
+                sandbox_name = tool_name.split("/", 1)[0] if "/" in tool_name else None
+                self._process_tool(
+                    tool_dir,
+                    tool_name,
+                    sandbox_name,
+                    discovered_tools,
+                    loaded_tools_metadata,
+                )
+
+        return loaded_tools_metadata
+
     def _process_tool(
         self,
         tool_path: Path,
@@ -168,10 +206,105 @@ class ToolLoader:
 
             metadata = self._parse_skill_metadata(tool_path, tool_name)
             if metadata:
-                # Inject sandbox if not present in metadata
-                if sandbox_name and "sandbox" not in metadata:
-                    metadata["sandbox"] = sandbox_name
                 loaded_tools_metadata.append(metadata)
+
+    @staticmethod
+    def _parse_requires_sandboxes_from_markdown(content: str) -> list[str]:
+        """Parse dependency sandboxes from a SKILL.md '## Requires Sandbox' section.
+
+        This is a best-effort parser used because many SKILL.md files specify
+        dependency requirements in Markdown.
+        """
+        header = "## Requires Sandbox"
+        idx = content.find(header)
+        if idx < 0:
+            return []
+
+        after = content[idx + len(header) :]
+        lines = after.splitlines()
+
+        # Skip initial blank lines.
+        i = 0
+        while i < len(lines) and not lines[i].strip():
+            i += 1
+
+        sandboxes = set()
+        while i < len(lines):
+            line = lines[i].strip()
+            if not line:
+                i += 1
+                continue
+            if line.startswith("#"):
+                break  # next section
+            if line.startswith("- "):
+                line = line[2:].strip()
+
+            # Common patterns in repo: "fuzz" or "joern, main, neo4j, codeql".
+            for token in line.split(","):
+                token = token.strip()
+                if not token:
+                    continue
+                if token.lower() in ("none", "n/a", "na"):
+                    continue
+                sandboxes.add(token)
+            i += 1
+
+        return sorted(sandboxes)
+
+    @staticmethod
+    def _is_executable_skill_dir(tool_path: Path) -> bool:
+        """Returns True if the skill directory contains runnable scripts."""
+        scripts_dir = tool_path / "scripts"
+        if not scripts_dir.exists() or not scripts_dir.is_dir():
+            return False
+        for p in scripts_dir.iterdir():
+            if p.is_file() and p.suffix in (".sh", ".py"):
+                return True
+        return False
+
+    @staticmethod
+    def _parse_usage_from_markdown(content: str) -> str:
+        """Parse a short usage snippet from a SKILL.md '## Usage' section."""
+        header = "## Usage"
+        idx = content.find(header)
+        if idx < 0:
+            return ""
+
+        after = content[idx + len(header) :]
+        lines = after.splitlines()
+
+        # Move to first non-empty line.
+        i = 0
+        while i < len(lines) and not lines[i].strip():
+            i += 1
+        if i >= len(lines):
+            return ""
+
+        # Prefer the first fenced code block.
+        if lines[i].strip().startswith("```"):
+            fence = lines[i].strip()
+            i += 1
+            block = []
+            while i < len(lines):
+                if lines[i].strip().startswith("```"):
+                    break
+                block.append(lines[i].rstrip())
+                i += 1
+            snippet = "\n".join(block).strip()
+            return snippet
+
+        # Otherwise, take the first paragraph until next header.
+        block = []
+        while i < len(lines):
+            line = lines[i].rstrip()
+            if line.strip().startswith("#"):
+                break
+            if not line.strip() and block:
+                break
+            block.append(line)
+            i += 1
+
+        return "\n".join(block).strip()
 
     def _parse_skill_metadata(
         self, tool_path: Path, tool_name: str
@@ -184,26 +317,63 @@ class ToolLoader:
 
         try:
             content = skill_file.read_text()
-            # Extract YAML frontmatter
-            if content.startswith("---"):
-                parts = content.split("---", 2)
-                if len(parts) >= 3:
-                    yaml_content = parts[1]
-                    data = yaml.safe_load(yaml_content)
-                    if isinstance(data, dict):
-                        # Backwards compat: bash_tools SKILL.md uses should_run_in_sandbox.
-                        # Normalize to "sandbox" so prompt generation can compute required sandboxes.
-                        if "sandbox" not in data and "should_run_in_sandbox" in data:
-                            data["sandbox"] = data["should_run_in_sandbox"]
-                        # Ensure path and description are present
-                        # Use tool_name as path if not specified
-                        if "path" not in data:
-                            data["path"] = tool_name
-                        return data
-        except Exception as e:
-            logger.error(f"Failed to parse SKILL.md for {tool_name}: {e}")
+            requires_sandboxes = self._parse_requires_sandboxes_from_markdown(content)
 
-        return None
+            # Extract YAML frontmatter (required)
+            if not content.startswith("---"):
+                raise ValueError("Missing YAML frontmatter (must start with '---').")
+
+            parts = content.split("---", 2)
+            if len(parts) < 3:
+                raise ValueError("Invalid YAML frontmatter (missing closing '---').")
+
+            yaml_content = parts[1]
+            data = yaml.safe_load(yaml_content)
+            if not isinstance(data, dict):
+                raise ValueError("Invalid YAML frontmatter (must parse to a dict).")
+
+            # Strong schema:
+            # - should_run_in_sandbox: execution location (required for executable Skills)
+            # - ## Requires Sandbox: dependency sandboxes (optional; parsed from Markdown)
+            # - sandbox/sandboxes are not accepted.
+            if "sandbox" in data or "sandboxes" in data:
+                raise ValueError(
+                    "Deprecated field in SKILL.md YAML frontmatter: "
+                    "use 'should_run_in_sandbox' (execution) and "
+                    "'## Requires Sandbox' (dependencies); "
+                    "do not use 'sandbox'/'sandboxes'."
+                )
+
+            is_executable = self._is_executable_skill_dir(tool_path)
+            exec_sandbox = data.get("should_run_in_sandbox")
+            if is_executable:
+                if not isinstance(exec_sandbox, str) or not exec_sandbox.strip():
+                    raise ValueError(
+                        "Executable Skill is missing required "
+                        "'should_run_in_sandbox' in YAML frontmatter."
+                    )
+                data["should_run_in_sandbox"] = exec_sandbox.strip()
+            else:
+                # Non-executable skill groupings may omit execution sandbox.
+                if isinstance(exec_sandbox, str) and exec_sandbox.strip():
+                    data["should_run_in_sandbox"] = exec_sandbox.strip()
+                else:
+                    data.pop("should_run_in_sandbox", None)
+
+            if requires_sandboxes:
+                data["requires_sandboxes"] = requires_sandboxes
+            else:
+                data.pop("requires_sandboxes", None)
+
+            # Ensure path and description are present
+            # Use tool_name as path if not specified
+            if "path" not in data:
+                data["path"] = tool_name
+            return data
+        except Exception as e:
+            raise ValueError(
+                f"Invalid SKILL.md for {tool_name} at {tool_path}: {e}"
+            ) from e
 
     @staticmethod
     def generate_system_prompt_part(
@@ -218,27 +388,35 @@ class ToolLoader:
             - prompt_text: The generated prompt text
             - required_sandboxes: Set of sandbox types required by the tools
         """
-        lines = []
+        lines = [
+            "note: See each Skill's `SKILL.md` for full parameters/options.",
+            "",
+        ]
         required_sandboxes: Set[str] = set()
 
         for tool in tools_metadata:
             path = tool.get("path", "")
             description = tool.get("description", "")
+            should_run_in_sandbox = tool.get("should_run_in_sandbox", "")
+            requires_sandboxes = tool.get("requires_sandboxes", [])
 
             # Construct absolute path if it looks like a relative tool name
             if path and not path.startswith("/"):
                 path = f"{remote_root}/{path}"
 
-            # Use sandbox from metadata if not provided in args
-            current_sandbox = tool.get("sandbox") or sandbox_name
-            if current_sandbox:
-                required_sandboxes.add(current_sandbox)
+            # required_sandboxes = execution sandbox union dependency sandboxes.
+            if isinstance(should_run_in_sandbox, str) and should_run_in_sandbox:
+                required_sandboxes.add(should_run_in_sandbox)
+            if isinstance(requires_sandboxes, list) and requires_sandboxes:
+                for sb in requires_sandboxes:
+                    if isinstance(sb, str) and sb:
+                        required_sandboxes.add(sb)
 
             if path and description:
                 lines.append(f"- path: {path}")
-                if current_sandbox:
-                    lines.append(f"  sandbox: {current_sandbox}")
                 lines.append(f"  description: {description}")
+                if should_run_in_sandbox:
+                    lines.append(f"  should_run_in_sandbox: {should_run_in_sandbox}")
                 lines.append("")
 
         prompt_text = "\n".join(lines)
@@ -389,7 +567,11 @@ class AigiseAgent(LlmAgent):
         loader = ToolLoader(
             enabled_skills=enabled_skills
         )  # No sandbox needed for metadata
-        metadata = loader.load_tools()
+        metadata = (
+            loader.load_tools_recursive()
+            if enabled_skills == "all"
+            else loader.load_tools()
+        )
         tool_prompt, required_sandboxes = ToolLoader.generate_system_prompt_part(
             metadata
         )
@@ -476,6 +658,18 @@ and structure. Use this as the foundation for your documentation.
                 "to better understand the tool's usage and available scripts before invocation.\n"
             )
 
+            tool_usage_policy = (
+                "Tool usage policy:\n"
+                "- When planning or describing how you will accomplish a task, prefer using the provided Skills under "
+                "`/bash_tools/...` (i.e., the tool scripts described below).\n"
+                "- Only fall back to generic shell commands when there is no suitable `/bash_tools` Skill for the job.\n"
+                "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
+                "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
+                "- Do NOT edit existing `/bash_tools/...` Skills in place. If you need changes, copy/adapt into a new "
+                "Skill/script under `/bash_tools/new_tools/<tool_name>/` (with a `SKILL.md`). You can use "
+                "`/bash_tools/new_tool_creator` to scaffold the initial directory structure.\n"
+            )
+
             # Generate sandbox structure description based on required sandboxes
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
                 required_sandboxes,
@@ -486,7 +680,10 @@ and structure. Use this as the foundation for your documentation.
             #     "Injecting dynamically loaded tool descriptions into agent instruction:\n\n"
             #     + tool_prompt
             # )
-            self.instruction += f"\n\nHere are the available bash tools you can use:\n{description_preamble}\n{tool_prompt}{sandbox_description}"
+            self.instruction += (
+                "\n\nHere are the available bash tools you can use:\n"
+                f"{description_preamble}\n{tool_usage_policy}\n{tool_prompt}{sandbox_description}"
+            )
         else:
             logger.info("No dynamically loaded tool descriptions found")
 
@@ -532,6 +729,18 @@ and structure. Use this as the foundation for your documentation.
                 "to better understand the tool's usage and available scripts before invocation.\n"
             )
 
+            tool_usage_policy = (
+                "Tool usage policy:\n"
+                "- When planning or describing how you will accomplish a task, prefer using the provided Skills under "
+                "`/bash_tools/...` (i.e., the tool scripts described below).\n"
+                "- Only fall back to generic shell commands when there is no suitable `/bash_tools` Skill for the job.\n"
+                "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
+                "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
+                "- Do NOT edit existing `/bash_tools/...` Skills in place. If you need changes, copy/adapt into a new "
+                "Skill/script under `/bash_tools/new_tools/<tool_name>/` (with a `SKILL.md`). You can use "
+                "`/bash_tools/new_tool_creator` to scaffold the initial directory structure.\n"
+            )
+
             # Generate sandbox structure description based on required sandboxes
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
                 required_sandboxes,
@@ -539,7 +748,10 @@ and structure. Use this as the foundation for your documentation.
             )
 
             # Append new tool prompt to instruction
-            self.instruction += f"\n\nHere are the available bash tools you can use:\n{description_preamble}\n{tool_prompt}{sandbox_description}"
+            self.instruction += (
+                "\n\nHere are the available bash tools you can use:\n"
+                f"{description_preamble}\n{tool_usage_policy}\n{tool_prompt}{sandbox_description}"
+            )
             logger.info(
                 f"Updated enabled_skills and regenerated system prompt for agent '{self.name}'"
             )

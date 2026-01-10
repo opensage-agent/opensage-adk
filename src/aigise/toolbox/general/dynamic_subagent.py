@@ -12,6 +12,12 @@ from google.genai import types
 
 from aigise.session import AgentStatus, get_aigise_session
 from aigise.toolbox.decorators import safe_tool_execution
+from aigise.toolbox.general.agent_tools import complain
+from aigise.toolbox.general.bash_tools_interface import (
+    get_background_task_output,
+    list_background_tasks,
+    run_terminal_command,
+)
 from aigise.utils.agent_utils import (
     extract_tools_from_agent,
     get_aigise_session_id_from_context,
@@ -31,6 +37,21 @@ async def create_subagent(
     """
     Dynamically create a sub-agent with specified tools and instructions.
     You should first list the existing sub-agents before creating a new one.
+
+    IMPORTANT:
+    - A subagent's capabilities come from two sources:
+      1) **Python tools**: determined by `tools_list` (plus a small set of default
+         baseline tools injected automatically, see below).
+      2) **Bash tools**: determined by `enabled_skills` (which controls which
+         `bash_tools/*` skills are loaded for the subagent).
+    - `enabled_skills` can be empty. If it is empty/None, the subagent may not
+      have any bash tools available. Choose it carefully based on what the
+      subagent needs to do.
+    - `tools_list` must NOT be empty. If it is empty, this tool will return an
+      error and no subagent will be created.
+    - Default baseline tools (always injected):
+      `run_terminal_command`, `list_background_tasks`, `get_background_task_output`,
+      `complain`.
 
     Args:
         agent_name: Custom name for the agent
@@ -64,11 +85,35 @@ async def create_subagent(
         if not available_tools:
             return {"success": False, "error": "No tools available from current agent"}
 
+        if not tools_list:
+            return {
+                "success": False,
+                "error": (
+                    "tools_list must not be empty. Choose at least one Python tool "
+                    "for the subagent. Note: baseline tools are always injected: "
+                    "run_terminal_command, list_background_tasks, "
+                    "get_background_task_output, complain."
+                ),
+            }
+
+        default_tools_by_name = {
+            "run_terminal_command": run_terminal_command,
+            "list_background_tasks": list_background_tasks,
+            "get_background_task_output": get_background_task_output,
+            "complain": complain,
+        }
+
         # Validate tools
         tools_to_add = []
         invalid_tools = []
 
+        # Always inject default baseline tools.
+        tools_to_add.extend(default_tools_by_name.values())
+
+        # Validate non-default tool names against caller's available tools.
         for tool_name in tools_list:
+            if tool_name in default_tools_by_name:
+                continue
             if tool_name in available_tools:
                 tools_to_add.append(available_tools[tool_name])
             else:
@@ -80,13 +125,30 @@ async def create_subagent(
                 "error": f"Invalid tools: {invalid_tools}. Available tools: {list(available_tools.keys())}",
             }
 
+        # Ensure tool_names include baseline tools (for metadata/debug visibility).
+        tool_names_final = list(default_tools_by_name.keys())
+        for name in tools_list:
+            if name not in tool_names_final:
+                tool_names_final.append(name)
+
+        # Strengthen instruction: only restrict bash tools by enabled_skills.
+        enabled_skills_repr = "None" if enabled_skills is None else repr(enabled_skills)
+        skills_guardrail = (
+            "\n\n[Tooling policy]\n"
+            "Bash tools availability is controlled by enabled_skills. "
+            f"For this subagent, enabled_skills={enabled_skills_repr}.\n"
+            "You must only use bash tools that are available under the enabled_skills "
+            "selection. If a needed bash tool is not available, report the limitation "
+            "and ask the caller to recreate the subagent with the correct enabled_skills.\n"
+        )
+
         config = {
             "name": agent_name,
-            "instruction": instruction + "\nyou must use the tools provided.",
+            "instruction": instruction + skills_guardrail,
             "model": model_name,
             "description": description
             or f"Agent {agent_name} with tools: {', '.join(tools_list)}",
-            "tool_names": tools_list,
+            "tool_names": tool_names_final,
             "tools": tools_to_add,
             "enabled_skills": enabled_skills,
         }
@@ -104,7 +166,8 @@ async def create_subagent(
             "model": model_name,
             "tools_assigned": tools_list,
             "enabled_skills": enabled_skills,
-            "instruction": instruction,
+            # Return the effective instruction used by the created subagent.
+            "instruction": config["instruction"],
             "description": config["description"],
             "message": f"Successfully created agent '{agent_name}' with model '{model_name}' and tools: {', '.join(tools_list)}",
         }

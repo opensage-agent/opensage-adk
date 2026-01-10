@@ -1,18 +1,34 @@
 #!/bin/bash
 
 # create_new_tool.sh - Create a new Agent Skill tool
-# Usage: ./create_new_tool.sh <tool-name> [--category <category>]
+# Usage:
+#   ./create_new_tool.sh <tool-name> --should_run_in_sandbox <sandbox> --returns_json <true|false> [--category <category>] [--requires_sandboxes "a,b,c"|"none"]
 
 set -e
 
 TOOL_NAME=""
 CATEGORY="general"
+SHOULD_RUN_IN_SANDBOX=""
+RETURNS_JSON=""
+REQUIRES_SANDBOXES="none"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
         --category)
             CATEGORY="$2"
+            shift 2
+            ;;
+        --should_run_in_sandbox)
+            SHOULD_RUN_IN_SANDBOX="$2"
+            shift 2
+            ;;
+        --returns_json)
+            RETURNS_JSON="$2"
+            shift 2
+            ;;
+        --requires_sandboxes)
+            REQUIRES_SANDBOXES="$2"
             shift 2
             ;;
         *)
@@ -30,6 +46,23 @@ done
 # Validate tool name
 if [ -z "$TOOL_NAME" ]; then
     echo '{"error": "Tool name is required", "success": false}' >&2
+    exit 1
+fi
+
+# Validate required execution sandbox
+if [ -z "$SHOULD_RUN_IN_SANDBOX" ]; then
+    echo '{"error": "--should_run_in_sandbox is required", "success": false}' >&2
+    exit 1
+fi
+
+# Validate required returns_json flag
+if [ -z "$RETURNS_JSON" ]; then
+    echo '{"error": "--returns_json is required (true|false)", "success": false}' >&2
+    exit 1
+fi
+RETURNS_JSON_LC="$(echo "$RETURNS_JSON" | tr '[:upper:]' '[:lower:]')"
+if [[ "$RETURNS_JSON_LC" != "true" && "$RETURNS_JSON_LC" != "false" ]]; then
+    echo "{\"error\": \"Invalid --returns_json value: '$RETURNS_JSON'. Must be true or false.\", \"success\": false}" >&2
     exit 1
 fi
 
@@ -61,7 +94,11 @@ BASH_TOOLS_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 TARGET_PATH="$BASH_TOOLS_DIR/new_tools/$CATEGORY"
 
 # Run init_skill.py
-python3 "$INIT_SCRIPT" "$TOOL_NAME" --path "$TARGET_PATH"
+python3 "$INIT_SCRIPT" "$TOOL_NAME" \
+  --path "$TARGET_PATH" \
+  --should_run_in_sandbox "$SHOULD_RUN_IN_SANDBOX" \
+  --returns_json "$RETURNS_JSON_LC" \
+  --requires_sandboxes "$REQUIRES_SANDBOXES"
 
 # Check exit code
 if [ $? -eq 0 ]; then

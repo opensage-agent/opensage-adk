@@ -375,7 +375,7 @@ def _load_bash_tools_from_skills(
     - scripts/: Contains actual bash scripts
 
     Configuration information is parsed from SKILL.md:
-    - YAML frontmatter: should_run_in_sandbox (preferred) / sandbox (fallback)
+    - YAML frontmatter: should_run_in_sandbox (execution location)
     - Parameters: From ## Parameters section
     - Timeout: From ## Timeout section
     - Returns JSON: From ## Return Value section
@@ -456,9 +456,7 @@ def _load_bash_tools_from_skills(
             r"^returns_json:\s*(.+)$", frontmatter_text, re.MULTILINE
         )
         sandbox_frontmatter_match = re.search(
-            r"^(?:should_run_in_sandbox|sandbox):\s*(.+)$",
-            frontmatter_text,
-            re.MULTILINE,
+            r"^should_run_in_sandbox:\s*(.+)$", frontmatter_text, re.MULTILINE
         )
 
         if not name_match or not desc_match:
@@ -489,16 +487,24 @@ def _load_bash_tools_from_skills(
         # Parse configuration from SKILL.md content (parameters/timeout/returns_json).
         config = _parse_skill_md_config(content)
 
-        # Derive sandbox types from YAML frontmatter (do NOT parse from markdown headings).
-        if sandbox_frontmatter_match:
-            sandbox_value = sandbox_frontmatter_match.group(1).strip()
-            # Strip simple surrounding quotes.
-            if (sandbox_value.startswith('"') and sandbox_value.endswith('"')) or (
-                sandbox_value.startswith("'") and sandbox_value.endswith("'")
-            ):
-                sandbox_value = sandbox_value[1:-1].strip()
-            if sandbox_value:
-                config["sandbox_types"] = [sandbox_value.lower()]
+        # Derive execution sandbox type from YAML frontmatter (required).
+        if not sandbox_frontmatter_match:
+            raise ValueError(
+                f"Missing required YAML field 'should_run_in_sandbox' in {skill_md_path}"
+            )
+
+        sandbox_value = sandbox_frontmatter_match.group(1).strip()
+        # Strip simple surrounding quotes.
+        if (sandbox_value.startswith('"') and sandbox_value.endswith('"')) or (
+            sandbox_value.startswith("'") and sandbox_value.endswith("'")
+        ):
+            sandbox_value = sandbox_value[1:-1].strip()
+        if not sandbox_value:
+            raise ValueError(
+                f"Empty YAML field 'should_run_in_sandbox' in {skill_md_path}"
+            )
+
+        config["sandbox_types"] = [sandbox_value.lower()]
 
         # Prefer explicit returns_json from frontmatter, fallback to parsed config
         returns_json = (
@@ -555,8 +561,7 @@ def list_available_scripts(
     for meta in tools_metadata:
         output.append(f"\nName: {meta.name}")
         output.append(f"Description: {meta.description}")
-        should_run_in_sandbox = meta.sandbox_types[0] if meta.sandbox_types else "main"
-        output.append(f"should_run_in_sandbox: {should_run_in_sandbox}")
+        output.append(f"should_run_in_sandbox: {meta.sandbox_types[0]}")
 
         # Generate usage string
         usage_parts = [meta.name]
@@ -621,6 +626,12 @@ def run_terminal_command(
     If the command starts with a known script name (e.g., 'run_fuzzing_campaign'),
     it will automatically be executed in the correct sandbox environment (e.g., 'fuzz').
     Otherwise, it runs in the specified sandbox (default: 'main').
+
+    The command you pass in is executed inside the sandbox container as a
+    non-interactive process (not a persistent shell session). For background
+    execution, the command is written to a temporary script file and then run by
+    `bash`, which avoids most wrapper quoting/escaping pitfalls and supports
+    multi-line commands. Shell operators like `&&`, `|`, and `>` work as usual.
 
     Args:
         command: The full command line to execute (e.g., "run_fuzzing_campaign target 30 | grep found")

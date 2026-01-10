@@ -67,69 +67,69 @@ def mk_agent(aigise_session_id: str):
     )
     gdb_toolset = get_gdb_toolset(aigise_session_id)
 
-    debugger_agent = AigiseAgent(
-        name="debugger_agent",
-        model=model,
-        description="A debugger agent that can debug the vulnerable program. When calling this tool, you should tell the debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.",
-        instruction="""
-        You are a debugger agent that can debug the vulnerable program.
-        You should use the debugger tool to debug the vulnerable program.
-        Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
-        You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
-        If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
-        """,
-        tools=[
-            gdb_toolset,
-            complain,
-            list_background_tasks,
-            get_background_task_output,
-            run_terminal_command,
-        ],
-    )
-    debugger_agent_tool = AgentTool(agent=debugger_agent)
+    # debugger_agent = AigiseAgent(
+    #     name="debugger_agent",
+    #     model=model,
+    #     description="A debugger agent that can debug the vulnerable program. When calling this tool, you should tell the debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.",
+    #     instruction="""
+    #     You are a debugger agent that can debug the vulnerable program.
+    #     You should use the debugger tool to debug the vulnerable program.
+    #     Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
+    #     You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
+    #     If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
+    #     """,
+    #     tools=[
+    #         gdb_toolset,
+    #         complain,
+    #         list_background_tasks,
+    #         get_background_task_output,
+    #         run_terminal_command,
+    #     ],
+    # )
+    # debugger_agent_tool = AgentTool(agent=debugger_agent)
 
-    fuzzing_agent = AigiseAgent(
-        name="fuzzing_agent",
-        model=model,
-        description="A fuzzing agent that can fuzz the vulnerable program.",
-        instruction="""
-        You are a fuzzing agent that can fuzz the vulnerable program.
-        You should use the fuzzing tool to fuzz the vulnerable program.
-        Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
-        You should use both the simplified_python_fuzzer and the run_fuzzing_campaign tools to fuzz the vulnerable program. Do not skip any of the tools.
+    # fuzzing_agent = AigiseAgent(
+    #     name="fuzzing_agent",
+    #     model=model,
+    #     description="A fuzzing agent that can fuzz the vulnerable program.",
+    #     instruction="""
+    #     You are a fuzzing agent that can fuzz the vulnerable program.
+    #     You should use the fuzzing tool to fuzz the vulnerable program.
+    #     Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
+    #     You should use both the simplified_python_fuzzer and the run_fuzzing_campaign tools to fuzz the vulnerable program. Do not skip any of the tools.
 
-        IMPORTANT: Before making your next decision, especially when waiting for fuzzing campaigns, you should call list_background_tasks to check if any background tasks have completed. If you find completed fuzzing tasks, retrieve their output using get_background_task_output before proceeding.
+    #     IMPORTANT: Before making your next decision, especially when waiting for fuzzing campaigns, you should call list_background_tasks to check if any background tasks have completed. If you find completed fuzzing tasks, retrieve their output using get_background_task_output before proceeding.
 
-        If you get a crash from the fuzzing tool, you should manually submit the poc file by calling /shared/submit.sh.
-        If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
-        """,
-        tools=[
-            complain,
-            list_background_tasks,
-            get_background_task_output,
-            run_terminal_command,
-        ],
-        enabled_skills=["fuzz"],
-    )
-    fuzzing_agent_tool = AgentTool(agent=fuzzing_agent)
+    #     If you get a crash from the fuzzing tool, you should manually submit the poc file by calling /shared/submit.sh.
+    #     If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
+    #     """,
+    #     tools=[
+    #         complain,
+    #         list_background_tasks,
+    #         get_background_task_output,
+    #         run_terminal_command,
+    #     ],
+    #     enabled_skills=["fuzz"],
+    # )
+    # fuzzing_agent_tool = AgentTool(agent=fuzzing_agent)
 
-    coverage_agent = AigiseAgent(
-        name="coverage_agent",
-        model=model,
-        description="A coverage agent that can measure the coverage of the vulnerable program.",
-        instruction="""
-        You are a coverage agent that can measure the coverage of the vulnerable program.
-        You should use the coverage tool to measure the coverage of the vulnerable program.
-        """,
-        tools=[
-            list_background_tasks,
-            get_background_task_output,
-            run_terminal_command,
-            complain,
-        ],
-        enabled_skills=["coverage"],
-    )
-    coverage_agent_tool = AgentTool(agent=coverage_agent)
+    # coverage_agent = AigiseAgent(
+    #     name="coverage_agent",
+    #     model=model,
+    #     description="A coverage agent that can measure the coverage of the vulnerable program.",
+    #     instruction="""
+    #     You are a coverage agent that can measure the coverage of the vulnerable program.
+    #     You should use the coverage tool to measure the coverage of the vulnerable program.
+    #     """,
+    #     tools=[
+    #         list_background_tasks,
+    #         get_background_task_output,
+    #         run_terminal_command,
+    #         complain,
+    #     ],
+    #     enabled_skills=["coverage"],
+    # )
+    # coverage_agent_tool = AgentTool(agent=coverage_agent)
     # Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan, do not execute the bash_tool unless it is absolutely necessary, it's the lowest priority tool.
     # For local testing, you can use run_poc_from_script to generate a poc file and run it locally to test if it triggers the vulnerability. When you feed a poc_generation_script to run_poc_from_script, it will copy the poc file to /tmp/poc in the container containing the vulnerable program, and then execute `arvo`, which will automatically feed /tmp/poc as an input to the vulnerable program.
     # You can submit a poc by calling generate_poc_and_submit. You can also submit a poc file by calling /shared/submit.sh /path/to/poc, if you get a crash from other tools like fuzzing tool or debugger tool, you should manually submit the poc file by calling /shared/submit.sh /path/to/poc.
@@ -204,9 +204,11 @@ def mk_agent(aigise_session_id: str):
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
-            debugger_agent_tool,
-            fuzzing_agent_tool,
-            coverage_agent_tool,
+            # Debugger Tools
+            gdb_toolset,
+            # debugger_agent_tool,
+            # fuzzing_agent_tool,
+            # coverage_agent_tool,
         ],
         enabled_skills="all",
     )

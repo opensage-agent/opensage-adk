@@ -132,7 +132,10 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
         logger.warning("Sandbox dependency pruning skipped due to error: %s", e)
 
     # 2) Initialize shared volumes
-    aigise_session.sandboxes.initialize_shared_volumes(tools_top_roots=tools_top_roots)
+    aigise_session.sandboxes.initialize_shared_volumes(
+        tools_top_roots=tools_top_roots,
+        enabled_skills=getattr(dummy_agent, "_enabled_skills", None),
+    )
 
     # 3) Launch sandboxes (create containers)
     await aigise_session.sandboxes.launch_all_sandboxes()

@@ -62,6 +62,9 @@ class AigiseSandboxManager:
         self._scripts_volume_id: Optional[str] = None  # Read-only scripts volume
         self._tools_volume_id: Optional[str] = None  # Read-only tools volume
         self._shared_volume_id: Optional[str] = None  # Read-write data volume
+        # Track which bash_tools Skills were enabled when preparing this session.
+        # Sandbox initializers can use this to run per-skill dependency installers.
+        self.enabled_skills: Any = None
 
     @property
     def config(self) -> AigiseConfig:
@@ -150,15 +153,22 @@ class AigiseSandboxManager:
         self._sandbox_states[sandbox_type] = state
 
     def initialize_shared_volumes(
-        self, *, tools_top_roots: set[str] | None = None
+        self,
+        *,
+        tools_top_roots: set[str] | None = None,
+        enabled_skills: Any = None,
     ) -> None:
         """Initialize shared volumes (scripts/shared-data/tools).
 
         Args:
             tools_top_roots: Optional set of top-level bash_tools roots to stage
                 into the tools volume/PVC. If None, stage all tools.
+            enabled_skills: enabled_skills setting from the root agent (None, "all",
+                or List[str]). Stored for sandbox initializers to conditionally run
+                skill dependency installers.
         """
         try:
+            self.enabled_skills = enabled_skills
             config = self.config
 
             # Check if global sandbox config has shared data path

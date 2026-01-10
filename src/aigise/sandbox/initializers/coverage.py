@@ -25,7 +25,6 @@ class CoverageInitializer(SandboxInitializer):
             command=["bash", "/sandbox_scripts/ossfuzz/compile_coverage.sh"],
             timeout=600,
         )
-        breakpoint()
 
         if err:
             logger.error(f"Coverage initialization error: {msg}")

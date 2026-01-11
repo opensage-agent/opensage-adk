@@ -14,7 +14,7 @@ The testcase_path should be under the /shared directory.
 ## Usage
 
 ```bash
-scripts/run_coverage.sh <testcase_path>
+TARGET_BINARY=/path/to/target scripts/run_coverage.sh <testcase_path>
 ```
 
 ## Parameters
@@ -24,6 +24,16 @@ scripts/run_coverage.sh <testcase_path>
 **Type**: `str`
 
 The absolute path to the testcase file (must be in /shared).
+
+## Notes
+
+- **TARGET_BINARY (required)**: Path to the target binary to run (must be executable).
+- **Testcase ID**: The script computes `testcase_id = md5(realpath(testcase_path))` (hash of the
+  canonical path string, not file contents) and stores outputs under:
+  `/shared/.aigise/coverage/<id[:2]>/<id[2:4]>/<id>/`
+- **LLVM coverage requirement**: The target binary must be built with LLVM
+  profile+coverage mapping (e.g. `-fprofile-instr-generate -fcoverage-mapping`).
+  The script validates this and fails early if missing.
 
 ## Return Value
 

@@ -2,7 +2,13 @@
 set -euo pipefail
 
 # run_coverage.sh
-# Usage: run_coverage.sh <testcase_path>
+# Usage:
+#   TARGET_BINARY=/path/to/target run_coverage.sh <testcase_path>
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: $0 <testcase_path>" >&2
+  exit 2
+fi
 
 TESTCASE_PATH=$1
 
@@ -11,8 +17,21 @@ if [[ ! "$TESTCASE_PATH" == /shared* ]]; then
   exit 1
 fi
 
-# Calculate MD5 to determine storage location
-MD5_HASH=$(md5sum "$TESTCASE_PATH" | awk '{ print $1 }')
+# Calculate MD5 to determine storage location.
+# Use the testcase's canonical real path (not file contents) so the same path
+# maps to the same coverage directory across content changes.
+if command -v realpath >/dev/null 2>&1; then
+  TESTCASE_REALPATH="$(realpath "$TESTCASE_PATH")"
+else
+  TESTCASE_REALPATH="$(readlink -f "$TESTCASE_PATH")"
+fi
+
+if [[ -z "${TESTCASE_REALPATH:-}" ]]; then
+  echo "Error: failed to resolve testcase realpath: $TESTCASE_PATH" >&2
+  exit 1
+fi
+
+MD5_HASH=$(printf '%s' "$TESTCASE_REALPATH" | md5sum | awk '{ print $1 }')
 SUBDIR1=${MD5_HASH:0:2}
 SUBDIR2=${MD5_HASH:2:2}
 DST_DIR="/shared/.aigise/coverage/$SUBDIR1/$SUBDIR2/$MD5_HASH"
@@ -21,8 +40,49 @@ DST_PATH="$DST_DIR/testcase"
 mkdir -p "$DST_DIR"
 cp "$TESTCASE_PATH" "$DST_PATH"
 
-TARGET_BINARY=${TARGET_BINARY:-target}
-BINARY_PATH="/out/$TARGET_BINARY"
+if [[ -z "${TARGET_BINARY:-}" ]]; then
+  echo "Error: TARGET_BINARY env var is required (full path recommended)." >&2
+  exit 2
+fi
+
+BINARY_PATH="$TARGET_BINARY"
+
+if [[ ! -x "$BINARY_PATH" ]]; then
+  echo "Error: target binary not found or not executable: $BINARY_PATH" >&2
+  exit 1
+fi
+
+has_llvm_coverage_instrumentation() {
+  local binary_path="$1"
+
+  if command -v llvm-readobj >/dev/null 2>&1; then
+    llvm-readobj --sections "$binary_path" 2>/dev/null \
+      | grep -Eq '__llvm_covmap|__llvm_prf'
+    return $?
+  fi
+
+  if command -v readelf >/dev/null 2>&1; then
+    readelf -S "$binary_path" 2>/dev/null | grep -Eq '__llvm_covmap|__llvm_prf'
+    return $?
+  fi
+
+  return 2
+}
+
+if ! has_llvm_coverage_instrumentation "$BINARY_PATH"; then
+  case $? in
+    1)
+      echo "Error: binary appears to be missing LLVM coverage instrumentation." >&2
+      echo "  Expected to find __llvm_covmap/__llvm_prf sections in: $BINARY_PATH" >&2
+      echo "  Rebuild with -fprofile-instr-generate -fcoverage-mapping." >&2
+      exit 1
+      ;;
+    2)
+      echo "Error: cannot verify coverage instrumentation (missing llvm-readobj/readelf)." >&2
+      exit 1
+      ;;
+  esac
+fi
 
 PROFRAW="$DST_DIR/testcase.profraw"
 PROFDATA="$DST_DIR/testcase.profdata"

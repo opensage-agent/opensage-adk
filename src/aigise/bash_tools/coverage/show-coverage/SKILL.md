@@ -13,16 +13,19 @@ Tool to show code coverage results for a specified file and testcase.
 ## Usage
 
 ```bash
-scripts/show_coverage.sh <testcase_id> <function_name> [file_path]
+scripts/show_coverage.sh <testcase_path> <function_name> [file_path]
 ```
 
 ## Parameters
 
-### testcase_id (required, positional position 0)
+### testcase_path (required, positional position 0)
 
 **Type**: `str`
 
-The id of the testcase.
+The absolute path to the testcase file (must be in /shared).
+
+The script derives `testcase_id = md5(realpath(testcase_path))` and uses it to locate:
+`/shared/.aigise/coverage/<id[:2]>/<id[2:4]>/<id>/testcase.profdata`.
 
 ### function_name (required, positional position 1)
 

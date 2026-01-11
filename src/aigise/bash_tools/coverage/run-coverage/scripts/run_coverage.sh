@@ -34,10 +34,19 @@ LLVM_PROFILE_FILE="$PROFRAW" "$BINARY_PATH" "$DST_PATH" &> /dev/null
 llvm-profdata merge -sparse -o "$PROFDATA" "$PROFRAW"
 
 # Export to JSON
-llvm-cov export \
-    -ignore-filename-regex=.*src/libfuzzer/.* \
+VERSION=$(llvm-cov --version | grep 'LLVM version' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+EXPORT_FLAG_SKIP_EXPANSIONS=""
+EXPORT_FLAG_IGNORE=""
+if dpkg --compare-versions "$VERSION" "ge" "8.0.0"; then
+    EXPORT_FLAG_SKIP_EXPANSIONS="-skip-expansions"
+fi
+
+if dpkg --compare-versions "$VERSION" "ge" "7.0.0"; then
+    EXPORT_FLAG_IGNORE="-ignore-filename-regex=.*src/libfuzzer/.*"
+fi
+
+llvm-cov export $EXPORT_FLAG_IGNORE $EXPORT_FLAG_SKIP_EXPANSIONS \
     -format=text \
-    -skip-expansions \
     -instr-profile="$PROFDATA" \
     -object="$BINARY_PATH" > "$DST_DIR/testcase.json"
 

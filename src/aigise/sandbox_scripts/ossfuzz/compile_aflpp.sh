@@ -5,9 +5,9 @@ export FUZZING_LANGUAGE=${FUZZING_LANGUAGE:-c++}
 export ARCHITECTURE=${ARCHITECTURE:-x86_64}
 export LIB_FUZZING_ENGINE_DEPRECATED=${LIB_FUZZING_ENGINE_DEPRECATED:-/usr/lib/libFuzzingEngine.a}
 
-echo "[*] backup old files"
-mv $OUT $OUT.bak && mkdir $OUT
-mv $WORK $WORK.bak && mkdir $WORK
+# echo "[*] backup old files"
+# mv $OUT $OUT.bak && mkdir $OUT
+# mv $WORK $WORK.bak && mkdir $WORK
 
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")

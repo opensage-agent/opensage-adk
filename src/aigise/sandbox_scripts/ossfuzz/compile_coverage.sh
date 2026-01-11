@@ -5,8 +5,31 @@ export FUZZING_ENGINE=${FUZZING_ENGINE:-libfuzzer}
 export FUZZING_LANGUAGE=${FUZZING_LANGUAGE:-c++}
 export ARCHITECTURE=${ARCHITECTURE:-x86_64}
 
-echo "[*] backup old files"
-mv $OUT $OUT.bak && mkdir $OUT
-mv $WORK $WORK.bak && mkdir $WORK
+# echo "[*] backup old files"
+# mv $OUT $OUT.bak && mkdir $OUT
+# mv $WORK $WORK.bak && mkdir $WORK
+
+# fix sanitize-coverage
+# Find env vars whose values contain "-fsanitize-coverage" and replace that flag
+# with LLVM source-based coverage flags.
+COVERAGE_REPLACEMENT_FLAGS='-fprofile-instr-generate -fcoverage-mapping -pthread -Wl,--no-as-needed -Wl,-ldl -Wl,-lm -Wno-unused-command-line-argument'
+
+echo "[*] fixing -fsanitize-coverage flags in environment..."
+while IFS= read -r line; do
+  var="${line%%=*}"
+  val="${line#*=}"
+
+  new_val=$COVERAGE_REPLACEMENT_FLAGS
+
+  if [[ "$new_val" != "$val" ]]; then
+    printf '[*]   %s updated\n' "$var"
+    printf '      old: %s\n' "$val"
+    printf '      new: %s\n' "$new_val"
+
+    # Safely export updated value (handles spaces, etc.)
+    printf -v q '%q' "$new_val"
+    eval "export ${var}=${q}"
+  fi
+done < <(env | grep -F -- '-fsanitize-coverage' || true)
 
 compile

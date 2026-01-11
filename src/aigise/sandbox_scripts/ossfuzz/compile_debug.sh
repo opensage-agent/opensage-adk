@@ -7,8 +7,8 @@ export ARCHITECTURE=${ARCHITECTURE:-x86_64}
 export CXXFLAGS="$CXXFLAGS -g3 -O0"
 export CFLAGS="$CFLAGS -g3 -O0"
 
-echo "[*] backup old files"
-mv $OUT $OUT.bak && mkdir $OUT
-mv $WORK $WORK.bak && mkdir $WORK
+# echo "[*] backup old files"
+# mv $OUT $OUT.bak && mkdir $OUT
+# mv $WORK $WORK.bak && mkdir $WORK
 
 compile

@@ -1254,12 +1254,17 @@ class NativeDockerSandbox(BaseSandbox):
         for sandbox_type, sandbox_instance in sandbox_instances.items():
             logger.info(f"Initializing {sandbox_type} sandbox...")
 
-            # Build the initializer coroutine
-            init_coro = (
-                sandbox_instance.ensure_ready()
-                if getattr(sandbox_instance, "_using_cached", False)
-                else sandbox_instance.async_initialize()
-            )
+            async def _init_one(instance: "NativeDockerSandbox") -> None:
+                # Run per-skill dependency installers (if any) before ensure_ready.
+                try:
+                    await instance.async_prepare_skill_deps()
+                except AttributeError:
+                    pass
+
+                if getattr(instance, "_using_cached", False):
+                    await instance.ensure_ready()
+                else:
+                    await instance.async_initialize()
 
             # Determine per-sandbox timeout: read from container_config.extra,
             # fallback to 30 minutes (1800s) by default.
@@ -1281,7 +1286,9 @@ class NativeDockerSandbox(BaseSandbox):
                     cls._run_initializer_with_tracking(
                         sandbox_type,
                         sandbox_instance,
-                        asyncio.wait_for(init_coro, timeout=timeout_seconds),
+                        asyncio.wait_for(
+                            _init_one(sandbox_instance), timeout=timeout_seconds
+                        ),
                     ),
                 )
             )

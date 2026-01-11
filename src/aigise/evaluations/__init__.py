@@ -334,7 +334,13 @@ class Evaluation(abc.ABC):
             json.dump(params, f, indent=2)
         logger.warning(f"Parameters saved to: {params_file}")
 
-    def _save_cost_info(self, task: EvaluationTask, session: "Session") -> None:
+    def _save_cost_info(
+        self,
+        task: EvaluationTask,
+        session: "Session",
+        *,
+        num_llm_calls: int,
+    ) -> None:
         """Calculate and save cost information for the task.
 
         Args:
@@ -344,12 +350,10 @@ class Evaluation(abc.ABC):
         total_input_tokens = 0
         total_output_tokens = 0
         total_cached_tokens = 0
-        num_llm_calls = 0
 
         for event in session.events:
             if hasattr(event, "usage_metadata") and event.usage_metadata:
                 usage = event.usage_metadata
-                num_llm_calls += 1
 
                 if hasattr(usage, "prompt_token_count"):
                     total_input_tokens += usage.prompt_token_count or 0
@@ -1163,7 +1167,8 @@ class Evaluation(abc.ABC):
 
         # 4. Initialize shared volumes
         aigise_session.sandboxes.initialize_shared_volumes(
-            tools_top_roots=tools_top_roots
+            tools_top_roots=tools_top_roots,
+            enabled_skills=getattr(dummy_agent, "_enabled_skills", None),
         )
 
         # 5. Launch all sandboxes (create containers only, not initialized yet)
@@ -1235,6 +1240,7 @@ class Evaluation(abc.ABC):
         async def _update_remaining_and_get_session() -> Session | None:
             """Refresh the cached session and update remaining call budget."""
             nonlocal remaining_llm_calls
+            used_calls = 0
             session_snapshot = await session_service.get_session(
                 app_name=app_name,
                 user_id=self.user_id,
@@ -1258,6 +1264,7 @@ class Evaluation(abc.ABC):
         all_events = []
         session_snapshot: Session | None = None
 
+        llm_calls_used_total: int = 0
         try:
             async for event in runner.run_async(
                 user_id=self.user_id,
@@ -1271,6 +1278,8 @@ class Evaluation(abc.ABC):
                 all_events.append(event)
 
             session_snapshot = await _update_remaining_and_get_session()
+            if self.max_llm_calls > 0:
+                llm_calls_used_total = max(0, self.max_llm_calls - remaining_llm_calls)
 
             if self.run_until_explicit_finish:
                 task_finished = (
@@ -1302,6 +1311,10 @@ class Evaluation(abc.ABC):
                         all_events.append(event)
 
                     session_snapshot = await _update_remaining_and_get_session()
+                    if self.max_llm_calls > 0:
+                        llm_calls_used_total = max(
+                            0, self.max_llm_calls - remaining_llm_calls
+                        )
 
                     task_finished = (
                         session_snapshot.state.get("task_finished", False)
@@ -1313,6 +1326,8 @@ class Evaluation(abc.ABC):
             logger.warning(
                 f"Llm calls limit exceeded for session {task.session_id}: {e}"
             )
+            if self.max_llm_calls > 0:
+                llm_calls_used_total = self.max_llm_calls
 
         await runner.close()
         if not session_snapshot:
@@ -1326,7 +1341,7 @@ class Evaluation(abc.ABC):
         logger.warning(f"Agent execution completed for session: {task.session_id}")
 
         # Calculate and save cost information
-        self._save_cost_info(task, session)
+        self._save_cost_info(task, session, num_llm_calls=llm_calls_used_total)
 
         return session
 

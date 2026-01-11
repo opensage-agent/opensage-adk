@@ -2,11 +2,35 @@
 set -euo pipefail
 
 # show_coverage.sh
-# Usage: show_coverage.sh <testcase_id> <function_name> [file_path]
+# Usage: show_coverage.sh <testcase_path> <function_name> [file_path]
 
-TESTCASE_ID=$1
+if [[ $# -lt 2 ]]; then
+  echo "Usage: $0 <testcase_path> <function_name> [file_path]" >&2
+  exit 2
+fi
+
+TESTCASE_PATH=$1
 FUNCTION_NAME=$2
 FILE_PATH=${3:-}
+
+if [[ ! "$TESTCASE_PATH" == /shared* ]]; then
+  echo "Error: testcase_path must be in /shared" >&2
+  exit 1
+fi
+
+# Calculate testcase ID from testcase realpath (not file contents).
+if command -v realpath >/dev/null 2>&1; then
+  TESTCASE_REALPATH="$(realpath "$TESTCASE_PATH")"
+else
+  TESTCASE_REALPATH="$(readlink -f "$TESTCASE_PATH")"
+fi
+
+if [[ -z "${TESTCASE_REALPATH:-}" ]]; then
+  echo "Error: failed to resolve testcase realpath: $TESTCASE_PATH" >&2
+  exit 1
+fi
+
+TESTCASE_ID="$(printf '%s' "$TESTCASE_REALPATH" | md5sum | awk '{ print $1 }')"
 
 # Calculate profdata path
 SUBDIR1=${TESTCASE_ID:0:2}

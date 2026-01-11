@@ -271,6 +271,14 @@ class AigiseEnsembleManager:
         self, agents: List[EnsembleAgentInfo]
     ) -> Dict[str, List[EnsembleAgentInfo]]:
         """Filter agents based on thread-safe tools coverage."""
+        config = self.config
+        enforce = True
+        if config and config.agent_ensemble:
+            enforce = getattr(config.agent_ensemble, "enforce_thread_safe_tools", True)
+
+        if not enforce:
+            return {"safe_agents": agents, "unsafe_agents": []}
+
         safe_agents = []
         unsafe_agents = []
         thread_safe_tools = self.get_thread_safe_tools()

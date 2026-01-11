@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 # Bash tools script directory
 BASH_TOOLS_DIR = Path(PROJECT_PATH) / "src" / "aigise" / "bash_tools"
-CONTAINER_BASH_TOOLS_DIR = "/sandbox_scripts/bash_tools"
+CONTAINER_BASH_TOOLS_DIR = "/bash_tools"
 
 
 class BashToolMetadata:

@@ -1723,16 +1723,23 @@ class K8sSandbox(BaseSandbox):
         for sandbox_type, sandbox_instance in sandbox_instances.items():
             logger.info(f"Initializing {sandbox_type} sandbox...")
 
-            init_coro = (
-                sandbox_instance.ensure_ready()
-                if sandbox_instance._using_cached
-                else sandbox_instance.async_initialize()
-            )
+            async def _init_one(instance: "K8sSandbox") -> None:
+                # Run per-skill dependency installers (if any) before ensure_ready.
+                try:
+                    await instance.async_prepare_skill_deps()
+                except AttributeError:
+                    pass
+
+                if instance._using_cached:
+                    await instance.ensure_ready()
+                else:
+                    await instance.async_initialize()
+
             init_entries.append(
                 (
                     sandbox_type,
                     cls._run_initializer_with_tracking(
-                        sandbox_type, sandbox_instance, init_coro
+                        sandbox_type, sandbox_instance, _init_one(sandbox_instance)
                     ),
                 )
             )

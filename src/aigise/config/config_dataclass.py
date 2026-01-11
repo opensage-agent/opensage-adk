@@ -280,6 +280,11 @@ class PluginsConfig:
 class AgentEnsembleConfig:
     """Agent ensemble configuration."""
 
+    # If True, only agents whose tools are all listed in thread_safe_tools are
+    # considered "safe" and allowed for ensemble execution. If False, the
+    # thread_safe_tools filtering is disabled (all discovered agents are treated
+    # as safe).
+    enforce_thread_safe_tools: bool = False
     thread_safe_tools: Set[str] = field(default_factory=set)
     available_models_for_ensemble: List[str] = field(default_factory=list)
 

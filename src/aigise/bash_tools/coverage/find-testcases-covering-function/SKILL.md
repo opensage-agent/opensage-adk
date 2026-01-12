@@ -7,11 +7,15 @@ returns_json: true
 
 # find_testcases_covering_function
 
-This skill queries Neo4j (database: `analysis` by default) for testcase IDs that
-cover a given function.
+Find testcase IDs that cover a given function.
 
-It is designed to run **standalone inside the sandbox** (from `/bash_tools`),
-without any ADK tool context.
+## Usage
+
+```bash
+python3 scripts/find_testcases_covering_function.py "FUNCTION_NAME" \
+  --file_path "/absolute/path/to/file" \
+  --database "analysis"
+```
 
 ## Requires Sandbox
 
@@ -19,17 +23,17 @@ neo4j, main
 
 ## Parameters
 
-### function_name (required)
+### function_name (required, positional position 0)
 
 **Type**: `str`
 
-Function name to match against `m.NAME` in Neo4j.
+Function name to query.
 
-### file_path (optional)
+### --file_path (optional, named parameter)
 
 **Type**: `str`
 
-Optional absolute file path to disambiguate by `m.FILENAME` (substring match).
+Optional file path to disambiguate results.
 
 ## Return Value
 
@@ -39,5 +43,4 @@ Optional absolute file path to disambiguate by `m.FILENAME` (substring match).
 }
 ```
 
-If Neo4j is not configured/reachable, it returns an empty list and prints a
-warning to stderr.
+Returns JSON with `testcase_ids` (may be empty).

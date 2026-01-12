@@ -81,9 +81,12 @@ class CoverageSegment(msgspec.Struct, array_like=True):
     line: int
     col: int
     count: int
-    has_count: bool
-    is_region_entry: bool
-    is_gap_region: bool = False
+    # NOTE: Some llvm-cov versions emit these boolean-like fields as 0/1 integers
+    # in the JSON array payload. Use int here for compatibility; bool values also
+    # decode successfully because bool is a subclass of int in Python.
+    has_count: int
+    is_region_entry: int
+    is_gap_region: int = 0
 
 
 class CountedRegion(msgspec.Struct, array_like=True):

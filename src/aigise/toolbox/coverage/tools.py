@@ -84,8 +84,8 @@ async def upload_testcase_to_database(
     for func in cov.data[0].functions:
         # match function in existing database
         result = await neo4j_client.run_query(
-            "MATCH (m:METHOD) WHERE m.NAME = $name "
-            "AND (m.FILENAME CONTAINS $filepath OR $filepath CONTAINS m.FILENAME) "
+            "MATCH (m:METHOD) WHERE m.name = $name "
+            "AND (m.filename CONTAINS $filepath OR $filepath CONTAINS m.filename) "
             "RETURN m.id",
             {"name": func.name.split(":")[-1], "filepath": func.filenames[0]},
         )
@@ -219,9 +219,9 @@ async def find_testcases_covering_function(
     """
     neo4j_client = await get_neo4j_client_from_context(tool_context, "analysis")
 
-    query = "MATCH (t:TESTCASE)-[c:COVERS]->(m:METHOD) WHERE m.NAME = $name "
+    query = "MATCH (t:TESTCASE)-[c:COVERS]->(m:METHOD) WHERE m.name = $name "
     if file_path:
-        query += "AND (m.FILENAME CONTAINS $filepath OR $filepath CONTAINS m.FILENAME) "
+        query += "AND (m.filename CONTAINS $filepath OR $filepath CONTAINS m.filename) "
     query += "RETURN t.id AS testcase_id"
 
     params = {"name": function_name}

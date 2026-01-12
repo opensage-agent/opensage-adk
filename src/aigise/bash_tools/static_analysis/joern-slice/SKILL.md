@@ -18,8 +18,17 @@ scripts/joern_slice.sh "function_name" --file-path "relative/path/to/file.py"
 
 ## Parameters
 
-- `function_name`: The name of the function to slice.
-- `file_path`: (Optional) The file path where the function is defined.
+### function_name (required, positional position 0)
+
+**Type**: `str`
+
+Function name to slice.
+
+### --file-path (optional, named parameter)
+
+**Type**: `str`
+
+Optional file path where the function is defined.
 
 ## Return Value
 

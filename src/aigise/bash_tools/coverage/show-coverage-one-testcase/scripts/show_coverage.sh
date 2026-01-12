@@ -37,8 +37,17 @@ SUBDIR1=${TESTCASE_ID:0:2}
 SUBDIR2=${TESTCASE_ID:2:2}
 PROFDATA_PATH="/shared/.aigise/coverage/$SUBDIR1/$SUBDIR2/$TESTCASE_ID/testcase.profdata"
 
-TARGET_BINARY=${TARGET_BINARY:-target}
-BINARY_PATH="/out/$TARGET_BINARY"
+if [[ -z "${TARGET_BINARY:-}" ]]; then
+  echo "Error: TARGET_BINARY env var is required (full path recommended)." >&2
+  exit 2
+fi
+
+BINARY_PATH="$TARGET_BINARY"
+
+if [[ ! -x "$BINARY_PATH" ]]; then
+  echo "Error: target binary not found or not executable: $BINARY_PATH" >&2
+  exit 1
+fi
 
 if [ -n "$FILE_PATH" ]; then
     FILENAME=$(basename "$FILE_PATH")

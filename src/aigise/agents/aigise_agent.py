@@ -30,6 +30,9 @@ class ToolLoader:
                           - "all": Load ONLY top-level skills: `<root>/*/SKILL.md`.
                           - List[str]: Load skills by exact path to the skill directory
                             under the root (e.g. "fuzz" or "fuzz/run-fuzzing-campaign").
+                            When a list entry refers to a directory, all skills under
+                            that prefix are loaded recursively (i.e. entry is treated
+                            as a prefix allowlist).
         """
         self._filter_skills: Optional[Set[str]] = None
         self._enabled_skills = enabled_skills
@@ -103,20 +106,24 @@ class ToolLoader:
                     tool_dir = (search_path / entry).resolve()
                     if not tool_dir.is_dir():
                         continue
-                    if not (tool_dir / "SKILL.md").exists():
-                        continue
-
-                    tool_name = entry
-                    sandbox_name = (
-                        tool_name.split("/", 1)[0] if "/" in tool_name else None
-                    )
-                    self._process_tool(
-                        tool_dir,
-                        tool_name,
-                        sandbox_name,
-                        discovered_tools,
-                        loaded_tools_metadata,
-                    )
+                    # Recursively load all SKILL.md under this entry directory.
+                    # The allowlist is applied as a prefix match in _process_tool.
+                    for skill_file in tool_dir.rglob("SKILL.md"):
+                        skill_dir = skill_file.parent
+                        try:
+                            tool_name = str(skill_dir.relative_to(search_path))
+                        except ValueError:
+                            continue
+                        sandbox_name = (
+                            tool_name.split("/", 1)[0] if "/" in tool_name else None
+                        )
+                        self._process_tool(
+                            skill_dir,
+                            tool_name,
+                            sandbox_name,
+                            discovered_tools,
+                            loaded_tools_metadata,
+                        )
                 continue
 
             # Fallback: keep the old scan behavior (should not happen in practice).
@@ -197,8 +204,15 @@ class ToolLoader:
 
         # Filter by enabled_skills if specified
         if self._filter_skills is not None:
-            # Check exact match. We don't partial match here, user must specify exact tool name.
-            if tool_name not in self._filter_skills:
+            # Treat enabled_skills entries as a prefix allowlist.
+            # This lets users specify a toolset folder (e.g. "static_analysis") and
+            # still load all nested tools under it recursively.
+            allowed = False
+            for prefix in self._filter_skills:
+                if tool_name == prefix or tool_name.startswith(f"{prefix}/"):
+                    allowed = True
+                    break
+            if not allowed:
                 return
 
         if tool_name not in discovered_tools:
@@ -713,7 +727,11 @@ and structure. Use this as the foundation for your documentation.
 
         # Generate new tool prompt based on new enabled_skills
         loader = ToolLoader(enabled_skills=enabled_skills)
-        metadata = loader.load_tools()
+        metadata = (
+            loader.load_tools_recursive()
+            if enabled_skills == "all"
+            else loader.load_tools()
+        )
         tool_prompt, required_sandboxes = ToolLoader.generate_system_prompt_part(
             metadata
         )

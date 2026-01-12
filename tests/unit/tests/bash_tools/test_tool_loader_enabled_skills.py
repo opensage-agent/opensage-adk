@@ -76,10 +76,10 @@ def test_enabled_skills_exact_top_level_vs_child(tmp_path: Path) -> None:
         description="Run fuzzing campaign",
     )
 
-    # enabled_skills=["fuzz"] loads only top-level fuzz/SKILL.md
+    # enabled_skills=["fuzz"] loads fuzz and all nested skills under it.
     loader = ToolLoader(search_paths=[root], enabled_skills=["fuzz"])
     meta = loader.load_tools()
-    assert [m.get("path") for m in meta] == ["fuzz"]
+    assert sorted(m.get("path") for m in meta) == ["fuzz", "fuzz/run-fuzzing-campaign"]
 
     # enabled_skills=["fuzz/run-fuzzing-campaign"] loads only child SKILL.md
     loader = ToolLoader(

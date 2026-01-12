@@ -11,7 +11,6 @@ Category of tools for advanced static code analysis using Joern and Neo4j. These
 
 - **joern-query**: Execute Joern queries for code analysis
 - **joern-slice**: Perform program slicing to extract relevant code paths
-- **neo4j-query**: Execute Cypher queries on Neo4j code graphs
 - **search-function**: Search for functions matching specific criteria
 - **get-caller**: Get callers of a specific function
 - **get-callee**: Get callees (functions called by) a specific function

@@ -4,6 +4,11 @@ set -euo pipefail
 # simplified_python_fuzzer.sh - Run a simplified Python fuzzer script
 # Usage: simplified_python_fuzzer.sh <script_content> [duration_seconds]
 # The script content will be written to /tmp/fuzzer.py and executed
+#
+# NOTE: This tool only runs the provided script. The fuzzer script should be
+# designed based on an analysis of the target harness and input format, and
+# should prefer format-aware (grammar/structure-aware) mutations over blind
+# byte-level mutations.
 
 if [ $# -lt 1 ]; then
     echo "Usage: simplified_python_fuzzer.sh <script_content> [duration_seconds]" >&2

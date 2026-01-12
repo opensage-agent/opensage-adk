@@ -124,24 +124,13 @@ else
     exit 1
 fi
 
-# Best-effort upload to Neo4j (must not fail coverage).
-#
-# Neo4jInitializer writes connection env vars into /shared/bashrc. Source it if present.
-if [ -f "/shared/bashrc" ]; then
-  # shellcheck disable=SC1091
-  source "/shared/bashrc" || true
-fi
-
-python3 /bash_tools/coverage/run-coverage/scripts/upload_coverage_to_neo4j.py \
-  --testcase-id "$MD5_HASH" || true
-
-# Best-effort upload to Neo4j (standalone).
+# Best-effort upload to Neo4j.
 # - Neo4jInitializer may write env vars to /shared/bashrc; source it if present.
 # - Upload failures must NOT fail coverage generation (warn only).
 if [ -f /shared/bashrc ]; then
-    # shellcheck disable=SC1091
-    source /shared/bashrc || true
+  # shellcheck disable=SC1091
+  source /shared/bashrc || true
 fi
 
 python3 /bash_tools/coverage/run-coverage/scripts/upload_coverage_to_neo4j.py \
-    --testcase-id "$MD5_HASH" || echo "WARN: coverage upload script failed (ignored)" >&2
+  --testcase-id "$MD5_HASH" || echo "WARN: coverage upload script failed (ignored)" >&2

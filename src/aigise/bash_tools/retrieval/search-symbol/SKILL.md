@@ -20,14 +20,16 @@ scripts/search_symbol.sh "symbol_name"
 
 ## Parameters
 
-- `symbol_name`: The name of the symbol to search for.
+### symbol_name (required, positional position 0)
+
+**Type**: `str`
+
+Symbol name (omit class/namespace prefix and omit parentheses).
 
 ## Return Value
 
-Returns text output in ctags format. Each line contains symbol definition information in the format:
-`symbol_name	file_path	line_number;pattern`
-
-If no exact match is found, fuzzy matches are shown with a warning message.
+Returns text output (ctags-like), one match per line:
+`symbol_name<TAB>file_path<TAB>line_number;pattern`
 
 ## Requires Sandbox
 

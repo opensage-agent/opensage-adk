@@ -1,37 +1,28 @@
 ---
-name: run_neo4j_query
+name: neo4j-query
 description: Run an arbitrary Cypher query against Neo4j and return JSON records.
 should_run_in_sandbox: main
 returns_json: true
 ---
 
-# run_neo4j_query
+# Neo4j Query
 
-Run an arbitrary Cypher query against Neo4j and return JSON results.
-
-This tool is designed to run **standalone inside the sandbox** (from
-`/bash_tools`), without any ADK tool context.
+Run an arbitrary Cypher query against Neo4j and return JSON records.
 
 ## Usage
 
-Basic query:
-
 ```bash
-scripts/run_neo4j_query.sh "MATCH (n) RETURN n LIMIT 1"
+python3 scripts/neo4j_query.py "MATCH (n) RETURN n LIMIT 1"
 ```
 
-With parameters:
-
 ```bash
-scripts/run_neo4j_query.sh \
+python3 scripts/neo4j_query.py \
   "MATCH (n {name: \$name}) RETURN n" \
   --params '{"name":"Alice"}'
 ```
 
-With explicit database:
-
 ```bash
-scripts/run_neo4j_query.sh \
+python3 scripts/neo4j_query.py \
   "SHOW DATABASES YIELD name RETURN name" \
   --database "analysis"
 ```
@@ -42,7 +33,7 @@ scripts/run_neo4j_query.sh \
 
 **Type**: `str`
 
-The Cypher query string to execute.
+Cypher query string to execute.
 
 ### --params (optional, named parameter)
 
@@ -54,7 +45,8 @@ Optional JSON object string for query parameters. Default: `{}`.
 
 **Type**: `str`
 
-Neo4j database name. Default: environment `NEO4J_DATABASE` or `"analysis"`.
+Neo4j database name (optional). If omitted, defaults to `NEO4J_DATABASE` env var
+or `analysis`.
 
 ## Return Value
 
@@ -66,6 +58,6 @@ Neo4j database name. Default: environment `NEO4J_DATABASE` or `"analysis"`.
 }
 ```
 
-## Timeout
+## Requires Sandbox
 
-60 seconds
+neo4j

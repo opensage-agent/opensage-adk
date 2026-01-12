@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from unittest.mock import MagicMock
 
 import pytest
@@ -46,7 +47,7 @@ async def test_neo4j_query_basic(aigise_session: AigiseSession):
     # Test with a simple query
     query = "MATCH (n) RETURN count(n) AS count LIMIT 1"
     result = run_terminal_command(
-        command=f'python3 /bash_tools/static_analysis/neo4j-query/scripts/neo4j_query.py "{query}"',
+        command=f'python3 /bash_tools/neo4j/neo4j-query/scripts/neo4j_query.py "{query}"',
         tool_context=mock_context,
         sandbox_name="main",
     )
@@ -54,15 +55,15 @@ async def test_neo4j_query_basic(aigise_session: AigiseSession):
     assert result["success"] is True
     assert result["exit_code"] == 0
 
-    # Output should be plain text (returns_json: false)
     output = result["output"]
-    if isinstance(output, dict):
-        output = str(output)
-    elif not isinstance(output, str):
-        output = str(output) if output is not None else ""
+    if isinstance(output, str):
+        output = json.loads(output)
 
-    assert output is not None
-    assert isinstance(output, str)
+    assert isinstance(output, dict)
+    assert "records" in output
+    assert isinstance(output["records"], list)
+    assert len(output["records"]) == 1
+    assert "count" in output["records"][0]
 
 
 @pytest.mark.slow
@@ -77,7 +78,7 @@ async def test_neo4j_query_with_params(aigise_session: AigiseSession):
     query = "MATCH (n) RETURN count(n) AS count LIMIT 1"
     params = "{}"
     result = run_terminal_command(
-        command=f"python3 /bash_tools/static_analysis/neo4j-query/scripts/neo4j_query.py \"{query}\" --params '{params}'",
+        command=f"python3 /bash_tools/neo4j/neo4j-query/scripts/neo4j_query.py \"{query}\" --params '{params}'",
         tool_context=mock_context,
         sandbox_name="main",
     )
@@ -85,15 +86,15 @@ async def test_neo4j_query_with_params(aigise_session: AigiseSession):
     assert result["success"] is True
     assert result["exit_code"] == 0
 
-    # Output should be plain text (returns_json: false)
     output = result["output"]
-    if isinstance(output, dict):
-        output = str(output)
-    elif not isinstance(output, str):
-        output = str(output) if output is not None else ""
+    if isinstance(output, str):
+        output = json.loads(output)
 
-    assert output is not None
-    assert isinstance(output, str)
+    assert isinstance(output, dict)
+    assert "records" in output
+    assert isinstance(output["records"], list)
+    assert len(output["records"]) == 1
+    assert "count" in output["records"][0]
 
 
 @pytest.mark.slow
@@ -107,21 +108,18 @@ async def test_neo4j_query_invalid_query(aigise_session: AigiseSession):
     # Test with invalid query syntax
     query = "INVALID CYPHER QUERY SYNTAX !!!"
     result = run_terminal_command(
-        command=f'python3 /bash_tools/static_analysis/neo4j-query/scripts/neo4j_query.py "{query}"',
+        command=f'python3 /bash_tools/neo4j/neo4j-query/scripts/neo4j_query.py "{query}"',
         tool_context=mock_context,
         sandbox_name="main",
     )
 
-    # Invalid query should fail (exit code != 0) or return error message
     output = result["output"]
-    # Output should be plain text (returns_json: false)
-    if isinstance(output, dict):
-        output = str(output)
-    elif not isinstance(output, str):
-        output = str(output) if output is not None else ""
+    if isinstance(output, str):
+        output = json.loads(output)
 
-    assert output is not None
-    assert isinstance(output, str)
-    # Should have error information
-    # Note: Some invalid queries may not throw exceptions in Neo4j, so we just check output exists
-    assert len(output) > 0
+    assert result["success"] is False
+    assert result["exit_code"] != 0
+    assert isinstance(output, dict)
+    assert output.get("records") == []
+    assert isinstance(output.get("error", ""), str)
+    assert output.get("error")

@@ -9,16 +9,11 @@ Category of tools for interacting with Neo4j graph databases. These tools help q
 
 ## Available Tools
 
-- **run-neo4j-query**: Run an arbitrary Cypher query against Neo4j and return JSON records
+- **neo4j-query**: Run an arbitrary Cypher query against Neo4j and return JSON records
 
 ## Usage
 
 Use these tools to run Cypher queries against Neo4j for code analysis workflows.
-
-## Common Use Cases
-
-- Running Cypher queries for code graph exploration and analysis
-- Inspecting nodes/edges produced by static analysis pipelines
 
 ## Requires Sandbox
 

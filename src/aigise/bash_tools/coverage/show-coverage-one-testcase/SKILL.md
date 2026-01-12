@@ -1,5 +1,5 @@
 ---
-name: show-coverage
+name: show-coverage-one-testcase
 description: Show code coverage results for a specified file and testcase within the sandbox environment.
 should_run_in_sandbox: coverage
 returns_json: false
@@ -8,12 +8,12 @@ returns_json: false
 
 # Show Coverage
 
-Tool to show code coverage results for a specified file and testcase.
+Show coverage for a specified testcase and function.
 
 ## Usage
 
 ```bash
-scripts/show_coverage.sh <testcase_path> <function_name> [file_path]
+TARGET_BINARY=/path/to/target scripts/show_coverage.sh <testcase_path> <function_name> [file_path]
 ```
 
 ## Parameters
@@ -24,8 +24,11 @@ scripts/show_coverage.sh <testcase_path> <function_name> [file_path]
 
 The absolute path to the testcase file (must be in /shared).
 
-The script derives `testcase_id = md5(realpath(testcase_path))` and uses it to locate:
-`/shared/.aigise/coverage/<id[:2]>/<id[2:4]>/<id>/testcase.profdata`.
+### TARGET_BINARY (required, env var)
+
+**Type**: `str`
+
+Path to the target binary to show coverage for.
 
 ### function_name (required, positional position 1)
 

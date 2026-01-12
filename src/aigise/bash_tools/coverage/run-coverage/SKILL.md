@@ -25,20 +25,15 @@ TARGET_BINARY=/path/to/target scripts/run_coverage.sh <testcase_path>
 
 The absolute path to the testcase file (must be in /shared).
 
-## Notes
+### TARGET_BINARY (required, env var)
 
-- **TARGET_BINARY (required)**: Path to the target binary to run (must be executable).
-- **Testcase ID**: The script computes `testcase_id = md5(realpath(testcase_path))` (hash of the
-  canonical path string, not file contents) and stores outputs under:
-  `/shared/.aigise/coverage/<id[:2]>/<id[2:4]>/<id>/`
-- **LLVM coverage requirement**: The target binary must be built with LLVM
-  profile+coverage mapping (e.g. `-fprofile-instr-generate -fcoverage-mapping`).
-  The script validates this and fails early if missing.
+**Type**: `str`
+
+Path to the target binary to run (must be executable).
 
 ## Return Value
 
-Returns text output with coverage summary (first and last lines of the coverage report).
-Note: This bash version runs the coverage collection. Neo4j upload requires the python host tool.
+Returns text output with a coverage summary.
 
 ## Requires Sandbox
 
@@ -46,4 +41,4 @@ coverage
 
 ## Timeout
 
-60 seconds
+240 seconds

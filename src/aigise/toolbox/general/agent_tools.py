@@ -49,7 +49,7 @@ async def think(thinking: str, tool_context: ToolContext):
 
 
 @safe_tool_execution
-async def get_idea_from_other_models(tool_context: ToolContext):
+async def critique(tool_context: ToolContext):
     """
     Call this to query another model as a consultant to help you solve the task, you should call this frequently to get an idea of how to solve the task.
 

@@ -29,9 +29,9 @@ from aigise.toolbox.fuzzing.fuzz_tools import (
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
     complain,
+    critique,
     get_available_agents_for_ensemble,
     get_available_models,
-    get_idea_from_other_models,
     note_suspicious_things,
     think,
 )

@@ -18,10 +18,10 @@ from aigise.toolbox.fuzzing.fuzz_tools import simplified_python_fuzzer
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
     agent_ensemble_pairwise,
+    critique,
     flag_unjustified_claims,
     get_available_agents_for_ensemble,
     get_available_models,
-    get_idea_from_other_models,
     note_suspicious_things,
 )
 from aigise.toolbox.general.bash_tool import bash_tool_main
@@ -43,6 +43,7 @@ from aigise.toolbox.general.bash_tool import bash_tool_main
 # )
 from aigise.toolbox.general.bash_tools_interface import (
     get_background_task_output,
+    list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
@@ -60,6 +61,7 @@ def mk_agent(aigise_session_id: str):
         # model="litellm_proxy/vertex_ai/claude-sonnet-4",
         api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
         base_url="https://litellm-991596698159.us-west1.run.app/",
+        reasoning_effort="high",
         # Auto-inject cache_control for system messages and last 2 messages
         cache_control_injection_points=[
             {"location": "message", "role": "system"},  # Cache all system messages
@@ -142,11 +144,12 @@ def mk_agent(aigise_session_id: str):
             create_subagent,
             list_active_agents,
             call_subagent_as_tool,
-            get_idea_from_other_models,
+            critique,
             # Super Terminal Tools
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
+            list_available_scripts,
         ],
         enabled_skills=["new_tool_creator", "retrieval", "static_analysis", "neo4j"],
     )

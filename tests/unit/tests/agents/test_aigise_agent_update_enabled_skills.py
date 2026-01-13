@@ -19,10 +19,6 @@ def test_update_enabled_skills_all_uses_recursive(monkeypatch) -> None:
             calls.append("load_tools")
             return [{"path": "x", "description": "x"}]
 
-        def load_tools_recursive(self):
-            calls.append("load_tools_recursive")
-            return [{"path": "x", "description": "x"}]
-
         @staticmethod
         def generate_system_prompt_part(
             tools_metadata, sandbox_name=None, remote_root="/bash_tools"
@@ -46,7 +42,7 @@ def test_update_enabled_skills_all_uses_recursive(monkeypatch) -> None:
 
     mod.AigiseAgent.update_enabled_skills(dummy, "all")
 
-    assert calls == ["load_tools_recursive"]
+    assert calls == ["load_tools"]
 
 
 def test_update_enabled_skills_list_uses_load_tools(monkeypatch) -> None:
@@ -60,10 +56,6 @@ def test_update_enabled_skills_list_uses_load_tools(monkeypatch) -> None:
 
         def load_tools(self):
             calls.append("load_tools")
-            return [{"path": "x", "description": "x"}]
-
-        def load_tools_recursive(self):
-            calls.append("load_tools_recursive")
             return [{"path": "x", "description": "x"}]
 
         @staticmethod

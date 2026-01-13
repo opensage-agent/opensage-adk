@@ -1,6 +1,6 @@
 ---
 name: retrieval
-description: Code retrieval tools. This category currently includes symbol lookup and function listing (via Neo4j-backed queries).
+description: Code retrieval tools. This category currently includes symbol lookup and function listing (via Neo4j-backed queries). Available tools: search-symbol, list-functions.
 ---
 
 # Retrieval Tools

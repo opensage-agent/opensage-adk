@@ -153,45 +153,6 @@ class ToolLoader:
 
         return loaded_tools_metadata
 
-    def load_tools_recursive(self) -> List[Dict[str, Any]]:
-        """Recursively load tool metadata for every directory containing SKILL.md.
-
-        This is intended for prompt generation: it enumerates *all* skills under the
-        skill root(s) regardless of category depth.
-
-        Returns:
-            List of tool metadata extracted from SKILL.md for all found tools.
-        """
-        discovered_tools = set()
-        loaded_tools_metadata = []
-
-        for search_path in self.search_paths:
-            if not search_path.exists():
-                continue
-
-            if self._enabled_skills is None:
-                continue
-
-            # Note: we intentionally do not support "all" vs allowlist semantics here;
-            # callers decide when to use recursive loading.
-            for skill_file in search_path.rglob("SKILL.md"):
-                tool_dir = skill_file.parent
-                try:
-                    tool_name = str(tool_dir.relative_to(search_path))
-                except ValueError:
-                    continue
-
-                sandbox_name = tool_name.split("/", 1)[0] if "/" in tool_name else None
-                self._process_tool(
-                    tool_dir,
-                    tool_name,
-                    sandbox_name,
-                    discovered_tools,
-                    loaded_tools_metadata,
-                )
-
-        return loaded_tools_metadata
-
     def _process_tool(
         self,
         tool_path: Path,
@@ -581,11 +542,7 @@ class AigiseAgent(LlmAgent):
         loader = ToolLoader(
             enabled_skills=enabled_skills
         )  # No sandbox needed for metadata
-        metadata = (
-            loader.load_tools_recursive()
-            if enabled_skills == "all"
-            else loader.load_tools()
-        )
+        metadata = loader.load_tools()
         tool_prompt, required_sandboxes = ToolLoader.generate_system_prompt_part(
             metadata
         )
@@ -727,11 +684,7 @@ and structure. Use this as the foundation for your documentation.
 
         # Generate new tool prompt based on new enabled_skills
         loader = ToolLoader(enabled_skills=enabled_skills)
-        metadata = (
-            loader.load_tools_recursive()
-            if enabled_skills == "all"
-            else loader.load_tools()
-        )
+        metadata = loader.load_tools()
         tool_prompt, required_sandboxes = ToolLoader.generate_system_prompt_part(
             metadata
         )

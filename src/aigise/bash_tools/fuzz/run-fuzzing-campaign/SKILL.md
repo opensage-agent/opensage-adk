@@ -1,6 +1,6 @@
 ---
 name: run-fuzzing-campaign
-description: Run a fuzzing campaign using AFL++ with optional seeds and a custom mutator.
+description: Run a fuzzing campaign using AFL++ with optional seeds; supports `--custom_mutator_path` (you can write your own custom mutator and use this to execute).
 should_run_in_sandbox: fuzz
 returns_json: false
 
@@ -9,6 +9,9 @@ returns_json: false
 # Run Fuzzing Campaign
 
 Run an AFL++ fuzzing campaign.
+
+This tool supports **custom mutators** via `--custom_mutator_path`. You can
+also **write your own** custom mutator (Python) and pass it in.
 
 ## Usage
 
@@ -59,6 +62,19 @@ Optional path to a custom mutator script.
 **Type**: `bool` (default: `false`)
 
 Reset output and start fresh.
+
+## Custom Mutator
+
+If you provide `--custom_mutator_path`, AFL++ will load the mutator from that
+path. A common convention is to place it in the fuzz sandbox, e.g.:
+
+```bash
+scripts/run_fuzzing_campaign.sh target_binary 180 /path/to/seed.txt \
+  --custom_mutator_path /fuzz/mutator/custom_mutator.py
+```
+
+You can implement your own `custom_mutator.py` as part of your workflow and
+iterate on it during fuzzing.
 
 ## Return Value
 

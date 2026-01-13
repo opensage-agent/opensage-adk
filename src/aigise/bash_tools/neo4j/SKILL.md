@@ -1,6 +1,6 @@
 ---
 name: neo4j
-description: Neo4j database management and query tools. These tools help interact with Neo4j databases for code analysis, graph queries, and data management.
+description: Neo4j database management and query tools. These tools help interact with Neo4j databases for code analysis, graph queries, and data management. Available tools: neo4j-query.
 ---
 
 # Neo4j Tools

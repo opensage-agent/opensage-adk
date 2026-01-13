@@ -128,7 +128,7 @@ def test_requires_sandbox_section_is_parsed_for_top_level_skill(tmp_path: Path) 
     )
 
     loader = ToolLoader(search_paths=[root], enabled_skills="all")
-    meta = loader.load_tools_recursive()
+    meta = loader.load_tools()
     prompt_text, required_sandboxes = ToolLoader.generate_system_prompt_part(meta)
 
     assert "- path: /bash_tools/fuzz" in prompt_text

@@ -639,6 +639,9 @@ and structure. Use this as the foundation for your documentation.
                 "- Do NOT edit existing `/bash_tools/...` Skills in place. If you need changes, copy/adapt into a new "
                 "Skill/script under `/bash_tools/new_tools/<tool_name>/` (with a `SKILL.md`). You can use "
                 "`/bash_tools/new_tool_creator` to scaffold the initial directory structure.\n"
+                "You should use tools in `/bash_tools/...` to accomplish the task, do not use generic shell commands when there is a suitable tool in `/bash_tools/...`. Use tools in `/bash_tools/...` as much as possible."
+                "You should use tools in `/bash_tools/...` to accomplish the task, do not use generic shell commands when there is a suitable tool in `/bash_tools/...`. Use tools in `/bash_tools/...` as much as possible."
+                "You should use tools in `/bash_tools/...` to accomplish the task, do not use generic shell commands when there is a suitable tool in `/bash_tools/...`. Use tools in `/bash_tools/...` as much as possible."
             )
 
             # Generate sandbox structure description based on required sandboxes

@@ -1,6 +1,6 @@
 ---
 name: coverage
-description: Code coverage analysis tools. These tools help analyze and visualize code coverage for test execution, upload coverage data to Neo4j, and display coverage statistics. Available tools: run-coverage, show-coverage.
+description: "Code coverage analysis tools. These tools help analyze and visualize code coverage for test execution, upload coverage data to Neo4j, and display coverage statistics. Available tools: run-coverage, show-coverage."
 ---
 
 # Coverage Tools

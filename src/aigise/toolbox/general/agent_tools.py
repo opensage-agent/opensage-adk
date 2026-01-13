@@ -427,6 +427,10 @@ async def get_available_models(tool_context: ToolContext):
     """
     Get the available models configured for ensemble use.
 
+    Notes:
+        - The special model name "inherit" means: reuse the current agent's model
+          object from context (i.e., the root/current agent model).
+
     Returns:
         Dictionary with available_models list and count
     """
@@ -501,6 +505,13 @@ async def agent_ensemble(
     The agent will then aggregate the results from the agents and return the final result.
 
     Before calling this tool, you must call get_available_agents_for_ensemble and get_available_models FIRST to get the allowed agents and models, as the allowed agents and models may change over time.
+
+    IMPORTANT:
+        - "inherit" is a special model name meaning: reuse the current/root
+          agent's model object from context.
+        - If get_available_models returns only ["inherit"], then you MUST pass
+          model_name_to_count={"inherit": N}. This will run N ensemble agents
+          using the same model object as the current/root agent.
 
         Args:
             instruction: The specific instruction/task you want all agents to execute

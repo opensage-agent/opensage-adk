@@ -550,10 +550,9 @@ def list_available_scripts(
       `start_dir="/bash_tools"`). That produces too much output.
 
     Args:
-        tool_context: Tool context from the agent
         start_dir: Optional subdirectory under bash_tools to start discovery from,
             e.g. "fuzz" or "static_analysis". If omitted, scans all bash_tools.
-            DO NOT pass the `/bash_tools` root.
+            DO NOT pass the `/bash_tools` root directory.
 
     Returns:
         str: Formatted list of available Skills with full SKILL.md content

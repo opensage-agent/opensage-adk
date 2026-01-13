@@ -179,7 +179,7 @@ def mk_agent(aigise_session_id: str):
 
         ***********IMPORTANT***********
         You should generally start with static tools: explore the code (ensemble of multiple agents to explore the code), understand the vulnerability, and generate an initial PoC. Only after that should you rely on dynamic tools such as fuzzing, the debugger, or coverage analysis. Don’t start by depending on dynamic tools right away.
-        If you are stuck, maybe you are looking at the wrong vulnerability, you can use a subagent with no history to solve the task, as your history might be misleading, and you can use agent ensemble to explore the code and understand the vulnerability by multiple agents.
+        If you are stuck, maybe you are looking at the wrong vulnerability, you can use a subagent with no history to solve the task, as your history might be misleading. Also, you can use agent ensemble to explore the code and understand the vulnerability by multiple agents.
         For local testing, you can use run_poc_from_script to generate a poc file and run it locally to test if it triggers the vulnerability. When you feed a poc_generation_script to run_poc_from_script, it will automatically feed /tmp/poc as an input to the vulnerable program.
         You can submit a poc by calling generate_poc_and_submit.
         You should not see the git commit history.

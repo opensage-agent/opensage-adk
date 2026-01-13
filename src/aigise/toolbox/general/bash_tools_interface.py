@@ -361,29 +361,33 @@ def _parse_skill_md_config(content: str) -> Dict[str, Any]:
             config["parameters"].append(param_def)
             position += 1
 
-    return config
-
 
 def _load_bash_tools_from_skills(
     start_dir: str | None = None,
 ) -> List[BashToolMetadata]:
     """
-    Load metadata for all bash tools from skill directories.
+    Load metadata for all bash tools from skill directories by parsing SKILL.md.
 
-    New structure: Each tool is an independent skill directory containing:
-    - SKILL.md: Contains YAML frontmatter (name, description) and markdown documentation
-    - scripts/: Contains actual bash scripts
-
-    Configuration information is parsed from SKILL.md:
-    - YAML frontmatter: should_run_in_sandbox (preferred) / sandbox (fallback)
-    - Parameters: From ## Parameters section
-    - Timeout: From ## Timeout section
-    - Returns JSON: From ## Return Value section
+    Supports:
+    1. Multi-tool SKILL.md (Preferred):
+       - ## Tools section containing:
+         - ### Tool Name
+         - Content serves as description (Usage, Parameters listed as text)
+    2. Legacy Single-tool SKILL.md:
+       - YAML frontmatter defines name/description
+       - Markdown defines ## Parameters
 
     Returns:
         List of BashToolMetadata
     """
     import re
+
+    # Try import yaml for frontmatter
+    try:
+        import yaml
+    except ImportError:
+        yaml = None
+        logger.warning("PyYAML not found, YAML frontmatter parsing may fail.")
 
     if not BASH_TOOLS_DIR.exists():
         logger.warning(f"Bash tools directory not found: {BASH_TOOLS_DIR}")
@@ -391,8 +395,6 @@ def _load_bash_tools_from_skills(
 
     base_dir = BASH_TOOLS_DIR
     if start_dir:
-        # Allow callers to list tools under a specific subdirectory, e.g.
-        # "fuzz" or "static_analysis/get-caller".
         base_dir = (BASH_TOOLS_DIR / start_dir).resolve()
         if not base_dir.exists() or not base_dir.is_dir():
             logger.warning(
@@ -403,7 +405,6 @@ def _load_bash_tools_from_skills(
     tools = []
 
     def _is_executable_skill_dir(skill_dir: Path) -> bool:
-        """Returns True if directory looks like an executable skill (has scripts)."""
         if not (skill_dir / "SKILL.md").exists():
             return False
         scripts_dir = skill_dir / "scripts"
@@ -412,117 +413,137 @@ def _load_bash_tools_from_skills(
         script_files = list(scripts_dir.glob("*.sh")) + list(scripts_dir.glob("*.py"))
         return bool(script_files)
 
-    # Collect candidate executable skill directories under base_dir.
-    # - If base_dir itself is a tool dir, include it.
-    # - Always scan up to 2 levels to support layouts like:
-    #   - root/tool/SKILL.md
-    #   - root/group/tool/SKILL.md  (where group may also have SKILL.md)
+    # Collect candidate executable skill directories
     skill_dirs_to_process: list[Path] = []
-
     if _is_executable_skill_dir(base_dir):
         skill_dirs_to_process.append(base_dir)
 
     for item in base_dir.iterdir():
         if not item.is_dir():
             continue
-
         if _is_executable_skill_dir(item):
             skill_dirs_to_process.append(item)
-
         for subitem in item.iterdir():
             if subitem.is_dir() and _is_executable_skill_dir(subitem):
                 skill_dirs_to_process.append(subitem)
 
-        # Process all found skill directories
     for skill_dir in skill_dirs_to_process:
         skill_md_path = skill_dir / "SKILL.md"
 
-        # Read SKILL.md
         with open(skill_md_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # Parse YAML frontmatter
+        # 1. Parse Frontmatter (for sandbox/global settings)
         frontmatter_match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
-        if not frontmatter_match:
-            logger.warning(f"No YAML frontmatter found in {skill_md_path}")
-            continue
+        frontmatter_yaml = {}
+        if frontmatter_match and yaml:
+            try:
+                frontmatter_yaml = yaml.safe_load(frontmatter_match.group(1))
+            except yaml.YAMLError:
+                pass
 
-        frontmatter_text = frontmatter_match.group(1)
+        # Determine Sandbox
+        sandbox_types = ["main"]
+        # Markdown section takes precedence or frontmatter?
+        # Check ## Requires Sandbox
+        sandbox_match = re.search(r"## Requires Sandbox\s*\n\s*(.+)", content)
+        if sandbox_match:
+            val = sandbox_match.group(1).strip()
+            if val:
+                sandbox_types = [val]
+        elif "should_run_in_sandbox" in frontmatter_yaml:
+            val = frontmatter_yaml["should_run_in_sandbox"]
+            if val:
+                sandbox_types = [str(val)]
 
-        # Simple YAML parsing (extract name, description, returns_json, and sandbox)
-        name_match = re.search(r"^name:\s*(.+)$", frontmatter_text, re.MULTILINE)
-        desc_match = re.search(r"^description:\s*(.+)$", frontmatter_text, re.MULTILINE)
-        returns_json_match = re.search(
-            r"^returns_json:\s*(.+)$", frontmatter_text, re.MULTILINE
-        )
-        sandbox_frontmatter_match = re.search(
-            r"^(?:should_run_in_sandbox|sandbox):\s*(.+)$",
-            frontmatter_text,
-            re.MULTILINE,
-        )
+        # Check for Multi-tool Section via Markdown (## Tools)
+        tools_section_match = re.search(r"## Tools\s*\n(.*)", content, re.DOTALL)
 
-        if not name_match or not desc_match:
-            logger.warning(f"Missing name or description in {skill_md_path}")
-            continue
+        if tools_section_match:
+            # --- New Markdown Parsing Logic (Simple) ---
+            tools_content = tools_section_match.group(1)
+            # Split by ### <ToolName>
+            tool_blocks = re.split(r"\n###\s+", "\n" + tools_content)[1:]
 
-        tool_name = name_match.group(1).strip()
-        description = desc_match.group(1).strip()
+            for block in tool_blocks:
+                # Extract Name (first line)
+                lines = block.split("\n")
+                tool_name = lines[0].strip()
+                if not tool_name:
+                    continue
 
-        # Check if returns_json is explicitly set in frontmatter
-        returns_json_from_frontmatter = False
-        if returns_json_match:
-            value = returns_json_match.group(1).strip().lower()
-            returns_json_from_frontmatter = value in ("true", "1", "yes")
+                # Description is everything else
+                description = "\n".join(lines[1:]).strip()
 
-        # Find scripts in scripts directory (guaranteed by _is_executable_skill_dir)
-        scripts_dir = skill_dir / "scripts"
-        script_files = list(scripts_dir.glob("*.sh")) + list(scripts_dir.glob("*.py"))
-        script_file = script_files[0]  # Use first found script file
+                # Parameters are empty (handled by Agent reading description)
+                parameters = []
 
-        # Build script path in container (relative to CONTAINER_BASH_TOOLS_DIR).
-        #
-        # We use the path relative to BASH_TOOLS_DIR so start_dir does not affect
-        # the resulting container script path.
-        rel_skill_dir = skill_dir.relative_to(BASH_TOOLS_DIR)
-        script_path = f"{rel_skill_dir}/scripts/{script_file.name}"
+                # Script Name Logic
+                scripts_dir = skill_dir / "scripts"
+                script_path = None
 
-        # Parse configuration from SKILL.md content (parameters/timeout/returns_json).
-        config = _parse_skill_md_config(content)
+                # Try explicit mappings? No, we infer.
+                candidate_names = [tool_name, tool_name + ".sh", tool_name + ".py"]
+                for c in candidate_names:
+                    if (scripts_dir / c).exists():
+                        rel_skill_dir = skill_dir.relative_to(BASH_TOOLS_DIR)
+                        script_path = f"{rel_skill_dir}/scripts/{c}"
+                        break
 
-        # Derive sandbox types from YAML frontmatter (do NOT parse from markdown headings).
-        if sandbox_frontmatter_match:
-            sandbox_value = sandbox_frontmatter_match.group(1).strip()
-            # Strip simple surrounding quotes.
-            if (sandbox_value.startswith('"') and sandbox_value.endswith('"')) or (
-                sandbox_value.startswith("'") and sandbox_value.endswith("'")
+                if not script_path:
+                    logger.warning(
+                        f"Script for tool {tool_name} not found in {scripts_dir}"
+                    )
+                    continue
+
+                metadata = BashToolMetadata(
+                    name=tool_name,
+                    script_path=script_path,
+                    description=description,
+                    parameters=parameters,
+                    sandbox_types=sandbox_types,
+                    timeout=60,  # Default or parse if needed
+                    returns_json=False,
+                )
+                tools.append(metadata)
+
+        else:
+            # --- Fallback: Legacy Single Tool Logic ---
+            # ... [Same as before] ...
+
+            # Simple check for frontmatter name
+            if "name" in frontmatter_yaml and "tools" not in frontmatter_yaml:
+                tool_name = frontmatter_yaml["name"]
+                desc = frontmatter_yaml.get("description", "")
+
+                # Legacy Params
+                legacy_config = _parse_skill_md_config(content)
+
+                scripts_dir = skill_dir / "scripts"
+                # ... (Search logic) ...
+                script_files = list(scripts_dir.glob("*.sh")) + list(
+                    scripts_dir.glob("*.py")
+                )
+                if script_files:
+                    script_file = script_files[0]
+                    rel_skill_dir = skill_dir.relative_to(BASH_TOOLS_DIR)
+                    script_path = f"{rel_skill_dir}/scripts/{script_file.name}"
+
+                    meta = BashToolMetadata(
+                        name=tool_name,
+                        script_path=script_path,
+                        description=desc,
+                        parameters=legacy_config["parameters"],
+                        sandbox_types=sandbox_types,
+                        timeout=legacy_config["timeout"],
+                    )
+                    tools.append(meta)
+
+            elif "tools" in frontmatter_yaml and isinstance(
+                frontmatter_yaml["tools"], list
             ):
-                sandbox_value = sandbox_value[1:-1].strip()
-            if sandbox_value:
-                config["sandbox_types"] = [sandbox_value.lower()]
-
-        # Prefer explicit returns_json from frontmatter, fallback to parsed config
-        returns_json = (
-            returns_json_from_frontmatter
-            if returns_json_match
-            else config["returns_json"]
-        )
-
-        metadata = BashToolMetadata(
-            name=tool_name,
-            script_path=script_path,
-            description=description,
-            parameters=config["parameters"],
-            sandbox_types=config["sandbox_types"],
-            timeout=config["timeout"],
-            returns_json=returns_json,
-        )
-        tools.append(metadata)
-
-        logger.info(
-            f"Loaded skill '{tool_name}' from {skill_md_path}: "
-            f"sandbox={config['sandbox_types']}, timeout={config['timeout']}s, "
-            f"params={len(config['parameters'])}, returns_json={returns_json}"
-        )
+                # Fallback/Safety: If tools in frontmatter but missing ## Tools
+                pass
 
     return tools
 
@@ -553,7 +574,7 @@ def list_available_scripts(
     output = ["Available Bash Scripts:", "=" * 30]
 
     for meta in tools_metadata:
-        output.append(f"\nName: {meta.name}")
+        output.append(f"\\nName: {meta.name}")
         output.append(f"Description: {meta.description}")
         should_run_in_sandbox = meta.sandbox_types[0] if meta.sandbox_types else "main"
         output.append(f"should_run_in_sandbox: {should_run_in_sandbox}")
@@ -600,7 +621,7 @@ def list_available_scripts(
                     f"  - --{p['name']} (Named): {p.get('description', '')} [{req}]"
                 )
 
-    return "\n".join(output)
+    return "\\n".join(output)
 
 
 @safe_tool_execution

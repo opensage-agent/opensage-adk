@@ -24,8 +24,10 @@ from google.genai import types
 from aigise.agents.aigise_agent import AigiseAgent
 from aigise.session.aigise_dynamic_agent_manager import DynamicAgentManager
 from aigise.utils.agent_utils import (
-    _copy_agent_with_updated_model,
+    INHERIT_MODEL,
+    _copy_agent_with_updated_model_v2,
     extract_tools_from_agent,
+    get_model_from_agent,
 )
 
 logger = logging.getLogger(__name__)
@@ -465,9 +467,21 @@ Please provide your unique perspective and analysis. Consider that other agents 
                     # Create new agent instance with the specified model
                     # enabled_skills will be automatically extracted from target_agent_info
                     try:
-                        agent_with_model = _copy_agent_with_updated_model(
-                            target_agent_info, model_name
-                        )
+                        if model_name == INHERIT_MODEL:
+                            inherit_model = get_model_from_agent(current_agent)
+                            if inherit_model is None:
+                                raise ValueError(
+                                    "model_name='inherit' but current agent has no model"
+                                )
+                            agent_with_model = _copy_agent_with_updated_model_v2(
+                                target_agent_info,
+                                model_name,
+                                inherit_model=inherit_model,
+                            )
+                        else:
+                            agent_with_model = _copy_agent_with_updated_model_v2(
+                                target_agent_info, model_name
+                            )
 
                         # Wrap the agent in AgentTool and call it directly
                         agent_tool = AgentTool(agent=agent_with_model)
@@ -601,11 +615,14 @@ Final aggregated response:
 
             # Aggregate results
             model_name = self.config.llm.summarize_model
-            if not model_name:
-                logger.warning(
-                    "summarize model not configured in LLM settings, trying to use agent model"
-                )
-                model = current_agent.canonical_model
+            if not model_name or model_name == INHERIT_MODEL:
+                if not model_name:
+                    logger.warning(
+                        "summarize model not configured in LLM settings, trying to use agent model"
+                    )
+                model = get_model_from_agent(current_agent)
+                if model is None:
+                    raise ValueError("Unable to resolve current agent model")
             else:
                 model = LiteLlm(model=model_name)
 

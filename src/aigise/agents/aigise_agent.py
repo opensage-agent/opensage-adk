@@ -12,6 +12,8 @@ from aigise.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
 
+_TOOL_USAGE_BANNER_MARKER = "[[AIGISE_TOOL_USAGE_BANNER]]"
+
 
 class ToolLoader:
     """Loads tools from local filesystem into sandboxes."""
@@ -537,6 +539,21 @@ class AigiseAgent(LlmAgent):
         # Initialize the parent class first
         super().__init__(*args, **kwargs)
         self._enable_memory_management = enable_memory_management
+
+        # Put a highly salient banner at the very beginning of the system prompt
+        # so models see it before anything else.
+        tool_usage_banner = (
+            f"{_TOOL_USAGE_BANNER_MARKER}\n"
+            "CRITICAL TOOL PRIORITY (MUST FOLLOW):\n"
+            "- Prefer and use Skills under `/bash_tools/...` whenever possible.\n"
+            "- At the start of a task, you must **explore the available bash tools broadly**:\n"
+            "- Do NOT use generic shell commands (sed/etc.) unless absolutely necessary. If you want to use generic shell commands, first state why you cannot use a Skill to accomplish the task.\n"
+            "- If you still must use generic shell, explicitly justify why no suitable "
+            "Skill exists.\n"
+        ).strip()
+        if _TOOL_USAGE_BANNER_MARKER not in (self.instruction or ""):
+            self.instruction = tool_usage_banner + "\n\n" + self.instruction
+
         # Store enabled_skills for dependency collection
         self._enabled_skills = enabled_skills
         loader = ToolLoader(
@@ -616,7 +633,15 @@ and structure. Use this as the foundation for your documentation.
 - ALWAYS start with README analysis - it's crucial for understanding the project
 - Store pages and create relationships between them using the memory_management_agent tools
 """
-            self.instruction = repo_first_prompt.strip() + "\n\n" + self.instruction
+            # Keep the tool-usage banner as the very first content; insert the repo
+            # prompt immediately after the banner.
+            if self.instruction.startswith(_TOOL_USAGE_BANNER_MARKER):
+                banner, rest = self.instruction.split("\n\n", 1)
+                self.instruction = (
+                    banner + "\n\n" + repo_first_prompt.strip() + "\n\n" + rest
+                )
+            else:
+                self.instruction = repo_first_prompt.strip() + "\n\n" + self.instruction
 
         if tool_prompt:
             # Preamble describing the skill structure
@@ -633,15 +658,19 @@ and structure. Use this as the foundation for your documentation.
                 "Tool usage policy:\n"
                 "- When planning or describing how you will accomplish a task, prefer using the provided Skills under "
                 "`/bash_tools/...` (i.e., the tool scripts described below).\n"
-                "- Only fall back to generic shell commands when there is no suitable `/bash_tools` Skill for the job.\n"
+                "- Only fall back to generic shell commands when there is **no** suitable `/bash_tools` Skill for the job.\n"
+                "- Before starting work, survey the tool ecosystem broadly:\n"
+                '  - Call `list_available_scripts(start_dir="/bash_tools")` to review ALL available Skill docs.\n'
+                "  - Then inspect and consider multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
+                "- Before using generic commands like `sed`, first check for an existing Skill:\n"
+                '  - Use `list_available_scripts(start_dir="/bash_tools/<toolset>")` to inspect SKILL.md files.\n'
+                "  - If a Skill exists, use it instead of generic shell.\n"
+                '- If you still must use generic shell, you must explicitly say: "No suitable /bash_tools Skill exists" and briefly justify.\n'
                 "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
                 "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
                 "- Do NOT edit existing `/bash_tools/...` Skills in place. If you need changes, copy/adapt into a new "
                 "Skill/script under `/bash_tools/new_tools/<tool_name>/` (with a `SKILL.md`). You can use "
                 "`/bash_tools/new_tool_creator` to scaffold the initial directory structure.\n"
-                "You should use tools in `/bash_tools/...` to accomplish the task, do not use generic shell commands when there is a suitable tool in `/bash_tools/...`. Use tools in `/bash_tools/...` as much as possible."
-                "You should use tools in `/bash_tools/...` to accomplish the task, do not use generic shell commands when there is a suitable tool in `/bash_tools/...`. Use tools in `/bash_tools/...` as much as possible."
-                "You should use tools in `/bash_tools/...` to accomplish the task, do not use generic shell commands when there is a suitable tool in `/bash_tools/...`. Use tools in `/bash_tools/...` as much as possible."
             )
 
             # Generate sandbox structure description based on required sandboxes
@@ -656,7 +685,9 @@ and structure. Use this as the foundation for your documentation.
             # )
             self.instruction += (
                 "\n\nHere are the available bash tools you can use:\n"
-                f"{description_preamble}\n{tool_usage_policy}\n{tool_prompt}{sandbox_description}"
+                f"{description_preamble}\n{tool_prompt}{sandbox_description}\n\n"
+                "## Tool Usage Policy (MUST FOLLOW)\n\n"
+                f"{tool_usage_policy}"
             )
         else:
             logger.info("No dynamically loaded tool descriptions found")
@@ -707,7 +738,14 @@ and structure. Use this as the foundation for your documentation.
                 "Tool usage policy:\n"
                 "- When planning or describing how you will accomplish a task, prefer using the provided Skills under "
                 "`/bash_tools/...` (i.e., the tool scripts described below).\n"
-                "- Only fall back to generic shell commands when there is no suitable `/bash_tools` Skill for the job.\n"
+                "- Only fall back to generic shell commands when there is **no** suitable `/bash_tools` Skill for the job.\n"
+                "- Before starting work, survey the tool ecosystem broadly:\n"
+                '  - Call `list_available_scripts(start_dir="/bash_tools")` to review ALL available Skill docs.\n'
+                "  - Then inspect and consider multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
+                "- Before using generic commands like `sed`, first check for an existing Skill:\n"
+                '  - Use `list_available_scripts(start_dir="/bash_tools/<toolset>")` to inspect SKILL.md files.\n'
+                "  - If a Skill exists, use it instead of generic shell.\n"
+                '- If you still must use generic shell, you must explicitly say: "No suitable /bash_tools Skill exists" and briefly justify.\n'
                 "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
                 "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
                 "- Do NOT edit existing `/bash_tools/...` Skills in place. If you need changes, copy/adapt into a new "
@@ -724,7 +762,9 @@ and structure. Use this as the foundation for your documentation.
             # Append new tool prompt to instruction
             self.instruction += (
                 "\n\nHere are the available bash tools you can use:\n"
-                f"{description_preamble}\n{tool_usage_policy}\n{tool_prompt}{sandbox_description}"
+                f"{description_preamble}\n{tool_prompt}{sandbox_description}\n\n"
+                "## Tool Usage Policy (MUST FOLLOW)\n\n"
+                f"{tool_usage_policy}"
             )
             logger.info(
                 f"Updated enabled_skills and regenerated system prompt for agent '{self.name}'"

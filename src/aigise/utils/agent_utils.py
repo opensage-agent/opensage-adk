@@ -6,12 +6,48 @@ from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.agents.llm_agent import LlmAgent, _SingleAfterToolCallback
 from google.adk.agents.readonly_context import ReadonlyContext
+from google.adk.models.base_llm import BaseLlm
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from aigise.config.config_dataclass import AigiseConfig
 from aigise.session.joern_client import JoernClient
+
+INHERIT_MODEL = "inherit"
+
+
+def get_model_from_agent(agent: Any) -> Optional[BaseLlm]:
+    """Best-effort extraction of a usable model object from an agent."""
+    if agent is None:
+        return None
+    canonical_model = getattr(agent, "canonical_model", None)
+    if canonical_model is not None:
+        return canonical_model
+    model = getattr(agent, "model", None)
+    if isinstance(model, BaseLlm):
+        return model
+    return None
+
+
+def resolve_model_spec(
+    model_name: str, *, tool_context: Optional[ToolContext] = None
+) -> BaseLlm:
+    """Resolve a model spec into a model instance.
+
+    Supports a special sentinel value INHERIT_MODEL which reuses the current
+    agent's model in the provided tool_context.
+    """
+    if model_name == INHERIT_MODEL:
+        if tool_context is None:
+            raise ValueError("tool_context is required when model_name='inherit'")
+        current_agent = getattr(tool_context, "_invocation_context", None)
+        current_agent = getattr(current_agent, "agent", None)
+        model = get_model_from_agent(current_agent)
+        if model is None:
+            raise ValueError("Unable to resolve current agent model for 'inherit'")
+        return model
+    return LiteLlm(model=model_name)
 
 
 def get_aigise_session_from_context(
@@ -373,11 +409,16 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
 
     Args:
         base_agent_info: EnsembleAgentInfo object containing the base agent (must be AigiseAgent)
-        model_name: The model name to use (e.g., "anthropic/claude-sonnet-4")
+        model_name: The model name to use (e.g., "anthropic/claude-sonnet-4") or
+          INHERIT_MODEL ("inherit") to reuse inherit_model.
+        inherit_model: Model instance used when model_name==INHERIT_MODEL.
 
     Returns:
         New AigiseAgent instance with the specified model and same enabled_skills
     """
+    # NOTE: This is intentionally a private helper, but used by ensemble manager.
+
+    # pylint: disable=protected-access
     from aigise.agents.aigise_agent import AigiseAgent
 
     if not base_agent_info.agent_instance or not isinstance(
@@ -391,6 +432,12 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
 
     # Get enabled_skills from the AigiseAgent instance
     enabled_skills = getattr(base_agent, "_enabled_skills", None)
+
+    if model_name == INHERIT_MODEL:
+        raise ValueError(
+            "model_name='inherit' requires using _copy_agent_with_updated_model_v2 "
+            "with inherit_model provided"
+        )
 
     # Use the official copy method provided by BaseAgent (Pydantic model_copy)
     try:
@@ -472,4 +519,68 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
         ):
             new_agent.after_tool_callback = base_agent.after_tool_callback
 
+        return new_agent
+
+
+def _copy_agent_with_updated_model_v2(
+    base_agent_info, model_name: str, *, inherit_model: Optional[BaseLlm] = None
+):
+    """Like _copy_agent_with_updated_model but supports model inheritance."""
+    from aigise.agents.aigise_agent import AigiseAgent
+
+    if not base_agent_info.agent_instance or not isinstance(
+        base_agent_info.agent_instance, AigiseAgent
+    ):
+        raise ValueError(
+            f"Base agent must be an AigiseAgent instance, got {type(base_agent_info.agent_instance)}"
+        )
+
+    base_agent = base_agent_info.agent_instance
+    enabled_skills = getattr(base_agent, "_enabled_skills", None)
+
+    if model_name == INHERIT_MODEL:
+        if inherit_model is None:
+            raise ValueError("inherit_model must be provided for model_name='inherit'")
+        resolved_model = inherit_model
+        suffix = INHERIT_MODEL
+    else:
+        resolved_model = LiteLlm(model=model_name)
+        suffix = model_name.replace("/", "_").replace("-", "_")
+
+    try:
+        new_agent = base_agent.copy(
+            update={
+                "model": resolved_model,
+                "name": f"{base_agent.name}_{suffix}",
+            }
+        )
+        new_agent._enabled_skills = enabled_skills
+        return new_agent
+    except Exception as copy_error:
+        print(
+            f"Warning: agent.copy() failed ({copy_error}), falling back to manual creation"
+        )
+        new_agent = AigiseAgent(
+            model=resolved_model,
+            name=f"{base_agent.name}_{suffix}",
+            instruction=base_agent.instruction,
+            description=base_agent.description or f"{base_agent.name} using {suffix}",
+            tools=base_agent.tools,
+            enabled_skills=enabled_skills,
+            sub_agents=base_agent.sub_agents
+            if hasattr(base_agent, "sub_agents")
+            else None,
+            tool_combos=getattr(base_agent, "tool_combos", None),
+            global_instruction=getattr(base_agent, "global_instruction", ""),
+            generate_content_config=getattr(
+                base_agent, "generate_content_config", None
+            ),
+            disallow_transfer_to_parent=getattr(
+                base_agent, "disallow_transfer_to_parent", False
+            ),
+            disallow_transfer_to_peers=getattr(
+                base_agent, "disallow_transfer_to_peers", False
+            ),
+            include_contents=getattr(base_agent, "include_contents", "default"),
+        )
         return new_agent

@@ -21,6 +21,7 @@ from google.adk.agents.base_agent import BaseAgent
 from google.adk.models.lite_llm import LiteLlm
 
 from aigise.agents.aigise_agent import AigiseAgent
+from aigise.utils.agent_utils import INHERIT_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -100,9 +101,27 @@ class DynamicAgentManager:
         Raises:
             ValueError: If required parameters are missing
         """
-        # Handle common model string wrapping
+        # Handle special model inheritance and common model string wrapping.
+        #
+        # NOTE: Dynamic agents are persisted; we keep "model" as a string in the
+        # persisted metadata. For INHERIT_MODEL we optionally accept a
+        # non-persisted "_resolved_model" (BaseLlm) at creation time. When
+        # reloading from disk, fall back to the session's main model.
+        resolved_model = kwargs.pop("_resolved_model", None)
         if "model" in kwargs and isinstance(kwargs["model"], str):
-            kwargs["model"] = LiteLlm(model=kwargs["model"])
+            if kwargs["model"] == INHERIT_MODEL:
+                if resolved_model is not None:
+                    kwargs["model"] = resolved_model
+                else:
+                    fallback = getattr(self.config.llm, "model_name", None)
+                    if not fallback:
+                        raise ValueError(
+                            "model='inherit' requires either _resolved_model "
+                            "or a configured llm.model_configs.main.model_name"
+                        )
+                    kwargs["model"] = LiteLlm(model=fallback)
+            else:
+                kwargs["model"] = LiteLlm(model=kwargs["model"])
 
         # Validate required parameters
         required_params = ["name", "model"]
@@ -140,9 +159,13 @@ class DynamicAgentManager:
             agent_config = {k: v for k, v in config.items() if k not in ["tool_names"]}
             agent = self._create_agent_instance(**agent_config)
 
-            # Create metadata (exclude tools - cannot be serialized)
-            # Note: enabled_skills is included in metadata_config for persistence
-            metadata_config = {k: v for k, v in config.items() if k not in ["tools"]}
+            # Create metadata (exclude tools and private runtime fields - cannot be serialized).
+            # Note: enabled_skills is included in metadata_config for persistence.
+            metadata_config = {
+                k: v
+                for k, v in config.items()
+                if k not in ["tools"] and not str(k).startswith("_")
+            }
 
             # Verify enabled_skills is included in metadata_config
             if "enabled_skills" in config:

@@ -122,3 +122,28 @@ async def test_create_subagent_injects_default_tools_and_adds_skills_guardrail(
     assert "enabled_skills" in instr
     assert "must only use bash tools" in instr
     assert "only use these tools" not in instr.lower()
+
+
+@pytest.mark.asyncio
+async def test_create_subagent_inherit_model_passes_resolved_model(monkeypatch):
+    tool_context = _DummyToolContext()
+    session = _DummySession(models=["inherit"])
+
+    monkeypatch.setattr(dyn, "get_aigise_session_id_from_context", lambda tc: "sid")
+    monkeypatch.setattr(dyn, "get_aigise_session", lambda sid: session)
+    monkeypatch.setattr(dyn, "extract_tools_from_agent", lambda agent: {"t": object()})
+    monkeypatch.setattr(dyn, "get_model_from_agent", lambda agent: "MODEL_OBJ")
+
+    res = await dyn.create_subagent(
+        agent_name="a",
+        instruction="do stuff",
+        model_name="inherit",
+        tools_list=["t"],
+        enabled_skills=[],
+        tool_context=tool_context,
+    )
+    assert res["success"] is True
+
+    cfg = session.agents.last_config
+    assert cfg["model"] == "inherit"
+    assert cfg["_resolved_model"] == "MODEL_OBJ"

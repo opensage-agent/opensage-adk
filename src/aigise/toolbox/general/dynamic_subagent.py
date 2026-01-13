@@ -19,8 +19,10 @@ from aigise.toolbox.general.bash_tools_interface import (
     run_terminal_command,
 )
 from aigise.utils.agent_utils import (
+    INHERIT_MODEL,
     extract_tools_from_agent,
     get_aigise_session_id_from_context,
+    get_model_from_agent,
 )
 
 
@@ -56,7 +58,8 @@ async def create_subagent(
     Args:
         agent_name: Custom name for the agent
         instruction: Custom instruction for the agent
-        model_name: Model to use for the agent (e.g., "anthropic/claude-sonnet-4", "openai/gpt-5")
+        model_name: Model to use for the agent (e.g., "anthropic/claude-sonnet-4",
+          "openai/gpt-5", or "inherit" to reuse the current agent's model)
         tools_list: List of tool names to assign to the agent
         enabled_skills: Controls which bash tools are loaded.
                       - None: Load NO bash tools.
@@ -152,6 +155,8 @@ async def create_subagent(
             "tools": tools_to_add,
             "enabled_skills": enabled_skills,
         }
+        if model_name == INHERIT_MODEL:
+            config["_resolved_model"] = get_model_from_agent(current_agent)
 
         agent_id, agent_instance = await manager.create_agent(
             config, creator=current_agent.name

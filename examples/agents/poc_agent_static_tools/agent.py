@@ -108,6 +108,8 @@ def mk_agent(aigise_session_id: str):
         This is the preferred and default behavior.
 
         ***********IMPORTANT***********
+        You should prefer using /bash_tools/, do not use general shell commands such as sed if a suitable Skill exists.
+        Try to explore the path by calling the appropriate scripts under /bash_tools/, e.g., read-file, list-functions-in-file, search-symbol-definition, get-call-paths-to-function, get-callee, get-caller, joern-query, joern-slice, neo4j-query, search-function.
         If you are stuck, maybe you are looking at the wrong vulnerability, you can use a subagent with no history to solve the task, as your history might be misleading, and you can use agent ensemble to explore the code and understand the vulnerability by multiple agents.
         You can submit a poc by calling generate_poc_and_submit.
         You should not see the git commit history.

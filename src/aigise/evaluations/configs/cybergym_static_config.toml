@@ -110,14 +110,14 @@ tpm = 60000
 
 # Drop/summarize model configuration
 [llm.model_configs.summarize]
-model_name = "${MAIN_MODEL}"
+model_name = "inherit"
 temperature = 0.3
 rpm = 30
 tpm = 30000
 
 # Flag claims model configuration
 [llm.model_configs.flag_claims]
-model_name = "${MAIN_MODEL}"
+model_name = "inherit"
 temperature = 0.1
 rpm = 30
 tpm = 30000
@@ -136,7 +136,7 @@ compaction_percent = 50
 
 [agent_ensemble]
 thread_safe_tools = []
-available_models_for_ensemble = "${MAIN_MODEL}"
+available_models_for_ensemble = "inherit"
 
 [build]
 poc_dir = "${POC_DIR}"

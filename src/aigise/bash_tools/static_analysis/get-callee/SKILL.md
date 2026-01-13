@@ -1,6 +1,6 @@
 ---
 name: get-callee
-description: Tool to get the callee of a function in the codebase by function name and file path.
+description: Tool to get the callee of a function in the codebase by function name and file path. It can help you traverse the callgraph and give you indirect calls.
 should_run_in_sandbox: main
 returns_json: false
 

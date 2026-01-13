@@ -1,0 +1,27 @@
+---
+name: read-file
+description: Tool to get a specific line and surrounding lines from a file. When you want to read file, you should use this instead of general shell commands such as sed.
+should_run_in_sandbox: main
+returns_json: true
+
+---
+
+# Read File Tool
+
+Tool to get a specific line and surrounding lines from a file.
+
+## Usage
+
+```bash
+python3 scripts/read_file.py --file "/path/to/file" --linenum 10 --context 5
+```
+
+## Parameters
+
+- `file`: The path to the file. This should be an absolute path.
+- `linenum`: The line number to retrieve.
+- `context`: The number of lines of context to include before and after the specified line. DO NOT set this more than 100.
+
+## Requires Sandbox
+
+main

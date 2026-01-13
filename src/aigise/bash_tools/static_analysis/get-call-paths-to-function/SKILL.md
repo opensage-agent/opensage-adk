@@ -1,6 +1,6 @@
 ---
 name: get-call-paths
-description: Get a path in the call graph from a source function to a specified destination function in the codebase.
+description: Get a path in the call graph from a source function to a specified destination function in the codebase. It's very useful when you want to find call paths to a function.
 should_run_in_sandbox: main
 returns_json: false
 

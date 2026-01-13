@@ -33,7 +33,7 @@ class CyberGym(Evaluation):
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
-    max_llm_calls: int = 400
+    max_llm_calls: int = 200
     config_template_path: str = str(
         SRC_PATH / "evaluations/configs/cybergym_dynamic_config.toml"
     )
@@ -79,7 +79,7 @@ class CyberGym(Evaluation):
                 Path(__file__).parent / "metadata" / "task_list_subset", "r"
             ) as f:
                 task_list = f.read().splitlines()
-            task_list = task_list[:50]
+            task_list = ["arvo:15003"]
             dataset = dataset.filter(lambda x: x["task_id"] in task_list)
             logger.warning(
                 f"Filtered dataset to {len(dataset)} tasks from task_list_subset"

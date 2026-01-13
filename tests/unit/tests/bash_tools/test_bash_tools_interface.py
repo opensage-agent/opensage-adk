@@ -376,21 +376,91 @@ class TestListAvailableScripts:
         result = list_available_scripts(tool_context=mock_context)
 
         assert isinstance(result, str)
-        assert "Available Bash Scripts" in result
-        assert "should_run_in_sandbox:" in result
+        assert "Available Skills under /bash_tools" in result
+        assert "SKILL.md" in result
+        # Full SKILL.md content includes YAML frontmatter.
+        assert "name:" in result
+        assert "description:" in result
 
-    def test_list_available_scripts_no_tools(self):
+    def test_list_available_scripts_accepts_container_style_start_dir(self, tmp_path):
+        mock_context = MagicMock()
+
+        # Create a minimal executable Skill under retrieval/foo.
+        skill_dir = tmp_path / "retrieval" / "foo"
+        (skill_dir / "scripts").mkdir(parents=True)
+        (skill_dir / "scripts" / "tool.sh").write_text(
+            "#!/usr/bin/env bash\n", encoding="utf-8"
+        )
+        (skill_dir / "SKILL.md").write_text(
+            "\n".join(
+                [
+                    "---",
+                    "name: foo",
+                    "description: Foo tool",
+                    "should_run_in_sandbox: main",
+                    "---",
+                    "",
+                    "# Foo",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        with patch(
+            "aigise.toolbox.general.bash_tools_interface.BASH_TOOLS_DIR", new=tmp_path
+        ):
+            result = list_available_scripts(
+                start_dir="/bash_tools/retrieval", tool_context=mock_context
+            )
+
+        assert "/bash_tools/retrieval/foo/SKILL.md" in result
+        assert "name: foo" in result
+
+    def test_list_available_scripts_accepts_container_root_start_dir(self, tmp_path):
+        mock_context = MagicMock()
+
+        # Create a minimal executable Skill under retrieval/foo.
+        skill_dir = tmp_path / "retrieval" / "foo"
+        (skill_dir / "scripts").mkdir(parents=True)
+        (skill_dir / "scripts" / "tool.sh").write_text(
+            "#!/usr/bin/env bash\n", encoding="utf-8"
+        )
+        (skill_dir / "SKILL.md").write_text(
+            "\n".join(
+                [
+                    "---",
+                    "name: foo",
+                    "description: Foo tool",
+                    "should_run_in_sandbox: main",
+                    "---",
+                    "",
+                    "# Foo",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        with patch(
+            "aigise.toolbox.general.bash_tools_interface.BASH_TOOLS_DIR", new=tmp_path
+        ):
+            result = list_available_scripts(
+                start_dir="/bash_tools", tool_context=mock_context
+            )
+
+        assert "Available Skills under /bash_tools" in result
+        assert "/bash_tools/retrieval/foo/SKILL.md" in result
+
+    def test_list_available_scripts_no_tools(self, tmp_path):
         """Test list_available_scripts when no tools are found."""
         mock_context = MagicMock()
 
+        # Point discovery to an empty directory.
         with patch(
-            "aigise.toolbox.general.bash_tools_interface._load_bash_tools_from_skills"
-        ) as mock_load:
-            mock_load.return_value = []
-
+            "aigise.toolbox.general.bash_tools_interface.BASH_TOOLS_DIR", new=tmp_path
+        ):
             result = list_available_scripts(tool_context=mock_context)
 
-            assert "No bash tools found" in result
+        assert "No bash tools found" in result
 
 
 class TestRunTerminalCommand:

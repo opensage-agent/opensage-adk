@@ -8,7 +8,11 @@ from google.genai import types
 
 from aigise.session import get_aigise_session
 from aigise.toolbox.decorators import safe_tool_execution
-from aigise.utils.agent_utils import get_aigise_session_id_from_context
+from aigise.utils.agent_utils import (
+    INHERIT_MODEL,
+    get_aigise_session_id_from_context,
+    get_model_from_agent,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -173,7 +177,15 @@ Keep your response concise and actionable."""
         ]
 
         # Get or create model
-        model = LiteLlm(model=model_name)
+        if model_name == INHERIT_MODEL:
+            model = get_model_from_agent(agent)
+            if model is None:
+                return {
+                    "success": False,
+                    "error": "flag_claims_model='inherit' but current agent has no model",
+                }
+        else:
+            model = LiteLlm(model=model_name)
 
         # Call model
         idea_parts = []
@@ -223,7 +235,16 @@ async def flag_unjustified_claims(tool_context: ToolContext):
         return []
 
     # Create LiteLLM model instance
-    model = LiteLlm(model=model_name)
+    if model_name == INHERIT_MODEL:
+        current_agent = tool_context._invocation_context.agent
+        model = get_model_from_agent(current_agent)
+        if model is None:
+            return {
+                "success": False,
+                "error": "flag_claims_model='inherit' but current agent has no model",
+            }
+    else:
+        model = LiteLlm(model=model_name)
 
     # Prepare events text for analysis
     events_text = []

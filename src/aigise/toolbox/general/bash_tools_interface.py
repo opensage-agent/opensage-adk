@@ -537,73 +537,93 @@ def _load_bash_tools_from_skills(
 def list_available_scripts(
     start_dir: Optional[str] = None, *, tool_context: ToolContext
 ) -> str:
-    """List all available bash scripts and their usage.
+    """List available bash tools by printing full SKILL.md contents.
 
-    Use this tool to discover what bash scripts are available in the sandbox
-    and how to use them. It returns a formatted list of scripts with their
-    descriptions and usage examples.
+    Use this tool to discover what bash tools are available under `/bash_tools`
+    and read their full documentation. For each discovered *executable* Skill
+    (a directory containing `SKILL.md` and a `scripts/` subdirectory with at
+    least one `.sh` or `.py` file), this returns the complete `SKILL.md`
+    content.
+
+    IMPORTANT (MUST FOLLOW):
+    - Do NOT call this tool with the `/bash_tools` root directory (i.e.
+      `start_dir="/bash_tools"`). That produces too much output.
 
     Args:
         tool_context: Tool context from the agent
         start_dir: Optional subdirectory under bash_tools to start discovery from,
             e.g. "fuzz" or "static_analysis". If omitted, scans all bash_tools.
+            DO NOT pass the `/bash_tools` root.
 
     Returns:
-        str: Formatted list of available scripts and usage instructions
+        str: Formatted list of available Skills with full SKILL.md content
     """
-    tools_metadata = _load_bash_tools_from_skills(start_dir=start_dir)
 
-    if not tools_metadata:
+    def _normalize_start_dir(value: str) -> str:
+        """Normalize start_dir into a relative path under BASH_TOOLS_DIR.
+
+        Accepts both:
+        - "retrieval"
+        - "retrieval/search-symbol"
+        - "/bash_tools/retrieval"
+        - "/bash_tools/retrieval/search-symbol"
+        """
+        value = value.strip()
+        # Treat "/bash_tools" (and "/bash_tools/" + extra trailing slashes) as root.
+        if value.rstrip("/") == CONTAINER_BASH_TOOLS_DIR:
+            return ""
+        if value.startswith(f"{CONTAINER_BASH_TOOLS_DIR}/"):
+            value = value[len(f"{CONTAINER_BASH_TOOLS_DIR}/") :]
+        value = value.lstrip("/")
+        # Disallow traversal.
+        normalized = f"/{value}/"
+        if value in (".", "..") or "/../" in normalized or "/./" in normalized:
+            raise ValueError(f"Invalid start_dir: {value!r}")
+        return value
+
+    base_dir = BASH_TOOLS_DIR
+    if start_dir:
+        start_dir = _normalize_start_dir(start_dir)
+        base_dir = (BASH_TOOLS_DIR / start_dir).resolve()
+        if not base_dir.exists() or not base_dir.is_dir():
+            return "Some unexpected error occurred. You should run ls or tree to explore the bash tools directory /bash_tools by your self."
+
+    def _is_executable_skill_dir(skill_dir: Path) -> bool:
+        if not (skill_dir / "SKILL.md").exists():
+            return False
+        scripts_dir = skill_dir / "scripts"
+        if not scripts_dir.exists() or not scripts_dir.is_dir():
+            return False
+        script_files = list(scripts_dir.glob("*.sh")) + list(scripts_dir.glob("*.py"))
+        return bool(script_files)
+
+    skill_md_paths: list[Path] = []
+    for skill_md in base_dir.rglob("SKILL.md"):
+        if _is_executable_skill_dir(skill_md.parent):
+            skill_md_paths.append(skill_md)
+
+    if not skill_md_paths:
         return "No bash tools found in skills directories."
 
-    output = ["Available Bash Scripts:", "=" * 30]
+    root_label = "/bash_tools" if not start_dir else f"/bash_tools/{start_dir}"
+    output = [f"Available Skills under {root_label}:", "=" * 30, ""]
 
-    for meta in tools_metadata:
-        output.append(f"\nName: {meta.name}")
-        output.append(f"Description: {meta.description}")
-        output.append(f"should_run_in_sandbox: {meta.sandbox_types[0]}")
+    # Stable ordering by container path.
+    def _container_path_for(skill_md: Path) -> str:
+        rel_dir = skill_md.parent.relative_to(BASH_TOOLS_DIR)
+        return f"{CONTAINER_BASH_TOOLS_DIR}/{rel_dir.as_posix()}/SKILL.md"
 
-        # Generate usage string
-        usage_parts = [meta.name]
-
-        # Sort parameters: positional first, then named
-        params = meta.parameters
-        positional = sorted(
-            [p for p in params if p.get("positional", False)],
-            key=lambda p: p.get("position", 0),
-        )
-        named = [p for p in params if not p.get("positional", False)]
-
-        for p in positional:
-            name = p["name"].upper()
-            if not p.get("required", True):
-                usage_parts.append(f"[{name}]")
-            else:
-                usage_parts.append(f"<{name}>")
-
-        for p in named:
-            name = p["name"]
-            p_type = p.get("type", "str")
-            if p_type == "bool":
-                usage_parts.append(f"[--{name}]")
-            else:
-                usage_parts.append(f"[--{name} <value>]")
-
-        output.append(f"Usage: {' '.join(usage_parts)}")
-
-        # Add parameter details
-        if params:
-            output.append("Parameters:")
-            for p in positional:
-                req = "Required" if p.get("required", True) else "Optional"
-                output.append(
-                    f"  - {p['name']} (Positional): {p.get('description', '')} [{req}]"
-                )
-            for p in named:
-                req = "Required" if p.get("required", True) else "Optional"
-                output.append(
-                    f"  - --{p['name']} (Named): {p.get('description', '')} [{req}]"
-                )
+    for skill_md in sorted(skill_md_paths, key=_container_path_for):
+        container_skill_md = _container_path_for(skill_md)
+        output.append(f"--- {container_skill_md} ---")
+        try:
+            content = skill_md.read_text(encoding="utf-8")
+        except Exception as exc:  # pylint: disable=broad-except
+            output.append(f"ERROR: Failed to read SKILL.md: {exc}")
+            output.append("")
+            continue
+        output.append(content.rstrip())
+        output.append("")
 
     return "\n".join(output)
 

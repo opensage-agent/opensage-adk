@@ -1,6 +1,6 @@
 ---
 name: get-caller
-description: Tool to get the caller of a function in the codebase.
+description: Tool to get the caller of a function in the codebase. It can help you traverse the callgraph and give you indirect calls.
 should_run_in_sandbox: main
 returns_json: false
 

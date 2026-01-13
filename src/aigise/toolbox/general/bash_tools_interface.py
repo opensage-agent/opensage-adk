@@ -642,22 +642,32 @@ def run_terminal_command(
     the scripts listed by `list_available_scripts`. It supports pipes (|),
     redirection (>), and chaining (&&).
 
-    If the command starts with a known script name (e.g., 'run_fuzzing_campaign'),
-    it will automatically be executed in the correct sandbox environment (e.g., 'fuzz').
-    Otherwise, it runs in the specified sandbox (default: 'main').
-
-    The command you pass in is executed inside the sandbox container as a
-    non-interactive process (not a persistent shell session). For background
-    execution, the command is written to a temporary script file and then run by
-    `bash`, which avoids most wrapper quoting/escaping pitfalls and supports
-    multi-line commands. Shell operators like `&&`, `|`, and `>` work as usual.
+    Command syntax and escaping rules (what the model should assume):
+      - **Write `command` exactly as you would type it in bash.** Pipes (`|`),
+        redirection (`>`, `2>&1`), chaining (`&&`, `;`), subshells (`$(...)`),
+        and quoting all work normally.
+      - **Do NOT wrap your command in `bash -c` or `bash -lc`.** The backend
+        already executes your command via `bash` (and sources `/shared/bashrc`
+        if present). Wrapping again usually adds unnecessary quoting/escaping
+        pitfalls.
+      - **No extra escaping is required by the backend.** The backend does NOT
+        wrap your string into a fragile `bash -c '...'` one-liner; instead it
+        writes your command verbatim into a temporary script and executes it
+        with `bash`. This is newline-safe and preserves quotes as-is.
+      - The command runs as a **non-interactive** process (no TTY, no persistent
+        shell session). If you see output like
+        `mesg: ttyname failed: Inappropriate ioctl for device`, it's a benign
+        warning from shell init logic; the command can still succeed.
+      - Stdout/stderr are captured and returned (and for `background=True`, you
+        can retrieve them later via `get_background_task_output`).
 
     Args:
-        command: The full command line to execute (e.g., "run_fuzzing_campaign target 30 | grep found")
+        command: The full command line to execute
+            (e.g., "python3 -c 'print(123)' | cat").
         background: Whether to run the command in the background (default: False)
         timeout: Timeout in seconds for foreground commands (default: 60)
-        sandbox_name: The name of the sandbox to run the command in (default: "main").
-                      Ignored if the command is a known script with a forced sandbox type.
+        sandbox_name: The name of the sandbox to run the command in
+            (default: "main").
         tool_context: The tool context from the agent execution
 
     Returns:

@@ -337,26 +337,36 @@ def apply() -> None:
                 )
                 or 0
             )
-            for _ in range(child_used):
-                try:
+            incremented = False
+            try:
+                for _ in range(child_used):
                     parent_ctx.increment_llm_call_count()
-                except Exception as limit_err:
-                    logger.debug(
-                        "Parent LLM limit triggered while merging child usage: %s",
-                        limit_err,
+                incremented = True
+            except Exception as limit_err:
+                # If parent_ctx.increment_llm_call_count() exists, it should be the
+                # authoritative way to account for usage (it may enforce limits).
+                # Do not also add child_used again below, or we'll double count.
+                logger.debug(
+                    "Unable to increment parent LLM call count while merging child usage: %s",
+                    limit_err,
+                )
+
+            if not incremented:
+                # Fallback for contexts that don't expose increment_llm_call_count()
+                # (e.g., some test stubs): adjust the counter directly once.
+                parent_used_now = int(
+                    getattr(parent_mgr, "_number_of_llm_calls", 0) or 0
+                )
+                if parent_limit > 0:
+                    setattr(
+                        parent_mgr,
+                        "_number_of_llm_calls",
+                        min(parent_limit, parent_used_now + child_used),
                     )
-                    break
-            parent_used_now = int(getattr(parent_mgr, "_number_of_llm_calls", 0) or 0)
-            if parent_limit > 0:
-                setattr(
-                    parent_mgr,
-                    "_number_of_llm_calls",
-                    min(parent_limit, parent_used_now + child_used),
-                )
-            else:
-                setattr(
-                    parent_mgr, "_number_of_llm_calls", parent_used_now + child_used
-                )
+                else:
+                    setattr(
+                        parent_mgr, "_number_of_llm_calls", parent_used_now + child_used
+                    )
         except Exception as _e:
             logger.debug(f"skip merging child llm_calls_used: {_e}")
 

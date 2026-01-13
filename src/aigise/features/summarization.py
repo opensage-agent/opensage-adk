@@ -18,6 +18,7 @@ from aigise.utils.agent_utils import (
     discover_all_agents,
     get_aigise_session_id_from_context,
     register_callback_to_all_agents,
+    resolve_model_spec,
 )
 
 logger = logging.getLogger(__name__)
@@ -135,7 +136,7 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
     model_name = getattr(aigise_session.config.llm, "summarize_model", None)
     agent = tool_context._invocation_context.agent
     if model_name:
-        model = LiteLlm(model=model_name)
+        model = resolve_model_spec(model_name, tool_context=tool_context)
     else:
         if not hasattr(agent, "canonical_model"):
             logger.warning("Agent has no model, skipping tool response summarization")
@@ -589,7 +590,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     # Choose summarization model
     model_name = getattr(aigise_session.config.llm, "summarize_model", None)
     if model_name:
-        summarizer_model = LiteLlm(model=model_name)
+        summarizer_model = resolve_model_spec(model_name, tool_context=tool_context)
     else:
         summarizer_model = agent.canonical_model
 

@@ -189,9 +189,11 @@ class TestToolResponseSummarizer:
         # Long response that exceeds threshold
         tool_response = "x" * 200
 
-        with patch("aigise.features.summarization.LiteLlm") as mock_lite_llm:
+        with patch(
+            "aigise.features.summarization.resolve_model_spec"
+        ) as mock_resolve_model_spec:
             mock_model = MagicMock()
-            mock_lite_llm.return_value = mock_model
+            mock_resolve_model_spec.return_value = mock_model
 
             # Mock model response
             mock_response = MagicMock()
@@ -208,8 +210,9 @@ class TestToolResponseSummarizer:
                 self.mock_tool, self.mock_args, self.mock_tool_context, tool_response
             )
 
-            # Verify mock was called
-            mock_lite_llm.assert_called_once_with(model="openai/gpt-3.5-turbo")
+            mock_resolve_model_spec.assert_called_once_with(
+                "openai/gpt-3.5-turbo", tool_context=self.mock_tool_context
+            )
             mock_model.generate_content_async.assert_called_once()
 
             assert result.startswith("<Summary by aigise>")
@@ -244,6 +247,34 @@ class TestToolResponseSummarizer:
         assert "Agent model summary" in result
 
     @pytest.mark.asyncio
+    async def test_tool_response_summarizer_callback_inherit_model(self):
+        """Test tool response summarizer supports summarize_model='inherit'."""
+        self.mock_history_config.max_tool_response_length = 10
+        self.mock_llm_config.summarize_model = "inherit"
+
+        mock_model = MagicMock()
+        self.mock_agent.canonical_model = mock_model
+
+        mock_response = MagicMock()
+        mock_response.content.parts = [types.Part.from_text(text="Inherited summary")]
+
+        async def mock_async_gen():
+            yield mock_response
+
+        mock_model.generate_content_async.return_value = mock_async_gen()
+
+        with patch("aigise.utils.agent_utils.LiteLlm") as mock_lite_llm:
+            result = await tool_response_summarizer_callback(
+                self.mock_tool,
+                self.mock_args,
+                self.mock_tool_context,
+                "x" * 50,
+            )
+
+        mock_lite_llm.assert_not_called()
+        assert "Inherited summary" in result
+
+    @pytest.mark.asyncio
     async def test_tool_response_summarizer_callback_no_agent_model(self):
         """Test tool response summarizer with no agent model available."""
         self.mock_history_config.max_tool_response_length = 10
@@ -267,17 +298,20 @@ class TestToolResponseSummarizer:
 
         tool_response = "x" * 50  # Long response
 
-        with patch("aigise.features.summarization.LiteLlm") as mock_lite_llm:
+        with patch(
+            "aigise.features.summarization.resolve_model_spec"
+        ) as mock_resolve_model_spec:
             mock_model = MagicMock()
-            mock_lite_llm.return_value = mock_model
+            mock_resolve_model_spec.return_value = mock_model
             mock_model.generate_content_async.side_effect = RuntimeError("Model error")
 
             result = await tool_response_summarizer_callback(
                 self.mock_tool, self.mock_args, self.mock_tool_context, tool_response
             )
 
-            # Verify mock was called (even though it failed)
-            mock_lite_llm.assert_called_once_with(model="openai/gpt-3.5-turbo")
+            mock_resolve_model_spec.assert_called_once_with(
+                "openai/gpt-3.5-turbo", tool_context=self.mock_tool_context
+            )
             mock_model.generate_content_async.assert_called_once()
 
             # Should fallback to truncation when model fails
@@ -298,13 +332,15 @@ class TestToolResponseSummarizer:
         tool_response = "x" * 50  # Long response
 
         with (
-            patch("aigise.features.summarization.LiteLlm") as mock_lite_llm,
+            patch(
+                "aigise.features.summarization.resolve_model_spec"
+            ) as mock_resolve_model_spec,
             patch(
                 "aigise.utils.neo4j_history_management.create_raw_tool_response_node"
             ) as mock_create_node,
         ):
             mock_model = MagicMock()
-            mock_lite_llm.return_value = mock_model
+            mock_resolve_model_spec.return_value = mock_model
 
             mock_response = MagicMock()
             mock_response.content.parts = [types.Part.from_text(text="Summary")]
@@ -321,7 +357,9 @@ class TestToolResponseSummarizer:
             )
 
             # Verify mocks were called
-            mock_lite_llm.assert_called_once_with(model="openai/gpt-3.5-turbo")
+            mock_resolve_model_spec.assert_called_once_with(
+                "openai/gpt-3.5-turbo", tool_context=self.mock_tool_context
+            )
             mock_model.generate_content_async.assert_called_once()
             # Verify Neo4j node creation was called
             mock_create_node.assert_called_once()
@@ -877,10 +915,11 @@ class TestHistorySummarizer:
             event8,
         ]
 
-        with patch("aigise.features.summarization.LiteLlm") as mock_lite_llm:
+        with patch(
+            "aigise.features.summarization.resolve_model_spec"
+        ) as mock_resolve_model_spec:
             mock_model = MagicMock()
-            mock_lite_llm.return_value = mock_model
-            mock_model.model = "mock/model"
+            mock_resolve_model_spec.return_value = mock_model
 
             from unittest.mock import AsyncMock as _AsyncMock
 
@@ -899,7 +938,9 @@ class TestHistorySummarizer:
                 )
 
             # Verify custom model was used
-            mock_lite_llm.assert_called_once_with(model="anthropic/claude-3-5-sonnet")
+            mock_resolve_model_spec.assert_called_once_with(
+                "anthropic/claude-3-5-sonnet", tool_context=self.mock_tool_context
+            )
 
 
 class TestSummarizationPlugins:

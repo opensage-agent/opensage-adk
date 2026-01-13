@@ -333,7 +333,7 @@ def list_available_scripts(
         output.append(content.rstrip())
         output.append("")
 
-    return "\n".join(output)
+    return "\\n".join(output)
 
 
 @safe_tool_execution
@@ -442,10 +442,13 @@ def run_terminal_command(
 
         # Try to parse JSON if it looks like JSON
         parsed_output = output
-        try:
-            parsed_output = json.loads(output.strip())
-        except Exception as e:
-            logger.warning(f"Failed to parse JSON output: {output}")
+        stripped_output = output.strip()
+        if stripped_output.startswith(("{", "[")):
+            try:
+                parsed_output = json.loads(stripped_output)
+            except Exception:
+                # Not valid JSON, keep original output
+                pass
 
         return {
             "success": exit_code == 0,

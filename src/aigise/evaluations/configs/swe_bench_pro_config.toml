@@ -1,0 +1,15 @@
+[llm]
+model_name = "gemini-2.0-flash-exp"
+temperature = 0.7
+
+[build]
+run_command = "echo 'Please check the problem statement and the repository for how to reproduce the issue.'"
+compile_command = "echo 'No compilation needed'"
+
+[sandbox]
+backend = "native"
+
+[sandbox.sandboxes.main]
+image = "${DOCKER_IMAGE}"
+working_dir = "/workspace"
+command = "-c 'while true; do sleep 3600; done'"

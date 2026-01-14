@@ -7,8 +7,7 @@ ENV JOERN_VERSION="v4.0.407" \
     LANG="C.UTF-8"
 
 RUN apt update && \
-    apt install -y wget git unzip curl && \
-    rm -rf /var/lib/apt/lists/*
+    apt install -y wget git unzip curl
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 

@@ -3,13 +3,11 @@ FROM ${BASE_IMAGE}
 
 RUN set -e; \
     apt-get update; \
-    apt-get install -y --no-install-recommends curl; \
-    (apt-get install -y --no-install-recommends ctags \
-      || apt-get install -y --no-install-recommends universal-ctags \
-      || apt-get install -y --no-install-recommends exuberant-ctags \
-      || echo "WARNING: ctags not available in this base image; continuing without it."); \
-    rm -rf /var/lib/apt/lists/*
-
+    apt-get install -y curl; \
+    (apt-get install -y ctags \
+      || apt-get install -y universal-ctags \
+      || apt-get install -y exuberant-ctags \
+      || echo "WARNING: ctags not available in this base image; continuing without it.");
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 RUN mkdir -p /app

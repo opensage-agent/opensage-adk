@@ -426,9 +426,7 @@ class ToolLoader:
         ]
 
         for sandbox_type in sandbox_list:
-            lines.append(
-                f"- **{sandbox_type}**: A containerized environment for running {sandbox_type}-specific operations"
-            )
+            lines.append(f"- **{sandbox_type}**")
 
         lines.extend(
             [
@@ -441,12 +439,9 @@ class ToolLoader:
                 "  Use this for storing data that needs to be shared between sandboxes or persisted.",
                 "",
                 "- **`/sandbox_scripts`**: Read-only shared directory containing sandbox initialization scripts. ",
-                "  This contains utility scripts that are available to all sandboxes but cannot be modified.",
                 "",
                 "- **`/bash_tools`**: Read-write directory containing bash tool scripts (Skills). ",
-                "  This is where the tool paths mentioned above are located. Each tool directory contains:",
-                "  - A `scripts/` subdirectory with executable scripts",
-                "  - A `SKILL.md` file with documentation",
+                "  This is where the tool paths mentioned above are located.",
                 "",
                 "### Python Environment",
                 "",
@@ -454,9 +449,6 @@ class ToolLoader:
                 "",
                 "Key points:",
                 "- A venv is created at **`/app/.venv`** via `RUN uv venv --python 3.12`",
-                "- Python deps are installed **into that venv** via `uv pip install ...`",
-                "- Prefer running Python via the venv interpreter explicitly:",
-                "  - `/app/.venv/bin/python -c '...'\n  - `/app/.venv/bin/pip list`",
                 "- Note: command execution is non-persistent, so `source /app/.venv/bin/activate` will not carry over to the next command; prefer explicit `/app/.venv/bin/python ...`",
                 "",
                 "### Command Execution Model",
@@ -465,8 +457,6 @@ class ToolLoader:
                 "",
                 "This means:",
                 "- Each command starts with a fresh environment (environment variables, working directory, shell state are not preserved between commands)",
-                "- To persist state between commands, use files in `/shared` directory or explicitly set environment variables in each command",
-                "- Interactive commands that require TTY (like `vim`, `less`, `top`) may not work as expected",
                 "- To change directory or set environment variables, include them in the command itself (e.g., `cd /path && command` or `VAR=value command`)",
                 "",
             ]
@@ -547,8 +537,7 @@ class AigiseAgent(LlmAgent):
             "CRITICAL TOOL PRIORITY (MUST FOLLOW):\n"
             "- Prefer and use Skills under `/bash_tools/...` whenever possible.\n"
             "- At the start of a task, you must **explore the available bash tools broadly**:\n"
-            "- Do NOT use generic shell commands (sed/etc.) unless absolutely necessary. If you want to use generic shell commands, first state why you cannot use a Skill to accomplish the task.\n"
-            "- If you still must use generic shell, explicitly justify why no suitable "
+            "- Do NOT use generic shell commands (sed/etc.) unless absolutely necessary. \n"
             "Skill exists.\n"
         ).strip()
         if _TOOL_USAGE_BANNER_MARKER not in (self.instruction or ""):
@@ -646,12 +635,10 @@ and structure. Use this as the foundation for your documentation.
         if tool_prompt:
             # Preamble describing the skill structure
             description_preamble = (
-                "Each tool path provided below represents a 'Skill' directory which follows a specific structure:\n"
-                "- It contains a `SKILL.md` file which serves as documentation.\n"
-                "- Some Skills are **toolsets/groupings** and may not include a `scripts/` directory.\n"
-                "- Executable Skills include a `scripts/` directory with the runnable scripts/tools.\n"
-                "You are encouraged to inspect these files (e.g., using `ls -R <path>` or `cat <path>/SKILL.md`) "
-                "to better understand the tool's usage and available scripts before invocation.\n"
+                "Each tool path below is a Skill directory:\n"
+                "- `SKILL.md`: documentation/usage.\n"
+                "- Toolset Skills may not have `scripts/`.\n"
+                "- Executable Skills have `scripts/` with runnable tools.\n"
             )
 
             tool_usage_policy = (
@@ -660,12 +647,11 @@ and structure. Use this as the foundation for your documentation.
                 "`/bash_tools/...` (i.e., the tool scripts described below).\n"
                 "- Only fall back to generic shell commands when there is **no** suitable `/bash_tools` Skill for the job.\n"
                 "- Before starting work, survey the tool ecosystem broadly:\n"
-                '  - Call `list_available_scripts(start_dir="/bash_tools")` to review ALL available Skill docs.\n'
+                "  - Call `list_available_scripts to review relevant available Skill docs.\n"
                 "  - Then inspect and consider multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
                 "- Before using generic commands like `sed`, first check for an existing Skill:\n"
                 '  - Use `list_available_scripts(start_dir="/bash_tools/<toolset>")` to inspect SKILL.md files.\n'
                 "  - If a Skill exists, use it instead of generic shell.\n"
-                '- If you still must use generic shell, you must explicitly say: "No suitable /bash_tools Skill exists" and briefly justify.\n'
                 "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
                 "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
                 "- Do NOT edit existing `/bash_tools/...` Skills in place. If you need changes, copy/adapt into a new "
@@ -726,12 +712,10 @@ and structure. Use this as the foundation for your documentation.
         if tool_prompt:
             # Preamble describing the skill structure
             description_preamble = (
-                "Each tool path provided below represents a 'Skill' directory which follows a specific structure:\n"
-                "- It contains a `SKILL.md` file which serves as documentation.\n"
-                "- Some Skills are **toolsets/groupings** and may not include a `scripts/` directory.\n"
-                "- Executable Skills include a `scripts/` directory with the runnable scripts/tools.\n"
-                "You are encouraged to inspect these files (e.g., using `ls -R <path>` or `cat <path>/SKILL.md`) "
-                "to better understand the tool's usage and available scripts before invocation.\n"
+                "Each tool path below is a Skill directory:\n"
+                "- `SKILL.md`: documentation/usage.\n"
+                "- Toolset Skills may not have `scripts/`.\n"
+                "- Executable Skills have `scripts/` with runnable tools.\n"
             )
 
             tool_usage_policy = (
@@ -740,12 +724,11 @@ and structure. Use this as the foundation for your documentation.
                 "`/bash_tools/...` (i.e., the tool scripts described below).\n"
                 "- Only fall back to generic shell commands when there is **no** suitable `/bash_tools` Skill for the job.\n"
                 "- Before starting work, survey the tool ecosystem broadly:\n"
-                '  - Call `list_available_scripts(start_dir="/bash_tools")` to review ALL available Skill docs.\n'
+                "  - Call `list_available_scripts to review relevant available Skill docs.\n"
                 "  - Then inspect and consider multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
                 "- Before using generic commands like `sed`, first check for an existing Skill:\n"
                 '  - Use `list_available_scripts(start_dir="/bash_tools/<toolset>")` to inspect SKILL.md files.\n'
                 "  - If a Skill exists, use it instead of generic shell.\n"
-                '- If you still must use generic shell, you must explicitly say: "No suitable /bash_tools Skill exists" and briefly justify.\n'
                 "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
                 "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
                 "- Do NOT edit existing `/bash_tools/...` Skills in place. If you need changes, copy/adapt into a new "

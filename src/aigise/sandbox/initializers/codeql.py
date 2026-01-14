@@ -45,7 +45,7 @@ class CodeQLInitializer(SandboxInitializer):
             # If Joern exists, wait for it to be ready first (for potential merging)
             create_not_found = True
             if "joern" in aigise_session.config.sandbox.sandboxes:
-                await aigise_session.sandboxes.wait_for_ready("joern")
+                await aigise_session.sandboxes.wait_for_ready_or_error("joern")
 
             await aigise_session.sandboxes.wait_for_ready("neo4j")
             neo4j_client = await aigise_session.neo4j.get_async_client("analysis")

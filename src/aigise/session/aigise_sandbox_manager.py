@@ -528,6 +528,18 @@ class AigiseSandboxManager:
                 f"Waiting for sandbox '{sandbox_type}' to be ready failed: Sandbox '{sandbox_type}' failed to initialize"
             )
 
+    async def wait_for_ready_or_error(self, sandbox_type: str) -> None:
+        """Wait for a specific sandbox to be ready or error."""
+        while (
+            self._sandbox_states[sandbox_type] != SandboxState.READY
+            and self._sandbox_states[sandbox_type] != SandboxState.ERROR
+        ):
+            await asyncio.sleep(1)
+        if self._sandbox_states[sandbox_type] == SandboxState.ERROR:
+            logger.error(
+                f"Waiting for sandbox '{sandbox_type}' to be ready or error: result is error"
+            )
+
     def _cleanup_sandbox(self, sandbox: BaseSandbox) -> None:
         """Cleanup a specific sandbox instance.
 

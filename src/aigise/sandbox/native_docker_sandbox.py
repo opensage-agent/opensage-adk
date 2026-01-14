@@ -29,8 +29,6 @@ from aigise.utils.bash_tools_staging import build_bash_tools_staging_dir
 from aigise.utils.parser import get_function_info
 from aigise.utils.project_info import PROJECT_PATH
 
-client = docker.DockerClient(base_url="unix://var/run/docker.sock", timeout=300)
-
 
 @dataclass
 class DockerBuildResult:
@@ -1267,17 +1265,17 @@ class NativeDockerSandbox(BaseSandbox):
                     await instance.async_initialize()
 
             # Determine per-sandbox timeout: read from container_config.extra,
-            # fallback to 30 minutes (1800s) by default.
-            timeout_seconds = 1800
+            # fallback to 60 minutes (3600s) by default.
+            timeout_seconds = 3600
             container_cfg = getattr(sandbox_instance, "container_config_obj", None)
             if container_cfg and getattr(container_cfg, "extra", None):
                 try:
                     timeout_seconds = int(
-                        container_cfg.extra.get("initializer_timeout_sec", 1800)
+                        container_cfg.extra.get("initializer_timeout_sec", 3600)
                     )
                 except Exception:
                     # Keep default on parse issues
-                    timeout_seconds = 1800
+                    timeout_seconds = 3600
 
             # Wrap with asyncio.wait_for to enforce timeout
             init_entries.append(
@@ -1389,7 +1387,7 @@ class NativeDockerSandbox(BaseSandbox):
                 # Create a placeholder container to hold the IP:7777
                 # This ensures no other process takes it before we launch real sandboxes
                 try:
-                    client = docker.from_env()
+                    client = docker.from_env(timeout=3600)
                     placeholder_container = client.containers.run(
                         "alpine:latest",
                         command=["sh", "-c", "nc -l -p 7777 0.0.0.0 & sleep infinity"],
@@ -1640,9 +1638,7 @@ class NativeDockerSandbox(BaseSandbox):
             #     cache_results["errors"].append(error_msg)
 
             # 2. Commit each sandbox container to an image
-            import docker
-
-            client = docker.from_env()
+            client = docker.from_env(timeout=3600)
 
             for sandbox_type, sandbox_instance in sandbox_instances.items():
                 try:

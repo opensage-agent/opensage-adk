@@ -140,7 +140,7 @@ def verify_docker() -> VerificationResult:
     try:
         import docker
 
-        client = docker.from_env()
+        client = docker.from_env(timeout=3600)
         client.ping()
         return VerificationResult(
             name="Docker",

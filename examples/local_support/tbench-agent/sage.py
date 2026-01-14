@@ -41,6 +41,17 @@ Before marking any task as complete:
 - Document your code with clear comments when helpful
 
 Remember: Taking time to verify and review prevents mistakes and ensures quality results.
+
+Before starting the task, explicitly state your understanding of the user’s requirements.
+
+Then, enumerate all possible corner cases and checks that must be considered.
+
+Before finishing, generate a test file (or test cases) for each identified corner case and ensure that all tests pass.
+
+Call the critique tool before you finish your task.
+
+At last, state what you have done and how you finished the task.
+
 """
 
 

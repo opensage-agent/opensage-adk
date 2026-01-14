@@ -53,6 +53,17 @@ async def think(thinking: str, tool_context: ToolContext):
 
 
 @safe_tool_execution
+async def plan(plan: str, tool_context: ToolContext):
+    """
+    If you have want to do some planning, do not output the plan in plain text, call this tool to do the planning.
+
+    Returns:
+        "Planning done"
+    """
+    return "Planning done"
+
+
+@safe_tool_execution
 async def critique(tool_context: ToolContext):
     """
     Call this to query another model as a consultant to help you solve the task, you should call this frequently to get an idea of how to solve the task.
@@ -163,10 +174,8 @@ Please provide:
 You need to be critical and objective, do not sugarcoat the truth, do not be afraid to tell the agent what they are doing wrong.
 You should also find all unjustified claims and assumptions and flag them.
 There are probably something missing or wrong in the task, you need to find it and tell the agent.
-There are probably some context missing, the agent might not have all the information it needs to solve the task, indicate what needs to be added to the context, e.g., are the exploitation path complete, and are the functions in the exploitation path complete?
-Does the agent only have a part of the functions and starts to guess the rest? Does the agent guess some machanism or logic that don't show up in the code, e.g., processing of a header, a callback, a mechanism of a specific function, etc.?
-Note that there is definitely a way to trigger the vulnerability and trigger a sanitizer error, with exit code not equal to 0, do not question this. If the agent cannot find a way to trigger the vulnerability, it might mean that the vulnerability it is exploring is wrong.
-
+There are probably some context missing, the agent might not have all the information it needs to solve the task, indicate what needs to be added to the context.
+Does the agent verify the result of the task carefully, considering all possible cases and edge cases?
 Keep your response concise and actionable."""
 
         # Create LLM request

@@ -215,7 +215,7 @@ def mk_agent(aigise_session_id: str):
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
-            list_available_scripts,
+            # list_available_scripts,
             # Debugger Tools
             gdb_toolset,
             # debugger_agent_tool,

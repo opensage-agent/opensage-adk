@@ -180,6 +180,24 @@ class SandboxInitializer(ABC):
             timeout=30,
         )
 
+        def _parse_priority(skill_md: str) -> float:
+            # Default priority is infinity (lowest priority)
+            default_priority = float("inf")
+            try:
+                # Look for "## Priority" followed by a number
+                # Allow for flexible whitespace and newlines
+                match = re.search(
+                    r"^##\s+Priority\s*\n+\s*(\d+)", skill_md, re.MULTILINE
+                )
+                if match:
+                    return int(match.group(1))
+            except Exception:
+                pass
+            return default_priority
+
+        # Collect and parse all skills first
+        skills_to_install = []
+
         for rel_skill_dir in sorted(set(skill_dirs)):
             skill_root = f"/bash_tools/{rel_skill_dir}"
             skill_md_path = f"{skill_root}/SKILL.md"
@@ -194,6 +212,23 @@ class SandboxInitializer(ABC):
             exec_sandbox = _parse_should_run_in_sandbox(skill_md)
             if exec_sandbox != sandbox_type:
                 continue
+
+            priority = _parse_priority(skill_md)
+            skills_to_install.append(
+                {
+                    "rel_skill_dir": rel_skill_dir,
+                    "skill_root": skill_root,
+                    "priority": priority,
+                }
+            )
+
+        # Sort skills: priority (asc), then rel_skill_dir (asc) for stability
+        skills_to_install.sort(key=lambda x: (x["priority"], x["rel_skill_dir"]))
+
+        # Install skills in order
+        for skill_info in skills_to_install:
+            rel_skill_dir = skill_info["rel_skill_dir"]
+            skill_root = skill_info["skill_root"]
 
             marker = _marker_path(rel_skill_dir)
             _, already = self.run_command_in_container(
@@ -220,10 +255,11 @@ class SandboxInitializer(ABC):
                 continue
 
             logger.info(
-                "Running skill deps installer for sandbox '%s': %s (skill=%s)",
+                "Running skill deps installer for sandbox '%s': %s (skill=%s, priority=%s)",
                 sandbox_type,
                 chosen,
                 rel_skill_dir,
+                skill_info["priority"],
             )
             msg, err = self.run_command_in_container(
                 [

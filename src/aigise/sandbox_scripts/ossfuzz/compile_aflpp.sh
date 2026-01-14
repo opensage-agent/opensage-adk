@@ -8,6 +8,8 @@ export LIB_FUZZING_ENGINE_DEPRECATED=${LIB_FUZZING_ENGINE_DEPRECATED:-/usr/lib/l
 # echo "[*] backup old files"
 # mv $OUT $OUT.bak && mkdir $OUT
 # mv $WORK $WORK.bak && mkdir $WORK
+echo "[*] Clean up old builds"
+rm -rf $OUT $WORK && mkdir -p $OUT $WORK
 
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")

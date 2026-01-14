@@ -28,7 +28,7 @@ class CoverageInitializer(SandboxInitializer):
 
         if err:
             logger.error(f"Coverage initialization error: {msg}")
-            raise
+            raise RuntimeError(f"Coverage environment initialization failed: {msg}")
 
         await self.ensure_ready()
 

@@ -8,6 +8,9 @@ export ARCHITECTURE=${ARCHITECTURE:-x86_64}
 # echo "[*] backup old files"
 # mv $OUT $OUT.bak && mkdir $OUT
 # mv $WORK $WORK.bak && mkdir $WORK
+echo "[*] Clean up old builds"
+rm -rf $OUT $WORK && mkdir -p $OUT $WORK
+
 
 # fix sanitize-coverage
 # Find env vars whose values contain "-fsanitize-coverage" and replace that flag
@@ -21,7 +24,7 @@ while IFS= read -r line; do
 
   new_val=$COVERAGE_REPLACEMENT_FLAGS
 
-  if [[ "$new_val" != "$val" ]]; then
+  if printf '%s\n' "$var" | grep -qi 'coverage'; then
     printf '[*]   %s updated\n' "$var"
     printf '      old: %s\n' "$val"
     printf '      new: %s\n' "$new_val"

@@ -10,5 +10,8 @@ export CFLAGS="$CFLAGS -g3 -O0"
 # echo "[*] backup old files"
 # mv $OUT $OUT.bak && mkdir $OUT
 # mv $WORK $WORK.bak && mkdir $WORK
+echo "[*] Clean up old builds"
+rm -rf $OUT $WORK && mkdir -p $OUT $WORK
+
 
 compile

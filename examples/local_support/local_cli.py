@@ -38,6 +38,23 @@ user_id = "user_" + session_id
 run_until_explicit_finish = True
 
 
+def update_plan(plan: list[dict[str, str]], explanation: str = "") -> str:
+    """Updates the task plan.
+    Provide an optional explanation and a list of plan items, each with a step and status.
+    At most one step can be in_progress at a time.
+
+    Args:
+        plan: Current plan as a list of steps, each step is a dict with 'step' and 'status' keys.
+        'step' is the description of the step,
+            'status' should be one of: pending, in_progress, completed
+        explanation: Explanation for the update
+
+    Returns:
+        Success message
+    """
+    return "Plan updated."
+
+
 def exec_cmd(cmd: str | list[str], *, tool_context: ToolContext) -> str:
     """Execute a shell command and return its output.
 
@@ -105,7 +122,7 @@ async def run_agent(
         model=model,
         description=description,
         instruction=instruction,
-        tools=[exec_cmd, finish_task],
+        tools=[exec_cmd, finish_task, update_plan],
     )
 
     enabled_plugins = []

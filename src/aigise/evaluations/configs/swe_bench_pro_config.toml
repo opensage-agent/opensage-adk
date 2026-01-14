@@ -10,6 +10,10 @@ compile_command = "echo 'No compilation needed'"
 backend = "native"
 
 [sandbox.sandboxes.main]
-image = "${DOCKER_IMAGE}"
+image = "${DEFAULT_IMAGE}_main"
 working_dir = "/workspace"
 command = "-c 'while true; do sleep 3600; done'"
+project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/main/Dockerfile"
+timeout = 300
+[sandbox.sandboxes.main.build_args]
+BASE_IMAGE = "${DEFAULT_IMAGE}"

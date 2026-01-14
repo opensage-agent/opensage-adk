@@ -8,15 +8,9 @@ from aigise.toolbox.finish_task.finish_task import finish_task
 from aigise.toolbox.general.agent_tools import complain
 from aigise.toolbox.general.bash_tools_interface import (
     get_background_task_output,
+    list_available_scripts,
     list_background_tasks,
     run_terminal_command,
-)
-from aigise.toolbox.general.fileop import (
-    edit_file,
-    list_dir,
-    replace_in_file,
-    search_file,
-    view_file,
 )
 
 
@@ -66,7 +60,11 @@ def mk_agent(aigise_session_id: str):
         *   Always check for background tasks using `list_background_tasks` if you initiate long-running processes.
         *   If you get stuck, try searching for error messages or keywords in the codebase.
         *   Do not give up easily. If a fix fails, analyze the error and try a different approach.
-        *
+
+        **Output Format:**
+        You should generate a patch file named `prediction.patch` in /shared directory.
+        The patch file should be a valid patch file that can be applied to the repository using `git apply`.
+        You can generate the patch file by calling `git diff` in the repository.
         """,
         tools=[
             finish_task,
@@ -76,14 +74,9 @@ def mk_agent(aigise_session_id: str):
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
-            # File Operations
-            view_file,
-            edit_file,
-            search_file,
-            replace_in_file,
-            list_dir,
+            list_available_scripts,
         ],
-        enabled_skills=[],
+        enabled_skills=["swe_agent"],
     )
 
     return root_agent

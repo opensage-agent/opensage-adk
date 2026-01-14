@@ -238,7 +238,6 @@ class SandboxInitializer(ABC):
                     "Skill deps installer failed for sandbox '%s' skill '%s': %s"
                     % (sandbox_type, rel_skill_dir, msg)
                 )
-
             self.run_command_in_container(
                 ["bash", "-lc", f"touch {shlex.quote(marker)}"],
                 timeout=10,

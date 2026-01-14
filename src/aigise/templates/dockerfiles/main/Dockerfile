@@ -1,7 +1,13 @@
 ARG BASE_IMAGE=n132/arvo:29728-vul
 FROM ${BASE_IMAGE}
 
-RUN apt-get update && apt-get install -y curl ctags && \
+RUN set -e; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends curl; \
+    (apt-get install -y --no-install-recommends ctags \
+      || apt-get install -y --no-install-recommends universal-ctags \
+      || apt-get install -y --no-install-recommends exuberant-ctags \
+      || echo "WARNING: ctags not available in this base image; continuing without it."); \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh

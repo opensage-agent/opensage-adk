@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=n132/arvo:29728-vul
 FROM ${BASE_IMAGE}
 
-RUN apt-get update && apt-get install -y curl ctags && \
+RUN apt-get update && apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh

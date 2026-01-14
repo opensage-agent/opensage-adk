@@ -122,7 +122,7 @@ async def run_agent(
         model=model,
         description=description,
         instruction=instruction,
-        tools=[exec_cmd, finish_task, think, critique, plan, complain,update_plan],
+        tools=[exec_cmd, finish_task, think, critique, plan, complain, update_plan],
     )
 
     enabled_plugins = []

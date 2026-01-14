@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Update package manager
+apt-get update
+apt-get install -y curl git build-essential tmux jq
+
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Add uv to PATH for current session
+source $HOME/.local/bin/env
+
+# Install Python 3.13 using uv
+uv python install 3.13
+
+# Adjust to your FastAPI server address/port
+API_BASE={{ api_base }}
+
+# Download agent archive
+curl -fSL "${API_BASE}/agent.tar.gz" -o /tmp/agent.tar.gz
+
+# Create Neo4j container
+resp="$(curl -fSL -X POST "${API_BASE}/create_neo4j" -H 'Content-Type: application/json')"
+echo "Create response: $resp"
+
+# Parse ports (jq if available, otherwise python)
+if command -v jq >/dev/null 2>&1; then
+NEO4J_HOST="$(printf '%s' "$resp" | jq -r '.host')"
+NEO4J_HTTP_PORT="$(printf '%s' "$resp" | jq -r '.http_port')"
+NEO4J_BOLT_PORT="$(printf '%s' "$resp" | jq -r '.bolt_port')"
+NEO4J_CONTAINER_ID="$(printf '%s' "$resp" | jq -r '.container_id')"
+else
+NEO4J_HOST="$(python - <<'PY'
+import json,sys
+print(json.loads(sys.stdin.read())["host"])
+PY
+<<<"$resp")"
+NEO4J_HTTP_PORT="$(python - <<'PY'
+import json,sys
+print(json.loads(sys.stdin.read())["http_port"])
+PY
+<<<"$resp")"
+NEO4J_BOLT_PORT="$(python - <<'PY'
+import json,sys
+print(json.loads(sys.stdin.read())["bolt_port"])
+PY
+<<<"$resp")"
+NEO4J_CONTAINER_ID="$(python - <<'PY'
+import json,sys
+print(json.loads(sys.stdin.read())["container_id"])
+PY
+<<<"$resp")"
+fi
+
+
+mkdir -p /opt/sage
+
+echo "NEO4J_HOST=$NEO4J_HOST" > /opt/sage/.env
+echo "NEO4J_HTTP_PORT=$NEO4J_HTTP_PORT" >> /opt/sage/.env
+echo "NEO4J_BOLT_PORT=$NEO4J_BOLT_PORT" >> /opt/sage/.env
+echo "NEO4J_CONTAINER_ID=$NEO4J_CONTAINER_ID" >> /opt/sage/.env
+
+cat /opt/sage/.env
+
+tar -xzf /tmp/agent.tar.gz -C /opt/sage
+cd /opt/sage
+uv sync
+SAGE_NO_DOCKER=1 uv run aigise --help

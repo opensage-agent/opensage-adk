@@ -40,9 +40,9 @@ def _expand_template_variables(config_data: dict) -> dict:
     # 2. Define variable lookup function
     def get_variable_value(var_name: str) -> str:
         # # First check environment variables (highest priority)
-        # env_value = os.getenv(var_name)
-        # if env_value is not None:
-        #     return env_value
+        env_value = os.getenv(var_name)
+        if env_value is not None:
+            return env_value
 
         # Then check top-level variables (fallback)
         if var_name in template_variables:
@@ -95,6 +95,7 @@ class Neo4jConfig:
     user: Optional[str] = None
     password: Optional[str] = None
     bolt_port: int = 7687  # Neo4j bolt port
+    host: Optional[str] = None  # override host if needed
     neo4j_http_port: int = 7474  # Neo4j HTTP port
     _parent_config: Optional["AigiseConfig"] = field(default=None, repr=False)
 
@@ -108,7 +109,7 @@ class Neo4jConfig:
         if self._parent_config and self._parent_config.default_host:
             host = self._parent_config.default_host
         else:
-            host = "127.0.0.1"
+            host = self.host or "127.0.0.1"
 
         return f"neo4j://{host}:{self.bolt_port}"
 

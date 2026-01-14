@@ -3,6 +3,16 @@
 **/codeql/
 **/logs/
 
+**.gz
+**.tar
+**.tar.gz
+**.tar.bz2
+**.tar.xz
+**.tar.lzma
+**.tar.lz
+**.tar.lzo
+**.tar.lrz
+**.tar.lzo
 **tmp**/
 
 .run

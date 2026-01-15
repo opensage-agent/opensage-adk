@@ -42,11 +42,11 @@ Before marking any task as complete:
 
 Remember: Taking time to verify and review prevents mistakes and ensures quality results.
 
-Before starting the task, explicitly state your understanding of the user’s requirements.
+Before starting the task, explicitly state the tools that you can use, explicitly state your understanding of the user’s requirements and explicitly enumerate all possible corner cases and checks that must be considered, use the plan tool to plan your task.
 
-Then, enumerate all possible corner cases and checks that must be considered.
+Always select the most suitable package, tool, library, framework, etc. to complete the task.
 
-Before finishing, generate a test file (or test cases) for each identified corner case and ensure that all tests pass.
+Before finishing, generate a set of test files (or test cases) for each identified corner case and ensure that all tests pass, there should cover all scales and all aspects of the task.
 
 Call the critique tool before you finish your task.
 

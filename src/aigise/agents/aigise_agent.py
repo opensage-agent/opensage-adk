@@ -527,19 +527,6 @@ class AigiseAgent(LlmAgent):
         super().__init__(*args, **kwargs)
         self._enable_memory_management = enable_memory_management
 
-        # Put a highly salient banner at the very beginning of the system prompt
-        # so models see it before anything else.
-        tool_usage_banner = (
-            f"{_TOOL_USAGE_BANNER_MARKER}\n"
-            "CRITICAL TOOL PRIORITY (MUST FOLLOW):\n"
-            "- Prefer and use Skills under `/bash_tools/...` whenever possible.\n"
-            "- At the start of a task, you must **explore the available bash tools broadly**:\n"
-            "- Do NOT use generic shell commands (sed/etc.) unless absolutely necessary. \n"
-            "Skill exists.\n"
-        ).strip()
-        if _TOOL_USAGE_BANNER_MARKER not in (self.instruction or ""):
-            self.instruction = tool_usage_banner + "\n\n" + self.instruction
-
         # Store enabled_skills for dependency collection
         self._enabled_skills = enabled_skills
         loader = ToolLoader(
@@ -630,6 +617,16 @@ and structure. Use this as the foundation for your documentation.
                 self.instruction = repo_first_prompt.strip() + "\n\n" + self.instruction
 
         if tool_prompt:
+            tool_usage_banner = (
+                f"{_TOOL_USAGE_BANNER_MARKER}\n"
+                "CRITICAL TOOL PRIORITY (MUST FOLLOW):\n"
+                "- Prefer and use Skills under `/bash_tools/...` whenever possible.\n"
+                "- At the start of a task, you must **explore the available bash tools broadly**:\n"
+                "- Do NOT use generic shell commands (sed/etc.) unless absolutely necessary. \n"
+                "Skill exists.\n"
+            ).strip()
+            if _TOOL_USAGE_BANNER_MARKER not in (self.instruction or ""):
+                self.instruction = tool_usage_banner + "\n\n" + self.instruction
             # Preamble describing the skill structure
             description_preamble = (
                 "Each tool path below is a Skill directory:\n"

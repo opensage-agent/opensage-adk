@@ -36,7 +36,7 @@ from aigise.toolbox.general.bash_tools_interface import (
 
 logger = logging.getLogger(__name__)
 
-enable_neo4j_logging()
+# enable_neo4j_logging()
 
 session_id = str(uuid4())
 app_name = "aigise_local"

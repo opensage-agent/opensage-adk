@@ -28,6 +28,11 @@ from aigise.features.aigise_in_memory_session_service import (
 from aigise.plugins import load_plugins
 from aigise.session.aigise_session import get_aigise_session
 from aigise.toolbox.general.agent_tools import complain, critique, plan, think
+from aigise.toolbox.general.bash_tools_interface import (
+    get_background_task_output,
+    list_background_tasks,
+    run_terminal_command,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,37 +61,38 @@ def update_plan(plan: list[dict[str, str]], explanation: str = "") -> str:
     return "Plan updated."
 
 
-def exec_cmd(cmd: str | list[str], *, tool_context: ToolContext) -> str:
-    """Execute a shell command and return its output.
+# def exec_cmd(cmd: str | list[str], timeout: float = 600.0, *, tool_context: ToolContext) -> str:
+#     """Execute a shell command and return its output.
 
-    Args:
-        cmd: Command to execute (string or list of strings)
-    Returns:
-        Output of the command
-    """
-    work_dir = tool_context.state.get("work_dir")
-    if isinstance(cmd, list):
-        cmd = shlex.join(cmd)
+#     Args:
+#         cmd: Command to execute (string or list of strings)
+#         timeout: Maximum time to wait for command execution (in seconds), default is 600 seconds
+#     Returns:
+#         Output of the command
+#     """
+#     work_dir = tool_context.state.get("work_dir")
+#     if isinstance(cmd, list):
+#         cmd = shlex.join(cmd)
 
-    # remove current .venv/bin in PATH env
-    env = os.environ.copy()
-    curr_venv = sys.prefix
-    path_parts = env.get("PATH", "").split(os.pathsep)
-    path_parts = [p for p in path_parts if p != os.path.join(curr_venv, "bin")]
-    env["PATH"] = os.pathsep.join(path_parts)
+#     # remove current .venv/bin in PATH env
+#     env = os.environ.copy()
+#     curr_venv = sys.prefix
+#     path_parts = env.get("PATH", "").split(os.pathsep)
+#     path_parts = [p for p in path_parts if p != os.path.join(curr_venv, "bin")]
+#     env["PATH"] = os.pathsep.join(path_parts)
 
-    result = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        shell=True,
-        cwd=work_dir,
-        env=env,
-    )
-    return {
-        "return_code": result.returncode,
-        "output": result.stdout.decode("utf-8", errors="backslashreplace"),
-    }
+#     result = subprocess.run(
+#         cmd,
+#         stdout=subprocess.PIPE,
+#         stderr=subprocess.STDOUT,
+#         shell=True,
+#         cwd=work_dir,
+#         env=env,
+#     )
+#     return {
+#         "return_code": result.returncode,
+#         "output": result.stdout.decode("utf-8", errors="backslashreplace"),
+#     }
 
 
 def finish_task(*, tool_context: ToolContext) -> str:
@@ -115,6 +121,7 @@ async def run_agent(
     trace_save_path: Path,
 ):
     aigise_session = get_aigise_session(session_id, config_path=config_path)
+    await aigise_session.sandboxes.launch_all_sandboxes()
 
     model = LiteLlm(model=model_name, reasoning_effort=model_reasoning_effort)
 
@@ -123,7 +130,14 @@ async def run_agent(
         model=model,
         description=description,
         instruction=instruction,
-        tools=[exec_cmd, finish_task, think, critique, plan, complain, update_plan],
+        # tools=[exec_cmd, finish_task, think, critique, plan, complain, update_plan],
+        tools=[
+            finish_task,
+            list_background_tasks,
+            get_background_task_output,
+            run_terminal_command,
+            update_plan,
+        ],
     )
 
     enabled_plugins = []

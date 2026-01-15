@@ -41,6 +41,9 @@ neo4j_http_port = "${NEO4J_HTTP_PORT}"
 [sandbox]
 backend = "local"
 
+[sandbox.sandboxes.main]
+timeout = 300
+
 [llm]
 # Main model configuration
 [llm.model_configs.main]

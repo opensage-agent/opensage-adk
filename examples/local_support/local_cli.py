@@ -159,7 +159,7 @@ async def run_agent(
             update_plan,
             critique,
             think,
-            plan,
+            # plan,
             complain,
             call_subagent_as_tool,
             create_subagent,

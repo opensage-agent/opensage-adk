@@ -365,10 +365,7 @@ class ToolLoader:
             - prompt_text: The generated prompt text
             - required_sandboxes: Set of sandbox types required by the tools
         """
-        lines = [
-            "note: See each Skill's `SKILL.md` for full parameters/options.",
-            "",
-        ]
+        lines = []
         required_sandboxes: Set[str] = set()
 
         for tool in tools_metadata:

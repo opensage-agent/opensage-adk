@@ -82,6 +82,7 @@ class Sage(BaseInstalledAgent):
     def create_run_agent_commands(self, instruction: str) -> list[ExecInput]:
         env = {
             "OPENAI_API_KEY": os.environ["OPENAI_API_KEY"],
+            "LITELLM_PROXY_API_KEY": os.environ["LITELLM_PROXY_API_KEY"],
             "OPENAI_BASE_URL": os.getenv(
                 "OPENAI_BASE_URL", "https://api.openai.com/v1"
             ),

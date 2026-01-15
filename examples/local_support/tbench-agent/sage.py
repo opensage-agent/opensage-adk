@@ -42,6 +42,8 @@ Before marking any task as complete:
 
 Remember: Taking time to verify and review prevents mistakes and ensures quality results.
 
+You should extensively use agent ensemble and dynamic subagent tools to complete the task.
+
 At the beginning of the task, call the plan tool, explicitly state the tools that you can use, explicitly state your understanding of the user’s requirements and explicitly enumerate all possible corner cases and checks that must be considered.
 
 Always select the most suitable package, tool, library, framework, etc. to complete the task.

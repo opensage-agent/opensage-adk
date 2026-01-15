@@ -27,11 +27,26 @@ from aigise.features.aigise_in_memory_session_service import (
 )
 from aigise.plugins import load_plugins
 from aigise.session.aigise_session import get_aigise_session
-from aigise.toolbox.general.agent_tools import complain, critique, plan, think
+from aigise.toolbox.general.agent_tools import (
+    agent_ensemble,
+    agent_ensemble_pairwise,
+    complain,
+    critique,
+    flag_unjustified_claims,
+    get_available_agents_for_ensemble,
+    get_available_models,
+    plan,
+    think,
+)
 from aigise.toolbox.general.bash_tools_interface import (
     get_background_task_output,
     list_background_tasks,
     run_terminal_command,
+)
+from aigise.toolbox.general.dynamic_subagent import (
+    call_subagent_as_tool,
+    create_subagent,
+    list_active_agents,
 )
 
 logger = logging.getLogger(__name__)
@@ -137,6 +152,17 @@ async def run_agent(
             get_background_task_output,
             run_terminal_command,
             update_plan,
+            critique,
+            think,
+            plan,
+            complain,
+            call_subagent_as_tool,
+            create_subagent,
+            list_active_agents,
+            agent_ensemble,
+            agent_ensemble_pairwise,
+            get_available_agents_for_ensemble,
+            get_available_models,
         ],
     )
 

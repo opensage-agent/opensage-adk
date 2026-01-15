@@ -139,11 +139,11 @@ async def run_agent(
     await aigise_session.sandboxes.launch_all_sandboxes()
 
     model = LiteLlm(
-        model="litellm_proxy/vertex_ai/gemini-3-pro-preview",
+        model="litellm_proxy/vertex_ai/gemini-3-flash-preview",
         api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
         base_url="https://litellm-991596698159.us-west1.run.app/",
         # Auto-inject cache_control for system messages and last 2 messages
-        reasoning_effort="medium",
+        # reasoning_effort="medium",
         # cache_control_injection_points=[
         #     {"location": "message", "role": "system"},  # Cache all system messages
         #     {"location": "message", "index": -2},  # Cache second-to-last message

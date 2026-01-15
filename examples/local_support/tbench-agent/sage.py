@@ -42,7 +42,7 @@ Before marking any task as complete:
 
 Remember: Taking time to verify and review prevents mistakes and ensures quality results.
 
-Before starting the task, explicitly state the tools that you can use, explicitly state your understanding of the user’s requirements and explicitly enumerate all possible corner cases and checks that must be considered, use the plan tool to plan your task.
+At the beginning of the task, call the plan tool, explicitly state the tools that you can use, explicitly state your understanding of the user’s requirements and explicitly enumerate all possible corner cases and checks that must be considered.
 
 Always select the most suitable package, tool, library, framework, etc. to complete the task.
 

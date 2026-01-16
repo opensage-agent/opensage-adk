@@ -1,5 +1,9 @@
 #!/bin/bash -eu
 
+export PATH="/usr/bin:$PATH"
+
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
 export SANITIZER=coverage
 export FUZZING_ENGINE=${FUZZING_ENGINE:-libfuzzer}
 export FUZZING_LANGUAGE=${FUZZING_LANGUAGE:-c++}
@@ -34,5 +38,8 @@ while IFS= read -r line; do
     eval "export ${var}=${q}"
   fi
 done < <(env | grep -F -- '-fsanitize-coverage' || true)
+
+echo "[*] Fixing different project settings..."
+source "$SCRIPT_DIR/fix_project"
 
 compile

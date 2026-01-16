@@ -13,9 +13,7 @@ COPY ./artifacts/pdb_mcp_server.py /app/pdb_mcp/pdb_mcp_server.py
 
 # install dependencies
 RUN uv venv --python 3.12
-RUN uv pip install mcp
-RUN uv pip install python-dotenv
-RUN uv pip install loguru
+RUN uv pip install mcp python-dotenv loguru
 
 # Expose port for MCP server
 EXPOSE 1112

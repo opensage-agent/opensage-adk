@@ -1,15 +1,17 @@
 #!/bin/bash -eu
 
+export PATH="/usr/bin:$PATH"
+
 export FUZZING_ENGINE=afl
 export FUZZING_LANGUAGE=${FUZZING_LANGUAGE:-c++}
 export ARCHITECTURE=${ARCHITECTURE:-x86_64}
 export LIB_FUZZING_ENGINE_DEPRECATED=${LIB_FUZZING_ENGINE_DEPRECATED:-/usr/lib/libFuzzingEngine.a}
 
-# echo "[*] backup old files"
-# mv $OUT $OUT.bak && mkdir $OUT
+echo "[*] backup old files"
+mv $OUT $OUT.bak && mkdir $OUT
 # mv $WORK $WORK.bak && mkdir $WORK
 echo "[*] Clean up old builds"
-rm -rf $OUT $WORK && mkdir -p $OUT $WORK
+rm -rf $WORK && mkdir -p $WORK
 
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
@@ -38,5 +40,8 @@ cp compile_afl $COMPILE_AFL_PATH
 popd > /dev/null
 
 echo "[*] Compile the project with AFL++"
+
+echo "[*] Fixing different project settings..."
+source $SCRIPT_DIR/fix_project
 
 $SCRIPT_DIR/compile

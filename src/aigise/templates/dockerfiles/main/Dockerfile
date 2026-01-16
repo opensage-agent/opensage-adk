@@ -18,4 +18,4 @@ ENV PATH="/root/.local/bin:$PATH"
 # Create a local venv (like gdb_mcp) and install deps into it.
 RUN uv venv --python 3.12 /app/.venv
 ENV PATH="/app/.venv/bin:/root/.local/bin:$PATH"
-RUN uv pip install --python /app/.venv/bin/python neo4j
+RUN uv pip install --python /app/.venv/bin/python neo4j setuptools

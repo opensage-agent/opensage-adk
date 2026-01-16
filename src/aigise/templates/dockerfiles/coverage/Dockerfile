@@ -15,4 +15,4 @@ RUN uv venv --python 3.12 /app/.venv
 ENV PATH="/app/.venv/bin:/root/.local/bin:$PATH"
 
 # Required by standalone bash tools uploader scripts.
-RUN uv pip install --python /app/.venv/bin/python neo4j msgspec
+RUN uv pip install --python /app/.venv/bin/python neo4j msgspec setuptools

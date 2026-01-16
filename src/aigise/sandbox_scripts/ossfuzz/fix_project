@@ -1,0 +1,15 @@
+# example: arvo:52410
+ls | grep -qE '^MapServer$' && apt-get update
+
+# example: arvo:66040
+ls | grep -qE '^gpac$' && pushd gpac && git clean -xfd && popd
+
+# example: oss-fuzz:368076871
+ls | grep -qE '^mruby$' && pushd mruby && git clean -xfd && popd
+
+# example:
+#   wt - oss-fuzz:370689421,
+#   qpdf - oss-fuzz:42535152,
+#   libcups - oss-fuzz:42536069,
+#   libical - oss-fuzz:42536390,
+case "$(basename "$PWD")" in wt|qpdf|libcups|libical) git clean -xfd ;; esac

@@ -111,9 +111,13 @@ class FuzzInitializer(SandboxInitializer):
         # Set environment variables and run compilation
         env_cmd = f"export SANITIZER={infos['SANITIZER']} && export FUZZING_LANGUAGE={infos['FUZZING_LANGUAGE']} && export ARCHITECTURE={infos['ARCHITECTURE']} && bash /sandbox_scripts/ossfuzz/compile_aflpp.sh"
 
-        msg, err = self.run_command_in_container(env_cmd, timeout=1200)
+        msg, err = self.run_command_in_container(env_cmd, timeout=3600)
 
         if err != 0:
+            logger.info("Recovering old build files...")
+            self.run_command_in_container(
+                "rm -rf /out && mv /out.bak /out", timeout=1200
+            )
             raise RuntimeError(f"AFL++ compilation failed: {msg}")
 
         logger.info("AFL++ compilation completed successfully")

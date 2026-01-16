@@ -79,7 +79,7 @@ class JoernInitializer(SandboxInitializer):
         """Execute Joern initialization steps with timeout protection."""
         msg, err = self.run_command_in_container(
             ["bash", "/sandbox_scripts/callgraph/init.sh"],
-            timeout=1200,
+            timeout=3600,
         )
         if err != 0:
             raise RuntimeError(f"Joern init failed: {msg}")
@@ -92,7 +92,7 @@ class JoernInitializer(SandboxInitializer):
                 "/sandbox_scripts/callgraph/run_joern.sh",
                 aigise_session.config.src_dir_in_sandbox,
             ],
-            timeout=1200,
+            timeout=3600,
         )
 
         if err != 0:

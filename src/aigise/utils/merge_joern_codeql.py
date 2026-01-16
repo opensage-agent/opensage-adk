@@ -192,12 +192,12 @@ async def insert_codeql_results_to_cpg(
 
     def get_key(row, prefix: str) -> tuple:
         return (
-            row[f"{prefix}_name"],
-            row[f"{prefix}_path"],
-            row[f"{prefix}_start_line"],
-            row[f"{prefix}_start_col"],
-            row[f"{prefix}_end_line"],
-            row[f"{prefix}_end_col"],
+            str(row[f"{prefix}_name"]),
+            str(row[f"{prefix}_path"]),
+            int(row[f"{prefix}_start_line"]),
+            int(row[f"{prefix}_start_col"]),
+            int(row[f"{prefix}_end_line"]),
+            int(row[f"{prefix}_end_col"]),
         )
 
     # 1. match methods

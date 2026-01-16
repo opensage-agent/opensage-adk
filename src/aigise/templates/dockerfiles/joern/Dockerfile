@@ -20,7 +20,7 @@ ENV PATH="/root/.local/bin:$PATH"
 # Create a local venv and install deps into it.
 RUN uv venv --python 3.12
 ENV PATH="/app/.venv/bin:/root/.local/bin:$PATH"
-RUN uv pip install httpx websockets
+RUN uv pip install httpx websockets setuptools
 
 # install jdk21 sbt
 RUN mkdir -p /data \

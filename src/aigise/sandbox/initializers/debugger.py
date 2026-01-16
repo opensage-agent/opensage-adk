@@ -23,11 +23,15 @@ class DebuggerInitializer(SandboxInitializer):
 
         msg, err = self.run_command_in_container(
             command=["bash", "/sandbox_scripts/ossfuzz/compile_debug.sh"],
-            timeout=1200,
+            timeout=3600,
         )
         if err:
             logger.error("Debugger compilation failed: %s", msg)
-            raise
+            logger.info("Recovering old build files...")
+            self.run_command_in_container(
+                "rm -rf /out && mv /out.bak /out", timeout=1200
+            )
+            raise RuntimeError("Debugger compilation failed")
         else:
             logger.info("Debugger compilation completed successfully.")
 

@@ -23,7 +23,7 @@ class CoverageInitializer(SandboxInitializer):
 
         msg, err = self.run_command_in_container(
             command=["bash", "/sandbox_scripts/ossfuzz/compile_coverage.sh"],
-            timeout=600,
+            timeout=3600,
         )
 
         if err:

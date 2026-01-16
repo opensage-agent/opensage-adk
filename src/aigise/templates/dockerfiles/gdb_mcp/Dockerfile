@@ -21,9 +21,7 @@ COPY ./artifacts/helper.py /app/gdb_mcp/helper.py
 
 # install dependencies
 RUN uv venv --python 3.12
-RUN uv pip install mcp
-RUN uv pip install pygdbmi
-RUN uv pip install loguru
+RUN uv pip install mcp pygdbmi loguru
 
 # overwrite IoManager.py to fix stderr reading issue to show asan messages
 COPY ./artifacts/IoManager.py /app/.venv/lib/python3.12/site-packages/pygdbmi/IoManager.py

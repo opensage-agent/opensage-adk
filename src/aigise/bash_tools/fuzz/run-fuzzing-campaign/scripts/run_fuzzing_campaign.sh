@@ -94,6 +94,8 @@ UNIQUE_CRASHES=0
 EXECUTIONS=0
 EXEC_SPEED=0
 SUCCESS=false
+ERROR_MSG=""
+FAILURE_HINT="Please check if /out/afl-fuzz exists, if not, the binary is compiled with libfuzzer, please use libfuzzer instead"
 
 # Get crash statistics
 CRASHES_DIR=$(find /fuzz/out -name 'crashes' -type d 2>/dev/null | head -1)
@@ -136,6 +138,7 @@ if [ "$SUCCESS" = true ]; then
 else
     if [ -n "${ERROR_MSG:-}" ]; then
         echo "Error: $ERROR_MSG" >&2
+        echo "$FAILURE_HINT" >&2
         exit 1
     fi
     echo "Fuzzing campaign completed with warnings"

@@ -9,6 +9,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import httpx
+import magic
 from dotenv import load_dotenv
 from google.adk import Runner
 from google.adk.agents import RunConfig
@@ -26,6 +27,7 @@ from aigise.features.aigise_in_memory_session_service import (
     AigiseInMemorySessionService,
 )
 from aigise.plugins import load_plugins
+from aigise.plugins.parts_from_tool import PARTS_FROM_TOOLS_ID, PartsFromToolPlugin
 from aigise.session.aigise_session import get_aigise_session
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
@@ -110,6 +112,27 @@ def update_plan(plan: list[dict[str, str]], explanation: str = "") -> str:
 #     }
 
 
+def view_image(file_path: str, *, tool_context: ToolContext) -> str:
+    """View an local image
+
+    Args:
+        file_path: Path to the image file
+
+    Returns:
+        str: Success message
+    """
+    mime_type = magic.from_file(file_path, mime=True)
+    file_path = Path(file_path)
+    parts = [types.Part.from_bytes(data=file_path.read_bytes(), mime_type=mime_type)]
+
+    if PARTS_FROM_TOOLS_ID in tool_context.state:
+        tool_context.state[PARTS_FROM_TOOLS_ID] += parts
+    else:
+        tool_context.state[PARTS_FROM_TOOLS_ID] = parts
+
+    return "Image loaded successfully."
+
+
 def finish_task(*, tool_context: ToolContext) -> str:
     """Indicate that the task has been finished.
 
@@ -153,6 +176,7 @@ async def run_agent(
         # tools=[exec_cmd, finish_task, think, critique, plan, complain, update_plan],
         tools=[
             finish_task,
+            view_image,
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
@@ -194,7 +218,9 @@ async def run_agent(
             session_id,
             ", ".join(plugin.name for plugin in plugins),
         )
-    app = App(name=app_name, root_agent=local_agent, plugins=plugins)
+    app = App(
+        name=app_name, root_agent=local_agent, plugins=plugins + [PartsFromToolPlugin()]
+    )  # temperarily add PartsFromToolPlugin
     runner = Runner(
         app=app,
         session_service=session_service,

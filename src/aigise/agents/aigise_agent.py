@@ -620,7 +620,7 @@ and structure. Use this as the foundation for your documentation.
             tool_usage_banner = (
                 f"{_TOOL_USAGE_BANNER_MARKER}\n"
                 "CRITICAL TOOL PRIORITY (MUST FOLLOW):\n"
-                "- Prefer and use Skills under `/bash_tools/...` whenever possible.\n"
+                "- Prefer and use Skills under `/bash_tools/...` whenever possible. You should call them through run_terminal_command tool and execute the corresponding scripts.\n"
                 "- At the start of a task, you must **explore the available bash tools broadly**:\n"
                 "- Do NOT use generic shell commands (sed/etc.) unless absolutely necessary. \n"
                 "Skill exists.\n"
@@ -715,7 +715,7 @@ and structure. Use this as the foundation for your documentation.
             tool_usage_policy = (
                 "Tool usage policy:\n"
                 "- When planning or describing how you will accomplish a task, prefer using the provided Skills under "
-                "`/bash_tools/...` (i.e., the tool scripts described below).\n"
+                "`/bash_tools/...` (i.e., the tool scripts described below). You should call them through run_terminal_command tool and execute the corresponding scripts.\n"
                 "- Only fall back to generic shell commands when there is **no** suitable `/bash_tools` Skill for the job.\n"
                 "- Before starting work, survey the tool ecosystem broadly:\n"
                 "  - Call `list_available_scripts to review relevant available Skill docs.\n"

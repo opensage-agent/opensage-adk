@@ -111,6 +111,7 @@ def mk_agent(aigise_session_id: str):
         You should prefer using /bash_tools/, do not use general shell commands such as sed if a suitable Skill exists.
         Try to explore the path by calling the appropriate scripts under /bash_tools/, e.g., read-file, list-functions-in-file, search-symbol-definition, get-call-paths-to-function, get-callee, get-caller, joern-query, joern-slice, neo4j-query, search-function. Use them as much as possible instead of general shell commands like sed, grep, etc.
         If you are stuck, maybe you are looking at the wrong vulnerability, you can use a subagent with no history to solve the task, as your history might be misleading. Also, you can use agent ensemble to explore the code and understand the vulnerability by multiple agents.
+        You should use subagent entensively whenever you want to do a subtask.
         You can submit a poc by calling generate_poc_and_submit.
         You should not see the git commit history.
         If you submitted a poc to the server that triggers a crash and exit code is not equal to 0, you should call the finish_task tool, and then summarize the task and the result without calling any other tool.

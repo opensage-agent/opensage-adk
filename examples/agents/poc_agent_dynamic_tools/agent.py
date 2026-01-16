@@ -178,9 +178,11 @@ def mk_agent(aigise_session_id: str):
 
         ***********IMPORTANT***********
         You should generally start with static tools: explore the code (ensemble of multiple agents to explore the code), understand the vulnerability, and generate an initial PoC. Only after that should you rely on dynamic tools such as fuzzing, the debugger, or coverage analysis. Don’t start by depending on dynamic tools right away.
+        You should build subagents and use agent ensemble to do code exploration and vulnerability understanding, you may find different suspicious sink functions, you should choose the one that matches the vulnerability description the most.
         Use dynamic subagents to breakdown the task into smaller subtasks, with specific enabled skills and tools, you should provide all necessary tools and skills that the subagent needs to complete the task. Whever there is a possibility that the task can be broken into subtasks, you should use dynamic subagents to breakdown the task into smaller subtasks and create a subagent to complete the task.
         You should also create subagents that are experts in specific skills or tool sets, for example,you should create a subagent that is an expert in fuzzing, a subagent that is an expert in debugging, a subagent that is an expert in coverage analysis, but remember to give the subagent all useful tools of the kind of the skill or tool set.
-        You should use agent ensemble to explore the code and understand the vulnerability by multiple agents.
+        Use dynamic subagents and agent ensemble extensively, whenever you need to call a tool in a set of tools, use a subagent.
+        Whenever you want to do a subtask, try solve it with an expert subagent or create a new expert subagent.
         For local testing, you can use run_poc_from_script to generate a poc file and run it locally to test if it triggers the vulnerability. When you feed a poc_generation_script to run_poc_from_script, it will automatically feed /tmp/poc as an input to the vulnerable program.
         You can submit a poc by calling generate_poc_and_submit.
         You should not see the git commit history.

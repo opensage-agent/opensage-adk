@@ -57,7 +57,7 @@ async def create_subagent(
 
     Args:
         agent_name: Custom name for the agent
-        instruction: Custom instruction for the agent
+        instruction: Custom instruction for the agent, this will be the system prompt for the agent, it should be a comprehensive instruction for the agent to follow and not task-specific.
         model_name: Model to use for the agent (e.g., "anthropic/claude-sonnet-4",
           "openai/gpt-5", or "inherit" to reuse the current agent's model)
         tools_list: List of tool names to assign to the agent

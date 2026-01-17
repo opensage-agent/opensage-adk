@@ -397,7 +397,7 @@ class Sage(BaseInstalledAgent):
             "--prompt", instruction,
             "--instruction", SYSTEM_PROMPT_CODEX if os.getenv("USE_CODEX_PROMPT") == "1" else SYSTEM_PROMPT,
             "--model", self.model_name,
-            "--model-reasoning-effort", "xhigh",
+            # "--model-reasoning-effort", "xhigh",
             "--trace-save-path", str(EnvironmentPaths.agent_dir / self._TRAJECTORY_FILE),
             "--container-id-save-path", str(EnvironmentPaths.agent_dir / self._NEO4J_CONTAINER_ID_FILE),
             "--dotenv-path", "/opt/sage/.env",

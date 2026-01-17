@@ -268,6 +268,7 @@ async def run_agent(
         return session_snapshot
 
     async def _save_trace():
+        logger.info(f"Saving trace to {trace_save_path}")
         session_snapshot = (
             await session_service.get_session(
                 app_name=app_name, user_id=user_id, session_id=session_id
@@ -289,6 +290,7 @@ async def run_agent(
         ):
             logger.warning(event.model_dump_json())
             all_events.append(event)
+            await _save_trace()
 
         session_snapshot = await _update_remaining_and_get_session()
 

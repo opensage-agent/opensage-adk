@@ -33,6 +33,9 @@ class ImageInjectionPlugin(BasePlugin):
         This is called during the runner event processing and it is responsible for adding the images to the history/memory.
         For injecting into ongoing requests, see before_model_callback.
         """
+        logger.info(
+            f"On event callback: pending history parts = {len(self._pending_history_parts)}"
+        )
 
         # If this is a model response event and we have pending images,
         # create a follow-up user event with the images
@@ -64,6 +67,9 @@ class ImageInjectionPlugin(BasePlugin):
         This is called before the model request is sent and it is responsible for injecting the images into the current request.
         This is not persistent, so it will not be saved in the history. See on_event_callback for that.
         """
+        logger.info(
+            f"Before model callback: pending parts = {len(self._pending_request_parts)}"
+        )
 
         # Inject pending images into the current request
         if self._pending_request_parts and llm_request.contents:
@@ -102,6 +108,7 @@ class ImageInjectionPlugin(BasePlugin):
         # return modified_result
         if saved_parts := tool_context.state.get(PARTS_FROM_TOOLS_ID, None):
             self._pending_request_parts.extend(saved_parts)
+            self._pending_history_parts.extend(saved_parts)
             tool_context.state.update({PARTS_FROM_TOOLS_ID: []})
 
     def _find_and_replace_image_parts(self, data):

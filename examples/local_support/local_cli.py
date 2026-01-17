@@ -44,6 +44,7 @@ from aigise.toolbox.general.bash_tools_interface import (
     get_background_task_output,
     list_background_tasks,
     run_terminal_command,
+    wait_for_background,
 )
 from aigise.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
@@ -178,9 +179,10 @@ async def run_agent(
         tools=[
             finish_task,
             view_image,
+            run_terminal_command,
             list_background_tasks,
             get_background_task_output,
-            run_terminal_command,
+            wait_for_background,
             update_plan,
             critique,
             think,

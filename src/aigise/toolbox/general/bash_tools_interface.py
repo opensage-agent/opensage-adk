@@ -337,6 +337,88 @@ def list_available_scripts(
 
 
 @safe_tool_execution
+def wait_for_background(
+    task_id: str,
+    sandbox_name: str = "main",
+    timeout: int = 60,
+    *,
+    tool_context: ToolContext,
+) -> Dict[str, Any]:
+    """Wait for a background bash tool task to complete.
+    Use this tool to wait for a previously started background bash tool
+    task (started with `background=True` parameter, or automatically sent
+    to the background after timeout) to complete.
+
+    Args:
+        task_id: The ID of the background task to wait for
+        sandbox_name: The name of the sandbox to run the command in
+            (default: "main").
+        timeout: Timeout in seconds to wait for completion (default: 60)
+
+    Returns:
+        dict: Execution result containing 'output', 'exit_code', 'status'
+    """
+    # Determine sandbox
+    target_sandbox = sandbox_name
+
+    # Get sandbox
+    try:
+        sandbox = get_sandbox_from_context(tool_context, target_sandbox)
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to get sandbox '{target_sandbox}': because {str(e)}",
+        }
+
+    # Get TaskManager
+    session_id = get_aigise_session_id_from_context(tool_context)
+    session = get_aigise_session(session_id)
+
+    if not hasattr(session, "bash_tasks"):
+        session.bash_tasks = BashTaskManager()
+    task_manager = session.bash_tasks
+
+    completed = task_manager.wait_for_task(sandbox, task_id, timeout)
+
+    if completed:
+        # Task finished, get output
+        output = task_manager.get_task_output(sandbox, task_id)
+        exit_code_val = task_manager.get_task_exit_code(sandbox, task_id)
+        exit_code = exit_code_val if exit_code_val is not None else 1
+
+        # Clean up task (memory + files)
+        task_manager.cleanup_task(sandbox, task_id)
+
+        # Try to parse JSON if it looks like JSON
+        parsed_output = output
+        stripped_output = output.strip()
+        if stripped_output.startswith(("{", "[")):
+            try:
+                parsed_output = json.loads(stripped_output)
+            except Exception:
+                # Not valid JSON, keep original output
+                pass
+
+        return {
+            "success": exit_code == 0,
+            "output": parsed_output,
+            "exit_code": exit_code,
+            "task_id": task_id,
+            "sandbox": target_sandbox,
+        }
+    else:
+        # Timeout reached
+        return {
+            "success": True,
+            "timeout": True,
+            "message": f"Command timed out after {timeout}s but is still running in background.",
+            "task_id": task_id,
+            "status": "running",
+            "sandbox": target_sandbox,
+        }
+
+
+@safe_tool_execution
 def run_terminal_command(
     command: str,
     background: bool = False,

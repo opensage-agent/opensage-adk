@@ -1,3 +1,4 @@
+import logging
 import os
 import shlex
 import shutil
@@ -7,6 +8,8 @@ from pathlib import Path
 
 from aigise.config.config_dataclass import ContainerConfig
 from aigise.sandbox.base_sandbox import BaseSandbox
+
+logger = logging.getLogger(__name__)
 
 
 class LocalSandbox(BaseSandbox):
@@ -54,21 +57,12 @@ class LocalSandbox(BaseSandbox):
         if timeout is not None:
             command = ["timeout", f"{timeout}s"] + command
 
-        # fix self python environment
-        # remove current .venv/bin in PATH env
-        env = os.environ.copy()
-        curr_venv = sys.prefix
-        path_parts = env.get("PATH", "").split(os.pathsep)
-        path_parts = [p for p in path_parts if p != os.path.join(curr_venv, "bin")]
-        env["PATH"] = os.pathsep.join(path_parts)
-
         try:
             result = subprocess.run(
                 command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 check=False,
-                env=env,
             )
             return result.stdout.decode(
                 "utf-8", errors="backslashreplace"

@@ -27,7 +27,7 @@ from aigise.features.aigise_in_memory_session_service import (
     AigiseInMemorySessionService,
 )
 from aigise.plugins import load_plugins
-from aigise.plugins.parts_from_tool import PARTS_FROM_TOOLS_ID, PartsFromToolPlugin
+from aigise.plugins.parts_from_tool import PARTS_FROM_TOOLS_ID, ImageInjectionPlugin
 from aigise.session.aigise_session import get_aigise_session
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
@@ -113,7 +113,8 @@ def update_plan(plan: list[dict[str, str]], explanation: str = "") -> str:
 
 
 def view_image(file_path: str, *, tool_context: ToolContext) -> str:
-    """View an local image
+    """View an local image file.
+    Please use this tool if you want to check visual content.
 
     Args:
         file_path: Path to the image file
@@ -219,8 +220,10 @@ async def run_agent(
             ", ".join(plugin.name for plugin in plugins),
         )
     app = App(
-        name=app_name, root_agent=local_agent, plugins=plugins + [PartsFromToolPlugin()]
-    )  # temperarily add PartsFromToolPlugin
+        name=app_name,
+        root_agent=local_agent,
+        plugins=[ImageInjectionPlugin()] + plugins,
+    )  # temperarily add ImageInjectionPlugin
     runner = Runner(
         app=app,
         session_service=session_service,
@@ -265,8 +268,10 @@ async def run_agent(
         return session_snapshot
 
     async def _save_trace():
-        session_snapshot = await session_service.get_session(
-            app_name=app_name, user_id=user_id, session_id=session_id
+        session_snapshot = (
+            await session_service.get_session(
+                app_name=app_name, user_id=user_id, session_id=session_id
+            )
         ).model_copy(deep=True)
         session_snapshot.events = all_events
         with open(trace_save_path, "wb") as f:

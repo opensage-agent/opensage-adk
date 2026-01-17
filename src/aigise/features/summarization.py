@@ -133,88 +133,89 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         f"Tool response length: {len(raw)}, max_len: {max_len}, triggering summarization"
     )
 
-    model_name = getattr(aigise_session.config.llm, "summarize_model", None)
-    agent = tool_context._invocation_context.agent
-    if model_name:
-        model = resolve_model_spec(model_name, tool_context=tool_context)
-    else:
-        if not hasattr(agent, "canonical_model"):
-            logger.warning("Agent has no model, skipping tool response summarization")
-            return None
-        model = agent.canonical_model
+    # model_name = getattr(aigise_session.config.llm, "summarize_model", None)
+    # agent = tool_context._invocation_context.agent
+    # if model_name:
+    #     model = resolve_model_spec(model_name, tool_context=tool_context)
+    # else:
+    #     if not hasattr(agent, "canonical_model"):
+    #         logger.warning("Agent has no model, skipping tool response summarization")
+    #         return None
+    #     model = agent.canonical_model
 
-    llm_request = LlmRequest()
-    llm_request.config = types.GenerateContentConfig()
+    # llm_request = LlmRequest()
+    # llm_request.config = types.GenerateContentConfig()
 
-    # Build recent context window (up to last 10 events).
-    recent_context_lines: List[str] = []
-    try:
-        session = getattr(tool_context._invocation_context, "session", None)
-        events: List[Event] = list(getattr(session, "events", []) or [])
-    except Exception:
-        events = []
-    event_blocks: List[str] = []
-    block_lengths: List[int] = []
-    if events:
-        for event in events[-10:]:
-            rendered_parts = _render_event_parts_for_context(event)
-            if not rendered_parts:
-                continue
-            author = getattr(event, "author", "unknown")
-            timestamp = getattr(event, "timestamp", None)
-            header = f"{author}" if timestamp is None else f"{author} @ {timestamp}"
-            block_lines = [f"{header}:"] + [f"  {line}" for line in rendered_parts]
-            block = "\n".join(block_lines)
-            event_blocks.append(block)
-            block_lengths.append(len(block) + 1)  # include newline between blocks
-    if event_blocks:
-        max_context_len = 50000
-        total_len = sum(block_lengths)
-        while event_blocks and total_len > max_context_len:
-            removed_len = block_lengths.pop(0)
-            event_blocks.pop(0)
-            total_len -= removed_len
-        context_block = "\n".join(event_blocks)
-    else:
-        context_block = "<no recent context captured>"
+    # # Build recent context window (up to last 10 events).
+    # recent_context_lines: List[str] = []
+    # try:
+    #     session = getattr(tool_context._invocation_context, "session", None)
+    #     events: List[Event] = list(getattr(session, "events", []) or [])
+    # except Exception:
+    #     events = []
+    # event_blocks: List[str] = []
+    # block_lengths: List[int] = []
+    # if events:
+    #     for event in events[-10:]:
+    #         rendered_parts = _render_event_parts_for_context(event)
+    #         if not rendered_parts:
+    #             continue
+    #         author = getattr(event, "author", "unknown")
+    #         timestamp = getattr(event, "timestamp", None)
+    #         header = f"{author}" if timestamp is None else f"{author} @ {timestamp}"
+    #         block_lines = [f"{header}:"] + [f"  {line}" for line in rendered_parts]
+    #         block = "\n".join(block_lines)
+    #         event_blocks.append(block)
+    #         block_lengths.append(len(block) + 1)  # include newline between blocks
+    # if event_blocks:
+    #     max_context_len = 50000
+    #     total_len = sum(block_lengths)
+    #     while event_blocks and total_len > max_context_len:
+    #         removed_len = block_lengths.pop(0)
+    #         event_blocks.pop(0)
+    #         total_len -= removed_len
+    #     context_block = "\n".join(event_blocks)
+    # else:
+    #     context_block = "<no recent context captured>"
 
-    summary_prompt = (
-        "Please summarize the following tool execution concisely.\n\n"
-        f"Recent context (last {min(len(events), 10)} events):\n{context_block}\n\n"
-        f"Tool: {getattr(tool, 'name', 'unknown')}\n"
-        f"Arguments: {args}\n"
-        f"Response: {raw[:70000]}{'...' if len(raw) > 70000 else ''}\n\n"
-        "Instructions:\n"
-        "1. Use the recent context to infer the most likely intent/purpose of this tool call."
-        " State it as 'Inferred Intent: ...'.\n"
-        "2. Provide a brief 6-9 sentence summary that focuses on details relevant to that intent."
-        " Emphasize which parts of the response are critical for the inferred goal.\n"
-        "3. Then attach the most critical key information from the Response verbatim.\n\n"
-        "Output format:\n"
-        "Inferred Intent: ...\n"
-        "Summary:\n"
-        "- ...\n\n"
-        "Key Information (verbatim):\n"
-        "- ...\n"
-    )
-    llm_request.contents = [
-        types.Content(role="user", parts=[types.Part.from_text(text=summary_prompt)])
-    ]
+    # summary_prompt = (
+    #     "Please summarize the following tool execution concisely.\n\n"
+    #     f"Recent context (last {min(len(events), 10)} events):\n{context_block}\n\n"
+    #     f"Tool: {getattr(tool, 'name', 'unknown')}\n"
+    #     f"Arguments: {args}\n"
+    #     f"Response: {raw[:70000]}{'...' if len(raw) > 70000 else ''}\n\n"
+    #     "Instructions:\n"
+    #     "1. Use the recent context to infer the most likely intent/purpose of this tool call."
+    #     " State it as 'Inferred Intent: ...'.\n"
+    #     "2. Provide a brief 6-9 sentence summary that focuses on details relevant to that intent."
+    #     " Emphasize which parts of the response are critical for the inferred goal.\n"
+    #     "3. Then attach the most critical key information from the Response verbatim.\n\n"
+    #     "Output format:\n"
+    #     "Inferred Intent: ...\n"
+    #     "Summary:\n"
+    #     "- ...\n\n"
+    #     "Key Information (verbatim):\n"
+    #     "- ...\n"
+    # )
+    # llm_request.contents = [
+    #     types.Content(role="user", parts=[types.Part.from_text(text=summary_prompt)])
+    # ]
 
-    try:
-        summary = await _get_summary_async(model, llm_request)
-    except Exception as e:
-        logger.error(f"Error summarizing tool response: {e}")
-        summary = raw[:1000] + ("..." if len(raw) > 1000 else "")
-    summary = (
-        """
-    The tool response is too long, so we need to summarize it. We inferred the intent for you to call this tool and kept critical information related to the inferred intent.
-    If the inferred intent of calling this tool doesn't match your expectation, you should call the appropriate tool with appropriate arguments to get the details. Here are the inferred intent and the summary:
-    """
-        + summary
-    )
+    # try:
+    #     summary = await _get_summary_async(model, llm_request)
+    # except Exception as e:
+    #     logger.error(f"Error summarizing tool response: {e}")
+    #     summary = raw[:1000] + ("..." if len(raw) > 1000 else "")
+    # summary = (
+    #     """
+    # The tool response is too long, so we need to summarize it. We inferred the intent for you to call this tool and kept critical information related to the inferred intent.
+    # If the inferred intent of calling this tool doesn't match your expectation, you should call the appropriate tool with appropriate arguments to get the details. Here are the inferred intent and the summary:
+    # """
+    #     + summary
+    # )
 
-    tagged_summary = f"<Summary by aigise>{summary}</Summary by aigise>"
+    # tagged_summary = f"<Summary by aigise>{summary}</Summary by aigise>"
+    tagged_summary = f"<Summary by aigise>The tool response is too long, try another method to get the infomation you need.</Summary by aigise>"
 
     # Append quota countdown line if enabled
     try:

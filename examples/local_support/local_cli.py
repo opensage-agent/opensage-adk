@@ -159,6 +159,7 @@ async def run_agent(
     max_llm_calls: int,
     work_dir: Path,
     trace_save_path: Path,
+    use_subagent: bool,
 ):
     aigise_session = get_aigise_session(session_id, config_path=config_path)
     await aigise_session.sandboxes.launch_all_sandboxes()
@@ -170,24 +171,22 @@ async def run_agent(
         reasoning_effort=model_reasoning_effort,
     )
 
-    local_agent = AigiseAgent(
-        name="terminal_agent",
-        model=model,
-        description=description,
-        instruction=instruction,
-        # tools=[exec_cmd, finish_task, think, critique, plan, complain, update_plan],
-        tools=[
-            finish_task,
-            view_image,
-            run_terminal_command,
-            list_background_tasks,
-            get_background_task_output,
-            wait_for_background,
-            update_plan,
-            critique,
-            think,
-            # plan,
-            complain,
+    tools = [
+        finish_task,
+        update_plan,
+        view_image,
+        run_terminal_command,
+        list_background_tasks,
+        get_background_task_output,
+        wait_for_background,
+        critique,
+        think,
+        # plan,
+        complain,
+    ]
+
+    if use_subagent:
+        tools += [
             call_subagent_as_tool,
             create_subagent,
             list_active_agents,
@@ -195,7 +194,15 @@ async def run_agent(
             agent_ensemble_pairwise,
             get_available_agents_for_ensemble,
             get_available_models,
-        ],
+        ]
+
+    local_agent = AigiseAgent(
+        name="terminal_agent",
+        model=model,
+        description=description,
+        instruction=instruction,
+        # tools=[exec_cmd, finish_task, think, critique, plan, complain, update_plan],
+        tools=tools,
     )
 
     enabled_plugins = []
@@ -417,6 +424,11 @@ if __name__ == "__main__":
         help="If set, remove the Neo4j container on exit.",
     )
     parser.add_argument(
+        "--use-subagent",
+        action="store_true",
+        help="If set, enable subagent features to run the task.",
+    )
+    parser.add_argument(
         "--sage-api-base",
         type=str,
         help="Base URL for the Sage API server.",
@@ -444,6 +456,7 @@ if __name__ == "__main__":
                 max_llm_calls=args.max_llm_calls,
                 work_dir=args.work_dir,
                 trace_save_path=args.trace_save_path,
+                use_subagent=args.use_subagent,
             )
         )
     finally:

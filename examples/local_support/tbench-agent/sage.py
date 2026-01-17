@@ -56,6 +56,29 @@ At last, state what you have done and how you finished the task.
 
 """
 
+SYSTEM_PROMPT_DYNAMIC_AGENT = """**Dynamic Agent Usage (Very Important)**
+Whenever the task can be broken into subtasks you MUST:
+0. list the available models and the available agents by calling get_available_models and list_active_agents tools.
+1. Create a subagent using the create_subagent tool.
+2. Give that subagent a very specific subtask, with specific enabled skills and tools, you should provide all necessary tools and skills that the subagent needs to complete the task.
+3. Call the subagent via call_subagent_as_tool.
+This is the preferred and default behavior."""
+
+SYSTEM_PROMPT_ENSEMBLE = """**Ensemble Usage (Very Important)**
+If you cannot confidently complete a subtask or multiple possible reasoning paths exist, you MUST use agent_ensemble tools.
+0. list the available models and the available agents by calling get_available_models and get_available_agents_for_ensemble tools.
+1. Create an ensemble using the agent_ensemble tool.
+2. Give that ensemble a very specific subtask.
+3. Call the ensemble via agent_ensemble.
+4. Call the ensemble_pairwise if you need to run tasks in parallel.
+This is the preferred and default behavior."""
+
+SYSTEM_PROMPT_EMPHASIS = """You should build subagents and use agent ensemble to do exploration tasks that may have multiple possible reasoning paths.
+Use dynamic subagents to breakdown the task into smaller subtasks, with specific enabled skills and tools, you should provide all necessary tools and skills that the subagent needs to complete the task. Whever there is a possibility that the task can be broken into subtasks, you should use dynamic subagents to breakdown the task into smaller subtasks and create a subagent to complete the task.
+You should also create subagents that are experts in specific skills or tool sets, but remember to give the subagent all useful tools of the kind of the skill or tool set.
+Use dynamic subagents and agent ensemble extensively, whenever you need to call a tool in a set of tools, use a subagent.
+Whenever you want to do a subtask, try solve it with an expert subagent or create a new expert subagent."""
+
 SYSTEM_PROMPT_CODEX = r"""You are GPT-5.2 running in the Codex CLI, a terminal-based coding assistant. Codex CLI is an open source project led by OpenAI. You are expected to be precise, safe, and helpful.
 
 Your capabilities:
@@ -392,10 +415,22 @@ class Sage(BaseInstalledAgent):
         if litellm_base_url := os.getenv("LITELLM_PROXY_BASE_URL"):
             env["LITELLM_PROXY_BASE_URL"] = litellm_base_url
 
+        system_prompt = SYSTEM_PROMPT
+        if os.getenv("USE_SUBAGENT") == "1":
+            system_prompt += (
+                SYSTEM_PROMPT_DYNAMIC_AGENT
+                + "\n"
+                + SYSTEM_PROMPT_ENSEMBLE
+                + "\n"
+                + SYSTEM_PROMPT_EMPHASIS
+            )
+        elif os.getenv("USE_CODEX_PROMPT") == "1":
+            system_prompt = SYSTEM_PROMPT_CODEX
+
         cmd = [
             "/opt/sage/.venv/bin/python3", "/opt/sage/examples/local_support/local_cli.py",
             "--prompt", instruction,
-            "--instruction", SYSTEM_PROMPT_CODEX if os.getenv("USE_CODEX_PROMPT") == "1" else SYSTEM_PROMPT,
+            "--instruction", system_prompt,
             "--model", self.model_name,
             # "--model-reasoning-effort", "xhigh",
             "--trace-save-path", str(EnvironmentPaths.agent_dir / self._TRAJECTORY_FILE),
@@ -405,6 +440,10 @@ class Sage(BaseInstalledAgent):
             "--remove-container-on-exit",
             "--sage-api-base", os.environ["SAGE_CODE_API_BASE_URL"],
         ]  # fmt: skip
+
+        if os.getenv("USE_SUBAGENT") == "1":
+            cmd.append("--use-subagent")
+
         return [
             ExecInput(
                 command=shlex.join(cmd)

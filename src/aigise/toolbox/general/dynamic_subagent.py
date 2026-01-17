@@ -17,6 +17,7 @@ from aigise.toolbox.general.bash_tools_interface import (
     get_background_task_output,
     list_background_tasks,
     run_terminal_command,
+    wait_for_background,
 )
 from aigise.utils.agent_utils import (
     INHERIT_MODEL,
@@ -52,7 +53,7 @@ async def create_subagent(
     - `tools_list` must NOT be empty. If it is empty, this tool will return an
       error and no subagent will be created.
     - Default baseline tools (always injected):
-      `run_terminal_command`, `list_background_tasks`, `get_background_task_output`,
+      `run_terminal_command`, `list_background_tasks`, `get_background_task_output`, `wait_for_background`,
       `complain`.
 
     Args:
@@ -95,7 +96,7 @@ async def create_subagent(
                     "tools_list must not be empty. Choose at least one Python tool "
                     "for the subagent. Note: baseline tools are always injected: "
                     "run_terminal_command, list_background_tasks, "
-                    "get_background_task_output, complain."
+                    "get_background_task_output, wait_for_background, complain."
                 ),
             }
 
@@ -103,6 +104,7 @@ async def create_subagent(
             "run_terminal_command": run_terminal_command,
             "list_background_tasks": list_background_tasks,
             "get_background_task_output": get_background_task_output,
+            "wait_for_background": wait_for_background,
             "complain": complain,
         }
 

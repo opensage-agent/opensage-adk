@@ -26,6 +26,8 @@ from aigise.utils.agent_utils import (
     get_model_from_agent,
 )
 
+_DEFAULT_SEARCH_LIMIT = 10
+
 
 @safe_tool_execution
 async def create_subagent(
@@ -276,6 +278,196 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
 
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+def _normalize_keywords(keywords: Union[List[str], str]) -> List[str]:
+    """Normalize keyword input into a list of non-empty strings."""
+    if isinstance(keywords, str):
+        # Split on whitespace; keep it simple and predictable.
+        parts = keywords.split()
+    elif isinstance(keywords, list):
+        parts = keywords
+    else:
+        return []
+
+    normalized = []
+    for p in parts:
+        if not isinstance(p, str):
+            continue
+        s = p.strip()
+        if s:
+            normalized.append(s)
+    return normalized
+
+
+def _keyword_score(
+    *,
+    keywords: List[str],
+    name: str,
+    description: str,
+    match_all: bool,
+) -> tuple[bool, int, List[str], List[str]]:
+    """Return (matched, score, matched_keywords, matched_fields)."""
+    name_l = name.lower()
+    desc_l = description.lower()
+
+    matched_keywords: List[str] = []
+    matched_fields_set: set[str] = set()
+    score = 0
+
+    for kw in keywords:
+        kw_l = kw.lower()
+        in_name = kw_l in name_l
+        in_desc = kw_l in desc_l
+        if in_name or in_desc:
+            matched_keywords.append(kw)
+            if in_name:
+                matched_fields_set.add("name")
+                score += 2
+            if in_desc:
+                matched_fields_set.add("description")
+                score += 1
+        elif match_all:
+            return False, 0, [], []
+
+    matched = len(matched_keywords) > 0 if not match_all else True
+    return matched, score, matched_keywords, sorted(matched_fields_set)
+
+
+@safe_tool_execution
+async def search_agent(
+    keywords: Union[List[str], str],
+    tool_context: ToolContext,
+    limit: int = _DEFAULT_SEARCH_LIMIT,
+    match_all: bool = False,
+) -> Dict[str, Any]:
+    """Search sub-agent pool by keywords in name/description and return metadata.
+
+    This searches across:
+    - Dynamic subagents in the current AIgiSE session (including persisted metadata)
+    - ADK subagents attached to the current caller agent via `sub_agents`
+
+    Args:
+        keywords: Search keywords. Accepts a whitespace-separated string or a list of strings.
+        limit: Max number of results to return (sorted by relevance).
+        match_all: If True, require *all* keywords to match in (name or description).
+
+    Returns:
+        dict with `matches` listing matching agents and their metadata.
+    """
+    normalized_keywords = _normalize_keywords(keywords)
+    if not normalized_keywords:
+        return {
+            "success": False,
+            "error": "keywords must be a non-empty string or list of strings",
+        }
+
+    if not isinstance(limit, int) or limit <= 0:
+        return {"success": False, "error": "limit must be a positive integer"}
+
+    session_id = get_aigise_session_id_from_context(tool_context)
+    session = get_aigise_session(session_id)
+    manager = session.agents
+    caller_agent = tool_context._invocation_context.agent
+
+    # Ensure persisted agents are discoverable via metadata (consistent with list_active_agents).
+    caller_tools = extract_tools_from_agent(caller_agent)
+    manager._load_persisted_agents_on_demand(caller_tools, caller_agent)
+
+    matches: List[Dict[str, Any]] = []
+
+    # 1) Dynamic agents (metadata-backed)
+    for agent_metadata in manager.list_agents():
+        agent_name = getattr(agent_metadata, "name", "") or ""
+        agent_desc = getattr(agent_metadata, "description", "") or ""
+
+        matched, score, matched_keywords, matched_fields = _keyword_score(
+            keywords=normalized_keywords,
+            name=agent_name,
+            description=agent_desc,
+            match_all=match_all,
+        )
+        if not matched:
+            continue
+
+        agent_instance = manager.get_agent(agent_metadata.id)
+        if agent_instance:
+            tool_names = _extract_tool_names_from_agent(agent_instance)
+            enabled_skills = getattr(agent_instance, "_enabled_skills", None)
+        else:
+            tool_names = _extract_tool_names_from_metadata(agent_metadata)
+            enabled_skills = (
+                agent_metadata.config.get("enabled_skills")
+                if agent_metadata.config
+                else None
+            )
+
+        model_name = (
+            agent_metadata.config.get("model") if agent_metadata.config else None
+        ) or "anthropic/claude-sonnet-4-20250514"
+
+        matches.append(
+            {
+                "type": "dynamic_agent",
+                "agent_id": agent_metadata.id,
+                "name": agent_name,
+                "description": agent_desc,
+                "tools": tool_names,
+                "model": model_name,
+                "enabled_skills": enabled_skills,
+                "score": score,
+                "matched_keywords": matched_keywords,
+                "matched_fields": matched_fields,
+            }
+        )
+
+    # 2) ADK subagents on caller (metadata from instance only)
+    if hasattr(caller_agent, "sub_agents") and caller_agent.sub_agents:
+        for sub_agent in caller_agent.sub_agents:
+            sub_name = getattr(sub_agent, "name", "") or ""
+            sub_desc = getattr(sub_agent, "description", "") or ""
+
+            matched, score, matched_keywords, matched_fields = _keyword_score(
+                keywords=normalized_keywords,
+                name=sub_name,
+                description=sub_desc,
+                match_all=match_all,
+            )
+            if not matched:
+                continue
+
+            sub_tools = _extract_tool_names_from_agent(sub_agent)
+            sub_model = str(getattr(sub_agent, "model", "")) or "default"
+            enabled_skills = getattr(sub_agent, "_enabled_skills", None)
+
+            matches.append(
+                {
+                    "type": "adk_subagent",
+                    "agent_id": "adk_subagent",
+                    "name": sub_name,
+                    "description": sub_desc,
+                    "tools": sub_tools,
+                    "model": sub_model,
+                    "enabled_skills": enabled_skills,
+                    "score": score,
+                    "matched_keywords": matched_keywords,
+                    "matched_fields": matched_fields,
+                }
+            )
+
+    # Sort: higher score first, then name for determinism.
+    matches_sorted = sorted(
+        matches, key=lambda m: (-int(m.get("score", 0)), str(m.get("name", "")))
+    )
+
+    return {
+        "success": True,
+        "keywords": normalized_keywords,
+        "match_all": match_all,
+        "limit": limit,
+        "total_matches": len(matches_sorted),
+        "matches": matches_sorted[:limit],
+    }
 
 
 @safe_tool_execution

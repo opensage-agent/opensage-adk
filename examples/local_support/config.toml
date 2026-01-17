@@ -4,7 +4,6 @@
 # Top-level template variables (UPPERCASE)
 DEFAULT_IMAGE = "ubuntu:20.04"
 NEO4J_PASSWORD = "callgraphn4j!"
-MAIN_MODEL = "openai/gpt-5"
 TASK_NAME = "my_analysis_task"
 POC_DIR = "/tmp/poc"
 COMPILE_COMMAND = "arvo compile"
@@ -47,7 +46,7 @@ timeout = 300
 [llm]
 # Main model configuration
 [llm.model_configs.main]
-model_name = "${MAIN_MODEL}"
+model_name = "inherit"
 temperature = 0.7
 max_tokens = 4096
 rpm = 60
@@ -55,7 +54,7 @@ tpm = 60000
 
 # Drop/summarize model configuration
 [llm.model_configs.summarize]
-model_name = "${MAIN_MODEL}"
+model_name = "inherit"
 temperature = 0.3
 max_tokens = 2048
 rpm = 30
@@ -63,7 +62,7 @@ tpm = 30000
 
 # Flag claims model configuration
 [llm.model_configs.flag_claims]
-model_name = "openai/gpt-5"
+model_name = "inherit"
 temperature = 0.1
 max_tokens = 1024
 rpm = 30

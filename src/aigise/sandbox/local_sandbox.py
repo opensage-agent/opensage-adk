@@ -2,6 +2,7 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from aigise.config.config_dataclass import ContainerConfig
@@ -53,12 +54,21 @@ class LocalSandbox(BaseSandbox):
         if timeout is not None:
             command = ["timeout", f"{timeout}s"] + command
 
+        # fix self python environment
+        # remove current .venv/bin in PATH env
+        env = os.environ.copy()
+        curr_venv = sys.prefix
+        path_parts = env.get("PATH", "").split(os.pathsep)
+        path_parts = [p for p in path_parts if p != os.path.join(curr_venv, "bin")]
+        env["PATH"] = os.pathsep.join(path_parts)
+
         try:
             result = subprocess.run(
                 command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 check=False,
+                env=env,
             )
             return result.stdout.decode(
                 "utf-8", errors="backslashreplace"
@@ -80,7 +90,7 @@ class LocalSandbox(BaseSandbox):
 
     @classmethod
     async def create_single_sandbox(
-        cls, session_id: str, sandbox_type: str, container_config
+        cls, session_id: str, sandbox_type: str, container_config: ContainerConfig
     ):
         raise NotImplementedError(
             "Creating single sandbox is not supported in LocalSandbox."

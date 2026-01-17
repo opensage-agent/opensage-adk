@@ -66,3 +66,11 @@ tar -xzf /tmp/agent.tar.gz -C /opt/sage
 cd /opt/sage
 uv sync
 SAGE_NO_DOCKER=1 uv run aigise --help
+
+echo "[*] Patch google adk"
+
+SRC="/opt/sage/examples/local_support/new_lite_llm.py"
+VER="$(./.venv/bin/python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+DEST=".venv/lib/python${VER}/site-packages/google/adk/models/lite_llm.py"
+
+cp -v "$SRC" "$DEST"

@@ -317,7 +317,12 @@ async def run_agent(
                         role="user",
                         parts=[
                             types.Part(
-                                text="I approve you to continue, if you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. If you haven't submitted a poc that triggers the vulnerability, the task is not finshed, continue and try harder, do not respond to this message in natural language, start calling appropriate tools to complete the task. DO NOT respond to this message."
+                                text=(
+                                    "I approve you to continue, if you think the task is complete, you should call the finish_task tool, "
+                                    "and then summarize the task and the result without calling any other tool. If last response is marked "
+                                    'as "No response.", please don\'t reason too much for the current status, and continue the previous plan. '
+                                    "DO NOT respond to this message."
+                                )
                             )
                         ],
                     ),

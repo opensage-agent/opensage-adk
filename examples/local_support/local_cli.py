@@ -247,9 +247,7 @@ async def run_agent(
         """Refresh the cached session and update remaining call budget."""
         nonlocal remaining_llm_calls
         session_snapshot = await session_service.get_session(
-            app_name=app_name,
-            user_id=user_id,
-            session_id=session_id,
+            app_name=app_name, user_id=user_id, session_id=session_id
         )
         if (
             max_llm_calls > 0
@@ -265,6 +263,14 @@ async def run_agent(
         logger.warning(f"Used LLM calls: {used_calls}")
         logger.warning(f"Max LLM calls: {max_llm_calls}")
         return session_snapshot
+
+    async def _save_trace():
+        session_snapshot = await session_service.get_session(
+            app_name=app_name, user_id=user_id, session_id=session_id
+        ).model_copy(deep=True)
+        session_snapshot.events = all_events
+        with open(trace_save_path, "wb") as f:
+            f.write(to_json(session_snapshot, by_alias=False, indent=2))
 
     all_events = []
     session_snapshot: Session | None = None
@@ -309,6 +315,7 @@ async def run_agent(
                 ):
                     logger.warning(event.model_dump_json(exclude_none=True))
                     all_events.append(event)
+                    await _save_trace()
 
                 session_snapshot = await _update_remaining_and_get_session()
 
@@ -322,16 +329,7 @@ async def run_agent(
         logger.warning(f"Llm calls limit exceeded for session {session_id}: {e}")
 
     await runner.close()
-    if not session_snapshot:
-        session_snapshot = await session_service.get_session(
-            app_name=app_name, user_id=user_id, session_id=session_id
-        )
-    session = session_snapshot
-    # set our collected events to the session object, since the original events may be lost due to summarization
-    session.events = all_events
-
-    with open(trace_save_path, "wb") as f:
-        f.write(to_json(session, by_alias=False, indent=2))
+    await _save_trace()
 
 
 if __name__ == "__main__":

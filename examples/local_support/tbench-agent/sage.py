@@ -56,7 +56,7 @@ At last, state what you have done and how you finished the task.
 
 """
 
-SYSTEM_PROMPT_CODEX = """You are GPT-5.2 running in the Codex CLI, a terminal-based coding assistant. Codex CLI is an open source project led by OpenAI. You are expected to be precise, safe, and helpful.
+SYSTEM_PROMPT_CODEX = r"""You are GPT-5.2 running in the Codex CLI, a terminal-based coding assistant. Codex CLI is an open source project led by OpenAI. You are expected to be precise, safe, and helpful.
 
 Your capabilities:
 
@@ -381,15 +381,17 @@ class Sage(BaseInstalledAgent):
         pass
 
     def create_run_agent_commands(self, instruction: str) -> list[ExecInput]:
-        env = {
-            "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY", ""),
-            "LITELLM_PROXY_API_KEY": os.getenv("LITELLM_PROXY_API_KEY", ""),
-            "OPENAI_BASE_URL": os.getenv(
-                "OPENAI_BASE_URL", "https://api.openai.com/v1"
-            ),
-            "LITELLM_PROXY_BASE_URL": os.getenv("LITELLM_PROXY_BASE_URL", ""),
-            "SAGE_NO_DOCKER": "1",
-        }
+        env = {}
+
+        if openai_api_key := os.getenv("OPENAI_API_KEY"):
+            env["OPENAI_API_KEY"] = openai_api_key
+        if openai_base_url := os.getenv("OPENAI_BASE_URL"):
+            env["OPENAI_API_BASE"] = openai_base_url
+        if litellm_api_key := os.getenv("LITELLM_PROXY_API_KEY"):
+            env["LITELLM_PROXY_API_KEY"] = litellm_api_key
+        if litellm_base_url := os.getenv("LITELLM_PROXY_BASE_URL"):
+            env["LITELLM_PROXY_BASE_URL"] = litellm_base_url
+
         cmd = [
             "/opt/sage/.venv/bin/python3", "/opt/sage/examples/local_support/local_cli.py",
             "--prompt", instruction,

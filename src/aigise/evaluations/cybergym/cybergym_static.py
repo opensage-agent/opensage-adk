@@ -175,12 +175,18 @@ class CyberGym(Evaluation):
         else:
             input_data_path = ""
         image_name = task.sample["task_id"]
-        arvo_image_name = "n132/" + image_name + "-vul"
+        if image_name.startswith("oss-fuzz"):
+            real_image_name = "cybergym/" + image_name + "-vul"
+        else:
+            real_image_name = "n132/" + image_name + "-vul"
         template_variables = {
             "TASK_NAME": task_name,
             "PROJECT_RELATIVE_SHARED_DATA_PATH": input_data_path,
-            "DEFAULT_IMAGE": arvo_image_name,
+            "DEFAULT_IMAGE": real_image_name,
         }
+        if image_name.startswith("oss-fuzz"):
+            template_variables["COMPILE_COMMAND"] = "compile"
+            template_variables["RUN_COMMAND"] = "run_poc"
         self._replace_template_variables_in_config(temp_config_path, template_variables)
 
         aigise_session = get_aigise_session(

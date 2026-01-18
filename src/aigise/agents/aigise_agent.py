@@ -476,9 +476,8 @@ class ToolLoader:
             if enable_memory_management:
                 neo4j_lines.extend(
                     [
-                        "Query long-term memory:",
-                        "- Prefer using the `memory_management_agent` tool. It exposes helpers like `cache_qa_pair`, `get_cached_answer_by_id`, `create_cache_relation`, `list_node_types`, `list_relations`, and `run_neo4j_query`.",
-                        "- `run_neo4j_query` can target different DBs via `client_type` (default: `memory`).",
+                        "Querying long-term memory and short-term memory(agent execution history of sub-agents):",
+                        "- Prefer using the `memory_management_agent` tool. Use natrual language to interact with memory_management_agent.",
                         "",
                     ]
                 )
@@ -537,84 +536,84 @@ class AigiseAgent(LlmAgent):
             metadata
         )
 
-        if enable_memory_management:
-            # Put this at the very front so it is followed even when the
-            # instruction grows via dynamically injected tool descriptions.
-            repo_first_prompt = """
-Before doing anything else, you must first build comprehensive repository
-documentation and persist it into Neo4j.
+        #         if enable_memory_management:
+        #             # Put this at the very front so it is followed even when the
+        #             # instruction grows via dynamically injected tool descriptions.
+        #             repo_first_prompt = """
+        # Before doing anything else, you must first build comprehensive repository
+        # documentation and persist it into Neo4j.
 
-**CRITICAL: Start by carefully reading the README file(s) in the repository.**
-The README contains essential information about the project's purpose, architecture,
-and structure. Use this as the foundation for your documentation.
+        # **CRITICAL: Start by carefully reading the README file(s) in the repository.**
+        # The README contains essential information about the project's purpose, architecture,
+        # and structure. Use this as the foundation for your documentation.
 
-**Step 1: Determine Documentation Structure**
+        # **Step 1: Determine Documentation Structure**
 
-1) Analyze the repository:
-   - Read and analyze the README file(s) FIRST to understand the project's purpose,
-     architecture, and key components
-   - Examine the repository file tree to identify major components, modules, and
-     features
-   - Based on README and code structure, design a logical documentation structure
+        # 1) Analyze the repository:
+        #    - Read and analyze the README file(s) FIRST to understand the project's purpose,
+        #      architecture, and key components
+        #    - Examine the repository file tree to identify major components, modules, and
+        #      features
+        #    - Based on README and code structure, design a logical documentation structure
 
-2) Documentation structure should include:
-   - **Overview**: Project introduction, purpose, and high-level architecture (heavily based on README)
-   - **Core Components**: Major modules, features, or subsystems
-   - **Architecture**: System design, data flow, component relationships
-   - **API/Interfaces**: If applicable, API documentation or key interfaces
-   - **Setup/Deployment**: Installation, configuration, deployment instructions
-   - Additional sections as needed based on repository analysis
+        # 2) Documentation structure should include:
+        #    - **Overview**: Project introduction, purpose, and high-level architecture (heavily based on README)
+        #    - **Core Components**: Major modules, features, or subsystems
+        #    - **Architecture**: System design, data flow, component relationships
+        #    - **API/Interfaces**: If applicable, API documentation or key interfaces
+        #    - **Setup/Deployment**: Installation, configuration, deployment instructions
+        #    - Additional sections as needed based on repository analysis
 
-3) Create the structure outline:
-   - List all planned documentation pages with titles and brief descriptions
-   - Identify relationships between pages (which pages should link to others)
+        # 3) Create the structure outline:
+        #    - List all planned documentation pages with titles and brief descriptions
+        #    - Identify relationships between pages (which pages should link to others)
 
-**Step 2: Write Documentation Pages**
+        # **Step 2: Write Documentation Pages**
 
-1) Create documentation files under `/docs` directory:
-   - Use descriptive filenames (e.g., `Overview.md`, `Architecture.md`, `API.md`)
-   - Each page should be a standalone Markdown file
+        # 1) Create documentation files under `/docs` directory:
+        #    - Use descriptive filenames (e.g., `Overview.md`, `Architecture.md`, `API.md`)
+        #    - Each page should be a standalone Markdown file
 
-2) For each documentation page:
-   - Write comprehensive, accurate content based on README analysis, code structure, and key source files
-   - Include code examples where relevant
-   - Use proper Markdown formatting
-   - Add a `related_to` field (YAML frontmatter or comment):
-     ```yaml
-     ---
-     title: Overview
-     related_to:
-       - Architecture
-       - Quick Start
-     ---
-     ```
+        # 2) For each documentation page:
+        #    - Write comprehensive, accurate content based on README analysis, code structure, and key source files
+        #    - Include code examples where relevant
+        #    - Use proper Markdown formatting
+        #    - Add a `related_to` field (YAML frontmatter or comment):
+        #      ```yaml
+        #      ---
+        #      title: Overview
+        #      related_to:
+        #        - Architecture
+        #        - Quick Start
+        #      ---
+        #      ```
 
-**Step 3: Store Documentation in Neo4j**
+        # **Step 3: Store Documentation in Neo4j**
 
-1) For each documentation page, use `memory_management_agent` to store it:
-   - Call `cache_qa_pair(question="<page_title>", answer="<page_content>",
-     answering_agent="documentation_agent", answering_model="<model_name>",
-     metadata={"doc_type": "wiki_page"})`
+        # 1) For each documentation page, use `memory_management_agent` to store it:
+        #    - Call `cache_qa_pair(question="<page_title>", answer="<page_content>",
+        #      answering_agent="documentation_agent", answering_model="<model_name>",
+        #      metadata={"doc_type": "wiki_page"})`
 
-2) After storing all pages, create relationships between related pages:
-   - Use `create_cache_relation(source_match={"question": "<source_title>"},
-     target_match={"question": "<target_title>"}, relation_type="RELATED_TO",
-     database="memory")` for all pages listed in each page's `related_to` field
+        # 2) After storing all pages, create relationships between related pages:
+        #    - Use `create_cache_relation(source_match={"question": "<source_title>"},
+        #      target_match={"question": "<target_title>"}, relation_type="RELATED_TO",
+        #      database="memory")` for all pages listed in each page's `related_to` field
 
-**Important Notes:**
-- DO NOT mirror the repository directory structure - create a logical documentation structure
-- ALWAYS start with README analysis - it's crucial for understanding the project
-- Store pages and create relationships between them using the memory_management_agent tools
-"""
-            # Keep the tool-usage banner as the very first content; insert the repo
-            # prompt immediately after the banner.
-            if self.instruction.startswith(_TOOL_USAGE_BANNER_MARKER):
-                banner, rest = self.instruction.split("\n\n", 1)
-                self.instruction = (
-                    banner + "\n\n" + repo_first_prompt.strip() + "\n\n" + rest
-                )
-            else:
-                self.instruction = repo_first_prompt.strip() + "\n\n" + self.instruction
+        # **Important Notes:**
+        # - DO NOT mirror the repository directory structure - create a logical documentation structure
+        # - ALWAYS start with README analysis - it's crucial for understanding the project
+        # - Store pages and create relationships between them using the memory_management_agent tools
+        # """
+        #             # Keep the tool-usage banner as the very first content; insert the repo
+        #             # prompt immediately after the banner.
+        #             if self.instruction.startswith(_TOOL_USAGE_BANNER_MARKER):
+        #                 banner, rest = self.instruction.split("\n\n", 1)
+        #                 self.instruction = (
+        #                     banner + "\n\n" + repo_first_prompt.strip() + "\n\n" + rest
+        #                 )
+        #             else:
+        #                 self.instruction = repo_first_prompt.strip() + "\n\n" + self.instruction
 
         if tool_prompt:
             tool_usage_banner = (

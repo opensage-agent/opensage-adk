@@ -642,8 +642,6 @@ class AigiseAgent(LlmAgent):
                 "- Before starting work, survey the tool ecosystem broadly:\n"
                 "  - Call `list_available_scripts to review relevant available Skill docs.\n"
                 "  - Then inspect and consider multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
-                "- Before using generic commands like `sed`, first check for an existing Skill:\n"
-                '  - Use `list_available_scripts(start_dir="/bash_tools/<toolset>")` to inspect SKILL.md files.\n'
                 "  - If a Skill exists, use it instead of generic shell.\n"
                 "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
                 "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
@@ -719,8 +717,6 @@ class AigiseAgent(LlmAgent):
                 "- Before starting work, survey the tool ecosystem broadly:\n"
                 "  - Call `list_available_scripts to review relevant available Skill docs.\n"
                 "  - Then inspect and consider multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
-                "- Before using generic commands like `sed`, first check for an existing Skill:\n"
-                '  - Use `list_available_scripts(start_dir="/bash_tools/<toolset>")` to inspect SKILL.md files.\n'
                 "  - If a Skill exists, use it instead of generic shell.\n"
                 "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
                 "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"

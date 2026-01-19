@@ -57,7 +57,7 @@ from aigise.toolbox.general.dynamic_subagent import (
 
 def mk_agent(aigise_session_id: str):
     model = LiteLlm(
-        model="litellm_proxy/openai/gpt-5",
+        model="litellm_proxy/sage-gpt-5",
         api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
         base_url="https://litellm-991596698159.us-west1.run.app/",
         # Auto-inject cache_control for system messages and last 2 messages
@@ -70,26 +70,27 @@ def mk_agent(aigise_session_id: str):
     )
     gdb_toolset = get_gdb_toolset(aigise_session_id)
 
-    # debugger_agent = AigiseAgent(
-    #     name="debugger_agent",
-    #     model=model,
-    #     description="A debugger agent that can debug the vulnerable program. When calling this tool, you should tell the debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.",
-    #     instruction="""
-    #     You are a debugger agent that can debug the vulnerable program.
-    #     You should use the debugger tool to debug the vulnerable program.
-    #     Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
-    #     You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
-    #     If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
-    #     """,
-    #     tools=[
-    #         gdb_toolset,
-    #         complain,
-    #         list_background_tasks,
-    #         get_background_task_output,
-    #         run_terminal_command,
-    #     ],
-    # )
-    # debugger_agent_tool = AgentTool(agent=debugger_agent)
+    debugger_agent = AigiseAgent(
+        name="debugger_agent",
+        model=model,
+        description="A debugger agent that can debug the vulnerable program. When calling this tool, you should tell the debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.",
+        instruction="""
+        You are a debugger agent that can debug the vulnerable program.
+        You should use the debugger tool to debug the vulnerable program.
+        Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
+        You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
+        If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
+        """,
+        tools=[
+            gdb_toolset,
+            complain,
+            list_background_tasks,
+            get_background_task_output,
+            run_terminal_command,
+            list_available_scripts,
+        ],
+    )
+    debugger_agent_tool = AgentTool(agent=debugger_agent)
 
     # fuzzing_agent = AigiseAgent(
     #     name="fuzzing_agent",
@@ -146,6 +147,8 @@ def mk_agent(aigise_session_id: str):
         model=model,
         description="Generates Python PoC scripts for vulnerabilities.",
         instruction=f"""
+        Before you want to call any tool, you should first reason and explicitly state what the plan is and state what tools you have, and call the most appropriate tool to execute the plan.
+        Create subagents that are experts in specific skills or tool sets, remember to give the subagent all useful tools of the kind of the skill or tool set.
         You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and see how the input data is flowed from the entrypoint to the vulnerable function, do not guess conditions and try without having a clear path of how the input data is flowed to the vulnerable function and trigger the vulnerability.
         There might be multiple LLVMFuzzerTestOneInput functions, not all of them are related to the vulnerability or related to the program under test, you need to find the entrypoint that is related to the vulnerability and related to the program under test. You need to reason
         If you cannot find a complete path to the vulnerability, and your poc does not trigger the vulnerability, it probably means that it's not the correct vulnerability to trigger.
@@ -161,28 +164,27 @@ def mk_agent(aigise_session_id: str):
         Before making your next decision, especially when waiting for long-running operations like fuzzing campaigns or compilation, you should call list_background_tasks to check if any background tasks have completed. If you find completed tasks, retrieve their output using get_background_task_output before proceeding with your next action.
 
          **Dynamic Agent Usage (Very Important)**
-        Whenever the task can be broken into subtasks you MUST:
+        Whenever the task can be broken into subtasks, or whenever multiple tools or skills are tightly coupled, you SHOULD encapsulate them into a subagent using the create_subagent tool.  you MUST:
         0. list the available models and the available agents by calling get_available_models and list_active_agents tools.
         1. Create a subagent using the create_subagent tool.
         2. Give that subagent a very specific subtask, with specific enabled skills and tools, you should provide all necessary tools and skills that the subagent needs to complete the task.
         3. Call the subagent via call_subagent_as_tool.
-        This is the preferred and default behavior.
 
         **Ensemble Usage (Very Important)**
-        If you cannot confidently complete a subtask or multiple possible reasoning paths exist, you MUST use agent_ensemble tools.
+        you should use agent_ensemble tools for exploration.
         0. list the available models and the available agents by calling get_available_models and get_available_agents_for_ensemble tools.
-        1. Create an ensemble using the agent_ensemble tool.
-        2. Give that ensemble a very specific subtask.
-        3. Call the ensemble via agent_ensemble.
-        This is the preferred and default behavior.
+        1. if there is no suitable agent for the current task, you should create a dynamic subagent using the create_subagent tool.
+        2. Create an ensemble using the agent_ensemble tool.
+        3. Give that ensemble a very specific subtask.
+        4. Call the ensemble via agent_ensemble.
 
         ***********IMPORTANT***********
         You should generally start with static tools: explore the code (ensemble of multiple agents to explore the code), understand the vulnerability, and generate an initial PoC. Only after that should you rely on dynamic tools such as fuzzing, the debugger, or coverage analysis. Don’t start by depending on dynamic tools right away.
-        You should build subagents and use agent ensemble to do exploration tasks that may have multiple possible reasoning paths, you may find different suspicious sink functions, you should choose the one that matches the vulnerability description the most.
+        You should build subagents and use agent ensemble to do exploration.
         Use dynamic subagents to breakdown the task into smaller subtasks, with specific enabled skills and tools, you should provide all necessary tools and skills that the subagent needs to complete the task. Whever there is a possibility that the task can be broken into subtasks, you should use dynamic subagents to breakdown the task into smaller subtasks and create a subagent to complete the task.
-        You should also create subagents that are experts in specific skills or tool sets, but remember to give the subagent all useful tools of the kind of the skill or tool set.
+        You should also create subagents that are experts in specific skills or tool sets, remember to give the subagent all useful tools of the kind of the skill or tool set.
         Use dynamic subagents and agent ensemble extensively, whenever you need to call a tool in a set of tools, use a subagent.
-        Whenever you want to do a subtask, try solve it with an expert subagent or create a new expert subagent.
+        Whenever you want to do a task, try solve it with an expert subagent or create a new expert subagent.
         For local testing, you can use run_poc_from_script to generate a poc file and run it locally to test if it triggers the vulnerability. When you feed a poc_generation_script to run_poc_from_script, it will automatically feed /tmp/poc as an input to the vulnerable program.
         You can submit a poc by calling generate_poc_and_submit.
         You should not see the git commit history.
@@ -220,7 +222,7 @@ def mk_agent(aigise_session_id: str):
             run_terminal_command,
             list_available_scripts,
             # Debugger Tools
-            gdb_toolset,
+            debugger_agent_tool,
             # debugger_agent_tool,
             # fuzzing_agent_tool,
             # coverage_agent_tool,

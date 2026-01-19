@@ -525,13 +525,23 @@ async def agent_ensemble(
         Args:
             instruction: The specific instruction/task you want all agents to execute
             agent_name: The name of the agent to launch (must be in safe agents list)
-            model_name_to_count: A dictionary of model names and the number of agents to launch with that model
+            model_name_to_count: A dictionary of model names and the number of agents to launch with that model, where the key is the model name and the value is the number of agents to launch with that model, the total number of agents to launch is the sum of the values in the dictionary, it should be at least 2.
             history_passed_in: Whether to pass conversation history to agents for additional context
             tool_context: The tool context
 
         Returns:
             The aggregated final result from all agents
     """
+    if not isinstance(model_name_to_count, dict) or len(model_name_to_count) == 0:
+        return {
+            "success": False,
+            "error": "model_name_to_count must be a non-empty dictionary",
+        }
+    if sum(model_name_to_count.values()) < 2:
+        return {
+            "success": False,
+            "error": "the total number of agents to launch is less than 2",
+        }
     try:
         # Build complete instruction with optional history
         full_instruction = _build_full_instruction(

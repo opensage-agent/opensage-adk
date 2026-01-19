@@ -383,6 +383,8 @@ async def get_available_agents_for_ensemble(tool_context: ToolContext):
         # Convert EnsembleAgentInfo objects to dictionaries for API response
         safe_agents = []
         for agent_info in ensemble_result["safe_agents"]:
+            if agent_info.agent_type != "dynamic_agent":
+                continue
             safe_agents.append(
                 {
                     "name": agent_info.name,
@@ -396,6 +398,8 @@ async def get_available_agents_for_ensemble(tool_context: ToolContext):
 
         unsafe_agents = []
         for agent_info in ensemble_result["unsafe_agents"]:
+            if agent_info.agent_type != "dynamic_agent":
+                continue
             unsafe_tools = getattr(agent_info, "unsafe_tools", [])
             unsafe_agents.append(
                 {

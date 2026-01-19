@@ -363,7 +363,7 @@ def list_available_scripts(
 @safe_tool_execution
 def wait_for_background(
     task_id: str,
-    timeout: int = 60,
+    timeout: int = 300,
     *,
     tool_context: ToolContext,
 ) -> Dict[str, Any]:

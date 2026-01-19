@@ -18,7 +18,7 @@ from google.adk.tools.tool_context import ToolContext
 
 from aigise.session import get_aigise_session
 from aigise.toolbox.decorators import safe_tool_execution
-from aigise.toolbox.general.bash_task_manager import BashTaskManager
+from aigise.toolbox.general.bash_task_manager import BashTaskManager, TaskStatus
 from aigise.utils.agent_utils import (
     get_aigise_session_id_from_context,
     get_sandbox_from_context,
@@ -385,13 +385,13 @@ def wait_for_background(
     if not hasattr(session, "bash_tasks"):
         return {"success": False, "message": "No task manager found."}
 
-    task_manager = session.bash_tasks
+    task_manager: BashTaskManager = session.bash_tasks
 
     if task_id not in task_manager.tasks:
         return {"success": False, "message": f"Task {task_id} not found."}
 
     task = task_manager.tasks[task_id]
-    sandbox_name = task.get("sandbox_name", "main")
+    sandbox_name = task.sandbox_name
 
     try:
         sandbox = get_sandbox_from_context(tool_context, sandbox_name)
@@ -558,7 +558,7 @@ def run_terminal_command(
         return {
             "success": True,
             "timeout": True,
-            "message": f"Command timed out after {timeout}s but is still running in background.",
+            "message": f"Command timed out after {timeout}s but is still running in background. Use list_background_tasks and get_background_task_output to monitor.",
             "task_id": task_id,
             "status": "running",
             "sandbox": target_sandbox,
@@ -609,13 +609,12 @@ def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
     # Generate summary
     status_counts = {}
     for task in tasks:
-        status = task["status"]
+        status = task.status.value
         status_counts[status] = status_counts.get(status, 0) + 1
 
     summary_parts = [f"Total: {len(tasks)}"]
-    for status in ["running", "completed", "failed", "completed/unknown"]:
-        if status in status_counts:
-            summary_parts.append(f"{status}: {status_counts[status]}")
+    for status, count in status_counts.items():
+        summary_parts.append(f"{status}: {count}")
 
     return {"tasks": tasks, "summary": ", ".join(summary_parts)}
 
@@ -654,7 +653,7 @@ def get_background_task_output(
             "task_id": task_id,
         }
 
-    task_manager = session.bash_tasks
+    task_manager: BashTaskManager = session.bash_tasks
 
     # Check if task exists
     if task_id not in task_manager.tasks:
@@ -665,7 +664,7 @@ def get_background_task_output(
 
     # Get task info
     task = task_manager.tasks[task_id]
-    sandbox_name = task.get("sandbox_name", "main")
+    sandbox_name = task.sandbox_name
 
     try:
         sandbox = get_sandbox_from_context(tool_context, sandbox_name)
@@ -676,7 +675,7 @@ def get_background_task_output(
         }
 
     # Update status if still running
-    if task["status"] == "running":
+    if task.status == TaskStatus.RUNNING:
         # Trigger status update via list_tasks (efficient way to reuse logic?)
         # Or just check this single task manually
         # Let's reuse list_tasks for consistency, though it checks all
@@ -695,18 +694,18 @@ def get_background_task_output(
     # Prepare result
     result = {
         "task_id": task_id,
-        "command": task["command"],
-        "status": task["status"],
+        "command": task.command,
+        "status": task.status.value,
         "sandbox": sandbox_name,
         "output": output,
         "exit_code": exit_code if exit_code is not None else "unknown",
-        "log_file": task["log_file"],
+        "log_file": task.log_file,
     }
 
     # Clean up: delete buffer files and remove from task management
     # Clean up ONLY if task is finished
     cleanup_success = False
-    if task["status"] in ["completed", "failed", "killed", "completed/unknown"]:
+    if task.status.to_be_cleaned_up():
         cleanup_success = task_manager.cleanup_task(sandbox, task_id)
 
     result["cleaned_up"] = cleanup_success
@@ -731,13 +730,13 @@ def kill_background_task(task_id: str, *, tool_context: ToolContext) -> Dict[str
     if not hasattr(session, "bash_tasks"):
         return {"success": False, "message": "No task manager found."}
 
-    task_manager = session.bash_tasks
+    task_manager: BashTaskManager = session.bash_tasks
 
     if task_id not in task_manager.tasks:
         return {"success": False, "message": f"Task {task_id} not found."}
 
     task = task_manager.tasks[task_id]
-    sandbox_name = task.get("sandbox_name", "main")
+    sandbox_name = task.sandbox_name
 
     try:
         sandbox = get_sandbox_from_context(tool_context, sandbox_name)

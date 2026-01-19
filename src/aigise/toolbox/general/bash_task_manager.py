@@ -1,16 +1,54 @@
 import logging
 import uuid
+from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
+
+
+class TaskStatus(str, Enum):
+    """Status of a background task."""
+
+    RUNNING = "running"
+    COMPLETED = "completed"
+    KILLED = "killed"
+    UNKNOWN = "unknown"
+    SANDBOX_UNAVAILABLE = "sandbox_unavailable"
+
+    def to_be_cleaned_up(self) -> bool:
+        """Determine if the task is in a state suitable for cleanup."""
+        return self in {
+            TaskStatus.COMPLETED,
+            TaskStatus.KILLED,
+            TaskStatus.UNKNOWN,
+            TaskStatus.SANDBOX_UNAVAILABLE,
+        }
+
+
+@dataclass
+class Task:
+    """Represents a background bash task."""
+
+    id: str
+    pid: str
+    command: str
+    sandbox_name: str
+    log_file: str
+    exit_code_file: str
+    pid_file: str
+    cmd_file: str
+    wrapper_file: str
+    status: TaskStatus = TaskStatus.RUNNING
+    exit_code: Optional[int] = None
 
 
 class BashTaskManager:
     """Manages background bash tasks for a session."""
 
     def __init__(self):
-        # Storage for tasks: task_id -> task_info
-        self.tasks: Dict[str, Dict[str, Any]] = {}
+        # Storage for tasks: task_id -> Task
+        self.tasks: Dict[str, Task] = {}
 
     @staticmethod
     def _heredoc_delimiter(task_id: str, *, purpose: str) -> str:
@@ -122,25 +160,27 @@ fi
 
         pid = lines[0].strip()
 
-        self.tasks[task_id] = {
-            "id": task_id,
-            "pid": pid,
-            "command": command,
-            "sandbox_name": sandbox_name,
-            "log_file": log_file,
-            "exit_code_file": exit_code_file,
-            "pid_file": pid_file,
-            "status": "running",
-            "cmd_file": cmd_file,
-            "wrapper_file": wrapper_file,
-        }
+        task = Task(
+            id=task_id,
+            pid=pid,
+            command=command,
+            sandbox_name=sandbox_name,
+            log_file=log_file,
+            exit_code_file=exit_code_file,
+            pid_file=pid_file,
+            cmd_file=cmd_file,
+            wrapper_file=wrapper_file,
+            status=TaskStatus.RUNNING,
+            exit_code=None,
+        )
+        self.tasks[task_id] = task
 
         return (
             task_id,
             f"Task started. ID: {task_id}, PID: {pid}, Log: {log_file} (Sandbox: {sandbox_name})",
         )
 
-    def list_tasks(self, sandbox_getter) -> list[Dict[str, Any]]:
+    def list_tasks(self, sandbox_getter) -> list[Task]:
         """List all tasks and update their status.
 
         Args:
@@ -148,20 +188,20 @@ fi
         """
         active_tasks = []
         for task_id, task in self.tasks.items():
-            if task["status"] == "running":
-                sandbox_name = task.get("sandbox_name", "main")
+            if task.status == TaskStatus.RUNNING:
+                sandbox_name = task.sandbox_name
                 try:
                     sandbox = sandbox_getter(sandbox_name)
                 except Exception as e:
                     logger.warning(
                         f"Could not get sandbox '{sandbox_name}' for task {task_id}: {e}"
                     )
-                    task["status"] = "unknown (sandbox unavailable)"
+                    task.status = TaskStatus.SANDBOX_UNAVAILABLE
                     active_tasks.append(task)
                     continue
 
                 # Check if process is still running
-                pid = task["pid"]
+                pid = task.pid
                 check_cmd = f"kill -0 {pid}"
                 _, exit_code = sandbox.run_command_in_container(check_cmd)
 
@@ -169,9 +209,10 @@ fi
                     # Process finished, check exit code file
                     exit_code_val = self.get_task_exit_code(sandbox, task_id)
                     if exit_code_val is not None:
-                        task["status"] = "completed" if exit_code_val == 0 else "failed"
+                        task.exit_code = exit_code_val
+                        task.status = TaskStatus.COMPLETED
                     else:
-                        task["status"] = "completed/unknown"
+                        task.status = TaskStatus.UNKNOWN
 
             active_tasks.append(task)
         return active_tasks
@@ -182,7 +223,7 @@ fi
             return "Task not found"
 
         task = self.tasks[task_id]
-        log_file = task["log_file"]
+        log_file = task.log_file
         output, _ = sandbox.run_command_in_container(f"cat {log_file}")
         return output
 
@@ -191,7 +232,7 @@ fi
         if task_id not in self.tasks:
             return None
 
-        exit_code_file = self.tasks[task_id].get("exit_code_file")
+        exit_code_file = self.tasks[task_id].exit_code_file
         if not exit_code_file:
             return None
 
@@ -216,7 +257,8 @@ fi
         if task_id not in self.tasks:
             return False
 
-        pid = self.tasks[task_id]["pid"]
+        task = self.tasks[task_id]
+        pid = task.pid
         start_time = time.time()
 
         while time.time() - start_time < timeout:
@@ -228,11 +270,10 @@ fi
                 # Process finished
                 exit_code_val = self.get_task_exit_code(sandbox, task_id)
                 if exit_code_val is not None:
-                    self.tasks[task_id]["status"] = (
-                        "completed" if exit_code_val == 0 else "failed"
-                    )
+                    task.exit_code = exit_code_val
+                    task.status = TaskStatus.COMPLETED
                 else:
-                    self.tasks[task_id]["status"] = "completed/unknown"
+                    task.status = TaskStatus.UNKNOWN
                 return True
 
             time.sleep(1)
@@ -260,11 +301,11 @@ fi
 
         # Delete temporary files from sandbox
         files_to_delete = [
-            task.get("log_file"),
-            task.get("exit_code_file"),
-            task.get("pid_file"),
-            task.get("cmd_file"),
-            task.get("wrapper_file"),
+            task.log_file,
+            task.exit_code_file,
+            task.pid_file,
+            task.cmd_file,
+            task.wrapper_file,
         ]
 
         cleanup_success = True
@@ -299,7 +340,7 @@ fi
             return False
 
         task = self.tasks[task_id]
-        pid = task["pid"]
+        pid = task.pid
 
         # Kill the process group to ensure children (and the wrapper/timeout) are killed
         # Using -TERM first, then could fallback to -9 if needed, but for now let's try strict kill
@@ -310,7 +351,7 @@ fi
         output, exit_code = sandbox.run_command_in_container(kill_cmd)
 
         if exit_code == 0:
-            task["status"] = "killed"
+            task.status = TaskStatus.KILLED
             logger.info(f"Task {task_id} (PID {pid}) killed successfully")
             return True
         else:

@@ -35,7 +35,6 @@ from aigise.toolbox.general.agent_tools import (
     complain,
     critique,
     flag_unjustified_claims,
-    get_available_agents_for_ensemble,
     get_available_models,
     plan,
     think,
@@ -179,21 +178,21 @@ async def run_agent(
         list_background_tasks,
         get_background_task_output,
         wait_for_background,
-        critique,
+        # critique,
         think,
         # plan,
-        complain,
+        # complain,
     ]
 
     if use_subagent:
+        list_active_agents.__name__ = "get_available_agents"
         tools += [
             call_subagent_as_tool,
+            get_available_models,
             create_subagent,
             list_active_agents,
-            agent_ensemble,
+            # agent_ensemble,
             agent_ensemble_pairwise,
-            get_available_agents_for_ensemble,
-            get_available_models,
         ]
 
     local_agent = AigiseAgent(

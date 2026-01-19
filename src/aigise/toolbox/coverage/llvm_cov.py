@@ -81,9 +81,11 @@ class CoverageSegment(msgspec.Struct, array_like=True):
     line: int
     col: int
     count: int
-    has_count: bool
-    is_region_entry: bool
-    is_gap_region: bool = False
+    # NOTE: llvm-cov JSON may encode these flags as either booleans (true/false)
+    # or integer-like 0/1 values depending on LLVM version/build. Accept both.
+    has_count: bool | int
+    is_region_entry: bool | int
+    is_gap_region: bool | int = False
 
 
 class CountedRegion(msgspec.Struct, array_like=True):

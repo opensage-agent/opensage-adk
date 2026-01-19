@@ -344,7 +344,6 @@ def list_available_scripts(
 @safe_tool_execution
 def wait_for_background(
     task_id: str,
-    sandbox_name: str = "main",
     timeout: int = 60,
     *,
     tool_context: ToolContext,
@@ -363,25 +362,28 @@ def wait_for_background(
     Returns:
         dict: Execution result containing 'output', 'exit_code', 'status'
     """
-    # Determine sandbox
-    target_sandbox = sandbox_name
-
-    # Get sandbox
-    try:
-        sandbox = get_sandbox_from_context(tool_context, target_sandbox)
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Failed to get sandbox '{target_sandbox}': because {str(e)}",
-        }
-
-    # Get TaskManager
+    # Get TaskManager from session
     session_id = get_aigise_session_id_from_context(tool_context)
     session = get_aigise_session(session_id)
 
     if not hasattr(session, "bash_tasks"):
-        session.bash_tasks = BashTaskManager()
+        return {"success": False, "message": "No task manager found."}
+
     task_manager = session.bash_tasks
+
+    if task_id not in task_manager.tasks:
+        return {"success": False, "message": f"Task {task_id} not found."}
+
+    task = task_manager.tasks[task_id]
+    sandbox_name = task.get("sandbox_name", "main")
+
+    try:
+        sandbox = get_sandbox_from_context(tool_context, sandbox_name)
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Could not access sandbox '{sandbox_name}': {str(e)}",
+        }
 
     completed = task_manager.wait_for_task(sandbox, task_id, timeout)
 
@@ -409,7 +411,7 @@ def wait_for_background(
             "output": parsed_output,
             "exit_code": exit_code,
             "task_id": task_id,
-            "sandbox": target_sandbox,
+            "sandbox": sandbox_name,
         }
     else:
         # Timeout reached
@@ -419,7 +421,7 @@ def wait_for_background(
             "message": f"Command timed out after {timeout}s but is still running in background.",
             "task_id": task_id,
             "status": "running",
-            "sandbox": target_sandbox,
+            "sandbox": sandbox_name,
         }
 
 
@@ -462,8 +464,10 @@ def run_terminal_command(
         command: The full command line to execute
             (e.g., "python3 -c 'print(123)' | cat").
         background: Whether to run the command in the background (default: False)
-        timeout: Timeout in seconds for foreground commands (default: 60)
-        execution_timeout: Timeout in seconds for the command itself (default: None, meaning no timeout)
+        timeout: Timeout in seconds for foreground commands, after which they will be moved to background
+            (default: 60)
+        execution_timeout: Timeout in seconds for the command itself, after which it will be terminated
+            (default: None, meaning no timeout)
         sandbox_name: The name of the sandbox to run the command in
             (default: "main").
         tool_context: The tool context from the agent execution
@@ -515,7 +519,7 @@ def run_terminal_command(
         return {
             "success": True,
             "task_id": task_id,
-            "message": f"Command started in background. Use list_background_tasks to monitor.",
+            "message": "Command started in background. Use list_background_tasks and get_background_task_output to monitor.",
             "status": "running",
             "sandbox": target_sandbox,
         }

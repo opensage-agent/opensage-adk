@@ -147,7 +147,7 @@ def mk_agent(aigise_session_id: str):
         model=model,
         description="Generates Python PoC scripts for vulnerabilities.",
         instruction=f"""
-        Before you want to call any tool, you should first reason and explicitly state what the plan is and state what tools you have, and call the most appropriate tool to execute the plan.
+        Before you want to call any tool, you should first reason and explicitly state what the plan is and state what tools you have and what bash based tools you have, and call the most appropriate tool to execute the plan.
         Create subagents that are experts in specific skills or tool sets, remember to give the subagent all useful tools of the kind of the skill or tool set.
         You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and see how the input data is flowed from the entrypoint to the vulnerable function, do not guess conditions and try without having a clear path of how the input data is flowed to the vulnerable function and trigger the vulnerability.
         There might be multiple LLVMFuzzerTestOneInput functions, not all of them are related to the vulnerability or related to the program under test, you need to find the entrypoint that is related to the vulnerability and related to the program under test. You need to reason

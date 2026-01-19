@@ -1,6 +1,6 @@
 ---
 name: read-file
-description: Tool to get a specific line and surrounding lines from a file. When you want to read file, you should use this instead of general shell commands such as sed.
+description: Tool to get a specific line and surrounding lines from a file.
 should_run_in_sandbox: main
 returns_json: true
 
@@ -13,7 +13,7 @@ Tool to get a specific line and surrounding lines from a file.
 ## Usage
 
 ```bash
-python3 scripts/read_file.py --file "/path/to/file" --linenum 10 --context 5
+python3 /bash_tools/retrieval/read-file/scripts/read_file.py --file "/path/to/file" --linenum 10 --context 5
 ```
 
 ## Parameters

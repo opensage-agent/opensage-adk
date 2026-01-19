@@ -16,19 +16,19 @@ also **write your own** custom mutator (Python) and pass it in.
 ## Usage
 
 ```bash
-scripts/run_fuzzing_campaign.sh target_binary 180
+/bash_tools/fuzz/run-fuzzing-campaign/scripts/run_fuzzing_campaign.sh target_binary 180
 ```
 
 ```bash
-scripts/run_fuzzing_campaign.sh target_binary 180 /path/to/seed1.txt /path/to/seed2.txt
+/bash_tools/fuzz/run-fuzzing-campaign/scripts/run_fuzzing_campaign.sh target_binary 180 /path/to/seed1.txt /path/to/seed2.txt
 ```
 
 ```bash
-scripts/run_fuzzing_campaign.sh target_binary 180 /path/to/seed.txt --custom_mutator_path /fuzz/mutator/custom_mutator.py
+/bash_tools/fuzz/run-fuzzing-campaign/scripts/run_fuzzing_campaign.sh target_binary 180 /path/to/seed.txt --custom_mutator_path /fuzz/mutator/custom_mutator.py
 ```
 
 ```bash
-scripts/run_fuzzing_campaign.sh target_binary 180 /path/to/seed.txt --reset_output
+/bash_tools/fuzz/run-fuzzing-campaign/scripts/run_fuzzing_campaign.sh target_binary 180 /path/to/seed.txt --reset_output
 ```
 
 ## Parameters
@@ -69,7 +69,7 @@ If you provide `--custom_mutator_path`, AFL++ will load the mutator from that
 path. A common convention is to place it in the fuzz sandbox, e.g.:
 
 ```bash
-scripts/run_fuzzing_campaign.sh target_binary 180 /path/to/seed.txt \
+/bash_tools/fuzz/run-fuzzing-campaign/scripts/run_fuzzing_campaign.sh target_binary 180 /path/to/seed.txt \
   --custom_mutator_path /fuzz/mutator/custom_mutator.py
 ```
 

@@ -13,7 +13,7 @@ List functions in a file.
 ## Usage
 
 ```bash
-python3 scripts/list_functions.py --file "relative/path/to/file.py"
+python3 /bash_tools/retrieval/list-functions/scripts/list_functions.py --file "relative/path/to/file.py"
 ```
 
 ## Parameters

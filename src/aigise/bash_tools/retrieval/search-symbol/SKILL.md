@@ -15,7 +15,7 @@ Do not include any punctuation such as parentheses in the symbol_name.
 ## Usage
 
 ```bash
-scripts/search_symbol.sh "symbol_name"
+/bash_tools/retrieval/search-symbol/scripts/search_symbol.sh "symbol_name"
 ```
 
 ## Parameters

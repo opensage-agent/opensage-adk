@@ -13,7 +13,7 @@ Tool to search for a function in the codebase.
 ## Usage
 
 ```bash
-python3 scripts/search_function.py "function_name"
+python3 /bash_tools/static_analysis/search-function/scripts/search_function.py "function_name"
 ```
 
 ## Parameters

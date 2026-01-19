@@ -73,7 +73,7 @@ moves the window to show <line_number>
 #### Usage
 
 ```bash
-goto <LINE_NUMBER>
+/bash_tools/swe_agent/windowed/scripts/goto.py <LINE_NUMBER>
 ```
 
 #### Parameters
@@ -89,7 +89,7 @@ opens the file at the given path in the editor. If line_number is provided, the 
 #### Usage
 
 ```bash
-open <PATH> [LINE_NUMBER]
+/bash_tools/swe_agent/windowed/scripts/open.py <PATH> [LINE_NUMBER]
 ```
 
 #### Parameters
@@ -106,7 +106,7 @@ creates and opens a new file with the given name
 #### Usage
 
 ```bash
-create <FILENAME>
+/bash_tools/swe_agent/windowed/scripts/create.py <FILENAME>
 ```
 
 #### Parameters
@@ -122,7 +122,7 @@ moves the window up {WINDOW} lines
 #### Usage
 
 ```bash
-scroll_up
+/bash_tools/swe_agent/windowed/scripts/scroll_up.py
 ```
 
 ### scroll_down
@@ -132,5 +132,5 @@ moves the window down {WINDOW} lines
 #### Usage
 
 ```bash
-scroll_down
+/bash_tools/swe_agent/windowed/scripts/scroll_down.py
 ```

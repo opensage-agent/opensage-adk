@@ -13,7 +13,7 @@ Tool to run a custom Joern query against the code property graph.
 ## Usage
 
 ```bash
-python3 scripts/joern_query.py "query_string"
+python3 /bash_tools/static_analysis/joern-query/scripts/joern_query.py "query_string"
 ```
 
 Tip: if needed, load the CPG first: `importCpg("/cpg.bin")`.

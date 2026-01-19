@@ -13,11 +13,11 @@ Copy crash input files from fuzzing output to a target directory.
 ## Usage
 
 ```bash
-scripts/extract_crashes.sh /path/to/target_dir
+/bash_tools/fuzz/extract-crashes/scripts/extract_crashes.sh /path/to/target_dir
 ```
 
 ```bash
-scripts/extract_crashes.sh /path/to/target_dir crash_file1 crash_file2
+/bash_tools/fuzz/extract-crashes/scripts/extract_crashes.sh /path/to/target_dir crash_file1 crash_file2
 ```
 
 ## Parameters

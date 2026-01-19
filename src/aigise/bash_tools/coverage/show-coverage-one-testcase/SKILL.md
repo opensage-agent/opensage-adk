@@ -13,7 +13,7 @@ Show coverage for a specified testcase and function.
 ## Usage
 
 ```bash
-TARGET_BINARY=/path/to/target scripts/show_coverage.sh <testcase_path> <function_name> [file_path]
+TARGET_BINARY=/path/to/target /bash_tools/coverage/show-coverage-one-testcase/scripts/show_coverage.sh <testcase_path> <function_name> [file_path]
 ```
 
 ## Parameters

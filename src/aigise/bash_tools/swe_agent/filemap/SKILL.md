@@ -34,7 +34,7 @@ Print the contents of a Python file, skipping lengthy function and method defini
 #### Usage
 
 ```bash
-filemap <FILE_PATH>
+/bash_tools/swe_agent/filemap/scripts/filemap.py <FILE_PATH>
 ```
 
 #### Parameters

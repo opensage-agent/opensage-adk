@@ -12,17 +12,17 @@ Run an arbitrary Cypher query against Neo4j and return JSON records.
 ## Usage
 
 ```bash
-python3 scripts/neo4j_query.py "MATCH (n) RETURN n LIMIT 1"
+python3 /bash_tools/neo4j/neo4j-query/scripts/neo4j_query.py "MATCH (n) RETURN n LIMIT 1"
 ```
 
 ```bash
-python3 scripts/neo4j_query.py \
+python3 /bash_tools/neo4j/neo4j-query/scripts/neo4j_query.py \
   "MATCH (n {name: \$name}) RETURN n" \
   --params '{"name":"Alice"}'
 ```
 
 ```bash
-python3 scripts/neo4j_query.py \
+python3 /bash_tools/neo4j/neo4j-query/scripts/neo4j_query.py \
   "SHOW DATABASES YIELD name RETURN name" \
   --database "analysis"
 ```

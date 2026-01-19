@@ -56,7 +56,7 @@ Reads a value from the registry.
 #### Usage
 
 ```bash
-read_registry <KEY> [DEFAULT]
+/bash_tools/swe_agent/registry/scripts/read_registry.sh <KEY> [DEFAULT]
 ```
 
 #### Parameters
@@ -73,7 +73,7 @@ Writes a value to the registry.
 #### Usage
 
 ```bash
-write_registry <KEY> <VALUE>
+/bash_tools/swe_agent/registry/scripts/write_registry.sh <KEY> <VALUE>
 ```
 
 #### Parameters

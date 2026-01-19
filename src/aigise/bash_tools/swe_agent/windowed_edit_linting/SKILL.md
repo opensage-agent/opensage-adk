@@ -52,7 +52,7 @@ Please note that THIS COMMAND REQUIRES PROPER INDENTATION. If you'd like to add 
 #### Usage
 
 ```bash
-edit <START_LINE> <END_LINE> <REPLACEMENT_TEXT>
+/bash_tools/swe_agent/windowed_edit_linting/scripts/edit.py <START_LINE> <END_LINE> <REPLACEMENT_TEXT>
 ```
 
 #### Parameters

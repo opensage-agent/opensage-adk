@@ -30,7 +30,7 @@ view an image file
 #### Usage
 
 ```bash
-view_image <IMAGE_FILE>
+/bash_tools/swe_agent/image_tools/scripts/view_image.py <IMAGE_FILE>
 ```
 
 #### Parameters

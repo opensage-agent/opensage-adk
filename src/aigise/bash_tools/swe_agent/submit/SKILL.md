@@ -24,5 +24,5 @@ submits the current file
 #### Usage
 
 ```bash
-submit
+/bash_tools/swe_agent/submit/scripts/submit.sh
 ```

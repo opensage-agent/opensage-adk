@@ -27,5 +27,5 @@ submits the current file
 #### Usage
 
 ```bash
-submit
+/bash_tools/swe_agent/review_on_submit_m/scripts/submit.py
 ```

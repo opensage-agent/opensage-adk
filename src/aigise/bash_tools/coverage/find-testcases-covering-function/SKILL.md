@@ -12,7 +12,7 @@ Find testcase IDs that cover a given function.
 ## Usage
 
 ```bash
-python3 scripts/find_testcases_covering_function.py "FUNCTION_NAME" \
+python3 /bash_tools/coverage/find-testcases-covering-function/scripts/find_testcases_covering_function.py "FUNCTION_NAME" \
   --file_path "/absolute/path/to/file" \
   --database "analysis"
 ```

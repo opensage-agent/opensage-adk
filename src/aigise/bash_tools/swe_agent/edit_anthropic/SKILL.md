@@ -94,7 +94,7 @@ Notes for using the `str_replace` command: * The `old_str` parameter should matc
 #### Usage
 
 ```bash
-str_replace_editor <COMMAND> <PATH> [FILE_TEXT] [OLD_STR] [NEW_STR] [INSERT_LINE] [VIEW_RANGE]
+/bash_tools/swe_agent/edit_anthropic/scripts/str_replace_editor.py <COMMAND> <PATH> [FILE_TEXT] [OLD_STR] [NEW_STR] [INSERT_LINE] [VIEW_RANGE]
 ```
 
 #### Parameters

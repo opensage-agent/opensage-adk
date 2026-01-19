@@ -13,7 +13,7 @@ Tool to get the caller of a function in the codebase.
 ## Usage
 
 ```bash
-python3 scripts/get_caller.py "function_name" --file-path "relative/path/to/file.py"
+python3 /bash_tools/static_analysis/get-caller/scripts/get_caller.py "function_name" --file-path "relative/path/to/file.py"
 ```
 
 ## Parameters

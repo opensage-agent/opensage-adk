@@ -13,7 +13,7 @@ Tool to get the callee of a function in the codebase by function name and file p
 ## Usage
 
 ```bash
-python3 scripts/get_callee.py "function_name" --file-path "relative/path/to/file.py"
+python3 /bash_tools/static_analysis/get-callee/scripts/get_callee.py "function_name" --file-path "relative/path/to/file.py"
 ```
 
 ## Parameters

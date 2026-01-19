@@ -93,7 +93,7 @@ Before every edit, please
 #### Usage
 
 ```bash
-edit <SEARCH> <REPLACE> [REPLACE-ALL]
+/bash_tools/swe_agent/windowed_edit_replace/scripts/edit.py <SEARCH> <REPLACE> [REPLACE-ALL]
 ```
 
 #### Parameters
@@ -111,7 +111,7 @@ Insert <text> at the end of the currently opened file or after <line> if specifi
 #### Usage
 
 ```bash
-insert <TEXT> [LINE]
+/bash_tools/swe_agent/windowed_edit_replace/scripts/insert.py <TEXT> [LINE]
 ```
 
 #### Parameters

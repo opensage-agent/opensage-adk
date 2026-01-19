@@ -24,5 +24,5 @@ Give up on the current challenge and terminate the session.
 #### Usage
 
 ```bash
-exit_forfeit
+/bash_tools/swe_agent/forfeit/scripts/exit_forfeit.sh
 ```

@@ -24,5 +24,5 @@ Get state for diff_state
 #### Usage
 
 ```bash
-diff_state
+/bash_tools/swe_agent/diff_state/scripts/_state_diff_state.py
 ```

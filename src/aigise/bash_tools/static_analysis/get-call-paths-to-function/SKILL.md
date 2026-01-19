@@ -13,7 +13,7 @@ Get a path in the call graph from a source function to a specified destination f
 ## Usage
 
 ```bash
-python3 scripts/get_call_paths_to_function.py "DST_FUNCTION" \
+python3 /bash_tools/static_analysis/get-call-paths-to-function/scripts/get_call_paths_to_function.py "DST_FUNCTION" \
   --dst-file "path/to/dst_file" \
   --src-function "SRC_FUNCTION" \
   --src-file "path/to/src_file"

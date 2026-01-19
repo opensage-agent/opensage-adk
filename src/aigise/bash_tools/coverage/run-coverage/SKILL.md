@@ -14,7 +14,7 @@ The testcase_path should be under the /shared directory.
 ## Usage
 
 ```bash
-TARGET_BINARY=/path/to/target scripts/run_coverage.sh <testcase_path>
+TARGET_BINARY=/path/to/target /bash_tools/coverage/run-coverage/scripts/run_coverage.sh <testcase_path>
 ```
 
 ## Parameters

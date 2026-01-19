@@ -13,7 +13,7 @@ Scaffold a new bash_tools Skill.
 ## Usage
 
 ```bash
-scripts/create_new_tool.sh my-tool-name --should_run_in_sandbox main --returns_json true
+/bash_tools/new_tool_creator/scripts/create_new_tool.sh my-tool-name --should_run_in_sandbox main --returns_json true
 ```
 
 ## Parameters

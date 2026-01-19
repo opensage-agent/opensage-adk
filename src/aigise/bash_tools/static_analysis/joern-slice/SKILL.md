@@ -13,7 +13,7 @@ Tool to get the program slice for a given function using Joern.
 ## Usage
 
 ```bash
-scripts/joern_slice.sh "function_name" --file-path "relative/path/to/file.py"
+/bash_tools/static_analysis/joern-slice/scripts/joern_slice.sh "function_name" --file-path "relative/path/to/file.py"
 ```
 
 ## Parameters

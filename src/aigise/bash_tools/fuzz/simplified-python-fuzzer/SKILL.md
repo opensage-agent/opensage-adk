@@ -13,11 +13,11 @@ Execute a Python fuzzer script (provided inline) and collect results.
 ## Usage
 
 ```bash
-scripts/simplified_python_fuzzer.sh "$(cat fuzzer_script.py)"
+/bash_tools/fuzz/simplified-python-fuzzer/scripts/simplified_python_fuzzer.sh "$(cat fuzzer_script.py)"
 ```
 
 ```bash
-scripts/simplified_python_fuzzer.sh "$(cat fuzzer_script.py)" 300
+/bash_tools/fuzz/simplified-python-fuzzer/scripts/simplified_python_fuzzer.sh "$(cat fuzzer_script.py)" 300
 ```
 
 ## Parameters

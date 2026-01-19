@@ -215,7 +215,7 @@ Open the specified website URL or local file path
 #### Usage
 
 ```bash
-open_site <URL>
+/bash_tools/swe_agent/web_browser/scripts/open_site.py <URL>
 ```
 
 #### Parameters
@@ -231,7 +231,7 @@ Close the currently open browser window
 #### Usage
 
 ```bash
-close_site
+/bash_tools/swe_agent/web_browser/scripts/close_site.py
 ```
 
 ### screenshot_site
@@ -241,7 +241,7 @@ Take a screenshot of the current page
 #### Usage
 
 ```bash
-screenshot_site
+/bash_tools/swe_agent/web_browser/scripts/screenshot_site.py
 ```
 
 ### click_mouse
@@ -251,7 +251,7 @@ Click at the specified coordinates (shown as a red crosshair) on the current pag
 #### Usage
 
 ```bash
-click_mouse <X> <Y> [BUTTON]
+/bash_tools/swe_agent/web_browser/scripts/click_mouse.py <X> <Y> [BUTTON]
 ```
 
 #### Parameters
@@ -269,7 +269,7 @@ Double-click at the specified coordinates (shown as a red crosshair) on the curr
 #### Usage
 
 ```bash
-double_click_mouse <X> <Y>
+/bash_tools/swe_agent/web_browser/scripts/double_click_mouse.py <X> <Y>
 ```
 
 #### Parameters
@@ -286,7 +286,7 @@ Move mouse to the specified coordinates (shown as a red crosshair) on the curren
 #### Usage
 
 ```bash
-move_mouse <X> <Y>
+/bash_tools/swe_agent/web_browser/scripts/move_mouse.py <X> <Y>
 ```
 
 #### Parameters
@@ -303,7 +303,7 @@ Drag mouse along a path (JSON format: [[x1,y1],[x2,y2],...]) on the current page
 #### Usage
 
 ```bash
-drag_mouse <PATH>
+/bash_tools/swe_agent/web_browser/scripts/drag_mouse.py <PATH>
 ```
 
 #### Parameters
@@ -319,7 +319,7 @@ Type the given text at the current focused element on the current page
 #### Usage
 
 ```bash
-type_text <TEXT>
+/bash_tools/swe_agent/web_browser/scripts/type_text.py <TEXT>
 ```
 
 #### Parameters
@@ -335,7 +335,7 @@ Scroll by the specified number of pixels on the current page
 #### Usage
 
 ```bash
-scroll_on_page <SCROLL_X> <SCROLL_Y>
+/bash_tools/swe_agent/web_browser/scripts/scroll_on_page.py <SCROLL_X> <SCROLL_Y>
 ```
 
 #### Parameters
@@ -352,7 +352,7 @@ Execute a custom JavaScript code snippet on the current page
 #### Usage
 
 ```bash
-execute_script_on_page <SCRIPT>
+/bash_tools/swe_agent/web_browser/scripts/execute_script_on_page.py <SCRIPT>
 ```
 
 #### Parameters
@@ -368,7 +368,7 @@ Navigate back in the browser history
 #### Usage
 
 ```bash
-navigate_back
+/bash_tools/swe_agent/web_browser/scripts/navigate_back.py
 ```
 
 ### navigate_forward
@@ -378,7 +378,7 @@ Navigate forward in the browser history
 #### Usage
 
 ```bash
-navigate_forward
+/bash_tools/swe_agent/web_browser/scripts/navigate_forward.py
 ```
 
 ### reload_page
@@ -388,7 +388,7 @@ Reload the current webpage
 #### Usage
 
 ```bash
-reload_page
+/bash_tools/swe_agent/web_browser/scripts/reload_page.py
 ```
 
 ### wait_time
@@ -398,7 +398,7 @@ Wait for the specified number of milliseconds
 #### Usage
 
 ```bash
-wait_time <MS>
+/bash_tools/swe_agent/web_browser/scripts/wait_time.py <MS>
 ```
 
 #### Parameters
@@ -414,7 +414,7 @@ Press the specified keys (JSON format: ["key1", "key2"]) on the current page
 #### Usage
 
 ```bash
-press_keys_on_page <KEYS>
+/bash_tools/swe_agent/web_browser/scripts/press_keys_on_page.py <KEYS>
 ```
 
 #### Parameters
@@ -430,7 +430,7 @@ Set the browser window size to the specified dimensions
 #### Usage
 
 ```bash
-set_browser_window_size <WIDTH> <HEIGHT>
+/bash_tools/swe_agent/web_browser/scripts/set_browser_window_size.py <WIDTH> <HEIGHT>
 ```
 
 #### Parameters
@@ -447,5 +447,5 @@ Get console output messages from the browser (logs, errors, warnings, etc.)
 #### Usage
 
 ```bash
-get_console_output
+/bash_tools/swe_agent/web_browser/scripts/get_console_output.py
 ```

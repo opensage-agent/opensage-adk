@@ -13,7 +13,7 @@ Show aggregated code coverage across all executed testcases.
 ## Usage
 
 ```bash
-scripts/show_coverage.sh <function_name> [file_path]
+/bash_tools/coverage/show-coverage-all/scripts/show_coverage.sh <function_name> [file_path]
 ```
 
 ## Parameters

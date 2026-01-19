@@ -80,7 +80,7 @@ finds all files with the given name or pattern in dir. If dir is not provided, s
 #### Usage
 
 ```bash
-find_file <FILE_NAME> [DIR]
+/bash_tools/swe_agent/search/scripts/find_file.sh <FILE_NAME> [DIR]
 ```
 
 #### Parameters
@@ -97,7 +97,7 @@ searches for search_term in all files in dir. If dir is not provided, searches i
 #### Usage
 
 ```bash
-search_dir <SEARCH_TERM> [DIR]
+/bash_tools/swe_agent/search/scripts/search_dir.sh <SEARCH_TERM> [DIR]
 ```
 
 #### Parameters
@@ -114,7 +114,7 @@ searches for search_term in file. If file is not provided, searches in the curre
 #### Usage
 
 ```bash
-search_file <SEARCH_TERM> [FILE]
+/bash_tools/swe_agent/search/scripts/search_file.sh <SEARCH_TERM> [FILE]
 ```
 
 #### Parameters

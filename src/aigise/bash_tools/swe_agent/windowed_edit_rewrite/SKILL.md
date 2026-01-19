@@ -33,7 +33,7 @@ Replace the currently displayed lines with <text>.
 #### Usage
 
 ```bash
-edit <TEXT>
+/bash_tools/swe_agent/windowed_edit_rewrite/scripts/edit.py <TEXT>
 ```
 
 #### Parameters

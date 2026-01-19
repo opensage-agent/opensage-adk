@@ -1,10 +1,14 @@
+import json
 import os
 import shlex
+import shutil
 from pathlib import Path
+from uuid import uuid4
 
+import httpx
 from harbor.agents.installed.base import BaseInstalledAgent, ExecInput
 from harbor.models.agent.context import AgentContext
-from harbor.models.trial.paths import EnvironmentPaths
+from harbor.models.trial.paths import EnvironmentPaths, TrialPaths
 
 SYSTEM_PROMPT = """
 # System Prompt: Terminal Coding Agent
@@ -373,6 +377,64 @@ When steps have been completed, use `update_plan` to mark each finished step as 
 If all steps are complete, ensure you call `update_plan` to mark all steps as `completed`."""
 
 
+class LiteLLMAPIKeyManager:
+    def __init__(
+        self,
+        litellm_base_url: str,
+        litellm_master_key: str,
+        default_max_budget: float = 5.0,
+        api_key_alias_prefix: str = "rmit-",
+    ):
+        self.default_max_budget = default_max_budget
+        self.litellm_base_url = litellm_base_url
+        self.litellm_master_key = litellm_master_key
+        self.api_key_alias_prefix = api_key_alias_prefix
+
+    def generate_api_key(self, max_budget: float | None = None) -> str:
+        with httpx.Client(base_url=self.litellm_base_url, timeout=60) as client:
+            response = client.post(
+                "/key/generate",
+                json={
+                    "max_budget": max_budget or self.default_max_budget,
+                    "key_alias": self.api_key_alias_prefix + str(uuid4()),
+                },
+                headers={"Authorization": f"Bearer {self.litellm_master_key}"},
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data["key"]
+
+    def delete_api_key(self, api_key: str):
+        with httpx.Client(base_url=self.litellm_base_url, timeout=60) as client:
+            response = client.post(
+                "/key/delete",
+                json={"keys": [api_key]},
+                headers={"Authorization": f"Bearer {self.litellm_master_key}"},
+            )
+            response.raise_for_status()
+
+    def get_api_key_usage(self, api_key: str) -> dict:
+        with httpx.Client(base_url=self.litellm_base_url, timeout=60) as client:
+            response = client.get(
+                "/key/info",
+                params={"key": api_key},
+                headers={"Authorization": f"Bearer {self.litellm_master_key}"},
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data
+
+
+key_manager: LiteLLMAPIKeyManager | None = None
+if os.getenv("LITELLM_PROXY_MASTER_API_KEY") and os.getenv("LITELLM_PROXY_BASE_URL"):
+    key_manager = LiteLLMAPIKeyManager(
+        litellm_base_url=os.environ["LITELLM_PROXY_BASE_URL"],
+        litellm_master_key=os.environ["LITELLM_PROXY_MASTER_API_KEY"],
+        default_max_budget=10.0,
+        api_key_alias_prefix="tbench-sage-",
+    )
+
+
 class Sage(BaseInstalledAgent):
     SUPPORTS_ATIF: bool = False
     _TRAJECTORY_FILE = "trace.json"
@@ -395,19 +457,32 @@ class Sage(BaseInstalledAgent):
         return Path(__file__).parent / "install-sage.sh.j2"
 
     def populate_context_post_run(self, context: AgentContext) -> None:
-        pass
+        if self.litellm_api_key and key_manager is not None:
+            usage = key_manager.get_api_key_usage(self.litellm_api_key)
+            with open(self.logs_dir / "litellm_api_key_usage.json", "w") as f:
+                json.dump(usage, f, indent=2)
+            key_manager.delete_api_key(self.litellm_api_key)
+            self.litellm_api_key = None
 
     def create_run_agent_commands(self, instruction: str) -> list[ExecInput]:
         env = {}
 
-        if openai_api_key := os.getenv("OPENAI_API_KEY"):
-            env["OPENAI_API_KEY"] = openai_api_key
-        if openai_base_url := os.getenv("OPENAI_BASE_URL"):
-            env["OPENAI_API_BASE"] = openai_base_url
-        if litellm_api_key := os.getenv("LITELLM_PROXY_API_KEY"):
+        self.litellm_api_key = None
+
+        if key_manager is not None:
+            litellm_api_key = key_manager.generate_api_key()
+            self.litellm_api_key = litellm_api_key
             env["LITELLM_PROXY_API_KEY"] = litellm_api_key
-        if litellm_base_url := os.getenv("LITELLM_PROXY_BASE_URL"):
-            env["LITELLM_PROXY_BASE_URL"] = litellm_base_url
+            env["LITELLM_PROXY_BASE_URL"] = key_manager.litellm_base_url
+        else:
+            if openai_api_key := os.getenv("OPENAI_API_KEY"):
+                env["OPENAI_API_KEY"] = openai_api_key
+            if openai_base_url := os.getenv("OPENAI_BASE_URL"):
+                env["OPENAI_API_BASE"] = openai_base_url
+            if litellm_api_key := os.getenv("LITELLM_PROXY_API_KEY"):
+                env["LITELLM_PROXY_API_KEY"] = litellm_api_key
+            if litellm_base_url := os.getenv("LITELLM_PROXY_BASE_URL"):
+                env["LITELLM_PROXY_BASE_URL"] = litellm_base_url
 
         system_prompt = SYSTEM_PROMPT
         if os.getenv("USE_SUBAGENT") == "1":
@@ -437,6 +512,13 @@ class Sage(BaseInstalledAgent):
 
         if os.getenv("USE_SUBAGENT") == "1":
             cmd.append("--use-subagent")
+
+        if config_toml := os.getenv("SAGE_CONFIG_TOML_PATH"):
+            shutil.copy(
+                config_toml,
+                str(TrialPaths.agent_dir / "config.toml"),
+            )
+            cmd += ["--config-path", str(EnvironmentPaths.agent_dir / "config.toml")]
 
         return [
             ExecInput(

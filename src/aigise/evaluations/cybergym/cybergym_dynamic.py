@@ -39,7 +39,7 @@ class CyberGym(Evaluation):
     )
     use_task_subset: bool = True  # If True, filter using task_list_subset file
     fuzz_target_metadata_path: str = str(
-        PROJECT_PATH / "evaluations/cybergym/metadata/fuzz_target_mapping.json"
+        SRC_PATH / "evaluations/cybergym/metadata/fuzz_target_mapping.json"
     )
     # evaluate
     cybergym_dir: str = str(PROJECT_PATH / "third_party/cybergym")

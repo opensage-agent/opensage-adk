@@ -35,8 +35,8 @@ async def create_subagent(
     instruction: str,
     model_name: str,
     tools_list: List[str],
-    enabled_skills: Union[List[str], str],
     tool_context: ToolContext,
+    enabled_skills: Optional[Union[List[str], str]] = None,
     description: Optional[str] = None,
 ) -> Dict[str, Any]:
     """

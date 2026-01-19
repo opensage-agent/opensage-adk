@@ -32,6 +32,35 @@ BASH_TOOLS_DIR = Path(PROJECT_PATH) / "src" / "aigise" / "bash_tools"
 CONTAINER_BASH_TOOLS_DIR = "/bash_tools"
 
 
+def _get_session(tool_context: ToolContext):
+    """Return the active Aigise session for the provided tool context."""
+    session_id = get_aigise_session_id_from_context(tool_context)
+    return get_aigise_session(session_id)
+
+
+def _ensure_task_manager(host: Any) -> BashTaskManager:
+    """Attach a BashTaskManager to *host* (session or sandbox) if missing."""
+    if not hasattr(host, "bash_tasks"):
+        host.bash_tasks = BashTaskManager()
+    return host.bash_tasks
+
+
+def _parse_json_if_possible(output: str, *, context: str = "output") -> Any:
+    """Attempt to parse JSON output while keeping the original text on failure."""
+    if not isinstance(output, str):
+        return output
+
+    stripped_output = output.strip()
+    if stripped_output.startswith(("{", "[")):
+        try:
+            return json.loads(stripped_output)
+        except json.JSONDecodeError:
+            logger.warning(
+                "Failed to parse JSON %s: %s", context, stripped_output[:100]
+            )
+    return output
+
+
 class BashToolMetadata:
     """Metadata for bash tools, used to describe tool functionality and parameters."""
 
@@ -96,25 +125,31 @@ def run_bash_tool_script(
         List[Dict[str, Any]]
     ] = None,  # Parameter definitions (from metadata)
 ) -> Tuple[Any, int]:
-    """
-    Unified bash tool script invocation interface.
+    """Execute a registered bash tool script inside a sandbox.
+
+    The function builds the command line from *args*, executes the
+    corresponding `/bash_tools/<script_name>.sh` script, and optionally waits
+    for completion.
 
     Args:
-        script_name: Script name without path and extension (e.g., "find_git_repo")
-        args: Arguments dictionary that will be converted to command-line arguments
-        sandbox_type: Sandbox type to use (when tool_context or sandbox is None)
-        tool_context: Tool context (if called from agent)
-        sandbox: Directly pass sandbox instance (for evaluation scenarios, takes priority over tool_context)
-        sandbox: Directly pass sandbox instance (for evaluation scenarios, takes priority over tool_context)
-        timeout: Timeout in seconds for waiting (foreground mode)
-        execution_timeout: Timeout in seconds for the command itself (enforced with timeout command)
-        returns_json: Whether to parse JSON return value
-        background: Whether to run in background
-        param_definitions: Parameter definitions list (from skill metadata parameters)
+        script_name: Logical script identifier without extension ("find_git_repo").
+        args: Mapping of parameter names to values used to build CLI arguments.
+        sandbox_type: Sandbox to load from `tool_context` when `sandbox` is not
+            provided explicitly.
+        tool_context: Agent runtime context used to resolve sessions/sandboxes.
+        sandbox: Pre-resolved sandbox instance (typically in evaluation flows).
+        timeout: Seconds to wait for foreground completion before returning.
+        execution_timeout: Hard timeout enforced on the command itself.
+        returns_json: Whether to parse stdout as JSON when the exit code is 0.
+        background: If True, return immediately after starting the task.
+        param_definitions: Rich metadata describing positional/named arguments.
 
     Returns:
-        (output, exit_code): Output and exit code
-        If returns_json=True and exit_code=0, output will be parsed as dict/list
+        Tuple[output, exit_code] where *output* is either raw stdout or parsed
+        JSON when `returns_json` is True and parsing succeeds.
+
+    Raises:
+        ValueError: When neither `tool_context` nor `sandbox` is supplied.
     """
     # Prefer directly passed sandbox (for evaluation scenarios)
     if sandbox is None:
@@ -126,22 +161,12 @@ def run_bash_tool_script(
         sandbox = get_sandbox_from_context(tool_context, sandbox_type)
 
     # Get TaskManager
-    task_manager = None
     if tool_context:
-        session_id = get_aigise_session_id_from_context(tool_context)
-        session = get_aigise_session(session_id)
-        if not hasattr(session, "bash_tasks"):
-            session.bash_tasks = BashTaskManager()
-        task_manager = session.bash_tasks
-    elif sandbox:
-        # Fallback for direct sandbox usage (e.g. eval), create a temporary manager or handle differently
-        # For now, we assume tool_context is available for session persistence,
-        # or we create a local one if needed but it won't persist across calls without session.
-        # In eval context, we might not need persistent background tasks as much, or we attach to sandbox?
-        # Let's attach to sandbox object dynamically if needed.
-        if not hasattr(sandbox, "bash_tasks"):
-            sandbox.bash_tasks = BashTaskManager()
-        task_manager = sandbox.bash_tasks
+        session = _get_session(tool_context)
+        task_manager = _ensure_task_manager(session)
+    else:
+        # Evaluation scenario: persist manager directly on the sandbox object.
+        task_manager = _ensure_task_manager(sandbox)
 
     # Build script path
     script_path = f"{CONTAINER_BASH_TOOLS_DIR}/{script_name}.sh"
@@ -230,13 +255,7 @@ def run_bash_tool_script(
 
         # Try to parse JSON if requested
         if returns_json:
-            try:
-                output = json.loads(output.strip())
-            except json.JSONDecodeError:
-                logger.warning(
-                    f"Failed to parse JSON output from {script_name}: {output[:100]}"
-                )
-                # Return original output
+            output = _parse_json_if_possible(output, context=f"{script_name} output")
 
         return output, exit_code
     else:
@@ -348,23 +367,20 @@ def wait_for_background(
     *,
     tool_context: ToolContext,
 ) -> Dict[str, Any]:
-    """Wait for a background bash tool task to complete.
-    Use this tool to wait for a previously started background bash tool
-    task (started with `background=True` parameter, or automatically sent
-    to the background after timeout) to complete.
+    """Block until a background task finishes or the wait times out.
 
     Args:
-        task_id: The ID of the background task to wait for
-        sandbox_name: The name of the sandbox to run the command in
-            (default: "main").
-        timeout: Timeout in seconds to wait for completion (default: 60)
+        task_id: Identifier returned by `run_bash_tool_script` or
+            `run_terminal_command` when the task was launched.
+        timeout: Seconds to wait before returning with a timeout status.
+        tool_context: Execution context used to locate session state.
 
     Returns:
-        dict: Execution result containing 'output', 'exit_code', 'status'
+        Dict with keys such as `success`, `output`, `exit_code`, and
+        `status`. If the wait hits the timeout, `timeout=True` is included.
     """
     # Get TaskManager from session
-    session_id = get_aigise_session_id_from_context(tool_context)
-    session = get_aigise_session(session_id)
+    session = _get_session(tool_context)
 
     if not hasattr(session, "bash_tasks"):
         return {"success": False, "message": "No task manager found."}
@@ -397,14 +413,7 @@ def wait_for_background(
         task_manager.cleanup_task(sandbox, task_id)
 
         # Try to parse JSON if it looks like JSON
-        parsed_output = output
-        stripped_output = output.strip()
-        if stripped_output.startswith(("{", "[")):
-            try:
-                parsed_output = json.loads(stripped_output)
-            except Exception:
-                # Not valid JSON, keep original output
-                pass
+        parsed_output = _parse_json_if_possible(output, context=f"task {task_id}")
 
         return {
             "success": exit_code == 0,
@@ -435,11 +444,10 @@ def run_terminal_command(
     *,
     tool_context: ToolContext,
 ) -> Dict[str, Any]:
-    """Execute a command in the sandbox terminal.
+    """Execute arbitrary bash inside the specified sandbox.
 
-    This tool acts like a terminal. You can run any bash command, including
-    the scripts listed by `list_available_scripts`. It supports pipes (|),
-    redirection (>), and chaining (&&).
+    This behaves like a one-off terminal session: any bash syntax, pipes, or
+    scripts listed via `list_available_scripts` can be invoked.
 
     Command syntax and escaping rules (what the model should assume):
       - **Write `command` exactly as you would type it in bash.** Pipes (`|`),
@@ -473,7 +481,9 @@ def run_terminal_command(
         tool_context: The tool context from the agent execution
 
     Returns:
-        dict: Execution result containing 'output', 'exit_code', 'task_id' (if background)
+        Dict describing execution status. When `background` is False the
+        response contains `output` and `exit_code`. Otherwise, it returns the
+        `task_id` needed to resume/inspect the background run.
     """
     # Determine sandbox
     target_sandbox = sandbox_name
@@ -489,11 +499,8 @@ def run_terminal_command(
         }
 
     # Get TaskManager
-    session_id = get_aigise_session_id_from_context(tool_context)
-    session = get_aigise_session(session_id)
-    if not hasattr(session, "bash_tasks"):
-        session.bash_tasks = BashTaskManager()
-    task_manager = session.bash_tasks
+    session = _get_session(tool_context)
+    task_manager = _ensure_task_manager(session)
 
     logger.info(
         f"Running terminal command: {final_command} in sandbox {target_sandbox} (background={background})"
@@ -537,14 +544,7 @@ def run_terminal_command(
         task_manager.cleanup_task(sandbox, task_id)
 
         # Try to parse JSON if it looks like JSON
-        parsed_output = output
-        stripped_output = output.strip()
-        if stripped_output.startswith(("{", "[")):
-            try:
-                parsed_output = json.loads(stripped_output)
-            except Exception:
-                # Not valid JSON, keep original output
-                pass
+        parsed_output = _parse_json_if_possible(output, context=f"task {task_id}")
 
         return {
             "success": exit_code == 0,
@@ -589,8 +589,7 @@ def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
             - summary: Human-readable summary of task counts by status
     """
     # Get TaskManager from session
-    session_id = get_aigise_session_id_from_context(tool_context)
-    session = get_aigise_session(session_id)
+    session = _get_session(tool_context)
 
     if not hasattr(session, "bash_tasks"):
         return {"tasks": [], "summary": "No background tasks have been started yet."}
@@ -627,15 +626,11 @@ def get_background_task_output(
 ) -> Dict[str, Any]:
     """Retrieve the output and exit code from a specific background task.
 
-    Use this tool to get the results from a background task.
-    If the task is finished, it cleans up resources.
-    If the task is still running, it returns partial output/logs.
-    You should first call list_background_tasks to find the task_id.
-
-    After successfully consuming the output, this function will:
-    After successfully consuming the output, this function will:
-    1. If task is completed/failed: Delete temporary files and remove from management.
-    2. If task is running: Return partial output and KEEP the task running.
+    Use this tool after launching a command with `background=True` or a
+    command has been sent to the background. If the command already finished
+    the helper returns the full logs and cleans up the underlying temp files;
+    otherwise, it streams the current log buffer without interrupting the
+    running process.
 
     Args:
         task_id: The ID of the task (from list_background_tasks)
@@ -651,8 +646,7 @@ def get_background_task_output(
             - cleaned_up: Boolean indicating if cleanup was performed
     """
     # Get TaskManager from session
-    session_id = get_aigise_session_id_from_context(tool_context)
-    session = get_aigise_session(session_id)
+    session = _get_session(tool_context)
 
     if not hasattr(session, "bash_tasks"):
         return {
@@ -732,8 +726,7 @@ def kill_background_task(task_id: str, *, tool_context: ToolContext) -> Dict[str
         dict: Result with 'success', 'message'
     """
     # Get TaskManager from session
-    session_id = get_aigise_session_id_from_context(tool_context)
-    session = get_aigise_session(session_id)
+    session = _get_session(tool_context)
 
     if not hasattr(session, "bash_tasks"):
         return {"success": False, "message": "No task manager found."}

@@ -18,7 +18,11 @@ class BashTaskManager:
         return f"__AIGISE_TASK_{task_id}_{purpose}__"
 
     def start_bg_task(
-        self, sandbox, command: str, sandbox_name: str = "main"
+        self,
+        sandbox,
+        command: str,
+        sandbox_name: str = "main",
+        execution_timeout: Optional[int] = None,
     ) -> tuple[Optional[str], str]:
         """Start a command in the background.
 
@@ -44,7 +48,7 @@ class BashTaskManager:
         wrapper_delim = self._heredoc_delimiter(task_id, purpose="WRAPPER")
 
         cmd_script = f"""#!/bin/bash
-{command}
+{f"timeout -k 5 {execution_timeout} " if execution_timeout else ""}{command}
 """
 
         # Wrapper script responsibilities:
@@ -270,3 +274,36 @@ fi
         logger.info(f"Task {task_id} cleaned up successfully")
 
         return cleanup_success
+
+    def kill_task(self, sandbox, task_id: str) -> bool:
+        """Kill a running task.
+
+        Args:
+            sandbox: The sandbox instance.
+            task_id: The ID of the task to kill.
+
+        Returns:
+            True if kill signal was sent successfully, False otherwise.
+        """
+        if task_id not in self.tasks:
+            logger.warning(f"Cannot kill task {task_id}: task not found")
+            return False
+
+        task = self.tasks[task_id]
+        pid = task["pid"]
+
+        # Kill the process group to ensure children (and the wrapper/timeout) are killed
+        # Using -TERM first, then could fallback to -9 if needed, but for now let's try strict kill
+        # Note: In the wrapper script, we used `setsid`, so the process should be a group leader.
+        # Passing negative PID to kill sends signal to the process group.
+        kill_cmd = f"kill -9 -{pid} || kill -9 {pid}"
+
+        output, exit_code = sandbox.run_command_in_container(kill_cmd)
+
+        if exit_code == 0:
+            task["status"] = "killed"
+            logger.info(f"Task {task_id} (PID {pid}) killed successfully")
+            return True
+        else:
+            logger.warning(f"Failed to kill task {task_id} (PID {pid}): {output}")
+            return False

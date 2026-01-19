@@ -89,6 +89,7 @@ def run_bash_tool_script(
     tool_context: Optional[ToolContext] = None,
     sandbox=None,  # Directly pass sandbox instance (for evaluation scenarios)
     timeout: int = 60,
+    execution_timeout: Optional[int] = None,
     returns_json: bool = False,
     background: bool = False,
     param_definitions: Optional[
@@ -104,7 +105,9 @@ def run_bash_tool_script(
         sandbox_type: Sandbox type to use (when tool_context or sandbox is None)
         tool_context: Tool context (if called from agent)
         sandbox: Directly pass sandbox instance (for evaluation scenarios, takes priority over tool_context)
-        timeout: Timeout in seconds
+        sandbox: Directly pass sandbox instance (for evaluation scenarios, takes priority over tool_context)
+        timeout: Timeout in seconds for waiting (foreground mode)
+        execution_timeout: Timeout in seconds for the command itself (enforced with timeout command)
         returns_json: Whether to parse JSON return value
         background: Whether to run in background
         param_definitions: Parameter definitions list (from skill metadata parameters)
@@ -204,7 +207,9 @@ def run_bash_tool_script(
     )
 
     # 1. Start as background task
-    task_id, msg = task_manager.start_bg_task(sandbox, command)
+    task_id, msg = task_manager.start_bg_task(
+        sandbox, command, execution_timeout=execution_timeout
+    )
     if not task_id:
         return msg, 1  # Error starting task
 
@@ -423,6 +428,7 @@ def run_terminal_command(
     command: str,
     background: bool = False,
     timeout: int = 60,
+    execution_timeout: Optional[int] = None,
     sandbox_name: str = "main",
     *,
     tool_context: ToolContext,
@@ -457,6 +463,7 @@ def run_terminal_command(
             (e.g., "python3 -c 'print(123)' | cat").
         background: Whether to run the command in the background (default: False)
         timeout: Timeout in seconds for foreground commands (default: 60)
+        execution_timeout: Timeout in seconds for the command itself (default: None, meaning no timeout)
         sandbox_name: The name of the sandbox to run the command in
             (default: "main").
         tool_context: The tool context from the agent execution
@@ -495,7 +502,10 @@ def run_terminal_command(
     # Or should we update the name to "main"?
     # Let's keep the intent but note the fallback in logs if we could.
     task_id, msg = task_manager.start_bg_task(
-        sandbox, final_command, sandbox_name=target_sandbox
+        sandbox,
+        final_command,
+        sandbox_name=target_sandbox,
+        execution_timeout=execution_timeout,
     )
     if not task_id:
         return {"success": False, "error": msg}
@@ -613,12 +623,15 @@ def get_background_task_output(
 ) -> Dict[str, Any]:
     """Retrieve the output and exit code from a specific background task.
 
-    Use this tool to get the results from a background task after it has completed.
+    Use this tool to get the results from a background task.
+    If the task is finished, it cleans up resources.
+    If the task is still running, it returns partial output/logs.
     You should first call list_background_tasks to find the task_id.
 
     After successfully consuming the output, this function will:
-    1. Delete the temporary files (log, exit code, PID files) from the sandbox
-    2. Remove the task from the background task management to free up resources
+    After successfully consuming the output, this function will:
+    1. If task is completed/failed: Delete temporary files and remove from management.
+    2. If task is running: Return partial output and KEEP the task running.
 
     Args:
         task_id: The ID of the task (from list_background_tasks)
@@ -693,7 +706,53 @@ def get_background_task_output(
     }
 
     # Clean up: delete buffer files and remove from task management
-    cleanup_success = task_manager.cleanup_task(sandbox, task_id)
+    # Clean up ONLY if task is finished
+    cleanup_success = False
+    if task["status"] in ["completed", "failed", "killed", "completed/unknown"]:
+        cleanup_success = task_manager.cleanup_task(sandbox, task_id)
+
     result["cleaned_up"] = cleanup_success
 
     return result
+
+
+@safe_tool_execution
+def kill_background_task(task_id: str, *, tool_context: ToolContext) -> Dict[str, Any]:
+    """Kill a running background task.
+
+    Args:
+        task_id: The ID of the task to kill
+        tool_context: Tool context from the agent
+
+    Returns:
+        dict: Result with 'success', 'message'
+    """
+    # Get TaskManager from session
+    session_id = get_aigise_session_id_from_context(tool_context)
+    session = get_aigise_session(session_id)
+
+    if not hasattr(session, "bash_tasks"):
+        return {"success": False, "message": "No task manager found."}
+
+    task_manager = session.bash_tasks
+
+    if task_id not in task_manager.tasks:
+        return {"success": False, "message": f"Task {task_id} not found."}
+
+    task = task_manager.tasks[task_id]
+    sandbox_name = task.get("sandbox_name", "main")
+
+    try:
+        sandbox = get_sandbox_from_context(tool_context, sandbox_name)
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Could not access sandbox '{sandbox_name}': {str(e)}",
+        }
+
+    success = task_manager.kill_task(sandbox, task_id)
+
+    if success:
+        return {"success": True, "message": f"Task {task_id} killed."}
+    else:
+        return {"success": False, "message": f"Failed to kill task {task_id}."}

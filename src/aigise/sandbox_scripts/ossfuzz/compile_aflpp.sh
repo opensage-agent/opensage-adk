@@ -1,5 +1,7 @@
 #!/bin/bash -eu
 
+apt-get update
+
 export PATH="/usr/bin:$PATH"
 
 export FUZZING_ENGINE=afl

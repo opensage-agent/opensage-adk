@@ -1,5 +1,7 @@
 #!/bin/bash -eu
 
+apt-get update
+
 export PATH="/usr/bin:$PATH"
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")

@@ -78,7 +78,7 @@ class CyberGym(Evaluation):
         # Optionally filter using task_list_subset
         if self.use_task_subset:
             with open(
-                Path(__file__).parent / "metadata" / "task_list_subset.left", "r"
+                Path(__file__).parent / "metadata" / "task_list_subset", "r"
             ) as f:
                 task_list = f.read().splitlines()
             # task_list = task_list[:100]

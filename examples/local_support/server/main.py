@@ -1,3 +1,4 @@
+import os
 import socket
 from pathlib import Path
 
@@ -10,7 +11,7 @@ APP_HOST = "0.0.0.0"
 APP_PORT = 18824
 
 PORT_RANGE = [13000, 14000]
-HOST_IP = "172.16.0.1"
+HOST_IP = os.getenv("HOST_IP") or "172.17.0.1"
 
 
 app = FastAPI()

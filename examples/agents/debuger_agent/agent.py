@@ -18,7 +18,10 @@ from aigise.toolbox.coverage.tools import (
     show_coverage,
 )
 from aigise.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
-from aigise.toolbox.eval_submission.cybergym.submission import generate_poc_and_submit
+from aigise.toolbox.eval_submission.cybergym.submission import (
+    critique,
+    generate_poc_and_submit,
+)
 from aigise.toolbox.finish_task.finish_task import finish_task
 from aigise.toolbox.fuzzing.fuzz_tools import (
     check_fuzzing_stats,
@@ -29,7 +32,6 @@ from aigise.toolbox.fuzzing.fuzz_tools import (
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
     complain,
-    critique,
     get_available_agents_for_ensemble,
     get_available_models,
     note_suspicious_things,
@@ -99,6 +101,7 @@ def mk_agent(aigise_session_id: str):
             create_subagent,
             call_subagent_as_tool,
             list_active_agents,
+            critique,
         ],
     )
     root_agent = debugger_agent

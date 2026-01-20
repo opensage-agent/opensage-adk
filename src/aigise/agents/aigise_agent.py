@@ -730,6 +730,26 @@ class AigiseAgent(LlmAgent):
         - This method must NOT trigger any async enumeration or network I/O.
         - It only lists toolsets that already have a stable `name` attribute.
         """
+
+        def _tool_name(obj: Any) -> Optional[str]:
+            """Best-effort tool name extraction (synchronous, no I/O)."""
+            name = getattr(obj, "name", None)
+            if isinstance(name, str) and name.strip():
+                return name
+            name = getattr(obj, "__name__", None)
+            if isinstance(name, str) and name.strip():
+                return name
+            func = getattr(obj, "func", None)
+            name = getattr(func, "__name__", None)
+            if isinstance(name, str) and name.strip():
+                return name
+            return None
+
+        has_create_subagent = any(
+            _tool_name(t) == "create_subagent" for t in (tools or [])
+        )
+        has_mcp_toolset = any(isinstance(t, McpToolset) for t in (tools or []))
+
         toolsets: dict[str, BaseToolset] = {}
         for t in tools or []:
             if isinstance(t, BaseToolset) and getattr(t, "name", None):
@@ -749,6 +769,12 @@ class AigiseAgent(LlmAgent):
                 lines.append(f"- {name} (tool_name_prefix={prefix})")
             else:
                 lines.append(f"- {name}")
+
+        if has_mcp_toolset and has_create_subagent:
+            lines.append(
+                "Policy: for MCP toolsets, do NOT call expanded MCP tools directly from this agent; "
+                "always use `create_subagent` and inject the toolset by name, then perform MCP actions inside that subagent."
+            )
 
         lines.append(
             "Note: toolsets (especially MCP toolsets) expand their individual tools at runtime."

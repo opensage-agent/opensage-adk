@@ -14,7 +14,6 @@ from aigise.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
 
-_TOOL_USAGE_BANNER_MARKER = "[[AIGISE_TOOL_USAGE_BANNER]]"
 _TOOLSET_SUMMARY_MARKER = "[[AIGISE_TOOLSET_SUMMARY]]"
 
 
@@ -568,13 +567,6 @@ class AigiseAgent(LlmAgent):
         super().__init__(*args, **kwargs)
         self._enable_memory_management = enable_memory_management
 
-        # Inject a short toolset summary into the system prompt (no async/network).
-        # This is intentionally lightweight: we only list toolset names, not the
-        # expanded tool list (MCP expansion is async and happens at runtime).
-        toolset_summary = self._build_toolset_summary(tools)
-        if toolset_summary and _TOOLSET_SUMMARY_MARKER not in (self.instruction or ""):
-            self.instruction = toolset_summary + "\n\n" + (self.instruction or "")
-
         # Store enabled_skills for dependency collection
         self._enabled_skills = enabled_skills
         loader = ToolLoader(
@@ -665,15 +657,6 @@ class AigiseAgent(LlmAgent):
         #                 self.instruction = repo_first_prompt.strip() + "\n\n" + self.instruction
 
         if tool_prompt:
-            tool_usage_banner = (
-                f"{_TOOL_USAGE_BANNER_MARKER}\n"
-                "CRITICAL TOOL PRIORITY (MUST FOLLOW):\n"
-                "- Prefer and use Skills under `/bash_tools/...` whenever possible. You should call them through run_terminal_command tool and execute the corresponding scripts.\n"
-                "- At the start of a task, you must **explore the available bash tools broadly**:\n"
-                "- Prefer using static analysis based tools to retrieve information rather than using general shell commands or general retrieval tools."
-            ).strip()
-            if _TOOL_USAGE_BANNER_MARKER not in (self.instruction or ""):
-                self.instruction = tool_usage_banner + "\n\n" + self.instruction
             # Preamble describing the skill structure
             description_preamble = (
                 "Each tool path below is a Skill directory:\n"
@@ -697,6 +680,12 @@ class AigiseAgent(LlmAgent):
                 "Skill/script under `/bash_tools/new_tools/<tool_name>/` (with a `SKILL.md`). You can use "
                 "`/bash_tools/new_tool_creator` to scaffold the initial directory structure.\n"
             )
+
+            toolset_summary = self._build_toolset_summary(tools)
+            if toolset_summary and _TOOLSET_SUMMARY_MARKER not in (
+                self.instruction or ""
+            ):
+                tool_usage_policy += f"\n\n{toolset_summary}"
 
             # Generate sandbox structure description based on required sandboxes
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
@@ -826,10 +815,6 @@ class AigiseAgent(LlmAgent):
                 "- When planning or describing how you will accomplish a task, prefer using the provided Skills under "
                 "`/bash_tools/...` (i.e., the tool scripts described below). You should call them through run_terminal_command tool and execute the corresponding scripts.\n"
                 "- Prioritize using static analysis based tools to retrieve information rather than using general shell commands or general retrieval tools. Only fall back to generic shell commands when there is **no** suitable `/bash_tools` Skill for the job.\n"
-                "- Before starting work, survey the tool ecosystem broadly:\n"
-                "  - Call `list_available_scripts to review relevant available Skill docs.\n"
-                "  - Then inspect and consider multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
-                "  - If a Skill exists, use it instead of generic shell.\n"
                 "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
                 "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
                 "- Do NOT edit existing `/bash_tools/...` Skills in place. If you need changes, copy/adapt into a new "

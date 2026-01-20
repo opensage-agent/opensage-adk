@@ -47,14 +47,23 @@ class BashTaskManager:
         cmd_delim = self._heredoc_delimiter(task_id, purpose="CMD")
         wrapper_delim = self._heredoc_delimiter(task_id, purpose="WRAPPER")
 
+        # Write the user command verbatim into a script and run it with bash.
+        #
+        # Important: Do NOT prefix the user command with `timeout ...` here.
+        # Prefixing changes bash semantics for leading env var assignments like:
+        #   FOO=bar some_command ...
+        # because `timeout` would treat `FOO=bar` as the program name.
         cmd_script = f"""#!/bin/bash
-{f"timeout -k 5 {execution_timeout} " if execution_timeout else ""}{command}
+{command}
 """
 
         # Wrapper script responsibilities:
         # 1) Detach from parent using setsid.
         # 2) Source /shared/bashrc to load env vars.
         # 3) Run the command script in background, capture PID, wait, record exit code.
+        timeout_prefix = (
+            f"timeout -k 5 {execution_timeout} " if execution_timeout else ""
+        )
         wrapper_script = f"""#!/bin/bash
 set -euo pipefail
 
@@ -62,7 +71,7 @@ setsid bash -c '
   if [ -f /shared/bashrc ]; then
     source /shared/bashrc
   fi
-  bash {cmd_file} > {log_file} 2>&1 &
+  {timeout_prefix}bash {cmd_file} > {log_file} 2>&1 &
   COMMAND_PID=$!
   echo $COMMAND_PID > {pid_file}
   wait $COMMAND_PID

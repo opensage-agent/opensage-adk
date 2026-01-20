@@ -43,9 +43,7 @@ class CyberGym(Evaluation):
     )
     # evaluate
     cybergym_dir: str = str(PROJECT_PATH / "third_party/cybergym")
-    cybergym_poc_save_dir: str = (
-        "/scr/zhun/data/playground/cybergym/server/cybergym/server_poc/"
-    )
+    cybergym_poc_save_dir: str = "/shared/cybergym_server/"
     server_url_host: str = "http://172.16.0.1:8666"
     run_until_explicit_finish: bool = True
     use_cache: bool = True
@@ -79,6 +77,7 @@ class CyberGym(Evaluation):
                 Path(__file__).parent / "metadata" / "task_list_subset", "r"
             ) as f:
                 task_list = f.read().splitlines()
+            task_list = ["arvo:13956", "arvo:17094", "arvo:19573", "arvo:20321"]
             dataset = dataset.filter(lambda x: x["task_id"] in task_list)
             logger.warning(
                 f"Filtered dataset to {len(dataset)} tasks from task_list_subset"

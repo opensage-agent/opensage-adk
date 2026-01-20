@@ -103,7 +103,7 @@ class Neo4jConfig:
     def uri(self) -> str:
         """Get Neo4j URI, dynamically constructed from parent config's default_host.
 
-        Returns URI in format: neo4j://{default_host}:{bolt_port}
+        Returns URI in format: bolt://{default_host}:{bolt_port}
         Falls back to 127.0.0.1 if no default_host is set.
         """
         if self._parent_config and self._parent_config.default_host:
@@ -111,7 +111,7 @@ class Neo4jConfig:
         else:
             host = self.host or "127.0.0.1"
 
-        return f"neo4j://{host}:{self.bolt_port}"
+        return f"bolt://{host}:{self.bolt_port}"
 
 
 @dataclass

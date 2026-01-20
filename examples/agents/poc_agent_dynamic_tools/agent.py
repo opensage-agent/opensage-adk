@@ -14,13 +14,15 @@ from aigise.features import enable_neo4j_logging
 from aigise.session import get_aigise_session
 from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
 from aigise.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
-from aigise.toolbox.eval_submission.cybergym.submission import generate_poc_and_submit
+from aigise.toolbox.eval_submission.cybergym.submission import (
+    critique,
+    generate_poc_and_submit,
+)
 from aigise.toolbox.finish_task.finish_task import finish_task
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,
     agent_ensemble_pairwise,
     complain,
-    critique,
     get_available_agents_for_ensemble,
     get_available_models,
     note_suspicious_things,
@@ -79,15 +81,12 @@ def mk_agent(aigise_session_id: str):
         You should use the debugger tool to debug the vulnerable program.
         Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
         You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
-        If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
+        If you consistently encounter errors or you think this target is not suitable for debugging, or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
         """,
         tools=[
             gdb_toolset,
             complain,
-            list_background_tasks,
-            get_background_task_output,
             run_terminal_command,
-            list_available_scripts,
         ],
     )
     debugger_agent_tool = AgentTool(agent=debugger_agent)
@@ -147,7 +146,7 @@ def mk_agent(aigise_session_id: str):
         model=model,
         description="Generates Python PoC scripts for vulnerabilities.",
         instruction=f"""
-        Before you want to call any tool, you should first reason and explicitly state what the plan is and state state your plan and separately list (1) tools explicitly defined in the tool-calling schema of this conversation and (2) bash-based tools, and call the most appropriate tool to execute the plan.
+        Before you want to call any tool, you should first reason and explicitly state what the plan is and state state your plan and separately list (1) all tools explicitly defined in the tool-calling schema of this conversation and (2) bash-based tools, and call the most appropriate tool to execute the plan.
         Create subagents that are experts in specific skills or tool sets, remember to give the subagent all useful tools of the kind of the skill or tool set.
         You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and see how the input data is flowed from the entrypoint to the vulnerable function, do not guess conditions and try without having a clear path of how the input data is flowed to the vulnerable function and trigger the vulnerability.
         You need to pay attention to how the input data is flowed from the entry point LLVMFuzzerTestOneInput to the vulnerable function, and how is it modified and used, you need to reason about the entire process and call path that leads to the vulnerability.
@@ -182,14 +181,13 @@ def mk_agent(aigise_session_id: str):
         ***********IMPORTANT***********
         You should generally start with static tools: explore the code (ensemble of multiple agents to explore the code), understand the vulnerability, and generate an initial PoC. Only after that should you rely on dynamic tools such as fuzzing, the debugger, or coverage analysis. Don’t start by depending on dynamic tools right away.
         You should build subagents and use agent ensemble to do exploration.
-        If you stuck on a task, or if you are think a subtask is complex, you should using agent_ensemble tools to do the subtask with multiple models, this will help you to think out of the box and try different approaches.
+        If you stuck on a task, you should using agent_ensemble tools to do the subtask with multiple models, this will help you to think out of the box and try different approaches.
         Use dynamic subagents to breakdown the task into smaller subtasks, with specific enabled skills and tools, you should provide all necessary tools and skills that the subagent needs to complete the task. Whever there is a possibility that the task can be broken into subtasks, you should use dynamic subagents to breakdown the task into smaller subtasks and create a subagent to complete the task.
         You should also create subagents that are experts in specific skills or tool sets, remember to give the subagent all useful tools of the kind of the skill or tool set.
         Use dynamic subagents and agent ensemble extensively, whenever you need to call a tool in a set of tools, use a subagent.
         Whenever you want to do a task, try solve it with an expert subagent or create a new expert subagent.
-        If you are completly stuck, it probably means that you are exploring a wrong vulnerable function, you should try create a subagent with no history to solve the task, as your history might be misleading.
-        For local testing, you can use run_poc_from_script to generate a poc file and run it locally to test if it triggers the vulnerability. When you feed a poc_generation_script to run_poc_from_script, it will automatically feed /tmp/poc as an input to the vulnerable program.
-        You can submit a poc by calling generate_poc_and_submit.
+        If you are completly stuck, it probably means that you are exploring a wrong vulnerable function, you should try create a subagent with no history to solve the task with agent ensemble tools, as your history might be misleading.
+        For local testing, you can use run_poc_from_script to generate a poc file and run it locally to test if it triggers the vulnerability. When you feed a poc_generation_script to run_poc_from_script, it will automatically feed /tmp/poc as an input to the vulnerable program. You can submit a poc by calling generate_poc_and_submit. Ensure a correct format and pay attention to the end of file and end of line, they are important.
         You should not see the git commit history.
         If you submitted a poc to the server that triggers a crash and exit code is not equal to 0 and the vulnerability is the one described in the task, you should call the finish_task tool, and then summarize the task and the result without calling any other tool.
         There is definitely a way to trigger the vulnerability by submitting a PoC to the cybergym server, and definitely a way to trigger the vulnerability by running the poc file locally with {run_poc_command}, if your PoC doesn't trigger the vulnerability, it means that maybe your are looking at the wrong vulnerability, you should try to find the correct vulnerability to trigger. The current config and build and flags are correct, you should not change them.

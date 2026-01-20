@@ -11,7 +11,7 @@ COMPILE_COMMAND = "arvo compile"
 RUN_COMMAND = "arvo"
 AGENT_STORAGE_PATH = ""
 # History configuration defaults
-MAX_TOOL_RESPONSE_LENGTH = 15000
+MAX_TOOL_RESPONSE_LENGTH = 20000
 MAX_HISTORY_SUMMARY_LENGTH = 240000
 # Agent ensemble defaults
 # AVAILABLE_MODELS = "${MAIN_MODEL}"
@@ -99,6 +99,7 @@ NEO4J_PLUGINS = '["graph-data-science", "apoc"]'
 NEO4J_server_directories_import = "/shared/neo4j/import"
 NEO4J_apoc_import_file_enabled = "true"
 NEO4J_apoc_export_file_enabled = "true"
+NEO4J_dbms_mode = "SINGLE"
 NEO4J_dbms_directories_data = "/var/lib/neo4j/data-custom"
 NEO4J_dbms_directories_logs = "/var/lib/neo4j/logs-custom"
 [sandbox.sandboxes.neo4j.ports]

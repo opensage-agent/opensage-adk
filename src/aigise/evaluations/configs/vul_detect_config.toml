@@ -88,6 +88,7 @@ NEO4J_PLUGINS = '["graph-data-science", "apoc"]'
 NEO4J_server_directories_import = "/shared/neo4j/import"
 NEO4J_apoc_import_file_enabled = "true"
 NEO4J_apoc_export_file_enabled = "true"
+NEO4J_dbms_mode = "SINGLE"
 NEO4J_dbms_directories_data = "/var/lib/neo4j/data-custom"
 NEO4J_dbms_directories_logs = "/var/lib/neo4j/logs-custom"
 [sandbox.sandboxes.neo4j.ports]

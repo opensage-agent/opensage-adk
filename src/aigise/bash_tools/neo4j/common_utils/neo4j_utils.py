@@ -31,7 +31,7 @@ class SyncNeo4jClient:
 class Neo4jUtils:
     @staticmethod
     def create_client(host, port, user, password, database="neo4j"):
-        uri = f"neo4j://{host}:{port}"
+        uri = f"bolt://{host}:{port}"
         return SyncNeo4jClient(uri, user, password, database)
 
     @staticmethod

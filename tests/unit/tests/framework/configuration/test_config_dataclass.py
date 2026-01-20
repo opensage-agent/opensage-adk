@@ -152,7 +152,7 @@ class TestDataclassCreation:
         assert config.user is None
         assert config.password is None
         # URI is now dynamically constructed, should return default
-        assert config.uri == "neo4j://127.0.0.1:7687"
+        assert config.uri == "bolt://127.0.0.1:7687"
         assert config.bolt_port == 7687
 
     def test_container_config_creation(self):
@@ -326,7 +326,7 @@ timeout = 300
         assert config.neo4j.user == "neo4j"
         assert config.neo4j.password == "test_password"
         # URI is now dynamically constructed from bolt_port
-        assert config.neo4j.uri == "neo4j://127.0.0.1:7687"
+        assert config.neo4j.uri == "bolt://127.0.0.1:7687"
         assert config.neo4j.bolt_port == 7687
         assert config.sandbox.default_image == "ubuntu:20.04"
         assert config.sandbox.backend == "native"

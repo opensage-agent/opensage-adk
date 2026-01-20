@@ -383,8 +383,6 @@ async def get_available_agents_for_ensemble(tool_context: ToolContext):
         # Convert EnsembleAgentInfo objects to dictionaries for API response
         safe_agents = []
         for agent_info in ensemble_result["safe_agents"]:
-            if agent_info.agent_type != "dynamic_agent":
-                continue
             safe_agents.append(
                 {
                     "name": agent_info.name,
@@ -398,8 +396,6 @@ async def get_available_agents_for_ensemble(tool_context: ToolContext):
 
         unsafe_agents = []
         for agent_info in ensemble_result["unsafe_agents"]:
-            if agent_info.agent_type != "dynamic_agent":
-                continue
             unsafe_tools = getattr(agent_info, "unsafe_tools", [])
             unsafe_agents.append(
                 {
@@ -424,7 +420,7 @@ async def get_available_agents_for_ensemble(tool_context: ToolContext):
             "thread_safe_tools": ensemble_result["thread_safe_tools"],
             "static_agents_count": len(ensemble_result["static_agents"]),
             "dynamic_agents_count": len(ensemble_result["dynamic_agents"]),
-            "message": f"Found {len(safe_agents)} thread-safe agents out of {ensemble_result['summary']['total_static_agents'] + ensemble_result['summary']['total_dynamic_agents']} total agents",
+            "message": f"Found {len(safe_agents)} thread-safe agents out of {ensemble_result['summary']['total_static_agents'] + ensemble_result['summary']['total_dynamic_agents']} total agents. If there are no suitable agents for the current task, you should create a dynamic subagent that is suitable for the current task by calling the create_subagent tool and then call it by agent_ensemble tool.",
         }
 
     except Exception as e:

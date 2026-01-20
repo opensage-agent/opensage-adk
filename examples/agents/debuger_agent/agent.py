@@ -36,6 +36,12 @@ from aigise.toolbox.general.agent_tools import (
     think,
 )
 from aigise.toolbox.general.bash_tool import bash_tool_main
+from aigise.toolbox.general.bash_tools_interface import (
+    get_background_task_output,
+    list_available_scripts,
+    list_background_tasks,
+    run_terminal_command,
+)
 from aigise.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
@@ -60,7 +66,7 @@ from aigise.toolbox.static_analysis.cpg import (
 def mk_agent(aigise_session_id: str):
     model = LiteLlm(
         # model="litellm_proxy/vertex_ai/claude-sonnet-4-5@20250929",
-        model="litellm_proxy/openai/gpt-5",
+        model="litellm_proxy/sage-gpt-5",
         # model="litellm_proxy/vertex_ai/claude-sonnet-4",
         api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
         base_url="https://litellm-991596698159.us-west1.run.app/",
@@ -84,7 +90,16 @@ def mk_agent(aigise_session_id: str):
         You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
         If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
         """,
-        tools=[bash_tool_main, complain, gdb_toolset],
+        tools=[
+            complain,
+            gdb_toolset,
+            list_available_scripts,
+            list_background_tasks,
+            run_terminal_command,
+            create_subagent,
+            call_subagent_as_tool,
+            list_active_agents,
+        ],
     )
     root_agent = debugger_agent
     return root_agent

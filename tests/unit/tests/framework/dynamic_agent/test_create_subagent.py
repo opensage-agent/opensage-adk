@@ -127,7 +127,9 @@ async def test_create_subagent_injects_default_tools_and_adds_skills_guardrail(
 @pytest.mark.asyncio
 async def test_create_subagent_inherit_model_passes_resolved_model(monkeypatch):
     tool_context = _DummyToolContext()
-    session = _DummySession(models=["inherit"])
+    # The available models list does not necessarily include the special
+    # sentinel model name "inherit". create_subagent should still allow it.
+    session = _DummySession(models=["openai/gpt-5"])
 
     monkeypatch.setattr(dyn, "get_aigise_session_id_from_context", lambda tc: "sid")
     monkeypatch.setattr(dyn, "get_aigise_session", lambda sid: session)

@@ -7,6 +7,7 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import Runner
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 from google.adk.tools.agent_tool import AgentTool
+from google.adk.tools.base_toolset import BaseToolset
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
@@ -45,8 +46,8 @@ async def create_subagent(
 
     IMPORTANT:
     - A subagent's capabilities come from two sources:
-      1) **Python tools**: determined by `tools_list` (plus a small set of default
-         baseline tools injected automatically, see below).
+      1) **Python tools/toolsets**: determined by `tools_list` (plus a small set of
+         default baseline tools injected automatically, see below).
       2) **Bash tools**: determined by `enabled_skills` (which controls which
          `bash_tools/*` skills are loaded for the subagent).
     - `enabled_skills` can be empty. If it is empty/None, the subagent may not
@@ -63,11 +64,15 @@ async def create_subagent(
         instruction: Custom instruction for the agent, this will be the system prompt for the agent, it should be a comprehensive instruction for the agent to follow and not task-specific.
         model_name: Model to use for the agent (e.g., "anthropic/claude-sonnet-4",
           "openai/gpt-5", or "inherit" to reuse the current agent's model)
-        tools_list: List of tool names to assign to the agent
+        tools_list: List of Python tool names to assign to the agent.
+            This may also include **toolset names** (e.g. "gdb_mcp", "pdb_mcp")
+            if the caller agent exposes a toolset instance with a stable `name`.
+            Passing a toolset name injects the entire toolset into the subagent.
         enabled_skills: Controls which bash tools are loaded.
                       - None: Load NO bash tools.
-                      - "all": Load ALL found bash tools.
-                      - List[str]: Load specific tools by name (e.g. ["fuzz/simplified-python-fuzzer"]).
+                      - "all": Load ONLY top-level skills: `<root>/*/SKILL.md`.
+                      - List[str]: Load skills by relative path/prefix under the
+                        skill root (e.g. ["fuzz"] or ["fuzz/simplified-python-fuzzer"]).
         description: Optional description for the agent
 
     Returns:
@@ -79,7 +84,11 @@ async def create_subagent(
         manager = session.agents
         ensemble_manager = session.ensemble
         available_models = ensemble_manager.get_available_models()
-        if model_name not in available_models:
+        # Allow the special sentinel model name "inherit" even if it is not
+        # present in the configured available models list. "inherit" is an
+        # AIgiSE convention meaning: reuse the caller agent's resolved model
+        # object from context.
+        if model_name != INHERIT_MODEL and model_name not in available_models:
             return {
                 "success": False,
                 "error": f"Model '{model_name}' not available. Available models: {available_models}",
@@ -110,21 +119,78 @@ async def create_subagent(
             "complain": complain,
         }
 
+        # Build a prefix -> toolset_name mapping from caller's available tools.
+        # This is synchronous and does NOT expand toolsets (no async / no network).
+        prefix_to_toolset_name: Dict[str, str] = {}
+        for tool_name, tool_obj in available_tools.items():
+            if not isinstance(tool_obj, BaseToolset):
+                continue
+            prefix = getattr(tool_obj, "tool_name_prefix", None)
+            if isinstance(prefix, str) and prefix.strip():
+                prefix_to_toolset_name[prefix] = tool_name
+
         # Validate tools
         tools_to_add = []
         invalid_tools = []
+        added_tool_ids: set[int] = set()
 
         # Always inject default baseline tools.
-        tools_to_add.extend(default_tools_by_name.values())
+        for t in default_tools_by_name.values():
+            tid = id(t)
+            if tid in added_tool_ids:
+                continue
+            tools_to_add.append(t)
+            added_tool_ids.add(tid)
 
         # Validate non-default tool names against caller's available tools.
-        for tool_name in tools_list:
-            if tool_name in default_tools_by_name:
+        #
+        # Special rule for prefixed MCP tool names:
+        # - If a requested tool name starts with "<prefix>_" and <prefix> matches an
+        #   available toolset's tool_name_prefix, then inject the toolset instead,
+        #   and do NOT error.
+        requested_tool_names_for_metadata: List[str] = []
+        injected_toolset_names: set[str] = set()
+
+        for requested in tools_list:
+            if requested in default_tools_by_name:
                 continue
-            if tool_name in available_tools:
-                tools_to_add.append(available_tools[tool_name])
-            else:
-                invalid_tools.append(tool_name)
+
+            # Exact match: normal tool or toolset name.
+            if requested in available_tools:
+                tool_obj = available_tools[requested]
+                # If this is a toolset, dedupe with any toolset previously injected via
+                # prefix matching.
+                if isinstance(tool_obj, BaseToolset):
+                    injected_toolset_names.add(requested)
+                tid = id(tool_obj)
+                if tid not in added_tool_ids:
+                    tools_to_add.append(tool_obj)
+                    added_tool_ids.add(tid)
+                requested_tool_names_for_metadata.append(requested)
+                continue
+
+            # Prefix match: treat as request for a toolset.
+            matched_toolset_name: Optional[str] = None
+            for prefix, toolset_name in prefix_to_toolset_name.items():
+                if requested.startswith(f"{prefix}_"):
+                    matched_toolset_name = toolset_name
+                    break
+
+            if matched_toolset_name is not None:
+                # Inject the toolset once; do not store the individual prefixed tool
+                # name in metadata, because it is not reconstructible from caller_tools
+                # at restore time (only the toolset name is).
+                if matched_toolset_name not in injected_toolset_names:
+                    tool_obj = available_tools[matched_toolset_name]
+                    tid = id(tool_obj)
+                    if tid not in added_tool_ids:
+                        tools_to_add.append(tool_obj)
+                        added_tool_ids.add(tid)
+                    injected_toolset_names.add(matched_toolset_name)
+                    requested_tool_names_for_metadata.append(matched_toolset_name)
+                continue
+
+            invalid_tools.append(requested)
 
         if invalid_tools:
             return {
@@ -134,7 +200,7 @@ async def create_subagent(
 
         # Ensure tool_names include baseline tools (for metadata/debug visibility).
         tool_names_final = list(default_tools_by_name.keys())
-        for name in tools_list:
+        for name in requested_tool_names_for_metadata:
             if name not in tool_names_final:
                 tool_names_final.append(name)
 

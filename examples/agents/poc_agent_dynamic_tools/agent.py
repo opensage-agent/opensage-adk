@@ -72,24 +72,24 @@ def mk_agent(aigise_session_id: str):
     )
     gdb_toolset = get_gdb_toolset(aigise_session_id)
 
-    debugger_agent = AigiseAgent(
-        name="debugger_agent",
-        model=model,
-        description="A debugger agent that can debug the vulnerable program. When calling this tool, you should tell the debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.",
-        instruction="""
-        You are a debugger agent that can debug the vulnerable program.
-        You should use the debugger tool to debug the vulnerable program.
-        Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
-        You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
-        If you consistently encounter errors or you think this target is not suitable for debugging, or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
-        """,
-        tools=[
-            gdb_toolset,
-            complain,
-            run_terminal_command,
-        ],
-    )
-    debugger_agent_tool = AgentTool(agent=debugger_agent)
+    # debugger_agent = AigiseAgent(
+    #     name="debugger_agent",
+    #     model=model,
+    #     description="A debugger agent that can debug the vulnerable program. When calling this tool, you should tell the debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.",
+    #     instruction="""
+    #     You are a debugger agent that can debug the vulnerable program.
+    #     You should use the debugger tool to debug the vulnerable program.
+    #     Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
+    #     You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
+    #     If you consistently encounter errors or you think this target is not suitable for debugging, or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
+    #     """,
+    #     tools=[
+    #         gdb_toolset,
+    #         complain,
+    #         run_terminal_command,
+    #     ],
+    # )
+    # debugger_agent_tool = AgentTool(agent=debugger_agent)
 
     # fuzzing_agent = AigiseAgent(
     #     name="fuzzing_agent",
@@ -146,7 +146,7 @@ def mk_agent(aigise_session_id: str):
         model=model,
         description="Generates Python PoC scripts for vulnerabilities.",
         instruction=f"""
-        Before you want to call any tool, you should first reason and explicitly state what the plan is and state state your plan and separately list (1) all tools explicitly defined in the tool-calling schema of this conversation and (2) bash-based tools, and call the most appropriate tool to execute the plan.
+        Before you want to call any tool, you should first reason and explicitly state what the plan is and state state your plan and separately list (1) all tools explicitly defined in the tool-calling schema of this conversation and (2) bash-based tools and (3) MCP toolsets, and call the most appropriate tool to execute the plan.
         Create subagents that are experts in specific skills or tool sets, remember to give the subagent all useful tools of the kind of the skill or tool set.
         You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and see how the input data is flowed from the entrypoint to the vulnerable function, do not guess conditions and try without having a clear path of how the input data is flowed to the vulnerable function and trigger the vulnerability.
         You need to pay attention to how the input data is flowed from the entry point LLVMFuzzerTestOneInput to the vulnerable function, and how is it modified and used, you need to reason about the entire process and call path that leads to the vulnerability.
@@ -223,7 +223,7 @@ def mk_agent(aigise_session_id: str):
             run_terminal_command,
             list_available_scripts,
             # Debugger Tools
-            debugger_agent_tool,
+            gdb_toolset,
             # debugger_agent_tool,
             # fuzzing_agent_tool,
             # coverage_agent_tool,

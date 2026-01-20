@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional, Set, Union
 import yaml
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
+from google.adk.tools.base_toolset import BaseToolset
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
 from pydantic import Field
 
 from aigise.features.tool_combo import ToolCombo
@@ -13,6 +15,46 @@ from aigise.utils.project_info import PROJECT_PATH
 logger = logging.getLogger(__name__)
 
 _TOOL_USAGE_BANNER_MARKER = "[[AIGISE_TOOL_USAGE_BANNER]]"
+_TOOLSET_SUMMARY_MARKER = "[[AIGISE_TOOLSET_SUMMARY]]"
+
+
+class AigiseMCPToolset(McpToolset):
+    """An ADK McpToolset that also carries a stable `name` for AIgiSE.
+
+    Why this exists:
+    - ADK's McpToolset does not define a stable `name` attribute.
+    - AIgiSE dynamic subagent creation (`create_subagent`) validates requested
+      Python tools by name via `extract_tools_from_agent()`.
+
+    With this wrapper, callers can pass toolset names into `create_subagent`:
+    - `tools_list=["gdb_mcp"]` injects the entire MCP toolset into the subagent.
+
+    Notes:
+    - This class does NOT enumerate MCP tools at init time (no async/network).
+    - We **enforce** `tool_name_prefix == name` to reduce collisions across MCP
+      servers that may expose overlapping tool names, and to make it possible to
+      map a prefixed tool name like "gdb_mcp_step_control" back to the toolset
+      name "gdb_mcp" deterministically.
+    """
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        tool_name_prefix: Optional[str] = None,
+        **kwargs,
+    ):
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("AigiseMCPToolset requires a non-empty name")
+
+        resolved_prefix = tool_name_prefix if tool_name_prefix is not None else name
+        if resolved_prefix != name:
+            raise ValueError(
+                "AigiseMCPToolset requires tool_name_prefix == name "
+                f"(got name={name!r}, tool_name_prefix={resolved_prefix!r})"
+            )
+        super().__init__(tool_name_prefix=resolved_prefix, **kwargs)
+        self.name = name
 
 
 class ToolLoader:
@@ -526,6 +568,13 @@ class AigiseAgent(LlmAgent):
         super().__init__(*args, **kwargs)
         self._enable_memory_management = enable_memory_management
 
+        # Inject a short toolset summary into the system prompt (no async/network).
+        # This is intentionally lightweight: we only list toolset names, not the
+        # expanded tool list (MCP expansion is async and happens at runtime).
+        toolset_summary = self._build_toolset_summary(tools)
+        if toolset_summary and _TOOLSET_SUMMARY_MARKER not in (self.instruction or ""):
+            self.instruction = toolset_summary + "\n\n" + (self.instruction or "")
+
         # Store enabled_skills for dependency collection
         self._enabled_skills = enabled_skills
         loader = ToolLoader(
@@ -667,6 +716,44 @@ class AigiseAgent(LlmAgent):
             )
         else:
             logger.info("No dynamically loaded tool descriptions found")
+
+    @staticmethod
+    def _build_toolset_summary(tools: List[Any]) -> str:
+        """Build a short, synchronous toolset summary for the agent system prompt.
+
+        This is used to help the model (and users) understand that some
+        capabilities are provided via toolsets (e.g., MCP toolsets), and that a
+        toolset can be passed by name into `create_subagent.tools_list` to inject
+        the full toolset into a new subagent.
+
+        Important:
+        - This method must NOT trigger any async enumeration or network I/O.
+        - It only lists toolsets that already have a stable `name` attribute.
+        """
+        toolsets: dict[str, BaseToolset] = {}
+        for t in tools or []:
+            if isinstance(t, BaseToolset) and getattr(t, "name", None):
+                toolsets[str(t.name)] = t
+
+        if not toolsets:
+            return ""
+
+        names_sorted = sorted(toolsets.keys())
+        lines = [
+            _TOOLSET_SUMMARY_MARKER,
+            "Available Python toolsets (inject by name via `create_subagent.tools_list`):",
+        ]
+        for name in names_sorted:
+            prefix = getattr(toolsets[name], "tool_name_prefix", None)
+            if isinstance(prefix, str) and prefix.strip():
+                lines.append(f"- {name} (tool_name_prefix={prefix})")
+            else:
+                lines.append(f"- {name}")
+
+        lines.append(
+            "Note: toolsets (especially MCP toolsets) expand their individual tools at runtime."
+        )
+        return "\n".join(lines).strip()
 
     def update_enabled_skills(
         self, enabled_skills: Optional[Union[List[str], str]]

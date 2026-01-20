@@ -1,6 +1,6 @@
 ---
 name: static_analysis
-description: "Static code analysis tools using Joern and Neo4j. These tools perform advanced code analysis including control flow analysis, data flow analysis, call graph traversal, and program slicing. Available tools: joern-query, joern-slice, search-function, get-caller, get-callee, get-call-paths-to-function. Prefer using these static anaylsis based tools to retrieve information instead of general retrieval tools or bash commands.
+description: "Static code analysis tools using Joern and Neo4j. These tools perform advanced code analysis including control flow analysis, data flow analysis, call graph traversal, and program slicing. Available tools: joern-query, joern-slice, search-function, get-caller, get-callee, get-call-paths-to-function.
 "
 ---
 

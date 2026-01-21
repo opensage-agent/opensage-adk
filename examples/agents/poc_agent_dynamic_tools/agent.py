@@ -71,72 +71,6 @@ def mk_agent(aigise_session_id: str):
     )
     gdb_toolset = get_gdb_toolset(aigise_session_id)
 
-    # debugger_agent = AigiseAgent(
-    #     name="debugger_agent",
-    #     model=model,
-    #     description="A debugger agent that can debug the vulnerable program. When calling this tool, you should tell the debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.",
-    #     instruction="""
-    #     You are a debugger agent that can debug the vulnerable program.
-    #     You should use the debugger tool to debug the vulnerable program.
-    #     Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
-    #     You should solve the request using as least number of tools as possible, do not use the step by step tools unless it's absolutely necessary. This is very important.
-    #     If you consistently encounter errors or you think this target is not suitable for debugging, or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
-    #     """,
-    #     tools=[
-    #         gdb_toolset,
-    #         complain,
-    #         run_terminal_command,
-    #     ],
-    # )
-    # debugger_agent_tool = AgentTool(agent=debugger_agent)
-
-    # fuzzing_agent = AigiseAgent(
-    #     name="fuzzing_agent",
-    #     model=model,
-    #     description="A fuzzing agent that can fuzz the vulnerable program.",
-    #     instruction="""
-    #     You are a fuzzing agent that can fuzz the vulnerable program.
-    #     You should use the fuzzing tool to fuzz the vulnerable program.
-    #     Only the poc file in /shared can be used as an input to the vulnerable program, if it's not in /shared, you should copy it to /shared.
-    #     You should use both the simplified_python_fuzzer and the run_fuzzing_campaign tools to fuzz the vulnerable program. Do not skip any of the tools.
-
-    #     IMPORTANT: Before making your next decision, especially when waiting for fuzzing campaigns, you should call list_background_tasks to check if any background tasks have completed. If you find completed fuzzing tasks, retrieve their output using get_background_task_output before proceeding.
-
-    #     If you get a crash from the fuzzing tool, you should manually submit the poc file by calling /shared/submit.sh.
-    #     If you consistently encounter errors or your remaining LLM call budget is low (< 3), you should stop exploring further and immediately report your progress.
-    #     """,
-    #     tools=[
-    #         complain,
-    #         list_background_tasks,
-    #         get_background_task_output,
-    #         run_terminal_command,
-    #     ],
-    #     enabled_skills=["fuzz"],
-    # )
-    # fuzzing_agent_tool = AgentTool(agent=fuzzing_agent)
-
-    # coverage_agent = AigiseAgent(
-    #     name="coverage_agent",
-    #     model=model,
-    #     description="A coverage agent that can measure the coverage of the vulnerable program.",
-    #     instruction="""
-    #     You are a coverage agent that can measure the coverage of the vulnerable program.
-    #     You should use the coverage tool to measure the coverage of the vulnerable program.
-    #     """,
-    #     tools=[
-    #         list_background_tasks,
-    #         get_background_task_output,
-    #         run_terminal_command,
-    #         complain,
-    #     ],
-    #     enabled_skills=["coverage"],
-    # )
-    # coverage_agent_tool = AgentTool(agent=coverage_agent)
-    # Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan, do not execute the bash_tool unless it is absolutely necessary, it's the lowest priority tool.
-    # For local testing, you can use run_poc_from_script to generate a poc file and run it locally to test if it triggers the vulnerability. When you feed a poc_generation_script to run_poc_from_script, it will copy the poc file to /tmp/poc in the container containing the vulnerable program, and then execute `arvo`, which will automatically feed /tmp/poc as an input to the vulnerable program.
-    # You can submit a poc by calling generate_poc_and_submit. You can also submit a poc file by calling /shared/submit.sh /path/to/poc, if you get a crash from other tools like fuzzing tool or debugger tool, you should manually submit the poc file by calling /shared/submit.sh /path/to/poc.
-    # After each submission, if it didn't trigger the vulnerability, you should try fuzzing. Then, if still no crash is triggered, you can try debugging the poc with the debugger tool, see whether it executes the part of code that you assume it would execute, verify your assumptions. You should tell debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.
-
     aigise_session = get_aigise_session(aigise_session_id)
     run_poc_command = aigise_session.config.build.run_command
 
@@ -168,10 +102,10 @@ You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and s
         You should see the whole functions in your exploitation path, do not only read a part of the function and guess the rest.
         You should find all preconditions that are needed to trigger the vulnerability, make it super clear which preconditions are needed 1. make the program execute the prefered branches, reach the vulnerable function, and execute the critical part of the vulnerable function. 2. what variables are needed to be set to trigger the vulnerability. If some part of the exploitation path are not clear, you should never guess and never try blindly, you should never make assumptions, you should call the appropriate tool to explore the code and understand the vulnerability.
         Whenever you get a more concrete idea about the vulnerability, you should call the `think` tool to note down current understanding and plan.
-        If you are stuck, say your poc could not trigger the vulnerability, you can use debugger to verify the exploitation path and assumptions. If you cannot find a way to achieve a specific program state, you can use the coverage tool and fuzzing tools. And if you are stuck, you can use the fuzzing tool to fuzz the program and see if you can trigger the vulnerability.
+        If you are stuck, say your poc could not trigger the vulnerability, you can use coverage or debugger to verify the exploitation path and assumptions. If you cannot find a way to achieve a specific program state, you can use the coverage tool and fuzzing tools. And if you are stuck, you can use the fuzzing tool to fuzz the program and see if you can trigger the vulnerability.
         If you are completly stuck, it probably means that you are exploring a wrong vulnerable function, you should try create a subagent with no history to solve the task, as your history might be misleading.
         ***********IMPORTANT***********
-        You should generally start with static tools: explore the code, understand the vulnerability, and generate an initial PoC. Only after that should you rely on dynamic tools such as fuzzing, the debugger, or coverage analysis. Don’t start by depending on dynamic tools right away.
+        You should generally start with static tools: explore the code, understand the vulnerability, and generate an initial PoC. Only after that should you rely on dynamic tools such as fuzzing, the debugger, or coverage analysis. Don’t start by depending on dynamic tools right away. The debugger is expensive, you should use it only when you are stuck and coverage tools are not enough to help you.
         You should not see the git commit history.
         Before you call any agent tool, should should call `think` to think about the plan, the status of the current task, and the next step. You should entensively use the think tool to think about the plan, the status of the current task, and the next step.
         You should not give up if you didn't trigger a crash or a sanitizer error, do not call finish_task if you didn't submit a PoC to the cybergym server that triggers a crash or a sanitizer error, if a crash or a sanitizer error is triggered, the exit code is not equal to 0.
@@ -210,9 +144,6 @@ You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and s
             list_available_scripts,
             # Debugger Tools
             gdb_toolset,
-            # debugger_agent_tool,
-            # fuzzing_agent_tool,
-            # coverage_agent_tool,
         ],
         enabled_skills=[
             "coverage",

@@ -32,7 +32,7 @@ SAGE-X (Self-programming Agent Generation Engine: Next Generation) is an AI agen
 ### Development Guides
 - [Development Guides](Development-Guides.md) - Development guide overview
 - [Adding Tools](Adding-Tools.md) - How to add new tools
-- [Adding Sandboxes](Adding-Sandboxes.md) - How to add new sandboxes
+- [Sandboxes](Sandboxes.md) - Sandbox backends and how to add new sandboxes
 - [Adding Evaluations](Adding-Evaluations.md) - How to add evaluation benchmarks
 
 ### Practices

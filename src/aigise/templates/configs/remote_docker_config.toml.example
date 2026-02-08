@@ -1,0 +1,73 @@
+# Example configuration for Remote Docker backend
+#
+# This config demonstrates how to run AIgiSE with a remote Docker daemon
+# (e.g., on a GPU server) while running the main AIgiSE process locally.
+#
+# Setup:
+# 1. Configure docker_host and docker_remote_host below
+# 2. Run AIgiSE:
+#    python -m aigise.evaluations run_single_task --config remote_docker_config.toml
+#
+# Note: Environment variables (DOCKER_HOST, DOCKER_REMOTE_HOST) can still be used
+#       as fallback if not specified in config.
+
+[sandbox]
+# Backend selection: "remotedocker" for remote Docker daemon
+backend = "remotedocker"
+
+# Docker daemon URL (required for remotedocker backend)
+# Examples:
+#   - SSH: "ssh://user@gpu-server"
+#   - SSH with port: "ssh://user@gpu-server:2222"
+#   - TCP: "tcp://192.168.1.100:2376"
+#   - TCP + TLS: "tcp://192.168.1.100:2376" (requires DOCKER_TLS_CERTDIR env var)
+docker_host = "ssh://user@gpu-server"
+
+# Remote host IP for service connections (optional)
+# If not set, will be automatically parsed from docker_host
+# Set this explicitly if:
+#   - docker_host uses hostname but you want to use IP
+#   - docker_host is internal address but services need external IP
+# Examples:
+#   - "192.168.1.100"
+#   - "gpu-server.company.com"
+docker_remote_host = "192.168.1.100"
+
+# Sandbox configurations (same as native backend)
+[sandbox.sandboxes.main]
+image = "ubuntu:22.04"
+working_dir = "/workspace"
+
+[sandbox.sandboxes.neo4j]
+image = "neo4j:5.11.0"
+environment = { NEO4J_AUTH = "neo4j/callgraphn4j!" }
+
+[sandbox.sandboxes.pdb_mcp]
+image = "pdb_mcp:latest"
+project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/pdb_mcp/Dockerfile"
+
+# Neo4j configuration
+[neo4j]
+user = "neo4j"
+password = "callgraphn4j!"
+# Note: bolt_port and neo4j_http_port will be dynamically assigned by Docker
+# and automatically updated after container startup
+
+# MCP services configuration
+[mcp.services.pdb_mcp]
+sse_port = 8081
+# Note: actual port will be dynamically assigned and auto-updated
+
+# Other configurations (same as native backend)
+[llm.model_configs.main]
+model_name = "gemini-2.0-flash-exp"
+temperature = 0.0
+
+default_host = ""  # Will be set to remote IP at runtime
+
+# Important Notes:
+# 1. Shared volumes will be created on the remote Docker host
+# 2. Data transfer uses Docker API (put_archive), which may be slower than local bind mounts
+# 3. All containers run on the remote host; AIgiSE main process runs locally
+# 4. Neo4j and MCP ports are dynamically allocated to avoid conflicts
+# 5. Connection URIs are automatically updated with remote IP and actual ports

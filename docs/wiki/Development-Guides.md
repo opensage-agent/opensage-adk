@@ -5,7 +5,7 @@ This section covers how to extend SAGE-X with new functionality.
 ## Guides
 
 - [Adding Tools](Adding-Tools.md) - How to add new tools
-- [Adding Sandboxes](Adding-Sandboxes.md) - How to add new sandbox types
+- [Sandboxes](Sandboxes.md) - Sandbox backends and how to add new sandbox types
 - [Adding Evaluations](Adding-Evaluations.md) - How to add evaluation benchmarks
 
 ## Extending AigiseAgent

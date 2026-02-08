@@ -622,4 +622,4 @@ If `default_host` is not set, services like Neo4j and MCP will default to `127.0
 - [Getting Started](Getting-Started.md) - Initial setup guide
 - [Architecture](Architecture.md) - System architecture overview
 - [Core Concepts](Core-Concepts.md) - Core concepts including sessions
-- [Adding Sandboxes](Adding-Sandboxes.md) - Guide to adding new sandbox types
+- [Sandboxes](Sandboxes.md) - Sandbox backends and configuration guide

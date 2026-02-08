@@ -41,58 +41,120 @@ class RemoteDockerSandbox(NativeDockerSandbox):
     - All operations performed via Docker API (no local dependencies)
 
     Configuration:
-      [sandbox]
-      backend = "remotedocker"
-      docker_host = "ssh://user@remote-host"  # or tcp://host:2376
-      docker_remote_host = "192.168.1.100"    # optional, auto-parsed if not set
+        [sandbox]
+        backend = "remotedocker"
+        docker_host = "ssh://user@remote-host"  # or tcp://host:2376
+        docker_remote_host = "192.168.1.100"    # optional, auto-parsed if not set
 
     Environment Variables (fallback):
-      DOCKER_HOST: Remote Docker daemon URL
-      DOCKER_REMOTE_HOST: Remote host IP for service connections
-      DOCKER_TLS_CERTDIR: TLS certificate directory for TCP
+        DOCKER_HOST: Remote Docker daemon URL
+        DOCKER_REMOTE_HOST: Remote host IP for service connections
+        DOCKER_TLS_CERTDIR: TLS certificate directory for TCP
 
     Usage:
-      export DOCKER_HOST="ssh://user@gpu-server"
-      python -m aigise.evaluations ...
+        export DOCKER_HOST="ssh://user@gpu-server"
+        python -m aigise.evaluations ...
     """
 
     backend_type = "remotedocker"
 
-    @classmethod
-    def _get_docker_host_from_config(cls) -> Optional[str]:
-        """Get docker_host from config if available."""
-        try:
-            from aigise.session.aigise_session import get_aigise_session
+    # Class variable to hold injected config
+    _injected_config = None
 
-            sessions = (
-                list(get_aigise_session._sessions.values())
-                if hasattr(get_aigise_session, "_sessions")
-                else []
-            )
-            for session in sessions:
-                if hasattr(session, "config") and hasattr(session.config, "sandbox"):
-                    docker_host = getattr(session.config.sandbox, "docker_host", None)
-                    if docker_host:
-                        return docker_host
-        except Exception:
-            pass
-        return None
+    def __init__(
+        self,
+        container_config,
+        session_id: str = None,
+        backend_type: str = None,
+        sandbox_type: str = None,
+    ):
+        """Initialize remote Docker sandbox.
+
+        Overrides parent to use remote Docker client instead of docker.from_env().
+        """
+        from aigise.sandbox.base_sandbox import BaseSandbox
+
+        if container_config is None or not isinstance(
+            container_config, type(container_config)
+        ):
+            raise TypeError("container_config must be a ContainerConfig instance")
+
+        if not container_config.image and not container_config.container_id:
+            raise ValueError("ContainerConfig must have either image or container_id")
+
+        # Initialize base class
+        BaseSandbox.__init__(
+            self,
+            container_config,
+            session_id,
+            backend_type or self.backend_type,
+            sandbox_type,
+        )
+
+        # Use remote Docker client (not docker.from_env)
+        self.client = self._get_docker_client()
+
+        # Connect to existing or create new container
+        if container_config.container_id:
+            try:
+                self.container_id = self._connect_to_existing_container(
+                    container_config.container_id
+                )
+            except (ValueError, Exception) as e:
+                logger.warning(
+                    f"Failed to connect to container {container_config.container_id}: {e}"
+                )
+                logger.info("Falling back to creating new container")
+                container_config.container_id = None
+                if not container_config.image:
+                    raise ValueError("Fallback failed: no image specified")
+
+                success, error = self.ensure_docker_image(container_config)
+                if not success:
+                    raise RuntimeError(f"Failed to obtain image: {error}")
+
+                self.container_id = self._get_container()
+        else:
+            success, error = self.ensure_docker_image(container_config)
+            if not success:
+                raise RuntimeError(f"Failed to obtain image: {error}")
+
+            self.container_id = self._get_container()
+
+        self._detected_shell = None
+
+    @classmethod
+    def set_config(cls, config) -> None:
+        """Inject config into the backend class.
+
+        Called by factory before backend methods are invoked.
+        """
+        cls._injected_config = config
+
+    @classmethod
+    def _get_docker_host(cls) -> str:
+        """Get docker_host from injected config or environment."""
+        # Priority 1: Injected config
+        if cls._injected_config and hasattr(cls._injected_config, "sandbox"):
+            docker_host = getattr(cls._injected_config.sandbox, "docker_host", None)
+            if docker_host:
+                return docker_host
+
+        # Priority 2: Environment variable
+        docker_host = os.environ.get("DOCKER_HOST")
+        if docker_host:
+            return docker_host
+
+        raise ValueError(
+            "docker_host not configured. "
+            'Set in config: [sandbox] docker_host = "ssh://user@host"'
+        )
 
     @classmethod
     def _get_docker_client(cls, timeout: Optional[int] = None) -> docker.DockerClient:
         """Get Docker client for remote daemon."""
         timeout = timeout or 3600
-
-        docker_host = cls._get_docker_host_from_config() or os.environ.get(
-            "DOCKER_HOST"
-        )
-
-        if not docker_host:
-            raise ValueError(
-                "RemoteDockerSandbox requires docker_host configuration. "
-                'Set in config: [sandbox] docker_host = "ssh://user@host" '
-                'or environment: DOCKER_HOST="ssh://user@host"'
-            )
+        docker_host = cls._get_docker_host()
 
         logger.info(f"Connecting to remote Docker: {docker_host}")
 
@@ -115,51 +177,28 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         )
 
     @classmethod
-    def _get_remote_host_from_config(cls) -> Optional[str]:
-        """Get docker_remote_host from config if available."""
-        try:
-            from aigise.session.aigise_session import get_aigise_session
+    def _get_remote_host(cls) -> str:
+        """Get docker_remote_host from injected config or environment.
 
-            sessions = (
-                list(get_aigise_session._sessions.values())
-                if hasattr(get_aigise_session, "_sessions")
-                else []
+        Required for service connections (Neo4j, MCP).
+        """
+        # Priority 1: Injected config
+        if cls._injected_config and hasattr(cls._injected_config, "sandbox"):
+            remote_host = getattr(
+                cls._injected_config.sandbox, "docker_remote_host", None
             )
-            for session in sessions:
-                if hasattr(session, "config") and hasattr(session.config, "sandbox"):
-                    remote_host = getattr(
-                        session.config.sandbox, "docker_remote_host", None
-                    )
-                    if remote_host:
-                        return remote_host
-        except Exception:
-            pass
-        return None
+            if remote_host:
+                return remote_host
 
-    @classmethod
-    def _get_remote_host_ip(cls) -> str:
-        """Extract remote host IP from config or DOCKER_HOST."""
-        remote_host = cls._get_remote_host_from_config()
-        if remote_host:
-            return remote_host
-
+        # Priority 2: Environment variable
         remote_host = os.environ.get("DOCKER_REMOTE_HOST")
         if remote_host:
             return remote_host
 
-        docker_host = cls._get_docker_host_from_config()
-        if not docker_host:
-            docker_host = os.environ.get("DOCKER_HOST", "")
-
-        if docker_host.startswith("tcp://"):
-            return docker_host.replace("tcp://", "").split(":")[0]
-        elif docker_host.startswith("ssh://"):
-            return docker_host.replace("ssh://", "").split("@")[-1].split(":")[0]
-        elif docker_host.startswith("http://") or docker_host.startswith("https://"):
-            proto = "https://" if docker_host.startswith("https://") else "http://"
-            return docker_host.replace(proto, "").split(":")[0]
-
-        raise ValueError(f"Cannot parse remote host from: {docker_host}")
+        raise ValueError(
+            "docker_remote_host not configured. "
+            'Set in config: [sandbox] docker_remote_host = "host-or-ip"'
+        )
 
     @classmethod
     def _make_tar_from_path(cls, source_path: Path) -> bytes:
@@ -286,7 +325,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         aigise_session = get_aigise_session(session_id)
         config = aigise_session.config
 
-        remote_host = cls._get_remote_host_ip()
+        remote_host = cls._get_remote_host()
         config.default_host = remote_host
         logger.info(f"Remote Docker: default_host={remote_host}")
 
@@ -374,7 +413,6 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         # e.g., config.mcp.services["gdb_mcp"] matches sandbox_instances["gdb_mcp"]
         if config.mcp and config.mcp.services:
             for service_name, mcp_config in config.mcp.services.items():
-                # service_name already is the sandbox_type (e.g., "gdb_mcp")
                 if service_name in sandbox_instances:
                     mcp_sandbox = sandbox_instances[service_name]
                     if hasattr(mcp_sandbox, "container_id"):

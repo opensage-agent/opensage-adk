@@ -81,22 +81,32 @@ def create_sandbox_class(
     return CombinedSandbox
 
 
-def get_backend_class(backend_type: str) -> Type[BaseSandbox]:
+def get_backend_class(backend_type: str, config=None) -> Type[BaseSandbox]:
     """
     Get the backend class for a given backend type.
 
     Args:
-        backend_type: The type of backend needed (e.g., 'native', 'k8s')
+      backend_type: The type of backend needed (e.g., 'native', 'k8s')
+      config: Optional config to inject into backend (for remotedocker)
 
     Returns:
-        The backend class
+      The backend class
 
     Raises:
-        ValueError: If backend type is not supported
+      ValueError: If backend type is not supported
     """
     backend_class = SANDBOX_BACKENDS.get(backend_type)
     if backend_class is None:
         raise ValueError(f"Unsupported backend type: {backend_type}")
+
+    # Inject config for remote docker backend
+    if (
+        backend_type == "remotedocker"
+        and config
+        and hasattr(backend_class, "set_config")
+    ):
+        backend_class.set_config(config)
+
     return backend_class
 
 

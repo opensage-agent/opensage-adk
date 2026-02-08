@@ -181,7 +181,7 @@ class AigiseSandboxManager:
                 )
 
                 # Get the backend class
-                backend_class = get_backend_class(backend_type)
+                backend_class = get_backend_class(backend_type, self.config)
                 logger.debug(
                     f"Resolved backend class for shared volume: {backend_class.__name__}"
                 )
@@ -333,7 +333,7 @@ class AigiseSandboxManager:
             backend_type = getattr(config.sandbox, "backend", "native")
 
             # Get the backend class
-            backend_class = get_backend_class(backend_type)
+            backend_class = get_backend_class(backend_type, self.config)
 
             # Prepare sandbox configurations (filter by types if provided)
             sandbox_configs = {}
@@ -429,7 +429,7 @@ class AigiseSandboxManager:
 
         # Get backend class
         backend_type = getattr(self.config.sandbox, "backend", "native")
-        backend_class = get_backend_class(backend_type)
+        backend_class = get_backend_class(backend_type, self.config)
 
         logger.info(
             f"Initializing {len(sandboxes_to_init)} sandboxes for session {self.aigise_session_id}: "
@@ -470,7 +470,7 @@ class AigiseSandboxManager:
         - k8s: requires pod_name + container_name
         """
         backend_type = getattr(self.config.sandbox, "backend", "native")
-        backend_class = get_backend_class(backend_type)
+        backend_class = get_backend_class(backend_type, self.config)
 
         # Build or create a ContainerConfig entry for this sandbox based on current config
         container_config = self.config.get_sandbox_config(sandbox_type)
@@ -570,7 +570,7 @@ class AigiseSandboxManager:
         if self._scripts_volume_id or self._shared_volume_id or self._tools_volume_id:
             try:
                 backend_type = getattr(self.config.sandbox, "backend", "native")
-                backend_class = get_backend_class(backend_type)
+                backend_class = get_backend_class(backend_type, self.config)
                 backend_class.delete_shared_volumes(
                     scripts_volume_id=self._scripts_volume_id,
                     data_volume_id=self._shared_volume_id,
@@ -617,7 +617,7 @@ class AigiseSandboxManager:
             backend_type = getattr(config.sandbox, "backend", "native")
 
             # Get the backend class
-            backend_class = get_backend_class(backend_type)
+            backend_class = get_backend_class(backend_type, self.config)
 
             logger.info(
                 f"Caching sandboxes for session {self.aigise_session_id} using {backend_type} backend"

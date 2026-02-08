@@ -24,7 +24,7 @@
 ### Development
 - [Development Guides](Development-Guides.md)
 - [Adding Tools](Adding-Tools.md)
-- [Adding Sandboxes](Adding-Sandboxes.md)
+- [Sandboxes](Sandboxes.md)
 - [Adding Evaluations](Adding-Evaluations.md)
 
 ### Practices

@@ -11,10 +11,12 @@ Provides unified interfaces for different sandbox implementations:
 from .base_sandbox import BaseSandbox
 from .k8s_sandbox import K8sSandbox
 from .native_docker_sandbox import NativeDockerSandbox
+from .remote_docker_sandbox import RemoteDockerSandbox
 
 __all__ = [
     "BaseSandbox",
     "NativeDockerSandbox",
+    "RemoteDockerSandbox",
     "K8sSandbox",
     "DockerfileBuilder",
     "DockerBuildResult",

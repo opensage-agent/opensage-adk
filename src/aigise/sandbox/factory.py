@@ -19,11 +19,13 @@ from .base_sandbox import BaseSandbox
 from .k8s_sandbox import K8sSandbox
 from .local_sandbox import LocalSandbox
 from .native_docker_sandbox import NativeDockerSandbox
+from .remote_docker_sandbox import RemoteDockerSandbox
 
 # Registry of available backends
 SANDBOX_BACKENDS = {
     "native": NativeDockerSandbox,
     "k8s": K8sSandbox,
+    "remotedocker": RemoteDockerSandbox,
     # Future backends can be added here:
     "local": LocalSandbox,
 }

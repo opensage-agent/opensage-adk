@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from aigise.toolbox.general.bash_task_manager import Task, TaskStatus
 from aigise.toolbox.general.bash_tools_interface import (
     BashToolMetadata,
     get_background_task_output,
@@ -515,23 +516,21 @@ class TestListBackgroundTasks:
         mock_context.state = {"aigise_session_id": "test_session"}
 
         mock_task_manager = MagicMock()
-        mock_task_manager.tasks = {
-            "task_1": {
-                "command": "echo test",
-                "status": "running",
-                "sandbox_name": "main",
-            }
-        }
-        mock_task_manager.list_tasks = MagicMock(
-            return_value=[
-                {
-                    "id": "task_1",
-                    "command": "echo test",
-                    "status": "running",
-                    "sandbox": "main",
-                }
-            ]
+        task_1 = Task(
+            id="task_1",
+            pid="123",
+            command="echo test",
+            sandbox_name="main",
+            log_file="/tmp/task_task_1.log",
+            exit_code_file="/tmp/task_task_1.exit",
+            pid_file="/tmp/task_task_1.pid",
+            cmd_file="/tmp/task_task_1.cmd.sh",
+            wrapper_file="/tmp/task_task_1.wrapper.sh",
+            status=TaskStatus.RUNNING,
+            exit_code=None,
         )
+        mock_task_manager.tasks = {"task_1": task_1}
+        mock_task_manager.list_tasks = MagicMock(return_value=[task_1])
 
         with (
             patch(
@@ -562,14 +561,20 @@ class TestGetBackgroundTaskOutput:
         mock_context.state = {"aigise_session_id": "test_session"}
 
         mock_task_manager = MagicMock()
-        mock_task_manager.tasks = {
-            "task_123": {
-                "command": "echo test",
-                "status": "completed",
-                "sandbox_name": "main",
-                "log_file": "/tmp/task_123.log",
-            }
-        }
+        task_123 = Task(
+            id="task_123",
+            pid="456",
+            command="echo test",
+            sandbox_name="main",
+            log_file="/tmp/task_123.log",
+            exit_code_file="/tmp/task_123.exit",
+            pid_file="/tmp/task_123.pid",
+            cmd_file="/tmp/task_123.cmd.sh",
+            wrapper_file="/tmp/task_123.wrapper.sh",
+            status=TaskStatus.COMPLETED,
+            exit_code=0,
+        )
+        mock_task_manager.tasks = {"task_123": task_123}
         mock_task_manager.get_task_output = MagicMock(return_value="test output")
         mock_task_manager.get_task_exit_code = MagicMock(return_value=0)
         mock_task_manager.cleanup_task = MagicMock(return_value=True)

@@ -42,6 +42,24 @@ class Task:
     status: TaskStatus = TaskStatus.RUNNING
     exit_code: Optional[int] = None
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Return a JSON-serializable representation of this task."""
+        status = self.status.value if hasattr(self.status, "value") else self.status
+        return {
+            "id": self.id,
+            "pid": self.pid,
+            "command": self.command,
+            "status": status,
+            "sandbox": self.sandbox_name,
+            "log_file": self.log_file,
+            "sandbox_name": self.sandbox_name,
+            "exit_code_file": self.exit_code_file,
+            "pid_file": self.pid_file,
+            "cmd_file": self.cmd_file,
+            "wrapper_file": self.wrapper_file,
+            "exit_code": self.exit_code,
+        }
+
 
 class BashTaskManager:
     """Manages background bash tasks for a session."""

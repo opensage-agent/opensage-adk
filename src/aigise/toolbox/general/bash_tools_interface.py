@@ -606,10 +606,12 @@ def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
     if not tasks:
         return {"tasks": [], "summary": "No background tasks found."}
 
+    tasks = [task.to_dict() for task in tasks]
+
     # Generate summary
     status_counts = {}
     for task in tasks:
-        status = task.status.value
+        status = task.get("status")
         status_counts[status] = status_counts.get(status, 0) + 1
 
     summary_parts = [f"Total: {len(tasks)}"]

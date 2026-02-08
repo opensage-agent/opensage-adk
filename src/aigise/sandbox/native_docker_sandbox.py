@@ -776,6 +776,45 @@ class NativeDockerSandbox(BaseSandbox):
         return work_dir.strip()
 
     @classmethod
+    def _docker_cp_to_volume(
+        cls, volume_name: str, source_dir: str, label: str = ""
+    ) -> None:
+        """Copy a local directory into a Docker volume via ``put_archive``.
+
+        Uses the Docker SDK to stream a tar archive through the API, making it
+        compatible with Docker-in-Docker (the local path doesn't need to exist
+        on the host).
+        """
+        import io
+        import tarfile as _tarfile
+
+        helper_name = f"vol_helper_{volume_name}"
+        client = docker.from_env()
+        container = None
+        try:
+            container = client.containers.create(
+                "alpine",
+                name=helper_name,
+                volumes={volume_name: {"bind": "/target", "mode": "rw"}},
+            )
+            tar_buf = io.BytesIO()
+            with _tarfile.open(fileobj=tar_buf, mode="w") as tar:
+                tar.add(source_dir, arcname=".")
+            tar_buf.seek(0)
+            container.put_archive("/target", tar_buf)
+            logger.info(
+                f"Successfully copied {label or source_dir} to volume {volume_name}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to copy {label or source_dir} to volume {volume_name}: {e}"
+            )
+            raise RuntimeError(f"Failed to copy data to volume: {e}")
+        finally:
+            if container:
+                container.remove(force=True)
+
+    @classmethod
     def _create_and_populate_volume(
         cls, volume_name: str, source_path: Path = None
     ) -> str:
@@ -817,11 +856,10 @@ class NativeDockerSandbox(BaseSandbox):
                     # Extract the tar.gz file on host, then copy to volume
                     tar_file = files[0]
                     logger.info(
-                        f"Detected single .tar.gz file: {tar_file.name}, extracting on host then copying to volume"
+                        f"Detected single .tar.gz file: {tar_file.name}, extracting then copying to volume"
                     )
 
                     with tempfile.TemporaryDirectory() as temp_extract_dir:
-                        # Extract tar.gz on host
                         try:
                             with tarfile.open(tar_file, "r:gz") as tar:
                                 tar.extractall(temp_extract_dir)
@@ -832,47 +870,19 @@ class NativeDockerSandbox(BaseSandbox):
                             logger.error(f"Failed to extract {tar_file.name}: {e}")
                             raise RuntimeError(f"Failed to extract tar.gz: {e}")
 
-                        # Copy extracted contents to volume
-                        copy_result = subprocess.run(
-                            [
-                                "docker",
-                                "run",
-                                "--rm",
-                                "-v",
-                                f"{volume_name}:/target",
-                                "-v",
-                                f"{temp_extract_dir}:/source:ro",
-                                "alpine",
-                                "sh",
-                                "-c",
-                                "cp -r /source/* /target/ 2>/dev/null || cp -r /source/. /target/",
-                            ],
-                            capture_output=True,
-                            text=True,
+                        cls._docker_cp_to_volume(
+                            volume_name, temp_extract_dir, label=tar_file.name
                         )
-
-                        if copy_result.returncode == 0:
-                            logger.info(
-                                f"Successfully copied extracted data from {tar_file.name} to volume {volume_name}"
-                            )
-                        else:
-                            logger.error(
-                                f"Failed to copy extracted data to volume {volume_name}: {copy_result.stderr}"
-                            )
-                            raise RuntimeError(
-                                f"Failed to copy extracted data: {copy_result.stderr}"
-                            )
 
                     return volume_name
 
             # Check if source_path itself is a .tar.gz file
             if source_path.is_file() and source_path.name.endswith(".tar.gz"):
                 logger.info(
-                    f"Detected .tar.gz file: {source_path.name}, extracting on host then copying to volume"
+                    f"Detected .tar.gz file: {source_path.name}, extracting then copying to volume"
                 )
 
                 with tempfile.TemporaryDirectory() as temp_extract_dir:
-                    # Extract tar.gz on host
                     try:
                         with tarfile.open(source_path, "r:gz") as tar:
                             tar.extractall(temp_extract_dir)
@@ -883,66 +893,18 @@ class NativeDockerSandbox(BaseSandbox):
                         logger.error(f"Failed to extract {source_path.name}: {e}")
                         raise RuntimeError(f"Failed to extract tar.gz: {e}")
 
-                    # Copy extracted contents to volume
-                    copy_result = subprocess.run(
-                        [
-                            "docker",
-                            "run",
-                            "--rm",
-                            "-v",
-                            f"{volume_name}:/target",
-                            "-v",
-                            f"{temp_extract_dir}:/source:ro",
-                            "alpine",
-                            "sh",
-                            "-c",
-                            "cp -r /source/* /target/ 2>/dev/null || cp -r /source/. /target/",
-                        ],
-                        capture_output=True,
-                        text=True,
+                    cls._docker_cp_to_volume(
+                        volume_name, temp_extract_dir, label=source_path.name
                     )
-
-                    if copy_result.returncode == 0:
-                        logger.info(
-                            f"Successfully copied extracted data from {source_path.name} to volume {volume_name}"
-                        )
-                    else:
-                        logger.error(
-                            f"Failed to copy extracted data to volume {volume_name}: {copy_result.stderr}"
-                        )
-                        raise RuntimeError(
-                            f"Failed to copy extracted data: {copy_result.stderr}"
-                        )
 
                 return volume_name
 
-            # Otherwise, copy data to volume using temporary container (normal case)
-            copy_result = subprocess.run(
-                [
-                    "docker",
-                    "run",
-                    "--rm",
-                    "-v",
-                    f"{volume_name}:/target",
-                    "-v",
-                    f"{source_path.resolve().absolute()}:/source:ro",
-                    "alpine",
-                    "sh",
-                    "-c",
-                    "cp -r /source/* /target/ 2>/dev/null || cp -r /source/. /target/",
-                ],
-                capture_output=True,
-                text=True,
+            # Otherwise, copy data to volume using docker cp (normal case)
+            cls._docker_cp_to_volume(
+                volume_name,
+                str(source_path.resolve().absolute()),
+                label=str(source_path),
             )
-
-            if copy_result.returncode == 0:
-                logger.info(
-                    f"Successfully copied data from {source_path} to volume {volume_name}"
-                )
-            else:
-                logger.warning(
-                    f"Failed to copy data from {source_path} to volume {volume_name}: {copy_result.stderr}"
-                )
 
             return volume_name
 

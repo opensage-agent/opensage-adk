@@ -85,13 +85,16 @@ def safe_tool_execution(func: F) -> F:
     Returns:
         dict with "error" key containing failure message and backtrace
     """
-    from types import FunctionType
-
     # Preserve original function's __globals__ for type hint resolution.
     # When ADK calls typing.get_type_hints() on the wrapper, it uses the wrapper's
-    # __globals__ to resolve type annotations. By using the original function's
-    # __globals__, we ensure all types (like ToolContext, Dict, etc.) are accessible.
-    original_globals = func.__globals__
+    # __globals__ to resolve type annotations. By using the original (unwrapped)
+    # function's __globals__, we ensure all types (like ToolContext, Dict, etc.)
+    # are accessible even when other decorators (e.g., requires_sandbox) wrap it.
+    import inspect
+    from types import FunctionType
+
+    original_func = inspect.unwrap(func)
+    original_globals = original_func.__globals__
 
     @wraps(func)
     async def async_wrapper(*args, **kwargs):
@@ -157,8 +160,6 @@ def safe_tool_execution(func: F) -> F:
     async_wrapper.__wrapped__ = func
     sync_wrapper.__wrapped__ = func
     try:
-        import inspect
-
         sig = inspect.signature(func)
         async_wrapper.__signature__ = sig
         sync_wrapper.__signature__ = sig
@@ -270,7 +271,7 @@ def _collect_dynamic_skill_dependencies(
 
     # Determine filter set based on enabled_skills (mirroring ToolLoader logic)
     filter_skills: Optional[Set[str]] = None
-    if enabled_skills == "all":
+    if enabled_skills == "all" or enabled_skills == ["all"]:
         filter_skills = None  # No filtering, collect all
     elif enabled_skills is None:
         # None means no tools enabled, return empty set

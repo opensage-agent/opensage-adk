@@ -101,6 +101,19 @@ python3 -m cybergym.server \
     --cybergym_oss_fuzz_path $CYBERGYM_SERVER_DATA_DIR
 ```
 
+### SeCodePLT
+
+```shell
+python -m aigise.evaluations.secodeplt.vul_detection run --agent-id aaa --max_llm_calls 75 --log_level INFO --start_idx 1 --end_idx 2 --model_name="gemini-3-pro-preview" --output_dir ./evals/secodeplt/test --skip_poc --max_workers 1
+```
+
+run with memory
+
+```shell
+python -m aigise.evaluations.secodeplt.vul_detection_memory run_debug --agent-id aaa --max_llm_calls 75 --log_level INFO --start_idx 1 --end_idx 2 --model_name="gemini-3-pro-preview" --output_dir ./evals/secodeplt/test_memory --skip_poc --max_workers 1
+```
+
+
 #### Run evaluation (with only static tools)
 
 ```shell

@@ -41,8 +41,8 @@ def resolve_model_spec(
     if model_name == INHERIT_MODEL:
         if tool_context is None:
             raise ValueError("tool_context is required when model_name='inherit'")
-        current_agent = getattr(tool_context, "_invocation_context", None)
-        current_agent = getattr(current_agent, "agent", None)
+        inv_context = getattr(tool_context, "_invocation_context", None)
+        current_agent = getattr(inv_context, "agent", None)
         model = get_model_from_agent(current_agent)
         if model is None:
             raise ValueError("Unable to resolve current agent model for 'inherit'")
@@ -160,6 +160,83 @@ def get_sandbox_from_context(
     aigise_session_id = get_aigise_session_id_from_context(context)
     aigise_session = get_aigise_session(aigise_session_id)
     return aigise_session.sandboxes.get_sandbox(sandbox_type)
+
+
+def save_content_to_sandbox_file(
+    context: "InvocationContext | ToolContext",
+    content: str,
+    tool_name: str,
+    output_dir: str = "/workspace/.tool_outputs",
+    sandbox_type: str = "main",
+) -> Optional[str]:
+    """Save content to a file in the sandbox and return the file path.
+
+    This is a shared utility for saving long tool outputs to files in the sandbox,
+    allowing agents to reference the file path later if needed.
+
+    Args:
+        context: Tool or invocation context for sandbox access.
+        content: The content to save.
+        tool_name: Name of the tool (used in filename).
+        output_dir: Directory in sandbox to save files.
+        sandbox_type: Type of sandbox to use.
+
+    Returns:
+        File path if saved successfully, None otherwise.
+    """
+    import logging
+    import uuid
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        logger.warning(
+            f"[save_content_to_sandbox_file] Starting save:\n"
+            f"  tool_name: {tool_name}\n"
+            f"  output_dir: {output_dir}\n"
+            f"  content_length: {len(content)} chars\n"
+            f"  sandbox_type: {sandbox_type}"
+        )
+
+        sandbox = get_sandbox_from_context(context, sandbox_type)
+        file_id = uuid.uuid4().hex[:8]
+        output_file = f"{output_dir}/{tool_name}_{file_id}.txt"
+
+        logger.warning(f"[save_content_to_sandbox_file] Target file: {output_file}")
+
+        # Create directory if not exists
+        mkdir_result = sandbox.run_command_in_container(
+            f"mkdir -p {output_dir}", timeout=10
+        )
+        logger.warning(f"[save_content_to_sandbox_file] mkdir result: {mkdir_result}")
+
+        # Use heredoc to write content safely
+        write_result = sandbox.run_command_in_container(
+            f"cat > {output_file} << 'AIGISE_SAVE_EOF'\n{content}\nAIGISE_SAVE_EOF",
+            timeout=30,
+        )
+        logger.warning(f"[save_content_to_sandbox_file] write result: {write_result}")
+
+        # Verify file was created
+        verify_result = sandbox.run_command_in_container(
+            f"ls -la {output_file} && wc -c {output_file}",
+            timeout=10,
+        )
+        logger.warning(
+            f"[save_content_to_sandbox_file] File verification: {verify_result}"
+        )
+
+        logger.warning(f"[save_content_to_sandbox_file] SUCCESS saved to {output_file}")
+        return output_file
+
+    except Exception as e:
+        logger.error(
+            f"[save_content_to_sandbox_file] FAILED to save content:\n"
+            f"  tool_name: {tool_name}\n"
+            f"  error: {e}",
+            exc_info=True,
+        )
+        return None
 
 
 async def get_neo4j_client_from_context(

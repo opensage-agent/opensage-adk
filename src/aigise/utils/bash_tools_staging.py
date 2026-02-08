@@ -41,7 +41,7 @@ def _normalize_enabled_skills_to_top_roots(
     """
     if enabled_skills is None:
         return set()
-    if enabled_skills == "all":
+    if enabled_skills == "all" or enabled_skills == ["all"]:
         return None
     if isinstance(enabled_skills, list):
         roots: Set[str] = set()

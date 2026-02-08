@@ -28,7 +28,7 @@ from aigise import AigiseSession
 from aigise.evaluations import Evaluation, EvaluationTask
 from aigise.session import get_aigise_session
 from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
-from aigise.toolbox.general.bash_tool import bash_tool
+from aigise.toolbox.general.bash_tool import bash_tool_main as bash_tool
 from aigise.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
     grep_tool,

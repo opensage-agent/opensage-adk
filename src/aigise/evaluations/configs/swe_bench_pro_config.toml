@@ -1,19 +1,93 @@
+# History configuration defaults
+MAX_TOOL_RESPONSE_LENGTH = 15000
+MAX_HISTORY_SUMMARY_LENGTH = 240000
+
+# Neo4j configuration for memory tools
+NEO4J_PASSWORD = "testpassword"
+NEO4J_BOLT_PORT = "7687"
+NEO4J_HTTP_PORT = "7474"
+
+[neo4j]
+user = "neo4j"
+password = "${NEO4J_PASSWORD}"
+bolt_port = "${NEO4J_BOLT_PORT}"
+neo4j_http_port = "${NEO4J_HTTP_PORT}"
+
+[memory]
+enabled = true
+llm_model = "vertex_ai/gemini-3-flash-preview"
+embedding_model = "text-embedding-3-small"
+use_llm_selection = true
+use_llm_decision = false
+search_max_iterations = 3
+similarity_threshold = 0.7
+
 [llm]
-model_name = "gemini-2.0-flash-exp"
-temperature = 0.7
+model_name = "gemini-3-flash-preview"
+temperature = 1.0
 
 [build]
 run_command = "echo 'Please check the problem statement and the repository for how to reproduce the issue.'"
 compile_command = "echo 'No compilation needed'"
 
+
+# Drop/summarize model configuration
+[llm.model_configs.summarize]
+model_name = "inherit"
+temperature = 1
+
+[history]
+max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
+enable_quota_countdown = true
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+
+[history.events_compaction]
+# Trigger when either budget is exceeded
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+compaction_percent = 50
+
+[agent_ensemble]
+thread_safe_tools = []
+available_models_for_ensemble = "inherit"
+
+# Flag claims model configuration
+[llm.model_configs.flag_claims]
+model_name = "inherit"
+
 [sandbox]
 backend = "native"
 
 [sandbox.sandboxes.main]
-image = "${DEFAULT_IMAGE}_main"
+image = "${TASK_NAME}_main"
 working_dir = "/workspace"
-command = "-c 'while true; do sleep 3600; done'"
 project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/main/Dockerfile"
 timeout = 300
 [sandbox.sandboxes.main.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"
+
+# Neo4j sandbox for memory tools
+[sandbox.sandboxes.neo4j]
+image = "neo4j:5.26.12-enterprise"
+command = ""
+[sandbox.sandboxes.neo4j.environment]
+NEO4J_dbms_directories_data = "/var/lib/neo4j/data-custom"
+NEO4J_dbms_directories_logs = "/var/lib/neo4j/logs-custom"
+NEO4J_ACCEPT_LICENSE_AGREEMENT = "yes"
+NEO4J_AUTH = "neo4j/${NEO4J_PASSWORD}"
+NEO4J_PLUGINS = '["graph-data-science", "apoc"]'
+NEO4J_server_directories_import = "/shared/neo4j/import"
+NEO4J_apoc_import_file_enabled = "true"
+NEO4J_apoc_export_file_enabled = "true"
+NEO4J_dbms_mode = "SINGLE"
+[sandbox.sandboxes.neo4j.ports]
+"7474/tcp" = "${NEO4J_HTTP_PORT}"
+"7687/tcp" = "${NEO4J_BOLT_PORT}"
+
+[plugins]
+enabled = [
+    "build_verifier_plugin",
+    "validator_plugin",
+    "memory_observer_plugin",
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+]

@@ -4,12 +4,12 @@ from google.adk.models import BaseLlm
 from google.adk.tools.agent_tool import AgentTool
 
 from aigise.agents.aigise_agent import AigiseAgent
-from aigise.toolbox.code_understanding import (
-    cache_qa_pair,
-    create_cache_relation,
-    get_cached_answer_by_id,
-    list_cached_questions,
-    lookup_similar_answers,
+from aigise.memory.tools import (
+    get_entity_by_id,
+    get_related_entities,
+    link_entities,
+    list_memory_contents,
+    search_memory,
 )
 from aigise.toolbox.general.history_management import (
     get_all_events_for_summarization,
@@ -60,11 +60,11 @@ def create_memory_management_agent(
         list_relations,
     ]
     long_term_memory_tools = [
-        list_cached_questions,
-        lookup_similar_answers,
-        get_cached_answer_by_id,
-        cache_qa_pair,
-        create_cache_relation,
+        search_memory,
+        get_related_entities,
+        list_memory_contents,
+        get_entity_by_id,
+        link_entities,
     ]
     all_tools = short_term_memory_tools + long_term_memory_tools
 

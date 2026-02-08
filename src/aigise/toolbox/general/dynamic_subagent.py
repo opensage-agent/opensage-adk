@@ -37,7 +37,7 @@ async def create_subagent(
     model_name: str,
     tools_list: List[str],
     tool_context: ToolContext,
-    enabled_skills: Optional[Union[List[str], str]] = None,
+    enabled_skills: Optional[List[str]] = None,
     description: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -70,7 +70,7 @@ async def create_subagent(
             Passing a toolset name injects the entire toolset into the subagent.
         enabled_skills: Controls which bash tools are loaded.
                       - None: Load NO bash tools.
-                      - "all": Load ONLY top-level skills: `<root>/*/SKILL.md`.
+                      - ["all"]: Load ONLY top-level skills: `<root>/*/SKILL.md`.
                       - List[str]: Load skills by relative path/prefix under the
                         skill root (e.g. ["fuzz"] or ["fuzz/simplified-python-fuzzer"]).
         description: Optional description for the agent

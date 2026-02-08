@@ -19,6 +19,7 @@ from aigise.utils.agent_utils import (
     get_aigise_session_id_from_context,
     register_callback_to_all_agents,
     resolve_model_spec,
+    save_content_to_sandbox_file,
 )
 
 logger = logging.getLogger(__name__)
@@ -112,10 +113,9 @@ async def _get_summary_async(model, llm_request):
 
 async def tool_response_summarizer_callback(tool, args, tool_context, tool_response):
     """
-    Summarize long tool responses and optionally persist to Neo4j.
+    Summarize long tool responses, save full output to file, and optionally persist to Neo4j.
     Returns a tagged summary string, or None if not needed.
     """
-    # Import here to avoid circular import
     from aigise.session import get_aigise_session
 
     aigise_session_id = get_aigise_session_id_from_context(tool_context)
@@ -127,11 +127,118 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         10000,
     )
     raw = str(tool_response)
+    tool_name = getattr(tool, "name", "unknown_tool")
+
     if len(raw) < int(max_len):
+        logger.debug(
+            f"[ToolResponseSummarizer] Tool '{tool_name}' response below threshold "
+            f"({len(raw)} < {max_len}), skipping"
+        )
         return None
-    logger.info(
-        f"Tool response length: {len(raw)}, max_len: {max_len}, triggering summarization"
+
+    logger.warning(
+        f"[ToolResponseSummarizer] Processing tool '{tool_name}':\n"
+        f"  response_length: {len(raw)} chars\n"
+        f"  max_len: {max_len}\n"
+        f"  session_id: {aigise_session_id}"
     )
+
+    # Save full output to file in sandbox using shared utility
+    output_dir = "/workspace/.tool_outputs"
+
+    logger.warning(
+        f"[ToolResponseSummarizer] Saving full output to file for '{tool_name}'"
+    )
+    output_file = save_content_to_sandbox_file(
+        context=tool_context,
+        content=raw,
+        tool_name=tool_name,
+        output_dir=output_dir,
+    )
+    file_saved = output_file is not None
+    logger.warning(
+        f"[ToolResponseSummarizer] File save result for '{tool_name}': "
+        f"{'SUCCESS' if file_saved else 'FAILED'}, file={output_file}"
+    )
+
+    # For very long responses (>50000 chars), skip summarization and just truncate
+    # Summarization may fail or be unreliable for extremely long content
+    SKIP_SUMMARY_THRESHOLD = 50000
+    if len(raw) > SKIP_SUMMARY_THRESHOLD:
+        logger.info(
+            f"Tool response too long ({len(raw)} chars > {SKIP_SUMMARY_THRESHOLD}), "
+            "skipping summarization and using truncation instead"
+        )
+        logger.info(
+            f"Truncation path: file_saved={file_saved}, output_file={output_file}"
+        )
+        PREVIEW_CHARS = 200
+        truncated_preview = raw[:PREVIEW_CHARS]
+        logger.info(f"Created truncated preview: {len(truncated_preview)} chars")
+
+        if file_saved and output_file:
+            truncated_msg = f"""<Summary by aigise>
+The tool response is too long ({len(raw):,} characters) to include here.
+Here is a brief preview:
+
+{truncated_preview}
+
+[Full Output Saved]
+The complete output has been saved to: {output_file}
+You MAY use `grep`, `cat`, `head`, `tail` or other commands to search or view the full content.
+</Summary by aigise>"""
+        else:
+            truncated_msg = f"""<Summary by aigise>
+The tool response is too long ({len(raw):,} characters) to include here.
+Here is a brief preview:
+
+{truncated_preview}
+
+[Warning] Failed to save full output to file. You may need to find other ways to access the full content.
+</Summary by aigise>"""
+
+        # Add quota info
+        try:
+            enable_quota = bool(
+                getattr(
+                    getattr(aigise_session.config, "history", None),
+                    "enable_quota_countdown",
+                    True,
+                )
+            )
+        except Exception:
+            enable_quota = False
+        if enable_quota:
+            inv_ctx = tool_context._invocation_context
+            try:
+                limit = int(
+                    getattr(getattr(inv_ctx, "run_config", None), "max_llm_calls", 0)
+                    or 0
+                )
+            except Exception:
+                limit = 0
+            try:
+                used = int(
+                    getattr(
+                        getattr(inv_ctx, "_invocation_cost_manager", None),
+                        "_number_of_llm_calls",
+                        0,
+                    )
+                    or 0
+                )
+            except Exception:
+                used = 0
+            if limit > 0:
+                remaining = max(0, limit - used)
+                truncated_msg += f"\n[Quota] You have {remaining} LLM calls remaining"
+            else:
+                truncated_msg += "\n[Quota] LLM calls: unlimited"
+
+        logger.info(
+            f"Returning truncated message (skipped summarization): "
+            f"original_len={len(raw)}, truncated_msg_len={len(truncated_msg)}"
+        )
+        return truncated_msg
 
     model_name = getattr(aigise_session.config.llm, "summarize_model", None)
     agent = tool_context._invocation_context.agent
@@ -144,6 +251,9 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         model = agent.canonical_model
 
     llm_request = LlmRequest()
+    llm_request.model = getattr(
+        model, "model", None
+    )  # Set model name from the model object
     llm_request.config = types.GenerateContentConfig()
 
     # Build recent context window (up to last 10 events).
@@ -206,16 +316,27 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
     except Exception as e:
         logger.error(f"Error summarizing tool response: {e}")
         summary = raw[:1000] + ("..." if len(raw) > 1000 else "")
-    summary = (
-        """
+
+    # Build the full summary message
+    summary_header = """
     The tool response is too long, so we need to summarize it. We inferred the intent for you to call this tool and kept critical information related to the inferred intent.
     If the inferred intent of calling this tool doesn't match your expectation, you should call the appropriate tool with appropriate arguments to get the details. Here are the inferred intent and the summary:
     """
-        + summary
-    )
+
+    # Add file path info if saved successfully
+    if file_saved and output_file:
+        file_info = f"""
+
+[Full Output Saved]
+The complete output has been saved to: {output_file}
+You can use `grep`, `cat`, or other commands to search or view the full content if needed.
+"""
+    else:
+        file_info = ""
+
+    summary = summary_header + summary + file_info
 
     tagged_summary = f"<Summary by aigise>{summary}</Summary by aigise>"
-    # tagged_summary = f"<Summary by aigise>The tool response is too long, try another method to get the infomation you need.</Summary by aigise>"
 
     # Append quota countdown line if enabled
     try:
@@ -259,7 +380,6 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         await create_raw_tool_response_node(
             tool, args, tool_context, tool_response, tagged_summary
         )
-
     return tagged_summary
 
 
@@ -306,6 +426,7 @@ class AigiseFullEventSummarizer:
         *,
         events: List[Event],
         folded_context_text: Optional[str] = None,
+        quota_info: Optional[dict] = None,
     ) -> Optional[types.Content]:
         if not events:
             return None
@@ -316,6 +437,22 @@ class AigiseFullEventSummarizer:
             lines.append("[Context]")
             lines.append(folded_context_text)
             lines.append("")
+
+        # Add quota warning at the top if available
+        if quota_info:
+            used = quota_info.get("used", 0)
+            limit = quota_info.get("limit", 0)
+            remaining = quota_info.get("remaining", 0)
+            if limit > 0:
+                pct_used = int((used / limit) * 100) if limit > 0 else 0
+                lines.append(f"[⚠️ QUOTA WARNING]")
+                lines.append(
+                    f"LLM calls: {used}/{limit} used ({pct_used}%), {remaining} remaining."
+                )
+                lines.append(
+                    f"The agent MUST prioritize completing the main task over exploration."
+                )
+                lines.append("")
 
         # Explicitly mark the window that should be summarized
         lines.append("[WindowToSummarize]")
@@ -356,6 +493,9 @@ class AigiseFullEventSummarizer:
         )
 
         llm_request = LlmRequest()
+        llm_request.model = getattr(
+            self._model, "model", None
+        )  # Set model name from the model object
         llm_request.config = types.GenerateContentConfig()
         llm_request.contents = [
             types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
@@ -612,9 +752,35 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         except Exception as _e:
             logger.warning(f"Failed to build folded context text: {_e}")
 
+    # Build quota info for the summary
+    quota_info = None
+    inv_ctx = tool_context._invocation_context
+    try:
+        limit = int(
+            getattr(getattr(inv_ctx, "run_config", None), "max_llm_calls", 0) or 0
+        )
+        used = int(
+            getattr(
+                getattr(inv_ctx, "_invocation_cost_manager", None),
+                "_number_of_llm_calls",
+                0,
+            )
+            or 0
+        )
+        if limit > 0:
+            remaining = max(0, limit - used)
+            quota_info = {
+                "used": used,
+                "limit": limit,
+                "remaining": remaining,
+            }
+    except Exception as e:
+        logger.warning(f"Failed to build quota info: {e}")
+
     compacted_content = await summarizer.maybe_summarize_events(
         events=window_events,
         folded_context_text=folded_context_text,
+        quota_info=quota_info,
     )
     if not compacted_content:
         logger.info(f"No compaction generated by model, skipping compaction")
@@ -730,3 +896,184 @@ async def quota_after_tool_callback(tool, args, tool_context, tool_response):
 
     # Other types: do nothing
     return None
+
+
+def _extract_last_command_info(
+    events: List[Event], output_dir: Optional[str] = None
+) -> Optional[str]:
+    """
+    Extract the last function call and its response from events.
+    This helps the next round understand what was attempted at the end.
+
+    Args:
+        events: List of session events
+        output_dir: Optional directory to write full output if truncated
+    """
+    import json as _json
+    from pathlib import Path
+
+    MAX_OUTPUT_LENGTH = 400
+
+    last_call = None
+    last_response = None
+
+    # Find the last function_call and its corresponding response
+    for ev in reversed(events):
+        if not ev.content or not ev.content.parts:
+            continue
+        for part in ev.content.parts:
+            if getattr(part, "function_response", None) and last_response is None:
+                fr = part.function_response
+                last_response = {
+                    "name": getattr(fr, "name", "unknown"),
+                    "response": getattr(fr, "response", {}),
+                }
+            elif getattr(part, "function_call", None) and last_call is None:
+                fc = part.function_call
+                last_call = {
+                    "name": getattr(fc, "name", "unknown"),
+                    "args": getattr(fc, "args", {}),
+                }
+        # Stop once we have both
+        if last_call and last_response:
+            break
+
+    if not last_call:
+        return None
+
+    lines = []
+
+    # Format the command
+    try:
+        args_str = _json.dumps(last_call["args"], ensure_ascii=False, indent=2)
+    except Exception:
+        args_str = str(last_call["args"])
+    lines.append(f"**Command:** `{last_call['name']}`")
+    lines.append(f"**Arguments:**\n```\n{args_str}\n```")
+
+    # Format the response (removing _quota_info)
+    if last_response:
+        resp = last_response["response"]
+        if isinstance(resp, dict):
+            # Remove quota info to reduce noise
+            resp = {k: v for k, v in resp.items() if k != "_quota_info"}
+
+            # Handle long output - write to file if needed
+            if (
+                "output" in resp
+                and isinstance(resp["output"], str)
+                and len(resp["output"]) > MAX_OUTPUT_LENGTH
+            ):
+                full_output = resp["output"]
+                output_file_path = None
+
+                # Write full output to file if output_dir is provided
+                if output_dir:
+                    try:
+                        output_file = Path(output_dir) / "last_command_full_output.txt"
+                        output_file.write_text(full_output)
+                        output_file_path = str(output_file)
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to write last command output to file: {e}"
+                        )
+
+                # Truncate the output in response
+                resp["output"] = full_output[:MAX_OUTPUT_LENGTH] + "... [truncated]"
+                if output_file_path:
+                    resp["_full_output_file"] = output_file_path
+
+        try:
+            resp_str = _json.dumps(resp, ensure_ascii=False, indent=2)
+        except Exception:
+            resp_str = str(resp)
+        lines.append(f"**Result:**\n```\n{resp_str}\n```")
+
+        # Add file reference note if output was truncated to file
+        if isinstance(resp, dict) and "_full_output_file" in resp:
+            lines.append(f"\nFull output saved to: `{resp['_full_output_file']}`")
+            lines.append("You can read this file to see the complete output.")
+
+        # Add a note if the command failed
+        if isinstance(last_response["response"], dict):
+            success = last_response["response"].get("success", True)
+            exit_code = last_response["response"].get("exit_code")
+            if not success or (exit_code is not None and exit_code != 0):
+                lines.append("\n**Note:** This command failed.")
+
+    return "\n".join(lines)
+
+
+async def generate_final_compaction(
+    events: List[Event],
+    model: LiteLlm,
+    branch: Optional[str] = None,
+    output_dir: Optional[str] = None,
+    quota_info: Optional[dict] = None,
+) -> Optional[str]:
+    """
+    Generate a final compaction summary of all session events.
+
+    This is designed to be called when the agent reaches max_llm_calls,
+    to create a summary of everything the agent explored/learned.
+
+    Args:
+        events: List of session events to summarize
+        model: LLM model to use for summarization
+        branch: Optional branch to filter events
+        output_dir: Optional directory to write full output files if truncated
+        quota_info: Optional dict with keys: used, limit, remaining
+
+    Returns:
+        Summary text or None if summarization fails
+    """
+    if not events:
+        logger.warning("No events to summarize for final compaction")
+        return None
+
+    # Filter events by branch if specified
+    if branch:
+        events = [e for e in events if not e.branch or e.branch == branch]
+
+    # Filter out compaction events (we want original content)
+    filtered_events = []
+    for ev in events:
+        if getattr(ev, "actions", None) and getattr(ev.actions, "compaction", None):
+            continue
+        filtered_events.append(ev)
+
+    if not filtered_events:
+        logger.warning("No non-compaction events to summarize")
+        return None
+
+    summarizer = AigiseFullEventSummarizer(model=model)
+
+    # Generate summary
+    compacted_content = await summarizer.maybe_summarize_events(
+        events=filtered_events,
+        folded_context_text=None,
+        quota_info=quota_info,
+    )
+
+    if not compacted_content or not compacted_content.parts:
+        logger.warning("Final compaction produced no content")
+        return None
+
+    # Extract text from the content
+    summary_text = ""
+    for part in compacted_content.parts:
+        if getattr(part, "text", None):
+            summary_text += part.text
+
+    # Append the last command and its output to help the next round
+    last_command_info = _extract_last_command_info(
+        filtered_events, output_dir=output_dir
+    )
+    if last_command_info:
+        summary_text += "\n\n### Last Command Before Session Ended\n"
+        summary_text += last_command_info
+
+    logger.info(
+        f"Final compaction generated: {len(summary_text)} chars from {len(filtered_events)} events"
+    )
+    return summary_text

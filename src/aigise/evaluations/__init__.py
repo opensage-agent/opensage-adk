@@ -247,7 +247,7 @@ class Evaluation(abc.ABC):
                     .strip()
                     .lower()
                 )
-                if flag != "y":
+                if flag != "y" and flag != "" and flag != "yes":
                     print("Exiting...")
                     exit(0)
             else:
@@ -1263,7 +1263,6 @@ class Evaluation(abc.ABC):
 
         all_events = []
         session_snapshot: Session | None = None
-
         llm_calls_used_total: int = 0
         try:
             async for event in runner.run_async(

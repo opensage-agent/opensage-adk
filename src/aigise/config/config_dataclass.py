@@ -89,6 +89,32 @@ def _expand_template_variables(config_data: dict) -> dict:
 
 
 @dataclass
+class MemoryConfig:
+    """Memory module configuration for graph-based knowledge storage."""
+
+    # Whether memory module is enabled (default: disabled)
+    enabled: bool = False
+
+    # LLM model for internal memory operations (strategy selection, entity extraction, etc.)
+    llm_model: str = "gemini-2.5-flash-lite"
+
+    # Embedding model for vector similarity search
+    embedding_model: str = "text-embedding-004"
+
+    # Whether to use LLM for search strategy selection
+    use_llm_selection: bool = True
+
+    # Whether to use LLM for operation decisions (ADD/UPDATE/DELETE/NONE)
+    use_llm_decision: bool = False
+
+    # Max iterations for search refinement
+    search_max_iterations: int = 3
+
+    # Similarity threshold for relationship discovery
+    similarity_threshold: float = 0.7
+
+
+@dataclass
 class Neo4jConfig:
     """Neo4j database configuration with dynamic URI construction."""
 
@@ -387,6 +413,7 @@ class AigiseConfig:
     agent_ensemble: AgentEnsembleConfig = None
     build: BuildConfig = None
     mcp: MCPConfig = None
+    memory: MemoryConfig = None
     task_name: str = None
     src_dir_in_sandbox: str = None
     agent_storage_path: Optional[str] = None

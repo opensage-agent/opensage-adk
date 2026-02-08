@@ -22,8 +22,7 @@ class AigiseMCPToolset(McpToolset):
 
     Why this exists:
     - ADK's McpToolset does not define a stable `name` attribute.
-    - AIgiSE dynamic subagent creation (`create_subagent`) validates requested
-      Python tools by name via `extract_tools_from_agent()`.
+    - AIgiSE dynamic subagent creation (`create_subagent`) validates requested Python tools by name via `extract_tools_from_agent()`.
 
     With this wrapper, callers can pass toolset names into `create_subagent`:
     - `tools_list=["gdb_mcp"]` injects the entire MCP toolset into the subagent.
@@ -80,7 +79,7 @@ class ToolLoader:
         self._filter_skills: Optional[Set[str]] = None
         self._enabled_skills = enabled_skills
 
-        if enabled_skills == "all":
+        if enabled_skills == "all" or enabled_skills == ["all"]:
             self._filter_skills = None  # No filtering, load all
         elif enabled_skills is None:
             self._filter_skills = set()  # Filter everything (load nothing)
@@ -121,7 +120,7 @@ class ToolLoader:
             if self._enabled_skills is None:
                 continue
 
-            if self._enabled_skills == "all":
+            if self._enabled_skills == "all" or self._enabled_skills == ["all"]:
                 for item in search_path.iterdir():
                     if not item.is_dir():
                         continue

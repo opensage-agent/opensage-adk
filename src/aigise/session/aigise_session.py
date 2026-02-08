@@ -54,6 +54,12 @@ class AigiseSession:
         else:
             self.config = AigiseConfig.create_default()
 
+        # Initialize memory settings from config (lazy import to avoid circular dependency)
+        if self.config.memory:
+            from ..memory.config import configure_memory_from_config
+
+            configure_memory_from_config(self.config.memory)
+
         # Initialize all session-specific managers
         # Pass self (session) instead of individual fields to allow dynamic property access
         self.agents = DynamicAgentManager(self)

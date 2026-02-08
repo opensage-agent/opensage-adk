@@ -9,12 +9,23 @@ from aigise.agents.aigise_agent import AigiseAgent
 from aigise.memory.tools import search_memory
 from aigise.session import get_aigise_session
 from aigise.toolbox.finish_task.finish_task import finish_task
-from aigise.toolbox.general.agent_tools import complain
+from aigise.toolbox.general.agent_tools import (
+    agent_ensemble,
+    agent_ensemble_pairwise,
+    complain,
+    get_available_agents_for_ensemble,
+    get_available_models,
+)
 from aigise.toolbox.general.bash_tools_interface import (
     get_background_task_output,
     list_available_scripts,
     list_background_tasks,
     run_terminal_command,
+)
+from aigise.toolbox.general.dynamic_subagent import (
+    call_subagent_as_tool,
+    create_subagent,
+    list_active_agents,
 )
 from aigise.toolbox.general.fileop import str_replace_edit, view_file
 
@@ -71,15 +82,16 @@ def mk_agent(
         6.  **Reason**: Before making changes, explain your plan.
         7.  **Edit**: Modify the code to fix the issue using `str_replace_edit`. The old_string must be UNIQUE in the file.
             - IMPORTANT: Match the file's indentation style exactly (TABS vs SPACES).
-        8. **Verify**: Run your reproduction script again to confirm the fix. Run related project tests. If tests fail, READ the test code to understand what the test expects
-        9. **Submit**: When confident AND tests pass, call `finish_task`.
+        8.  **IMPORTANT: If you are completly stuck, it probably means that you are exploring a wrong vulnerable function, you should try create a subagent with no history to solve the task, as your history might be misleading.**
+        9. **Verify**: Run your reproduction script again to confirm the fix. Run related project tests. If tests fail, READ the test code to understand what the test expects
+        10. **Submit**: When confident AND tests pass, call `finish_task`.
 
 
         **Important Notes:**
         *   The repository is cloned in the current working directory (or `repo` subdirectory). For SWE-bench Pro tasks, it is located at `/app`.
         *   Always check for background tasks using `list_background_tasks` if you initiate long-running processes.
-        *   If you get stuck, try searching for error messages or keywords in the codebase.
-        *   Do not give up easily. If a fix fails, analyze the error and try a different approach.
+        *   If you get stuck, try searching for error messages or keywords in the codebase. Or create a subagent with no history to solve the task, as your history might be misleading. Do not give up easily.
+        *  If you stuck on a task, or if you are think a subtask is complex, you should using agent_ensemble_pairwise tools to do the subtask with multiple models, this will help you to think out of the box and try different approaches.
         *   Long tool outputs are automatically saved to files. Check these directories if you need full content:
             - `/workspace/.tool_outputs/` - Full outputs from truncated/summarized tool responses
             - `/workspace/.memory_observer_outputs/` - Full outputs saved by memory system
@@ -113,6 +125,14 @@ def mk_agent(
             # File Operations (Claude Code style)
             view_file,
             str_replace_edit,
+            # subagent
+            agent_ensemble,
+            get_available_agents_for_ensemble,
+            get_available_models,
+            agent_ensemble_pairwise,
+            create_subagent,
+            list_active_agents,
+            call_subagent_as_tool,
             # Terminal Tools
             list_background_tasks,
             get_background_task_output,

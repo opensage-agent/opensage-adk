@@ -219,6 +219,11 @@ class SandboxConfig:
     # Global tolerations applied to all k8s pods (init/chmod/session). If set,
     # overrides/augments any per-container tolerations in ContainerConfig.extra.
     tolerations: Optional[list[dict]] = None
+    # Remote Docker configuration (for remotedocker backend)
+    docker_host: Optional[str] = (
+        None  # Docker daemon URL (e.g., ssh://user@host, tcp://host:2376)
+    )
+    docker_remote_host: Optional[str] = None  # Remote host IP for service connections
 
     def get_sandbox_config(self, sandbox_type: str) -> Optional[ContainerConfig]:
         """Get configuration for a specific sandbox type."""

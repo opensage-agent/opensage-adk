@@ -203,6 +203,12 @@ class ContainerConfig:
         False  # Flag to indicate if this sandbox is currently using a cached image
     )
 
+    # MCP services
+    #
+    # List of MCP service names this sandbox depends on / should wait for.
+    # Each name must exist in `AigiseConfig.mcp.services`.
+    mcp_services: List[str] = field(default_factory=list)
+
     # Anything else
     extra: Dict[str, Any] = field(default_factory=dict)
 

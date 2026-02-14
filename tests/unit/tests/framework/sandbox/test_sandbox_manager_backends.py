@@ -15,6 +15,7 @@ import pytest
 from docker.errors import APIError, ImageNotFound, NotFound
 
 from aigise.config.config_dataclass import AigiseConfig, ContainerConfig, SandboxConfig
+from aigise.sandbox.base_sandbox import SandboxState
 from aigise.session import AigiseSessionRegistry, get_aigise_session
 from aigise.session.aigise_sandbox_manager import AigiseSandboxManager
 
@@ -375,8 +376,8 @@ async def test_attach_sandbox_native_docker(sandbox_scenario: SandboxBackendScen
 
             await mgr_dst.attach_sandbox("main", container_id=main_id)
             await mgr_dst.attach_sandbox("worker", container_id=worker_id)
-            assert mgr_dst.get_sandbox_state("main").name == "READY"
-            assert mgr_dst.get_sandbox_state("worker").name == "READY"
+            assert mgr_dst.get_sandbox("main").state == SandboxState.READY
+            assert mgr_dst.get_sandbox("worker").state == SandboxState.READY
 
             out, code = mgr_dst.get_sandbox("main").run_command_in_container(
                 "echo attached"
@@ -445,8 +446,8 @@ async def test_attach_sandbox_k8s(sandbox_scenario: SandboxBackendScenario):
             await mgr_dst.attach_sandbox(
                 "worker", pod_name=pod_worker, container_name=ctn_worker
             )
-            assert mgr_dst.get_sandbox_state("main").name == "READY"
-            assert mgr_dst.get_sandbox_state("worker").name == "READY"
+            assert mgr_dst.get_sandbox("main").state == SandboxState.READY
+            assert mgr_dst.get_sandbox("worker").state == SandboxState.READY
 
             out, code = mgr_dst.get_sandbox("main").run_command_in_container(
                 "echo attached"

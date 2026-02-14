@@ -11,7 +11,6 @@ import networkx as nx
 
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.session.joern_client import JoernClient
-from aigise.session.sandbox_state import SandboxState
 from aigise.utils.merge_joern_codeql import (
     import_joern_callgraph,
     update_joern_cpg,
@@ -40,7 +39,9 @@ def _update_graphml(graphml_path: str, output_path: str):
 class JoernInitializer(SandboxInitializer):
     """Initializer that initializes Joern code analysis capabilities to sandboxes."""
 
-    async def async_initialize(self) -> None:
+    async def _async_initialize_impl(
+        self: BaseSandbox, all_sandboxes: dict[str, BaseSandbox]
+    ) -> bool:
         """Initialize Joern environment (async version)."""
         from aigise.session.aigise_session import get_aigise_session
 
@@ -51,31 +52,33 @@ class JoernInitializer(SandboxInitializer):
         )
 
         aigise_session = get_aigise_session(self.aigise_session_id)
-        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
-
-        # await aigise_session.sandboxes.wait_for_ready("main")
+        assert "main" in all_sandboxes
+        if not await all_sandboxes["main"].wait_for_ready_or_error():
+            logger.error(f"Joern initialization failed: Main sandbox error")
+            return False
 
         try:
             # Wrap Joern initialization with 10-minute timeout
             await asyncio.wait_for(
-                self._initialize_joern_with_timeout(aigise_session),
+                self._initialize_joern_with_timeout(aigise_session, all_sandboxes),
                 timeout=1200.0,  # 10 minutes
             )
         except asyncio.TimeoutError:
             logger.error(
                 f"Joern initialization failed; timed out after 10 minutes for session {self.aigise_session_id}"
             )
-            raise
+            return False
         except Exception as e:
             logger.error(f"Joern initialization failed: {e}")
-            raise
+            return False
 
         # Write Joern server host to ~/.bashrc
         self._write_joern_env_to_bashrc(aigise_session)
+        return True
 
-        await self.ensure_ready()
-
-    async def _initialize_joern_with_timeout(self, aigise_session) -> None:
+    async def _initialize_joern_with_timeout(
+        self, aigise_session, all_sandboxes: dict[str, BaseSandbox]
+    ) -> None:
         """Execute Joern initialization steps with timeout protection."""
         msg, err = self.run_command_in_container(
             ["bash", "/sandbox_scripts/callgraph/init.sh"],
@@ -99,7 +102,9 @@ class JoernInitializer(SandboxInitializer):
             raise RuntimeError(f"Joern run failed: {msg}")
 
         # wait for neo4j to be ready, such that we can import the CPG
-        await aigise_session.sandboxes.wait_for_ready("neo4j")
+        if not await all_sandboxes["neo4j"].wait_for_ready_or_error():
+            raise RuntimeError(f"Joern initialization failed: Neo4j sandbox error")
+
         neo4j_client = await aigise_session.neo4j.get_async_client("analysis")
 
         await import_joern_callgraph(neo4j_client, "/")

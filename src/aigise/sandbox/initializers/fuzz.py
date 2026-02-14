@@ -5,8 +5,7 @@ from __future__ import annotations
 import logging
 import re
 
-from aigise.sandbox.base_sandbox import BaseSandbox
-from aigise.session.sandbox_state import SandboxState
+from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
 from aigise.utils.project_info import PROJECT_PATH
 
 from .base import SandboxInitializer
@@ -17,31 +16,30 @@ logger = logging.getLogger(__name__)
 class FuzzInitializer(SandboxInitializer):
     """Initializer that initializes fuzzing capabilities to sandboxes."""
 
-    async def async_initialize(self) -> None:
+    async def _async_initialize_impl(
+        self: BaseSandbox, all_sandboxes: dict[str, BaseSandbox]
+    ) -> bool:
         """Initialize fuzzing environment (async version)."""
-        from aigise.session.aigise_session import get_aigise_session
 
         assert isinstance(self, BaseSandbox)
+        assert "main" in all_sandboxes
 
         logger.info(
             f"Async initializing fuzzing environment for session {self.aigise_session_id}..."
         )
 
-        aigise_session = get_aigise_session(self.aigise_session_id)
-        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
-
         try:
             # Wait for main sandbox to be ready
-            await aigise_session.sandboxes.wait_for_ready("main")
+            if not await all_sandboxes["main"].wait_for_ready_or_error():
+                logger.error(f"Fuzz initialization failed: Main sandbox error")
+                return False
 
             # Extract environment information from arvo script
             res, exit_code = self.run_command_in_container(
                 "cat /bin/arvo", timeout=1200
             )
             if exit_code != 0:
-                infos = self._extract_infos_from_ossfuzz(
-                    aigise_session.sandboxes.get_sandbox("main")
-                )
+                infos = self._extract_infos_from_ossfuzz(all_sandboxes["main"])
             else:
                 infos = self._extract_infos_from_arvo_script(res)
 
@@ -50,15 +48,10 @@ class FuzzInitializer(SandboxInitializer):
 
             # Compile with AFL++
             await self._compile_with_aflpp(infos)
+            return True
         except Exception as e:
             logger.error(f"Failed to initialize fuzzing environment: {e}")
-            raise
-
-        try:
-            await self.ensure_ready()
-        except Exception as e:
-            logger.error(f"Failed to ensure fuzzing environment is ready: {e}")
-            raise
+            return False
 
     def _extract_infos_from_ossfuzz(self, sandbox: BaseSandbox) -> dict[str, str]:
         infos = {}

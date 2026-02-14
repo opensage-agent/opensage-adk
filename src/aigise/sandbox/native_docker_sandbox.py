@@ -20,10 +20,9 @@ import docker
 from docker.errors import APIError, NotFound
 
 from aigise.config import ContainerConfig
-from aigise.session.sandbox_state import SandboxState
 
 logger = logging.getLogger(__name__)
-from aigise.sandbox.base_sandbox import BaseSandbox
+from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
 from aigise.sandbox.utils import can_pull_image, image_exists_locally
 from aigise.utils.bash_tools_staging import build_bash_tools_staging_dir
 from aigise.utils.parser import get_function_info
@@ -1193,7 +1192,10 @@ class NativeDockerSandbox(BaseSandbox):
 
     @classmethod
     async def initialize_all_sandboxes(
-        cls, sandbox_instances: dict, *, continue_on_error: bool = False
+        cls,
+        sandbox_instances: dict[str, BaseSandbox],
+        *,
+        continue_on_error: bool = False,
     ) -> dict:
         """Initialize all sandbox instances concurrently.
 
@@ -1215,16 +1217,10 @@ class NativeDockerSandbox(BaseSandbox):
             logger.info(f"Initializing {sandbox_type} sandbox...")
 
             async def _init_one(instance: "NativeDockerSandbox") -> None:
-                # Run per-skill dependency installers (if any) before ensure_ready.
-                try:
-                    await instance.async_prepare_skill_deps()
-                except AttributeError:
-                    pass
-
                 if getattr(instance, "_using_cached", False):
                     await instance.ensure_ready()
                 else:
-                    await instance.async_initialize()
+                    await instance.async_initialize(sandbox_instances)
 
             # Determine per-sandbox timeout: read from container_config.extra,
             # fallback to 60 minutes (3600s) by default.

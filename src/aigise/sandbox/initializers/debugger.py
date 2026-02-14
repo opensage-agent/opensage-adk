@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 class DebuggerInitializer(SandboxInitializer):
     """Initializer for debugger sandboxes to compile debug binaries."""
 
-    async def async_initialize(self) -> None:
+    async def _async_initialize_impl(
+        self: BaseSandbox, all_sandboxes: dict[str, BaseSandbox]
+    ) -> bool:
         """Run the debug compilation script inside the sandbox."""
         assert isinstance(self, BaseSandbox)
 
@@ -31,8 +33,7 @@ class DebuggerInitializer(SandboxInitializer):
             self.run_command_in_container(
                 "rm -rf /out && mv /out.bak /out", timeout=1200
             )
-            raise RuntimeError("Debugger compilation failed")
-        else:
-            logger.info("Debugger compilation completed successfully.")
-
-        await self.ensure_ready()
+            logger.error("Debugger compilation failed: %s", msg)
+            return False
+        logger.info("Debugger compilation completed successfully.")
+        return True

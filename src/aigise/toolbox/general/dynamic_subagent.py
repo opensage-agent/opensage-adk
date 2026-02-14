@@ -11,7 +11,8 @@ from google.adk.tools.base_toolset import BaseToolset
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
-from aigise.session import AgentStatus, get_aigise_session
+from aigise.session.aigise_dynamic_agent_manager import AgentStatus
+from aigise.session.aigise_session import get_aigise_session
 from aigise.toolbox.decorators import safe_tool_execution
 from aigise.toolbox.general.agent_tools import complain
 from aigise.toolbox.general.bash_tools_interface import (

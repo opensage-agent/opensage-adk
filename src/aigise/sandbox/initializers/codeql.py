@@ -8,7 +8,6 @@ import tempfile
 
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.sandbox.initializers.base import SandboxInitializer
-from aigise.session.sandbox_state import SandboxState
 from aigise.utils.merge_joern_codeql import insert_codeql_results_to_cpg
 
 logger = logging.getLogger(__name__)
@@ -17,18 +16,20 @@ logger = logging.getLogger(__name__)
 class CodeQLInitializer(SandboxInitializer):
     """Initializer that initializes CodeQL static analysis capabilities to sandboxes."""
 
-    async def async_initialize(self) -> None:
+    async def _async_initialize_impl(
+        self: BaseSandbox, all_sandboxes: dict[str, BaseSandbox]
+    ) -> bool:
         """Initialize CodeQL environment (async version)."""
         from aigise.session.aigise_session import get_aigise_session
 
         assert isinstance(self, BaseSandbox)
+        assert "neo4j" in all_sandboxes
 
         logger.info(
             f"Async creating CodeQL environment for session {self.aigise_session_id}..."
         )
 
         aigise_session = get_aigise_session(self.aigise_session_id)
-        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
         try:
             msg, err = self.run_command_in_container(
                 [
@@ -44,10 +45,12 @@ class CodeQLInitializer(SandboxInitializer):
             # Always create nodes from CodeQL results
             # If Joern exists, wait for it to be ready first (for potential merging)
             create_not_found = True
-            if "joern" in aigise_session.config.sandbox.sandboxes:
-                await aigise_session.sandboxes.wait_for_ready_or_error("joern")
+            if all_sandboxes.get("joern"):
+                await all_sandboxes["joern"].wait_for_ready_or_error()
 
-            await aigise_session.sandboxes.wait_for_ready("neo4j")
+            if not await all_sandboxes["neo4j"].wait_for_ready_or_error():
+                logger.error(f"CodeQL initialization failed: Neo4j sandbox error")
+                return False
             neo4j_client = await aigise_session.neo4j.get_async_client("analysis")
 
             with tempfile.TemporaryDirectory() as tmpdir:
@@ -60,8 +63,7 @@ class CodeQLInitializer(SandboxInitializer):
                 await insert_codeql_results_to_cpg(
                     neo4j_client, tmpdir, create_not_found_nodes=create_not_found
                 )
+            return True
         except Exception as e:
             logger.error(f"CodeQL initialization failed: {e}")
-            raise
-
-        await self.ensure_ready()
+            return False

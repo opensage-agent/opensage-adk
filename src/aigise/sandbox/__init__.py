@@ -8,17 +8,14 @@ Provides unified interfaces for different sandbox implementations:
 - DockerBuildMixin: Adds dockerfile build functionality to sandboxes, if image is not available locally and cannot be pulled from registries, it will try to build the image from a Dockerfile.
 """
 
-from .base_sandbox import BaseSandbox
-from .k8s_sandbox import K8sSandbox
-from .native_docker_sandbox import NativeDockerSandbox
-from .remote_docker_sandbox import RemoteDockerSandbox
+from __future__ import annotations
+
+# Keep this package initializer lightweight to avoid import-time cycles.
+#
+# Import concrete backends/initializers from their modules directly.
+from .base_sandbox import BaseSandbox, SandboxState
 
 __all__ = [
     "BaseSandbox",
-    "NativeDockerSandbox",
-    "RemoteDockerSandbox",
-    "K8sSandbox",
-    "DockerfileBuilder",
-    "DockerBuildResult",
-    "ensure_docker_image",
+    "SandboxState",
 ]

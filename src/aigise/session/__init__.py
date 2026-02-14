@@ -1,11 +1,17 @@
-from .aigise_dynamic_agent_manager import (
-    AgentMetadata,
-    AgentStatus,
-    DynamicAgentManager,
-)
-from .aigise_ensemble_manager import AigiseEnsembleManager, EnsembleAgentInfo
-from .aigise_neo4j_client_manager import AigiseNeo4jClientManager
-from .aigise_sandbox_manager import AigiseSandboxManager
+"""Session package public API.
+
+This package intentionally keeps imports *minimal* to avoid import-time cycles
+between `aigise.session`, `aigise.sandbox`, and `aigise.sandbox.initializers`.
+
+If you need manager classes or other session types, import them from their
+modules directly, e.g.:
+
+- `from aigise.session.aigise_sandbox_manager import AigiseSandboxManager`
+- `from aigise.session.aigise_dynamic_agent_manager import AgentStatus`
+"""
+
+from __future__ import annotations
+
 from .aigise_session import (
     AigiseSession,
     AigiseSessionRegistry,
@@ -19,14 +25,4 @@ __all__ = [
     "AigiseSessionRegistry",
     "get_aigise_session",
     "cleanup_aigise_session",
-    # Individual managers (for advanced usage)
-    "DynamicAgentManager",
-    "AigiseSandboxManager",
-    "AigiseNeo4jClientManager",
-    "AigiseEnsembleManager",
-    # Agent management types
-    "AgentStatus",
-    "AgentMetadata",
-    # Ensemble management types
-    "EnsembleAgentInfo",
 ]

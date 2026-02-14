@@ -54,11 +54,11 @@ __version__ = "1.0.0"
 # For backward compatibility and advanced usage
 # RL Framework integration (slime, verl, areal, etc.)
 from .rl_integration import Client, RLSession, create
-from .session import (
-    AigiseSandboxManager,
+from .session.aigise_dynamic_agent_manager import DynamicAgentManager
+from .session.aigise_sandbox_manager import AigiseSandboxManager
+from .session.aigise_session import (
     AigiseSession,
     AigiseSessionRegistry,
-    DynamicAgentManager,
     cleanup_aigise_session,
     get_aigise_session,
 )

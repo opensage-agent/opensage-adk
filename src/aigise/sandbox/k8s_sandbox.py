@@ -20,11 +20,10 @@ from typing import Any, Awaitable, Dict, Optional
 import yaml
 
 from aigise.config import ContainerConfig
-from aigise.session.sandbox_state import SandboxState
 from aigise.utils.bash_tools_staging import build_bash_tools_staging_dir
 from aigise.utils.parser import get_function_info
 
-from .base_sandbox import BaseSandbox
+from .base_sandbox import BaseSandbox, SandboxState
 
 logger = logging.getLogger(__name__)
 
@@ -1724,16 +1723,10 @@ class K8sSandbox(BaseSandbox):
             logger.info(f"Initializing {sandbox_type} sandbox...")
 
             async def _init_one(instance: "K8sSandbox") -> None:
-                # Run per-skill dependency installers (if any) before ensure_ready.
-                try:
-                    await instance.async_prepare_skill_deps()
-                except AttributeError:
-                    pass
-
                 if instance._using_cached:
                     await instance.ensure_ready()
                 else:
-                    await instance.async_initialize()
+                    await instance.async_initialize(sandbox_instances)
 
             init_entries.append(
                 (

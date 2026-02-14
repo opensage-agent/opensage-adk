@@ -1,4 +1,4 @@
-"""Unit tests for per-skill dependency installer runner in sandbox initializers."""
+"""Unit tests for per-skill dependency installer runner."""
 
 from __future__ import annotations
 
@@ -8,21 +8,11 @@ import pytest
 
 from aigise.config.config_dataclass import ContainerConfig
 from aigise.sandbox.base_sandbox import BaseSandbox
-from aigise.sandbox.initializers.base import SandboxInitializer
+from aigise.sandbox.skill_deps import prepare_skill_deps
 
 
-class _FakeSessionSandboxes:
-    def __init__(self, enabled_skills: Any):
-        self.enabled_skills = enabled_skills
-
-
-class _FakeSession:
-    def __init__(self, enabled_skills: Any):
-        self.sandboxes = _FakeSessionSandboxes(enabled_skills)
-
-
-class _FakeSandbox(BaseSandbox, SandboxInitializer):
-    """Minimal sandbox stub that can run async_prepare_skill_deps."""
+class _FakeSandbox(BaseSandbox):
+    """Minimal sandbox stub that can run prepare_skill_deps."""
 
     def __init__(self, *, enabled_skills: Any, sandbox_type: str = "main"):
         super().__init__(
@@ -78,13 +68,17 @@ class _FakeSandbox(BaseSandbox, SandboxInitializer):
             return ("ok", 0)
 
         # Find SKILL.md for folder expansion.
-        if "find /bash_tools/" in cmd and "-name SKILL.md" in cmd:
+        if "find " in cmd and "-name SKILL.md" in cmd:
             # Very small simulation: return any SKILL.md files under /bash_tools.
             paths = []
             for path in sorted(self._files.keys()):
                 if path.startswith("/bash_tools/") and path.endswith("/SKILL.md"):
                     paths.append(path)
             return ("\n".join(paths), 0 if paths else 1)
+
+        # test -d <path> (treat /bash_tools/* as existing)
+        if "test -d " in cmd:
+            return ("", 0)
 
         return ("unexpected", 0)
 
@@ -135,7 +129,7 @@ class _FakeSandbox(BaseSandbox, SandboxInitializer):
 
 
 @pytest.mark.asyncio
-async def test_async_prepare_skill_deps_runs_matching_skill_installer(monkeypatch):
+async def test_prepare_skill_deps_runs_matching_skill_installer():
     fake = _FakeSandbox(enabled_skills=["fuzz/my-skill"], sandbox_type="main")
 
     # Skill executes in "main" sandbox, has deps/install.sh
@@ -148,18 +142,13 @@ returns_json: false
 """
     fake._existing_files.add("/bash_tools/fuzz/my-skill/deps/install.sh")
 
-    monkeypatch.setattr(
-        "aigise.session.get_aigise_session",
-        lambda _sid: _FakeSession(enabled_skills=["fuzz/my-skill"]),
-    )
-
-    await fake.async_prepare_skill_deps()
+    await prepare_skill_deps(fake, enabled_skills=["fuzz/my-skill"])
 
     assert fake.ran_installers == ["/bash_tools/fuzz/my-skill/deps/install.sh"]
 
 
 @pytest.mark.asyncio
-async def test_async_prepare_skill_deps_skips_non_matching_sandbox(monkeypatch):
+async def test_prepare_skill_deps_skips_non_matching_sandbox():
     fake = _FakeSandbox(enabled_skills=["fuzz/my-skill"], sandbox_type="coverage")
     fake._files["/bash_tools/fuzz/my-skill/SKILL.md"] = """---
 name: my-skill
@@ -170,17 +159,12 @@ returns_json: false
 """
     fake._existing_files.add("/bash_tools/fuzz/my-skill/deps/install.sh")
 
-    monkeypatch.setattr(
-        "aigise.session.get_aigise_session",
-        lambda _sid: _FakeSession(enabled_skills=["fuzz/my-skill"]),
-    )
-
-    await fake.async_prepare_skill_deps()
+    await prepare_skill_deps(fake, enabled_skills=["fuzz/my-skill"])
     assert fake.ran_installers == []
 
 
 @pytest.mark.asyncio
-async def test_async_prepare_skill_deps_skips_if_marker_exists(monkeypatch):
+async def test_prepare_skill_deps_skips_if_marker_exists():
     fake = _FakeSandbox(enabled_skills=["fuzz/my-skill"], sandbox_type="main")
     fake._files["/bash_tools/fuzz/my-skill/SKILL.md"] = """---
 name: my-skill
@@ -192,17 +176,12 @@ returns_json: false
     fake._existing_files.add("/bash_tools/fuzz/my-skill/deps/install.sh")
     fake._existing_files.add("/shared/.aigise/skill_deps/main/fuzz_my-skill.done")
 
-    monkeypatch.setattr(
-        "aigise.session.get_aigise_session",
-        lambda _sid: _FakeSession(enabled_skills=["fuzz/my-skill"]),
-    )
-
-    await fake.async_prepare_skill_deps()
+    await prepare_skill_deps(fake, enabled_skills=["fuzz/my-skill"])
     assert fake.ran_installers == []
 
 
 @pytest.mark.asyncio
-async def test_async_prepare_skill_deps_expands_top_level_folder(monkeypatch):
+async def test_prepare_skill_deps_expands_top_level_folder():
     fake = _FakeSandbox(enabled_skills=["fuzz"], sandbox_type="main")
 
     fake._files["/bash_tools/fuzz/a/SKILL.md"] = """---
@@ -214,10 +193,5 @@ returns_json: false
 """
     fake._existing_files.add("/bash_tools/fuzz/a/deps/install.sh")
 
-    monkeypatch.setattr(
-        "aigise.session.get_aigise_session",
-        lambda _sid: _FakeSession(enabled_skills=["fuzz"]),
-    )
-
-    await fake.async_prepare_skill_deps()
+    await prepare_skill_deps(fake, enabled_skills=["fuzz"])
     assert fake.ran_installers == ["/bash_tools/fuzz/a/deps/install.sh"]

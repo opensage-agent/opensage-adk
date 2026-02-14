@@ -6,9 +6,8 @@ import asyncio
 import logging
 import shlex
 
-from aigise.sandbox.base_sandbox import BaseSandbox
+from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
 from aigise.sandbox.initializers.base import SandboxInitializer
-from aigise.session.sandbox_state import SandboxState
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 class Neo4jInitializer(SandboxInitializer):
     """Initializer that initializes Neo4j code analysis capabilities to sandboxes."""
 
-    async def ensure_ready(self) -> None:
+    async def _ensure_ready_impl(self: BaseSandbox) -> bool:
         from aigise.session.aigise_session import get_aigise_session
 
         assert isinstance(self, BaseSandbox)
@@ -25,15 +24,15 @@ class Neo4jInitializer(SandboxInitializer):
             ["mkdir", "-p", "/shared/neo4j/import"]
         )
         if err != 0:
-            raise RuntimeError(
+            logger.error(
                 f"Neo4j initialization failed: import dir creation failed: {msg}"
             )
+            return False
 
         logger.info(
             f"Async creating Neo4j environment for session {self.aigise_session_id}..."
         )
         aigise_session = get_aigise_session(self.aigise_session_id)
-        aigise_session.sandboxes._sandboxes[self.sandbox_type] = self
         self.neo4j_client = aigise_session.neo4j.get_async_client_without_connection(
             "default"
         )
@@ -43,12 +42,10 @@ class Neo4jInitializer(SandboxInitializer):
         # Write Neo4j connection info to /shared/bashrc for other containers to use
         self._write_neo4j_env_to_bashrc(aigise_session)
 
-        aigise_session.sandboxes.set_sandbox_state(
-            self.sandbox_type, SandboxState.READY
-        )
         logger.info(
             f"Neo4j environment successfully initialized for session {self.aigise_session_id}"
         )
+        return True
 
     def _write_neo4j_env_to_bashrc(self, aigise_session) -> None:
         """Write Neo4j connection environment variables to /shared/bashrc."""

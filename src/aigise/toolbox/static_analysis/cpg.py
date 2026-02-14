@@ -427,7 +427,6 @@ async def joern_slice(
             lines[fp] = set()
         lines[fp].add(node["lineNumber"])
     slice_result = {"result": []}
-    # TODO: fetch the code lines as well
     for fp, line_set in lines.items():
         slice_result["result"].append(
             {

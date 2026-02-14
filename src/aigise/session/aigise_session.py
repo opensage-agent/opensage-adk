@@ -19,10 +19,6 @@ from typing import Dict, Optional
 from ..config.config_dataclass import AigiseConfig
 
 logger = logging.getLogger(__name__)
-from .aigise_dynamic_agent_manager import DynamicAgentManager
-from .aigise_ensemble_manager import AigiseEnsembleManager
-from .aigise_neo4j_client_manager import AigiseNeo4jClientManager
-from .aigise_sandbox_manager import AigiseSandboxManager
 
 
 class AigiseSession:
@@ -62,6 +58,11 @@ class AigiseSession:
 
         # Initialize all session-specific managers
         # Pass self (session) instead of individual fields to allow dynamic property access
+        from .aigise_dynamic_agent_manager import DynamicAgentManager
+        from .aigise_ensemble_manager import AigiseEnsembleManager
+        from .aigise_neo4j_client_manager import AigiseNeo4jClientManager
+        from .aigise_sandbox_manager import AigiseSandboxManager
+
         self.agents = DynamicAgentManager(self)
         self.sandboxes = AigiseSandboxManager(self)
         self.neo4j = AigiseNeo4jClientManager(self)
@@ -146,6 +147,11 @@ class AigiseSessionRegistry:
     def _cleanup_at_exit():
         """Cleanup all sessions at exit, ignoring closed stream errors."""
         try:
+            # Avoid noisy "Logging error: I/O operation on closed file" messages
+            # when pytest (or other runners) close stderr/stdout before atexit.
+            import logging as _logging  # pylint: disable=g-import-not-at-top
+
+            _logging.raiseExceptions = False
             AigiseSessionRegistry.cleanup_all_sessions()
         except (ValueError, OSError):
             # Ignore errors from logging to closed streams during shutdown

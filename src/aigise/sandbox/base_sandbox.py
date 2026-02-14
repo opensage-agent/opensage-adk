@@ -1,9 +1,22 @@
+import asyncio
+import logging
 import subprocess
 from abc import ABC, abstractmethod
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 from aigise.config import ContainerConfig
+
+logger = logging.getLogger(__name__)
+
+
+class SandboxState(Enum):
+    """Sandbox initialization states."""
+
+    UNINITIALIZED = "uninitialized"
+    READY = "ready"
+    ERROR = "error"
 
 
 class BaseSandbox(ABC):
@@ -20,19 +33,29 @@ class BaseSandbox(ABC):
         self.aigise_session_id = aigise_session_id
         self.backend_type = backend_type
         self.sandbox_type = sandbox_type
+        self.state = SandboxState.UNINITIALIZED
 
     async def async_initialize(self) -> None:
-        """
-        Base async initialization for all sandboxes.
-
-        This method can be overridden by initializers to add specific functionality.
-        The base implementation does nothing.
-        """
+        """Initialize the sandbox."""
         pass
 
     async def ensure_ready(self) -> None:
         """Ensure the sandbox is ready."""
         pass
+
+    async def wait_for_ready_or_error(self) -> bool:
+        """Wait for a specific sandbox to be ready or error."""
+        while self.state != SandboxState.READY and self.state != SandboxState.ERROR:
+            await asyncio.sleep(1)
+        if self.state == SandboxState.ERROR:
+            logger.error(
+                f"Waiting for sandbox '{self.sandbox_type}' in session {self.aigise_session_id} to be ready or error: result is error"
+            )
+            return False
+        logger.info(
+            f"Waiting for sandbox '{self.sandbox_type}' in session {self.aigise_session_id} to be ready or error: result is ready"
+        )
+        return True
 
     @abstractmethod
     def copy_file_from_container(self, src_path: str, dst_path: str):

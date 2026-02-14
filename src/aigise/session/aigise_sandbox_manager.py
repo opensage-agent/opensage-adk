@@ -16,14 +16,13 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Set
 
 from aigise.config.config_dataclass import AigiseConfig
-from aigise.sandbox import BaseSandbox
+from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
 from aigise.sandbox.factory import (
     create_sandbox_class,
     get_backend_class,
     get_initializer_class,
 )
 from aigise.sandbox.utils import can_pull_image, image_exists_locally
-from aigise.session.sandbox_state import SandboxState
 from aigise.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
@@ -56,8 +55,6 @@ class AigiseSandboxManager:
 
         # Sandbox storage for this session
         self._sandboxes: Dict[str, BaseSandbox] = {}
-        # Sandbox state tracking
-        self._sandbox_states: Dict[str, SandboxState] = {}
         # Shared volume IDs for this session
         self._scripts_volume_id: Optional[str] = None  # Read-only scripts volume
         self._tools_volume_id: Optional[str] = None  # Read-only tools volume
@@ -130,27 +127,8 @@ class AigiseSandboxManager:
             "aigise_session_id": self.aigise_session_id,
             "total_sandboxes": len(self._sandboxes),
             "sandbox_types": list(self._sandboxes.keys()),
-            "sandbox_states": {k: v.value for k, v in self._sandbox_states.items()},
+            "sandbox_states": {k: v.value for k, v in self._sandboxes.state.items()},
         }
-
-    def get_sandbox_state(self, sandbox_type: str) -> Optional[SandboxState]:
-        """Get the state of a specific sandbox.
-
-        Args:
-            sandbox_type: Type of sandbox to check
-
-        Returns:
-            SandboxState or None if sandbox doesn't exist
-        """
-        return self._sandbox_states.get(sandbox_type)
-
-    def set_sandbox_state(self, sandbox_type: str, state: SandboxState) -> None:
-        """Set the state of a specific sandbox.
-        Args:
-            sandbox_type: Type of sandbox to set
-            state: State to set
-        """
-        self._sandbox_states[sandbox_type] = state
 
     def initialize_shared_volumes(
         self,
@@ -354,9 +332,6 @@ class AigiseSandboxManager:
                 f"Launching sandboxes for session {self.aigise_session_id} "
                 f"using {backend_type} backend: {list(sandbox_configs.keys())}"
             )
-            # mark all sandbox states to starting
-            for sandbox_type in sandbox_configs.keys():
-                self._sandbox_states[sandbox_type] = SandboxState.STARTING
 
             # Call backend-specific launch method (creates containers, not initialized yet)
             sandbox_instances = await backend_class.launch_all_sandboxes(
@@ -370,7 +345,6 @@ class AigiseSandboxManager:
             # Store sandbox instances in manager (mark as CREATED, not READY yet)
             for sandbox_type, sandbox_instance in sandbox_instances.items():
                 self._sandboxes[sandbox_type] = sandbox_instance
-                self._sandbox_states[sandbox_type] = SandboxState.CREATED
 
             logger.info(
                 f"Successfully launched {len(sandbox_instances)} sandboxes for session {self.aigise_session_id}, "
@@ -381,9 +355,6 @@ class AigiseSandboxManager:
             logger.error(
                 f"Failed to launch sandboxes for session {self.aigise_session_id}: {e}"
             )
-            # Set all sandbox states to error
-            for sandbox_type in config.sandbox.sandboxes:
-                self._sandbox_states[sandbox_type] = SandboxState.ERROR
             raise
 
     async def initialize_all_sandboxes(
@@ -407,38 +378,18 @@ class AigiseSandboxManager:
             )
             return
 
-        # Filter out sandboxes that are already READY
-        sandboxes_to_init = {}
-        already_ready = []
-
-        for sandbox_type, sandbox_instance in self._sandboxes.items():
-            state = self._sandbox_states.get(sandbox_type)
-            if state == SandboxState.READY:
-                already_ready.append(sandbox_type)
-            else:
-                sandboxes_to_init[sandbox_type] = sandbox_instance
-
-        if already_ready:
-            logger.info(
-                f"Skipping initialization for already ready sandboxes: {already_ready}"
-            )
-
-        if not sandboxes_to_init:
-            logger.info("All sandboxes are already initialized")
-            return
-
         # Get backend class
         backend_type = getattr(self.config.sandbox, "backend", "native")
         backend_class = get_backend_class(backend_type, self.config)
 
         logger.info(
-            f"Initializing {len(sandboxes_to_init)} sandboxes for session {self.aigise_session_id}: "
-            f"{list(sandboxes_to_init.keys())}"
+            f"Initializing {len(self._sandboxes)} sandboxes for session {self.aigise_session_id}: "
+            f"{list(self._sandboxes.keys())}"
         )
 
         # If continue_on_error is True, the backend will return a map of sandbox_type -> Exception | None instead of raising an exception.
         result_map = await backend_class.initialize_all_sandboxes(
-            sandboxes_to_init, continue_on_error=continue_on_error
+            self._sandboxes, continue_on_error=continue_on_error
         )
 
         failed = []
@@ -448,6 +399,30 @@ class AigiseSandboxManager:
                 succeeded.append(sandbox_type)
             else:
                 failed.append((sandbox_type, exc))
+
+        # Run skill dependency installers for successfully initialized sandboxes.
+        # This is orchestration-level logic and intentionally lives outside
+        # sandbox initializers.
+        if succeeded and self.enabled_skills is not None:
+            from aigise.sandbox.skill_deps import prepare_skill_deps
+
+            async def _prep_one(sandbox_type: str) -> None:
+                sandbox = self._sandboxes.get(sandbox_type)
+                if sandbox is None:
+                    return
+                await prepare_skill_deps(sandbox, self.enabled_skills)
+
+            prep_tasks = [asyncio.create_task(_prep_one(t)) for t in succeeded]
+            prep_results = await asyncio.gather(*prep_tasks, return_exceptions=True)
+            for sandbox_type, res in zip(succeeded, prep_results):
+                if isinstance(res, Exception):
+                    logger.error(
+                        "Skill deps prep failed for sandbox '%s': %s", sandbox_type, res
+                    )
+                    if continue_on_error:
+                        failed.append((sandbox_type, res))
+                    else:
+                        raise res
 
         if succeeded:
             logger.info(f"Successfully initialized sandboxes: {sorted(succeeded)}")
@@ -507,38 +482,16 @@ class AigiseSandboxManager:
         )
 
         self._sandboxes[sandbox_type] = sandbox_instance
-        self._sandbox_states[sandbox_type] = SandboxState.CREATED
 
         # Ensure ready
         await sandbox_instance.ensure_ready()
-        self._sandbox_states[sandbox_type] = SandboxState.READY
+        if self.enabled_skills is not None:
+            from aigise.sandbox.skill_deps import prepare_skill_deps
+
+            await prepare_skill_deps(sandbox_instance, self.enabled_skills)
         logger.info(
             f"Attached sandbox '{sandbox_type}' (backend={backend_type}) for session {self.aigise_session_id}"
         )
-
-    async def wait_for_ready(self, sandbox_type: str) -> None:
-        """Wait for a specific sandbox to be ready."""
-        while (
-            self._sandbox_states[sandbox_type] != SandboxState.READY
-            and self._sandbox_states[sandbox_type] != SandboxState.ERROR
-        ):
-            await asyncio.sleep(1)
-        if self._sandbox_states[sandbox_type] == SandboxState.ERROR:
-            raise RuntimeError(
-                f"Waiting for sandbox '{sandbox_type}' to be ready failed: Sandbox '{sandbox_type}' failed to initialize"
-            )
-
-    async def wait_for_ready_or_error(self, sandbox_type: str) -> None:
-        """Wait for a specific sandbox to be ready or error."""
-        while (
-            self._sandbox_states[sandbox_type] != SandboxState.READY
-            and self._sandbox_states[sandbox_type] != SandboxState.ERROR
-        ):
-            await asyncio.sleep(1)
-        if self._sandbox_states[sandbox_type] == SandboxState.ERROR:
-            logger.error(
-                f"Waiting for sandbox '{sandbox_type}' to be ready or error: result is error"
-            )
 
     def _cleanup_sandbox(self, sandbox: BaseSandbox) -> None:
         """Cleanup a specific sandbox instance.
@@ -582,7 +535,6 @@ class AigiseSandboxManager:
 
         # Clear any remaining references
         self._sandboxes.clear()
-        self._sandbox_states.clear()
         self._scripts_volume_id = None
         self._tools_volume_id = None
         self._shared_volume_id = None

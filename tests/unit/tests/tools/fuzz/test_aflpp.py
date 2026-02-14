@@ -4,11 +4,10 @@ pytestmark = pytest.mark.skip(reason="Skipping all fuzz tests for now")
 
 from unittest.mock import MagicMock
 
-import pytest
 import pytest_asyncio
 
+from aigise.sandbox.base_sandbox import SandboxState
 from aigise.session import AigiseSession, get_aigise_session
-from aigise.session.sandbox_state import SandboxState
 from aigise.utils.project_info import PROJECT_PATH
 from tests.unit.utils.utils import extract_infos_from_arvo_script
 
@@ -37,7 +36,8 @@ async def aigise_session():
 @pytest.mark.asyncio
 async def test_fuzz_initialization(aigise_session: AigiseSession):
     """Test that fuzzing sandbox initializes correctly."""
-    assert aigise_session.sandboxes.get_sandbox_state("fuzz") == SandboxState.READY
+    fuzz_sandbox = aigise_session.sandboxes.get_sandbox("fuzz")
+    assert fuzz_sandbox.state == SandboxState.READY
 
 
 @pytest.mark.slow

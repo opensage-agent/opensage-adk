@@ -1,0 +1,19 @@
+/* Make the header logo larger and more visible. */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 2.4rem;
+  width: auto;
+}
+
+/* Our logo SVG is black; invert it for the colored header background. */
+.md-header__button.md-logo img {
+  filter: brightness(0) invert(1);
+}
+
+/* Make the homepage logo prominent. */
+.opensage-home-logo {
+  display: block;
+  margin: 0.5rem auto 1rem;
+  width: min(360px, 80%);
+  height: auto;
+}

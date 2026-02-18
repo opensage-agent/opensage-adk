@@ -1,10 +1,10 @@
 # Documentation Changes
 
-This file summarizes significant changes to the SAGE-X documentation.
+This file summarizes significant changes to the OpenSage documentation.
 
 ## Latest Updates
 
-### Introduction.md - Enhanced Selling Points and Design Philosophy
+### Introduction.md - Enhanced selling points and key features
 
 **Date**: Current update
 
@@ -12,7 +12,7 @@ This file summarizes significant changes to the SAGE-X documentation.
 
 1. **Expanded AI-Written Tools Section**:
    - Added detailed explanation of tools as "first-class system entities"
-   - Clarified the distinction between traditional tools and SAGE-X's programmatic tools
+   - Clarified the distinction between traditional tools and OpenSage's programmatic tools
    - Added design value propositions
 
 2. **Enhanced Runtime Sub-Agents Section**:
@@ -32,28 +32,23 @@ This file summarizes significant changes to the SAGE-X documentation.
    - Memory agent concept
    - Note: Feature is planned, placeholder documentation created
 
-5. **Enhanced Training Support Section**:
-   - Expanded Kubernetes-based rapid rollout details
-   - Enhanced integration details for AREL, VERL, and LLaMA Factory
-   - Added rationale for why SAGE-X works well for training
-
-6. **Enhanced Security-Focused Customization Section**:
+5. **Enhanced Security-Focused Customization Section**:
    - Renamed to "Security-Focused System-Level Customization"
    - Added more detailed capabilities
    - Emphasized the system-level nature of customization
 
-7. **Updated Key Features List**:
+6. **Updated Key Features List**:
    - Added planned features with notes
    - Reorganized to match the selling points structure
 
 ### New Files Created
 
-1. **System-Workflow.md**:
+1. **System-Workflow.md** (removed):
    - Placeholder documentation for planned system-level workflow feature
    - Includes planned features: rule-based execution, graph-based scheduling, pub-sub events
    - Status: Planned/Under Development
 
-2. **Memory-System.md**:
+2. **Memory-System.md** (removed):
    - Placeholder documentation for planned memory system features
    - Includes: layered memory, graph-structured memory, memory agent
    - Status: Planned/Under Development
@@ -63,8 +58,7 @@ This file summarizes significant changes to the SAGE-X documentation.
 
 ## Previous Updates
 
-### Project Name Change: AIgiSE → SAGE-X
+### Project Name Update
 
-All documentation was updated to reflect the project name change from "AIgiSE" to "SAGE-X" (Self-programming Agent Generation Engine: Next Generation).
-
-**Note**: Code paths and package names remain as `aigise` for functional reasons.
+All documentation was updated to reflect the project name OpenSage (Open
+Self-programming Agent Generation Engine).

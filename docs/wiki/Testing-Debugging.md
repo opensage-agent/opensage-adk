@@ -10,7 +10,7 @@ uv run pytest tests/
 uv run pytest tests/unit/test_session.py
 
 # Run with coverage
-uv run pytest --cov=src/aigise tests/
+uv run pytest --cov=src/opensage tests/
 ```
 
 ## Debugging with Web UI
@@ -18,7 +18,7 @@ uv run pytest --cov=src/aigise tests/
 The web UI is the primary debugging tool:
 
 ```bash
-uv run aigise web \
+uv run opensage web \
   --config /path/to/config.toml \
   --agent /path/to/agent_dir \
   --port 8080 \
@@ -36,7 +36,7 @@ print(f"Working dir: {result}")
 
 ## Logging
 
-SAGE-X uses structured logging:
+OpenSage uses structured logging:
 
 ```python
 import logging
@@ -44,15 +44,6 @@ logger = logging.getLogger(__name__)
 logger.info("Operation started", extra={"session_id": session_id})
 ```
 
-## Common Debugging Tasks
-
-- Check session logs
-- Verify sandbox container status
-- Check configuration values
-- Verify tool imports
-- Check ADK compatibility
-
 ## See Also
 
-- [Troubleshooting](Troubleshooting.md) - Common issues and solutions
-- [Best Practices](Best-Practices.md) - Development best practices
+[Best Practices](Best-Practices.md) - Development best practices

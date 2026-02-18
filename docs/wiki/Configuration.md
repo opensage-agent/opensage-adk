@@ -1,10 +1,10 @@
 # Configuration Guide
 
-This document describes the SAGE-X configuration system, including all configuration fields, their purposes, and how to write configuration files.
+This document describes the OpenSage configuration system, including all configuration fields, their purposes, and how to write configuration files.
 
 ## Overview
 
-SAGE-X uses TOML (Tom's Obvious, Minimal Language) format for configuration files. The configuration system supports:
+OpenSage uses TOML (Tom's Obvious, Minimal Language) format for configuration files. The configuration system supports:
 
 - **Template Variables**: Use `${VAR_NAME}` syntax for reusable values
 - **Nested Sections**: Organize related settings into logical groups
@@ -15,8 +15,8 @@ SAGE-X uses TOML (Tom's Obvious, Minimal Language) format for configuration file
 
 Configuration files are loaded in the following order:
 
-1. **Default Configuration**: `src/<package>/templates/configs/default_config.toml` (used when no config is specified)
-2. **Custom Configuration**: Path specified via `config_path` parameter when creating `AigiseSession`
+1. **Default Configuration**: `src/opensage/templates/configs/default_config.toml` (used when no config is specified)
+2. **Custom Configuration**: Path specified via `config_path` parameter when creating a session
 
 ## Configuration Structure
 
@@ -60,7 +60,7 @@ auto_cleanup = true
 
 ## Template Variables
 
-SAGE-X supports template variable expansion using `${VAR_NAME}` syntax.
+OpenSage supports template variable expansion using `${VAR_NAME}` syntax.
 
 ### Rules:
 
@@ -121,15 +121,15 @@ Configures the Neo4j graph database connection.
 ## Sandbox Images & Requirements (Practical Notes)
 
 Some sandboxes require Python tooling inside their Docker images. In the default
-configuration template (`src/<package>/templates/configs/default_config.toml`):
+configuration template (`src/opensage/templates/configs/default_config.toml`):
 
 - **`sandbox.sandboxes.main`**
-  - Built from `src/<package>/templates/dockerfiles/main/Dockerfile`
+  - Built from `src/opensage/templates/dockerfiles/main/Dockerfile`
   - Provides `python3` via `/app/.venv/bin/python`
-  - Installs Python package `neo4j` (used by `src/<package>/sandbox/initializers/main.py`)
+  - Installs Python package `neo4j` (used by `src/opensage/sandbox/initializers/main.py`)
 
 - **`sandbox.sandboxes.joern`**
-  - Built from `src/<package>/templates/dockerfiles/joern/Dockerfile`
+  - Built from `src/opensage/templates/dockerfiles/joern/Dockerfile`
   - Provides `python3` via `/app/.venv/bin/python`
   - Installs Python packages `httpx` and `websockets` (used by Joern query helper scripts)
 
@@ -166,10 +166,10 @@ Configures sandbox environments (Docker containers or Kubernetes pods).
 | Field | Type | Description | Default |
 |-------|------|-------------|---------|
 | `default_image` | `string` | Default Docker image for sandboxes | `None` |
-| `backend` | `string` | Sandbox backend type: `"native"` (Docker) or `"k8s"` (Kubernetes) | `"native"` |
+| `backend` | `string` | Sandbox backend type: `"native"` (Docker) or `"k8s"` (Kubernetes; under development) | `"native"` |
 | `project_relative_shared_data_path` | `string` | Path relative to project root for shared data (will be mounted as `/shared` in containers) | `None` |
 | `absolute_shared_data_path` | `string` | Absolute path for shared data | `None` |
-| `tolerations` | `list[dict]` | Kubernetes tolerations applied to all pods | `None` |
+| `tolerations` | `list[dict]` | Kubernetes tolerations applied to all pods (k8s; under development) | `None` |
 
 #### Per-Sandbox Configuration
 
@@ -261,7 +261,7 @@ PYTHONPATH = "/shared/code"
 initializer_timeout_sec = 1800
 
 [sandbox.sandboxes.joern]
-image = "aigise/joern"
+image = "opensage/joern"
 project_relative_dockerfile_path = "dockerfiles/joern/Dockerfile"
 command = ""
 
@@ -497,7 +497,7 @@ timeout = 300
 PYTHONPATH = "/shared/code"
 
 [sandbox.sandboxes.joern]
-image = "aigise/joern"
+image = "opensage/joern"
 project_relative_dockerfile_path = "dockerfiles/joern/Dockerfile"
 command = ""
 
@@ -555,21 +555,21 @@ sse_port = 1111
 ### Using Default Configuration
 
 ```python
-from aigise.session import AigiseSession
+import opensage
 
-# Uses default config from src/<package>/templates/configs/default_config.toml
-session = AigiseSession(aigise_session_id="my_session")
+# Uses default config from src/opensage/templates/configs/default_config.toml
+session = opensage.get_session("my_session")
 ```
 
 ### Using Custom Configuration
 
 ```python
-from aigise.session import AigiseSession
+import opensage
 
 # Load custom configuration file
-session = AigiseSession(
-    aigise_session_id="my_session",
-    config_path="/path/to/my_config.toml"
+session = opensage.get_session(
+    "my_session",
+    config_path="/path/to/my_config.toml",
 )
 ```
 
@@ -620,6 +620,5 @@ If `default_host` is not set, services like Neo4j and MCP will default to `127.0
 ## Related Documentation
 
 - [Getting Started](Getting-Started.md) - Initial setup guide
-- [Architecture](Architecture.md) - System architecture overview
-- [Core Concepts](Core-Concepts.md) - Core concepts including sessions
+- [Core Components](Core-Components.md) - How configuration fits in the system
 - [Sandboxes](Sandboxes.md) - Sandbox backends and configuration guide

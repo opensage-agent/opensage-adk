@@ -1,18 +1,18 @@
 # Development Guides
 
-This section covers how to extend SAGE-X with new functionality.
+This section covers how to extend OpenSage with new functionality.
 
 ## Guides
 
 - [Adding Tools](Adding-Tools.md) - How to add new tools
 - [Sandboxes](Sandboxes.md) - Sandbox backends and how to add new sandbox types
-- [Adding Evaluations](Adding-Evaluations.md) - How to add evaluation benchmarks
+- [Adding a Evaluation Benchmark](Adding-Evaluations.md) - How to add evaluation benchmarks
 
-## Extending AigiseAgent
+## Extending the Base Agent
 
-To add features to AigiseAgent:
+To add features to the base agent:
 
-1. Modify `src/aigise/agents/aigise_agent.py`
+1. Modify code under `src/opensage/agents/`
 2. Ensure backward compatibility
 3. Add configuration options if needed
 4. Update documentation
@@ -27,6 +27,6 @@ To add features to AigiseAgent:
 
 ## See Also
 
-- [Best Practices](Best-Practices.md) - Best practices for development
-- [Common Patterns](Common-Patterns.md) - Common code patterns
-- [Testing Debugging](Testing-Debugging.md) - Testing and debugging guide
+[Best Practices](Best-Practices.md) - Best practices for development
+[Tools](Getting-Started.md#tools) - Tool types and patterns
+[Testing Debugging](Testing-Debugging.md) - Testing and debugging guide

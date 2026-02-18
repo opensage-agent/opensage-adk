@@ -3,56 +3,61 @@
 ## Directory Overview
 
 ```
-SAGE-X/
-├── src/aigise/              # Main source code
-│   ├── agents/              # Agent implementations
-│   ├── cli/                 # Command-line interface
-│   ├── config/              # Configuration system
-│   ├── session/             # Session management
-│   ├── sandbox/             # Sandbox implementations
-│   ├── toolbox/             # Security analysis tools
-│   ├── evaluations/         # Benchmark evaluations
-│   ├── features/            # Framework features
-│   ├── plugins/             # ADK plugins
-│   ├── patches/             # ADK patches
-│   └── templates/           # Configuration templates
-├── examples/                # Example agents and usage
-├── tests/                   # Test suite
-├── docs/                    # Documentation
-└── README.md               # Quick start guide
+OpenSage/
+├── README.md
+├── docs/                    # Docs source (MkDocs)
+├── src/
+│   └── opensage/              # Core Python package (current layout)
+│       ├── agents/          # Base agent + tool loading
+│       ├── bash_tools/      # Agent Skills (SKILL.md + scripts/)
+│       ├── cli/             # CLI entry points (opensage web / dependency-check)
+│       ├── config/          # TOML config system + dataclasses
+│       ├── evaluations/     # Benchmarks + evaluation runners
+│       ├── features/        # Feature flags / optional behaviors
+│       ├── memory/          # Neo4j-backed memory (search/update/tools)
+│       ├── plugins/         # ADK plugins
+│       ├── sandbox/         # Sandbox backends + initializers
+│       ├── sandbox_scripts/ # Scripts invoked inside sandboxes
+│       ├── session/         # Session + managers (sandboxes/agents/neo4j/ensemble)
+│       ├── templates/       # Default configs + Dockerfiles
+│       ├── toolbox/         # Python tool wrappers / MCP toolsets
+│       ├── util_agents/     # Utility sub-agents (e.g. memory management)
+│       └── utils/           # Shared utilities
+├── examples/                # Example agents and configs
+├── tests/                   # Unit/integration tests
+└── third_party/             # External benchmark/tool dependencies
 ```
 
 ## Key Directories Explained
 
-### `src/aigise/agents/`
-- `aigise_agent.py`: Extended ADK agent class
-- Tool loading and dynamic tool injection
+### `src/opensage/agents/`
+- OpenSage base agent and tool description loading (`ToolLoader`)
 
-### `src/aigise/session/`
-- `aigise_session.py`: Main session manager
-- `aigise_sandbox_manager.py`: Sandbox lifecycle management
-- `aigise_dynamic_agent_manager.py`: Agent creation and caching
-- `aigise_ensemble_manager.py`: Multi-agent coordination
+### `src/opensage/session/`
+- Session manager and per-session resource isolation
+- Sandbox lifecycle management
+- Dynamic agent management and ensemble management
 
-### `src/aigise/sandbox/`
-- `base_sandbox.py`: Abstract sandbox interface
-- `native_docker_sandbox.py`: Docker-based sandbox
-- `k8s_sandbox.py`: Kubernetes-based sandbox
+### `src/opensage/sandbox/`
+- Abstract sandbox interface
+- Docker-based sandbox
+- Kubernetes-based sandbox (under development)
 - `initializers/`: Sandbox initialization logic
 
-### `src/aigise/toolbox/`
-- `static_analysis/`: Joern, CodeQL integration
-- `fuzzing/`: Fuzzing tools
-- `debugger/`: GDB integration
-- `coverage/`: Coverage analysis
-- `retrieval/`: Code search tools
+### `src/opensage/bash_tools/`
+- Filesystem-discovered Skills (bash tools)
+- Each Skill: `SKILL.md` + `scripts/` (+ optional `deps/`)
 
-### `src/aigise/evaluations/`
+### `src/opensage/toolbox/`
+- Python-side tools, MCP toolsets, and wrappers used by agents
+
+### `src/opensage/evaluations/`
 - `cybergym/`: CyberGym benchmark
 - `patchagent/`: PatchAgent benchmark
 - `secodeplt/`: SecCodePLT benchmark
+- `swe_bench_pro/` SWE-Bench Pro benchmark
 
 ## See Also
 
-- [Core Components](Core-Components.md) - Component details
-- [Development Guides](Development-Guides.md) - How to add to the codebase
+[Core Components](Core-Components.md) - Component details
+[Development Guides](Development-Guides.md) - How to add to the codebase

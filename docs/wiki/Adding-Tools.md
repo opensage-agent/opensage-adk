@@ -2,15 +2,44 @@
 
 ## Overview
 
-In SAGE-X, tools are implemented as **Agent Skills** (bash scripts) or **MCP toolsets** (Model Context Protocol), rather than Python functions. This design allows tools to be executed directly in sandbox containers via bash commands, providing better isolation and flexibility.
+OpenSage supports three tool types:
+
+1. **Python tools**: any callable function (docstring becomes the tool description)
+2. **Agent Skills**: filesystem-discovered bash/Python scripts described by `SKILL.md`
+3. **MCP toolsets**: external services exposed via MCP (typically SSE)
 
 ## Tool Types
 
-### 1. Agent Skills (Bash Scripts)
+### 1. Python Tools
+
+Python tools are any callable functions you include in your agent’s `tools=[...]`.
+The function signature becomes the tool schema, and the docstring is shown to
+the model as the tool description.
+
+**Example:**
+
+```python
+def greet(name: str) -> str:
+    """Return a friendly greeting."""
+    return f"Hello, {name}!"
+```
+
+**Enable in your agent:**
+
+```python
+root_agent = OpenSageAgent(
+    name="my_agent",
+    model=...,
+    instruction="...",
+    tools=[greet],
+)
+```
+
+### 2. Agent Skills (Bash Scripts)
 
 Agent Skills are bash scripts organized in a structured directory format with metadata. They are automatically discovered and loaded by the framework.
 
-### 2. MCP Toolsets
+### 3. MCP Toolsets
 
 MCP (Model Context Protocol) toolsets provide integration with external services or tools running in separate containers, typically accessed via SSE (Server-Sent Events) connections.
 
@@ -18,10 +47,10 @@ MCP (Model Context Protocol) toolsets provide integration with external services
 
 ### Directory Structure
 
-Create a skill directory under `src/<package>/bash_tools/`:
+Create a skill directory under `src/opensage/bash_tools/`:
 
 ```
-src/<package>/bash_tools/
+src/opensage/bash_tools/
 └── category/
     └── tool-name/
         ├── SKILL.md          # Tool metadata and documentation
@@ -31,7 +60,7 @@ src/<package>/bash_tools/
 
 **Example structure:**
 ```
-src/<package>/bash_tools/
+src/opensage/bash_tools/
 └── retrieval/
     └── grep/
         ├── SKILL.md
@@ -43,10 +72,11 @@ src/<package>/bash_tools/
 
 The `SKILL.md` file contains YAML frontmatter and markdown documentation:
 
-```markdown
+````markdown
 ---
 name: tool-name
 description: Brief description of what the tool does
+should_run_in_sandbox: main
 ---
 
 # Tool Name
@@ -103,7 +133,14 @@ main
 ## Timeout
 
 Default timeout: 60 seconds
-```
+````
+
+Notes:
+
+- `should_run_in_sandbox` is **required** for executable Skills (a Skill folder
+  that contains `scripts/*.sh` or `scripts/*.py`).
+- Use the Markdown section `## Requires Sandbox` for **dependency** sandboxes.
+  (Do not put `sandbox` / `sandboxes` fields in YAML frontmatter.)
 
 ### Parameter Types
 
@@ -177,33 +214,62 @@ main, fuzz
 ### Automatic Discovery
 
 Tools are automatically discovered from:
-- `src/<package>/bash_tools/` (built-in tools)
-- `~/.local/plugins/<product>/tools/` (user plugins)
+- `src/opensage/bash_tools/` (built-in tools)
+- `~/.local/plugins/opensage/tools/` (user plugins)
 
 The framework scans these directories for `SKILL.md` files and loads them automatically.
+
+### enabled_skills (which skills get loaded)
+
+Agents can restrict which skills are available by setting `enabled_skills`:
+
+- `None`: load **no** skills
+- `"all"` / `["all"]`: load **only top-level** skills (`<root>/*/SKILL.md`)
+- `List[str]`: treat each entry as a **prefix allowlist** under the skill root
+  (e.g. `"fuzz"` loads all skills under `fuzz/`; `"fuzz/run-fuzzing-campaign"` loads
+  just that subtree)
+
+### Per-skill dependency installers (deps/install.sh)
+
+If a skill needs extra dependencies inside a sandbox, it can provide an installer:
+
+- `deps/<sandbox_type>/install.sh` (sandbox-specific), and/or
+- `deps/install.sh` (generic)
+
+To control which sandbox should run the installer, add YAML frontmatter to
+`SKILL.md`:
+
+```yaml
+---
+should_run_in_sandbox: main
+---
+```
+
+Installers are run during sandbox initialization (best-effort) and are only run
+once per session (subsequent runs are skipped via a marker under `/shared`).
 
 ## Creating an MCP Toolset
 
 MCP toolsets are created via Python functions that return `MCPToolset` instances:
 
 ```python
-# src/<package>/toolbox/category/get_toolset.py
+# src/opensage/toolbox/category/get_toolset.py
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
-from <package>.toolbox.decorators import requires_sandbox, safe_tool_execution
-from <package>.utils.agent_utils import get_mcp_url_from_session_id
+from opensage.toolbox.decorators import requires_sandbox, safe_tool_execution
+from opensage.utils.agent_utils import get_mcp_url_from_session_id
 
 @safe_tool_execution
 @requires_sandbox("gdb_mcp")
-def get_toolset(aigise_session_id: str) -> MCPToolset:
+def get_toolset(session_id: str) -> MCPToolset:
     """Create MCPToolset with GDB MCP server running in Docker container.
 
     Args:
-        aigise_session_id: Shared session ID for session-based management
+        session_id: Shared session ID for session-based management
 
     Returns:
         MCPToolset connected to GDB MCP server
     """
-    url = get_mcp_url_from_session_id("gdb_mcp", aigise_session_id)
+    url = get_mcp_url_from_session_id("gdb_mcp", session_id)
     mcp_toolset = MCPToolset(connection_params=SseConnectionParams(url=url))
     return mcp_toolset
 ```
@@ -216,6 +282,10 @@ The function should:
 
 ## Tool Registration
 
+### For Python Tools
+
+Add the callable directly to your agent’s `tools` list.
+
 ### For Agent Skills
 
 Agent Skills are automatically discovered and registered. No manual registration needed.
@@ -225,9 +295,9 @@ Agent Skills are automatically discovered and registered. No manual registration
 Add the toolset getter function to your agent's tools:
 
 ```python
-from <package>.toolbox.category.get_toolset import get_toolset
+from opensage.toolbox.category.get_toolset import get_toolset
 
-agent = AigiseAgent(
+agent = Agent(
     name="my_agent",
     tools=[get_toolset, ...],  # Add the getter function
     ...
@@ -245,6 +315,5 @@ agent = AigiseAgent(
 
 ## See Also
 
-- [Common Patterns](Common-Patterns.md) - Tool development patterns
-- [Best Practices](Best-Practices.md) - Best practices for tools
-- [Core Concepts](Core-Concepts.md) - Understanding tools in context
+[Tools](Getting-Started.md#tools) - Tool types and patterns
+[Best Practices](Best-Practices.md) - Best practices for tools

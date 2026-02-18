@@ -1,4 +1,4 @@
-"""Dependency check utilities for AIgiSE CLI."""
+"""Dependency check utilities for OpenSage CLI."""
 
 from __future__ import annotations
 

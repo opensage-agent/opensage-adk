@@ -51,8 +51,7 @@ full = [
 ]
 
 [project.scripts]
-aigise = "aigise.cli.aigise_cli:main"
-sage-x = "aigise.cli.aigise_cli:main"
+opensage = "aigise.cli.aigise_cli:main"
 
 [dependency-groups]
 dev = [
@@ -65,8 +64,11 @@ dev = [
 ]
 docs = [
     "mkdocs>=1.5.0",
+    "mkdocs-autorefs>=1.4.0",
     "mkdocs-material>=9.0.0",
     "mkdocs-minify-plugin>=0.7.0",
+    "mkdocstrings[python]>=0.30.0",
+    "pymdown-extensions>=10.16.0",
 ]
 
 [tool.uv]
@@ -79,11 +81,12 @@ allow-direct-references = true
 [tool.hatch.build.targets.sdist]
 include = [
     "src/aigise",
+    "src/opensage",
     "examples",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/aigise"]
+packages = ["src/aigise", "src/opensage"]
 
 [tool.ruff]
 extend-exclude = ["third_party"]

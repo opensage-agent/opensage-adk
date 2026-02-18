@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 @click.group(context_settings={"max_content_width": 240})
 def main():
-    """AIgiSE CLI tools."""
+    """OpenSage CLI tools."""
     pass
 
 
@@ -77,15 +77,15 @@ def _load_mk_agent_from_dir(agent_dir: str):
 
 
 async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
-    """Prepare AIgiSE environment: create session and initialize sandboxes.
+    """Prepare OpenSage environment: create session and initialize sandboxes.
 
     Returns:
-      The created AIgiSE session_id (used to bind agent state).
+      The created OpenSage session_id (used to bind agent state).
     """
     import uuid
 
     session_id = str(uuid.uuid4())
-    logger.info(f"Initializing AIgiSE session: {session_id}")
+    logger.info(f"Initializing OpenSage session: {session_id}")
 
     # 1) Create session from config
     aigise_session = get_aigise_session(
@@ -143,7 +143,7 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
     # 4) Initialize sandboxes (tools ready)
     await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
 
-    logger.info(f"AIgiSE environment is ready for session: {session_id}")
+    logger.info(f"OpenSage environment is ready for session: {session_id}")
     return session_id
 
 
@@ -188,7 +188,7 @@ def _verify_agent_module(agent_dir: str) -> None:
     "config_path",
     type=click.Path(exists=True, dir_okay=False, file_okay=True, resolve_path=True),
     required=True,
-    help="Path to AIgiSE TOML config.",
+    help="Path to OpenSage TOML config.",
 )
 @click.option(
     "--agent",
@@ -241,7 +241,7 @@ def cli_web(
     log_level: str,
     neo4j_logging: bool,
 ):
-    """Starts an AIgiSE-flavored Web UI: prepare environment then serve agents."""
+    """Starts an OpenSage-flavored Web UI: prepare environment then serve agents."""
     # Normalize logging
     logging.basicConfig(level=getattr(logging, log_level.upper()))
 
@@ -255,11 +255,11 @@ def cli_web(
         except Exception as e:
             logger.error("Failed to enable Neo4j logging: %s", e)
 
-    # 1) Prepare environment (create AIgiSE session and initialize sandboxes)
+    # 1) Prepare environment (create session and initialize sandboxes)
     session_id = asyncio.run(
         _prepare_environment_async(config_path=config_path, agent_dir=agent_dir)
     )
-    click.secho(f"AIgiSE session prepared: {session_id}", fg="green")
+    click.secho(f"OpenSage session prepared: {session_id}", fg="green")
 
     # 2) Load the agent and bind to the prepared session (no reload/auto-discovery)
     mk_agent = _load_mk_agent_from_dir(agent_dir)
@@ -322,7 +322,7 @@ def cli_web(
         log_level=log_level.lower(),
     )
     click.secho(
-        f"Serving AIgiSE Web at http://{host}:{port} (session: {session_id})",
+        f"Serving OpenSage Web at http://{host}:{port} (session: {session_id})",
         fg="green",
     )
     server = uvicorn.Server(config)
@@ -331,7 +331,7 @@ def cli_web(
 
 @main.command("dependency-check")
 def cli_dependency_check():
-    """Check AIgiSE external dependencies.
+    """Check OpenSage external dependencies.
 
     Checks for manually installed dependencies:
     - CodeQL: Required for CodeQL static analysis features
@@ -340,7 +340,7 @@ def cli_dependency_check():
 
     All dependencies are optional unless you plan to use the corresponding features.
     """
-    click.secho("Checking AIgiSE dependencies...\n", fg="cyan", bold=True)
+    click.secho("Checking OpenSage dependencies...\n", fg="cyan", bold=True)
 
     results = [
         verify_codeql(),

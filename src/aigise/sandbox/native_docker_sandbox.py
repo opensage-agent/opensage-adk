@@ -182,6 +182,11 @@ class NativeDockerSandbox(BaseSandbox):
     """Native Docker sandbox implementation using direct Docker API."""
 
     backend_type = "native"
+    _HELPER_IMAGE_CANDIDATES = (
+        "alpine:latest",
+        "busybox:latest",
+    )
+    _cached_helper_image: str | None = None
 
     def __init__(
         self,
@@ -246,6 +251,28 @@ class NativeDockerSandbox(BaseSandbox):
 
         # Detect available shell in container
         self._detected_shell = None  # Will be set on first use
+
+    @classmethod
+    def _get_helper_image(cls) -> str:
+        """Return an available helper image, pulling if necessary.
+
+        Several sandbox operations (volume init, chmod) require a tiny helper
+        container. The Docker SDK does not auto-pull images, so we do a best
+        effort pull when the image is missing locally.
+        """
+        if cls._cached_helper_image is not None:
+            return cls._cached_helper_image
+
+        for candidate in cls._HELPER_IMAGE_CANDIDATES:
+            if image_exists_locally(candidate) or can_pull_image(candidate):
+                cls._cached_helper_image = candidate
+                return candidate
+
+        raise RuntimeError(
+            "No suitable helper image available for Docker operations. "
+            f"Tried: {list(cls._HELPER_IMAGE_CANDIDATES)}. "
+            "Ensure Docker can pull at least one of them."
+        )
 
     def _connect_to_existing_container(self, container_id: str) -> str:
         """Connect to an existing container if it's running.
@@ -791,8 +818,9 @@ class NativeDockerSandbox(BaseSandbox):
         client = docker.from_env()
         container = None
         try:
+            helper_image = cls._get_helper_image()
             container = client.containers.create(
-                "alpine",
+                helper_image,
                 name=helper_name,
                 volumes={volume_name: {"bind": "/target", "mode": "rw"}},
             )
@@ -940,6 +968,8 @@ class NativeDockerSandbox(BaseSandbox):
         from aigise.utils.project_info import SRC_PATH
 
         try:
+            helper_image = cls._get_helper_image()
+
             # Create volume names
             scripts_volume_name = f"{volume_name_prefix}_sandbox_scripts"
             data_volume_name = f"{volume_name_prefix}_shared"
@@ -982,7 +1012,7 @@ class NativeDockerSandbox(BaseSandbox):
                     "--rm",
                     "-v",
                     f"{data_volume_id}:/target",
-                    "alpine",
+                    helper_image,
                     "sh",
                     "-c",
                     "chmod -R 777 /target",
@@ -1009,7 +1039,7 @@ class NativeDockerSandbox(BaseSandbox):
                     "--rm",
                     "-v",
                     f"{tools_volume_id}:/target",
-                    "alpine",
+                    helper_image,
                     "sh",
                     "-c",
                     "chmod -R 777 /target",
@@ -1346,9 +1376,10 @@ class NativeDockerSandbox(BaseSandbox):
                 # This ensures no other process takes it before we launch real sandboxes
                 try:
                     client = docker.from_env(timeout=3600)
+                    helper_image = cls._get_helper_image()
                     placeholder_container = client.containers.run(
-                        "alpine:latest",
-                        command=["sh", "-c", "nc -l -p 7777 0.0.0.0 & sleep infinity"],
+                        helper_image,
+                        command=["sh", "-c", "sleep infinity"],
                         detach=True,
                         name=f"aigise_placeholder_{str(uuid.uuid4())}",
                         ports={"7777/tcp": (test_ip, 7777)},
@@ -1459,9 +1490,10 @@ class NativeDockerSandbox(BaseSandbox):
                     )
 
             # 3. Wrap placeholder container as a sandbox for unified management
+            helper_image = cls._get_helper_image()
             placeholder_config = ContainerConfig(
                 container_id=placeholder_container_id,
-                image="alpine:latest",
+                image=helper_image,
             )
             placeholder_sandbox = cls(
                 placeholder_config,

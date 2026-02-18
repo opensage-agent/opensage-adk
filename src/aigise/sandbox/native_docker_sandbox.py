@@ -636,7 +636,6 @@ class NativeDockerSandbox(BaseSandbox):
                         )
                         continue
 
-            # TODO: FIXME: if there are multiple functions with the same name, we need to find the one that matches the line number
             start_line, end_line = functions[function_name][0]
             start_index = start_line - 1
             end_index = end_line
@@ -1316,7 +1315,6 @@ class NativeDockerSandbox(BaseSandbox):
         import socket
 
         # Collect all ports to check
-        # TODO: Add more ports to check as needed
         ports_to_check = [7777]  # Placeholder port
 
         # Add Neo4j ports

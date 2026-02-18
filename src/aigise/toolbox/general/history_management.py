@@ -355,10 +355,6 @@ async def get_all_events_for_summarization(
         }
 
 
-# TODO: finish this function
-# Provide a tool that the LLM can automatically invoke to drop or summarize events.
-
-
 @safe_tool_execution
 @requires_sandbox("neo4j")
 async def drop_or_summarize_events(tool_context: ToolContext):

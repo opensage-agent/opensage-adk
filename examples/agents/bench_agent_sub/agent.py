@@ -6,7 +6,7 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.planners import BasePlanner
 
 from aigise.agents.aigise_agent import AigiseAgent
-from aigise.memory.tools import search_memory
+from aigise.memory.search_tool import search_memory
 from aigise.session import get_aigise_session
 from aigise.toolbox.finish_task.finish_task import finish_task
 from aigise.toolbox.general.agent_tools import (

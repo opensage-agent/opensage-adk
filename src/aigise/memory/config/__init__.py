@@ -10,7 +10,6 @@ from aigise.memory.config.domain_config import (
 )
 from aigise.memory.config.memory_settings import (
     MemorySettings,
-    configure_memory,
     configure_memory_from_config,
     get_memory_settings,
     is_memory_enabled,
@@ -29,7 +28,6 @@ __all__ = [
     # Memory settings
     "MemorySettings",
     "get_memory_settings",
-    "configure_memory",
     "configure_memory_from_config",
     "reset_memory_settings",
     "is_memory_enabled",

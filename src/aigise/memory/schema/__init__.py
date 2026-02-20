@@ -1,6 +1,5 @@
 """Schema definitions for the memory system."""
 
-from aigise.memory.schema.matching_rules import MatchingStrategy
 from aigise.memory.schema.node_types import (
     MatchingRule,
     NodeTypeConfig,
@@ -15,5 +14,4 @@ __all__ = [
     "PropertyConfig",
     "PropertyType",
     "RelationshipConfig",
-    "MatchingStrategy",
 ]

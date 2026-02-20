@@ -9,9 +9,9 @@ This module provides a rich graph-based memory system with:
 """
 
 from aigise.memory.config.domain_config import DomainConfig
-from aigise.memory.observer.storage_decider import StorageDecider, StorageDecision
 from aigise.memory.schema.node_types import MatchingRule, NodeTypeConfig, PropertyConfig
 from aigise.memory.schema.relationship_types import RelationshipConfig
+from aigise.memory.storage_decider import StorageDecider, StorageDecision
 
 __all__ = [
     "DomainConfig",

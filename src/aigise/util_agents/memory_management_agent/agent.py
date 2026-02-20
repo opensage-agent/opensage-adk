@@ -4,13 +4,7 @@ from google.adk.models import BaseLlm
 from google.adk.tools.agent_tool import AgentTool
 
 from aigise.agents.aigise_agent import AigiseAgent
-from aigise.memory.tools import (
-    get_entity_by_id,
-    get_related_entities,
-    link_entities,
-    list_memory_contents,
-    search_memory,
-)
+from aigise.memory.search_tool import search_memory
 from aigise.toolbox.general.history_management import (
     get_all_events_for_summarization,
     get_all_invocations_for_agent,
@@ -61,10 +55,6 @@ def create_memory_management_agent(
     ]
     long_term_memory_tools = [
         search_memory,
-        get_related_entities,
-        list_memory_contents,
-        get_entity_by_id,
-        link_entities,
     ]
     all_tools = short_term_memory_tools + long_term_memory_tools
 

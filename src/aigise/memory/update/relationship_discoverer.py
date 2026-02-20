@@ -6,17 +6,32 @@ import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from aigise.memory.schema.matching_rules import (
-    MatchResult,
-    get_matching_strategy,
-)
-from aigise.memory.schema.node_types import MatchingRule
 from aigise.memory.update.entity_extractor import ExtractedEntity
 
 if TYPE_CHECKING:
     from aigise.memory.config.domain_config import DomainConfig
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class MatchResult:
+    """Result of a matching operation."""
+
+    matched: bool
+    """Whether a match was found."""
+
+    node_id: Optional[str] = None
+    """Neo4j internal node ID if matched."""
+
+    properties: Optional[Dict[str, Any]] = None
+    """Properties of the matched node."""
+
+    score: Optional[float] = None
+    """Match score (for similarity matching, 0.0 to 1.0)."""
+
+    match_type: str = "none"
+    """Type of match: 'exact', 'similarity', or 'none'."""
 
 
 @dataclass

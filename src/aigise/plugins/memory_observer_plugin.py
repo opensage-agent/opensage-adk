@@ -11,7 +11,7 @@ from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
 
-from aigise.memory.observer.storage_decider import StorageDecider, StorageDecision
+from aigise.memory.storage_decider import StorageDecider, StorageDecision
 from aigise.memory.update.update_controller import MemoryUpdateController
 from aigise.utils.agent_utils import (
     get_aigise_config_from_context,

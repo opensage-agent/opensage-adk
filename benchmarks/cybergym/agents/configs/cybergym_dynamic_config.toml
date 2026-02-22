@@ -151,6 +151,7 @@ poc_dir = "${POC_DIR}"
 compile_command = "${COMPILE_COMMAND}"
 run_command = "${RUN_COMMAND}"
 target_type = "default"
+target_binary = "${TARGET_BINARY}"
 
 [mcp]
 # GDB MCP service configuration

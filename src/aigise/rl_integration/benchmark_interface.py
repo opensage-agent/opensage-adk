@@ -78,7 +78,7 @@ class BenchmarkInterface:
         Raises:
             ImportError: If benchmark not found in registry
         """
-        from aigise.evaluations import _EVALUATION_REGISTRY, get_evaluation_class
+        from aigise.evaluations.base import _EVALUATION_REGISTRY, get_evaluation_class
 
         # First, try to import common submodules to trigger registration
         base_path = f"aigise.evaluations.{benchmark_name}"

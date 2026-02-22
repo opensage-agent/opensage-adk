@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from google.adk import Agent
 
-from aigise.evaluations import EvaluationTask
+from aigise.evaluations.base import EvaluationTask
 from aigise.evaluations.swe_bench_pro.swe_bench_pro import SweBenchPro
 from aigise.session import get_aigise_session
 

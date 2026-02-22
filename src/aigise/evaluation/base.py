@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 import asyncio
 import datetime
@@ -6,18 +8,21 @@ import json
 import logging
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import traceback
 import uuid
-from dataclasses import dataclass
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from dataclasses import dataclass, field, fields
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any
 
 import datasets
 import fire
 import google.adk as adk
 import jsonpickle
+import litellm
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.agents.llm_agent import LlmAgent
@@ -29,27 +34,28 @@ from google.adk.runners import Runner
 from google.adk.sessions import Session
 from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
-from huggingface_hub import pause_space
 from tqdm import tqdm
 
-from aigise.config import AigiseConfig
+from aigise import get_aigise_session
 from aigise.features.aigise_in_memory_session_service import (
     AigiseInMemorySessionService,
 )
 from aigise.plugins import load_plugins
-from aigise.session import get_aigise_session
 from aigise.session.aigise_session import AigiseSession
 from aigise.toolbox.decorators import collect_sandbox_dependencies
 from aigise.utils.bash_tools_staging import compute_bash_tools_top_roots
 from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
 
+# TODO: incompatibility between litellm and multiple async event loops
+litellm.disable_streaming_logging = True
+
 logger = logging.getLogger(__name__)
 
 # Registry for Evaluation subclasses
-_EVALUATION_REGISTRY: dict[str, type["Evaluation"]] = {}
+_EVALUATION_REGISTRY: dict[str, type[Evaluation]] = {}
 
 
-def get_evaluation_class(name: str) -> type["Evaluation"] | None:
+def get_evaluation_class(name: str) -> type[Evaluation] | None:
     """Get registered Evaluation class by name (case-insensitive).
 
     Args:
@@ -66,12 +72,7 @@ def list_evaluations() -> list[str]:
     return list(_EVALUATION_REGISTRY.keys())
 
 
-import litellm
-
-litellm.disable_streaming_logging = True
-
-
-def _run_sample_in_process(evaluation_instance: "Evaluation", sample: dict) -> dict:
+def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dict:
     """Wrapper function to run a sample in a separate process.
 
     This function must be defined at module level for pickling.
@@ -81,7 +82,7 @@ def _run_sample_in_process(evaluation_instance: "Evaluation", sample: dict) -> d
         sample: Sample dict from dataset
 
     Returns:
-        Result dictionary from _generate_sample
+        Result dictionary from _generate_one
     """
     # Create task from sample
     task = evaluation_instance._create_task(sample)
@@ -112,7 +113,7 @@ def _run_sample_in_process(evaluation_instance: "Evaluation", sample: dict) -> d
 
     # Run async code in this process's event loop
     try:
-        return asyncio.run(evaluation_instance._generate_sample(task))
+        return asyncio.run(evaluation_instance._generate_one(task))
     except Exception as e:
         # Convert all exceptions to RuntimeError to ensure pickle-ability
         # This prevents ProcessPool from breaking when serializing exceptions
@@ -134,20 +135,38 @@ class EvaluationTask:
     custom fields.
     """
 
-    session_id: str  # Unique AIgiSE session ID
-    sample: dict  # Original sample from dataset
-    task_name: str  # Unique task identifier
-    input_data_path: str  # Path to input data to mount
-    prompt: str  # Prompt to send to agent
-    output_dir: str  # Local output directory
-    cache_dir: str  # Sandbox cache directory
-    output_dir_in_sandbox: str | tuple | None  # Optional sandbox dir(s) to export
-    metadata: dict  # Metadata to save
-    config_template_path: str | Path = (
-        SRC_PATH / "templates/configs/default_config.toml"
-    )
-    aigise_session: AigiseSession | None = None
-    model: Any = None  # Optional model override (BaseLlm instance or string model name)
+    id: str
+    """Unique task identifier"""
+
+    sample: dict
+    """Original sample from dataset"""
+
+    first_user_message: str
+    """First user message for the agent"""
+
+    session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    """Unique AIgiSE session ID"""
+
+    output_dir: str
+    """Local output directory for this task"""
+
+    # For sandbox
+    initial_data_dir: str | None = None
+    """Path to input data to be copied into workspace"""
+
+    sandbox_cache_dir: str | None = None
+    """Sandbox cache directory"""
+
+    export_dir_in_sandbox: str | list[str] | None = None
+    """Optional sandbox dir(s) to export"""
+
+    model: str | BaseLlm | None = None
+    """Optional model override (BaseLlm instance or string model name)"""
+
+    @property
+    def aigise_session(self) -> AigiseSession:
+        """Get or create AIgiSE session for this task."""
+        return get_aigise_session(self.session_id, create_if_missing=False)
 
 
 @dataclass
@@ -165,30 +184,57 @@ class Evaluation(abc.ABC):
         cls = get_evaluation_class("secodeplt")
     """
 
-    dataset_path: str  # HuggingFace dataset name (e.g., "org/dataset") or local path
-    agent_dir: str  # directory containing agent.py with mk_agent function
-    dataset_hf_split: str = "train"
+    # Agent (Required)
+    agent_dir: str
+    """directory containing agent.py with mk_agent function"""
+
+    # Dataset (Required)
+    dataset_path: str
+    """HuggingFace dataset name (e.g., "org/dataset") or local path"""
+
+    # Evaluation
+    name: str = "base_evaluation"
     output_dir: str | None = None
-    use_cache: bool = False  # Only load/cache sandboxes if True
-    input_data_path: str = ""
-    cache_dir: str = ""
-    max_llm_calls: int = 100
+    """If None, will create by default as evals/{name}/{timestamp}"""
+
     max_workers: int = 6
+
     run_until_explicit_finish: bool = False
-    use_config_model: bool = (
-        False  # If True, use the model specified in the config file
-    )
-    output_dir_in_sandbox: str | tuple | None = None
-    config_template_path: str | Path | None = (
-        SRC_PATH / "templates/configs/default_config.toml"
-    )
-    use_multiprocessing: bool = True  # Use multiprocessing (True) or threading (False)
-    llm_retry_count: int = (
-        3  # Number of retries for LLM API calls (e.g., for 502 errors)
-    )
-    llm_retry_timeout: int = 30  # Timeout in seconds for each LLM request
-    log_level: str = "INFO"  # Terminal log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-    neo4j_logging: bool = False  # Whether to enable Neo4j logging for this run
+
+    use_multiprocessing: bool = True
+    """Use multiprocessing (True) or threading (False) for parallel sample execution"""
+
+    log_level: str = "INFO"
+    """Console log level: DEBUG, INFO, WARNING, ERROR, CRITICAL"""
+
+    # TODO: better priority system for which model to use
+    use_config_model: bool = False
+    """Override the model use the model specified in the config file if True"""
+
+    # Agent
+
+    config_template_path: str | None = None
+    """Search in agent_dir if not provided"""
+
+    max_llm_calls: int = 100
+
+    llm_retry_count: int = 3
+    """Number of retries for LLM API calls (e.g., for 502 errors), currently only applies to LiteLLM"""
+
+    llm_retry_timeout: int = 30
+    """Timeout in seconds for each LLM request, currently only applies to LiteLLM"""
+
+    neo4j_logging: bool = False
+    """Whether to enable Neo4j logging for this run"""
+
+    # Dataset
+    dataset_split: str = "train"
+
+    # Sandbox and execution
+    use_sandbox_cache: bool = False
+    """Load/cache sandboxes if True"""
+
+    sandbox_cache_dir: str | None = None
 
     def __init_subclass__(cls, **kwargs):
         """Auto-register Evaluation subclasses."""
@@ -229,19 +275,18 @@ class Evaluation(abc.ABC):
             f"Configured LiteLLM retry: num_retries={self.llm_retry_count}, "
             f"request_timeout={self.llm_retry_timeout}"
         )
-        logger.info(f"Terminal log level set to: {self.log_level}")
+        logger.info(f"Terminal log level set to: {self.console_log_level}")
 
         if not self.output_dir:
-            self.output_dir: Path = (
+            self.output_dir = str(
                 PROJECT_PATH
-                / Path("evals")
+                / "evals"
                 / self.__class__.__name__.lower()
                 / datetime.datetime.now().strftime("%y%m%d_%H%M%S")
             )
-            self.output_dir.mkdir(parents=True)
+            Path(self.output_dir).mkdir(parents=True)
         else:
-            self.output_dir = Path(self.output_dir)
-            if self.output_dir.exists():
+            if Path(self.output_dir).exists():
                 flag = (
                     input(f"{self.output_dir} already exists, continue? (y/n): ")
                     .strip()
@@ -251,12 +296,11 @@ class Evaluation(abc.ABC):
                     print("Exiting...")
                     exit(0)
             else:
-                self.output_dir.mkdir(parents=True)
-        self.user_id = str(self.output_dir).replace("/", "_")
+                Path(self.output_dir).mkdir(parents=True)
 
         # Create master log handler - records all logs from start to finish
         # Note: Use local variable (not self._master_handler) to avoid pickle issues with multiprocessing
-        master_log = self.output_dir / "evaluation_master.log"
+        master_log = Path(self.output_dir) / "evaluation_master.log"
         master_handler = logging.FileHandler(master_log, mode="w")
         master_handler.setLevel(logging.INFO)
         master_handler.setFormatter(
@@ -276,7 +320,6 @@ class Evaluation(abc.ABC):
 
     def _log_and_save_parameters(self) -> None:
         """Log and save evaluation parameters to output directory."""
-        from dataclasses import asdict, fields
 
         # Collect all dataclass fields
         params = {}
@@ -294,8 +337,6 @@ class Evaluation(abc.ABC):
 
         # Add git commit information
         try:
-            import subprocess
-
             git_commit = (
                 subprocess.check_output(
                     ["git", "rev-parse", "HEAD"],
@@ -329,7 +370,7 @@ class Evaluation(abc.ABC):
         logger.warning("=" * 80)
 
         # Save to output directory
-        params_file = self.output_dir / "eval_params.json"
+        params_file = Path(self.output_dir) / "eval_params.json"
         with open(params_file, "w") as f:
             json.dump(params, f, indent=2)
         logger.warning(f"Parameters saved to: {params_file}")
@@ -337,7 +378,7 @@ class Evaluation(abc.ABC):
     def _save_cost_info(
         self,
         task: EvaluationTask,
-        session: "Session",
+        session: Session,
         *,
         num_llm_calls: int,
     ) -> None:
@@ -403,7 +444,7 @@ class Evaluation(abc.ABC):
             json.dump(cost_info, f, indent=2)
         logger.warning(f"Cost info saved to: {cost_file}")
 
-    def _load_mk_agent(self, agent_dir: str) -> Callable:
+    def _load_mk_agent(self) -> callable:
         """Load mk_agent function from agent directory.
 
         Expects agent_dir to contain agent.py with mk_agent function.
@@ -423,11 +464,11 @@ class Evaluation(abc.ABC):
             ValueError: If agent.py or mk_agent not found
         """
         # Convert to absolute path
-        agent_path = Path(agent_dir).resolve()
+        agent_path = Path(self.agent_dir).resolve()
 
         if not agent_path.exists():
             raise ValueError(
-                f"Agent directory not found: {agent_dir}\nResolved to: {agent_path}"
+                f"Agent directory not found: {self.agent_dir}\nResolved to: {agent_path}"
             )
 
         if not agent_path.is_dir():
@@ -440,6 +481,7 @@ class Evaluation(abc.ABC):
             )
 
         # Add parent directory to sys.path for module imports
+        # https://github.com/google/adk-python/blob/223d9a7ff52d8da702f1f436bd22e94ad78bd5da/src/google/adk/cli/utils/agent_loader.py#L216
         parent_dir = str(agent_path.parent)
         if parent_dir not in sys.path:
             sys.path.insert(0, parent_dir)
@@ -530,7 +572,9 @@ class Evaluation(abc.ABC):
             )
         return dataset
 
-    def _create_task(self, sample: dict) -> EvaluationTask:
+    def _create_task(
+        self, sample: dict, model: str | BaseLlm | None = None
+    ) -> EvaluationTask:
         """Create task instance from sample.
 
         Subclasses can override this to create custom task types with
@@ -555,27 +599,20 @@ class Evaluation(abc.ABC):
                         custom_field=sample["custom"]
                     )
         """
-        session_id = str(uuid.uuid4())
-        task_name = self._get_sample_id(sample)
-
-        return EvaluationTask(
-            session_id=session_id,
+        task_id = self._get_task_id(sample)
+        task = EvaluationTask(
+            id=task_id,
             sample=sample,
-            task_name=task_name,
-            input_data_path=self._get_input_data_path(sample),
-            prompt=self._get_user_msg_first(sample),
-            output_dir=str(self.output_dir / task_name),
-            cache_dir=self._get_cache_dir(sample),
-            output_dir_in_sandbox=self._get_output_dir_in_sandbox(sample),
-            metadata=sample,
-            config_template_path=self.config_template_path,
+            initial_data_dir=self._get_initial_data_dir(sample),
+            first_user_message=self._get_first_user_message(sample),
+            output_dir=str(Path(self.output_dir) / task_id),
+            sandbox_cache_dir=self._get_sandbox_cache_dir(sample),
+            export_dir_in_sandbox=self._get_export_dir_in_sandbox(sample),
+            model=model,
         )
+        return task
 
-    def _prepare_general_env(self) -> None:
-        """Set up general environment for all samples."""
-        pass
-
-    def generate(self) -> None:
+    def _generate_multiprocess(self) -> None:
         """Generate samples using multiprocessing for true parallelism.
 
         Each sample runs in its own process to bypass Python's GIL
@@ -584,11 +621,8 @@ class Evaluation(abc.ABC):
         Note: Uses ProcessPoolExecutor by default. For threading mode,
         use generate_threaded() instead.
         """
-        from concurrent.futures import ProcessPoolExecutor, as_completed
 
         self.dataset = self._get_dataset()
-
-        self._prepare_general_env()
 
         # Execute samples in parallel using process pool
         with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
@@ -638,7 +672,7 @@ class Evaluation(abc.ABC):
                 f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
             )
 
-    def generate_threaded(self) -> None:
+    def _generate_threaded(self) -> None:
         """Generate samples using multithreading (fallback option).
 
         Each sample runs in its own thread. Use this if multiprocessing
@@ -648,14 +682,12 @@ class Evaluation(abc.ABC):
 
         self.dataset = self._get_dataset()
 
-        self._prepare_general_env()
-
         # Wrapper to run async _generate_sample in a thread
         def run_sample_in_thread(sample: dict) -> dict:
             # Create task from sample
             task = self._create_task(sample)
             # Run async code in this thread's event loop
-            return asyncio.run(self._generate_sample(task))
+            return asyncio.run(self._generate_one(task))
 
         # Execute samples in parallel using thread pool
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
@@ -700,7 +732,7 @@ class Evaluation(abc.ABC):
                 f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
             )
 
-    def generate_single_thread(self) -> None:
+    def _generate_single_thread(self) -> None:
         """Generate samples sequentially in a single thread for debugging."""
 
         self.dataset = self._get_dataset()
@@ -718,7 +750,7 @@ class Evaluation(abc.ABC):
                 # Create task from sample
                 task = self._create_task(sample)
                 # Run async code in new event loop for each sample
-                result = asyncio.run(self._generate_sample(task))
+                result = asyncio.run(self._generate_one(task))
                 results.append(result)
                 logger.info(f"✓ Task {task_name} completed")
             except Exception as e:
@@ -742,62 +774,10 @@ class Evaluation(abc.ABC):
                 f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
             )
 
-    @abc.abstractmethod
-    def _get_sample_id(self, sample: dict) -> str:
-        """Get unique task name/ID for this sample.
-
-        This is used for output directory naming and identification.
-        Each sample should have a unique task name.
-
-        Args:
-            sample: Sample dict from dataset
-
-        Returns:
-            Unique task name/ID for this sample
-
-        Example::
-            def _get_sample_id(self, sample: dict) -> str:
-                return sample["task_id"]
-        """
-        pass
-
-    @abc.abstractmethod
-    def _get_user_msg_first(self, sample: dict) -> str:
-        """Get the initial prompt/message to send to the agent.
-
-        Args:
-            sample: Sample dict from dataset
-
-        Returns:
-            Prompt string to send to agent
-
-        Example::
-            def _get_user_msg_first(self, sample: dict) -> str:
-                return sample["prompt"]
-        """
-        pass
-
-    def _get_input_data_path(self, sample: dict) -> str:
-        """Get input data path for this sample.
-
-        Default: {self.input_data_path}/{task_name}
-        Override if you need custom logic.
-
-        Args:
-            sample: Sample dict from dataset
-
-        Returns:
-            Path to input data directory
-        """
-        task_name = self._get_sample_id(sample)
-        if not self.input_data_path:
-            return None
-        return str(Path(self.input_data_path) / task_name)
-
-    def _get_cache_dir(self, sample: dict) -> str:
+    def _get_sandbox_cache_dir(self, sample: dict) -> str:
         """Get sandbox cache directory for this sample.
 
-        Default: {self.cache_dir}/{task_name}
+        Default: {self.sandbox_cache_dir}/{task_name}
         Override if you need custom logic.
 
         Args:
@@ -806,25 +786,10 @@ class Evaluation(abc.ABC):
         Returns:
             Path to cache directory, or empty string if caching is disabled
         """
-        task_name = self._get_sample_id(sample)
-        if not self.cache_dir:
+        if not self.use_sandbox_cache:
             return ""  # Return empty string to indicate no caching
-        return str(Path(self.cache_dir) / task_name)
-
-    def _get_output_dir_in_sandbox(self, sample: dict) -> str | tuple | None:
-        """Get sandbox output directory/directories to export.
-
-        Default: self.output_dir_in_sandbox (class attribute)
-        Override if you need sample-specific logic.
-
-        Args:
-            sample: Sample dict from dataset
-
-        Returns:
-            Path(s) to sandbox output directory/directories, or None
-            Can be a single string or a tuple of strings
-        """
-        return self.output_dir_in_sandbox
+        task_id = self._get_task_id(sample)
+        return str(Path(self.sandbox_cache_dir) / task_id)
 
     def _prepare_agent(self, task: EvaluationTask) -> BaseAgent | None:
         """Prepare agent with the correct model.
@@ -902,8 +867,8 @@ class Evaluation(abc.ABC):
 
         return agent
 
-    async def _generate_sample(self, task: EvaluationTask) -> dict:
-        """Generate a single sample with automatic sandbox and Neo4j management.
+    async def _generate_one(self, task: EvaluationTask) -> dict:
+        """Generate result for a single task with automatic sandbox and Neo4j management.
 
         Args:
             task: EvaluationTask instance with all task data
@@ -944,6 +909,7 @@ class Evaluation(abc.ABC):
         root_logger.addHandler(debug_handler)
         root_logger.addHandler(info_handler)
 
+        # TODO: don't know what this was for
         # Terminal: Set ALL stderr StreamHandlers to configured log level
         # Traverse all existing loggers (root and all children)
         logging.basicConfig(level=self._terminal_log_level)
@@ -958,6 +924,8 @@ class Evaluation(abc.ABC):
 
         try:
             logger.info(f"Starting task {task.task_name} (session: {task.session_id})")
+
+            self._before_generate_one_callback(task)
 
             # === 0. Get aigise_session ===
             self._register_aigise_session(task)
@@ -1031,6 +999,7 @@ class Evaluation(abc.ABC):
     def _replace_template_variables_in_config(
         self, config_path: str, template_variables: dict
     ) -> None:
+        # TODO: probably merge to the config loading code
         with open(config_path, "r") as f:
             content = f.read()
         for var_name, var_value in template_variables.items():
@@ -1038,17 +1007,6 @@ class Evaluation(abc.ABC):
             content = re.sub(pattern, str(var_value), content)
         with open(config_path, "w") as f:
             f.write(content)
-
-    def _before_initialize_hooks(
-        self, aigise_session: AigiseSession, task: EvaluationTask
-    ) -> None:
-        """Run before initialize hooks.
-
-        Args:
-            aigise_session: AigiseSession instance
-            task: EvaluationTask instance with all task data
-        """
-        pass
 
     def customized_modify_and_save_results(
         self,
@@ -1080,18 +1038,10 @@ class Evaluation(abc.ABC):
         temp_dir = tempfile.mkdtemp(prefix=f"aigise_{task.session_id}_")
         temp_config_path = Path(temp_dir) / config_template.name
         shutil.copy(config_template, temp_config_path)
-        task_name = task.task_name
-        input_data_path = str(Path(task.input_data_path).relative_to(PROJECT_PATH))
-        template_variables = {
-            "TASK_NAME": task_name,
-            "PROJECT_RELATIVE_SHARED_DATA_PATH": input_data_path,
-        }
+        template_variables = self._get_config_template_variables(task)
         self._replace_template_variables_in_config(temp_config_path, template_variables)
 
-        aigise_session = get_aigise_session(
-            task.session_id, config_path=temp_config_path
-        )
-        task.aigise_session = aigise_session
+        get_aigise_session(task.session_id, config_path=temp_config_path)
 
         # clean up temp config file
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -1174,17 +1124,19 @@ class Evaluation(abc.ABC):
         # 5. Launch all sandboxes (create containers only, not initialized yet)
         await aigise_session.sandboxes.launch_all_sandboxes()
 
-        self._before_initialize_hooks(aigise_session, task)
+        await self._before_initialize_callback(task)
 
         # 6. Initialize all sandboxes
         # continue_on_error=True is important for the evaluation to continue even if some sandboxes fail to initialize
         await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
 
+        await self._after_initialize_callback(task)
+
         # 7. Cache sandboxes if needed
         if self.use_cache and unfound_cached_sandboxes:
             aigise_session.sandboxes.cache_sandboxes(cache_dir=task.cache_dir)
 
-    async def _run_agent(self, task: EvaluationTask, agent: adk.Agent) -> "Session":
+    async def _run_agent(self, task: EvaluationTask, agent: adk.Agent) -> Session:
         """Run agent with the given prompt.
 
         Args:
@@ -1195,6 +1147,7 @@ class Evaluation(abc.ABC):
             ADK Session object with execution history
         """
         # 2. Create runner and session service
+        user_id = self.output_dir.replace("/", "_")
         app_name = self.__class__.__name__.lower()
         session_service = AigiseInMemorySessionService()
         enabled_plugins = []
@@ -1221,7 +1174,7 @@ class Evaluation(abc.ABC):
         # 3. Create session with aigise_session_id in state
         await session_service.create_session(
             app_name=app_name,
-            user_id=self.user_id,
+            user_id=user_id,
             session_id=task.session_id,
             state={
                 "aigise_session_id": task.session_id,
@@ -1243,7 +1196,7 @@ class Evaluation(abc.ABC):
             used_calls = 0
             session_snapshot = await session_service.get_session(
                 app_name=app_name,
-                user_id=self.user_id,
+                user_id=user_id,
                 session_id=task.session_id,
             )
             if (
@@ -1266,7 +1219,7 @@ class Evaluation(abc.ABC):
         llm_calls_used_total: int = 0
         try:
             async for event in runner.run_async(
-                user_id=self.user_id,
+                user_id=user_id,
                 session_id=task.session_id,
                 run_config=_build_run_config(),
                 new_message=types.Content(
@@ -1294,7 +1247,7 @@ class Evaluation(abc.ABC):
                         break
 
                     async for event in runner.run_async(
-                        user_id=self.user_id,
+                        user_id=user_id,
                         session_id=task.session_id,
                         run_config=_build_run_config(),
                         new_message=types.Content(
@@ -1331,7 +1284,7 @@ class Evaluation(abc.ABC):
         await runner.close()
         if not session_snapshot:
             session_snapshot = await session_service.get_session(
-                app_name=app_name, user_id=self.user_id, session_id=task.session_id
+                app_name=app_name, user_id=user_id, session_id=task.session_id
             )
         session = session_snapshot
         # set our collected events to the session object, since the original events may be lost due to summarization
@@ -1344,7 +1297,7 @@ class Evaluation(abc.ABC):
 
         return session
 
-    async def _collect_outputs(self, task: EvaluationTask, session: "Session") -> dict:
+    async def _collect_outputs(self, task: EvaluationTask, session: Session) -> dict:
         """Collect outputs: sandbox files, Neo4j database, session trace.
 
         Args:
@@ -1411,7 +1364,6 @@ class Evaluation(abc.ABC):
 
         # 4. Save metadata
         info = {
-            "metadata": task.metadata,
             "session": session.model_dump() if session else None,
         }
         with open(output_path / "metadata.json", "w") as f:
@@ -1421,8 +1373,9 @@ class Evaluation(abc.ABC):
         return info
 
     async def _export_neo4j_database(
-        self, aigise_session: "AigiseSession", output_path: Path
+        self, aigise_session: AigiseSession, output_path: Path
     ) -> None:
+        # TODO: Should implement the export in the session management, not in evaluations
         """Export Neo4j history database files.
 
         Args:
@@ -1458,7 +1411,8 @@ class Evaluation(abc.ABC):
         except Exception as e:
             logger.warning(f"Failed to export Neo4j database: {e}")
 
-    def _export_session_trace(self, session: "Session", output_path: Path) -> None:
+    def _export_session_trace(self, session: Session, output_path: Path) -> None:
+        # TODO: Should implement the export in the session management, not in evaluations
         """Export session event trace to JSON and text formats.
 
         Args:
@@ -1475,35 +1429,123 @@ class Evaluation(abc.ABC):
         with open(output_path, "w") as f:
             f.write(session.model_dump_json(indent=2, exclude_none=True))
 
-        # Save formatted text trace
-        output_lines = []
-        for event in session.events:
-            if not event.content or not event.content.parts:
-                continue
-            text_parts = [
-                part.text.replace("\n", " ")
-                for part in event.content.parts
-                if part.text
-            ]
-            if text_parts:
-                output_lines.append(
-                    json.dumps(
-                        {
-                            "author": event.author,
-                            "timestamp": str(event.timestamp),
-                            "text": ".".join(text_parts),
-                        }
-                    )
-                )
-
-        with open(output_path.with_suffix(".txt"), "w") as f:
-            f.write("\n".join(output_lines))
-
         logger.warning(f"Session trace exported to {output_path}")
+
+    # ========= Methods to Override in Subclasses ==========
+    # Override these methods in subclasses
+    def _before_generate_one_callback(self, task: EvaluationTask) -> None:
+        """Hook to run before running one task.
+
+        Args:
+            task: EvaluationTask instance
+        """
+        pass
+
+    @abc.abstractmethod
+    def _get_task_id(self, sample: dict) -> str:
+        """Get unique task id for this sample.
+
+        This is used for output directory naming and identification.
+        Each sample should have a unique task id.
+
+        Args:
+            sample: Sample dict from dataset
+
+        Returns:
+            Unique task id for this sample
+        """
+        pass
+
+    @abc.abstractmethod
+    def _get_first_user_message(self, sample: dict) -> str:
+        """Get the initial prompt/message to send to the agent.
+
+        Args:
+            sample: Sample dict from dataset
+
+        Returns:
+            Prompt string to send to agent
+
+        Example::
+            def _get_user_msg_first(self, sample: dict) -> str:
+                return sample["prompt"]
+        """
+        pass
+
+    def _get_initial_data_dir(self, sample: dict) -> str:
+        """Get input data path for this sample.
+
+        Default: None (no data mounted)
+        Override if you need custom logic.
+
+        Args:
+            sample: Sample dict from dataset
+
+        Returns:
+            Path to input data directory
+        """
+        return None
+
+    @abc.abstractmethod
+    def _get_export_dir_in_sandbox(self, sample: dict) -> str | tuple | None:
+        """Get sandbox output directory/directories to export.
+
+        Default: self.output_dir_in_sandbox (class attribute)
+        Override if you need sample-specific logic.
+
+        Args:
+            sample: Sample dict from dataset
+
+        Returns:
+            Path(s) to sandbox output directory/directories, or None
+            Can be a single string or a tuple of strings
+        """
+        pass
+
+    def _get_config_template_variables(self, task: EvaluationTask) -> dict:
+        """Get template variables for config file.
+
+        Default: {"TASK_NAME": task_name, "PROJECT_RELATIVE_SHARED_DATA_PATH": input_data_path}
+        Override if you need custom variables.
+
+        Args:
+            task: EvaluationTask instance with all task data
+        Returns:
+            Dict of template variable names and values
+        """
+        template = {"TASK_NAME": task.id}
+
+        # TODO: check what will happen if initial_data_dir is None
+        if task.initial_data_dir:
+            input_data_path = str(Path(task.initial_data_dir).relative_to(PROJECT_PATH))
+            template["PROJECT_RELATIVE_SHARED_DATA_PATH"] = input_data_path
+
+        return template
+
+    async def _before_initialize_callback(self, task: EvaluationTask) -> None:
+        """Run before initialize hooks.
+
+        Args:
+            task: EvaluationTask instance with all task data
+        """
+        pass
+
+    async def _after_initialize_callback(self, task: EvaluationTask) -> None:
+        """Run after initialize hooks.
+
+        Args:
+            task: EvaluationTask instance with all task data
+        """
+        pass
+
+    @abc.abstractmethod
+    def evaluate(self) -> None:
+        pass
+
+    # ================================================================
 
     # ========== RL Integration Methods ==========
     # These class methods are used by BenchmarkInterface for RL framework integration.
-    # Override in subclasses to provide benchmark-specific logic.
 
     @classmethod
     def get_prompt(cls, sample: Any) -> str:
@@ -1575,20 +1617,22 @@ class Evaluation(abc.ABC):
         """
         return sample
 
-    def evaluate(self) -> None:
-        raise NotImplementedError
+    def generate(self) -> None:
+        if self.max_workers == 1:
+            self._generate_single_thread()
+        if self.use_multiprocessing:
+            self._generate_multiprocess()  # Uses ProcessPoolExecutor
+        else:
+            self._generate_threaded()  # Uses ThreadPoolExecutor
 
     def run(self) -> dict:
         """Run evaluation with configured parallelism mode."""
-        if self.use_multiprocessing:
-            self.generate()  # Uses ProcessPoolExecutor
-        else:
-            self.generate_threaded()  # Uses ThreadPoolExecutor
+        self.generate()
         self.evaluate()
 
     def run_debug(self) -> dict:
         """Run evaluation in single-threaded mode for debugging."""
-        self.generate_single_thread()
+        self._generate_single_thread()
         self.evaluate()
 
 

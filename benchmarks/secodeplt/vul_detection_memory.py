@@ -25,7 +25,7 @@ from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field
 
 from aigise import AigiseSession
-from aigise.evaluations import Evaluation, EvaluationTask
+from aigise.evaluations.base import Evaluation, EvaluationTask
 from aigise.session import get_aigise_session
 from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
 from aigise.toolbox.general.bash_tool import bash_tool_main as bash_tool

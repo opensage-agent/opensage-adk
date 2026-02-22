@@ -15,7 +15,7 @@ from google.adk.planners import BuiltInPlanner
 from google.adk.sessions import Session
 from google.genai import types
 
-from aigise.evaluations import Evaluation, EvaluationTask
+from aigise.evaluations.base import Evaluation, EvaluationTask
 from aigise.session import get_aigise_session
 from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
 

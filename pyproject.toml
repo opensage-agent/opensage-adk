@@ -103,6 +103,8 @@ convention = "google"
 
 [tool.hatch.build.targets.wheel.force-include]
 "examples" = "aigise/examples"
+"src/aigise/cli/assets/opensage_favicon.ico" = "aigise/cli/assets/opensage_favicon.ico"
+"src/aigise/cli/vendor/adk_browser" = "aigise/cli/vendor/adk_browser"
 
 [tool.pytest.ini_options]
 log_format = "%(asctime)s [%(name)s] [%(levelname)s] %(message)s"

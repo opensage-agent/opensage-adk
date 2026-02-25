@@ -264,22 +264,6 @@ def _verify_agent_module(agent_dir: str) -> None:
     show_default=True,
     help="Enable Neo4j event logging via monkey patches.",
 )
-@click.option(
-    "--logo-text",
-    "logo_text",
-    type=str,
-    default="OpenSage",
-    show_default=True,
-    help="Dev UI logo text shown in the header.",
-)
-@click.option(
-    "--logo-image-url",
-    "logo_image_url",
-    type=str,
-    default=None,
-    show_default=True,
-    help="Dev UI logo image URL. If provided, may be used instead of text.",
-)
 def cli_web(
     config_path: Optional[str],
     agent_dir: str,
@@ -288,8 +272,6 @@ def cli_web(
     reload: bool,
     log_level: str,
     neo4j_logging: bool,
-    logo_text: str,
-    logo_image_url: Optional[str],
 ):
     """Starts an OpenSage-flavored Web UI: prepare environment then serve agents."""
     # Normalize logging
@@ -350,8 +332,6 @@ def cli_web(
         credential_service=credential_service,
         eval_sets_manager=eval_sets_manager,
         eval_set_results_manager=eval_set_results_manager,
-        logo_text=logo_text,
-        logo_image_url=logo_image_url,
         url_prefix=None,
         plugins=plugins,
     )

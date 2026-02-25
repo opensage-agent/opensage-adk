@@ -8,7 +8,14 @@ from pathlib import Path
 from typing import Any, Callable, List, Literal, Optional
 
 import graphviz
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Query,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -98,8 +105,6 @@ class AigiseWebServer:
         eval_sets_manager=None,
         eval_set_results_manager=None,
         plugins: Optional[list[BasePlugin]] = None,
-        logo_text: Optional[str] = None,
-        logo_image_url: Optional[str] = None,
         url_prefix: Optional[str] = None,
     ):
         # Use the app_name provided by CLI (parent folder of --agent) to match ADK's expectation.
@@ -113,8 +118,6 @@ class AigiseWebServer:
         self.eval_sets_manager = eval_sets_manager
         self.eval_set_results_manager = eval_set_results_manager
         self.plugins = plugins or []
-        self.logo_text = logo_text
-        self.logo_image_url = logo_image_url
         self.url_prefix = url_prefix
         self._runner: Optional[Runner] = None
 
@@ -194,6 +197,18 @@ class AigiseWebServer:
                 allow_methods=["*"],
                 allow_headers=["*"],
             )
+
+        @app.middleware("http")
+        async def _dev_ui_no_cache(request: Request, call_next):
+            response = await call_next(request)
+            path = request.url.path
+            if path == "/dev-ui" or path.startswith("/dev-ui/"):
+                # Dev UI is frequently patched while iterating; disable caching
+                # Overwrite (not setdefault) to defeat previously cached immutable bundles.
+                response.headers["Cache-Control"] = "no-store"
+                response.headers["Pragma"] = "no-cache"
+                response.headers["Expires"] = "0"
+            return response
 
         @app.get("/list-apps")
         async def list_apps() -> list[str]:
@@ -522,10 +537,13 @@ class AigiseWebServer:
                     )
 
         if enable_dev_ui:
-            # Reuse ADK's built assets for the Dev UI
-            from google.adk.cli import fast_api as adk_fast_api
-
-            web_assets_dir = Path(adk_fast_api.__file__).parent.resolve() / "browser"
+            # Serve vendored Dev UI assets (copied into this repo and offline patched).
+            web_assets_dir = Path(__file__).parent / "vendor" / "adk_browser"
+            if not web_assets_dir.exists():
+                raise FileNotFoundError(
+                    "Vendored Dev UI assets not found. Expected directory: "
+                    f"{web_assets_dir}."
+                )
             import mimetypes
 
             mimetypes.add_type("application/javascript", ".js", True)
@@ -537,8 +555,9 @@ class AigiseWebServer:
             @app.get("/dev-ui/config")
             async def get_ui_config():
                 return {
-                    "logo_text": self.logo_text,
-                    "logo_image_url": self.logo_image_url,
+                    "logo_text": "OpenSage",
+                    # Served from vendored static assets (offline replaced).
+                    "logo_image_url": "assets/opensage.svg",
                 }
 
             @app.get("/")

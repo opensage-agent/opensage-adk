@@ -7,7 +7,7 @@ from google.adk.tools.tool_context import ToolContext
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.session.neo4j_client import AsyncNeo4jClient
 from aigise.toolbox.coverage.llvm_cov import parse_llvm_coverage_json
-from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
+from aigise.toolbox.sandbox_requirements import requires_sandbox
 from aigise.utils.agent_utils import (
     get_aigise_config_from_context,
     get_neo4j_client_from_context,
@@ -109,7 +109,6 @@ async def upload_testcase_to_database(
         )
 
 
-@safe_tool_execution
 @requires_sandbox("coverage", "neo4j", "joern")
 async def run_coverage(testcase_path: str, *, tool_context: ToolContext) -> dict:
     """
@@ -152,7 +151,6 @@ async def run_coverage(testcase_path: str, *, tool_context: ToolContext) -> dict
     return {"testcase_id": testcase_id, "summary": report_msg}
 
 
-@safe_tool_execution
 @requires_sandbox("coverage", "neo4j", "joern")
 async def show_coverage(
     testcase_id: str,
@@ -201,7 +199,6 @@ async def show_coverage(
     return {"coverage": msg}
 
 
-@safe_tool_execution
 @requires_sandbox("coverage", "neo4j", "joern")
 async def find_testcases_covering_function(
     function_name: str, file_path: Optional[str], *, tool_context: ToolContext

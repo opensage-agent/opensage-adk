@@ -17,7 +17,6 @@ from typing import Any, Dict, List, Optional, Tuple
 from google.adk.tools.tool_context import ToolContext
 
 from aigise.session import get_aigise_session
-from aigise.toolbox.decorators import safe_tool_execution
 from aigise.toolbox.general.bash_task_manager import BashTaskManager, TaskStatus
 from aigise.utils.agent_utils import (
     get_aigise_session_id_from_context,
@@ -110,7 +109,6 @@ class BashToolMetadata:
         }
 
 
-@safe_tool_execution
 def run_bash_tool_script(
     script_name: str,
     args: Dict[str, Any],
@@ -266,7 +264,6 @@ def run_bash_tool_script(
         )
 
 
-@safe_tool_execution
 def list_available_scripts(
     start_dir: Optional[str] = None, *, tool_context: ToolContext
 ) -> str:
@@ -360,7 +357,6 @@ def list_available_scripts(
     return "\\n".join(output)
 
 
-@safe_tool_execution
 def wait_for_background(
     task_id: str,
     timeout: int = 300,
@@ -434,7 +430,6 @@ def wait_for_background(
         }
 
 
-@safe_tool_execution
 def run_terminal_command(
     command: str,
     background: bool = False,
@@ -565,7 +560,6 @@ def run_terminal_command(
         }
 
 
-@safe_tool_execution
 def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
     """List all background tasks and their current status.
 
@@ -621,7 +615,6 @@ def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
     return {"tasks": tasks, "summary": ", ".join(summary_parts)}
 
 
-@safe_tool_execution
 def get_background_task_output(
     task_id: str, *, tool_context: ToolContext
 ) -> Dict[str, Any]:
@@ -715,7 +708,6 @@ def get_background_task_output(
     return result
 
 
-@safe_tool_execution
 def kill_background_task(task_id: str, *, tool_context: ToolContext) -> Dict[str, Any]:
     """Kill a running background task.
 

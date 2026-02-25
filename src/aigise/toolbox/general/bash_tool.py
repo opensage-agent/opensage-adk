@@ -1,10 +1,9 @@
 from google.adk.tools import ToolContext
 
-from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
+from aigise.toolbox.sandbox_requirements import requires_sandbox
 from aigise.utils.agent_utils import get_sandbox_from_context
 
 
-@safe_tool_execution
 @requires_sandbox("main")
 def bash_tool_main(command: str, tool_context: ToolContext) -> str:
     """Execute a bash command and return the output.

@@ -6,7 +6,6 @@ from google.adk.tools.tool_context import ToolContext
 
 from aigise.session import get_aigise_session
 from aigise.session.message_board import get_current_message_board_id
-from aigise.toolbox.decorators import safe_tool_execution
 from aigise.utils.agent_utils import get_aigise_session_id_from_context
 
 
@@ -33,7 +32,6 @@ def _resolve_board_id(tool_context: ToolContext) -> str | None:
     return None
 
 
-@safe_tool_execution
 async def post_to_board(
     message: str,
     tool_context: ToolContext,

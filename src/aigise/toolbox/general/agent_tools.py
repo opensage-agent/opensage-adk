@@ -7,7 +7,6 @@ from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
 from aigise.session import get_aigise_session
-from aigise.toolbox.decorators import safe_tool_execution
 from aigise.utils.agent_utils import (
     INHERIT_MODEL,
     get_aigise_session_id_from_context,
@@ -17,7 +16,6 @@ from aigise.utils.agent_utils import (
 logger = logging.getLogger(__name__)
 
 
-@safe_tool_execution
 async def complain(complaint: str, tool_context: ToolContext):
     """
     If you have a complaint, you should call this tool to complain about it. E.g., if a tool is hard to use, if a file or folder is supposed to be there but is not, etc. We will take your complaint into consideration and improve the tooling.
@@ -30,7 +28,6 @@ async def complain(complaint: str, tool_context: ToolContext):
     return "Complained, we will take your complaint into consideration and improve the tooling."
 
 
-@safe_tool_execution
 async def note_suspicious_things(suspicious_things: str, tool_context: ToolContext):
     """
     If you have multiple intereting points or suspicious things to explore, you can call this tool to note them down so that you don't forget them.
@@ -41,7 +38,6 @@ async def note_suspicious_things(suspicious_things: str, tool_context: ToolConte
     return "Noted"
 
 
-@safe_tool_execution
 async def think(thinking: str, tool_context: ToolContext):
     """
     If you have want to do some reasoning, do not output the reasoning in plain text, call this tool to do the reasoning.
@@ -52,7 +48,6 @@ async def think(thinking: str, tool_context: ToolContext):
     return "Thinking done"
 
 
-@safe_tool_execution
 async def plan(plan: str, tool_context: ToolContext):
     """
     If you have want to do some planning, do not output the plan in plain text, call this tool to do the planning.
@@ -63,7 +58,6 @@ async def plan(plan: str, tool_context: ToolContext):
     return "Planning done"
 
 
-@safe_tool_execution
 async def critique(tool_context: ToolContext):
     """
     Call this to query another model as a consultant to help you solve the task, you should call this frequently to get an idea of how to solve the task.
@@ -220,7 +214,6 @@ Keep your response concise and actionable."""
         }
 
 
-@safe_tool_execution
 async def flag_unjustified_claims(tool_context: ToolContext):
     """
     Flag the unjustified claims in the history, this is done by another model
@@ -353,7 +346,6 @@ If no unjustified claims are found, simply state that no problematic claims were
         return error_msg
 
 
-@safe_tool_execution
 async def get_available_agents_for_ensemble(tool_context: ToolContext):
     """
     Get the available agents for the ensemble.
@@ -431,7 +423,6 @@ async def get_available_agents_for_ensemble(tool_context: ToolContext):
         }
 
 
-@safe_tool_execution
 async def get_available_models(tool_context: ToolContext):
     """
     Get the available models configured for ensemble use.
@@ -501,7 +492,6 @@ def _build_full_instruction(
     return "\n".join(task_parts)
 
 
-@safe_tool_execution
 async def agent_ensemble(
     instruction: str,
     agent_name: str,
@@ -598,7 +588,6 @@ async def agent_ensemble(
         }
 
 
-@safe_tool_execution
 async def agent_ensemble_pairwise(
     instructions: list[str],
     agent_name: str,

@@ -13,7 +13,7 @@ from google.adk.tools import ToolContext
 from google.genai import types
 
 from aigise.session import get_aigise_session
-from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
+from aigise.toolbox.sandbox_requirements import requires_sandbox
 from aigise.utils.agent_utils import (
     INHERIT_MODEL,
     get_aigise_config_from_context,
@@ -41,7 +41,6 @@ def _extract_cybergym_result(output: str) -> dict | None:
     return None
 
 
-@safe_tool_execution
 @requires_sandbox("main")
 def generate_poc_and_submit(
     poc_generation_script: str, *, tool_context: ToolContext
@@ -153,7 +152,6 @@ def generate_poc_and_submit(
             return f"Failed to parse cybergym result due to the following error: {str(e)}. Do not take this submission in account, try harder to trigger the vulnerability."
 
 
-@safe_tool_execution
 async def critique(tool_context: ToolContext):
     """
     Call this to query another model as a consultant to help you solve the task, you should call this frequently to get an idea of how to solve the task.
@@ -312,7 +310,6 @@ Keep your response concise and actionable."""
         }
 
 
-@safe_tool_execution
 @requires_sandbox("main")
 def run_poc_from_script(
     poc_generation_script: str, *, tool_context: ToolContext
@@ -442,7 +439,8 @@ def run_poc_from_script(
 
 
 # Unified helpers that use run_command_in_container
-@safe_tool_execution
+
+
 @requires_sandbox("main")
 def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     """Run a build command inside the sandbox via run_command_in_container.
@@ -457,7 +455,6 @@ def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     return sandbox.run_command_in_container(build_command)
 
 
-@safe_tool_execution
 @requires_sandbox("main")
 def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     """Run a PoC command inside the sandbox via run_command_in_container.

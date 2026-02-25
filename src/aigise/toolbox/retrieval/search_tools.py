@@ -4,7 +4,7 @@ import shlex
 
 from google.adk.tools.tool_context import ToolContext
 
-from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
+from aigise.toolbox.sandbox_requirements import requires_sandbox
 from aigise.utils.agent_utils import (
     get_neo4j_client_from_context,
     get_sandbox_from_context,
@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 # Neo4j database connection will be set up per function call using session-based approach
 
 
-@safe_tool_execution
 @requires_sandbox("main")
 def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
     """
@@ -69,7 +68,6 @@ def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
     return dict_result
 
 
-@safe_tool_execution
 @requires_sandbox("neo4j", "codeql", "joern")
 async def list_functions_in_file(filepath: str, *, tool_context: ToolContext) -> dict:
     """
@@ -122,7 +120,6 @@ async def list_functions_in_file(filepath: str, *, tool_context: ToolContext) ->
         }
 
 
-@safe_tool_execution
 @requires_sandbox("main")
 def get_line_around_linenum_in_file(
     filepath: str, linenum: int, context: int, *, tool_context: ToolContext
@@ -162,7 +159,6 @@ def get_line_around_linenum_in_file(
         return {"error": f"Failed to read file '{filepath}': {e}"}
 
 
-@safe_tool_execution
 @requires_sandbox("main")
 def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> dict:
     """

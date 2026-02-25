@@ -13,7 +13,6 @@ from google.genai import types
 
 from aigise.session.aigise_dynamic_agent_manager import AgentStatus
 from aigise.session.aigise_session import get_aigise_session
-from aigise.toolbox.decorators import safe_tool_execution
 from aigise.toolbox.general.agent_tools import complain
 from aigise.toolbox.general.bash_tools_interface import (
     get_background_task_output,
@@ -31,7 +30,6 @@ from aigise.utils.agent_utils import (
 _DEFAULT_SEARCH_LIMIT = 10
 
 
-@safe_tool_execution
 async def create_subagent(
     agent_name: str,
     instruction: str,
@@ -273,7 +271,6 @@ def _extract_tool_names_from_agent(agent_instance) -> List[str]:
     return tool_names
 
 
-@safe_tool_execution
 async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
     """List all active sub-agents, loading persistent agents on demand.
 
@@ -401,7 +398,6 @@ def _keyword_score(
     return matched, score, matched_keywords, sorted(matched_fields_set)
 
 
-@safe_tool_execution
 async def search_agent(
     keywords: Union[List[str], str],
     tool_context: ToolContext,
@@ -537,7 +533,6 @@ async def search_agent(
     }
 
 
-@safe_tool_execution
 async def call_subagent_as_tool(
     agent_name: str, task_message: str, tool_context: ToolContext
 ) -> Dict[str, Any]:

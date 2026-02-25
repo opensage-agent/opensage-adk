@@ -42,7 +42,7 @@ from aigise.features.aigise_in_memory_session_service import (
 )
 from aigise.plugins import load_plugins
 from aigise.session.aigise_session import AigiseSession
-from aigise.toolbox.decorators import collect_sandbox_dependencies
+from aigise.toolbox.sandbox_requirements import collect_sandbox_dependencies
 from aigise.utils.bash_tools_staging import compute_bash_tools_top_roots
 from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
 

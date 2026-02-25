@@ -284,7 +284,7 @@ class AigiseSandboxManager:
         Example::
 
             # Launch only required sandboxes
-            from aigise.toolbox.decorators import collect_sandbox_dependencies
+            from aigise.toolbox.sandbox_requirements import collect_sandbox_dependencies
 
             deps = collect_sandbox_dependencies(root_agent)  # {'main', 'gdb_mcp'}
             await session.sandboxes.launch_all_sandboxes(sandbox_types=deps)

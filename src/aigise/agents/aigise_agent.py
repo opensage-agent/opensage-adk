@@ -562,9 +562,9 @@ class AigiseAgent(LlmAgent):
         # Ensure all tools are safe and dict-shaped (including MCP-expanded tools).
         # We intentionally do this before calling the ADK LlmAgent constructor so the
         # runner always sees wrapped tools.
-        from aigise.toolbox.safe_tool_wrapper import ensure_safe_toollikes
+        from aigise.toolbox.tool_normalization import make_toollikes_safe_dict
 
-        tools = ensure_safe_toollikes(tools)
+        tools = make_toollikes_safe_dict(tools)
 
         kwargs["sub_agents"] = sub_agents
         kwargs["tools"] = tools

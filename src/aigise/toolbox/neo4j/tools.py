@@ -7,13 +7,12 @@ from typing import Any, Dict, Optional
 
 from google.adk.tools.tool_context import ToolContext
 
-from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
+from aigise.toolbox.sandbox_requirements import requires_sandbox
 from aigise.utils.agent_utils import get_neo4j_client_from_context
 
 logger = logging.getLogger(__name__)
 
 
-@safe_tool_execution
 @requires_sandbox("neo4j")
 async def run_neo4j_query(
     *,
@@ -35,7 +34,6 @@ async def run_neo4j_query(
     return {"success": True, "count": len(records or []), "records": records or []}
 
 
-@safe_tool_execution
 @requires_sandbox("neo4j")
 async def list_node_types(
     *,
@@ -81,7 +79,6 @@ async def list_node_types(
         }
 
 
-@safe_tool_execution
 @requires_sandbox("neo4j")
 async def list_relations(
     *,

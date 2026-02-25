@@ -507,9 +507,11 @@ Please provide your unique perspective and analysis. Consider that other agents 
                         from aigise.toolbox.general.message_board_tools import (
                             post_to_board,
                         )
-                        from aigise.toolbox.safe_tool_wrapper import ensure_safe_tool
+                        from aigise.toolbox.tool_normalization import (
+                            make_tool_safe_dict,
+                        )
 
-                        post_tool = ensure_safe_tool(post_to_board)
+                        post_tool = make_tool_safe_dict(post_to_board)
                         if not isinstance(
                             getattr(agent_with_model, "tools", None), list
                         ):

@@ -5,7 +5,7 @@ from typing import Optional
 from google.adk.tools.tool_context import ToolContext
 
 from aigise.session.neo4j_client import AsyncNeo4jClient
-from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
+from aigise.toolbox.sandbox_requirements import requires_sandbox
 from aigise.utils.agent_utils import (
     get_joern_client_from_context,
     get_neo4j_client_from_context,
@@ -13,7 +13,6 @@ from aigise.utils.agent_utils import (
 )
 
 
-@safe_tool_execution
 @requires_sandbox("neo4j", "codeql", "joern")
 async def search_function(function_name: str, *, tool_context: ToolContext) -> dict:
     """
@@ -196,7 +195,6 @@ async def _get_callee_helper(
     return dict_result
 
 
-@safe_tool_execution
 @requires_sandbox("neo4j", "codeql", "joern")
 async def get_caller(
     function_name: str, file_path: Optional[str] = None, *, tool_context: ToolContext
@@ -223,7 +221,6 @@ async def get_caller(
     return result
 
 
-@safe_tool_execution
 @requires_sandbox("neo4j", "codeql", "joern")
 async def get_callee(
     function_name: str, file_path: Optional[str] = None, *, tool_context: ToolContext
@@ -247,7 +244,6 @@ async def get_callee(
     return result
 
 
-@safe_tool_execution
 @requires_sandbox("neo4j", "codeql", "joern")
 async def get_call_paths_to_function(
     dst_function_name: str,
@@ -368,7 +364,6 @@ async def get_call_paths_to_function(
     return dict_result
 
 
-@safe_tool_execution
 @requires_sandbox("neo4j", "codeql", "joern")
 async def neo4j_query(
     query: str, params: Optional[dict] = None, *, tool_context: ToolContext
@@ -390,7 +385,6 @@ async def neo4j_query(
     return results
 
 
-@safe_tool_execution
 @requires_sandbox("joern")
 async def joern_slice(
     function_name: str, file_path: Optional[str], *, tool_context: ToolContext
@@ -437,7 +431,6 @@ async def joern_slice(
     return slice_result
 
 
-@safe_tool_execution
 @requires_sandbox("joern")
 async def joern_query(query: str, *, tool_context: ToolContext):
     """

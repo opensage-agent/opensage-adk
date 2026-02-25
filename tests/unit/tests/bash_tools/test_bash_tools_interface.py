@@ -130,7 +130,7 @@ class TestRunBashToolScript:
 
     def test_run_bash_tool_script_missing_context_and_sandbox(self):
         """Test run_bash_tool_script returns error when both context and sandbox are None."""
-        # @safe_tool_execution decorator catches exceptions and returns error dict
+        #  decorator catches exceptions and returns error dict
         result = run_bash_tool_script(
             script_name="test_script",
             args={},

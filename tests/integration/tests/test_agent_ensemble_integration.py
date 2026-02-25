@@ -32,7 +32,7 @@ from aigise.features.aigise_in_memory_session_service import (
 )
 from aigise.plugins import load_plugins
 from aigise.session import get_aigise_session
-from aigise.toolbox.decorators import collect_sandbox_dependencies
+from aigise.toolbox.sandbox_requirements import collect_sandbox_dependencies
 
 logger = logging.getLogger(__name__)
 

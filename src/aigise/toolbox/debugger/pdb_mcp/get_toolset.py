@@ -1,11 +1,10 @@
 from google.adk.tools.mcp_tool.mcp_toolset import SseConnectionParams
 
 from aigise.agents.aigise_agent import AigiseMCPToolset
-from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
+from aigise.toolbox.sandbox_requirements import requires_sandbox
 from aigise.utils.agent_utils import get_mcp_url_from_session_id
 
 
-@safe_tool_execution
 @requires_sandbox("pdb_mcp")
 def get_toolset(aigise_session_id: str) -> AigiseMCPToolset:
     """Create a named MCP toolset for the PDB MCP server.

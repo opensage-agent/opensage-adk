@@ -6,7 +6,6 @@ from typing import Any, Dict, Optional
 
 from google.adk.tools.tool_context import ToolContext
 
-from aigise.toolbox.decorators import safe_tool_execution
 from aigise.toolbox.general.edit_failure_analyzer import analyze_edit_failure
 from aigise.toolbox.general.string_utils import (
     get_multiple_match_info,
@@ -63,7 +62,6 @@ def _detect_file_indentation(content: str) -> str:
         return "MIXED"
 
 
-@safe_tool_execution
 def view_file(
     path: str, start_line: int = 1, end_line: int = -1, *, tool_context: ToolContext
 ) -> str:
@@ -118,7 +116,6 @@ def view_file(
     return header + output
 
 
-@safe_tool_execution
 def edit_file(
     path: str,
     content: str,
@@ -208,7 +205,6 @@ def edit_file(
     return _run_python_script(sandbox, script, "edit_file")
 
 
-@safe_tool_execution
 def search_file(path: str, regex: str, *, tool_context: ToolContext) -> str:
     """
     Search for a regular expression in a file.
@@ -236,7 +232,6 @@ def search_file(path: str, regex: str, *, tool_context: ToolContext) -> str:
     return output
 
 
-@safe_tool_execution
 def replace_in_file(
     path: str, old_text: str, new_text: str, *, tool_context: ToolContext
 ) -> str:
@@ -291,7 +286,6 @@ def replace_in_file(
     return _run_python_script(sandbox, script, "replace_in_file")
 
 
-@safe_tool_execution
 async def str_replace_edit(
     path: str,
     old_string: str,
@@ -819,7 +813,6 @@ async def str_replace_edit(
     return result
 
 
-@safe_tool_execution
 def list_dir(path: str = ".", *, tool_context: ToolContext) -> str:
     """
     List contents of a directory.

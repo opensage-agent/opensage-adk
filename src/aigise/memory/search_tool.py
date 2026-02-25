@@ -9,7 +9,7 @@ from google.adk.tools.tool_context import ToolContext
 
 from aigise.memory.config import get_merged_domain
 from aigise.memory.search.search_controller import MemorySearchController
-from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
+from aigise.toolbox.sandbox_requirements import requires_sandbox
 from aigise.utils.agent_utils import get_neo4j_client_from_context
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,6 @@ def _get_search_controller() -> MemorySearchController:
     return _search_controller
 
 
-@safe_tool_execution
 @requires_sandbox("neo4j")
 async def search_memory(
     query: str,

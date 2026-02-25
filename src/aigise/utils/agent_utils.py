@@ -146,7 +146,7 @@ def get_sandbox_from_context(
 
     Example::
 
-        from aigise.toolbox.decorators import requires_sandbox
+        from aigise.toolbox.sandbox_requirements import requires_sandbox
         from aigise.utils.agent_utils import get_sandbox_from_context
 
         @requires_sandbox("main")

@@ -9,7 +9,7 @@ import pytest
 async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monkeypatch):
     import aigise.agents.aigise_agent as agent_mod
     import aigise.session.aigise_ensemble_manager as emod
-    import aigise.toolbox.safe_tool_wrapper as safe_mod
+    import aigise.toolbox.tool_normalization as safe_mod
     from aigise.session.aigise_ensemble_manager import (
         AigiseEnsembleManager,
         EnsembleAgentInfo,

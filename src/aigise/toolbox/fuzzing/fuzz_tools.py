@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from google.adk.tools import ToolContext
 
-from aigise.toolbox.decorators import requires_sandbox, safe_tool_execution
+from aigise.toolbox.sandbox_requirements import requires_sandbox
 from aigise.utils.agent_utils import (
     get_aigise_config_from_context,
     get_sandbox_from_context,
@@ -17,7 +17,6 @@ from aigise.utils.agent_utils import (
 logger = logging.getLogger(__name__)
 
 
-@safe_tool_execution
 @requires_sandbox("main")
 async def simplified_python_fuzzer(
     script: str, *, tool_context: ToolContext
@@ -93,7 +92,6 @@ async def simplified_python_fuzzer(
         return result
 
 
-@safe_tool_execution
 @requires_sandbox("fuzz")
 async def run_fuzzing_campaign(
     seeds: Optional[List[str]] = None,

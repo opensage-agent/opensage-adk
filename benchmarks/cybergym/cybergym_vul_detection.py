@@ -260,7 +260,7 @@ class CyberGym(Evaluation):
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
-    config_template_path: str = str(Path(agent_dir) / "config.toml")
+    config_template_path: str = str(Path(agent_dir) / "cybergym_vul_detect_config.toml")
     # evaluate
 
     # git checkout to main/master branch before analysis

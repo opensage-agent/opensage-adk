@@ -43,6 +43,34 @@ def main():
     pass
 
 
+def _resolve_config_path(config_path: Optional[str], agent_dir: str) -> str:
+    """Resolve the OpenSage TOML config path.
+
+    Precedence:
+    - If user specified --config, use it.
+    - Otherwise, default to <agent_dir>/config.toml if it exists.
+    """
+    if config_path:
+        resolved = Path(config_path).expanduser().resolve()
+        if not resolved.exists():
+            raise click.ClickException(f"Config file not found: {resolved}")
+        if resolved.is_dir():
+            raise click.ClickException(
+                f"Config path must be a file, got directory: {resolved}"
+            )
+        return str(resolved)
+
+    agent_path = Path(agent_dir).resolve()
+    candidate = agent_path / "config.toml"
+    if candidate.exists() and candidate.is_file():
+        return str(candidate.resolve())
+
+    raise click.ClickException(
+        "Missing required option '--config'. "
+        f"Either pass --config PATH, or create {candidate}."
+    )
+
+
 def _load_mk_agent_from_dir(agent_dir: str):
     """Load mk_agent callable from an agent folder."""
     agent_path = Path(agent_dir).resolve()
@@ -186,9 +214,13 @@ def _verify_agent_module(agent_dir: str) -> None:
 @click.option(
     "--config",
     "config_path",
-    type=click.Path(exists=True, dir_okay=False, file_okay=True, resolve_path=True),
-    required=True,
-    help="Path to OpenSage TOML config.",
+    type=click.Path(exists=False, dir_okay=False, file_okay=True, resolve_path=True),
+    required=False,
+    default=None,
+    help=(
+        "Path to OpenSage TOML config. If omitted, defaults to "
+        "<agent_dir>/config.toml when present."
+    ),
 )
 @click.option(
     "--agent",
@@ -233,7 +265,7 @@ def _verify_agent_module(agent_dir: str) -> None:
     help="Enable Neo4j event logging via monkey patches.",
 )
 def cli_web(
-    config_path: str,
+    config_path: Optional[str],
     agent_dir: str,
     host: str,
     port: int,
@@ -244,6 +276,8 @@ def cli_web(
     """Starts an OpenSage-flavored Web UI: prepare environment then serve agents."""
     # Normalize logging
     logging.basicConfig(level=getattr(logging, log_level.upper()))
+
+    config_path = _resolve_config_path(config_path, agent_dir)
 
     # Optionally enable Neo4j logging (monkey patches BaseAgent/AgentTool)
     if neo4j_logging:

@@ -5,6 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
+import litellm
+
+from aigise.memory.config.memory_settings import get_memory_settings
 from aigise.memory.search.strategies.base_strategy import (
     SearchContext,
     SearchResultItem,
@@ -26,9 +29,6 @@ async def _generate_embedding(text: str) -> List[float]:
     Returns:
         List of floats representing the embedding vector.
     """
-    import litellm
-
-    from aigise.memory.config.memory_settings import get_memory_settings
 
     settings = get_memory_settings()
     response = await litellm.aembedding(

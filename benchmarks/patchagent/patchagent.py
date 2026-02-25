@@ -17,13 +17,13 @@ from .. import Evaluation, EvaluationTask
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(keyword_only=True)
 class PatchAgent(Evaluation):
-    ## local dataset_path: str = PROJECT_PATH / "src/aigise/data/patchagent/data.json"
-    dataset_path: str = "yuzhounie/patchagent_data"
+    agent_dir: str
+    config_template_path: str = str(Path(agent_dir) / "config.toml")
+    dataset_path: str = str(Path(__file__).resolve().parent / "data" / "data.json")
     dataset_hf_split: str = "train"
     output_dir_in_sandbox: str = "/shared/"
-    agent_dir: str = str(PROJECT_PATH / "examples/agents/poc_agent")
     max_llm_calls: int = 2
 
     def _get_sample_id(self, sample: dict) -> str:

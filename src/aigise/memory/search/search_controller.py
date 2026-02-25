@@ -6,6 +6,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
+import litellm
+
 from aigise.memory.config.memory_settings import get_memory_settings
 from aigise.memory.search.strategies import STRATEGY_REGISTRY
 from aigise.memory.search.strategies.base_strategy import (
@@ -160,8 +162,6 @@ class MemorySearchController:
         which approach will yield the best results.
         """
         try:
-            import litellm
-
             # Build strategy descriptions
             strategy_descriptions = []
             for name, strategy in self._strategies.items():

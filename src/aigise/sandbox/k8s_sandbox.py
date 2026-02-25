@@ -1661,7 +1661,7 @@ class K8sSandbox(BaseSandbox):
             setattr(sandbox_instance, "state", final_state)
             if sandboxes:
                 try:
-                    sandboxes.set_sandbox_state(sandbox_type, final_state)
+                    sandboxes.get_sandbox(sandbox_type).state = final_state
                 except Exception as state_exc:  # pylint: disable=broad-except
                     logger.warning(
                         "Failed to set sandbox '%s' state to %s: %s",
@@ -1683,7 +1683,7 @@ class K8sSandbox(BaseSandbox):
             setattr(sandbox_instance, "state", final_state)
             if sandboxes:
                 try:
-                    sandboxes.set_sandbox_state(sandbox_type, final_state)
+                    sandboxes.get_sandbox(sandbox_type).state = final_state
                 except Exception as state_exc:  # pylint: disable=broad-except
                     logger.warning(
                         "Failed to set sandbox '%s' state to %s: %s",

@@ -98,6 +98,35 @@ def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dic
     litellm.num_retries = evaluation_instance.llm_retry_count
     litellm.request_timeout = evaluation_instance.llm_retry_timeout
 
+    # Configure task-specific logging with two files + terminal
+    # File 1: DEBUG level (all details)
+    debug_log = task.output_path / "execution_debug.log"
+    debug_handler = logging.FileHandler(debug_log, mode="w")
+    debug_handler.setLevel(logging.DEBUG)
+    debug_handler.setFormatter(
+        logging.Formatter(
+            fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+    )
+
+    # File 2: INFO level (important info)
+    info_log = task.output_path / "execution_info.log"
+    info_handler = logging.FileHandler(info_log, mode="w")
+    info_handler.setLevel(logging.INFO)
+    info_handler.setFormatter(
+        logging.Formatter(
+            fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+    )
+
+    # Configure root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)  # Accept all levels
+    root_logger.addHandler(debug_handler)
+    root_logger.addHandler(info_handler)
+
     # Configure terminal log level in subprocess
     # This ensures the subprocess respects the parent's log_level setting
     terminal_log_level = evaluation_instance._terminal_log_level
@@ -144,11 +173,11 @@ class EvaluationTask:
     first_user_message: str
     """First user message for the agent"""
 
-    session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    """Unique AIgiSE session ID"""
-
     output_dir: str
     """Local output directory for this task"""
+
+    session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    """Unique AIgiSE session ID"""
 
     # For sandbox
     initial_data_dir: str | None = None
@@ -169,7 +198,7 @@ class EvaluationTask:
         return get_aigise_session(self.session_id, create_if_missing=False)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Evaluation(abc.ABC):
     """Base class for all evaluation benchmarks.
 
@@ -275,7 +304,7 @@ class Evaluation(abc.ABC):
             f"Configured LiteLLM retry: num_retries={self.llm_retry_count}, "
             f"request_timeout={self.llm_retry_timeout}"
         )
-        logger.info(f"Terminal log level set to: {self.console_log_level}")
+        logger.info(f"Terminal log level set to: {self._terminal_log_level}")
 
         if not self.output_dir:
             self.output_dir = str(
@@ -316,7 +345,7 @@ class Evaluation(abc.ABC):
         self._log_and_save_parameters()
 
         # Load mk_agent function from agent_path
-        self._mk_agent_original = self._load_mk_agent(self.agent_dir)
+        self._mk_agent_original = self._load_mk_agent()
 
     def _log_and_save_parameters(self) -> None:
         """Log and save evaluation parameters to output directory."""
@@ -412,7 +441,7 @@ class Evaluation(abc.ABC):
 
         cost_info = {
             "session_id": task.session_id,
-            "task_name": task.task_name,
+            "task_name": task.id,
             "model": model_name,
             "use_config_model": self.use_config_model,
             "timestamp": datetime.datetime.now().isoformat(),
@@ -567,9 +596,7 @@ class Evaluation(abc.ABC):
                     "json", data_files=str(self.dataset_path), split="train"
                 )
         else:
-            dataset = datasets.load_dataset(
-                self.dataset_path, split=self.dataset_hf_split
-            )
+            dataset = datasets.load_dataset(self.dataset_path, split=self.dataset_split)
         return dataset
 
     def _create_task(
@@ -642,7 +669,7 @@ class Evaluation(abc.ABC):
                 desc="Generating samples (multiprocess)",
             ):
                 sample = futures[future]
-                task_name = self._get_sample_id(sample)
+                task_name = self._get_task_id(sample)
 
                 try:
                     result = future.result()
@@ -655,7 +682,7 @@ class Evaluation(abc.ABC):
                     logger.error(f"  Traceback:\n{traceback.format_exc()}")
 
                     # Check if subprocess created error.json
-                    error_file = self.output_dir / task_name / "error.json"
+                    error_file = Path(self.output_dir) / task_name / "error.json"
                     if error_file.exists():
                         logger.error(f"  Detailed error saved to: {error_file}")
 
@@ -707,7 +734,7 @@ class Evaluation(abc.ABC):
                 desc="Generating samples (threaded)",
             ):
                 sample = futures[future]
-                task_name = self._get_sample_id(sample)
+                task_name = self._get_task_id(sample)
 
                 try:
                     result = future.result()
@@ -738,14 +765,13 @@ class Evaluation(abc.ABC):
         self.dataset = self._get_dataset()
         results = []
         failed_samples = []
-        self._prepare_general_env()
 
         # Keep from 50 sample for debugging
         # num_samples = len(dataset)
         # dataset = dataset.select(range(50, num_samples))
         # dataset = dataset.select(range(50))
         for sample in tqdm(self.dataset, desc="Generating samples (single-threaded)"):
-            task_name = self._get_sample_id(sample)
+            task_name = self._get_task_id(sample)
             try:
                 # Create task from sample
                 task = self._create_task(sample)
@@ -880,50 +906,8 @@ class Evaluation(abc.ABC):
         output_path = Path(task.output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
-        # Configure task-specific logging with two files + terminal
-        # File 1: DEBUG level (all details)
-        debug_log = output_path / "execution_debug.log"
-        debug_handler = logging.FileHandler(debug_log, mode="w")
-        debug_handler.setLevel(logging.DEBUG)
-        debug_handler.setFormatter(
-            logging.Formatter(
-                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-        )
-
-        # File 2: INFO level (important info)
-        info_log = output_path / "execution_info.log"
-        info_handler = logging.FileHandler(info_log, mode="w")
-        info_handler.setLevel(logging.INFO)
-        info_handler.setFormatter(
-            logging.Formatter(
-                fmt="%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d - %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-        )
-
-        # Configure root logger
-        root_logger = logging.getLogger()
-        root_logger.setLevel(logging.DEBUG)  # Accept all levels
-        root_logger.addHandler(debug_handler)
-        root_logger.addHandler(info_handler)
-
-        # TODO: don't know what this was for
-        # Terminal: Set ALL stderr StreamHandlers to configured log level
-        # Traverse all existing loggers (root and all children)
-        logging.basicConfig(level=self._terminal_log_level)
-        for logger_name in list(logging.Logger.manager.loggerDict.keys()) + [""]:
-            logger_obj = logging.getLogger(logger_name)
-            for handler in logger_obj.handlers[:]:
-                if (
-                    isinstance(handler, logging.StreamHandler)
-                    and handler.stream == sys.stderr
-                ):
-                    handler.setLevel(self._terminal_log_level)
-
         try:
-            logger.info(f"Starting task {task.task_name} (session: {task.session_id})")
+            logger.info(f"Starting task {task.id} (session: {task.session_id})")
 
             self._before_generate_one_callback(task)
 
@@ -954,12 +938,12 @@ class Evaluation(abc.ABC):
             except Exception as e:
                 logger.warning(f"Cleanup failed for session {task.session_id}: {e}")
 
-            logger.info(f"Task {task.task_name} completed successfully")
+            logger.info(f"Task {task.id} completed successfully")
             return output_info
 
         except Exception as e:
             # Log exception details
-            logger.error(f"Task {task.task_name} failed with exception: {e}")
+            logger.error(f"Task {task.id} failed with exception: {e}")
             logger.error(f"Full traceback:\n{traceback.format_exc()}")
 
             # Save error information to file
@@ -967,7 +951,7 @@ class Evaluation(abc.ABC):
             with open(error_file, "w") as f:
                 json.dump(
                     {
-                        "task_name": task.task_name,
+                        "task_name": task.id,
                         "session_id": task.session_id,
                         "error": str(e),
                         "error_type": type(e).__name__,
@@ -1034,7 +1018,7 @@ class Evaluation(abc.ABC):
             None
         """
         # Copy config template to a temporary file for this task
-        config_template = Path(task.config_template_path)
+        config_template = Path(self.config_template_path)
         temp_dir = tempfile.mkdtemp(prefix=f"aigise_{task.session_id}_")
         temp_config_path = Path(temp_dir) / config_template.name
         shutil.copy(config_template, temp_config_path)
@@ -1134,7 +1118,7 @@ class Evaluation(abc.ABC):
 
         # 7. Cache sandboxes if needed
         if self.use_cache and unfound_cached_sandboxes:
-            aigise_session.sandboxes.cache_sandboxes(cache_dir=task.cache_dir)
+            aigise_session.sandboxes.cache_sandboxes(cache_dir=task.sandbox_cache_dir)
 
     async def _run_agent(self, task: EvaluationTask, agent: adk.Agent) -> Session:
         """Run agent with the given prompt.
@@ -1223,7 +1207,7 @@ class Evaluation(abc.ABC):
                 session_id=task.session_id,
                 run_config=_build_run_config(),
                 new_message=types.Content(
-                    role="user", parts=[types.Part(text=task.prompt)]
+                    role="user", parts=[types.Part(text=task.first_user_message)]
                 ),
             ):
                 logger.warning(event.model_dump_json())
@@ -1505,7 +1489,7 @@ class Evaluation(abc.ABC):
     def _get_config_template_variables(self, task: EvaluationTask) -> dict:
         """Get template variables for config file.
 
-        Default: {"TASK_NAME": task_name, "PROJECT_RELATIVE_SHARED_DATA_PATH": input_data_path}
+        Default: {"TASK_NAME": task_name, "ABSOLUTE_SHARED_DATA_PATH": input_data_path}
         Override if you need custom variables.
 
         Args:
@@ -1517,8 +1501,8 @@ class Evaluation(abc.ABC):
 
         # TODO: check what will happen if initial_data_dir is None
         if task.initial_data_dir:
-            input_data_path = str(Path(task.initial_data_dir).relative_to(PROJECT_PATH))
-            template["PROJECT_RELATIVE_SHARED_DATA_PATH"] = input_data_path
+            input_data_path = str(Path(task.initial_data_dir).resolve())
+            template["ABSOLUTE_SHARED_DATA_PATH"] = input_data_path
 
         return template
 
@@ -1541,81 +1525,6 @@ class Evaluation(abc.ABC):
     @abc.abstractmethod
     def evaluate(self) -> None:
         pass
-
-    # ================================================================
-
-    # ========== RL Integration Methods ==========
-    # These class methods are used by BenchmarkInterface for RL framework integration.
-
-    @classmethod
-    def get_prompt(cls, sample: Any) -> str:
-        """Extract prompt from RL sample for agent execution.
-
-        Override this method in subclasses to provide benchmark-specific
-        prompt extraction logic.
-
-        Args:
-            sample: Sample object from RL framework
-
-        Returns:
-            Prompt string to send to agent
-        """
-        # Default: try common attributes
-        if hasattr(sample, "prompt"):
-            prompt = sample.prompt
-            if isinstance(prompt, list):
-                # Chat format - extract last user message
-                for msg in reversed(prompt):
-                    if msg.get("role") == "user":
-                        return msg.get("content", "")
-            return str(prompt)
-        return ""
-
-    @classmethod
-    async def reward_func(cls, args: Any, sample: Any, **kwargs) -> dict:
-        """Calculate reward for RL training.
-
-        Override this method in subclasses to provide benchmark-specific
-        reward calculation logic.
-
-        Args:
-            args: Rollout arguments from RL framework
-            sample: Sample with agent response
-            **kwargs: Additional arguments
-
-        Returns:
-            Reward dict with 'score' and optional metadata
-        """
-        return {"score": 0.0, "status": "not_implemented"}
-
-    @classmethod
-    def preprocess_sample(cls, sample: Any) -> Any:
-        """Preprocess sample before agent execution.
-
-        Override this method in subclasses if preprocessing is needed.
-
-        Args:
-            sample: Sample object from RL framework
-
-        Returns:
-            Preprocessed sample (may be same object)
-        """
-        return sample
-
-    @classmethod
-    def postprocess_response(cls, sample: Any, response: str) -> Any:
-        """Postprocess agent response before reward calculation.
-
-        Override this method in subclasses if postprocessing is needed.
-
-        Args:
-            sample: Sample object
-            response: Agent response text
-
-        Returns:
-            Updated sample
-        """
-        return sample
 
     def generate(self) -> None:
         if self.max_workers == 1:

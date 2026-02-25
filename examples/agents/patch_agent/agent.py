@@ -11,10 +11,6 @@ from google.adk.tools.function_tool import FunctionTool
 
 from aigise.agents.aigise_agent import AigiseAgent
 from aigise.toolbox.general.bash_tool import bash_tool_main
-from aigise.toolbox.retrieval.search_tools import (
-    get_line_around_linenum_in_file,
-    grep_tool,
-)
 
 
 def mk_agent(aigise_session_id: str):
@@ -26,8 +22,6 @@ def mk_agent(aigise_session_id: str):
         You are a dummy agent. You should use bash_tool_main to echo "Hello, world!" and get the output.
         """,
         tools=[
-            grep_tool,
             bash_tool_main,
-            get_line_around_linenum_in_file,
         ],
     )

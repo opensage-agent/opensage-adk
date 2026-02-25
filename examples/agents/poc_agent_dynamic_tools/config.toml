@@ -37,7 +37,7 @@ neo4j_http_port = "${NEO4J_HTTP_PORT}"
 
 [sandbox]
 backend = "native"
-project_relative_shared_data_path = "${PROJECT_RELATIVE_SHARED_DATA_PATH}"
+absolute_shared_data_path = "${ABSOLUTE_SHARED_DATA_PATH}"
 
 # Main sandbox configuration
 [sandbox.sandboxes.main]

@@ -134,7 +134,7 @@ class TestNeo4jLoggingIntegration:
         config_path = os.path.join(
             examples_dir,
             "sample_neo4j_logging",
-            "aigise.toml",
+            "config.toml",
         )
         aigise_session = get_aigise_session(
             aigise_session_id=aigise_session_id, config_path=config_path

@@ -34,9 +34,8 @@ class CyberGym(Evaluation):
     server_url: str = ""
     agent_id: str = ""
     max_llm_calls: int = 300
-    config_template_path: str = str(
-        SRC_PATH / "evaluations/configs/cybergym_static_config.toml"
-    )
+    config_template_path: str = str(Path(agent_dir) / "config.toml")
+
     use_task_subset: bool = True  # If True, filter using task_list_subset file
     # evaluate
     cybergym_dir: str = str(PROJECT_PATH / "third_party/cybergym")

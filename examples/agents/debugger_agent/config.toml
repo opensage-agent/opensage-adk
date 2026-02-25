@@ -39,7 +39,7 @@ neo4j_http_port = "${NEO4J_HTTP_PORT}"
 # backend = "remotedocker"
 # docker_host = "ssh://surfi1"
 # docker_remote_host = "surfi1.cs.ucsb.edu"
-project_relative_shared_data_path = "${PROJECT_RELATIVE_SHARED_DATA_PATH}"
+absolute_shared_data_path = "${ABSOLUTE_SHARED_DATA_PATH}"
 
 # Main sandbox configuration
 [sandbox.sandboxes.main]

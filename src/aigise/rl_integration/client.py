@@ -24,7 +24,7 @@ from .adapters import ArealAdapter, BaseAdapter, SlimeAdapter
 from .benchmark_interface import BenchmarkInterface
 
 if TYPE_CHECKING:
-    from aigise.evaluations.base import Evaluation
+    from aigise.evaluation.base import Evaluation
     from aigise.session import AigiseSession
 
 logger = logging.getLogger(__name__)

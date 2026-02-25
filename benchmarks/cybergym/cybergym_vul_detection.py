@@ -26,7 +26,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from aigise import AigiseSession
 from aigise.session import get_aigise_session
-from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
+from aigise.toolbox.benchmark_specific.cybergym.cybergym import run_poc_from_script
 from aigise.toolbox.general.bash_tool import bash_tool
 from aigise.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
@@ -255,7 +255,7 @@ Finally, just report nothing if you cannot find any vulnerability in this functi
 class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
-    output_dir_in_sandbox: str = "/tmp/"
+    export_dir_in_sandbox: str = "/tmp/"
     agent_dir: str = str(find_path("examples", "agents", "vul_agent_static_tools"))
     difficulty: str = "level1"
     server_url: str = ""

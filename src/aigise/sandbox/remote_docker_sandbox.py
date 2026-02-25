@@ -53,7 +53,6 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
     Usage:
         export DOCKER_HOST="ssh://user@gpu-server"
-        python -m aigise.evaluations ...
     """
 
     backend_type = "remotedocker"

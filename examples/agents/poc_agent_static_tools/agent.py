@@ -11,8 +11,10 @@ from google.adk.tools.agent_tool import AgentTool
 
 from aigise.agents.aigise_agent import AigiseAgent
 from aigise.session import get_aigise_session
-from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
-from aigise.toolbox.eval_submission.cybergym.submission import generate_poc_and_submit
+from aigise.toolbox.benchmark_specific.cybergym.cybergym import (
+    generate_poc_and_submit,
+    run_poc_from_script,
+)
 from aigise.toolbox.finish_task.finish_task import finish_task
 from aigise.toolbox.fuzzing.fuzz_tools import simplified_python_fuzzer
 from aigise.toolbox.general.agent_tools import (

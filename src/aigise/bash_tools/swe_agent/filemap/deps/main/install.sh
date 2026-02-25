@@ -7,5 +7,5 @@ if [ -f /shared/bashrc ]; then
   source /shared/bashrc
 fi
 
-python3 -m pip install 'tree-sitter==0.21.3'
-python3 -m pip install 'tree-sitter-languages'
+uv pip install --python /app/.venv/bin/python 'tree-sitter==0.21.3'
+uv pip install --python /app/.venv/bin/python 'tree-sitter-languages'

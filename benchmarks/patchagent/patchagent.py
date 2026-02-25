@@ -23,7 +23,7 @@ class PatchAgent(Evaluation):
     config_template_path: str = str(Path(agent_dir) / "config.toml")
     dataset_path: str = str(Path(__file__).resolve().parent / "data" / "data.json")
     dataset_hf_split: str = "train"
-    output_dir_in_sandbox: str = "/shared/"
+    export_dir_in_sandbox: str = "/shared/"
     max_llm_calls: int = 2
 
     def _get_sample_id(self, sample: dict) -> str:
@@ -38,7 +38,7 @@ class PatchAgent(Evaluation):
             # f"You can run `python run.py --project {sample['project_name']} --tag {sample['tag_name']} --action all` under `f{sample['workdir']}` to trigger the vulnerability. "
             f"You can check detailed report under {sample['report_path']} to understand the vulnerability. "
             f"You should first explore, understand the vulnerability, and generate a patch to fix the vulnerability. "
-            f"Once you find the patch successful, you should create a `patch.diff` file to {self.output_dir_in_sandbox}, named as patch.diff"
+            f"Once you find the patch successful, you should create a `patch.diff` file to {self.export_dir_in_sandbox}, named as patch.diff"
         )
 
     def _register_aigise_session(self, task: EvaluationTask):

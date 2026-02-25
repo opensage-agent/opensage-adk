@@ -15,7 +15,7 @@ from google.adk.planners import BuiltInPlanner
 from google.adk.sessions import Session
 from google.genai import types
 
-from aigise.evaluations.base import Evaluation, EvaluationTask
+from aigise.evaluation.base import Evaluation, EvaluationTask
 from aigise.session import get_aigise_session
 from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
 
@@ -50,7 +50,7 @@ class SweBenchPro(Evaluation):
     # Model selection: model to use for agents
     model_name: str = "gemini-3-flash-preview"
     # Output directory in sandbox to copy (required for patch collection)
-    output_dir_in_sandbox: str = "/workspace"
+    export_dir_in_sandbox: str = "/workspace"
     # Dataset filtering
     start_idx: int = 0
     end_idx: int | None = None  # None means all samples

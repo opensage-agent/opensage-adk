@@ -31,10 +31,8 @@ rm -f "$tmp"
 
 # Append fresh block.
 
-# Remove any venv logic and use system python directly as requested by user.
-
-python3 -m pip install flask requests playwright
-python3 -m playwright install-deps chromium
+uv pip install --python /app/.venv/bin/python flask requests playwright
+/app/.venv/bin/python -m playwright install-deps chromium
 
 # Determine chromium path
 CHROMIUM_PATH=""
@@ -45,7 +43,7 @@ elif [ -f /usr/bin/chromium ]; then
 elif [ -f /usr/bin/google-chrome-stable ]; then
   CHROMIUM_PATH=/usr/bin/google-chrome-stable
 else
-  python3 -m playwright install chromium
+  /app/.venv/bin/python -m playwright install chromium
 fi
 
 
@@ -86,10 +84,10 @@ source "$bashrc"
 mkdir -p /root/.web_browser_logs
 
 # Create a wrapper for run_web_browser_server so it can be called as a command
-# and uses the system python
+# and uses the main sandbox venv python
 cat > "$scripts_dir/run_web_browser_server" <<EOF
 #!/usr/bin/env bash
-exec python3 "$scripts_dir/run_web_browser_server.py" "\$@"
+exec /app/.venv/bin/python "$scripts_dir/run_web_browser_server.py" "\$@"
 EOF
 chmod +x "$scripts_dir/run_web_browser_server"
 chmod +x "$scripts_dir/run_web_browser_server.py"

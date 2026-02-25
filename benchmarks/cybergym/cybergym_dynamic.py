@@ -53,7 +53,7 @@ class CyberGym(Evaluation):
     difficulty: str = "level1"
     use_task_subset: bool = True  # If True, filter using task_list_subset file
     fuzz_target_metadata_path: str = str(
-        Path(__file__).resolve().parent / "cybergym/metadata/fuzz_target_mapping.json"
+        Path(__file__).resolve().parent / "metadata/fuzz_target_mapping.json"
     )
 
     # evaluate

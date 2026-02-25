@@ -24,9 +24,9 @@ from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field
 
 from aigise import AigiseSession
-from aigise.evaluations.base import Evaluation, EvaluationTask
+from aigise.evaluation.base import Evaluation, EvaluationTask
 from aigise.session import get_aigise_session
-from aigise.toolbox.build_utils.arvo.compile_and_run import run_poc_from_script
+from aigise.toolbox.benchmark_specific.cybergym.cybergym import run_poc_from_script
 from aigise.toolbox.general.bash_tool import bash_tool
 from aigise.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
@@ -368,7 +368,7 @@ Compare the ground truth vulnerability with the predicted vulnerabilities and de
 class SeCodePLT(Evaluation):
     dataset_path: str = "aigise/secodeplt"
     dataset_hf_split: str = "train"
-    output_dir_in_sandbox: str = "/tmp/"
+    export_dir_in_sandbox: str = "/tmp/"
     agent_dir: str = str(find_path("examples", "agents", "vul_agent_static_tools"))
     difficulty: str = "level1"
     server_url: str = ""

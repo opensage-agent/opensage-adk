@@ -100,7 +100,7 @@ def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dic
 
     # Configure task-specific logging with two files + terminal
     # File 1: DEBUG level (all details)
-    debug_log = task.output_path / "execution_debug.log"
+    debug_log = Path(task.output_dir) / "execution_debug.log"
     debug_handler = logging.FileHandler(debug_log, mode="w")
     debug_handler.setLevel(logging.DEBUG)
     debug_handler.setFormatter(
@@ -111,7 +111,7 @@ def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dic
     )
 
     # File 2: INFO level (important info)
-    info_log = task.output_path / "execution_info.log"
+    info_log = Path(task.output_dir) / "execution_info.log"
     info_handler = logging.FileHandler(info_log, mode="w")
     info_handler.setLevel(logging.INFO)
     info_handler.setFormatter(
@@ -1299,14 +1299,14 @@ class Evaluation(abc.ABC):
         output_path.mkdir(parents=True, exist_ok=True)
 
         # 1. Copy output from sandbox (if specified)
-        if task.output_dir_in_sandbox:
+        if task.export_dir_in_sandbox:
             sandbox = aigise_session.sandboxes.get_sandbox("main")
 
             # Support single string or iterable (list/tuple) of strings
             paths_to_copy = (
-                [task.output_dir_in_sandbox]
-                if isinstance(task.output_dir_in_sandbox, str)
-                else task.output_dir_in_sandbox
+                [task.export_dir_in_sandbox]
+                if isinstance(task.export_dir_in_sandbox, str)
+                else task.export_dir_in_sandbox
             )
 
             for idx, src_path in enumerate(paths_to_copy):
@@ -1474,7 +1474,7 @@ class Evaluation(abc.ABC):
     def _get_export_dir_in_sandbox(self, sample: dict) -> str | tuple | None:
         """Get sandbox output directory/directories to export.
 
-        Default: self.output_dir_in_sandbox (class attribute)
+        Default: self.export_dir_in_sandbox (class attribute)
         Override if you need sample-specific logic.
 
         Args:
@@ -1529,7 +1529,7 @@ class Evaluation(abc.ABC):
     def generate(self) -> None:
         if self.max_workers == 1:
             self._generate_single_thread()
-        if self.use_multiprocessing:
+        elif self.use_multiprocessing:
             self._generate_multiprocess()  # Uses ProcessPoolExecutor
         else:
             self._generate_threaded()  # Uses ThreadPoolExecutor

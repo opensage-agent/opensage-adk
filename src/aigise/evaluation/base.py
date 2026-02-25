@@ -971,15 +971,6 @@ class Evaluation(abc.ABC):
 
             raise
 
-        finally:
-            # Ensure logs are flushed and handlers are removed
-            debug_handler.flush()
-            info_handler.flush()
-            root_logger.removeHandler(debug_handler)
-            root_logger.removeHandler(info_handler)
-            debug_handler.close()
-            info_handler.close()
-
     def _replace_template_variables_in_config(
         self, config_path: str, template_variables: dict
     ) -> None:

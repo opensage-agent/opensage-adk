@@ -146,16 +146,20 @@ def run_bash_tool_script(
         Tuple[output, exit_code] where *output* is either raw stdout or parsed
         JSON when `returns_json` is True and parsing succeeds.
 
-    Raises:
-        ValueError: When neither `tool_context` nor `sandbox` is supplied.
+    Notes:
+        If neither `tool_context` nor `sandbox` is supplied, this function returns
+        an error dict (instead of raising) to match tool-style error handling.
     """
     # Prefer directly passed sandbox (for evaluation scenarios)
     if sandbox is None:
         if tool_context is None:
-            raise ValueError(
-                "Either tool_context or sandbox must be provided. "
-                "Use tool_context for agent calls, or sandbox for evaluation code."
-            )
+            return {
+                "success": False,
+                "error": (
+                    "tool_context or sandbox must be provided. "
+                    "Use tool_context for agent calls, or sandbox for evaluation code."
+                ),
+            }
         sandbox = get_sandbox_from_context(tool_context, sandbox_type)
 
     # Get TaskManager

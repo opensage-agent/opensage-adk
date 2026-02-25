@@ -80,7 +80,7 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
 
     monkeypatch.setattr(
         safe_mod,
-        "ensure_safe_tool",
+        "make_tool_safe_dict",
         lambda f: _DummyTool(getattr(f, "__name__", "tool")),
     )
 

@@ -517,6 +517,16 @@ class AigiseConfig:
                 if build_data.get(field) == "":
                     build_data[field] = None
 
+        # Sandbox: empty string → None for optional paths
+        if "sandbox" in data:
+            sandbox_data = data["sandbox"] or {}
+            for field in [
+                "project_relative_shared_data_path",
+                "absolute_shared_data_path",
+            ]:
+                if sandbox_data.get(field) == "":
+                    sandbox_data[field] = None
+
         # MCP: Manually create MCPServiceConfig instances (can't be auto-converted)
         if "mcp" in data and "services" in data["mcp"]:
             services_data = data["mcp"]["services"]

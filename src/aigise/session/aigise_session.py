@@ -14,11 +14,16 @@ import atexit
 import logging
 import os
 import signal
-from typing import Dict, Optional
+from pathlib import Path
+from typing import TYPE_CHECKING, Dict, Optional
 
 from ..config.config_dataclass import AigiseConfig
+from ..utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from .message_board import MessageBoardManager
 
 
 class AigiseSession:
@@ -68,7 +73,42 @@ class AigiseSession:
         self.neo4j = AigiseNeo4jClientManager(self)
         self.ensemble = AigiseEnsembleManager(self)
 
+        self._message_boards_by_id: Dict[str, "MessageBoardManager"] = {}
+
         logger.info(f"Created AigiseSession for session: {aigise_session_id}")
+
+    def get_message_board(self, *, board_id: str | None = None):
+        """Get a message board for the current session.
+
+        Message boards are created on-demand and are intended for ensemble runs.
+        """
+        if not board_id:
+            raise ValueError("board_id is required for message boards")
+
+        existing = self._message_boards_by_id.get(board_id)
+        if existing is not None:
+            return existing
+
+        from .message_board import (
+            MessageBoardManager,  # pylint: disable=g-import-not-at-top
+        )
+
+        board = MessageBoardManager(
+            base_dir=Path("/tmp"),
+            session_id=self.aigise_session_id,
+            board_id=board_id,
+        )
+        self._message_boards_by_id[board_id] = board
+        return board
+
+    def cleanup_message_board(self, *, board_id: str) -> None:
+        """Cleanup a temporary message board by id (best-effort)."""
+        if not board_id:
+            return
+        board = self._message_boards_by_id.pop(board_id, None)
+        if board is None:
+            return
+        board.cleanup()
 
     def load_config_from_toml(self, toml_path: str) -> None:
         """

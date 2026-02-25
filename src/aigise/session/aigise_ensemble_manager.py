@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Union
@@ -23,6 +24,7 @@ from google.genai import types
 
 from aigise.agents.aigise_agent import AigiseAgent
 from aigise.session.aigise_dynamic_agent_manager import DynamicAgentManager
+from aigise.session.message_board import message_board_context
 from aigise.utils.agent_utils import (
     INHERIT_MODEL,
     _copy_agent_with_updated_model_v2,
@@ -442,6 +444,9 @@ class AigiseEnsembleManager:
                 "error": f"Agent '{target_agent_info.name}' must be an AigiseAgent instance for ensemble. Got: {type(target_agent_info.agent_instance)}",
             }
 
+        board_id = f"ensemble_{uuid.uuid4().hex[:12]}"
+        # Ensure board exists before any agent tries to post.
+        self._session.get_message_board(board_id=board_id)
         try:
             # Create multiple agent execution tasks
             agent_tasks = []
@@ -455,9 +460,20 @@ class AigiseEnsembleManager:
                     )
 
                     # Create individual task with model-specific instruction
+                    peers_lines = (
+                        "\n".join(task_descriptions) if task_descriptions else ""
+                    )
                     enhanced_task_message = f"""
 You are running as part of an agent ensemble using model: {model_name}
 Task ID: {task_id}
+
+Peers running in parallel:
+{peers_lines}
+
+Coordination:
+- Use the shared message board to coordinate with peers.
+- Call `post_to_board(message=...)` to share findings/plan updates.
+- Tool results may include `_message_board_diff`; you MUST read it and incorporate any new info.
 
 {full_instruction}
 
@@ -467,6 +483,7 @@ Please provide your unique perspective and analysis. Consider that other agents 
                     # Create new agent instance with the specified model
                     # enabled_skills will be automatically extracted from target_agent_info
                     try:
+                        instance_id = f"{target_agent_info.name}__{task_id}"
                         if model_name == INHERIT_MODEL:
                             inherit_model = get_model_from_agent(current_agent)
                             if inherit_model is None:
@@ -482,6 +499,27 @@ Please provide your unique perspective and analysis. Consider that other agents 
                             agent_with_model = _copy_agent_with_updated_model_v2(
                                 target_agent_info, model_name
                             )
+
+                        # Stable per-instance identity for message board cursors.
+                        setattr(agent_with_model, "_instance_id", instance_id)
+
+                        # Ensure message board posting tool exists for all ensemble instances.
+                        from aigise.toolbox.general.message_board_tools import (
+                            post_to_board,
+                        )
+                        from aigise.toolbox.safe_tool_wrapper import ensure_safe_tool
+
+                        post_tool = ensure_safe_tool(post_to_board)
+                        if not isinstance(
+                            getattr(agent_with_model, "tools", None), list
+                        ):
+                            agent_with_model.tools = list(agent_with_model.tools or [])
+                        existing_names = {
+                            getattr(t, "name", None)
+                            for t in (agent_with_model.tools or [])
+                        }
+                        if post_tool.name not in existing_names:
+                            agent_with_model.tools.append(post_tool)
 
                         # Wrap the agent in AgentTool and call it directly
                         agent_tool = AgentTool(agent=agent_with_model)
@@ -540,9 +578,12 @@ Please provide your unique perspective and analysis. Consider that other agents 
             tasks = []
             for task_id, model_name, task_coroutine in agent_tasks:
                 # Use default parameters to capture current loop values (avoid closure issue)
-                async def execute_agent_task(coro, tid=task_id, mn=model_name):
+                async def execute_agent_task(
+                    coro, tid=task_id, mn=model_name, bid=board_id
+                ):
                     try:
-                        result = await coro
+                        with message_board_context(bid):
+                            result = await coro
                         return {
                             "task_id": tid,
                             "model_name": mn,
@@ -653,6 +694,8 @@ Final aggregated response:
                 "error": f"Agent ensemble failed: {str(e)}",
                 "agent_name": target_agent_info.name,
             }
+        finally:
+            self._session.cleanup_message_board(board_id=board_id)
 
     def cleanup(self) -> None:
         """Cleanup ensemble manager resources for this session."""

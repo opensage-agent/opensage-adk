@@ -155,4 +155,5 @@ enabled = [
     "history_summarizer_plugin",
     "tool_response_summarizer_plugin",
     "quota_after_tool_plugin",
+    "message_board_diff_plugin",
 ]

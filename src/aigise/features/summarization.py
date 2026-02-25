@@ -114,7 +114,8 @@ async def _get_summary_async(model, llm_request):
 async def tool_response_summarizer_callback(tool, args, tool_context, tool_response):
     """
     Summarize long tool responses, save full output to file, and optionally persist to Neo4j.
-    Returns a tagged summary string, or None if not needed.
+    Mutates dict tool responses in-place and returns None to avoid short-circuiting
+    other plugins/callbacks.
     """
     from aigise.session import get_aigise_session
 
@@ -126,6 +127,9 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         "max_tool_response_length",
         10000,
     )
+    if not isinstance(tool_response, dict):
+        return None
+
     raw = str(tool_response)
     tool_name = getattr(tool, "name", "unknown_tool")
 
@@ -238,7 +242,12 @@ Here is a brief preview:
             f"Returning truncated message (skipped summarization): "
             f"original_len={len(raw)}, truncated_msg_len={len(truncated_msg)}"
         )
-        return truncated_msg
+        tool_response["_tool_response_summarized"] = True
+        tool_response["_tool_response_summary"] = truncated_msg
+        if file_saved and output_file:
+            tool_response["_tool_response_file"] = output_file
+        tool_response["result"] = truncated_msg
+        return None
 
     model_name = getattr(aigise_session.config.llm, "summarize_model", None)
     agent = tool_context._invocation_context.agent
@@ -380,7 +389,12 @@ You can use `grep`, `cat`, or other commands to search or view the full content 
         await create_raw_tool_response_node(
             tool, args, tool_context, tool_response, tagged_summary
         )
-    return tagged_summary
+    tool_response["_tool_response_summarized"] = True
+    tool_response["_tool_response_summary"] = tagged_summary
+    if file_saved and output_file:
+        tool_response["_tool_response_file"] = output_file
+    tool_response["result"] = tagged_summary
+    return None
 
 
 class AigiseFullEventSummarizer:
@@ -878,23 +892,16 @@ async def quota_after_tool_callback(tool, args, tool_context, tool_response):
         except Exception:
             remaining = None
 
-    # String response: append line
-    if isinstance(tool_response, str):
-        if limit > 0 and remaining is not None:
-            return tool_response + f"\n[Quota] You have {remaining} LLM calls remaining"
-        return tool_response + "\n[Quota] LLM calls: unlimited"
-
-    # Dict response: inject _quota_info
+    # Prefer dict mutation to avoid short-circuiting plugins.
     if isinstance(tool_response, dict):
-        result = dict(tool_response)
-        result["_quota_info"] = {
+        tool_response["_quota_info"] = {
             "used": int(used) if isinstance(used, (int, float)) else used,
             "remaining": (int(remaining) if remaining is not None else None),
             "limit": int(limit) if isinstance(limit, (int, float)) else limit,
         }
-        return result
+        return None
 
-    # Other types: do nothing
+    # Fallback: do not attempt to override non-dict responses here.
     return None
 
 

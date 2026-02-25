@@ -559,6 +559,13 @@ class AigiseAgent(LlmAgent):
             if memory_management_tool not in tools:
                 tools.append(memory_management_tool)
 
+        # Ensure all tools are safe and dict-shaped (including MCP-expanded tools).
+        # We intentionally do this before calling the ADK LlmAgent constructor so the
+        # runner always sees wrapped tools.
+        from aigise.toolbox.safe_tool_wrapper import ensure_safe_toollikes
+
+        tools = ensure_safe_toollikes(tools)
+
         kwargs["sub_agents"] = sub_agents
         kwargs["tools"] = tools
 

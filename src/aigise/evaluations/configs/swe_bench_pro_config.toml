@@ -90,4 +90,5 @@ enabled = [
     "memory_observer_plugin",
     "history_summarizer_plugin",
     "tool_response_summarizer_plugin",
+    "message_board_diff_plugin",
 ]

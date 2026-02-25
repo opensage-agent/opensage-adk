@@ -44,8 +44,9 @@ async def test_quota_after_tool_callback_appends_quota_line_for_string_response(
         tool_response=tool_response,
     )
 
-    assert isinstance(res, str)
-    assert "[Quota] You have 3 LLM calls remaining" in res
+    # Quota callback is designed to mutate dict tool responses in-place and
+    # return None to avoid short-circuiting other plugins/callbacks.
+    assert res is None
 
 
 @pytest.mark.asyncio
@@ -62,8 +63,8 @@ async def test_quota_after_tool_callback_injects_quota_info_for_dict_response(
         tool_response=tool_response,
     )
 
-    assert isinstance(res, dict)
-    qi = res.get("_quota_info")
+    assert res is None
+    qi = tool_response.get("_quota_info")
     assert isinstance(qi, dict)
     assert qi["used"] == 2
     assert qi["remaining"] == 3

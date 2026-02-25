@@ -20,7 +20,7 @@ neo4j_http_port = 7474
 [sandbox]
 default_image = "${DEFAULT_IMAGE}"
 backend = "native"
-project_relative_shared_data_path = "tests/unit/data/arvo_51603_vul_code.tar.gz"
+absolute_shared_data_path = "tests/unit/data/arvo_51603_vul_code.tar.gz"
 
 # Main sandbox configuration
 [sandbox.sandboxes.main]

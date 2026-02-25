@@ -189,7 +189,7 @@ class TestSummarizationIntegration:
         config_path = os.path.join(
             examples_dir,
             "sample_summarization",
-            "aigise.toml",
+            "config.toml",
         )
         aigise_session = get_aigise_session(
             aigise_session_id=isolated_aigise_session_id, config_path=config_path

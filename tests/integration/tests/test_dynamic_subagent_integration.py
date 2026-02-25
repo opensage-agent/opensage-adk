@@ -66,7 +66,7 @@ class DynamicSubagentTestRunner:
             "examples",
             "agents_with_features",
             "sample_dynamic_subagent",
-            "aigise.toml",
+            "config.toml",
         )
         aigise_session = get_aigise_session(
             aigise_session_id=self.current_session_id, config_path=config_path

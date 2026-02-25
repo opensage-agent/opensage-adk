@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
+import litellm
+
 if TYPE_CHECKING:
     from aigise.memory.config.domain_config import DomainConfig
 
@@ -57,7 +59,6 @@ class ExtractionResult:
 
 async def _generate_embedding(text: str) -> List[float]:
     """Generate embedding for text using configured embedding model."""
-    import litellm
 
     settings = get_memory_settings()
     # Use LiteLLM for embedding generation
@@ -360,7 +361,6 @@ class EntityExtractor:
 
     async def _llm_extract_topics(self, text: str) -> List[str]:
         """Use LLM to extract topics from text."""
-        import litellm
 
         prompt = f"""Extract 2-5 key semantic topics from the following text.
 Return only the topic names, one per line, no numbering or explanations.

@@ -30,11 +30,10 @@ def _setup_logging():
     Only runs if no logging configuration exists yet (respects user's manual setup)
     """
     aigise_logger = logging.getLogger("aigise")
-    if not aigise_logger.handlers:
+    if not aigise_logger.hasHandlers():
         setup_aigise_logging()
 
 
-_setup_logging()
 import litellm
 
 litellm.disable_streaming_logging = True

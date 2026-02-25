@@ -204,7 +204,10 @@ class AigiseSessionRegistry:
 
     @classmethod
     def get_aigise_session(
-        cls, aigise_session_id: str, config_path: Optional[str] = None
+        cls,
+        aigise_session_id: str,
+        config_path: Optional[str] = None,
+        create_if_missing: bool = True,
     ) -> AigiseSession:
         """
         Get or create a session manager for the given session ID.
@@ -216,6 +219,8 @@ class AigiseSessionRegistry:
             AigiseSession instance for the session
         """
         if aigise_session_id not in cls._sessions:
+            if not create_if_missing:
+                return None
             cls._sessions[aigise_session_id] = AigiseSession(
                 aigise_session_id, config_path
             )
@@ -275,12 +280,16 @@ class AigiseSessionRegistry:
 
 
 def get_aigise_session(
-    aigise_session_id: str, config_path: Optional[str] = None
+    aigise_session_id: str,
+    config_path: Optional[str] = None,
+    create_if_missing: bool = True,
 ) -> AigiseSession:
     """
     Get or create an AigiseSession for the given session ID.
     """
-    return AigiseSessionRegistry.get_aigise_session(aigise_session_id, config_path)
+    return AigiseSessionRegistry.get_aigise_session(
+        aigise_session_id, config_path, create_if_missing
+    )
 
 
 def cleanup_aigise_session(aigise_session_id: str) -> bool:

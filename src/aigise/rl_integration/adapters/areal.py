@@ -43,7 +43,7 @@ from google.adk.models import BaseLlm
 from .base import BaseAdapter
 
 if TYPE_CHECKING:
-    from aigise.evaluations import Evaluation
+    from aigise.evaluations.base import Evaluation
     from aigise.rl_integration.benchmark_interface import BenchmarkInterface
     from aigise.session import AigiseSession
 

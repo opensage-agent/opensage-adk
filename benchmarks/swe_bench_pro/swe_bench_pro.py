@@ -15,7 +15,7 @@ from google.adk.planners import BuiltInPlanner
 from google.adk.sessions import Session
 from google.genai import types
 
-from aigise.evaluations import Evaluation, EvaluationTask
+from aigise.evaluations.base import Evaluation, EvaluationTask
 from aigise.session import get_aigise_session
 from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
 
@@ -41,10 +41,8 @@ except ImportError:
 class SweBenchPro(Evaluation):
     dataset_path: str = "ScaleAI/SWE-bench_Pro"
     dataset_hf_split: str = "test"
-    agent_dir: str = PROJECT_PATH / "examples/agents/bench_agent"
-    config_template_path: str = str(
-        SRC_PATH / "evaluations/configs/swe_bench_pro_config.toml"
-    )
+    agent_dir: str = PROJECT_PATH / "examples/agents/swebenchpro_agent"
+    config_template_path: str = str(Path(agent_dir) / "config.toml")
 
     # Optional override for output directory relative to project root
     predictions_filename: str = "predictions.json"

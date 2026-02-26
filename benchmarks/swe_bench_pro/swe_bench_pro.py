@@ -219,7 +219,7 @@ class SweBenchPro(Evaluation):
 
         # Skip tasks that have been successfully solved (accuracy=1)
         if self.skip_successful and self.output_dir.exists():
-            successful_file = self.output_dir / self.successful_instances_file
+            successful_file = Path(self.output_dir) / self.successful_instances_file
             if successful_file.exists():
                 with open(successful_file, "r") as f:
                     successful_ids = set(line.strip() for line in f if line.strip())
@@ -802,12 +802,12 @@ Please be concise but comprehensive. Focus on information that would be useful f
 
             # Locate the patch file
             # The output directory structure is:
-            # self.output_dir / task_name / "sandbox_output" / ...
+            # Path(self.output_dir) / task_name / "sandbox_output" / ...
 
             # Since customized_modify_and_save_results doesn't get task objects,
             # we rely on the predictable path structure.
 
-            task_output_dir = self.output_dir / task_name
+            task_output_dir = Path(self.output_dir) / task_name
 
             # Check for patch file. We search for any .patch file or specific name.
             # Let's look for 'prediction.patch' as instructed in agent prompt (if we had one)
@@ -843,7 +843,7 @@ Please be concise but comprehensive. Focus on information that would be useful f
                 logger.warning(f"No patch found for {instance_id} in {sandbox_output}")
                 # We might want to save an empty string or skip
 
-        output_file = self.output_dir / self.predictions_filename
+        output_file = Path(self.output_dir) / self.predictions_filename
         with open(output_file, "w") as f:
             json.dump(predictions, f, indent=2)
 
@@ -924,13 +924,13 @@ Please be concise but comprehensive. Focus on information that would be useful f
             return
 
         # Step 2: Save aggregated predictions
-        predictions_path = self.output_dir / self.predictions_filename
+        predictions_path = Path(self.output_dir) / self.predictions_filename
         with open(predictions_path, "w") as f:
             json.dump(predictions, f, indent=2)
         logger.info(f"Saved {len(predictions)} predictions to {predictions_path}")
 
         # Step 3: Run official evaluation
-        results_dir = self.output_dir / "results"
+        results_dir = Path(self.output_dir) / "results"
         self._evaluate_official(
             predictions_path=predictions_path, results_dir=results_dir
         )
@@ -959,7 +959,7 @@ Please be concise but comprehensive. Focus on information that would be useful f
                 logger.info("No successful instances to record")
                 return
 
-            successful_file = self.output_dir / self.successful_instances_file
+            successful_file = Path(self.output_dir) / self.successful_instances_file
             existing_ids = set()
             if successful_file.exists():
                 with open(successful_file, "r") as f:

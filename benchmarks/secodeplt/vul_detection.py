@@ -1162,7 +1162,7 @@ class SeCodePLT(Evaluation):
         result_err = output.stderr.decode("utf-8") if output.stderr else ""
 
         # Save raw result strings to files
-        raw_result_file = self.output_dir / "cybergym_raw_result.txt"
+        raw_result_file = Path(self.output_dir) / "cybergym_raw_result.txt"
         with open(raw_result_file, "w") as f:
             f.write("=== STDOUT ===\n")
             f.write(result_str)
@@ -1259,7 +1259,7 @@ class SeCodePLT(Evaluation):
         }
 
         # Save evaluation results to the output directory
-        eval_file = self.output_dir / "evaluation_results.json"
+        eval_file = Path(self.output_dir) / "evaluation_results.json"
         with open(eval_file, "w") as f:
             json.dump(eval_results, f, indent=2)
         logger.warning(f"Evaluation results saved to: {eval_file}")
@@ -1271,7 +1271,7 @@ class SeCodePLT(Evaluation):
 
         results = asyncio.run(self._evaluate_vul_async())
         # save evaluation results
-        eval_file = self.output_dir / "vul_evaluation_results.json"
+        eval_file = Path(self.output_dir) / "vul_evaluation_results.json"
         with open(eval_file, "w") as f:
             json.dump(results, f, indent=2)
         logger.warning(f"Vulnerability evaluation results saved to: {eval_file}")

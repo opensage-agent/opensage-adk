@@ -244,7 +244,7 @@ class PatchAgent(Evaluation):
         logger.info(
             f"Evaluation completed: {final_success_count}/{len(results)} successful fixes"
         )
-        summary_path = self.output_dir / "evaluation_summary.json"
+        summary_path = Path(self.output_dir) / "evaluation_summary.json"
         with open(summary_path, "w") as f:
             json.dump(results, f, indent=2)
         logger.info(f"All evaluation results saved to: {summary_path}")

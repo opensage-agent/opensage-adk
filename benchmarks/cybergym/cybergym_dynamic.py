@@ -46,7 +46,7 @@ class CyberGym(Evaluation):
     # Benchmark specific configs
     agent_id: str
     server_host: str = ""
-    server_port: int = 8000
+    server_port: int = 8666
     cybergym_data_dir: str = str(
         PROJECT_PATH / "third_party/cybergym/cybergym_data/data"
     )

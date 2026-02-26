@@ -98,9 +98,13 @@ def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dic
     litellm.num_retries = evaluation_instance.llm_retry_count
     litellm.request_timeout = evaluation_instance.llm_retry_timeout
 
+    # Ensure task output directory exists before logging to files.
+    task_output_dir = Path(task.output_dir)
+    task_output_dir.mkdir(parents=True, exist_ok=True)
+
     # Configure task-specific logging with two files + terminal
     # File 1: DEBUG level (all details)
-    debug_log = Path(task.output_dir) / "execution_debug.log"
+    debug_log = task_output_dir / "execution_debug.log"
     debug_handler = logging.FileHandler(debug_log, mode="w")
     debug_handler.setLevel(logging.DEBUG)
     debug_handler.setFormatter(
@@ -111,7 +115,7 @@ def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dic
     )
 
     # File 2: INFO level (important info)
-    info_log = Path(task.output_dir) / "execution_info.log"
+    info_log = task_output_dir / "execution_info.log"
     info_handler = logging.FileHandler(info_log, mode="w")
     info_handler.setLevel(logging.INFO)
     info_handler.setFormatter(
@@ -126,6 +130,7 @@ def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dic
     root_logger.setLevel(logging.DEBUG)  # Accept all levels
     root_logger.addHandler(debug_handler)
     root_logger.addHandler(info_handler)
+    added_handlers = [debug_handler, info_handler]
 
     # Configure terminal log level in subprocess
     # This ensures the subprocess respects the parent's log_level setting
@@ -140,8 +145,8 @@ def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dic
             ):
                 handler.setLevel(terminal_log_level)
 
-    # Run async code in this process's event loop
     try:
+        # Run async code in this process's event loop
         return asyncio.run(evaluation_instance._generate_one(task))
     except Exception as e:
         # Convert all exceptions to RuntimeError to ensure pickle-ability
@@ -153,6 +158,17 @@ def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dic
             f"Original traceback:\n{traceback.format_exc()}"
         )
         raise RuntimeError(error_msg) from None
+    finally:
+        # Clean up handlers to avoid duplicate logs and open file handles
+        for h in added_handlers:
+            try:
+                root_logger.removeHandler(h)
+            except Exception:
+                pass
+            try:
+                h.close()
+            except Exception:
+                pass
 
 
 @dataclass

@@ -59,7 +59,7 @@ from aigise.toolbox.general.dynamic_subagent import (
 
 def mk_agent(aigise_session_id: str):
     model = LiteLlm(
-        model="litellm_proxy/sage-gpt-5",
+        model="litellm_proxy/sage-gpt-5.3-codex",
         api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
         base_url="https://litellm-991596698159.us-west1.run.app/",
         # Auto-inject cache_control for system messages and last 2 messages

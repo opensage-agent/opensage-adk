@@ -1,6 +1,6 @@
 # Sandbox
 
-::: aigise.sandbox.base_sandbox
+:::: opensage.sandbox.base_sandbox
     options:
       members: true
       inherited_members: true
@@ -9,7 +9,7 @@
       show_source: false
 
 
-::: aigise.sandbox.factory
+:::: opensage.sandbox.factory
     options:
       members: true
       inherited_members: true
@@ -18,7 +18,7 @@
       show_source: false
 
 
-::: aigise.sandbox.native_docker_sandbox
+:::: opensage.sandbox.native_docker_sandbox
     options:
       members: true
       inherited_members: true
@@ -27,7 +27,7 @@
       show_source: false
 
 
-::: aigise.sandbox.remote_docker_sandbox
+:::: opensage.sandbox.remote_docker_sandbox
     options:
       members: true
       inherited_members: true
@@ -36,7 +36,7 @@
       show_source: false
 
 
-::: aigise.sandbox.k8s_sandbox
+:::: opensage.sandbox.k8s_sandbox
     options:
       members: true
       inherited_members: true

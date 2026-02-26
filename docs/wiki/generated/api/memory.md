@@ -1,6 +1,6 @@
 # Memory
 
-::: aigise.memory.search.search_controller
+:::: opensage.memory.search.search_controller
     options:
       members: true
       inherited_members: true
@@ -9,7 +9,7 @@
       show_source: false
 
 
-::: aigise.memory.tools.memory_search_tools
+:::: opensage.memory.tools.memory_search_tools
     options:
       members: true
       inherited_members: true
@@ -18,7 +18,7 @@
       show_source: false
 
 
-::: aigise.memory.tools.memory_update_tools
+:::: opensage.memory.tools.memory_update_tools
     options:
       members: true
       inherited_members: true

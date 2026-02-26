@@ -1,6 +1,6 @@
 # Plugins
 
-::: aigise.plugins.build_verifier_plugin
+:::: opensage.plugins.build_verifier_plugin
     options:
       members: true
       inherited_members: true
@@ -9,7 +9,7 @@
       show_source: false
 
 
-::: aigise.plugins.validator_plugin
+:::: opensage.plugins.validator_plugin
     options:
       members: true
       inherited_members: true
@@ -18,7 +18,7 @@
       show_source: false
 
 
-::: aigise.plugins.memory_observer_plugin
+:::: opensage.plugins.memory_observer_plugin
     options:
       members: true
       inherited_members: true

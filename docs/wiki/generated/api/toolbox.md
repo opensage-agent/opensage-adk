@@ -1,6 +1,6 @@
 # Toolbox
 
-::: aigise.toolbox.decorators
+:::: opensage.toolbox.decorators
     options:
       members: true
       inherited_members: true
@@ -9,7 +9,7 @@
       show_source: false
 
 
-::: aigise.toolbox.general.agent_tools
+:::: opensage.toolbox.general.agent_tools
     options:
       members: true
       inherited_members: true
@@ -18,7 +18,7 @@
       show_source: false
 
 
-::: aigise.toolbox.general.dynamic_subagent
+:::: opensage.toolbox.general.dynamic_subagent
     options:
       members: true
       inherited_members: true

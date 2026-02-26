@@ -80,7 +80,7 @@ python src/opensage/evaluations/my_benchmark/my_evaluation.py \
 **Using Python API:**
 
 ```python
-from opensage.evaluations import MyEvaluation
+from opensage.evaluation.base import Evaluation, EvaluationTask
 
 # Create evaluation instance
 eval = MyEvaluation(
@@ -107,10 +107,10 @@ eval.run_debug()
 
 ### 1. Create Evaluation Module
 
-Create a new directory under `src/opensage/evaluations/` with your benchmark name:
+Create a new directory under `benchmarks/` with your benchmark name:
 
 ```
-src/opensage/evaluations/
+benchmarks/
 └── my_benchmark/
     ├── __init__.py
     └── my_evaluation.py
@@ -126,9 +126,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from opensage.evaluations import Evaluation, EvaluationTask
+from opensage.evaluation.base import Evaluation, EvaluationTask
 
-@dataclass
+@dataclass(kw_only=True)
 class MyEvaluation(Evaluation):
     """Custom evaluation benchmark.
 
@@ -151,7 +151,7 @@ class MyEvaluation(Evaluation):
     custom_param: str = "default_value"
 
     # Implement required abstract methods
-    def _get_sample_id(self, sample: dict) -> str:
+    def _get_task_id(self, sample: dict) -> str:
         """Extract unique task ID from sample.
 
         This ID is used for:
@@ -161,7 +161,7 @@ class MyEvaluation(Evaluation):
         """
         return sample["task_id"]  # or sample.get("id"), etc.
 
-    def _get_user_msg_first(self, sample: dict) -> str:
+    def _get_first_user_message(self, sample: dict) -> str:
         """Extract the initial prompt/message to send to agent.
 
         This is the first message that will trigger agent execution.
@@ -182,17 +182,7 @@ class MyEvaluation(Evaluation):
         # Add custom fields to task if needed
         return task
 
-    def _get_input_data_path(self, sample: dict) -> str:
-        """Specify input data directory for this sample."""
-        task_id = self._get_sample_id(sample)
-        return str(Path(self.input_data_path) / task_id) if self.input_data_path else ""
-
-    def _get_cache_dir(self, sample: dict) -> str:
-        """Specify cache directory for sandbox state."""
-        task_id = self._get_sample_id(sample)
-        return str(Path(self.cache_dir) / task_id) if self.cache_dir else ""
-
-    def _get_output_dir_in_sandbox(self, sample: dict) -> str | tuple | None:
+    def _get_export_dir_in_sandbox(self, sample: dict) -> str | tuple | None:
         """Specify which sandbox directories to export after execution."""
         return "/output"  # or ("/output1", "/output2") for multiple dirs
 
@@ -227,10 +217,9 @@ class MyEvaluation(Evaluation):
 
 ### 3. Configuration Template
 
-Create a configuration template in `src/opensage/evaluations/configs/`:
+Create a configuration template next to your agent (recommended):
 
 ```toml
-# src/opensage/evaluations/configs/my_benchmark_config.toml
 [llm]
 model_name = "gemini-2.0-flash-exp"
 temperature = 0.7
@@ -243,7 +232,7 @@ working_dir = "/workspace"
 
 # Template variables can be used:
 # ${TASK_NAME} - Replaced with actual task ID
-# ${PROJECT_RELATIVE_SHARED_DATA_PATH} - Replaced with data path
+# ${ABSOLUTE_SHARED_DATA_PATH} - Replaced with an absolute input data dir (when applicable)
 ```
 
 ### 4. Registration
@@ -327,7 +316,7 @@ Each evaluation sample goes through the following lifecycle:
 
 ### 5) Output collection (`_collect_outputs()`)
 
-- Export sandbox outputs (if `output_dir_in_sandbox` is configured).
+- Export sandbox outputs (if `export_dir_in_sandbox` is configured).
 - Export Neo4j database (if enabled).
 - Save session trace and cost information.
 
@@ -350,7 +339,7 @@ Each evaluation sample goes through the following lifecycle:
 `_create_task(sample: dict) -> EvaluationTask`: Create task instance
 `_get_input_data_path(sample: dict) -> str`: Input data directory
 `_get_cache_dir(sample: dict) -> str`: Cache directory
-`_get_output_dir_in_sandbox(sample: dict) -> str | tuple | None`: Output dirs to export
+`_get_export_dir_in_sandbox(sample: dict) -> str | tuple | None`: Output dirs to export
 `_prepare_general_env() -> None`: Setup shared across all samples
 `_before_initialize_hooks(session, task) -> None`: Hooks before sandbox init
 `customized_modify_and_save_results(results, failed_samples, mode) -> None`: Post-processing

@@ -15,9 +15,13 @@ from aigise.features.summarization import (
     history_summarizer_callback,
     tool_response_summarizer_callback,
 )
-from aigise.plugins.history_summarizer_plugin import HistorySummarizerPlugin
-from aigise.plugins.quota_after_tool_plugin import QuotaAfterToolPlugin
-from aigise.plugins.tool_response_summarizer_plugin import (
+from aigise.plugins.default.adk_plugins.history_summarizer_plugin import (
+    HistorySummarizerPlugin,
+)
+from aigise.plugins.default.adk_plugins.quota_after_tool_plugin import (
+    QuotaAfterToolPlugin,
+)
+from aigise.plugins.default.adk_plugins.tool_response_summarizer_plugin import (
     ToolResponseSummarizerPlugin,
 )
 
@@ -999,7 +1003,7 @@ class TestSummarizationPlugins:
             return "history-summary"
 
         with patch(
-            "aigise.plugins.history_summarizer_plugin.summarization.history_summarizer_callback",
+            "aigise.plugins.default.adk_plugins.history_summarizer_plugin.summarization.history_summarizer_callback",
             new=AsyncMock(side_effect=_mock_callback),
         ) as mock_cb:
             response = await plugin.after_tool_callback(
@@ -1022,7 +1026,7 @@ class TestSummarizationPlugins:
         mock_result = {"value": 42}
 
         with patch(
-            "aigise.plugins.tool_response_summarizer_plugin.summarization.tool_response_summarizer_callback",
+            "aigise.plugins.default.adk_plugins.tool_response_summarizer_plugin.summarization.tool_response_summarizer_callback",
             new=AsyncMock(return_value="<summary>"),
         ) as mock_cb:
             response = await plugin.after_tool_callback(
@@ -1047,7 +1051,7 @@ class TestSummarizationPlugins:
         mock_result = {"value": 42}
 
         with patch(
-            "aigise.plugins.quota_after_tool_plugin.summarization.quota_after_tool_callback",
+            "aigise.plugins.default.adk_plugins.quota_after_tool_plugin.summarization.quota_after_tool_callback",
             new=AsyncMock(return_value={"_quota_info": {"remaining": 3}}),
         ) as mock_cb:
             response = await plugin.after_tool_callback(

@@ -1,7 +1,7 @@
 import json
 import logging
-import shutil
-import tempfile
+import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -16,8 +16,7 @@ from google.adk.sessions import Session
 from google.genai import types
 
 from aigise.evaluation.base import Evaluation, EvaluationTask
-from aigise.session import get_aigise_session
-from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
+from aigise.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
 try:
@@ -40,7 +39,7 @@ except ImportError:
 @dataclass
 class SweBenchPro(Evaluation):
     dataset_path: str = "ScaleAI/SWE-bench_Pro"
-    dataset_hf_split: str = "test"
+    dataset_split: str = "test"
     agent_dir: str = PROJECT_PATH / "examples/agents/swebenchpro_agent"
     config_template_path: str = str(Path(agent_dir) / "config.toml")
 
@@ -98,6 +97,21 @@ class SweBenchPro(Evaluation):
         if self.use_explore_agent:
             self._mk_explore_agent = self._load_mk_explore_agent(self.agent_dir)
             logger.info("Explore agent enabled - will run before main agent")
+
+    # ========= Abstract method implementations ==========
+
+    def _get_task_id(self, sample: dict) -> str:
+        """Get unique task ID for this sample."""
+        return sample["instance_id"]
+
+    def _get_first_user_message(self, sample: dict) -> str:
+        """Get initial prompt for the agent (without explore context)."""
+        return self._build_user_message(sample)
+
+    def _get_export_dir_in_sandbox(self, sample: dict) -> str | tuple | None:
+        return self.export_dir_in_sandbox
+
+    # ========= Dataset filtering ==========
 
     def _get_dataset(self) -> datasets.Dataset:
         dataset = super()._get_dataset()
@@ -162,9 +176,9 @@ class SweBenchPro(Evaluation):
             )
 
         # Skip tasks that already have a folder in output_dir
-        if self.skip_existing and self.output_dir.exists():
+        if self.skip_existing and Path(self.output_dir).exists():
             existing_task_ids = set()
-            for task_dir in self.output_dir.iterdir():
+            for task_dir in Path(self.output_dir).iterdir():
                 if task_dir.is_dir() and task_dir.name not in (
                     "results",
                     "__pycache__",
@@ -188,9 +202,9 @@ class SweBenchPro(Evaluation):
                 )
 
         # Skip tasks that already have prediction.patch
-        if self.skip_with_patch and self.output_dir.exists():
+        if self.skip_with_patch and Path(self.output_dir).exists():
             tasks_with_patch = set()
-            for task_dir in self.output_dir.iterdir():
+            for task_dir in Path(self.output_dir).iterdir():
                 if task_dir.is_dir() and task_dir.name not in (
                     "results",
                     "__pycache__",
@@ -218,7 +232,7 @@ class SweBenchPro(Evaluation):
                 )
 
         # Skip tasks that have been successfully solved (accuracy=1)
-        if self.skip_successful and self.output_dir.exists():
+        if self.skip_successful and Path(self.output_dir).exists():
             successful_file = Path(self.output_dir) / self.successful_instances_file
             if successful_file.exists():
                 with open(successful_file, "r") as f:
@@ -241,11 +255,13 @@ class SweBenchPro(Evaluation):
 
         return dataset
 
+    # ========= Task creation ==========
+
     def _create_task(self, sample: dict) -> EvaluationTask:
         """Create task with model injection."""
-        task = super()._create_task(sample)
-        task.model = self.model
-        return task
+        return super()._create_task(sample, model=self.model)
+
+    # ========= Agent preparation ==========
 
     def _load_mk_explore_agent(self, agent_dir: str):
         """Load mk_explore_agent function from agent directory."""
@@ -294,36 +310,25 @@ class SweBenchPro(Evaluation):
         )
         return agent
 
-    def _get_sample_id(self, sample: dict) -> str:
-        """Get unique task ID for this sample."""
-        return sample["instance_id"]
+    # ========= Config template ==========
 
-    def _get_user_msg_first(
-        self, sample: dict, explore_summary: str | None = None
-    ) -> str:
-        """Get initial prompt for the agent.
-
-        Args:
-            sample: The task sample containing problem_statement etc.
-            explore_summary: Optional summary from explore agent about the codebase.
-        """
-        msg = f"Please fix the issue described below.\n\n"
-        msg += f"Problem Statement:\n{sample['problem_statement']}\n\nRequirements:\n{sample['requirements']}\n\nNew interfaces introduced:\n{sample['interface']}\n\n"
-
-        # Add explore summary if available
-        if explore_summary:
-            msg += (
-                f"---\n"
-                f"**Context from Memory (Explore Agent Analysis):**\n"
-                f"The following information was gathered by an explore agent."
-                f"Use this context to help you understand "
-                f"the codebase structure and relevant code:\n\n"
-                f"{explore_summary}\n"
-                f"---\n\n"
-                f"You can also use `search_memory` to find more related information.\n"
+    def _get_config_template_variables(self, task: EvaluationTask) -> dict:
+        """Add Docker image URI to config template variables."""
+        template = super()._get_config_template_variables(task)
+        # Docker requires lowercase task name
+        template["TASK_NAME"] = task.id.lower()
+        # Docker image
+        docker_image = self._get_docker_image_uri(task.sample)
+        template["DEFAULT_IMAGE"] = docker_image
+        logger.info(f"Selected docker image for {task.id}: {docker_image}")
+        # Shared data path (relative to project root)
+        if task.initial_data_dir:
+            template["PROJECT_RELATIVE_SHARED_DATA_PATH"] = str(
+                Path(task.initial_data_dir).relative_to(PROJECT_PATH)
             )
-
-        return msg
+        else:
+            template["PROJECT_RELATIVE_SHARED_DATA_PATH"] = ""
+        return template
 
     def _get_docker_image_uri(self, sample: dict) -> str:
         """
@@ -362,6 +367,8 @@ class SweBenchPro(Evaluation):
                 f"Failed to generate custom docker URI: {e}. Falling back to default."
             )
             return "python:3.11"
+
+    # ========= Environment preparation ==========
 
     async def _prepare_environment(self, task: EvaluationTask):
         """Prepare environment: clone repo and checkout commit."""
@@ -417,51 +424,39 @@ class SweBenchPro(Evaluation):
 
             # Execute commands
             cmd = " && ".join(setup_cmds)
-            logger.info(f"Setting up repo for task {task.task_name}: {cmd}")
+            logger.info(f"Setting up repo for task {task.id}: {cmd}")
             output, exit_code = sandbox.run_command_in_container(cmd)
 
             if exit_code != 0:
-                logger.error(f"Failed to setup repo for {task.task_name}: {output}")
+                logger.error(f"Failed to setup repo for {task.id}: {output}")
                 raise RuntimeError(f"Failed to setup repo: {output}")
 
             # 2. Install dependencies (Optional/Heuristic)
             pass
 
-    def _register_aigise_session(self, task: EvaluationTask):
-        """Register AigiseSession with task-specific config, injecting DOCKER_IMAGE."""
-        # Copy config template to a temporary file
-        config_template = Path(task.config_template_path)
-        temp_dir = tempfile.mkdtemp(prefix=f"aigise_{task.session_id}_")
-        temp_config_path = Path(temp_dir) / config_template.name
-        shutil.copy(config_template, temp_config_path)
+    # ========= Explore agent ==========
 
-        # Determine Docker image
-        # Use instance-specific image from Docker Hub
-        docker_image = self._get_docker_image_uri(task.sample)
-        instance_id = self._get_sample_id(task.sample)
-        logger.info(f"Selected docker image for {instance_id}: {docker_image}")
+    def _build_user_message(
+        self, sample: dict, explore_summary: str | None = None
+    ) -> str:
+        """Build user message, optionally including explore agent context."""
+        msg = f"Please fix the issue described below.\n\n"
+        msg += f"Problem Statement:\n{sample['problem_statement']}\n\nRequirements:\n{sample['requirements']}\n\nNew interfaces introduced:\n{sample['interface']}\n\n"
 
-        # Note: We rely on the sandbox to pull the image if missing.
-        # We do NOT patch the image for neo4j as it is not required for this benchmark.
-
-        template_variables = {
-            "TASK_NAME": task.task_name.lower(),  # Docker requires lowercase
-            "PROJECT_RELATIVE_SHARED_DATA_PATH": str(
-                Path(task.input_data_path).relative_to(PROJECT_PATH)
+        # Add explore summary if available
+        if explore_summary:
+            msg += (
+                f"---\n"
+                f"**Context from Memory (Explore Agent Analysis):**\n"
+                f"The following information was gathered by an explore agent."
+                f"Use this context to help you understand "
+                f"the codebase structure and relevant code:\n\n"
+                f"{explore_summary}\n"
+                f"---\n\n"
+                f"You can also use `search_memory` to find more related information.\n"
             )
-            if task.input_data_path
-            else "",
-            "DEFAULT_IMAGE": docker_image,
-        }
 
-        self._replace_template_variables_in_config(temp_config_path, template_variables)
-
-        aigise_session = get_aigise_session(
-            task.session_id, config_path=temp_config_path
-        )
-
-        task.aigise_session = aigise_session
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        return msg
 
     async def _summarize_explore_session(
         self,
@@ -581,10 +576,10 @@ Please be concise but comprehensive. Focus on information that would be useful f
         from aigise.plugins import load_plugins
 
         # Set user_id with explore suffix for langfuse visibility
-        instance_id = self._get_sample_id(task.sample)
+        instance_id = self._get_task_id(task.sample)
         explore_user_id = f"swebench_{instance_id}_explore"
 
-        logger.warning(f"=== Phase 1: Running Explore Agent for {task.task_name} ===")
+        logger.warning(f"=== Phase 1: Running Explore Agent for {task.id} ===")
 
         # Create explore agent
         explore_agent = self._mk_explore_agent(
@@ -602,13 +597,14 @@ Please be concise but comprehensive. Focus on information that would be useful f
         # Load plugins from config (same as main agent)
         enabled_plugins = []
         if task.aigise_session and getattr(task.aigise_session, "config", None):
-            enabled_plugins = (
-                getattr(
-                    getattr(task.aigise_session.config, "plugins", None), "enabled", []
-                )
-                or []
-            )
-        plugins = load_plugins(enabled_plugins)
+            plugins_cfg = getattr(task.aigise_session.config, "plugins", None)
+            enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
+            extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
+        plugins = load_plugins(
+            enabled_plugins,
+            agent_dir=self.agent_dir,
+            extra_plugin_dirs=extra_plugin_dirs,
+        )
 
         app = App(name=app_name, root_agent=explore_agent, plugins=plugins)
         runner = Runner(app=app, session_service=session_service)
@@ -652,7 +648,7 @@ Please be concise but comprehensive. Focus on information that would be useful f
                                 explore_summary = part.text.strip()
                                 break
 
-            logger.warning(f"=== Explore Agent completed for {task.task_name} ===")
+            logger.warning(f"=== Explore Agent completed for {task.id} ===")
             if explore_summary:
                 logger.warning(
                     f"Explore summary captured ({len(explore_summary)} chars):"
@@ -686,34 +682,25 @@ Please be concise but comprehensive. Focus on information that would be useful f
 
         return explore_summary
 
+    # ========= Agent execution ==========
+
     async def _run_agent(self, task: EvaluationTask, agent: adk.Agent) -> Session:
-        # Set user_id to include instance_id for langfuse visibility
-        instance_id = self._get_sample_id(task.sample)
-        original_user_id = self.user_id
-        self.user_id = f"swebench_{instance_id}"
+        # Phase 1: Run explore agent if enabled
+        explore_summary = None
+        if self.use_explore_agent:
+            explore_summary = await self._run_explore_agent(task)
 
-        try:
-            # Phase 1: Run explore agent if enabled
-            explore_summary = None
-            if self.use_explore_agent:
-                explore_summary = await self._run_explore_agent(task)
+        # Phase 2: Update task.first_user_message to include explore summary
+        if explore_summary:
+            logger.warning(f"=== Phase 2: Running Main Agent with explore context ===")
+            task.first_user_message = self._build_user_message(
+                task.sample, explore_summary=explore_summary
+            )
+        else:
+            logger.warning(f"=== Running Main Agent (no explore context) ===")
 
-            # Phase 2: Update task.prompt to include explore summary
-            if explore_summary:
-                logger.warning(
-                    f"=== Phase 2: Running Main Agent with explore context ==="
-                )
-                # Reconstruct the prompt with explore summary
-                task.prompt = self._get_user_msg_first(
-                    task.sample, explore_summary=explore_summary
-                )
-            else:
-                logger.warning(f"=== Running Main Agent (no explore context) ===")
-
-            # Phase 3: Run main agent
-            session = await super()._run_agent(task, agent)
-        finally:
-            self.user_id = original_user_id
+        # Phase 3: Run main agent
+        session = await super()._run_agent(task, agent)
 
         # 4.5. Generate patch
         # The agent might not create a patch file, so we force one.
@@ -772,6 +759,8 @@ Please be concise but comprehensive. Focus on information that would be useful f
             logger.warning(f"Error during patch generation: {e}")
         return session
 
+    # ========= Results collection ==========
+
     def customized_modify_and_save_results(
         self,
         *,
@@ -779,75 +768,18 @@ Please be concise but comprehensive. Focus on information that would be useful f
         failed_samples: list[str] | None,
         mode: str,
     ) -> None:
-        """Aggregate results and save predictions.json."""
-        if not results:
-            return
+        """Aggregate results and save predictions.json.
 
-        # predictions format: list of dicts
-        # [ { "instance_id": ..., "patch": ... }, ... ]
-        predictions = []
-
-        for result in results:
-            # We assume the agent writes 'prediction.patch' to the sandbox output directory
-            # which is collected into task.output_dir/sandbox_output/prediction.patch
-
-            # Reconstruct metadata to get task_name/instance_id
-            # NOTE: result is strictly what _generate_sample returns.
-            # _generate_sample returns:
-            # { "metadata": task.metadata, "session": ... }
-
-            metadata = result.get("metadata", {})
-            instance_id = self._get_sample_id(metadata)
-            task_name = self._get_sample_id(metadata)  # logic is same in _get_sample_id
-
-            # Locate the patch file
-            # The output directory structure is:
-            # Path(self.output_dir) / task_name / "sandbox_output" / ...
-
-            # Since customized_modify_and_save_results doesn't get task objects,
-            # we rely on the predictable path structure.
-
-            task_output_dir = Path(self.output_dir) / task_name
-
-            # Check for patch file. We search for any .patch file or specific name.
-            # Let's look for 'prediction.patch' as instructed in agent prompt (if we had one)
-            # or just any .patch file.
-
-            sandbox_output = task_output_dir / "sandbox_output"
-            patch_content = ""
-
-            if sandbox_output.exists():
-                # Try specific name first (check root and workspace subdir)
-                candidate_paths = [
-                    sandbox_output / "prediction.patch",
-                    sandbox_output / "workspace" / "prediction.patch",
-                ]
-
-                for p in candidate_paths:
-                    if p.exists():
-                        patch_content = p.read_text()
-                        break
-
-                if not patch_content:
-                    # Fallback: look for any .patch or .diff file recursively
-                    patches = list(sandbox_output.rglob("*.patch")) + list(
-                        sandbox_output.rglob("*.diff")
-                    )
-                    if patches:
-                        # Take the first one
-                        patch_content = patches[0].read_text()
-
-            if patch_content:
-                predictions.append({"instance_id": instance_id, "patch": patch_content})
-            else:
-                logger.warning(f"No patch found for {instance_id} in {sandbox_output}")
-                # We might want to save an empty string or skip
-
-        output_file = Path(self.output_dir) / self.predictions_filename
-        with open(output_file, "w") as f:
-            json.dump(predictions, f, indent=2)
-
-        logger.warning(f"Saved {len(predictions)} predictions to {output_file}")
+        Scans task output folders for patches rather than relying on result
+        metadata, since the base class _collect_outputs does not include sample
+        data in its return value.
+        """
+        predictions = self._collect_predictions_from_task_folders()
+        if predictions:
+            output_file = Path(self.output_dir) / self.predictions_filename
+            with open(output_file, "w") as f:
+                json.dump(predictions, f, indent=2)
+            logger.warning(f"Saved {len(predictions)} predictions to {output_file}")
 
     def _collect_predictions_from_task_folders(self) -> list[dict]:
         """Scan all task folders and collect predictions from individual patch files.
@@ -860,12 +792,12 @@ Please be concise but comprehensive. Focus on information that would be useful f
         """
         predictions = []
 
-        if not self.output_dir.exists():
+        if not Path(self.output_dir).exists():
             logger.warning(f"Output directory does not exist: {self.output_dir}")
             return predictions
 
         # Scan all subdirectories in output_dir (each is a task folder)
-        for task_dir in self.output_dir.iterdir():
+        for task_dir in Path(self.output_dir).iterdir():
             if not task_dir.is_dir():
                 continue
 
@@ -906,6 +838,8 @@ Please be concise but comprehensive. Focus on information that would be useful f
 
         logger.info(f"Collected {len(predictions)} predictions from task folders")
         return predictions
+
+    # ========= Evaluation ==========
 
     def evaluate(self) -> None:
         """Run the official SWE-bench Pro evaluation.
@@ -994,9 +928,6 @@ Please be concise but comprehensive. Focus on information that would be useful f
         swe_bench_repo_path = third_party_dir / swe_bench_repo_name
         repo_url = "https://github.com/scaleapi/SWE-bench_Pro-os"
 
-        import subprocess
-        import sys
-
         # 1. Ensure the repository exists
         if not swe_bench_repo_path.exists():
             logger.warning(f"Cloning {swe_bench_repo_name} to {swe_bench_repo_path}...")
@@ -1013,9 +944,6 @@ Please be concise but comprehensive. Focus on information that would be useful f
                 return
 
         # 2. Check/Install requirements
-        # We try to install in the current environment or rely on user.
-        # To be safe, we attempt install but don't fail hard if it's already there?
-        # Actually, let's try to install them to ensure script runs.
         req_file = swe_bench_repo_path / "requirements.txt"
         if req_file.exists():
             logger.warning("Installing/Verifying dependencies for SWE-bench Pro...")
@@ -1029,7 +957,6 @@ Please be concise but comprehensive. Focus on information that would be useful f
                 logger.warning(
                     f"Dependency installation warning: {e.stderr.decode()[:200]}..."
                 )
-                # Continue anyway? It might work if deps are already met.
 
         # 3. Construct the command
         eval_script = swe_bench_repo_path / "swe_bench_pro_eval.py"
@@ -1054,9 +981,7 @@ Please be concise but comprehensive. Focus on information that would be useful f
                 import datasets
                 import pandas as pd
 
-                ds = datasets.load_dataset(
-                    self.dataset_path, split=self.dataset_hf_split
-                )
+                ds = datasets.load_dataset(self.dataset_path, split=self.dataset_split)
                 # Convert to pandas and save
                 df = ds.to_pandas()
                 df.to_csv(dataset_csv_path, index=False)

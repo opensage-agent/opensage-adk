@@ -7,6 +7,7 @@ from aigise.memory.config.domain_config import (
     get_domain_config,
     get_merged_domain,
     register_domain,
+    validate_all_domains,
 )
 from aigise.memory.config.memory_settings import (
     MemorySettings,
@@ -17,11 +18,15 @@ from aigise.memory.config.memory_settings import (
 )
 from aigise.memory.config.qa_domain import QA_DOMAIN_CONFIG
 
+# All domains registered — validate cross-domain relationships now.
+validate_all_domains()
+
 __all__ = [
     "DomainConfig",
     "get_domain_config",
     "get_merged_domain",
     "register_domain",
+    "validate_all_domains",
     "get_all_domains",
     "CODE_DOMAIN_CONFIG",
     "QA_DOMAIN_CONFIG",

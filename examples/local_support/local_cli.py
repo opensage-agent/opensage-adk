@@ -27,7 +27,10 @@ from aigise.features.aigise_in_memory_session_service import (
     AigiseInMemorySessionService,
 )
 from aigise.plugins import load_plugins
-from aigise.plugins.parts_from_tool import PARTS_FROM_TOOLS_ID, ImageInjectionPlugin
+from aigise.plugins.builtins.adk_plugins.parts_from_tool import (
+    PARTS_FROM_TOOLS_ID,
+    ImageInjectionPlugin,
+)
 from aigise.session.aigise_session import get_aigise_session
 from aigise.toolbox.general.agent_tools import (
     agent_ensemble,

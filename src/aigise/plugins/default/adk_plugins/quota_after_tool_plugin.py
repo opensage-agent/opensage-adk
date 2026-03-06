@@ -4,7 +4,7 @@ from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
 
-from ..features import summarization
+from aigise.features import summarization
 
 
 class QuotaAfterToolPlugin(BasePlugin):

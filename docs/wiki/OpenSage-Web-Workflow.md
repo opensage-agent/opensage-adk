@@ -120,12 +120,17 @@ root_agent = mk_agent(session_id=session_id)
 
 ```python
 enabled_plugins = session.config.plugins.enabled or []
-plugins = load_plugins(enabled_plugins)
+plugins = load_plugins(
+    enabled_plugins,
+    agent_dir=agent_dir,
+    adk_plugin_params=session.config.plugins.adk_plugin_params,
+    extra_plugin_dirs=session.config.plugins.extra_plugin_dirs,
+)
 ```
 
 - Reads plugin list from configuration
-- Loads plugin classes dynamically
-- Instantiates plugin objects
+- Discovers plugins from default, shared, and agent-local directories
+- Loads each plugin (ADK `.py` or CC hook `.json`) as an independent instance
 
 ### Step 6: Create ADK Services
 

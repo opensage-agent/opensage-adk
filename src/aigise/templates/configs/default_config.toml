@@ -158,12 +158,9 @@ max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
 compaction_percent = "${COMPACTION_PERCENT}"
 
 [plugins]
-enabled = [
-    "history_summarizer_plugin",
-    "tool_response_summarizer_plugin",
-    "quota_after_tool_plugin",
-    "message_board_diff_plugin",
-]
+# No plugins enabled by default. Explicitly list plugins in your agent config.
+# Execution order matches the list order — see docs/wiki/Plugins.md for details.
+enabled = []
 
 
 [agent_ensemble]

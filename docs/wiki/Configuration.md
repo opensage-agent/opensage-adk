@@ -349,28 +349,30 @@ compaction_percent = 50
 
 ### Plugins Configuration
 
-Configures which plugins are enabled.
+Configures which plugins are enabled and where to find them. See [Plugins](Plugins.md) for full documentation.
 
 **Section:** `[plugins]`
 
 | Field | Type | Description | Default |
 |-------|------|-------------|---------|
-| `enabled` | `list[string]` | List of enabled plugin names | `[]` |
-
-**Common Plugins:**
-- `history_summarizer_plugin`: Summarizes long conversation history
-- `tool_response_summarizer_plugin`: Summarizes long tool responses
-- `quota_after_tool_plugin`: Shows quota countdown after tools
+| `enabled` | `list[string]` | List of enabled plugin names (or regex patterns) | `[]` |
+| `extra_plugin_dirs` | `list[string]` | Additional directories to search for plugins | `[]` |
+| `adk_plugin_params` | `dict[string, dict]` | Per-ADK-plugin constructor kwargs, keyed by plugin name | `{}` |
 
 **Example:**
 
 ```toml
 [plugins]
 enabled = [
+    "doom_loop_detector_plugin",
     "history_summarizer_plugin",
     "tool_response_summarizer_plugin",
     "quota_after_tool_plugin",
 ]
+extra_plugin_dirs = ["/path/to/shared/plugins"]
+
+[plugins.adk_plugin_params.doom_loop_detector_plugin]
+threshold = 5
 ```
 
 ### Agent Ensemble Configuration
@@ -529,9 +531,12 @@ compaction_percent = 50
 # Plugins Configuration
 [plugins]
 enabled = [
+    "doom_loop_detector_plugin",
     "history_summarizer_plugin",
     "tool_response_summarizer_plugin",
+    "quota_after_tool_plugin",
 ]
+extra_plugin_dirs = []
 
 # Agent Ensemble Configuration
 [agent_ensemble]

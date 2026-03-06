@@ -1,0 +1,24 @@
+{
+  "PreToolUse": [
+    {
+      "matcher": "str_replace_editor|str_replace",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Before editing, verify: (1) You have read this file recently and know its current content. (2) The old_str matches the file EXACTLY — including whitespace, indentation, and line breaks. (3) The change is minimal and focused. If unsure about the current content, read the file first."
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "str_replace_editor|str_replace",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "If the edit failed: STOP. Read the file to see its actual current state before retrying. Do NOT guess or re-attempt with the same old_str — verify the exact content first."
+        }
+      ]
+    }
+  ]
+}

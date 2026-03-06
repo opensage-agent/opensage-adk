@@ -19,6 +19,7 @@
 ### Development
 - [Development Guides](Development-Guides.md)
 - [Adding Tools](Adding-Tools.md)
+- [Plugins](Plugins.md)
 - [Sandboxes](Sandboxes.md)
 - [Adding a Evaluation Benchmark](Adding-Evaluations.md)
 

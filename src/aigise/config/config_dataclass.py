@@ -309,9 +309,40 @@ class HistoryConfig:
 
 @dataclass
 class PluginsConfig:
-    """Configuration for AIgiSE plugins."""
+    """Configuration for AIgiSE plugins.
+
+    The ``enabled`` list can contain:
+
+    - **Python plugin names** (e.g. ``"doom_loop_detector_plugin"``) — loaded from
+      the corresponding ``.py`` file in ``aigise/plugins/``.
+    - **Claude Code hook names** (e.g. ``"careful_edit"``) — loaded from
+      the corresponding ``.json`` file in ``aigise/plugins/default/claude_code_hooks/``.
+    - **Regex patterns** (e.g. ``".*_plugin"``) — auto-detected by metacharacters
+      and matched via ``re.fullmatch`` against all discovered plugin names.
+
+    Plugins are searched in order (later entries shadow earlier ones):
+
+    1. Default ADK plugins: ``aigise/plugins/default/adk_plugins/``
+    2. Default Claude Code hooks: ``aigise/plugins/default/claude_code_hooks/``
+    3. Custom directories: paths listed in ``extra_plugin_dirs`` (both ``.py`` and ``.json``)
+    4. Agent-local: ``{agent_dir}/plugins/`` (both ``.py`` and ``.json``)
+
+    Per-plugin parameters can be set via the ``params`` dict, keyed by plugin
+    name.  The values are passed as ``**kwargs`` to the plugin constructor.
+
+    Example::
+
+        [plugins]
+        enabled = ["doom_loop_detector_plugin", "careful_edit"]
+        extra_plugin_dirs = ["/path/to/shared/plugins"]
+
+        [plugins.params.doom_loop_detector_plugin]
+        threshold = 5
+    """
 
     enabled: List[str] = field(default_factory=list)
+    extra_plugin_dirs: List[str] = field(default_factory=list)
+    params: Dict[str, Dict[str, Any]] = field(default_factory=dict)
 
 
 @dataclass

@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "pip",
-    "google-adk<=1.21.0",
+    "google-adk<=1.25.1",
     "pandas==2.2.3",
     "neomodel==5.4.3",
     "docker==7.1.0",
@@ -105,6 +105,7 @@ convention = "google"
 "examples" = "aigise/examples"
 "src/aigise/cli/assets/opensage_favicon.ico" = "aigise/cli/assets/opensage_favicon.ico"
 "src/aigise/cli/vendor/adk_browser" = "aigise/cli/vendor/adk_browser"
+"src/aigise/plugins/default/claude_code_hooks" = "aigise/plugins/default/claude_code_hooks"
 
 [tool.pytest.ini_options]
 log_format = "%(asctime)s [%(name)s] [%(levelname)s] %(message)s"

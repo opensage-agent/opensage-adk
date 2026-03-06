@@ -1,0 +1,67 @@
+{
+  "PostToolUse": [
+    {
+      "matcher": "bash(pytest*)",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Analyze the test output carefully: (1) Which tests failed and what are the exact error messages? (2) Are the failures caused by your changes or pre-existing? (3) Fix root causes — do not delete or skip failing tests."
+        }
+      ]
+    },
+    {
+      "matcher": "bash(python -m pytest*)",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Analyze the test output carefully: (1) Which tests failed and what are the exact error messages? (2) Are the failures caused by your changes or pre-existing? (3) Fix root causes — do not delete or skip failing tests."
+        }
+      ]
+    },
+    {
+      "matcher": "bash(python -m unittest*)",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Analyze the test output carefully: (1) Which tests failed and what are the exact error messages? (2) Are the failures caused by your changes or pre-existing? (3) Fix root causes — do not delete or skip failing tests."
+        }
+      ]
+    },
+    {
+      "matcher": "bash(go test*)",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Analyze the test output carefully: (1) Which tests failed and what are the exact error messages? (2) Are the failures caused by your changes or pre-existing? (3) Fix root causes — do not delete or skip failing tests."
+        }
+      ]
+    },
+    {
+      "matcher": "bash(make test*)",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Analyze the test output carefully: (1) Which tests failed and what are the exact error messages? (2) Are the failures caused by your changes or pre-existing? (3) Fix root causes — do not delete or skip failing tests."
+        }
+      ]
+    },
+    {
+      "matcher": "bash(cargo test*)",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Analyze the test output carefully: (1) Which tests failed and what are the exact error messages? (2) Are the failures caused by your changes or pre-existing? (3) Fix root causes — do not delete or skip failing tests."
+        }
+      ]
+    },
+    {
+      "matcher": "bash(npm test*)",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Analyze the test output carefully: (1) Which tests failed and what are the exact error messages? (2) Are the failures caused by your changes or pre-existing? (3) Fix root causes — do not delete or skip failing tests."
+        }
+      ]
+    }
+  ]
+}

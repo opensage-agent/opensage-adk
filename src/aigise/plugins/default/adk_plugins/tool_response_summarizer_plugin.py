@@ -4,14 +4,14 @@ from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
 
-from ..features import summarization
+from aigise.features import summarization
 
 
-class HistorySummarizerPlugin(BasePlugin):
-    """Plugin wrapper around history_summarizer_callback."""
+class ToolResponseSummarizerPlugin(BasePlugin):
+    """Plugin wrapper around tool_response_summarizer_callback."""
 
     def __init__(self) -> None:
-        super().__init__(name="history_summarizer")
+        super().__init__(name="tool_response_summarizer")
 
     async def after_tool_callback(
         self,
@@ -21,6 +21,6 @@ class HistorySummarizerPlugin(BasePlugin):
         tool_context: ToolContext,
         result: dict,
     ):
-        return await summarization.history_summarizer_callback(
+        return await summarization.tool_response_summarizer_callback(
             tool, tool_args, tool_context, result
         )

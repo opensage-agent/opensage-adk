@@ -301,11 +301,12 @@ def cli_web(
     aigise_session = get_aigise_session(session_id)
     enabled_plugins = []
     if aigise_session and getattr(aigise_session, "config", None):
-        enabled_plugins = (
-            getattr(getattr(aigise_session.config, "plugins", None), "enabled", [])
-            or []
-        )
-    plugins = load_plugins(enabled_plugins)
+        plugins_cfg = getattr(aigise_session.config, "plugins", None)
+        enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
+        extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
+    plugins = load_plugins(
+        enabled_plugins, agent_dir=agent_dir, extra_plugin_dirs=extra_plugin_dirs
+    )
 
     # 3) Build services (use AigiseInMemorySessionService and pre-create the ADK session)
     # Infer app name as the parent folder of the agent directory.

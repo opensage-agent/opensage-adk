@@ -86,9 +86,12 @@ NEO4J_dbms_mode = "SINGLE"
 [plugins]
 enabled = [
     "build_verifier_plugin",
-    "validator_plugin",
+    "doom_loop_detector_plugin",
+    "read_before_edit_plugin",
     "memory_observer_plugin",
     "history_summarizer_plugin",
     "tool_response_summarizer_plugin",
     "message_board_diff_plugin",
+    "careful_edit",
+    "test_output_review",
 ]

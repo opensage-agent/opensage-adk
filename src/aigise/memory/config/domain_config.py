@@ -107,23 +107,29 @@ class DomainConfig:
             embedding_dimension=other.embedding_dimension or self.embedding_dimension,
         )
 
-    def validate(self) -> List[str]:
+    def validate(self, known_node_types: set[str] | None = None) -> List[str]:
         """Validate the domain configuration.
+
+        Args:
+            known_node_types: Node types from other registered domains.
+                Cross-domain relationships (e.g. MENTIONS linking qa→code)
+                are valid as long as all referenced types exist somewhere.
 
         Returns:
             List of validation error messages (empty if valid).
         """
         errors = []
+        all_types = set(self.node_types) | (known_node_types or set())
 
-        # Check relationship source/target types exist
+        # Check relationship source/target types exist (across all domains)
         for rel_name, rel_config in self.relationships.items():
             for source in rel_config.source_types:
-                if source not in self.node_types:
+                if source not in all_types:
                     errors.append(
                         f"Relationship '{rel_name}' references unknown source type '{source}'"
                     )
             for target in rel_config.target_types:
-                if target not in self.node_types:
+                if target not in all_types:
                     errors.append(
                         f"Relationship '{rel_name}' references unknown target type '{target}'"
                     )
@@ -142,16 +148,35 @@ class DomainConfig:
 def register_domain(config: DomainConfig) -> None:
     """Register a domain configuration globally.
 
+    Validation is deferred — call :func:`validate_all_domains` after all
+    domains have been registered so that cross-domain relationships
+    (e.g. MENTIONS linking qa→code nodes) can be checked correctly.
+
     Args:
         config: Domain configuration to register.
     """
-    validation_errors = config.validate()
-    if validation_errors:
-        logger.warning(
-            f"Domain '{config.name}' has validation warnings: {validation_errors}"
-        )
     _DOMAIN_REGISTRY[config.name] = config
     logger.info(f"Registered domain: {config.name}")
+
+
+def validate_all_domains() -> Dict[str, List[str]]:
+    """Validate all registered domains, aware of cross-domain node types.
+
+    Returns:
+        Dict mapping domain name → list of validation errors (empty if valid).
+    """
+    # Collect all known node types across every domain
+    all_types: set[str] = set()
+    for domain in _DOMAIN_REGISTRY.values():
+        all_types.update(domain.node_types)
+
+    results: Dict[str, List[str]] = {}
+    for name, config in _DOMAIN_REGISTRY.items():
+        errors = config.validate(known_node_types=all_types)
+        if errors:
+            logger.warning(f"Domain '{name}' has validation warnings: {errors}")
+        results[name] = errors
+    return results
 
 
 def get_domain_config(name: str) -> Optional[DomainConfig]:

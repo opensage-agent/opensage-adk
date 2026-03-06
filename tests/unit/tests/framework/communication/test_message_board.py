@@ -5,7 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from aigise.plugins.message_board_diff_plugin import MessageBoardDiffPlugin
+from aigise.plugins.default.adk_plugins.message_board_diff_plugin import (
+    MessageBoardDiffPlugin,
+)
 from aigise.session.message_board import MessageBoardManager, message_board_context
 
 
@@ -54,7 +56,7 @@ async def test_message_board_diff_plugin_piggybacks_diff(tmp_path, monkeypatch):
     tc_b = _DummyToolContext(inv_b)
 
     # Patch session lookup helper used by the plugin.
-    import aigise.plugins.message_board_diff_plugin as plugin_mod
+    import aigise.plugins.default.adk_plugins.message_board_diff_plugin as plugin_mod
 
     monkeypatch.setattr(plugin_mod, "get_aigise_session", lambda _sid: session)
     monkeypatch.setattr(
@@ -110,7 +112,7 @@ async def test_message_board_diff_plugin_uses_context_board_id(tmp_path, monkeyp
     inv_b = _DummyInvocationContext(agent_b, session)
     tc_b = _DummyToolContext(inv_b)
 
-    import aigise.plugins.message_board_diff_plugin as plugin_mod
+    import aigise.plugins.default.adk_plugins.message_board_diff_plugin as plugin_mod
 
     monkeypatch.setattr(plugin_mod, "get_aigise_session", lambda _sid: session)
     monkeypatch.setattr(

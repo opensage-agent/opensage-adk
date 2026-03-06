@@ -1101,7 +1101,7 @@ class Evaluation(abc.ABC):
 
         # 3. Load cached sandboxes
         unfound_cached_sandboxes = []
-        if self.use_cache:
+        if self.use_sandbox_cache:
             unfound_cached_sandboxes = (
                 aigise_session.sandboxes.load_sandbox_caches_to_config()
             )
@@ -1124,7 +1124,7 @@ class Evaluation(abc.ABC):
         await self._after_initialize_callback(task)
 
         # 7. Cache sandboxes if needed
-        if self.use_cache and unfound_cached_sandboxes:
+        if self.use_sandbox_cache and unfound_cached_sandboxes:
             aigise_session.sandboxes.cache_sandboxes(cache_dir=task.sandbox_cache_dir)
 
     async def _run_agent(self, task: EvaluationTask, agent: adk.Agent) -> Session:
@@ -1139,17 +1139,21 @@ class Evaluation(abc.ABC):
         """
         # 2. Create runner and session service
         user_id = self.output_dir.replace("/", "_")
-        app_name = self.__class__.__name__.lower()
+        app_name = Path(self.agent_dir).resolve().parent.name
         session_service = AigiseInMemorySessionService()
         enabled_plugins = []
+        plugin_params = {}
         if task.aigise_session and getattr(task.aigise_session, "config", None):
-            enabled_plugins = (
-                getattr(
-                    getattr(task.aigise_session.config, "plugins", None), "enabled", []
-                )
-                or []
-            )
-        plugins = load_plugins(enabled_plugins)
+            plugins_cfg = getattr(task.aigise_session.config, "plugins", None)
+            enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
+            plugin_params = getattr(plugins_cfg, "params", {}) or {}
+            extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
+        plugins = load_plugins(
+            enabled_plugins,
+            agent_dir=self.agent_dir,
+            adk_plugin_params=plugin_params,
+            extra_plugin_dirs=extra_plugin_dirs,
+        )
         if plugins:
             logger.warning(
                 "Loaded plugins for session %s: %s",

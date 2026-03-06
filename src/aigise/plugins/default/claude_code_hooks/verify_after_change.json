@@ -1,0 +1,22 @@
+{
+  "PostToolUse": [
+    {
+      "matcher": "bash(git diff*)",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Review the diff: (1) Are all changes intentional and related to the task? (2) Did you accidentally modify unrelated code? (3) Are there any leftover debug statements or commented-out code?"
+        }
+      ]
+    },
+    {
+      "matcher": "bash(patch*)",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "If the patch failed to apply: check for conflicts or mismatched context lines. Read the target file to verify its current state before retrying."
+        }
+      ]
+    }
+  ]
+}

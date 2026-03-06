@@ -78,28 +78,53 @@ class BenchmarkInterface:
         Raises:
             ImportError: If benchmark not found in registry
         """
-        from aigise.evaluation.base import _EVALUATION_REGISTRY, get_evaluation_class
+        import sys
 
-        # First, try to import common submodules to trigger registration
-        base_path = f"aigise.evaluation.{benchmark_name}"
+        from aigise.evaluation.base import _EVALUATION_REGISTRY, get_evaluation_class
+        from aigise.utils.project_info import PROJECT_PATH
+
+        # Ensure benchmarks/ (at project root) is importable.
+        project_root = str(PROJECT_PATH)
+        if project_root not in sys.path:
+            sys.path.insert(0, project_root)
+
+        # Import benchmark submodules to trigger Evaluation class registration.
+        base_path = f"benchmarks.{benchmark_name}"
         common_submodules = [
             "vul_detection",
             "evaluation",
             "main",
             "benchmark",
             "cybergym_static",
+            "mock_debug_evaluation",
         ]
 
         for submodule_name in common_submodules:
             try:
                 importlib.import_module(f"{base_path}.{submodule_name}")
-                logger.info(f"Loaded {benchmark_name}.{submodule_name}")
-                break  # Found a module, stop searching
+                logger.info(f"Loaded {base_path}.{submodule_name}")
+                break
             except ImportError:
                 continue
 
         # Look up the evaluation class from registry
         eval_class = get_evaluation_class(benchmark_name)
+
+        # Fallback: class name (lowercase) may differ from package name.
+        # e.g. package "mock_debug" registers class "MockDebugEvaluation" as
+        # "mockdebugevaluation".  Scan registry for any class whose module
+        # starts with the base_path we just imported.
+        if eval_class is None:
+            for reg_name, reg_cls in _EVALUATION_REGISTRY.items():
+                mod = getattr(reg_cls, "__module__", "")
+                if mod.startswith(base_path):
+                    eval_class = reg_cls
+                    logger.info(
+                        f"Found evaluation class via module fallback: "
+                        f"{reg_cls.__name__} (registered as '{reg_name}')"
+                    )
+                    break
+
         if eval_class is None:
             available = list(_EVALUATION_REGISTRY.keys())
             raise ImportError(
@@ -109,12 +134,13 @@ class BenchmarkInterface:
 
         logger.info(f"Found evaluation class: {eval_class.__name__}")
 
-        # Use class methods directly from the Evaluation class
+        # Use class methods directly from the Evaluation class.
+        # These are optional — use getattr with None fallback.
         return cls(
-            get_prompt_fn=eval_class.get_prompt,
-            reward_fn=eval_class.reward_func,
-            preprocess_fn=eval_class.preprocess_sample,
-            postprocess_fn=eval_class.postprocess_response,
+            get_prompt_fn=getattr(eval_class, "get_prompt", None),
+            reward_fn=getattr(eval_class, "reward_func", None),
+            preprocess_fn=getattr(eval_class, "preprocess_sample", None),
+            postprocess_fn=getattr(eval_class, "postprocess_response", None),
             evaluation_class=eval_class,
         )
 

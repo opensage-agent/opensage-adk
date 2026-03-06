@@ -25,6 +25,7 @@ Usage:
 from .adapters import BaseAdapter, SlimeAdapter
 from .benchmark_interface import BenchmarkInterface
 from .client import Client, RLSession, create
+from .slime_llm import SlimeLlm, TokenTracker
 
 __all__ = [
     # Main API
@@ -34,6 +35,9 @@ __all__ = [
     # Adapters
     "BaseAdapter",
     "SlimeAdapter",
+    # SlimeLlm (BaseLlm for sglang routing + token tracking)
+    "SlimeLlm",
+    "TokenTracker",
     # Benchmark interface
     "BenchmarkInterface",
 ]

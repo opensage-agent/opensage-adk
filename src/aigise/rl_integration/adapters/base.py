@@ -24,7 +24,7 @@ class BaseAdapter(ABC):
 
     The adapter is responsible for:
     - Converting framework-specific sample to dict format for Evaluation
-    - Calling Evaluation._create_task() and _generate_sample()
+    - Calling Evaluation._create_task() and _generate_one()
     - Updating the sample with results in framework-expected format
     """
 
@@ -77,7 +77,7 @@ class BaseAdapter(ABC):
         This method should:
         1. Convert sample to dict using convert_to_sample_dict()
         2. Call evaluation._create_task(dict) to create EvaluationTask
-        3. Call evaluation._generate_sample(task) to run the agent
+        3. Call evaluation._generate_one(task) to run the agent
         4. Update sample with results using update_sample_success/error()
 
         Args:
@@ -101,7 +101,7 @@ class BaseAdapter(ABC):
 
         Args:
             sample: Framework-specific sample object
-            result: Result dict from Evaluation._generate_sample()
+            result: Result dict from Evaluation._generate_one()
             metadata: Additional metadata
 
         Returns:

@@ -11,7 +11,7 @@ from aigise.features import (
     enable_neo4j_logging,
 )
 from aigise.session import get_aigise_session
-from aigise.toolbox.general.bash_tool import bash_tool
+from aigise.toolbox.general.bash_tool import bash_tool_main
 from aigise.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
     grep_tool,
@@ -71,7 +71,7 @@ def mk_agent(aigise_session_id="vulnerability-detection-agent-session"):
             get_line_around_linenum_in_file,
             # finish_task,
             # generate_poc_and_submit,
-            bash_tool,
+            bash_tool_main,
             # create_subagent,
             # list_active_agents,
             # call_subagent_as_tool,

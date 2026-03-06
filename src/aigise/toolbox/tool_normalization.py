@@ -108,6 +108,7 @@ def _make_safe_dict_callable(func: F) -> F:
         "__qualname__",
         "__doc__",
         "__annotations__",
+        "__sandbox_requirements__",
     ):
         if hasattr(func, attr):
             setattr(rebuilt, attr, getattr(func, attr))

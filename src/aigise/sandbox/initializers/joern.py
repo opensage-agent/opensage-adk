@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import shlex
 import tempfile
+import time
 
 import networkx as nx
 
@@ -80,15 +82,19 @@ class JoernInitializer(SandboxInitializer):
         self, aigise_session, all_sandboxes: dict[str, BaseSandbox]
     ) -> None:
         """Execute Joern initialization steps with timeout protection."""
+
+        t0 = time.monotonic()
         msg, err = self.run_command_in_container(
             ["bash", "/sandbox_scripts/callgraph/init.sh"],
             timeout=3600,
         )
+        elapsed = time.monotonic() - t0
+        logger.info(f"Joern init.sh completed in {elapsed:.1f}s (exit_code={err})")
         if err != 0:
-            raise RuntimeError(f"Joern init failed: {msg}")
+            logger.error(f"Joern init failed (exit_code={err}), output:\n{msg}")
+            raise RuntimeError(f"Joern init failed (exit_code={err})")
 
-        if err != 0:
-            raise RuntimeError(f"Joern code copy failed: {msg}")
+        t0 = time.monotonic()
         msg, err = self.run_command_in_container(
             [
                 "bash",
@@ -97,9 +103,11 @@ class JoernInitializer(SandboxInitializer):
             ],
             timeout=3600,
         )
-
+        elapsed = time.monotonic() - t0
+        logger.info(f"Joern run_joern.sh completed in {elapsed:.1f}s (exit_code={err})")
         if err != 0:
-            raise RuntimeError(f"Joern run failed: {msg}")
+            logger.error(f"Joern run failed (exit_code={err}), output:\n{msg}")
+            raise RuntimeError(f"Joern run failed (exit_code={err})")
 
         # wait for neo4j to be ready, such that we can import the CPG
         if not await all_sandboxes["neo4j"].wait_for_ready_or_error():

@@ -45,15 +45,21 @@ class Client:
         self,
         agent_name: str,
         benchmark_name: str,
+        model_name: str | None = None,
     ):
         """Initialize client.
 
         Args:
             agent_name: Name of the agent (defined in aigise/agents/ or examples/agents/)
             benchmark_name: Name of the benchmark (defined in aigise/evaluations/)
+            model_name: Optional model name to override the evaluation's default.
+                When provided, this is passed to the evaluation class constructor
+                so that prompt formatting and model-specific logic use the correct
+                model identity (e.g., "qwen3-8b" instead of default "gemini-3-pro-preview").
         """
         self.agent_name = agent_name
         self.benchmark_name = benchmark_name
+        self.model_name = model_name
 
         # Resolve agent directory
         self._agent_dir = self._resolve_agent_dir()
@@ -72,19 +78,15 @@ class Client:
         Raises:
             ValueError: If agent directory not found
         """
-        # Package-installed path: aigise/examples/agents/<agent_name>
-        # __file__ = aigise/rl_integration/client.py
-        # parent.parent = aigise/
-        package_path = (
-            Path(__file__).parent.parent / "examples" / "agents" / self.agent_name
-        )
+        from aigise.utils.project_info import find_path
 
-        if package_path.exists() and (package_path / "agent.py").exists():
-            logger.info(f"Resolved agent directory: {package_path}")
-            return str(package_path.resolve())
+        resolved = find_path("examples", "agents", self.agent_name)
+        if resolved.exists() and (resolved / "agent.py").exists():
+            logger.info(f"Resolved agent directory: {resolved}")
+            return str(resolved.resolve())
 
         raise ValueError(
-            f"Agent '{self.agent_name}' not found. Expected at: {package_path}"
+            f"Agent '{self.agent_name}' not found. Searched via find_path: {resolved}"
         )
 
     def _load_benchmark(self) -> tuple[BenchmarkInterface, "Evaluation"]:
@@ -110,11 +112,14 @@ class Client:
                 agent_id = f"rl_{self.agent_name}_{uuid.uuid4().hex[:8]}"
 
                 # Create instance with agent_dir and agent_id (other params use defaults)
-                evaluation = benchmark.evaluation_class(
+                eval_kwargs = dict(
                     dataset_path="",  # Not used for RL rollout
                     agent_dir=self._agent_dir,
                     agent_id=agent_id,
                 )
+                if self.model_name is not None:
+                    eval_kwargs["model_name"] = self.model_name
+                evaluation = benchmark.evaluation_class(**eval_kwargs)
                 logger.info(
                     f"Created Evaluation instance: {benchmark.evaluation_class.__name__} "
                     f"with agent_id: {agent_id}"
@@ -326,6 +331,7 @@ class RLSession:
 def create(
     agent_name: str,
     benchmark_name: str,
+    model_name: str | None = None,
 ) -> Client:
     """Create an AIgiSE client for RL framework integration.
 
@@ -334,6 +340,10 @@ def create(
     Args:
         agent_name: Name of the agent defined in aigise/agents/ directory
         benchmark_name: Name of the benchmark defined in aigise/evaluations/ directory
+        model_name: Optional model name to override the evaluation's default.
+            When using RL integration (e.g., AReaL), the actual inference model
+            may differ from the evaluation's default. Passing model_name ensures
+            prompt formatting and model-specific logic use the correct identity.
 
     Returns:
         Client instance
@@ -349,7 +359,8 @@ def create(
         with client.init_session() as session:
             sample = await session.slime_generate(args, sample, sampling_params)
 
-        # For AReaL
+        # For AReaL (with model_name override)
+        client = aigise.create("vul_agent_static_tools", "secodeplt", model_name="qwen3-8b")
         with client.init_session() as session:
             result = await session.areal_generate(data, model)
         ```
@@ -357,4 +368,5 @@ def create(
     return Client(
         agent_name=agent_name,
         benchmark_name=benchmark_name,
+        model_name=model_name,
     )

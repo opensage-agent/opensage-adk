@@ -1,0 +1,35 @@
+# SLIME training config — SeCodePLT vulnerability detection
+# Keys are SLIME train.py CLI arg names (without leading --)
+# These override the defaults in the SLIME launch script.
+
+# Rollout
+num-rollout: 20
+rollout-batch-size: 4
+n-samples-per-prompt: 2
+rollout-max-response-len: 2048
+rollout-temperature: 1
+global-batch-size: 8
+
+# Optimizer
+lr: 5e-7
+lr-decay-style: constant
+weight-decay: 0.1
+adam-beta1: 0.9
+adam-beta2: 0.98
+
+# GRPO
+kl-loss-coef: 0.01
+kl-loss-type: low_var_kl
+entropy-coef: 0.00
+eps-clip: 0.2
+eps-clip-high: 0.28
+
+# Performance
+tensor-model-parallel-size: 2
+max-tokens-per-gpu: 9216
+
+# Checkpoint
+save-interval: 10
+
+# Eval
+eval-interval: 10

@@ -329,7 +329,7 @@ class Evaluation(abc.ABC):
                 / self.__class__.__name__.lower()
                 / datetime.datetime.now().strftime("%y%m%d_%H%M%S")
             )
-            Path(self.output_dir).mkdir(parents=True)
+            Path(self.output_dir).mkdir(parents=True, exist_ok=True)
         else:
             if Path(self.output_dir).exists():
                 flag = (

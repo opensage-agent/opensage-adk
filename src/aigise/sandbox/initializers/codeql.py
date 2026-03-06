@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
+import time
 
 from aigise.sandbox.base_sandbox import BaseSandbox
 from aigise.sandbox.initializers.base import SandboxInitializer
@@ -31,6 +32,7 @@ class CodeQLInitializer(SandboxInitializer):
 
         aigise_session = get_aigise_session(self.aigise_session_id)
         try:
+            t0 = time.monotonic()
             msg, err = self.run_command_in_container(
                 [
                     "bash",
@@ -39,8 +41,13 @@ class CodeQLInitializer(SandboxInitializer):
                 ],
                 timeout=3600,
             )
+            elapsed = time.monotonic() - t0
+            logger.info(
+                f"CodeQL analysis completed in {elapsed:.1f}s (exit_code={err})"
+            )
             if err != 0:
-                raise RuntimeError(f"CodeQL run failed: {msg}")
+                logger.error(f"CodeQL run failed (exit_code={err}), output:\n{msg}")
+                raise RuntimeError(f"CodeQL run failed (exit_code={err})")
 
             # Always create nodes from CodeQL results
             # If Joern exists, wait for it to be ready first (for potential merging)

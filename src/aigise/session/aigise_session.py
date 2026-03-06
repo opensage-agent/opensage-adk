@@ -14,6 +14,7 @@ import atexit
 import logging
 import os
 import signal
+import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Optional
 
@@ -197,10 +198,13 @@ class AigiseSessionRegistry:
             # Ignore errors from logging to closed streams during shutdown
             pass
 
-    signal.signal(signal.SIGINT, _signal_handler)  # Ctrl+C
-    signal.signal(signal.SIGTERM, _signal_handler)  # Termination signal
+    try:
+        signal.signal(signal.SIGINT, _signal_handler)
+        signal.signal(signal.SIGTERM, _signal_handler)
+        logger.info("Signal handlers registered for graceful session cleanup")
+    except (ValueError, OSError):
+        pass
     atexit.register(_cleanup_at_exit)
-    logger.info("Signal handlers registered for graceful session cleanup")
 
     @classmethod
     def get_aigise_session(

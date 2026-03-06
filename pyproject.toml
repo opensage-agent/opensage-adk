@@ -117,6 +117,7 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::UserWarning",
 ]
+norecursedirs = ["tests/rl"]
 markers = [
     "native_backend: tests for the native sandbox backend",
     "k8s_backend: tests for the Kubernetes sandbox backend",

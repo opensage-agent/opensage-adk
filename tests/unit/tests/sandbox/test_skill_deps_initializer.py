@@ -85,6 +85,10 @@ class _FakeSandbox(BaseSandbox):
     def get_work_dir(self):
         return "/"
 
+    def delete_container(self) -> None:
+        # Not needed for these unit tests.
+        return None
+
     @classmethod
     def create_shared_volume(
         cls, volume_name_prefix, init_data_path=None, tools_top_roots=None

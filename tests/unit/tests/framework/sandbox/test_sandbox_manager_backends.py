@@ -592,6 +592,134 @@ async def test_attach_sandbox_k8s(sandbox_scenario: SandboxBackendScenario):
 #         shutil.rmtree(cache_dir_path, ignore_errors=True)
 
 
+@pytest.mark.asyncio
+async def test_cache_shared_volume_and_containers(
+    sandbox_scenario: SandboxBackendScenario,
+):
+    cache_dir_path = Path(tempfile.mkdtemp(prefix="aigise-cache-"))
+    manager: Optional[AigiseSandboxManager] = None
+    reloaded_manager: Optional[AigiseSandboxManager] = None
+    scripts_volume_id: Optional[str] = None
+    shared_volume_id: Optional[str] = None
+    reloaded_scripts_volume_id: Optional[str] = None
+    reloaded_shared_volume_id: Optional[str] = None
+    cache_result: Optional[dict] = None
+    initial_config = sandbox_scenario.build_config()
+    reloaded_config: Optional[AigiseConfig] = None
+    reloaded_session_id: Optional[str] = None
+    session_id: Optional[str] = None
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="aigise-shared-") as temp_dir:
+            shared_path = Path(temp_dir)
+            (shared_path / "initial_shared_data.txt").write_text("Initial shared data")
+            initial_config.sandbox.absolute_shared_data_path = temp_dir
+            session_id = sandbox_scenario.generate_session_id()
+
+            aigise_session = get_aigise_session(session_id)
+            aigise_session.config = initial_config
+            manager = aigise_session.sandboxes
+            manager.initialize_shared_volumes()
+            scripts_volume_id = manager._scripts_volume_id
+            shared_volume_id = manager.get_shared_volume()
+            assert scripts_volume_id is not None
+            assert shared_volume_id is not None
+
+            await manager.launch_all_sandboxes()
+            await manager.initialize_all_sandboxes()
+            main_sandbox = manager._sandboxes["main"]
+            worker_sandbox = manager._sandboxes["worker"]
+
+            main_sandbox.run_command_in_container(
+                "echo 'Main container data' > /tmp/main_container_file.txt"
+            )
+            worker_sandbox.run_command_in_container(
+                "echo 'Worker container data' > /tmp/worker_container_file.txt"
+            )
+            main_sandbox.run_command_in_container(
+                "echo 'Data written by main to shared volume' > /shared/runtime_shared_file.txt"
+            )
+            worker_sandbox.run_command_in_container(
+                "echo 'Data written by worker to shared volume' > /shared/worker_runtime_file.txt"
+            )
+
+            cache_result = manager.cache_sandboxes(cache_dir=str(cache_dir_path))
+            assert "cached_images" in cache_result
+            assert "shared_volume_backup" in cache_result
+            volume_backup_path = cache_result["shared_volume_backup"]
+            assert volume_backup_path and os.path.exists(volume_backup_path)
+
+            with tarfile.open(volume_backup_path, "r:gz") as tar:
+                tar_members = [member.name.lstrip("./") for member in tar.getmembers()]
+            assert "initial_shared_data.txt" in tar_members
+            assert "runtime_shared_file.txt" in tar_members
+            assert "worker_runtime_file.txt" in tar_members
+
+        AigiseSessionRegistry.remove_session(session_id)
+        manager = None
+        sandbox_scenario.cleanup_shared_volumes(
+            scripts_volume_id, shared_volume_id, initial_config
+        )
+        scripts_volume_id = None
+        shared_volume_id = None
+
+        reloaded_config = sandbox_scenario.build_config()
+        reloaded_config.sandbox.absolute_shared_data_path = str(cache_dir_path)
+        reloaded_session_id = sandbox_scenario.generate_session_id()
+
+        reloaded_aigise_session = get_aigise_session(reloaded_session_id)
+        reloaded_aigise_session.config = reloaded_config
+        reloaded_manager = reloaded_aigise_session.sandboxes
+        reloaded_manager.load_sandbox_caches_to_config()
+        reloaded_manager.initialize_shared_volumes()
+        reloaded_scripts_volume_id = reloaded_manager._scripts_volume_id
+        reloaded_shared_volume_id = reloaded_manager.get_shared_volume()
+        assert reloaded_scripts_volume_id is not None
+        assert reloaded_shared_volume_id is not None
+
+        await reloaded_manager.launch_all_sandboxes()
+        await reloaded_manager.initialize_all_sandboxes()
+        reloaded_main = reloaded_manager._sandboxes["main"]
+        reloaded_worker = reloaded_manager._sandboxes["worker"]
+
+        output, exit_code = reloaded_main.run_command_in_container(
+            "cat /tmp/main_container_file.txt"
+        )
+        assert exit_code == 0, output
+        assert "Main container data" in output
+
+        output, exit_code = reloaded_worker.run_command_in_container(
+            "cat /tmp/worker_container_file.txt"
+        )
+        assert exit_code == 0, output
+        assert "Worker container data" in output
+
+        output, exit_code = reloaded_main.run_command_in_container(
+            "cat /shared/runtime_shared_file.txt"
+        )
+        assert exit_code == 0, output
+        assert "Data written by main to shared volume" in output
+
+        output, exit_code = reloaded_worker.run_command_in_container(
+            "cat /shared/worker_runtime_file.txt"
+        )
+        assert exit_code == 0, output
+        assert "Data written by worker to shared volume" in output
+    finally:
+        if session_id in AigiseSessionRegistry._sessions:
+            AigiseSessionRegistry.remove_session(session_id)
+        if reloaded_session_id in AigiseSessionRegistry._sessions:
+            AigiseSessionRegistry.remove_session(reloaded_session_id)
+        sandbox_scenario.cleanup_shared_volumes(
+            scripts_volume_id, shared_volume_id, initial_config
+        )
+        sandbox_scenario.cleanup_shared_volumes(
+            reloaded_scripts_volume_id, reloaded_shared_volume_id, reloaded_config
+        )
+        sandbox_scenario.cleanup_cached_images(cache_result)
+        shutil.rmtree(cache_dir_path, ignore_errors=True)
+
+
 if __name__ == "__main__":  # pragma: no cover - manual execution helper
     import sys
 

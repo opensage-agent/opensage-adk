@@ -73,6 +73,9 @@ class LocalSandbox(BaseSandbox):
     def get_work_dir(self):
         return os.getcwd()
 
+    def delete_container(self) -> None:
+        logger.info("LocalSandbox has no container to delete")
+
     @classmethod
     def create_shared_volume(
         cls,
@@ -108,7 +111,14 @@ class LocalSandbox(BaseSandbox):
 
     @classmethod
     def cache_sandboxes(cls, sandbox_instances, shared_volume_id, cache_dir, task_name):
-        pass
+        return {
+            "backend": "local",
+            "task_name": task_name,
+            "cache_dir": cache_dir,
+            "shared_volume_backup": None,
+            "cached_images": {},
+            "errors": [],
+        }
 
     @classmethod
     def delete_shared_volumes(

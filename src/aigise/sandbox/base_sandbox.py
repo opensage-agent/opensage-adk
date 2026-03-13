@@ -89,6 +89,11 @@ class BaseSandbox(ABC):
         """Get the current working directory in the container."""
         pass
 
+    @abstractmethod
+    def delete_container(self) -> None:
+        """Delete the container."""
+        pass
+
     @classmethod
     @abstractmethod
     def create_shared_volume(

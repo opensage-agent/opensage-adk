@@ -19,6 +19,7 @@ from .base_sandbox import BaseSandbox
 from .k8s_sandbox import K8sSandbox
 from .local_sandbox import LocalSandbox
 from .native_docker_sandbox import NativeDockerSandbox
+from .opensandbox_sandbox import OpenSandboxSandbox
 from .remote_docker_sandbox import RemoteDockerSandbox
 
 # Registry of available backends
@@ -26,6 +27,7 @@ SANDBOX_BACKENDS = {
     "native": NativeDockerSandbox,
     "k8s": K8sSandbox,
     "remotedocker": RemoteDockerSandbox,
+    "opensandbox": OpenSandboxSandbox,
     # Future backends can be added here:
     "local": LocalSandbox,
 }
@@ -101,7 +103,7 @@ def get_backend_class(backend_type: str, config=None) -> Type[BaseSandbox]:
 
     # Inject config for remote docker backend
     if (
-        backend_type == "remotedocker"
+        backend_type in {"remotedocker", "opensandbox"}
         and config
         and hasattr(backend_class, "set_config")
     ):

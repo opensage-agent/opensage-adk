@@ -222,6 +222,7 @@ class SandboxConfig:
     project_relative_shared_data_path: Optional[str] = None
     absolute_shared_data_path: Optional[str] = None
     backend: str = "native"
+    opensandbox: Optional["OpenSandboxConfig"] = None
     # Global tolerations applied to all k8s pods (init/chmod/session). If set,
     # overrides/augments any per-container tolerations in ContainerConfig.extra.
     tolerations: Optional[list[dict]] = None
@@ -367,6 +368,39 @@ class BuildConfig:
     run_command: Optional[str] = None
     target_type: Optional[str] = None
     target_binary: Optional[str] = None
+
+
+@dataclass
+class OpenSandboxConfig:
+    """Configuration for OpenSandbox-backed sandboxes.
+
+    These settings are consumed by the AIgiSE ``opensandbox`` backend.
+    They describe both how to reach the OpenSandbox control plane and how
+    AIgiSE should provision runtime-native shared storage for that backend.
+    """
+
+    domain: Optional[str] = None
+    protocol: str = "http"
+    api_key: Optional[str] = None
+    request_timeout_sec: int = 30
+    use_server_proxy: bool = False
+
+    # OpenSandbox runtime type used by the target server.
+    runtime_type: str = "docker"  # docker | kubernetes
+
+    # Remote Docker settings used when runtime_type == "docker".
+    docker_host: Optional[str] = None
+    docker_remote_host: Optional[str] = None
+
+    # Kubernetes settings used when runtime_type == "kubernetes".
+    namespace: Optional[str] = None
+    context: Optional[str] = None
+    kubeconfig: Optional[str] = None
+
+    # Sandbox defaults.
+    default_timeout_sec: int = 1800
+    execd_port: int = 44772
+    request_working_directory: Optional[str] = None
 
 
 class MCPServiceConfig:
@@ -557,6 +591,19 @@ class AigiseConfig:
             ]:
                 if sandbox_data.get(field) == "":
                     sandbox_data[field] = None
+            opensandbox_data = sandbox_data.get("opensandbox") or {}
+            for field in [
+                "domain",
+                "api_key",
+                "docker_host",
+                "docker_remote_host",
+                "namespace",
+                "context",
+                "kubeconfig",
+                "request_working_directory",
+            ]:
+                if opensandbox_data.get(field) == "":
+                    opensandbox_data[field] = None
 
         # MCP: Manually create MCPServiceConfig instances (can't be auto-converted)
         if "mcp" in data and "services" in data["mcp"]:

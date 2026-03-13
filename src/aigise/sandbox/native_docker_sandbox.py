@@ -1574,56 +1574,54 @@ class NativeDockerSandbox(BaseSandbox):
         }
 
         try:
-            # # Ensure cache directory exists
-            # Path(cache_dir).mkdir(parents=True, exist_ok=True)
+            Path(cache_dir).mkdir(parents=True, exist_ok=True)
 
-            # # 1. Backup shared volume if it exists
-            # if shared_volume_id:
-            #     try:
-            #         volume_backup_path = os.path.join(
-            #             cache_dir, f"{task_name}_shared_volume.tar.gz"
-            #         )
+            # 1. Backup shared volume if it exists
+            if shared_volume_id:
+                try:
+                    volume_backup_path = os.path.join(
+                        cache_dir, f"{task_name}_shared_volume.tar.gz"
+                    )
 
-            #         # Use Alpine container to create tar backup of the volume
-            #         backup_cmd = [
-            #             "docker",
-            #             "run",
-            #             "--rm",
-            #             "-v",
-            #             f"{shared_volume_id}:/data:ro",
-            #             "-v",
-            #             f"{os.path.abspath(cache_dir)}:/output",
-            #             "alpine",
-            #             "tar",
-            #             "-czf",
-            #             f"/output/{task_name}_shared_volume.tar.gz",
-            #             "-C",
-            #             "/data",
-            #             ".",
-            #         ]
+                    backup_cmd = [
+                        "docker",
+                        "run",
+                        "--rm",
+                        "-v",
+                        f"{shared_volume_id}:/data:ro",
+                        "-v",
+                        f"{os.path.abspath(cache_dir)}:/output",
+                        "alpine",
+                        "tar",
+                        "-czf",
+                        f"/output/{task_name}_shared_volume.tar.gz",
+                        "-C",
+                        "/data",
+                        ".",
+                    ]
 
-            # logger.info(
-            #     f"Backing up shared volume {shared_volume_id} to {volume_backup_path}"
-            # )
-            # result = subprocess.run(
-            #     backup_cmd, capture_output=True, text=True, check=True
-            # )
+                    logger.info(
+                        f"Backing up shared volume {shared_volume_id} to {volume_backup_path}"
+                    )
+                    subprocess.run(
+                        backup_cmd, capture_output=True, text=True, check=True
+                    )
 
-            # cache_results["shared_volume_backup"] = volume_backup_path
-            # logger.info(
-            #     f"Successfully backed up shared volume to {volume_backup_path}"
-            # )
+                    cache_results["shared_volume_backup"] = volume_backup_path
+                    logger.info(
+                        f"Successfully backed up shared volume to {volume_backup_path}"
+                    )
 
-            # except subprocess.CalledProcessError as e:
-            #     error_msg = (
-            #         f"Failed to backup shared volume {shared_volume_id}: {e.stderr}"
-            #     )
-            #     logger.error(error_msg)
-            #     cache_results["errors"].append(error_msg)
-            # except Exception as e:
-            #     error_msg = f"Unexpected error backing up shared volume: {e}"
-            #     logger.error(error_msg)
-            #     cache_results["errors"].append(error_msg)
+                except subprocess.CalledProcessError as e:
+                    error_msg = (
+                        f"Failed to backup shared volume {shared_volume_id}: {e.stderr}"
+                    )
+                    logger.error(error_msg)
+                    cache_results["errors"].append(error_msg)
+                except Exception as e:
+                    error_msg = f"Unexpected error backing up shared volume: {e}"
+                    logger.error(error_msg)
+                    cache_results["errors"].append(error_msg)
 
             # 2. Commit each sandbox container to an image
             client = docker.from_env(timeout=3600)

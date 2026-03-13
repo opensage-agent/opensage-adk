@@ -7,6 +7,7 @@ via SSH or TCP, enabling distributed execution across multiple machines.
 from __future__ import annotations
 
 import io
+import json
 import logging
 import os
 import tarfile
@@ -59,6 +60,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
     # Class variable to hold injected config
     _injected_config = None
+    _CACHE_DIR_ENV = "AIGISE_REMOTE_DOCKER_CACHE_DIR"
 
     def __init__(
         self,
@@ -583,6 +585,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
             return normalized
 
         cache_results = {
+            "backend": "remotedocker",
             "task_name": task_name,
             "cache_dir": cache_dir,
             "shared_volume_backup": None,
@@ -591,7 +594,24 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         }
 
         try:
+            cache_dir_path = Path(cache_dir)
+            cache_dir_path.mkdir(parents=True, exist_ok=True)
+
+            if shared_volume_id:
+                try:
+                    backup_path = cache_dir_path / f"{task_name}_shared_volume.tar.gz"
+                    cls._backup_remote_volume_to_tarball(
+                        volume_name=shared_volume_id,
+                        backup_tar_path=backup_path,
+                    )
+                    cache_results["shared_volume_backup"] = str(backup_path)
+                except Exception as exc:
+                    error = f"Failed to backup shared volume {shared_volume_id}: {exc}"
+                    logger.error(error)
+                    cache_results["errors"].append(error)
+
             client = cls._get_docker_client()
+            normalized_task = normalize_image_name(task_name)
 
             for sandbox_type, sandbox_instance in sandbox_instances.items():
                 try:
@@ -603,7 +623,6 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
                     container = client.containers.get(sandbox_instance.container_id)
 
-                    normalized_task = normalize_image_name(task_name)
                     normalized_type = normalize_image_name(sandbox_type)
                     repository = f"{normalized_task}_sandbox_{normalized_type}"
                     cached_image = f"{repository}:cached"
@@ -629,6 +648,26 @@ class RemoteDockerSandbox(NativeDockerSandbox):
                     logger.error(error)
                     cache_results["errors"].append(error)
 
+            manifest_data = {
+                "task_name": task_name,
+                "cache_dir": str(cache_dir_path),
+                "shared_volume_backup": cache_results["shared_volume_backup"],
+                "sandboxes": cache_results["cached_images"],
+            }
+            manifest_path = cache_dir_path / "remote_docker_cache_manifest.json"
+            with manifest_path.open("w", encoding="utf-8") as manifest_file:
+                json.dump(manifest_data, manifest_file, indent=2)
+            cache_results["metadata_path"] = str(manifest_path)
+            os.environ[cls._CACHE_DIR_ENV] = str(cache_dir_path)
+
+            global_manifest_dir = (
+                Path.home() / ".cache" / "aigise" / "remote_docker_cache"
+            )
+            global_manifest_dir.mkdir(parents=True, exist_ok=True)
+            global_manifest = global_manifest_dir / f"{normalized_task}.json"
+            with global_manifest.open("w", encoding="utf-8") as global_file:
+                json.dump(manifest_data, global_file, indent=2)
+
             return cache_results
 
         except Exception as e:
@@ -636,6 +675,77 @@ class RemoteDockerSandbox(NativeDockerSandbox):
             logger.error(error)
             cache_results["errors"].append(error)
             return cache_results
+
+    @classmethod
+    def _backup_remote_volume_to_tarball(
+        cls,
+        *,
+        volume_name: str,
+        backup_tar_path: Path,
+    ) -> str:
+        """Backup a remote Docker volume to a local ``tar.gz`` file."""
+        client = cls._get_docker_client()
+        helper_container = None
+        temp_tar_path = None
+        try:
+            try:
+                client.images.get("alpine:latest")
+            except ImageNotFound:
+                client.images.pull("alpine:latest")
+
+            helper_container = client.containers.create(
+                "alpine:latest",
+                command=["tail", "-f", "/dev/null"],
+                volumes={volume_name: {"bind": "/data", "mode": "ro"}},
+                detach=True,
+                name=f"backup-{volume_name}-{uuid.uuid4().hex[:8]}",
+            )
+            helper_container.start()
+
+            exit_code, output = helper_container.exec_run(
+                ["sh", "-c", "tar -C /data -czf /tmp/shared_volume.tar.gz ."],
+            )
+            if exit_code != 0:
+                raise RuntimeError(
+                    f"Failed to archive remote volume {volume_name}: "
+                    f"{output.decode('utf-8', errors='ignore')}"
+                )
+
+            stream, _ = helper_container.get_archive("/tmp/shared_volume.tar.gz")
+            with tempfile.NamedTemporaryFile(delete=False) as temp_tar:
+                for chunk in stream:
+                    temp_tar.write(chunk)
+                temp_tar_path = temp_tar.name
+
+            backup_tar_path.parent.mkdir(parents=True, exist_ok=True)
+            with tarfile.open(temp_tar_path) as tar:
+                members = tar.getmembers()
+                if not members:
+                    raise RuntimeError(
+                        f"Remote archive for volume {volume_name} is empty"
+                    )
+                file_obj = tar.extractfile(members[0])
+                if file_obj is None:
+                    raise RuntimeError(
+                        f"Failed to extract backup file for volume {volume_name}"
+                    )
+                with backup_tar_path.open("wb") as out_file:
+                    out_file.write(file_obj.read())
+
+            logger.info(f"Backed up remote volume {volume_name} to {backup_tar_path}")
+            return str(backup_tar_path)
+        finally:
+            if temp_tar_path and os.path.exists(temp_tar_path):
+                os.remove(temp_tar_path)
+            if helper_container is not None:
+                try:
+                    helper_container.stop(timeout=5)
+                except Exception:
+                    pass
+                try:
+                    helper_container.remove(force=True)
+                except Exception:
+                    pass
 
     @classmethod
     def delete_shared_volumes(

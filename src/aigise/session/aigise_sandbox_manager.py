@@ -649,9 +649,55 @@ class AigiseSandboxManager:
 
             backend_type = getattr(config.sandbox, "backend", "native")
             k8s_manifest = {}
+            named_manifest = {}
+            shared_volume_backup = None
             if backend_type == "k8s":
-                k8s_manifest, _ = self._load_k8s_cache_manifest(
+                k8s_manifest, _, shared_volume_backup = self._load_k8s_cache_manifest(
                     task_name, normalize_image_name
+                )
+            elif backend_type == "native":
+                candidate_dirs = []
+                if config.sandbox.absolute_shared_data_path:
+                    candidate_dirs.append(
+                        Path(config.sandbox.absolute_shared_data_path)
+                    )
+                candidate_dirs.append(Path(f"./sandbox_cache/{task_name}"))
+                for candidate_dir in candidate_dirs:
+                    candidate = candidate_dir / f"{task_name}_shared_volume.tar.gz"
+                    if candidate.exists():
+                        shared_volume_backup = str(candidate)
+                        break
+            elif backend_type == "remotedocker":
+                named_manifest, _, shared_volume_backup = (
+                    self._load_named_cache_manifest(
+                        task_name,
+                        normalize_image_name,
+                        cache_dir_env="AIGISE_REMOTE_DOCKER_CACHE_DIR",
+                        global_subdir="remote_docker_cache",
+                        manifest_filename="remote_docker_cache_manifest.json",
+                    )
+                )
+            elif backend_type == "opensandbox":
+                opensandbox_manifest, _, shared_volume_backup = (
+                    self._load_named_cache_manifest(
+                        task_name,
+                        normalize_image_name,
+                        cache_dir_env="AIGISE_OPENSANDBOX_CACHE_DIR",
+                        global_subdir="opensandbox_cache",
+                        manifest_filename="opensandbox_cache_manifest.json",
+                    )
+                )
+                named_manifest = opensandbox_manifest
+                if (
+                    config.sandbox.opensandbox
+                    and config.sandbox.opensandbox.runtime_type == "kubernetes"
+                ):
+                    k8s_manifest = opensandbox_manifest
+
+            if shared_volume_backup and os.path.exists(shared_volume_backup):
+                config.sandbox.absolute_shared_data_path = shared_volume_backup
+                logger.info(
+                    f"Using cached shared volume backup: {shared_volume_backup}"
                 )
 
             for sandbox_type, container_config in config.sandbox.sandboxes.items():
@@ -664,9 +710,13 @@ class AigiseSandboxManager:
                 manifest_entry = (
                     k8s_manifest.get(sandbox_type, {}) if backend_type == "k8s" else {}
                 )
+                named_manifest_entry = named_manifest.get(sandbox_type, {})
+
+                if backend_type == "opensandbox":
+                    manifest_entry = k8s_manifest.get(sandbox_type, {})
 
                 if (
-                    backend_type == "k8s"
+                    backend_type in {"k8s", "opensandbox"}
                     and manifest_entry
                     and not manifest_entry.get("commit_succeeded", False)
                 ):
@@ -688,6 +738,32 @@ class AigiseSandboxManager:
                         logger.info(
                             f"No filesystem snapshot found for {sandbox_type}; skipping cache load"
                         )
+
+                if (
+                    backend_type in {"remotedocker", "opensandbox"}
+                    and named_manifest_entry
+                ):
+                    original_image = container_config.image
+                    container_config.image = named_manifest_entry.get(
+                        "image_name", cached_image_name
+                    )
+                    container_config.using_cached = True
+                    found_caches.append(sandbox_type)
+                    logger.info(
+                        f"Using runtime-visible cached image for {sandbox_type}: "
+                        f"{container_config.image} (was: {original_image})"
+                    )
+                    if named_manifest_entry.get("rootfs_tar"):
+                        container_config.extra = container_config.extra or {}
+                        container_config.extra["cached_rootfs_tar"] = (
+                            named_manifest_entry["rootfs_tar"]
+                        )
+                    if named_manifest_entry.get("base_image"):
+                        container_config.extra = container_config.extra or {}
+                        container_config.extra.setdefault(
+                            "cached_base_image", named_manifest_entry["base_image"]
+                        )
+                    continue
 
                 # Check if cached image exists or can be pulled
                 if image_exists_or_pullable(cached_image_name):
@@ -729,17 +805,34 @@ class AigiseSandboxManager:
 
     def _load_k8s_cache_manifest(
         self, task_name: str, normalizer
-    ) -> tuple[dict, Optional[str]]:
+    ) -> tuple[dict, Optional[str], Optional[str]]:
+        return self._load_named_cache_manifest(
+            task_name,
+            normalizer,
+            cache_dir_env="AIGISE_K8S_CACHE_DIR",
+            global_subdir="k8s_cache",
+            manifest_filename="k8s_cache_manifest.json",
+        )
+
+    def _load_named_cache_manifest(
+        self,
+        task_name: str,
+        normalizer,
+        *,
+        cache_dir_env: str,
+        global_subdir: str,
+        manifest_filename: str,
+    ) -> tuple[dict, Optional[str], Optional[str]]:
         manifest_paths = []
-        cache_dir_env = os.getenv("AIGISE_K8S_CACHE_DIR")
-        if cache_dir_env:
-            manifest_paths.append(Path(cache_dir_env) / "k8s_cache_manifest.json")
+        cache_dir_value = os.getenv(cache_dir_env)
+        if cache_dir_value:
+            manifest_paths.append(Path(cache_dir_value) / manifest_filename)
 
         global_manifest = (
             Path.home()
             / ".cache"
             / "aigise"
-            / "k8s_cache"
+            / global_subdir
             / f"{normalizer(task_name)}.json"
         )
         manifest_paths.append(global_manifest)
@@ -749,9 +842,13 @@ class AigiseSandboxManager:
                 try:
                     with manifest_path.open("r", encoding="utf-8") as manifest_file:
                         data = json.load(manifest_file)
-                    return data.get("sandboxes", {}), data.get("cache_dir")
+                    return (
+                        data.get("sandboxes", {}),
+                        data.get("cache_dir"),
+                        data.get("shared_volume_backup"),
+                    )
                 except Exception as exc:
                     logger.debug(
-                        f"Failed to read k8s cache manifest {manifest_path}: {exc}"
+                        f"Failed to read cache manifest {manifest_path}: {exc}"
                     )
-        return {}, None
+        return {}, None, None

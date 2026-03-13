@@ -40,6 +40,23 @@ neo4j_http_port = "${NEO4J_HTTP_PORT}"
 backend = "native"
 absolute_shared_data_path = "${ABSOLUTE_SHARED_DATA_PATH}"
 
+# OpenSandbox backend configuration (used when sandbox.backend = "opensandbox")
+[sandbox.opensandbox]
+domain = "127.0.0.1:8080"
+protocol = "http"
+api_key = ""
+request_timeout_sec = 30
+use_server_proxy = false
+runtime_type = "docker" # docker | kubernetes
+docker_host = ""
+docker_remote_host = ""
+namespace = "default"
+context = ""
+kubeconfig = ""
+default_timeout_sec = 1800
+execd_port = 44772
+request_working_directory = ""
+
 # Main sandbox configuration
 [sandbox.sandboxes.main]
 image = "${DEFAULT_IMAGE}_main"

@@ -221,6 +221,9 @@ class SandboxConfig:
     sandboxes: Dict[str, ContainerConfig] = field(default_factory=dict)
     project_relative_shared_data_path: Optional[str] = None
     absolute_shared_data_path: Optional[str] = None
+    # Global host bind mounts injected into every sandbox config as
+    # "<abs_host_path>:<abs_container_path>:<ro|rw>" entries.
+    mount_host_paths: List[str] = field(default_factory=list)
     backend: str = "native"
     opensandbox: Optional["OpenSandboxConfig"] = None
     # Global tolerations applied to all k8s pods (init/chmod/session). If set,

@@ -148,6 +148,7 @@ class AigiseSandboxManager:
         try:
             self.enabled_skills = enabled_skills
             config = self.config
+            self._add_mount_host_paths_to_all_configs()
 
             # Check if global sandbox config has shared data path
             try:
@@ -205,6 +206,63 @@ class AigiseSandboxManager:
 
         except Exception as e:
             logger.error(f"Error during shared volume initialization: {e}")
+
+    @staticmethod
+    def _normalize_mount_host_path_spec(spec: str) -> str:
+        """Validate and normalize a mount_host_paths spec.
+
+        Expected format:
+          <absolute_host_path>:<absolute_container_path>[:ro|rw]
+        """
+        if not isinstance(spec, str):
+            raise TypeError(
+                f"mount_host_paths entries must be strings, got: {type(spec)}"
+            )
+        parts = spec.split(":")
+        if len(parts) not in (2, 3):
+            raise ValueError(
+                "Invalid mount_host_paths entry. Expected "
+                "'<abs_host_path>:<abs_container_path>[:ro|rw]': "
+                f"{spec}"
+            )
+        host_path = parts[0].strip()
+        container_path = parts[1].strip()
+        mode = parts[2].strip() if len(parts) == 3 else "rw"
+        if not host_path.startswith("/"):
+            raise ValueError(
+                f"mount_host_paths host path must be absolute: {host_path}"
+            )
+        if not container_path.startswith("/"):
+            raise ValueError(
+                f"mount_host_paths container path must be absolute: {container_path}"
+            )
+        if mode not in ("ro", "rw"):
+            raise ValueError(f"mount_host_paths mode must be 'ro' or 'rw': {mode}")
+        return f"{host_path}:{container_path}:{mode}"
+
+    def _add_mount_host_paths_to_all_configs(self) -> None:
+        """Inject global mount_host_paths into every sandbox volume list."""
+        config = self.config
+        if not config.sandbox or not config.sandbox.sandboxes:
+            return
+        mount_specs = list(getattr(config.sandbox, "mount_host_paths", []) or [])
+        if not mount_specs:
+            return
+
+        normalized_specs = [
+            self._normalize_mount_host_path_spec(spec) for spec in mount_specs
+        ]
+        for sandbox_type, sandbox_config in config.sandbox.sandboxes.items():
+            if not sandbox_config.volumes:
+                sandbox_config.volumes = []
+            for spec in normalized_specs:
+                if spec not in sandbox_config.volumes:
+                    sandbox_config.volumes.append(spec)
+                    logger.debug(
+                        "Added mount_host_paths spec to %s: %s",
+                        sandbox_type,
+                        spec,
+                    )
 
     def get_shared_volume(self) -> Optional[str]:
         """Get the shared volume ID for this session.

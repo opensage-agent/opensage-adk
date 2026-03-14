@@ -1280,9 +1280,9 @@ class K8sSandbox(BaseSandbox):
         """Delete shared PVCs.
 
         Args:
-            scripts_volume_id: ID of the scripts PVC to delete (with or without pvc/ prefix)
-            data_volume_id: ID of the data PVC to delete (with or without pvc/ prefix)
-            tools_volume_id: ID of the tools PVC to delete (with or without pvc/ prefix)
+            scripts_volume_id: ID of the scripts PVC to delete
+            data_volume_id: ID of the data PVC to delete
+            tools_volume_id: ID of the tools PVC to delete
         """
         namespace = cls._resolve_namespace_from_env()
         context = cls._resolve_context_from_env()
@@ -1290,24 +1290,22 @@ class K8sSandbox(BaseSandbox):
 
         for volume_id in [scripts_volume_id, data_volume_id, tools_volume_id]:
             if volume_id:
-                # Remove pvc/ prefix if present
-                pvc_name = volume_id.replace("pvc/", "")
                 try:
                     result = cls._run_kubectl_class(
-                        ["delete", "pvc", pvc_name],
+                        ["delete", "pvc", volume_id],
                         namespace=namespace,
                         context=context,
                         kubeconfig=kubeconfig,
                         check=False,
                     )
                     if result.returncode == 0:
-                        logger.info(f"Deleted PVC: {pvc_name}")
+                        logger.info(f"Deleted PVC: {volume_id}")
                     else:
                         logger.warning(
-                            f"Failed to delete PVC {pvc_name}: {result.stderr}"
+                            f"Failed to delete PVC {volume_id}: {result.stderr}"
                         )
                 except Exception as e:
-                    logger.warning(f"Error deleting PVC {pvc_name}: {e}")
+                    logger.warning(f"Error deleting PVC {volume_id}: {e}")
 
     # ------------------------------------------------------------------
     # Pod launch helpers
@@ -1427,19 +1425,18 @@ class K8sSandbox(BaseSandbox):
         volume_defs = []
         for source, info in volume_lookup.items():
             name = info["name"]
-            if source.startswith("pvc/"):
-                pvc_name = source.split("/", 1)[1]
+            if source.startswith("/"):
                 volume_defs.append(
                     {
                         "name": name,
-                        "persistentVolumeClaim": {"claimName": pvc_name},
+                        "hostPath": {"path": source, "type": "Directory"},
                     }
                 )
             elif source:
                 volume_defs.append(
                     {
                         "name": name,
-                        "hostPath": {"path": source, "type": "Directory"},
+                        "persistentVolumeClaim": {"claimName": source},
                     }
                 )
             else:
@@ -1501,23 +1498,6 @@ class K8sSandbox(BaseSandbox):
                 if not shared_present:
                     existing_volumes.append(f"{shared_volume_id}:/shared:rw")
                 config.volumes = existing_volumes
-
-            # For PVC tracking, mark if volume ids should be treated as pvc
-            if config.volumes:
-                new_volumes = []
-                for entry in config.volumes:
-                    parts = entry.split(":")
-                    # Mark shared_volume_id as PVC
-                    if shared_volume_id and parts[0] == shared_volume_id:
-                        parts[0] = f"pvc/{shared_volume_id}"
-                    # Mark scripts_volume_id as PVC
-                    elif scripts_volume_id and parts[0] == scripts_volume_id:
-                        parts[0] = f"pvc/{scripts_volume_id}"
-                    # Mark tools_volume_id as PVC
-                    elif tools_volume_id and parts[0] == tools_volume_id:
-                        parts[0] = f"pvc/{tools_volume_id}"
-                    new_volumes.append(":".join(parts))
-                config.volumes = new_volumes
 
             container_spec = cls._create_container_spec(
                 sandbox_type, config, volume_lookup

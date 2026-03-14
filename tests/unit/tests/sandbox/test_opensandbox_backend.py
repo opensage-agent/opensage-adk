@@ -75,11 +75,14 @@ def test_parse_legacy_mounts_converts_to_pvc_volumes():
     assert volumes[1].read_only is False
 
 
-def test_parse_legacy_mounts_rejects_host_path_sources():
+def test_parse_legacy_mounts_supports_host_path_sources():
     _set_backend_config()
     container_config = ContainerConfig(
         image="ubuntu:22.04",
-        volumes=["/tmp/host:/shared:rw"],
+        volumes=[
+            "/tmp/host:/shared:rw",
+            "sess_tools:/bash_tools:ro",
+        ],
     )
     sandbox = OpenSandboxSandbox(
         container_config,
@@ -88,8 +91,15 @@ def test_parse_legacy_mounts_rejects_host_path_sources():
         sandbox_type="main",
     )
 
-    with pytest.raises(ValueError, match="host path volume source"):
-        sandbox._parse_legacy_mounts_to_opensandbox_volumes()
+    volumes = sandbox._parse_legacy_mounts_to_opensandbox_volumes()
+    assert len(volumes) == 2
+    assert volumes[0].host.path == "/tmp/host"
+    assert volumes[0].mount_path == "/shared"
+    assert volumes[0].read_only is False
+    assert volumes[0].pvc is None
+    assert volumes[1].pvc.claim_name == "sess_tools"
+    assert volumes[1].mount_path == "/bash_tools"
+    assert volumes[1].read_only is True
 
 
 def test_get_work_dir_uses_pwd_command(monkeypatch):
@@ -362,6 +372,10 @@ def test_opensandbox_cache_k8s_runtime_delegates_to_k8s_backend(
 def test_manager_initialize_shared_volumes_uses_opensandbox_backend(monkeypatch):
     config = _set_backend_config(runtime_type="docker")
     config.sandbox.sandboxes["worker"] = ContainerConfig(image="worker:latest")
+    config.sandbox.mount_host_paths = [
+        "/tmp/host-data:/workspace/host-data:ro",
+        "/tmp/rw-data:/workspace/rw-data:rw",
+    ]
     session = SimpleNamespace(aigise_session_id="session-1", config=config)
     manager = AigiseSandboxManager(session)
 
@@ -383,5 +397,29 @@ def test_manager_initialize_shared_volumes_uses_opensandbox_backend(monkeypatch)
     assert "shared-vol:/shared:rw" in config.sandbox.sandboxes["main"].volumes
     assert "tools-vol:/bash_tools:rw" in config.sandbox.sandboxes["main"].volumes
     assert (
+        "/tmp/host-data:/workspace/host-data:ro"
+        in config.sandbox.sandboxes["main"].volumes
+    )
+    assert (
+        "/tmp/rw-data:/workspace/rw-data:rw" in config.sandbox.sandboxes["main"].volumes
+    )
+    assert (
         "scripts-vol:/sandbox_scripts:ro" in config.sandbox.sandboxes["worker"].volumes
     )
+    assert (
+        "/tmp/host-data:/workspace/host-data:ro"
+        in config.sandbox.sandboxes["worker"].volumes
+    )
+
+
+def test_manager_mount_host_paths_validator():
+    assert AigiseSandboxManager._normalize_mount_host_path_spec("/a:/b") == "/a:/b:rw"
+    assert (
+        AigiseSandboxManager._normalize_mount_host_path_spec("/a:/b:ro") == "/a:/b:ro"
+    )
+    with pytest.raises(ValueError, match="host path must be absolute"):
+        AigiseSandboxManager._normalize_mount_host_path_spec("rel:/b:rw")
+    with pytest.raises(ValueError, match="container path must be absolute"):
+        AigiseSandboxManager._normalize_mount_host_path_spec("/a:rel:rw")
+    with pytest.raises(ValueError, match="mode must be 'ro' or 'rw'"):
+        AigiseSandboxManager._normalize_mount_host_path_spec("/a:/b:rwx")

@@ -126,7 +126,7 @@ class OpenSandboxSandbox(BaseSandbox):
         return normalized
 
     def _parse_legacy_mounts_to_opensandbox_volumes(self):
-        from opensandbox.models.sandboxes import PVC, Volume
+        from opensandbox.models.sandboxes import PVC, Host, Volume
 
         volumes = []
         for index, spec in enumerate(self.container_config_obj.volumes or []):
@@ -140,18 +140,18 @@ class OpenSandboxSandbox(BaseSandbox):
             source = parts[0]
             mount_path = parts[1]
             mode = parts[2] if len(parts) > 2 else "rw"
-            if source.startswith("/"):
-                raise ValueError(
-                    f"OpenSandbox backend expects runtime-native shared storage IDs, "
-                    f"but got host path volume source: {source}"
-                )
             volume_name = self._sanitize_volume_name(
                 f"{self.sandbox_type}-{index}-{mount_path.strip('/').replace('/', '-') or 'root'}"
             )
+            volume_backend: dict[str, Any]
+            if source.startswith("/"):
+                volume_backend = {"host": Host(path=source)}
+            else:
+                volume_backend = {"pvc": PVC(claim_name=source)}
             volumes.append(
                 Volume(
                     name=volume_name,
-                    pvc=PVC(claim_name=source),
+                    **volume_backend,
                     mount_path=mount_path,
                     read_only=mode == "ro",
                 )

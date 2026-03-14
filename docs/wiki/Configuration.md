@@ -359,6 +359,13 @@ Configures which plugins are enabled and where to find them. See [Plugins](Plugi
 | `extra_plugin_dirs` | `list[string]` | Additional directories to search for plugins | `[]` |
 | `adk_plugin_params` | `dict[string, dict]` | Per-ADK-plugin constructor kwargs, keyed by plugin name | `{}` |
 
+**Default plugin discovery paths (no extra config required):**
+- Built-in plugins: `src/aigise/plugins/default/adk_plugins/`
+- Built-in Claude hook plugins: `src/aigise/plugins/default/claude_code_hooks/`
+- User-local plugins: `~/.local/aigise/plugins/` (`.py` and `.json`)
+
+You can still add additional directories via `extra_plugin_dirs` if needed.
+
 **Example:**
 
 ```toml

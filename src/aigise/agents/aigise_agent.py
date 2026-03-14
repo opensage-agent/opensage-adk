@@ -91,7 +91,7 @@ class ToolLoader:
         else:
             self.search_paths = [
                 PROJECT_PATH / "src/aigise/bash_tools",
-                Path.home() / ".local/plugins/aigise/tools",
+                Path.home() / ".local/aigise/bash_tools",
             ]
 
     def load_tools(self) -> List[Dict[str, Any]]:

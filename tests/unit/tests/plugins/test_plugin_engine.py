@@ -504,6 +504,30 @@ class TestLoadPluginsUnified:
         assert len(plugins) == 1
         assert plugins[0].name == "careful_edit"
 
+    def test_local_plugin_dir_defaults_to_home_local(self, tmp_path, monkeypatch):
+        from aigise.plugins import load_plugins
+
+        local_plugins = tmp_path / ".local" / "aigise" / "plugins"
+        local_plugins.mkdir(parents=True)
+        (local_plugins / "local_only.json").write_text(
+            json.dumps(
+                {
+                    "PostToolUse": [
+                        {
+                            "matcher": "bash",
+                            "hooks": [{"type": "prompt", "prompt": "local plugin"}],
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+        plugins = load_plugins(enabled_plugins=["local_only"])
+        assert len(plugins) == 1
+        assert plugins[0].name == "local_only"
+
 
 # ---------------------------------------------------------------------------
 # DoomLoopDetectorPlugin

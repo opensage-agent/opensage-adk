@@ -120,7 +120,7 @@ def _collect_dynamic_skill_dependencies(
 
     search_paths = [
         SRC_PATH / "bash_tools",
-        Path.home() / ".local/plugins/aigise/tools",
+        Path.home() / ".local/aigise/bash_tools",
     ]
 
     def parse_skill_md(file_path: Path) -> set[str]:

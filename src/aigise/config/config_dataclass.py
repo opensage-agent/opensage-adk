@@ -325,8 +325,11 @@ class PluginsConfig:
 
     1. Default ADK plugins: ``aigise/plugins/default/adk_plugins/``
     2. Default Claude Code hooks: ``aigise/plugins/default/claude_code_hooks/``
-    3. Custom directories: paths listed in ``extra_plugin_dirs`` (both ``.py`` and ``.json``)
-    4. Agent-local: ``{agent_dir}/plugins/`` (both ``.py`` and ``.json``)
+    3. User-local defaults: ``~/.local/aigise/plugins/`` (both ``.py`` and
+       ``.json``)
+    4. Custom directories: paths listed in ``extra_plugin_dirs`` (both ``.py``
+       and ``.json``)
+    5. Agent-local: ``{agent_dir}/plugins/`` (both ``.py`` and ``.json``)
 
     Per-plugin parameters can be set via the ``params`` dict, keyed by plugin
     name.  The values are passed as ``**kwargs`` to the plugin constructor.

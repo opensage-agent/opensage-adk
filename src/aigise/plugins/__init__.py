@@ -51,6 +51,11 @@ def _has_regex_metacharacters(s: str) -> bool:
     return bool(set(s) & _REGEX_METACHARACTERS)
 
 
+def _get_local_plugin_dir() -> Path:
+    """Return user-local plugin directory."""
+    return Path.home() / ".local" / "aigise" / "plugins"
+
+
 def _discover_all_plugins(
     search_dirs: List[Tuple[Path, PluginKind]],
 ) -> Dict[str, Tuple[PluginKind, Path]]:
@@ -93,8 +98,9 @@ def load_plugins(
 
     1. Default ADK plugins (``default/adk_plugins/``)
     2. Default Claude Code hooks (``default/claude_code_hooks/``)
-    3. Custom directories from *extra_plugin_dirs*
-    4. Agent-local ``{agent_dir}/plugins/``
+    3. User-local defaults: ``~/.local/aigise/plugins/``
+    4. Custom directories from *extra_plugin_dirs*
+    5. Agent-local ``{agent_dir}/plugins/``
 
     Each CC hook JSON becomes its own ``ClaudeCodeHookPlugin`` instance,
     so plugin execution order matches the ``enabled`` list exactly.
@@ -115,6 +121,9 @@ def load_plugins(
         (_ADK_PLUGIN_DIR, PluginKind.ADK),
         (_CLAUDE_CODE_HOOK_DIR, PluginKind.CC_HOOK),
     ]
+    local_plugin_dir = _get_local_plugin_dir()
+    if local_plugin_dir.is_dir():
+        search_dirs.append((local_plugin_dir, PluginKind.ALL))
     # custom (user) dirs for plugins - override default
     for d in extra_plugin_dirs or []:
         p = Path(d).resolve()

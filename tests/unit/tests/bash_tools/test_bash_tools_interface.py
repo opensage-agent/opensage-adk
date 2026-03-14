@@ -233,94 +233,151 @@ class TestRunBashToolScript:
 class TestListAvailableScripts:
     """Test list_available_scripts function."""
 
+    def _make_mock_sandbox(
+        self,
+        skill_contents: dict[str, str],
+        executable_skill_dirs: set[str] | None = None,
+    ):
+        """Build a sandbox mock that emulates find/test/cat over /bash_tools."""
+        executable_skill_dirs = executable_skill_dirs or {
+            p.rsplit("/SKILL.md", 1)[0] for p in skill_contents
+        }
+        sandbox = MagicMock()
+
+        def _run(command, timeout=None):
+            del timeout
+            cmd = command[-1] if isinstance(command, list) else command
+
+            # find <base> -type f -name SKILL.md -print
+            if cmd.startswith("find ") and "-name SKILL.md -print" in cmd:
+                base = cmd.split("find ", 1)[1].split(" -type f", 1)[0].strip()
+                base = base.strip("'").strip('"')
+                matched = [
+                    p
+                    for p in sorted(skill_contents)
+                    if p == f"{base}/SKILL.md" or p.startswith(f"{base.rstrip('/')}/")
+                ]
+                return ("\n".join(matched), 0)
+
+            # test -d <skill_dir>/scripts && find <skill_dir>/scripts ...
+            if cmd.startswith("test -d ") and "/scripts && find " in cmd:
+                skill_dir = cmd.split("test -d ", 1)[1].split("/scripts &&", 1)[0]
+                skill_dir = skill_dir.strip("'").strip('"')
+                if skill_dir in executable_skill_dirs:
+                    return (f"{skill_dir}/scripts/tool.sh", 0)
+                return ("", 1)
+
+            # cat <path>
+            if cmd.startswith("cat "):
+                path = cmd.split("cat ", 1)[1].strip().strip("'").strip('"')
+                if path in skill_contents:
+                    return (skill_contents[path], 0)
+                return ("", 1)
+
+            return ("", 1)
+
+        sandbox.run_command_in_container = MagicMock(side_effect=_run)
+        return sandbox
+
     def test_list_available_scripts(self):
         """Test listing available scripts."""
         mock_context = MagicMock()
+        skill_path = "/bash_tools/retrieval/foo/SKILL.md"
+        mock_sandbox = self._make_mock_sandbox(
+            {
+                skill_path: "\n".join(
+                    [
+                        "---",
+                        "name: foo",
+                        "description: Foo tool",
+                        "should_run_in_sandbox: main",
+                        "---",
+                        "",
+                        "# Foo",
+                    ]
+                )
+            }
+        )
 
-        result = list_available_scripts(tool_context=mock_context)
+        with patch(
+            "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context",
+            return_value=mock_sandbox,
+        ):
+            result = list_available_scripts(tool_context=mock_context)
 
         assert isinstance(result, str)
         assert "Available Skills under /bash_tools" in result
-        assert "SKILL.md" in result
+        assert skill_path in result
         # Full SKILL.md content includes YAML frontmatter.
         assert "name:" in result
         assert "description:" in result
 
-    def test_list_available_scripts_accepts_container_style_start_dir(self, tmp_path):
+    def test_list_available_scripts_accepts_container_style_start_dir(self):
         mock_context = MagicMock()
-
-        # Create a minimal executable Skill under retrieval/foo.
-        skill_dir = tmp_path / "retrieval" / "foo"
-        (skill_dir / "scripts").mkdir(parents=True)
-        (skill_dir / "scripts" / "tool.sh").write_text(
-            "#!/usr/bin/env bash\n", encoding="utf-8"
+        skill_path = "/bash_tools/retrieval/foo/SKILL.md"
+        mock_sandbox = self._make_mock_sandbox(
+            {
+                skill_path: "\n".join(
+                    [
+                        "---",
+                        "name: foo",
+                        "description: Foo tool",
+                        "should_run_in_sandbox: main",
+                        "---",
+                        "",
+                        "# Foo",
+                    ]
+                )
+            }
         )
-        (skill_dir / "SKILL.md").write_text(
-            "\n".join(
-                [
-                    "---",
-                    "name: foo",
-                    "description: Foo tool",
-                    "should_run_in_sandbox: main",
-                    "---",
-                    "",
-                    "# Foo",
-                ]
-            ),
-            encoding="utf-8",
-        )
-
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.BASH_TOOLS_DIR", new=tmp_path
+            "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context",
+            return_value=mock_sandbox,
         ):
             result = list_available_scripts(
                 start_dir="/bash_tools/retrieval", tool_context=mock_context
             )
 
-        assert "/bash_tools/retrieval/foo/SKILL.md" in result
+        assert skill_path in result
         assert "name: foo" in result
 
-    def test_list_available_scripts_accepts_container_root_start_dir(self, tmp_path):
+    def test_list_available_scripts_accepts_container_root_start_dir(self):
         mock_context = MagicMock()
-
-        # Create a minimal executable Skill under retrieval/foo.
-        skill_dir = tmp_path / "retrieval" / "foo"
-        (skill_dir / "scripts").mkdir(parents=True)
-        (skill_dir / "scripts" / "tool.sh").write_text(
-            "#!/usr/bin/env bash\n", encoding="utf-8"
+        skill_path = "/bash_tools/retrieval/foo/SKILL.md"
+        mock_sandbox = self._make_mock_sandbox(
+            {
+                skill_path: "\n".join(
+                    [
+                        "---",
+                        "name: foo",
+                        "description: Foo tool",
+                        "should_run_in_sandbox: main",
+                        "---",
+                        "",
+                        "# Foo",
+                    ]
+                )
+            }
         )
-        (skill_dir / "SKILL.md").write_text(
-            "\n".join(
-                [
-                    "---",
-                    "name: foo",
-                    "description: Foo tool",
-                    "should_run_in_sandbox: main",
-                    "---",
-                    "",
-                    "# Foo",
-                ]
-            ),
-            encoding="utf-8",
-        )
-
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.BASH_TOOLS_DIR", new=tmp_path
+            "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context",
+            return_value=mock_sandbox,
         ):
             result = list_available_scripts(
                 start_dir="/bash_tools", tool_context=mock_context
             )
 
         assert "Available Skills under /bash_tools" in result
-        assert "/bash_tools/retrieval/foo/SKILL.md" in result
+        assert skill_path in result
 
-    def test_list_available_scripts_no_tools(self, tmp_path):
+    def test_list_available_scripts_no_tools(self):
         """Test list_available_scripts when no tools are found."""
         mock_context = MagicMock()
+        mock_sandbox = self._make_mock_sandbox({})
 
-        # Point discovery to an empty directory.
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.BASH_TOOLS_DIR", new=tmp_path
+            "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context",
+            return_value=mock_sandbox,
         ):
             result = list_available_scripts(tool_context=mock_context)
 

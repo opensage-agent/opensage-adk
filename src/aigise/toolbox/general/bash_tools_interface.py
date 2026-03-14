@@ -314,48 +314,65 @@ def list_available_scripts(
             raise ValueError(f"Invalid start_dir: {value!r}")
         return value
 
-    base_dir = BASH_TOOLS_DIR
-    if start_dir:
-        start_dir = _normalize_start_dir(start_dir)
-        base_dir = (BASH_TOOLS_DIR / start_dir).resolve()
-        if not base_dir.exists() or not base_dir.is_dir():
-            return "Some unexpected error occurred. You should run ls or tree to explore the bash tools directory /bash_tools by your self."
+    # IMPORTANT: discover from the active sandbox mount (/bash_tools), not host path.
+    sandbox = get_sandbox_from_context(tool_context, "main")
 
-    def _is_executable_skill_dir(skill_dir: Path) -> bool:
-        if not (skill_dir / "SKILL.md").exists():
-            return False
-        scripts_dir = skill_dir / "scripts"
-        if not scripts_dir.exists() or not scripts_dir.is_dir():
-            return False
-        script_files = list(scripts_dir.glob("*.sh")) + list(scripts_dir.glob("*.py"))
-        return bool(script_files)
+    normalized_start_dir = _normalize_start_dir(start_dir) if start_dir else ""
+    root_label = (
+        "/bash_tools"
+        if not normalized_start_dir
+        else f"/bash_tools/{normalized_start_dir}"
+    )
+    base_dir = (
+        CONTAINER_BASH_TOOLS_DIR
+        if not normalized_start_dir
+        else f"{CONTAINER_BASH_TOOLS_DIR}/{normalized_start_dir}"
+    )
 
-    skill_md_paths: list[Path] = []
-    for skill_md in base_dir.rglob("SKILL.md"):
-        if _is_executable_skill_dir(skill_md.parent):
-            skill_md_paths.append(skill_md)
+    find_cmd = f"find {shlex.quote(base_dir)} -type f -name SKILL.md -print"
+    find_output, find_exit = sandbox.run_command_in_container(["bash", "-lc", find_cmd])
+    if find_exit != 0:
+        return (
+            "Some unexpected error occurred. You should run ls or tree to explore "
+            "the bash tools directory /bash_tools by your self."
+        )
 
+    skill_md_paths = [
+        line.strip()
+        for line in str(find_output).splitlines()
+        if line.strip().endswith("/SKILL.md")
+    ]
     if not skill_md_paths:
         return "No bash tools found in skills directories."
 
-    root_label = "/bash_tools" if not start_dir else f"/bash_tools/{start_dir}"
     output = [f"Available Skills under {root_label}:", "=" * 30, ""]
+    executable_skill_paths: list[str] = []
+    for skill_md_path in sorted(skill_md_paths):
+        skill_dir = skill_md_path.rsplit("/SKILL.md", 1)[0]
+        # A valid executable skill must have scripts/*.sh or scripts/*.py
+        probe_cmd = (
+            f"test -d {shlex.quote(skill_dir)}/scripts && "
+            f"find {shlex.quote(skill_dir)}/scripts -maxdepth 1 -type f "
+            "\\( -name '*.sh' -o -name '*.py' \\) | head -n 1"
+        )
+        probe_output, probe_exit = sandbox.run_command_in_container(
+            ["bash", "-lc", probe_cmd]
+        )
+        if probe_exit == 0 and str(probe_output).strip():
+            executable_skill_paths.append(skill_md_path)
 
-    # Stable ordering by container path.
-    def _container_path_for(skill_md: Path) -> str:
-        rel_dir = skill_md.parent.relative_to(BASH_TOOLS_DIR)
-        return f"{CONTAINER_BASH_TOOLS_DIR}/{rel_dir.as_posix()}/SKILL.md"
+    if not executable_skill_paths:
+        return "No bash tools found in skills directories."
 
-    for skill_md in sorted(skill_md_paths, key=_container_path_for):
-        container_skill_md = _container_path_for(skill_md)
+    for container_skill_md in executable_skill_paths:
         output.append(f"--- {container_skill_md} ---")
-        try:
-            content = skill_md.read_text(encoding="utf-8")
-        except Exception as exc:  # pylint: disable=broad-except
-            output.append(f"ERROR: Failed to read SKILL.md: {exc}")
+        read_cmd = f"cat {shlex.quote(container_skill_md)}"
+        content, read_exit = sandbox.run_command_in_container(["bash", "-lc", read_cmd])
+        if read_exit != 0:
+            output.append(f"ERROR: Failed to read SKILL.md (exit_code={read_exit})")
             output.append("")
             continue
-        output.append(content.rstrip())
+        output.append(str(content).rstrip())
         output.append("")
 
     return "\\n".join(output)

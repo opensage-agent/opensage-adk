@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Built-in and plugin bash tools roots (host paths).
 BUILTIN_BASH_TOOLS_ROOT = Path(PROJECT_PATH) / "src" / "aigise" / "bash_tools"
-PLUGIN_BASH_TOOLS_ROOT = Path.home() / ".local" / "plugins" / "aigise" / "tools"
+PLUGIN_BASH_TOOLS_ROOT = Path.home() / ".local" / "aigise" / "bash_tools"
 
 
 EnabledSkills = Optional[Union[list[str], str]]

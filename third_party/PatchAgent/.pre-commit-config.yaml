@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 6.0.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+        args: ["--line-length", "179"]
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.2
+    hooks:
+      - id: flake8
+        args: ["--max-line-length", "179", "--select=F,E402"]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
+    hooks:
+      - id: mypy
+        args: ["--ignore-missing-imports", "--disallow-untyped-defs", "--disallow-incomplete-defs"]
+        additional_dependencies:
+          - types-PyYAML
+          - types-requests

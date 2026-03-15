@@ -1,0 +1,60 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50b000000155 at pc 0x55ca9a1e82f0 bp 0x7ffe52c4f510 sp 0x7ffe52c4f508
+READ of size 4 at 0x50b000000155 thread T0
+SCARINESS: 17 (4-byte-read-heap-buffer-overflow)
+    #0 0x55ca9a1e82ef in load<unsigned int> /src/serenity/Meta/Lagom/../../AK/ByteReader.h:23:9
+    #1 0x55ca9a1e82ef in load32 /src/serenity/Meta/Lagom/../../AK/ByteReader.h:44:9
+    #2 0x55ca9a1e82ef in decode_iff_chunks /src/serenity/Userland/Libraries/LibGfx/ImageFormats/ILBMLoader.cpp:350:103
+    #3 0x55ca9a1e82ef in Gfx::ILBMImageDecoderPlugin::frame(unsigned long, AK::Optional<Gfx::Size<int>>) /src/serenity/Userland/Libraries/LibGfx/ImageFormats/ILBMLoader.cpp:432:9
+    #4 0x55ca9a1a28b0 in LLVMFuzzerTestOneInput /src/serenity/Meta/Lagom/Fuzzers/FuzzILBMLoader.cpp:17:20
+    #5 0x55ca9a0555d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55ca9a03fbf5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55ca9a04568f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55ca9a071582 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f305191d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #10 0x55ca9a037ddd in _start (/out/FuzzILBMLoader+0x819ddd)
+
+DEDUP_TOKEN: load<unsigned int>--load32--decode_iff_chunks
+0x50b000000155 is located 1 bytes after 100-byte region [0x50b0000000f0,0x50b000000154)
+allocated by thread T0 here:
+    #0 0x55ca9a16158f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55ca9a775b83 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x55ca9a03fbf5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x55ca9a04568f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x55ca9a071582 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7f305191d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/serenity/Meta/Lagom/../../AK/ByteReader.h:23:9 in load<unsigned int>
+Shadow bytes around the buggy address:
+  0x50affffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50afffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50afffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50b000000000: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x50b000000080: 00 00 00 00 04 fa fa fa fa fa fa fa fa fa 00 00
+=>0x50b000000100: 00 00 00 00 00 00 00 00 00 00[04]fa fa fa fa fa
+  0x50b000000180: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50b000000200: 00 00 fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50b000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50b000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50b000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

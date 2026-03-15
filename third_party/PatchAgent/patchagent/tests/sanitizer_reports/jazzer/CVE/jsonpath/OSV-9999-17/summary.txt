@@ -1,0 +1,67 @@
+The sanitizer detected a regular expression injection vulnerability.The explanation of the vulnerability is: Untrusted input is used in regular expressions, leading to potential injection attacks.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Regular Expression Injection
+Regular expression patterns that contain unescaped untrusted input can consume
+arbitrary amounts of CPU time. To properly escape the input, wrap it with
+Pattern.quote(...).
+- com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal (com/code_intelligence/jazzer/sanitizers/RegexInjection.kt:153)
+- com.code_intelligence.jazzer.sanitizers.RegexInjection.compileWithFlagsHook (com/code_intelligence/jazzer/sanitizers/RegexInjection.kt:57)
+- com.jayway.jsonpath.internal.filter.ValueNodes$PatternNode.<init> (com/jayway/jsonpath/internal/filter/ValueNodes$PatternNode/<init>:55)
+- com.jayway.jsonpath.internal.filter.ValueNode.createPatternNode (com/jayway/jsonpath/internal/filter/ValueNode.java:211)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.readPattern (com/jayway/jsonpath/internal/filter/FilterCompiler.java:308)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.readLiteral (com/jayway/jsonpath/internal/filter/FilterCompiler.java:118)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.readValueNode (com/jayway/jsonpath/internal/filter/FilterCompiler.java:104)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.readExpression (com/jayway/jsonpath/internal/filter/FilterCompiler.java:190)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalANDOperand (com/jayway/jsonpath/internal/filter/FilterCompiler.java:186)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalAND (com/jayway/jsonpath/internal/filter/FilterCompiler.java:150)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalOR (com/jayway/jsonpath/internal/filter/FilterCompiler.java:132)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalANDOperand (com/jayway/jsonpath/internal/filter/FilterCompiler.java:181)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalAND (com/jayway/jsonpath/internal/filter/FilterCompiler.java:150)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalOR (com/jayway/jsonpath/internal/filter/FilterCompiler.java:132)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.compile (com/jayway/jsonpath/internal/filter/FilterCompiler.java:78)
+- com.jayway.jsonpath.internal.filter.FilterCompiler.compile (com/jayway/jsonpath/internal/filter/FilterCompiler.java:54)
+- com.jayway.jsonpath.internal.path.PathCompiler.readFilterToken (com/jayway/jsonpath/internal/path/PathCompiler.java:478)
+- com.jayway.jsonpath.internal.path.PathCompiler.readNextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:138)
+- com.jayway.jsonpath.internal.path.PathCompiler.readPropertyOrFunctionToken (com/jayway/jsonpath/internal/path/PathCompiler.java:256)
+- com.jayway.jsonpath.internal.path.PathCompiler.readNextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:153)
+- com.jayway.jsonpath.internal.path.PathCompiler.readPropertyOrFunctionToken (com/jayway/jsonpath/internal/path/PathCompiler.java:256)
+- com.jayway.jsonpath.internal.path.PathCompiler.readNextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:153)
+- com.jayway.jsonpath.internal.path.PathCompiler.readDotToken (com/jayway/jsonpath/internal/path/PathCompiler.java:175)
+- com.jayway.jsonpath.internal.path.PathCompiler.readNextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:143)
+- com.jayway.jsonpath.internal.path.PathCompiler.readPropertyOrFunctionToken (com/jayway/jsonpath/internal/path/PathCompiler.java:256)
+- com.jayway.jsonpath.internal.path.PathCompiler.readNextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:153)
+- com.jayway.jsonpath.internal.path.PathCompiler.readDotToken (com/jayway/jsonpath/internal/path/PathCompiler.java:175)
+- com.jayway.jsonpath.internal.path.PathCompiler.readNextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:143)
+- com.jayway.jsonpath.internal.path.PathCompiler.readPropertyOrFunctionToken (com/jayway/jsonpath/internal/path/PathCompiler.java:256)
+- com.jayway.jsonpath.internal.path.PathCompiler.readNextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:153)
+- com.jayway.jsonpath.internal.path.PathCompiler.readDotToken (com/jayway/jsonpath/internal/path/PathCompiler.java:175)
+- com.jayway.jsonpath.internal.path.PathCompiler.readNextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:143)
+- com.jayway.jsonpath.internal.path.PathCompiler.readPropertyOrFunctionToken (com/jayway/jsonpath/internal/path/PathCompiler.java:256)
+- com.jayway.jsonpath.internal.path.PathCompiler.readNextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:153)
+- com.jayway.jsonpath.internal.path.PathCompiler.readDotToken (com/jayway/jsonpath/internal/path/PathCompiler.java:175)
+- com.jayway.jsonpath.internal.path.PathCompiler.readNextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:143)
+- com.jayway.jsonpath.internal.path.PathCompiler.readContextToken (com/jayway/jsonpath/internal/path/PathCompiler.java:123)
+- com.jayway.jsonpath.internal.path.PathCompiler.compile (com/jayway/jsonpath/internal/path/PathCompiler.java:58)
+- com.jayway.jsonpath.internal.path.PathCompiler.compile (com/jayway/jsonpath/internal/path/PathCompiler.java:75)
+- com.jayway.jsonpath.JsonPath.<init> (com/jayway/jsonpath/JsonPath.java:97)
+- com.jayway.jsonpath.JsonPath.compile (com/jayway/jsonpath/JsonPath.java:515)
+- com.jayway.jsonpath.internal.JsonContext.pathFromCache (com/jayway/jsonpath/internal/JsonContext.java:222)
+- com.jayway.jsonpath.internal.JsonContext.read (com/jayway/jsonpath/internal/JsonContext.java:77)
+- com.jayway.jsonpath.JsonPath.read (com/jayway/jsonpath/JsonPath.java:536)
+- ossfuzz.PathParserFuzzer.test (ossfuzz/PathParserFuzzer.java:49)
+- ossfuzz.PathParserFuzzer.fuzzerTestOneInput (ossfuzz/PathParserFuzzer.java:63)
+Caused by: java.util.regex.PatternSyntaxException: Unmatched closing ')'
+)][?(
+- java.base/java.util.regex.Pattern.error (java/base/java/util/regex/Pattern.java:2028)
+- java.base/java.util.regex.Pattern.compile (java/base/java/util/regex/Pattern.java:1787)
+- java.base/java.util.regex.Pattern.<init> (java/base/java/util/regex/Pattern.java:1430)
+- java.base/java.util.regex.Pattern.compile (java/base/java/util/regex/Pattern.java:1095)
+- java.base/java.lang.invoke.MethodHandle.invokeWithArguments (java/base/java/lang/invoke/MethodHandle.java:732)
+- com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal (com/code_intelligence/jazzer/sanitizers/RegexInjection.kt:144)
+	... 45 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid constructing regular expressions using untrusted input.
+2. Use predefined regex patterns or libraries to prevent injection attacks.
+3. Sanitize user input before using it in regular expressions.

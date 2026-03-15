@@ -1,0 +1,99 @@
++ FUZZER=ConfigurationBuilderFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ConfigurationBuilderFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ConfigurationBuilderFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 284 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 64 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented ConfigurationBuilderFuzzer (took 32 ms, size +10%)
+INFO: Instrumented org.reflections.ReflectionsException (took 2 ms, size +15%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f883e551a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2743285881
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55bf9d48a480, 0x55bf9d48a680), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55bf9d452a60,0x55bf9d454a60), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.reflections.util.ConfigurationBuilder (took 10 ms, size +12%)
+INFO: Instrumented org.reflections.Configuration (took 0 ms, size +0%)
+INFO: Instrumented org.reflections.scanners.Scanners (took 4 ms, size +7%)
+INFO: Instrumented org.reflections.scanners.Scanner (took 2 ms, size +11%)
+INFO: Instrumented org.reflections.util.QueryBuilder (took 3 ms, size +9%)
+INFO: Instrumented org.reflections.util.NameHelper (took 7 ms, size +27%)
+INFO: Instrumented org.reflections.scanners.Scanners$1 (took 0 ms, size +6%)
+INFO: Instrumented org.reflections.scanners.Scanners$2 (took 1 ms, size +31%)
+INFO: Instrumented org.reflections.scanners.Scanners$3 (took 1 ms, size +4%)
+INFO: Instrumented org.reflections.scanners.Scanners$4 (took 0 ms, size +4%)
+INFO: Instrumented org.reflections.scanners.Scanners$5 (took 0 ms, size +4%)
+INFO: Instrumented org.reflections.scanners.Scanners$6 (took 2 ms, size +23%)
+INFO: Instrumented org.reflections.scanners.Scanners$7 (took 1 ms, size +4%)
+INFO: Instrumented org.reflections.scanners.Scanners$8 (took 1 ms, size +4%)
+INFO: Instrumented org.reflections.scanners.Scanners$9 (took 1 ms, size +3%)
+INFO: Instrumented org.reflections.scanners.Scanners$10 (took 1 ms, size +3%)
+INFO: Instrumented org.reflections.scanners.Scanners$11 (took 0 ms, size +4%)
+INFO: Instrumented org.reflections.util.FilterBuilder (took 3 ms, size +26%)
+INFO: Instrumented org.reflections.util.FilterBuilder$Exclude (took 1 ms, size +19%)
+INFO: Instrumented org.reflections.util.FilterBuilder$Matcher (took 1 ms, size +65%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.reflections.util.ClasspathHelper (took 5 ms, size +28%)
+INFO: Instrumented org.reflections.Reflections (took 13 ms, size +10%)
+INFO: Instrumented org.reflections.util.FilterBuilder$Include (took 1 ms, size +9%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Regular Expression Injection
+Regular expression patterns that contain unescaped untrusted input can consume
+arbitrary amounts of CPU time. To properly escape the input, wrap it with
+Pattern.quote(...).
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:153)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.patternHook(RegexInjection.kt:76)
+	at org.reflections.util.FilterBuilder$Matcher.<init>(FilterBuilder.java:132)
+	at org.reflections.util.FilterBuilder$Include.<init>(FilterBuilder.java:141)
+	at org.reflections.util.FilterBuilder.includePattern(FilterBuilder.java:50)
+	at org.reflections.util.FilterBuilder.includePackage(FilterBuilder.java:37)
+	at org.reflections.util.ConfigurationBuilder.build(ConfigurationBuilder.java:89)
+	at ConfigurationBuilderFuzzer.fuzzerTestOneInput(ConfigurationBuilderFuzzer.java:26)
+Caused by: java.util.regex.PatternSyntaxException: Unclosed character class near index 5
+[
+\..*
+     ^
+	at java.base/java.util.regex.Pattern.error(Pattern.java:2028)
+	at java.base/java.util.regex.Pattern.clazz(Pattern.java:2690)
+	at java.base/java.util.regex.Pattern.sequence(Pattern.java:2139)
+	at java.base/java.util.regex.Pattern.expr(Pattern.java:2069)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1783)
+	at java.base/java.util.regex.Pattern.<init>(Pattern.java:1430)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1069)
+	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:732)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:144)
+	... 7 more
+DEDUP_TOKEN: 419aac9a95a7abed
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_4889648e8a44b34f0c29210a988460e643285f84.java
+

@@ -1,0 +1,18 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: timeout after 18446744073709551615 seconds
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::AlarmCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:304:5
+    - cram_generate_reference /src/htslib/cram/cram_encode.c:1751:21
+    - cram_encode_container /src/htslib/cram/cram_encode.c:1976:34
+    - cram_flush_container /src/htslib/cram/cram_io.c:4156:14
+    - cram_flush_container_mt /src/htslib/cram/cram_io.c:4308:16
+    - cram_close /src/htslib/cram/cram_io.c:5580:19
+    - hts_close /src/htslib/hts.c:1655:15
+    - view_sam /src/htslib/test/fuzz/hts_open_fuzzer.c:0:0
+    - LLVMFuzzerTestOneInput /src/htslib/test/fuzz/hts_open_fuzzer.c:203:13
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10

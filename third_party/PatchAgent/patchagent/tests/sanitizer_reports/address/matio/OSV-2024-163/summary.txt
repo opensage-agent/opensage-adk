@@ -1,0 +1,38 @@
+The sanitizer detected a memory leak vulnerability. The explanation of the vulnerability is: A program fails to free allocated memory, leading to resource exhaustion and degraded system performance over time. Here is the detail: 
+
+
+Direct leak of 224 byte(s) in 1 object(s) allocated from:
+    - calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    - Mat_H5ReadFieldNames /src/matio/src/mat73.c:644:41
+    - Mat_H5ReadGroupInfo /src/matio/src/mat73.c:902:15
+    - Mat_VarReadNextInfoIterate /src/matio/src/mat73.c:3235:19
+    - H5G__iterate_cb /src/hdf5/src/H5Gint.c:819:25
+    - H5G__node_iterate /src/hdf5/src/H5Gnode.c:937:25
+    - H5B__iterate_helper /src/hdf5/src/H5B.c:1086:25
+    - H5B_iterate /src/hdf5/src/H5B.c:1125:22
+    - H5G__stab_iterate /src/hdf5/src/H5Gstab.c:504:26
+    - H5G__obj_iterate /src/hdf5/src/H5Gobj.c:664:26
+    - H5G_iterate /src/hdf5/src/H5Gint.c:872:14
+    - H5L_iterate /src/hdf5/src/H5Lint.c:2148:22
+    - H5VL__native_link_specific /src/hdf5/src/H5VLnative_link.c:364:38
+    - H5VL__link_specific /src/hdf5/src/H5VLcallback.c:5283:22
+    - H5VL_link_specific /src/hdf5/src/H5VLcallback.c:5317:14
+    - H5L__iterate_api_common /src/hdf5/src/H5L.c:1611:22
+    - H5Literate2 /src/hdf5/src/H5L.c:1646:22
+    - Mat_VarReadNextInfo73 /src/matio/src/mat73.c:3157:12
+    - Mat_VarReadNextInfoPredicate /src/matio/src/mat.c:2655:22
+    - Mat_VarReadInfo /src/matio/src/mat.c:2704:22
+    - Mat_VarRead /src/matio/src/mat.c:2783:18
+    - MatioRead(char const*) /src/matio/ossfuzz/matio_wrap.h:63:18
+    - LLVMFuzzerTestOneInput /src/matio/ossfuzz/matio_fuzzer.cpp:30:12
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that every memory allocation has a corresponding deallocation.
+2. Track allocated memory systematically to avoid leaks.
+3. Avoid unnecessary memory allocations by reusing buffers where possible.

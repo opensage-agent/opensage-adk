@@ -1,0 +1,21 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000010 (pc 0x5585e5a4f357 bp 0x7ffda383bed0 sp 0x7ffda383be70 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+SCARINESS: 10 (null-deref)
+    #0 0x5585e5a4f357 in consume_event /src/fluent-bit/src/config_format/flb_cf_yaml.c:1304:70
+    #1 0x5585e5a4c7e0 in read_config /src/fluent-bit/src/config_format/flb_cf_yaml.c:2892:18
+    #2 0x5585e5a4bd9b in flb_cf_yaml_create /src/fluent-bit/src/config_format/flb_cf_yaml.c:2973:11
+    #3 0x5585e5a428ef in LLVMFuzzerTestOneInput /src/fluent-bit/tests/internal/fuzzers/config_yaml_fuzzer.c:56:10
+    #4 0x5585e58f9460 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x5585e58e46d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x5585e58ea16f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x5585e5915412 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f84232b7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #9 0x5585e58dc8bd in _start (/out/flb-it-fuzz-config_yaml_fuzzer_OSSFUZZ+0x6f8bd)
+
+DEDUP_TOKEN: consume_event--read_config--flb_cf_yaml_create
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/fluent-bit/src/config_format/flb_cf_yaml.c:1304:70 in consume_event
+==14==ABORTING

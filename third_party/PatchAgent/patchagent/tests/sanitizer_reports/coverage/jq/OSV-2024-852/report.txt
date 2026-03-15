@@ -1,0 +1,31 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/jq:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce jq_fuzz_fixed -runs=100.
++ FUZZER=jq_fuzz_fixed
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer jq_fuzz_fixed -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/jq_fuzz_fixed -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2656064511
+INFO: Loaded 1 modules   (88 inline 8-bit counters): 88 [0x55cd30c74cb8, 0x55cd30c74d10), 
+INFO: Loaded 1 PC tables (88 PCs): 88 [0x55cd30c74d10,0x55cd30c75290), 
+/out/jq_fuzz_fixed: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x55cd332f1100 (pc 0x55cd332f1100 bp 0x55cd332462e8 sp 0x7ffcdb860540 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: PC is at a non-executable region. Maybe a wild jump?
+llvm-symbolizer: [0;1;31merror: [0m'[heap]': No such file or directory
+    #0 0x55cd332f1100  ([heap]+0xac100)
+
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV ([heap]+0xac100) 
+==14==ABORTING

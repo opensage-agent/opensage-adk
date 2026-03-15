@@ -1,0 +1,25 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - fini /src/harfbuzz/src/hb-array.hh:266:5
+    - free_compiled_bytes /src/harfbuzz/src/OT/glyf/SubsetGlyph.hh:67:16
+    - OT::glyf::_free_compiled_subset_glyphs(hb_vector_t<OT::glyf_impl::SubsetGlyph, false>&, unsigned int) const /src/harfbuzz/src/OT/glyf/glyf.hh:137:17
+    - OT::glyf::_populate_subset_glyphs(hb_subset_plan_t const*, hb_font_t*, hb_vector_t<OT::glyf_impl::SubsetGlyph, false>&) const /src/harfbuzz/src/OT/glyf/glyf.hh:437:11
+    - OT::glyf::subset(hb_subset_context_t*) const /src/harfbuzz/src/OT/glyf/glyf.hh:91:10
+    - bool _try_subset<OT::glyf>(OT::glyf const*, hb_vector_t<char, false>*, hb_subset_context_t*) /src/harfbuzz/src/hb-subset.cc:236:24
+    - _subset<const OT::glyf> /src/harfbuzz/src/hb-subset.cc:300:14
+    - _subset_table /src/harfbuzz/src/hb-subset.cc:435:31
+    - hb_subset_plan_execute_or_fail /src/harfbuzz/src/hb-subset.cc:610:17
+    - hb_subset_or_fail /src/harfbuzz/src/hb-subset.cc:538:24
+    - trySubset(hb_face_t*, unsigned int const*, int, unsigned int, hb_subset_input_t*) /src/harfbuzz/test/fuzzing/hb-subset-fuzzer.cc:26:23
+    - LLVMFuzzerTestOneInput /src/harfbuzz/test/fuzzing/hb-subset-fuzzer.cc:112:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

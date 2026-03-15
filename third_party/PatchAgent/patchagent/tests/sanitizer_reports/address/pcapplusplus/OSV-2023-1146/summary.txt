@@ -1,0 +1,33 @@
+The sanitizer detected a negative size param vulnerability. The explanation of the vulnerability is: A function receives a negative size parameter, leading to unexpected behavior or memory allocation errors. Here is the detail: 
+
+    - __asan_memmove /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:71:3
+    - pcpp::RawPacket::insertData(int, unsigned char const*, unsigned long) /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:137:2
+    - pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:573:15
+    - pcpp::BgpUpdateMessageLayer::setNetworkLayerReachabilityInfo(std::__1::vector<pcpp::BgpUpdateMessageLayer::prefix_and_ip, std::__1::allocator<pcpp::BgpUpdateMessageLayer::prefix_and_ip>> const&) /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:716:14
+    - readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:459:36
+    - LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:67:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x517000000154 is located 212 bytes inside of 674-byte region [0x517000000080,0x517000000322)
+allocated by thread T0 here:
+    - operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    - pcpp::RawPacket::reallocateData(unsigned long) /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:160:23
+    - pcpp::Packet::reallocateRawData(unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:201:20
+    - pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:0:0
+    - pcpp::BgpUpdateMessageLayer::setWithdrawnRoutes(std::__1::vector<pcpp::BgpUpdateMessageLayer::prefix_and_ip, std::__1::allocator<pcpp::BgpUpdateMessageLayer::prefix_and_ip>> const&) /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:566:14
+    - readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:451:36
+    - LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:67:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Validate all size parameters before passing them to memory allocation functions.
+2. Ensure that buffer sizes and loop limits are always positive values.
+3. Use unsigned integer types to store sizes to prevent negative values.

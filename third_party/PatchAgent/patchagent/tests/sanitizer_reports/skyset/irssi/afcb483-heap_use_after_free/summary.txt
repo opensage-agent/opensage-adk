@@ -1,0 +1,30 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 4 at 0x512000000940 thread T0
+    - module_check_cast /root/src/core/modules.c:34:3
+    - server_connect_unref /root/src/core/servers.c:621:2
+    - server_unref /root/src/core/servers.c:549:2
+    - LLVMFuzzerTestOneInput /root/src/fe-fuzz/server.c:192:3
+
+0x512000000940 is located 0 bytes inside of 312-byte region [0x512000000940,0x512000000a78)
+freed by thread T0 here:
+    - g_free /root/subprojects/glib-2.58.3/glib/gmem.c:194:5
+    - server_connect_unref /root/src/core/servers.c:665:2
+    - LLVMFuzzerTestOneInput /root/src/fe-fuzz/server.c:190:4
+
+previously allocated by thread T0 here:
+    - g_malloc0 /root/subprojects/glib-2.58.3/glib/gmem.c:129:13
+    - create_server_connect /root/src/irc/core/irc-core.c:65:16
+    - create_addr_conn /root/src/core/servers-setup.c:306:9
+    - server_create_conn_opt /root/src/core/servers-setup.c:401:9
+    - server_create_conn /root/src/core/servers-setup.c:411:8
+    - test_server /root/src/fe-fuzz/server.c:121:9
+    - LLVMFuzzerTestOneInput /root/src/fe-fuzz/server.c:172:2
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

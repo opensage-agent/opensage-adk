@@ -1,0 +1,56 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/shaderc:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce shaderc_fdp_fuzzer -runs=100.
++ FUZZER=shaderc_fdp_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer shaderc_fdp_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/shaderc_fdp_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1276280210
+/out/shaderc_fdp_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x000100000000 (pc 0x557e6736f5ae bp 0x7ffe80376b30 sp 0x7ffe80376a90 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x557e6736f5ae in __is_long /usr/local/bin/../include/c++/v1/string:1773:12
+    #1 0x557e6736f5ae in __get_pointer /usr/local/bin/../include/c++/v1/string:1883:12
+    #2 0x557e6736f5ae in data /usr/local/bin/../include/c++/v1/string:1597:30
+    #3 0x557e6736f5ae in c_str /usr/local/bin/../include/c++/v1/string:1595:106
+    #4 0x557e6736f5ae in getFilename /src/shaderc/third_party/glslang/glslang/MachineIndependent/../Include/Common.h:255:22
+    #5 0x557e6736f5ae in glslang::TInfoSinkBase::location(glslang::TSourceLoc const&, bool, bool) /src/shaderc/third_party/glslang/glslang/MachineIndependent/../Include/InfoSink.h:107:16
+    #6 0x557e677baedd in glslang::TParseContextBase::outputMessage(glslang::TSourceLoc const&, char const*, char const*, char const*, glslang::TPrefixType, __va_list_tag*) /src/shaderc/third_party/glslang/glslang/MachineIndependent/ParseContextBase.cpp:62:19
+    #7 0x557e677bb066 in glslang::TParseContextBase::error(glslang::TSourceLoc const&, char const*, char const*, char const*, ...) /src/shaderc/third_party/glslang/glslang/MachineIndependent/ParseContextBase.cpp:80:5
+    #8 0x557e6740460e in expected /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:71:18
+    #9 0x557e6740460e in glslang::HlslGrammar::acceptDeclarationList(TIntermNode*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:166:13
+    #10 0x557e67403fcf in glslang::HlslGrammar::acceptCompilationUnit() /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:130:11
+    #11 0x557e673b4663 in glslang::HlslParseContext::parseShaderStrings(glslang::TPpContext&, glslang::TInputScanner&, bool) /src/shaderc/third_party/glslang/glslang/HLSL/hlslParseHelper.cpp:132:18
+    #12 0x557e673286ce in operator() /src/shaderc/third_party/glslang/glslang/MachineIndependent/ShaderLang.cpp:1233:28
+    #13 0x557e673286ce in ProcessDeferred<(anonymous namespace)::DoFullParse> /src/shaderc/third_party/glslang/glslang/MachineIndependent/ShaderLang.cpp:1008:20
+    #14 0x557e673286ce in (anonymous namespace)::CompileDeferred(TCompiler*, char const* const*, int, int const*, char const* const*, char const*, EShOptimizationLevel, TBuiltInResource const*, int, EProfile, bool, int, bool, EShMessages, glslang::TIntermediate&, glslang::TShader::Includer&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, glslang::TEnvironment*, bool) /src/shaderc/third_party/glslang/glslang/MachineIndependent/ShaderLang.cpp:1321:12
+    #15 0x557e6732a33b in glslang::TShader::parse(TBuiltInResource const*, int, EProfile, bool, bool, EShMessages, glslang::TShader::Includer&) /src/shaderc/third_party/glslang/glslang/MachineIndependent/ShaderLang.cpp:1893:12
+    #16 0x557e670d9de5 in shaderc_util::Compiler::Compile(shaderc_util::string_piece const&, EShLanguage, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, char const*, std::__1::function<EShLanguage (std::__1::basic_ostream<char, std::__1::char_traits<char>>*, shaderc_util::string_piece const&)> const&, shaderc_util::CountingIncluder&, shaderc_util::Compiler::OutputType, std::__1::basic_ostream<char, std::__1::char_traits<char>>*, unsigned long*, unsigned long*) const /src/shaderc/libshaderc_util/src/compiler.cc:320:25
+    #17 0x557e670b768c in (anonymous namespace)::CompileToSpecifiedOutputType(shaderc_compiler*, char const*, unsigned long, shaderc_shader_kind, char const*, char const*, shaderc_compile_options*, shaderc_util::Compiler::OutputType) /src/shaderc/libshaderc/src/shaderc.cc:631:40
+    #18 0x557e670b72a6 in shaderc_compile_into_spv /src/shaderc/libshaderc/src/shaderc.cc:677:10
+    #19 0x557e670b4a55 in CompileGlslToSpv /src/shaderc/libshaderc/include/shaderc/shaderc.hpp:428:55
+    #20 0x557e670b4a55 in CompileGlslToSpv /src/shaderc/libshaderc/include/shaderc/shaderc.hpp:443:12
+    #21 0x557e670b4a55 in shaderc::Compiler::CompileGlslToSpv(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, shaderc_shader_kind, char const*, shaderc::CompileOptions const&) const /src/shaderc/libshaderc/include/shaderc/shaderc.hpp:468:12
+    #22 0x557e670b40e4 in LLVMFuzzerTestOneInput /src/shaderc_fdp_fuzzer.cc:124:16
+    #23 0x557e67015da0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #24 0x557e67001015 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #25 0x557e67006aaf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #26 0x557e67031d52 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #27 0x7f52641e0082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #28 0x557e66ff91fd in _start (/out/shaderc_fdp_fuzzer+0xc61fd)
+
+DEDUP_TOKEN: __is_long--__get_pointer--data
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/shaderc/third_party/glslang/glslang/MachineIndependent/../Include/Common.h:255:22 in getFilename
+==14==ABORTING

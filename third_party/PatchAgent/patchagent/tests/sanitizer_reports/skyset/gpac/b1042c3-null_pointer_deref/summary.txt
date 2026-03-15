@@ -1,0 +1,29 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - gf_fread /root/src/utils/os_file.c:1692:11
+    - file_read_bytes /root/src/media_tools/mpeg2_ps.c:163:22
+    - read_to_next_pes_header /root/src/media_tools/mpeg2_ps.c:544:7
+    - search_for_next_pes_header /root/src/media_tools/mpeg2_ps.c:681:7
+    - mpeg2ps_stream_read_next_pes_buffer /root/src/media_tools/mpeg2_ps.c:732:6
+    - mpeg2ps_stream_find_mpeg_video_frame /root/src/media_tools/mpeg2_ps.c:823:8
+    - mpeg2ps_stream_read_frame /root/src/media_tools/mpeg2_ps.c:953:7
+    - get_info_for_all_streams /root/src/media_tools/mpeg2_ps.c:1211:10
+    - mpeg2ps_scan_file /root/src/media_tools/mpeg2_ps.c:1368:2
+    - mpeg2ps_init /root/src/media_tools/mpeg2_ps.c:1625:2
+    - m2psdmx_process /root/src/filters/dmx_mpegps.c:327:13
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4825:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

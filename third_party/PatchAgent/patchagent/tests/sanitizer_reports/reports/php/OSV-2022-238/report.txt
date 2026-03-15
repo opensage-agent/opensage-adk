@@ -1,0 +1,48 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/php:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/php/OSV-2022-238/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce php-fuzz-tracing-jit -runs=100.
++ FUZZER=php-fuzz-tracing-jit
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer php-fuzz-tracing-jit -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/php-fuzz-tracing-jit -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 306842251
+INFO: Loaded 2 modules   (172015 inline 8-bit counters): 139419 [0x556a472e5380, 0x556a4730741b), 32596 [0x7f544cd3c800, 0x7f544cd44754), 
+INFO: Loaded 2 PC tables (172015 PCs): 139419 [0x556a47307420,0x556a47527dd0), 32596 [0x7f544cd44758,0x7f544cdc3c98), 
+/out/php-fuzz-tracing-jit: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x556a46749394 bp 0x7fff5f186170 sp 0x7fff5f186130 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x556a46749394 in zend_gc_delref /src/php-src/Zend/zend_types.h:1183:2
+    #1 0x556a46749394 in i_zval_ptr_dtor /src/php-src/Zend/zend_variables.h:43:8
+    #2 0x556a46749394 in i_free_compiled_variables /src/php-src/Zend/zend_execute.c:3563:3
+    #3 0x556a46900eaa in zend_leave_helper_SPEC /src/php-src/Zend/zend_vm_execute.h:1170:4
+    #4 0x556a46af553c in fuzzer_execute_ex /src/php-src/sapi/fuzzer/fuzzer-execute-common.h:53:14
+    #5 0x556a467eca9e in ZEND_DO_FCALL_SPEC_RETVAL_UNUSED_HANDLER /src/php-src/Zend/zend_vm_execute.h:1728:4
+    #6 0x556a46af553c in fuzzer_execute_ex /src/php-src/sapi/fuzzer/fuzzer-execute-common.h:53:14
+    #7 0x556a4675042c in zend_execute /src/php-src/Zend/zend_vm_execute.h:58977:2
+    #8 0x556a46af65a6 in fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:276:5
+    #9 0x556a46af4d93 in LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-tracing-jit.c:34:2
+    #10 0x556a45ee6ff0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x556a45ed2265 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x556a45ed7cff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x556a45f02fa2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f544f0ad082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #15 0x556a45eca44d in _start (/out/php-fuzz-tracing-jit+0x60244d)
+
+DEDUP_TOKEN: zend_gc_delref--i_zval_ptr_dtor--i_free_compiled_variables
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/php-src/Zend/zend_types.h:1183:2 in zend_gc_delref
+==14==ABORTING

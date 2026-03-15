@@ -1,0 +1,66 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/assimp:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/assimp/OSV-2023-404/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce assimp_fuzzer -runs=100.
++ FUZZER=assimp_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer assimp_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/assimp_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1423549654
+INFO: Loaded 1 modules   (250600 inline 8-bit counters): 250600 [0x564ef7e2d128, 0x564ef7e6a410), 
+INFO: Loaded 1 PC tables (250600 PCs): 250600 [0x564ef7e6a410,0x564ef823d290), 
+/out/assimp_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+Info,  T0: Load $$$___magic___$$$.
+Info,  T0: File extension not known, trying signature-based detection
+Info,  T0: Found a matching importer for this file format: Autodesk FBX Importer.
+Info,  T0: Import root directory is './'
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x52d000000520 in thread T0
+[1m[0mSCARINESS: 40 (bad-free)
+    #0 0x564ef676c19d in operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    #1 0x564ef7177a59 in Assimp::FBX::Scope::Scope(Assimp::FBX::Parser&, bool) /src/assimp/code/AssetLib/FBX/FBXParser.cpp:214:13
+    #2 0x564ef717651d in Assimp::FBX::Element::Element(Assimp::FBX::Token const&, Assimp::FBX::Parser&) /src/assimp/code/AssetLib/FBX/FBXParser.cpp:152:24
+    #3 0x564ef7177743 in Assimp::FBX::Scope::Scope(Assimp::FBX::Parser&, bool) /src/assimp/code/AssetLib/FBX/FBXParser.cpp:205:25
+    #4 0x564ef71785a5 in Assimp::FBX::Parser::Parser(std::__1::vector<Assimp::FBX::Token const*, std::__1::allocator<Assimp::FBX::Token const*>> const&, Assimp::StackAllocator&, bool) /src/assimp/code/AssetLib/FBX/FBXParser.cpp:237:12
+    #5 0x564ef7174ab2 in Assimp::FBXImporter::InternReadFile(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /src/assimp/code/AssetLib/FBX/FBXImporter.cpp:167:16
+    #6 0x564ef77fdf38 in Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, Assimp::IOSystem*) /src/assimp/code/Common/BaseImporter.cpp:110:9
+    #7 0x564ef67b7a64 in Assimp::Importer::ReadFile(char const*, unsigned int) /src/assimp/code/Common/Importer.cpp:723:30
+    #8 0x564ef67b4bb0 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /src/assimp/code/Common/Importer.cpp:507:9
+    #9 0x564ef676dd47 in LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:54:34
+    #10 0x564ef66227a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564ef660da15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564ef66134af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564ef663e752 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fe907c23082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #15 0x564ef6605bfd in _start (/out/assimp_fuzzer+0x892bfd)
+
+DEDUP_TOKEN: operator delete(void*)--Assimp::FBX::Scope::Scope(Assimp::FBX::Parser&, bool)--Assimp::FBX::Element::Element(Assimp::FBX::Token const&, Assimp::FBX::Parser&)
+[1m[32m0x52d000000520 is located 288 bytes inside of 32768-byte region [0x52d000000400,0x52d000008400)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x564ef676ba4d in operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    #1 0x564ef718bd7d in Allocate /src/assimp/code/Common/StackAllocator.inl:60:25
+    #2 0x564ef718bd7d in Assimp::FBX::(anonymous namespace)::ProcessDataToken(std::__1::vector<Assimp::FBX::Token const*, std::__1::allocator<Assimp::FBX::Token const*>>&, Assimp::StackAllocator&, char const*&, char const*&, unsigned int, unsigned int, Assimp::FBX::TokenType, bool) /src/assimp/code/AssetLib/FBX/FBXTokenizer.cpp:123:33
+    #3 0x564ef718a69e in Assimp::FBX::Tokenize(std::__1::vector<Assimp::FBX::Token const*, std::__1::allocator<Assimp::FBX::Token const*>>&, char const*, Assimp::StackAllocator&) /src/assimp/code/AssetLib/FBX/FBXTokenizer.cpp:207:17
+    #4 0x564ef7174a49 in Assimp::FBXImporter::InternReadFile(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /src/assimp/code/AssetLib/FBX/FBXImporter.cpp:162:13
+    #5 0x564ef77fdf38 in Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, Assimp::IOSystem*) /src/assimp/code/Common/BaseImporter.cpp:110:9
+    #6 0x564ef67b7a64 in Assimp::Importer::ReadFile(char const*, unsigned int) /src/assimp/code/Common/Importer.cpp:723:30
+    #7 0x564ef67b4bb0 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /src/assimp/code/Common/Importer.cpp:507:9
+    #8 0x564ef676dd47 in LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:54:34
+    #9 0x564ef66227a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x564ef660da15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x564ef66134af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x564ef663e752 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fe907c23082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator new[](unsigned long)--Allocate--Assimp::FBX::(anonymous namespace)::ProcessDataToken(std::__1::vector<Assimp::FBX::Token const*, std::__1::allocator<Assimp::FBX::Token const*>>&, Assimp::StackAllocator&, char const*&, char const*&, unsigned int, unsigned int, Assimp::FBX::TokenType, bool)
+SUMMARY: AddressSanitizer: bad-free /src/assimp/code/AssetLib/FBX/FBXParser.cpp:214:13 in Assimp::FBX::Scope::Scope(Assimp::FBX::Parser&, bool)
+==14==ABORTING

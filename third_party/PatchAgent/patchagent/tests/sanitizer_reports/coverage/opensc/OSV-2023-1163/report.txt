@@ -1,0 +1,39 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/opensc:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_pkcs15init -runs=100.
++ FUZZER=fuzz_pkcs15init
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_pkcs15init -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_pkcs15init -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2305002493
+/out/fuzz_pkcs15init: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x00000100000a (pc 0x5603fbb16bdd bp 0x7ffc4bb37b50 sp 0x7ffc4bb37b30 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x5603fbb16bdd in sc_file_clear_acl_entries /src/opensc/src/libopensc/sc.c:610:28
+    #1 0x5603fbb16e97 in sc_file_free /src/opensc/src/libopensc/sc.c:634:3
+    #2 0x5603fbd50b8b in setcos_create_key /src/opensc/src/pkcs15init/pkcs15-setcos.c:367:3
+    #3 0x5603fbaf7d10 in sc_pkcs15init_generate_key /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:1609:6
+    #4 0x5603fbb0cbbe in do_generate_key /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:207:9
+    #5 0x5603fbb0d38f in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:337:5
+    #6 0x5603fba50240 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x5603fba3b4b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x5603fba40f4f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x5603fba6c1f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f461e950082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x5603fba3369d in _start (/out/fuzz_pkcs15init+0x2d69d)
+
+DEDUP_TOKEN: sc_file_clear_acl_entries--sc_file_free--setcos_create_key
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/opensc/src/libopensc/sc.c:610:28 in sc_file_clear_acl_entries
+==14==ABORTING

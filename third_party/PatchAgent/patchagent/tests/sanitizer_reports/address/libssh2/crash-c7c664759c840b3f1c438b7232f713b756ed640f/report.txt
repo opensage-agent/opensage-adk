@@ -1,0 +1,23 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000010 (pc 0x561731d870e7 bp 0x7ffcd42d3760 sp 0x7ffcd42d2520 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+SCARINESS: 10 (null-deref)
+    #0 0x561731d870e7 in diffie_hellman_sha_algo /src/libssh2/src/kex.c:574:30
+    #1 0x561731d90ba6 in kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:1077:11
+    #2 0x561731d605e9 in _libssh2_kex_exchange /src/libssh2/src/kex.c:4153:23
+    #3 0x561731d17f74 in session_startup /src/libssh2/src/session.c:787:14
+    #4 0x561731d175ad in libssh2_session_handshake /src/libssh2/src/session.c:878:5
+    #5 0x561731d14f7a in LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:71:6
+    #6 0x561731bc9970 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x561731bb4be5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x561731bba67f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x561731be5922 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f2f3ad17082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #11 0x561731bacdcd in _start (/out/ssh2_client_fuzzer+0x69dcd)
+
+DEDUP_TOKEN: diffie_hellman_sha_algo--kex_method_diffie_hellman_group1_sha1_key_exchange--_libssh2_kex_exchange
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/libssh2/src/kex.c:574:30 in diffie_hellman_sha_algo
+==14==ABORTING

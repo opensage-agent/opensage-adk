@@ -1,0 +1,37 @@
+The sanitizer detected a negative size param vulnerability. The explanation of the vulnerability is: A function receives a negative size parameter, leading to unexpected behavior or memory allocation errors. Here is the detail: 
+
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - swapReplace /src/liblouis/liblouis/lou_translateString.c:481:4
+    - passDoAction /src/liblouis/liblouis/lou_translateString.c:977:9
+    - translateString /src/liblouis/liblouis/lou_translateString.c:3739:10
+    - _lou_translate /src/liblouis/liblouis/lou_translateString.c:1280:16
+    - lou_translate /src/liblouis/liblouis/lou_translateString.c:1120:9
+    - lou_translateString /src/liblouis/liblouis/lou_translateString.c:1112:9
+    - LLVMFuzzerTestOneInput /src/liblouis/tests/fuzzing/fuzz_translate_generic.c:104:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5300000080e2 is located 31970 bytes inside of 63248-byte region [0x530000000400,0x53000000fb10)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - allocateTranslationTable /src/liblouis/liblouis/compileTranslationTable.c:506:17
+    - compileTable /src/liblouis/liblouis/compileTranslationTable.c:4879:24
+    - getTable /src/liblouis/liblouis/compileTranslationTable.c:5077:7
+    - _lou_getTable /src/liblouis/liblouis/compileTranslationTable.c:4986:2
+    - _lou_translate /src/liblouis/liblouis/lou_translateString.c:1179:2
+    - lou_translate /src/liblouis/liblouis/lou_translateString.c:1120:9
+    - lou_translateString /src/liblouis/liblouis/lou_translateString.c:1112:9
+    - LLVMFuzzerTestOneInput /src/liblouis/tests/fuzzing/fuzz_translate_generic.c:104:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Validate all size parameters before passing them to memory allocation functions.
+2. Ensure that buffer sizes and loop limits are always positive values.
+3. Use unsigned integer types to store sizes to prevent negative values.

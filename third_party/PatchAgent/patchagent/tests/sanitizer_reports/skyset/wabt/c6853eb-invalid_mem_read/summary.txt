@@ -1,0 +1,25 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - wabt::interp::FreeList<wabt::interp::Object*>::IsUsed(unsigned long) const /root/include/wabt/interp/interp-inl.h:180:39
+    - wabt::interp::Store::IsValid(wabt::interp::Ref) const /root/include/wabt/interp/interp-inl.h:482:19
+    - wabt::interp::Store::HasValueType(wabt::interp::Ref, wabt::Type) const /root/src/interp/interp.cc:213:8
+    - wabt::interp::Table::Grow(wabt::interp::Store&, unsigned int, wabt::interp::Ref) /root/src/interp/interp.cc:505:3
+    - wabt::interp::Thread::DoTableGrow(wabt::interp::Instr, wabt::interp::RefPtr<wabt::interp::Trap>*) /root/src/interp/interp.cc:2178:21
+    - wabt::interp::Thread::StepInternal(wabt::interp::RefPtr<wabt::interp::Trap>*) /root/src/interp/interp.cc:1536:31
+    - wabt::interp::Thread::Run(int, wabt::interp::RefPtr<wabt::interp::Trap>*) /root/src/interp/interp.cc:1094:19
+    - wabt::interp::Thread::Run(wabt::interp::RefPtr<wabt::interp::Trap>*) /root/src/interp/interp.cc:1086:14
+    - wabt::interp::DefinedFunc::DoCall(wabt::interp::Thread&, std::vector<wabt::interp::Value, std::allocator<wabt::interp::Value>> const&, std::vector<wabt::interp::Value, std::allocator<wabt::interp::Value>>&, wabt::interp::RefPtr<wabt::interp::Trap>*) /root/src/interp/interp.cc:428:19
+    - wabt::interp::Func::Call(wabt::interp::Store&, std::vector<wabt::interp::Value, std::allocator<wabt::interp::Value>> const&, std::vector<wabt::interp::Value, std::allocator<wabt::interp::Value>>&, wabt::interp::RefPtr<wabt::interp::Trap>*, wabt::Stream*) /root/src/interp/interp.cc:394:10
+    - wabt::interp::Instance::Instantiate(wabt::interp::Store&, wabt::interp::Ref, std::vector<wabt::interp::Ref, std::allocator<wabt::interp::Ref>> const&, wabt::interp::RefPtr<wabt::interp::Trap>*) /root/src/interp/interp.cc:952:22
+    - InstantiateModule(std::vector<wabt::interp::Ref, std::allocator<wabt::interp::Ref>>&, wabt::interp::RefPtr<wabt::interp::Module> const&, wabt::interp::RefPtr<wabt::interp::Instance>*) /root/src/tools/wasm-interp.cc:340:19
+    - ReadAndRunModule(char const*) /root/src/tools/wasm-interp.cc:423:3
+    - ProgramMain(int, char**) /root/src/tools/wasm-interp.cc:450:25
+    - main /root/src/tools/wasm-interp.cc:456:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

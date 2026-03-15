@@ -1,0 +1,48 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 8 at 0x502000065e90 thread T0
+    - iterate_chained_fixups /root/libr/bin/format/mach0/mach0.c:4562:8
+    - rebase_buffer /root/libr/bin/p/bin_mach0.c:807:2
+    - rebasing_and_stripping_io_read /root/libr/bin/p/bin_mach0.c:768:3
+    - r_io_plugin_read /root/libr/io/io_plugin.c:161:9
+    - r_io_desc_read /root/libr/io/io_desc.c:213:12
+    - r_io_fd_read /root/libr/io/io_fd.c:24:15
+    - buf_io_read /root/libr/util/buf_io.c:72:9
+    - buf_read /root/libr/util/buf.c:46:27
+    - r_buf_read /root/libr/util/buf.c:452:11
+    - r_buf_read_at /root/libr/util/buf.c:600:6
+    - get_hdr /root/libr/bin/format/mach0/mach0.c:4517:6
+    - mach_fields /root/libr/bin/format/mach0/mach0.c:4417:35
+    - r_bin_object_set_items /root/libr/bin/bobj.c:310:16
+    - r_bin_object_new /root/libr/bin/bobj.c:168:2
+    - r_bin_file_new_from_buffer /root/libr/bin/bfile.c:585:19
+    - r_bin_open_buf /root/libr/bin/bin.c:279:8
+    - r_bin_open_io /root/libr/bin/bin.c:339:13
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    - r_core_bin_load /root/libr/core/cfile.c:636:4
+    - r_main_radare2 /root/libr/main/radare2.c:1184:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+0x502000065e91 is located 0 bytes after 1-byte region [0x502000065e90,0x502000065e91)
+allocated by thread T0 here:
+    - parse_chained_fixups /root/libr/bin/format/mach0/mach0.c:1517:24
+    - init_items /root/libr/bin/format/mach0/mach0.c:2069:27
+    - init /root/libr/bin/format/mach0/mach0.c:2092:7
+    - new_buf /root/libr/bin/format/mach0/mach0.c:2207:8
+    - load_buffer /root/libr/bin/p/bin_mach0.c:57:30
+    - r_bin_object_new /root/libr/bin/bobj.c:147:8
+    - r_bin_file_new_from_buffer /root/libr/bin/bfile.c:585:19
+    - r_bin_open_buf /root/libr/bin/bin.c:279:8
+    - r_bin_open_io /root/libr/bin/bin.c:339:13
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    - r_core_bin_load /root/libr/core/cfile.c:636:4
+    - r_main_radare2 /root/libr/main/radare2.c:1184:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

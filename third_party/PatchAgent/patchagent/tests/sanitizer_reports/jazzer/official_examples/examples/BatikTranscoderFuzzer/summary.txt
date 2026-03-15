@@ -1,0 +1,47 @@
+The sanitizer detected a server side request forgery vulnerability.The explanation of the vulnerability is: An attacker can make the server perform unauthorized requests, leading to potential data exfiltration or unauthorized access.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueMedium: Server Side Request Forgery (SSRF)
+Attempted connection to: ̽:443
+Requests to destinations based on untrusted data could lead to exfiltration of sensitive data or exposure of internal services.
+
+If the fuzz test is expected to perform network connections, call com.code_intelligence.jazzer.api.BugDetectors#allowNetworkConnections at the beginning of your fuzz test and optionally provide a predicate matching the expected hosts.
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrf (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:127)
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrfSocket (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:71)
+- java.base/java.net.Socket.connect (java/base/java/net/Socket.java:751)
+- java.base/sun.security.ssl.SSLSocketImpl.connect (java/base/sun/security/ssl/SSLSocketImpl.java:304)
+- java.base/sun.security.ssl.BaseSSLSocketImpl.connect (java/base/sun/security/ssl/BaseSSLSocketImpl.java:181)
+- java.base/sun.net.NetworkClient.doConnect (java/base/sun/net/NetworkClient.java:183)
+- java.base/sun.net.www.http.HttpClient.openServer (java/base/sun/net/www/http/HttpClient.java:531)
+- java.base/sun.net.www.http.HttpClient.openServer (java/base/sun/net/www/http/HttpClient.java:636)
+- java.base/sun.net.www.protocol.https.HttpsClient.<init> (java/base/sun/net/www/protocol/https/HttpsClient.java:264)
+- java.base/sun.net.www.protocol.https.HttpsClient.New (java/base/sun/net/www/protocol/https/HttpsClient.java:377)
+- java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient (java/base/sun/net/www/protocol/https/AbstractDelegateHttpsURLConnection.java:193)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0 (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1252)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1138)
+- java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect (java/base/sun/net/www/protocol/https/AbstractDelegateHttpsURLConnection.java:179)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0 (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1690)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1614)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.getHeaderField (java/base/sun/net/www/protocol/http/HttpURLConnection.java:3250)
+- java.base/java.net.URLConnection.getContentType (java/base/java/net/URLConnection.java:522)
+- java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getContentType (java/base/sun/net/www/protocol/https/HttpsURLConnectionImpl.java:375)
+- org.apache.batik.util.ParsedURLData.openStreamInternal (org/apache/batik/util/ParsedURLData.java:548)
+- org.apache.batik.util.ParsedURLData.openStream (org/apache/batik/util/ParsedURLData.java:476)
+- org.apache.batik.util.ParsedURL.openStream (org/apache/batik/util/ParsedURL.java:440)
+- org.apache.batik.bridge.SVGImageElementBridge.openStream (org/apache/batik/bridge/SVGImageElementBridge.java:414)
+- org.apache.batik.bridge.SVGImageElementBridge.createImageGraphicsNode (org/apache/batik/bridge/SVGImageElementBridge.java:244)
+- org.apache.batik.bridge.SVGImageElementBridge.buildImageGraphicsNode (org/apache/batik/bridge/SVGImageElementBridge.java:179)
+- org.apache.batik.bridge.SVGImageElementBridge.createGraphicsNode (org/apache/batik/bridge/SVGImageElementBridge.java:121)
+- org.apache.batik.bridge.GVTBuilder.buildGraphicsNode (org/apache/batik/bridge/GVTBuilder.java:213)
+- org.apache.batik.bridge.GVTBuilder.buildComposite (org/apache/batik/bridge/GVTBuilder.java:171)
+- org.apache.batik.bridge.GVTBuilder.build (org/apache/batik/bridge/GVTBuilder.java:82)
+- org.apache.batik.transcoder.SVGAbstractTranscoder.transcode (org/apache/batik/transcoder/SVGAbstractTranscoder.java:210)
+- org.apache.batik.transcoder.image.ImageTranscoder.transcode (org/apache/batik/transcoder/image/ImageTranscoder.java:92)
+- org.apache.batik.transcoder.XMLAbstractTranscoder.transcode (org/apache/batik/transcoder/XMLAbstractTranscoder.java:142)
+- org.apache.batik.transcoder.SVGAbstractTranscoder.transcode (org/apache/batik/transcoder/SVGAbstractTranscoder.java:158)
+- com.example.BatikTranscoderFuzzer.fuzzerTestOneInput (com/example/BatikTranscoderFuzzer.java:44)
+
+To fix this issue, follow the advice below:
+
+1. Validate and sanitize all user-provided URLs to prevent SSRF attacks.
+2. Use allowlists or secure APIs to restrict server-side requests to authorized domains.
+3. Monitor server logs for unusual or unauthorized requests.

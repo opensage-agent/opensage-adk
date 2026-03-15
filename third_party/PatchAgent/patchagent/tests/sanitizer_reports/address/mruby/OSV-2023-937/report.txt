@@ -1,0 +1,73 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52f00000c420 at pc 0x5584708cae68 bp 0x7fff6ccfe210 sp 0x7fff6ccfe208
+READ of size 1 at 0x52f00000c420 thread T0
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x5584708cae67 in unpack_bstr /src/mruby/mrbgems/mruby-pack/src/pack.c:940:34
+    #1 0x5584708cae67 in pack_unpack /src/mruby/mrbgems/mruby-pack/src/pack.c:1669:17
+    #2 0x55847084ce70 in mrb_vm_exec /src/mruby/src/vm.c
+    #3 0x5584708398c4 in mrb_vm_run /src/mruby/src/vm.c:1312:12
+    #4 0x55847078d233 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6919:7
+    #5 0x558470743cb0 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #6 0x5584705f87a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x5584705e3a15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x5584705e94af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x558470614752 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f8d62a7d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #11 0x5584705dbbfd in _start (/out/mruby_fuzzer+0x16bbfd)
+
+DEDUP_TOKEN: unpack_bstr--pack_unpack--mrb_vm_exec
+0x52f00000c420 is located 0 bytes after 49184-byte region [0x52f000000400,0x52f00000c420)
+allocated by thread T0 here:
+    #0 0x55847070495c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x558470815516 in mrb_realloc_simple /src/mruby/src/gc.c:191:8
+    #2 0x558470815516 in mrb_realloc /src/mruby/src/gc.c:205:8
+    #3 0x558470815516 in mrb_malloc /src/mruby/src/gc.c:221:10
+    #4 0x558470815516 in mrb_calloc /src/mruby/src/gc.c:239:9
+    #5 0x558470815516 in add_heap /src/mruby/src/gc.c:293:41
+    #6 0x55847081530d in mrb_gc_init /src/mruby/src/gc.c:328:3
+    #7 0x558470743f1e in init_gc_and_core /src/mruby/src/state.c:30:3
+    #8 0x5584707f8842 in mrb_core_init_protect /src/mruby/src/error.c:568:5
+    #9 0x55847074412f in mrb_open_core /src/mruby/src/state.c:53:7
+    #10 0x55847074412f in mrb_open_allocf /src/mruby/src/state.c:92:20
+    #11 0x55847074412f in mrb_open /src/mruby/src/state.c:76:20
+    #12 0x558470743ca2 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:13:22
+    #13 0x5584705f87a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x5584705e3a15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x5584705e94af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x558470614752 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f8d62a7d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--mrb_realloc_simple--mrb_realloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/mruby/mrbgems/mruby-pack/src/pack.c:940:34 in unpack_bstr
+Shadow bytes around the buggy address:
+  0x52f00000c180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52f00000c200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52f00000c280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52f00000c300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52f00000c380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x52f00000c400: 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x52f00000c480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52f00000c500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52f00000c580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52f00000c600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52f00000c680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

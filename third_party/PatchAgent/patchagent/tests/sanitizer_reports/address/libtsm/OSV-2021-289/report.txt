@@ -1,0 +1,56 @@
+=================================================================
+==14==ERROR: AddressSanitizer: global-buffer-overflow on address 0x559eac6f4590 at pc 0x559eac6c75d3 bp 0x7ffec38e28c0 sp 0x7ffec38e28b8
+READ of size 1 at 0x559eac6f4590 thread T0
+SCARINESS: 12 (1-byte-read-global-buffer-overflow)
+    #0 0x559eac6c75d2 in vte_write_debug /src/libtsm/src/tsm/tsm-vte.c:514:8
+    #1 0x559eac6c1c53 in do_trans /src/libtsm/src/tsm/tsm-vte.c:1858:3
+    #2 0x559eac6c1c53 in parse_data /src/libtsm/src/tsm/tsm-vte.c:1882:4
+    #3 0x559eac6c1677 in tsm_vte_input /src/libtsm/src/tsm/tsm-vte.c
+    #4 0x559eac6a9360 in LLVMFuzzerTestOneInput /src/libtsm_fuzzer.c:44:3
+    #5 0x559eac55ddb0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x559eac549025 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x559eac54eabf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x559eac579d62 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f8973200082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #10 0x559eac54120d in _start (/out/libtsm_fuzzer+0x5420d)
+
+DEDUP_TOKEN: vte_write_debug--do_trans--parse_data
+0x559eac6f4590 is located 48 bytes before global variable '.str.131' defined in 'src/tsm/tsm-vte.c' (0x559eac6f45c0) of size 24
+  '.str.131' is ascii string 'unhandled escape seq %u'
+0x559eac6f4590 is located 16 bytes before global variable '__func__.do_esc' defined in 'src/tsm/tsm-vte.c' (0x559eac6f45a0) of size 7
+  '__func__.do_esc' is ascii string 'do_esc'
+0x559eac6f4590 is located 0 bytes after global variable '.str.130' defined in 'src/tsm/tsm-vte.c' (0x559eac6f4580) of size 16
+  '.str.130' is ascii string '[?60;1;6;9;15c'
+SUMMARY: AddressSanitizer: global-buffer-overflow /src/libtsm/src/tsm/tsm-vte.c:514:8 in vte_write_debug
+Shadow bytes around the buggy address:
+  0x559eac6f4300: 00 00 00 01 f9 f9 f9 f9 00 02 f9 f9 00 00 f9 f9
+  0x559eac6f4380: 00 00 f9 f9 00 03 f9 f9 00 00 00 07 f9 f9 f9 f9
+  0x559eac6f4400: 00 00 00 00 00 00 00 00 f9 f9 f9 f9 00 00 00 00
+  0x559eac6f4480: 00 00 00 00 f9 f9 f9 f9 00 02 f9 f9 00 00 02 f9
+  0x559eac6f4500: f9 f9 f9 f9 00 03 f9 f9 00 00 00 02 f9 f9 f9 f9
+=>0x559eac6f4580: 00 00[f9]f9 07 f9 f9 f9 00 00 00 f9 f9 f9 f9 f9
+  0x559eac6f4600: 07 f9 f9 f9 00 00 00 07 f9 f9 f9 f9 00 00 00 07
+  0x559eac6f4680: f9 f9 f9 f9 00 00 00 00 f9 f9 f9 f9 00 00 00 02
+  0x559eac6f4700: f9 f9 f9 f9 06 f9 f9 f9 00 06 f9 f9 00 00 05 f9
+  0x559eac6f4780: f9 f9 f9 f9 00 00 06 f9 f9 f9 f9 f9 00 00 f9 f9
+  0x559eac6f4800: 00 00 00 00 00 00 00 03 f9 f9 f9 f9 00 01 f9 f9
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

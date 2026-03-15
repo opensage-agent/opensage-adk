@@ -1,0 +1,70 @@
+=================================================================
+==359978==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x506000000420 at pc 0x55fe529de6d8 bp 0x7ffea19819d0 sp 0x7ffea19819c8
+READ of size 1 at 0x506000000420 thread T0
+    #0 0x55fe529de6d7 in is_codefence /root/src/document.c:1792:6
+    #1 0x55fe529e1ced in parse_listitem /root/src/document.c:2407:7
+    #2 0x55fe529e1791 in parse_definition /root/src/document.c:2642:7
+    #3 0x55fe529db270 in parse_list /root/src/document.c:2670:8
+    #4 0x55fe529d3ddc in parse_block /root/src/document.c:3597:11
+    #5 0x55fe529e3a08 in parse_footnote_def /root/src/document.c:2746:2
+    #6 0x55fe529d40cb in parse_footnote_list /root/src/document.c:2771:3
+    #7 0x55fe529cfac0 in hoedown_document_render /root/src/document.c:4159:3
+    #8 0x55fe529cb7bb in LLVMFuzzerTestOneInput /root/./test/hoedown_fuzzer.c:89:3
+    #9 0x55fe529b0e44 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/hoedown_fuzzer+0x28e44) (BuildId: 65e1c7c1815bb1cdd27ba1f02079b9712adebb9c)
+    #10 0x55fe52999f76 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/hoedown_fuzzer+0x11f76) (BuildId: 65e1c7c1815bb1cdd27ba1f02079b9712adebb9c)
+    #11 0x55fe5299fa2a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/hoedown_fuzzer+0x17a2a) (BuildId: 65e1c7c1815bb1cdd27ba1f02079b9712adebb9c)
+    #12 0x55fe529ca286 in main (/root/hoedown_fuzzer+0x42286) (BuildId: 65e1c7c1815bb1cdd27ba1f02079b9712adebb9c)
+    #13 0x7f35b78031c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x7f35b780328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x55fe52994b44 in _start (/root/hoedown_fuzzer+0xcb44) (BuildId: 65e1c7c1815bb1cdd27ba1f02079b9712adebb9c)
+
+0x506000000420 is located 0 bytes after 64-byte region [0x5060000003e0,0x506000000420)
+allocated by thread T0 here:
+    #0 0x7f35b7bf9bc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55fe529cb96c in hoedown_realloc /root/src/buffer.c:37:14
+    #2 0x55fe529cc16f in hoedown_buffer_grow /root/src/buffer.c:115:14
+    #3 0x55fe529cc319 in hoedown_buffer_put /root/src/buffer.c:125:3
+    #4 0x55fe529d0b8b in is_footnote /root/src/document.c:3709:3
+    #5 0x55fe529cef54 in hoedown_document_render /root/src/document.c:4096:28
+    #6 0x55fe529cb7bb in LLVMFuzzerTestOneInput /root/./test/hoedown_fuzzer.c:89:3
+    #7 0x55fe529b0e44 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/hoedown_fuzzer+0x28e44) (BuildId: 65e1c7c1815bb1cdd27ba1f02079b9712adebb9c)
+    #8 0x55fe52999f76 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/hoedown_fuzzer+0x11f76) (BuildId: 65e1c7c1815bb1cdd27ba1f02079b9712adebb9c)
+    #9 0x55fe5299fa2a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/hoedown_fuzzer+0x17a2a) (BuildId: 65e1c7c1815bb1cdd27ba1f02079b9712adebb9c)
+    #10 0x55fe529ca286 in main (/root/hoedown_fuzzer+0x42286) (BuildId: 65e1c7c1815bb1cdd27ba1f02079b9712adebb9c)
+    #11 0x7f35b78031c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7f35b780328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x55fe52994b44 in _start (/root/hoedown_fuzzer+0xcb44) (BuildId: 65e1c7c1815bb1cdd27ba1f02079b9712adebb9c)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/document.c:1792:6 in is_codefence
+Shadow bytes around the buggy address:
+  0x506000000180: fa fa fa fa 00 00 00 00 00 00 00 fa fa fa fa fa
+  0x506000000200: 00 00 00 00 00 00 00 00 fa fa fa fa 00 00 00 00
+  0x506000000280: 00 00 00 00 fa fa fa fa 00 00 00 00 00 00 00 fa
+  0x506000000300: fa fa fa fa 00 00 00 00 00 00 00 fa fa fa fa fa
+  0x506000000380: 00 00 00 00 00 00 00 fa fa fa fa fa 00 00 00 00
+=>0x506000000400: 00 00 00 00[fa]fa fa fa 00 00 00 00 00 00 00 00
+  0x506000000480: fa fa fa fa fd fd fd fd fd fd fd fd fa fa fa fa
+  0x506000000500: 00 00 00 00 00 00 00 fa fa fa fa fa 00 00 00 00
+  0x506000000580: 00 00 00 fa fa fa fa fa 00 00 00 00 00 00 00 fa
+  0x506000000600: fa fa fa fa 00 00 00 00 00 00 00 fa fa fa fa fa
+  0x506000000680: 00 00 00 00 00 00 00 fa fa fa fa fa 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359978==ABORTING

@@ -1,0 +1,37 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x502000000950 thread T0
+    - xt_valid_enum_values /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c:664:9
+    - xt_validate_impl /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c:894:21
+    - ddsi_xt_validate /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c:961:10
+    - ddsi_xt_type_add_typeobj /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c:1302:48
+    - ddsi_type_add_typeobj /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:464:19
+    - LLVMFuzzerTestOneInput /src/cyclonedds/fuzz/fuzz_type_object/fuzz_type_object.c:90:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x502000000951 is located 0 bytes after 1-byte region [0x502000000950,0x502000000951)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - ddsrt_malloc_s /src/cyclonedds/src/ddsrt/src/heap/posix/heap.c:20:10
+    - ddsrt_malloc /src/cyclonedds/src/ddsrt/src/heap/posix/heap.c:26:15
+    - xt_valid_enum_values /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c:658:21
+    - xt_validate_impl /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c:894:21
+    - ddsi_xt_validate /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c:961:10
+    - ddsi_xt_type_add_typeobj /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c:1302:48
+    - ddsi_type_add_typeobj /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:464:19
+    - LLVMFuzzerTestOneInput /src/cyclonedds/fuzz/fuzz_type_object/fuzz_type_object.c:90:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

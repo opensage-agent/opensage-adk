@@ -1,0 +1,28 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: timeout after 18446744073709551615 seconds
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::AlarmCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:304:5
+    - __asan::Allocator::Allocate(unsigned long, unsigned long, __sanitizer::BufferedStackTrace*, __asan::AllocType, bool) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:604:19
+    - __asan::asan_malloc(unsigned long, __sanitizer::BufferedStackTrace*) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:1000:34
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:69:10
+    - js_def_malloc /src/quickjs/quickjs.c:1729:11
+    - js_malloc_rt /src/quickjs/quickjs.c:1316:12
+    - js_malloc /src/quickjs/quickjs.c:1354:11
+    - JS_NewObjectFromShape /src/quickjs/quickjs.c:4777:15
+    - JS_NewObjectProtoClass /src/quickjs/quickjs.c:4884:12
+    - JS_NewObjectClass /src/quickjs/quickjs.c:4942:12
+    - js_closure /src/quickjs/quickjs.c:15781:16
+    - JS_CallInternal /src/quickjs/quickjs.c:16316:21
+    - JS_CallFree /src/quickjs/quickjs.c:18717:19
+    - JS_EvalFunctionInternal /src/quickjs/quickjs.c:34401:19
+    - __JS_EvalInternal /src/quickjs/quickjs.c:34536:19
+    - JS_EvalInternal /src/quickjs/quickjs.c:34554:12
+    - JS_EvalThis /src/quickjs/quickjs.c:34585:11
+    - JS_Eval /src/quickjs/quickjs.c:34593:12
+    - LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_eval.c:38:19
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10

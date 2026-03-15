@@ -1,0 +1,96 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/espeak-ng:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/espeak-ng/OSV-2022-519/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce ssml-fuzzer -runs=100.
++ FUZZER=ssml-fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ssml-fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ssml-fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2443259455
+INFO: Loaded 1 modules   (11493 inline 8-bit counters): 11493 [0x5611cbb6bd58, 0x5611cbb6ea3d), 
+INFO: Loaded 1 PC tables (11493 PCs): 11493 [0x5611cbb6ea40,0x5611cbb9b890), 
+/out/ssml-fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==13==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fc76a15f5b4 at pc 0x5611cb968b3c bp 0x7ffc77a26340 sp 0x7ffc77a25ae0
+[1m[0m[1m[34mWRITE of size 26 at 0x7fc76a15f5b4 thread T0[1m[0m
+SCARINESS: 60 (multi-byte-write-stack-buffer-overflow)
+    #0 0x5611cb968b3b in vsprintf /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:1671:1
+    #1 0x5611cb969c0a in sprintf /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:1714:1
+    #2 0x5611cbab4635 in LookupThousands /src/espeak-ng/src/libespeak-ng/numbers.c:1264:2
+    #3 0x5611cbab535f in LookupNum3 /src/espeak-ng/src/libespeak-ng/numbers.c:1583:8
+    #4 0x5611cbab23d1 in TranslateNumber_1 /src/espeak-ng/src/libespeak-ng/numbers.c:1964:2
+    #5 0x5611cbab23d1 in TranslateNumber /src/espeak-ng/src/libespeak-ng/numbers.c:2080:10
+    #6 0x5611cba3bab6 in TranslateWord3 /src/espeak-ng/src/libespeak-ng/translate.c:644:12
+    #7 0x5611cba388e2 in TranslateWord /src/espeak-ng/src/libespeak-ng/translate.c:1100:14
+    #8 0x5611cba46970 in TranslateWord2 /src/espeak-ng/src/libespeak-ng/translate.c:1351:11
+    #9 0x5611cba44610 in TranslateClause /src/espeak-ng/src/libespeak-ng/translate.c:2598:17
+    #10 0x5611cba33985 in SpeakNextClause /src/espeak-ng/src/libespeak-ng/synthesize.c:1569:2
+    #11 0x5611cba1e422 in Synthesize /src/espeak-ng/src/libespeak-ng/speech.c:492:9
+    #12 0x5611cba1bd8c in espeak_Synth /src/espeak-ng/src/libespeak-ng/espeak_api.c:90:32
+    #13 0x5611cba1ba3a in LLVMFuzzerTestOneInput /src/espeak-ng/tests/ssml-fuzzer.c:67:8
+    #14 0x5611cb8d0450 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x5611cb8bb6c5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x5611cb8c115f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x5611cb8ec402 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fc76a5a3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #19 0x5611cb8b38ad in _start (/out/ssml-fuzzer+0xa48ad)
+
+DEDUP_TOKEN: __interceptor_vsprintf--__interceptor_sprintf--LookupThousands
+[1m[32mAddress 0x7fc76a15f5b4 is located in stack of thread T0 at offset 436 in frame[1m[0m
+[1m[0m    #0 0x5611cbab4d5f in LookupNum3 /src/espeak-ng/src/libespeak-ng/numbers.c:1517
+
+DEDUP_TOKEN: LookupNum3
+  This frame has 9 object(s):
+    [32, 44) 'string' (line 1534)
+    [64, 164) 'buf1' (line 1535)
+    [208, 308) 'buf2' (line 1536)
+    [352, 372) 'ph_100' (line 1537)
+    [416, 436) 'ph_10T' (line 1538)[1m[32m <== Memory access at offset 436 overflows this variable[1m[0m
+    [480, 530) 'ph_digits' (line 1539)
+    [576, 626) 'ph_thousands' (line 1540)
+    [672, 684) 'ph_hundred_and' (line 1541)
+    [704, 716) 'ph_thousand_and' (line 1542)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/espeak-ng/src/libespeak-ng/numbers.c:1264:2 in LookupThousands
+Shadow bytes around the buggy address:
+  0x7fc76a15f300: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7fc76a15f380: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7fc76a15f400: [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fc76a15f480: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fc76a15f500: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mf2[1m[0m
+=>0x7fc76a15f580: [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m[[1m[0m04[1m[0m][1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fc76a15f600: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m02[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m02[1m[0m [1m[31mf2[1m[0m
+  0x7fc76a15f680: [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fc76a15f700: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fc76a15f780: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fc76a15f800: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==13==ABORTING

@@ -1,0 +1,21 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+:DEADLYSIGNAL
+The signal is caused by a READ memory access.
+AddressSanitizer:DEADLYSIGNAL
+    - operator() /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:650:49
+    - __invoke<(lambda at /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:647:44) &, const cv::Range &> /usr/local/include/c++/v1/__type_traits/invoke.h:344:25
+    - __call<(lambda at /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:647:44) &, const cv::Range &> /usr/local/include/c++/v1/__type_traits/invoke.h:419:5
+    - operator() /usr/local/include/c++/v1/__functional/function.h:169:12
+    - std::__1::__function::__func<cv::PngDecoder::compose_frame(std::__1::vector<unsigned char*, std::__1::allocator<unsigned char*>>&, std::__1::vector<unsigned char*, std::__1::allocator<unsigned char*>> const&, unsigned char, unsigned int, unsigned int, unsigned int, unsigned int, cv::Mat&)::$_1, std::__1::allocator<cv::PngDecoder::compose_frame(std::__1::vector<unsigned char*, std::__1::allocator<unsigned char*>>&, std::__1::vector<unsigned char*, std::__1::allocator<unsigned char*>> const&, unsigned char, unsigned int, unsigned int, unsigned int, unsigned int, cv::Mat&)::$_1>, void (cv::Range const&)>::operator()(cv::Range const&) /usr/local/include/c++/v1/__functional/function.h:311:10
+    - cv::(anonymous namespace)::ParallelLoopBodyWrapper::operator()(cv::Range const&) const /src/opencv/modules/core/src/parallel.cpp:360:17
+    - cv::ParallelJob::execute(bool) /src/opencv/modules/core/src/parallel_impl.cpp:332:22
+    - cv::WorkerThread::thread_body() /src/opencv/modules/core/src/parallel_impl.cpp:442:24
+    - cv::WorkerThread::thread_loop_wrapper(void*) /src/opencv/modules/core/src/parallel_impl.cpp:282:41
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

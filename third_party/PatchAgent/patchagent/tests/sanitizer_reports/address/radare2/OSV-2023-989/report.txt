@@ -1,0 +1,95 @@
+WARN: chopping hdr.sizeofcmds because it's larger than the file size
+WARN: Unknown section flags 0x4550fe
+WARN: Unknown section flags 0xc3020b21
+WARN: Unknown section flags 0xffffffff
+WARN: Unknown section flags 0xffffffff
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x514000001fd0 at pc 0x55f7230fbb2b bp 0x7ffc32d826b0 sp 0x7ffc32d81e78
+READ of size 161 at 0x514000001fd0 thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x55f7230fbb2a in strlen /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:391:5
+    #1 0x55f723455982 in r_str_ncpy /src/radare2/libr/include/r_util/r_str.h:112:17
+    #2 0x55f723455982 in load_sections_64 /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:2615:3
+    #3 0x55f723442be9 in metadata_sections_init /src/radare2/libr/../libr/bin/p/../format/objc/mach0_classes.c:74:28
+    #4 0x55f723442be9 in parse_classes_64 /src/radare2/libr/../libr/bin/p/../format/objc/mach0_classes.c:1533:20
+    #5 0x55f72331361b in r_bin_object_set_items /src/radare2/libr/bin/bobj.c:392:21
+    #6 0x55f7233121fb in r_bin_object_new /src/radare2/libr/bin/bobj.c:182:2
+    #7 0x55f723309029 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:613:19
+    #8 0x55f7232e752a in r_bin_open_buf /src/radare2/libr/bin/bin.c:303:8
+    #9 0x55f7232e6b15 in r_bin_open_io /src/radare2/libr/bin/bin.c:369:13
+    #10 0x55f723d351b9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:273:6
+    #11 0x55f723c5ea26 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2110:3
+    #12 0x55f723e1b943 in r_cmd_call /src/radare2/libr/core/cmd_api.c:520:11
+    #13 0x55f723ca879f in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5016:8
+    #14 0x55f723ca1787 in r_core_cmd_subst /src/radare2/libr/core/cmd.c:3842:10
+    #15 0x55f723c05705 in run_cmd_depth /src/radare2/libr/core/cmd.c:5958:9
+    #16 0x55f723bfb46d in r_core_cmd /src/radare2/libr/core/cmd.c:6046:8
+    #17 0x55f7231bcdf5 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #18 0x55f7230718f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #19 0x55f72305cb65 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #20 0x55f7230625ff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #21 0x55f72308d8a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f9e710ee082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #23 0x55f723054d4d in _start (/out/ia_fuzz+0xe95d4d)
+
+DEDUP_TOKEN: ___interceptor_strlen--r_str_ncpy--load_sections_64
+0x514000001fd0 is located 0 bytes after 400-byte region [0x514000001e40,0x514000001fd0)
+allocated by thread T0 here:
+    #0 0x55f72317daac in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x55f723473791 in parse_segments /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:418:21
+    #2 0x55f723473791 in init_items /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:1808:9
+    #3 0x55f723452e1a in init /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:2188:7
+    #4 0x55f723452e1a in new_buf_64 /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:2338:8
+    #5 0x55f72344b11c in load /src/radare2/libr/../libr/bin/p/bin_mach0.c:53:29
+    #6 0x55f723312182 in r_bin_object_new /src/radare2/libr/bin/bobj.c:161:8
+    #7 0x55f723309029 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:613:19
+    #8 0x55f7232e752a in r_bin_open_buf /src/radare2/libr/bin/bin.c:303:8
+    #9 0x55f7232e6b15 in r_bin_open_io /src/radare2/libr/bin/bin.c:369:13
+    #10 0x55f723d351b9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:273:6
+    #11 0x55f723c5ea26 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2110:3
+    #12 0x55f723e1b943 in r_cmd_call /src/radare2/libr/core/cmd_api.c:520:11
+    #13 0x55f723ca879f in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5016:8
+    #14 0x55f723ca1787 in r_core_cmd_subst /src/radare2/libr/core/cmd.c:3842:10
+    #15 0x55f723c05705 in run_cmd_depth /src/radare2/libr/core/cmd.c:5958:9
+    #16 0x55f723bfb46d in r_core_cmd /src/radare2/libr/core/cmd.c:6046:8
+    #17 0x55f7231bcdf5 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #18 0x55f7230718f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #19 0x55f72305cb65 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #20 0x55f7230625ff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #21 0x55f72308d8a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f9e710ee082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--parse_segments--init_items
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/radare2/libr/include/r_util/r_str.h:112:17 in r_str_ncpy
+Shadow bytes around the buggy address:
+  0x514000001d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x514000001d80: 00 00 00 00 00 00 00 00 00 00 fa fa fa fa fa fa
+  0x514000001e00: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x514000001e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x514000001f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x514000001f80: 00 00 00 00 00 00 00 00 00 00[fa]fa fa fa fa fa
+  0x514000002000: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x514000002080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x514000002100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x514000002180: 00 00 00 00 00 00 00 00 00 00 fa fa fa fa fa fa
+  0x514000002200: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

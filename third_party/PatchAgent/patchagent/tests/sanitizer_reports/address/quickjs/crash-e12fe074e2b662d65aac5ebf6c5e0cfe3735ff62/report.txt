@@ -1,0 +1,123 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x5070020ccad8 at pc 0x55a2c4b10041 bp 0x7ffe13af5690 sp 0x7ffe13af5688
+READ of size 8 at 0x5070020ccad8 thread T0
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x55a2c4b10040 in find_own_property /src/quickjs/quickjs.c:5243:13
+    #1 0x55a2c4b10040 in JS_DefineProperty /src/quickjs/quickjs.c:9078:11
+    #2 0x55a2c4b47ec4 in JS_DefinePropertyValue /src/quickjs/quickjs.c:9369:11
+    #3 0x55a2c4b47ec4 in build_backtrace /src/quickjs/quickjs.c:6612:5
+    #4 0x55a2c4b3fef8 in JS_CallInternal /src/quickjs/quickjs.c:18662:9
+    #5 0x55a2c4bb0628 in async_func_resume /src/quickjs/quickjs.c:18959:15
+    #6 0x55a2c4bf90ff in js_async_function_resume /src/quickjs/quickjs.c:19232:16
+    #7 0x55a2c4b63f5b in js_async_function_call /src/quickjs/quickjs.c:19326:5
+    #8 0x55a2c4bbb280 in js_execute_sync_module /src/quickjs/quickjs.c:28913:19
+    #9 0x55a2c4bba4cd in js_inner_module_evaluation /src/quickjs/quickjs.c:29025:13
+    #10 0x55a2c4b4e00b in js_evaluate_module /src/quickjs/quickjs.c:29072:9
+    #11 0x55a2c4b4e00b in JS_EvalFunctionInternal /src/quickjs/quickjs.c:34411:19
+    #12 0x55a2c4b4d86a in JS_EvalFunction /src/quickjs/quickjs.c:34425:12
+    #13 0x55a2c4ad7d02 in LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_compile.c:81:11
+    #14 0x55a2c498c510 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x55a2c4977785 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x55a2c497d21f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x55a2c49a84c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7f4feb604082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #19 0x55a2c496f96d in _start (/out/fuzz_compile+0x11b96d)
+
+DEDUP_TOKEN: find_own_property--JS_DefineProperty--JS_DefinePropertyValue
+0x5070020ccad8 is located 24 bytes inside of 72-byte region [0x5070020ccac0,0x5070020ccb08)
+freed by thread T0 here:
+    #0 0x55a2c4a98046 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55a2c4af6457 in free_zero_refcount /src/quickjs/quickjs.c:5513:9
+    #2 0x55a2c4af6457 in __JS_FreeValueRT /src/quickjs/quickjs.c:5557:21
+    #3 0x55a2c4b46760 in __JS_FreeValue /src/quickjs/quickjs.c:5598:5
+    #4 0x55a2c4b46760 in JS_FreeValue /src/quickjs/./quickjs.h:654:13
+    #5 0x55a2c4b46760 in JS_Throw /src/quickjs/quickjs.c:6390:5
+    #6 0x55a2c4b46760 in JS_ThrowError2 /src/quickjs/quickjs.c:6655:11
+    #7 0x55a2c4af141f in JS_ThrowError /src/quickjs/quickjs.c:6670:12
+    #8 0x55a2c4af141f in JS_ThrowInternalError /src/quickjs/quickjs.c:6770:11
+    #9 0x55a2c4aed09f in JS_ThrowOutOfMemory /src/quickjs/quickjs.c:6780:9
+    #10 0x55a2c4aed09f in js_alloc_string /src/quickjs/quickjs.c:1915:9
+    #11 0x55a2c4aed09f in js_new_string8 /src/quickjs/quickjs.c:3492:11
+    #12 0x55a2c4aed09f in JS_NewStringLen /src/quickjs/quickjs.c:3903:16
+    #13 0x55a2c4b47e57 in JS_NewString /src/quickjs/quickjs.c:3978:12
+    #14 0x55a2c4b47e57 in build_backtrace /src/quickjs/quickjs.c:6610:15
+    #15 0x55a2c4b3fef8 in JS_CallInternal /src/quickjs/quickjs.c:18662:9
+    #16 0x55a2c4bb0628 in async_func_resume /src/quickjs/quickjs.c:18959:15
+    #17 0x55a2c4bf90ff in js_async_function_resume /src/quickjs/quickjs.c:19232:16
+    #18 0x55a2c4b63f5b in js_async_function_call /src/quickjs/quickjs.c:19326:5
+    #19 0x55a2c4bbb280 in js_execute_sync_module /src/quickjs/quickjs.c:28913:19
+    #20 0x55a2c4bba4cd in js_inner_module_evaluation /src/quickjs/quickjs.c:29025:13
+    #21 0x55a2c4b4e00b in js_evaluate_module /src/quickjs/quickjs.c:29072:9
+    #22 0x55a2c4b4e00b in JS_EvalFunctionInternal /src/quickjs/quickjs.c:34411:19
+    #23 0x55a2c4b4d86a in JS_EvalFunction /src/quickjs/quickjs.c:34425:12
+    #24 0x55a2c4ad7d02 in LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_compile.c:81:11
+    #25 0x55a2c498c510 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #26 0x55a2c4977785 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #27 0x55a2c497d21f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #28 0x55a2c49a84c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #29 0x7f4feb604082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--free_zero_refcount--__JS_FreeValueRT
+previously allocated by thread T0 here:
+    #0 0x55a2c4a982df in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55a2c4b83ae4 in js_def_malloc /src/quickjs/quickjs.c:1729:11
+    #2 0x55a2c4af3c4c in js_malloc_rt /src/quickjs/quickjs.c:1316:12
+    #3 0x55a2c4af3c4c in js_malloc /src/quickjs/quickjs.c:1354:11
+    #4 0x55a2c4af3c4c in JS_NewObjectFromShape /src/quickjs/quickjs.c:4762:9
+    #5 0x55a2c4b46505 in JS_NewObjectProtoClass /src/quickjs/quickjs.c:4884:12
+    #6 0x55a2c4b46505 in JS_ThrowError2 /src/quickjs/quickjs.c:6642:11
+    #7 0x55a2c4afd22f in JS_ThrowError /src/quickjs/quickjs.c:6670:12
+    #8 0x55a2c4afd22f in JS_ThrowReferenceError /src/quickjs/quickjs.c:6748:11
+    #9 0x55a2c4b01dd2 in JS_ThrowReferenceErrorNotDefined /src/quickjs/quickjs.c:6804:12
+    #10 0x55a2c4b00ad5 in JS_GetPropertyInternal /src/quickjs/quickjs.c:7280:16
+    #11 0x55a2c4b305a8 in JS_GetGlobalVar /src/quickjs/quickjs.c:9613:12
+    #12 0x55a2c4b305a8 in JS_CallInternal /src/quickjs/quickjs.c:16884:23
+    #13 0x55a2c4bb0628 in async_func_resume /src/quickjs/quickjs.c:18959:15
+    #14 0x55a2c4bf90ff in js_async_function_resume /src/quickjs/quickjs.c:19232:16
+    #15 0x55a2c4b63f5b in js_async_function_call /src/quickjs/quickjs.c:19326:5
+    #16 0x55a2c4bbb280 in js_execute_sync_module /src/quickjs/quickjs.c:28913:19
+    #17 0x55a2c4bba4cd in js_inner_module_evaluation /src/quickjs/quickjs.c:29025:13
+    #18 0x55a2c4b4e00b in js_evaluate_module /src/quickjs/quickjs.c:29072:9
+    #19 0x55a2c4b4e00b in JS_EvalFunctionInternal /src/quickjs/quickjs.c:34411:19
+    #20 0x55a2c4b4d86a in JS_EvalFunction /src/quickjs/quickjs.c:34425:12
+    #21 0x55a2c4ad7d02 in LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_compile.c:81:11
+    #22 0x55a2c498c510 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #23 0x55a2c4977785 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #24 0x55a2c497d21f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #25 0x55a2c49a84c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #26 0x7f4feb604082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--js_def_malloc--js_malloc_rt
+SUMMARY: AddressSanitizer: heap-use-after-free /src/quickjs/quickjs.c:5243:13 in find_own_property
+Shadow bytes around the buggy address:
+  0x5070020cc800: fa fa fa fa 00 00 00 00 00 00 00 00 00 fa fa fa
+  0x5070020cc880: fa fa fd fd fd fd fd fd fd fd fd fa fa fa fa fa
+  0x5070020cc900: 00 00 00 00 00 00 00 00 00 fa fa fa fa fa 00 00
+  0x5070020cc980: 00 00 00 00 00 00 00 fa fa fa fa fa 00 00 00 00
+  0x5070020cca00: 00 00 00 00 00 fa fa fa fa fa 00 00 00 00 00 00
+=>0x5070020cca80: 00 00 00 fa fa fa fa fa fd fd fd[fd]fd fd fd fd
+  0x5070020ccb00: fd fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5070020ccb80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5070020ccc00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5070020ccc80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5070020ccd00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

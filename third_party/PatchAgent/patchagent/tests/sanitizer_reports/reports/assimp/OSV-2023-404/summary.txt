@@ -1,0 +1,39 @@
+The sanitizer detected a bad free vulnerability. The explanation of the vulnerability is: A program attempts to free a memory block that was not dynamically allocated, causing undefined behavior or crashes. Here is the detail: 
+
+    - operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    - Assimp::FBX::Scope::Scope(Assimp::FBX::Parser&, bool) /src/assimp/code/AssetLib/FBX/FBXParser.cpp:214:13
+    - Assimp::FBX::Element::Element(Assimp::FBX::Token const&, Assimp::FBX::Parser&) /src/assimp/code/AssetLib/FBX/FBXParser.cpp:152:24
+    - Assimp::FBX::Scope::Scope(Assimp::FBX::Parser&, bool) /src/assimp/code/AssetLib/FBX/FBXParser.cpp:205:25
+    - Assimp::FBX::Parser::Parser(std::__1::vector<Assimp::FBX::Token const*, std::__1::allocator<Assimp::FBX::Token const*>> const&, Assimp::StackAllocator&, bool) /src/assimp/code/AssetLib/FBX/FBXParser.cpp:237:12
+    - Assimp::FBXImporter::InternReadFile(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /src/assimp/code/AssetLib/FBX/FBXImporter.cpp:167:16
+    - Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, Assimp::IOSystem*) /src/assimp/code/Common/BaseImporter.cpp:110:9
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /src/assimp/code/Common/Importer.cpp:723:30
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /src/assimp/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:54:34
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x52d000000520 is located 288 bytes inside of 32768-byte region [0x52d000000400,0x52d000008400)
+allocated by thread T0 here:
+    - operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    - Allocate /src/assimp/code/Common/StackAllocator.inl:60:25
+    - Assimp::FBX::(anonymous namespace)::ProcessDataToken(std::__1::vector<Assimp::FBX::Token const*, std::__1::allocator<Assimp::FBX::Token const*>>&, Assimp::StackAllocator&, char const*&, char const*&, unsigned int, unsigned int, Assimp::FBX::TokenType, bool) /src/assimp/code/AssetLib/FBX/FBXTokenizer.cpp:123:33
+    - Assimp::FBX::Tokenize(std::__1::vector<Assimp::FBX::Token const*, std::__1::allocator<Assimp::FBX::Token const*>>&, char const*, Assimp::StackAllocator&) /src/assimp/code/AssetLib/FBX/FBXTokenizer.cpp:207:17
+    - Assimp::FBXImporter::InternReadFile(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /src/assimp/code/AssetLib/FBX/FBXImporter.cpp:162:13
+    - Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, Assimp::IOSystem*) /src/assimp/code/Common/BaseImporter.cpp:110:9
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /src/assimp/code/Common/Importer.cpp:723:30
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /src/assimp/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:54:34
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that only dynamically allocated memory is freed.
+2. Avoid freeing memory that was not allocated using malloc or similar functions.
+3. Verify pointer values before attempting to free them.

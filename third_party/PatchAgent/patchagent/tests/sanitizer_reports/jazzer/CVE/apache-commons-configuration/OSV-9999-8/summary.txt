@@ -1,0 +1,51 @@
+The sanitizer detected a server side request forgery vulnerability.The explanation of the vulnerability is: An attacker can make the server perform unauthorized requests, leading to potential data exfiltration or unauthorized access.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueMedium: Server Side Request Forgery (SSRF)
+Attempted connection to: www.w3.org:80
+Requests to destinations based on untrusted data could lead to exfiltration of sensitive data or exposure of internal services.
+
+If the fuzz test is expected to perform network connections, call com.code_intelligence.jazzer.api.BugDetectors#allowNetworkConnections at the beginning of your fuzz test and optionally provide a predicate matching the expected hosts.
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrf (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:127)
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrfSocket (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:71)
+- java.base/java.net.Socket.connect (java/base/java/net/Socket.java:633)
+- java.base/java.net.Socket.connect (java/base/java/net/Socket.java:583)
+- java.base/sun.net.NetworkClient.doConnect (java/base/sun/net/NetworkClient.java:183)
+- java.base/sun.net.www.http.HttpClient.openServer (java/base/sun/net/www/http/HttpClient.java:498)
+- java.base/sun.net.www.http.HttpClient.openServer (java/base/sun/net/www/http/HttpClient.java:603)
+- java.base/sun.net.www.http.HttpClient.<init> (java/base/sun/net/www/http/HttpClient.java:246)
+- java.base/sun.net.www.http.HttpClient.New (java/base/sun/net/www/http/HttpClient.java:351)
+- java.base/sun.net.www.http.HttpClient.New (java/base/sun/net/www/http/HttpClient.java:373)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.getNewHttpClient (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1309)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0 (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1242)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1128)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.connect (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1057)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0 (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1665)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1589)
+- java.xml/com.sun.org.apache.xerces.internal.impl.XMLEntityManager.setupCurrentEntity (java/xml/com/sun/org/apache/xerces/internal/impl/XMLEntityManager.java:677)
+- java.xml/com.sun.org.apache.xerces.internal.impl.XMLEntityManager.startEntity (java/xml/com/sun/org/apache/xerces/internal/impl/XMLEntityManager.java:1397)
+- java.xml/com.sun.org.apache.xerces.internal.impl.XMLEntityManager.startDTDEntity (java/xml/com/sun/org/apache/xerces/internal/impl/XMLEntityManager.java:1363)
+- java.xml/com.sun.org.apache.xerces.internal.impl.XMLDTDScannerImpl.setInputSource (java/xml/com/sun/org/apache/xerces/internal/impl/XMLDTDScannerImpl.java:257)
+- java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$DTDDriver.dispatch (java/xml/com/sun/org/apache/xerces/internal/impl/XMLDocumentScannerImpl$DTDDriver/dispatch:1152)
+- java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$DTDDriver.next (java/xml/com/sun/org/apache/xerces/internal/impl/XMLDocumentScannerImpl$DTDDriver/next:1040)
+- java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$PrologDriver.next (java/xml/com/sun/org/apache/xerces/internal/impl/XMLDocumentScannerImpl$PrologDriver/next:943)
+- java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl.next (java/xml/com/sun/org/apache/xerces/internal/impl/XMLDocumentScannerImpl.java:605)
+- java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanDocument (java/xml/com/sun/org/apache/xerces/internal/impl/XMLDocumentFragmentScannerImpl.java:542)
+- java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse (java/xml/com/sun/org/apache/xerces/internal/parsers/XML11Configuration.java:889)
+- java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse (java/xml/com/sun/org/apache/xerces/internal/parsers/XML11Configuration.java:825)
+- java.xml/com.sun.org.apache.xerces.internal.parsers.XMLParser.parse (java/xml/com/sun/org/apache/xerces/internal/parsers/XMLParser.java:141)
+- java.xml/com.sun.org.apache.xerces.internal.parsers.DOMParser.parse (java/xml/com/sun/org/apache/xerces/internal/parsers/DOMParser.java:247)
+- java.xml/com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderImpl.parse (java/xml/com/sun/org/apache/xerces/internal/jaxp/DocumentBuilderImpl.java:342)
+- org.apache.commons.configuration2.XMLConfiguration.load (org/apache/commons/configuration2/XMLConfiguration.java:931)
+- org.apache.commons.configuration2.XMLConfiguration.read (org/apache/commons/configuration2/XMLConfiguration.java:953)
+- org.apache.commons.configuration2.io.FileHandler.loadFromStreamDirectly (org/apache/commons/configuration2/io/FileHandler.java:757)
+- org.apache.commons.configuration2.io.FileHandler.loadFromStream (org/apache/commons/configuration2/io/FileHandler.java:739)
+- org.apache.commons.configuration2.io.FileHandler.load (org/apache/commons/configuration2/io/FileHandler.java:696)
+- org.apache.commons.configuration2.io.FileHandler.load (org/apache/commons/configuration2/io/FileHandler.java:599)
+- org.apache.commons.configuration2.io.FileHandler.load (org/apache/commons/configuration2/io/FileHandler.java:572)
+- XMLConfigurationLoadFuzzer.fuzzerTestOneInput (XMLConfigurationLoadFuzzer.java:54)
+
+To fix this issue, follow the advice below:
+
+1. Validate and sanitize all user-provided URLs to prevent SSRF attacks.
+2. Use allowlists or secure APIs to restrict server-side requests to authorized domains.
+3. Monitor server logs for unusual or unauthorized requests.

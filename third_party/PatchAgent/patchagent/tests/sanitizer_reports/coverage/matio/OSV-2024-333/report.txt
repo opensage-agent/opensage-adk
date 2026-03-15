@@ -1,0 +1,677 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/matio:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce matio_fuzzer -runs=100.
++ FUZZER=matio_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer matio_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/matio_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=matio_fuzzer.dict < /dev/null
+Dictionary: 4 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 4145472162
+INFO: Loaded 1 modules   (26 inline 8-bit counters): 26 [0x55e64f0ad7d8, 0x55e64f0ad7f2), 
+INFO: Loaded 1 PC tables (26 PCs): 26 [0x55e64f0ad7f8,0x55e64f0ad998), 
+/out/matio_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+-E- ossfuzz: fields[9] not MAT_T_MATRIX, fpos = 3040
+-E- ossfuzz: fields[13] not MAT_T_MATRIX, fpos = 7816
+-E- ossfuzz: 570425344 is not valid (MAT_T_MATRIX or MAT_T_COMPRESSED)
+-E- ossfuzz: An error occurred in reading the MAT file
+      Name: easy
+      Rank: 2
+Dimensions: 1 x 1
+Class Type: Structure
+ Data Type: Structure
+Fields[6] {
+      Name: d
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+      Name: s
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+      Name: i32
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+      Name: i16
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 16-bit, signed integer array
+ Data Type: 16-bit, signed integer
+      Name: i8
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 8-bit, signed integer array
+ Data Type: 8-bit, signed integer
+      Name: c
+      Rank: 2
+Dimensions: 2 x 11
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+}
+      Name: easy
+      Rank: 2
+Dimensions: 1 x 1
+Class Type: Structure
+ Data Type: Structure
+Fields[6] {
+      Name: d
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: s
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i32
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i16
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 16-bit, signed integer array
+ Data Type: 16-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i8
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 8-bit, signed integer array
+ Data Type: 8-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: c
+      Rank: 2
+Dimensions: 2 x 11
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+{
+char array1
+char array2
+}
+}
+-E- ossfuzz: fields[9] not MAT_T_MATRIX, fpos = 3040
+      Name: easy_with_sparse_and_tag
+      Rank: 2
+Dimensions: 1 x 1
+Class Type: Structure
+ Data Type: Structure
+Fields[14] {
+      Name: d
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+      Name: s
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+      Name: i32
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+      Name: i16
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 16-bit, signed integer array
+ Data Type: 16-bit, signed integer
+      Name: i8
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 8-bit, signed integer array
+ Data Type: 8-bit, signed integer
+      Name: c
+      Rank: 2
+Dimensions: 2 x 11
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+      Name: d_in_tag
+      Rank: 2
+Dimensions: 1 x 4
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+      Name: s_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+      Name: i32_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+      Name: i16_in_tag
+      Rank: 0
+      Name: i8_in_tag
+      Rank: 0
+      Name: c_in_tag
+      Rank: 0
+      Name: sp
+      Rank: 0
+      Name: sp_diag
+      Rank: 0
+}
+      Name: easy_with_sparse_and_tag
+      Rank: 2
+Dimensions: 1 x 1
+Class Type: Structure
+ Data Type: Structure
+Fields[14] {
+      Name: d
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: s
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+{
+0.25 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i32
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i16
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 16-bit, signed integer array
+ Data Type: 16-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i8
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 8-bit, signed integer array
+ Data Type: 8-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: c
+      Rank: 2
+Dimensions: 2 x 11
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+{
+char array1
+char array2
+}
+      Name: d_in_tag
+      Rank: 2
+Dimensions: 1 x 4
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+{
+1 2 3 4 
+}
+      Name: s_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i32_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+{
+1 6 11 16 22 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i16_in_tag
+      Rank: 0
+      Name: i8_in_tag
+      Rank: 0
+      Name: c_in_tag
+      Rank: 0
+      Name: sp
+      Rank: 0
+      Name: sp_diag
+      Rank: 0
+}
+-E- ossfuzz: fields[13] not MAT_T_MATRIX, fpos = 7816
+-W- ossfuzz: Unexpected end-of-file: Read 0 bytes, expected 4 bytes
+      Name: struct_nested
+      Rank: 2
+Dimensions: 1 x 1
+Class Type: Structure
+ Data Type: Structure
+Fields[2] {
+      Name: easy
+      Rank: 2
+Dimensions: 1 x 1
+Class Type: Structure
+ Data Type: Structure
+Fields[6] {
+      Name: d
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+      Name: s
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+      Name: i32
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+      Name: i16
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 16-bit, signed integer array
+ Data Type: 16-bit, signed integer
+      Name: i8
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 8-bit, signed integer array
+ Data Type: 8-bit, signed integer
+      Name: c
+      Rank: 2
+Dimensions: 2 x 11
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+}
+      Name: easy_with_sparse_and_tag
+      Rank: 2
+Dimensions: 1 x 1
+Class Type: Structure
+ Data Type: Structure
+Fields[14] {
+      Name: d
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+      Name: s
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+      Name: i32
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+      Name: i16
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 16-bit, signed integer array
+ Data Type: 16-bit, signed integer
+      Name: i8
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 8-bit, signed integer array
+ Data Type: 8-bit, signed integer
+      Name: c
+      Rank: 2
+Dimensions: 2 x 11
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+      Name: d_in_tag
+      Rank: 2
+Dimensions: 1 x 4
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+      Name: s_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+      Name: i32_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+      Name: i16_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 16-bit, signed integer array
+ Data Type: 16-bit, signed integer
+      Name: i8_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 8-bit, signed integer array
+ Data Type: 8-bit, signed integer
+      Name: c_in_tag
+      Rank: 2
+Dimensions: 4278190081 x 4
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+      Name: sp
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Sparse Array
+      Name: sp_diag
+      Rank: 0
+}
+}
+      Name: struct_nested
+      Rank: 2
+Dimensions: 1 x 1
+Class Type: Structure
+ Data Type: Structure
+Fields[2] {
+      Name: easy
+      Rank: 2
+Dimensions: 1 x 1
+Class Type: Structure
+ Data Type: Structure
+Fields[6] {
+      Name: d
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: s
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i32
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 8227 40 45 50 
+}
+      Name: i16
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 16-bit, signed integer array
+ Data Type: 16-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i8
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 8-bit, signed integer array
+ Data Type: 8-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: c
+      Rank: 2
+Dimensions: 2 x 11
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+{
+char  ray1
+char   ray2
+}
+}
+      Name: easy_with_sparse_and_tag
+      Rank: 2
+Dimensions: 1 x 1
+Class Type: Structure
+ Data Type: Structure
+Fields[14] {
+      Name: d
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: s
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i32
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i16
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 16-bit, signed integer array
+ Data Type: 16-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i8
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 8-bit, signed integer array
+ Data Type: 8-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: c
+      Rank: 2
+Dimensions: 2 x 11
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+{
+char array1
+char array2
+}
+      Name: d_in_tag
+      Rank: 2
+Dimensions: 1 x 4
+Class Type: Double Precision Array
+ Data Type: IEEE 754 double-precision
+{
+1 2 3 4 
+}
+      Name: s_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: Single Precision Array
+ Data Type: IEEE 754 single-precision
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i32_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 32-bit, signed integer array
+ Data Type: 32-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i16_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 16-bit, signed integer array
+ Data Type: 16-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: i8_in_tag
+      Rank: 2
+Dimensions: 5 x 10
+Class Type: 8-bit, signed integer array
+ Data Type: 8-bit, signed integer
+{
+1 6 11 16 21 26 31 36 41 46 
+2 7 12 17 22 27 32 37 42 47 
+3 8 13 18 23 28 33 38 43 48 
+4 9 14 19 24 29 34 39 44 49 
+5 10 15 20 25 30 35 40 45 50 
+}
+      Name: c_in_tag
+      Rank: 2
+Dimensions: 4278190081 x 4
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+{
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x55e84eb75092 (pc 0x55e64ea92dd7 bp 0x7ffeb8237f50 sp 0x7ffeb8237f00 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x55e64ea92dd7 in Mat_VarPrint /src/matio/src/mat.c:2328:56
+    #1 0x55e64ea924e6 in Mat_VarPrint /src/matio/src/mat.c:2236:21
+    #2 0x55e64ea924e6 in Mat_VarPrint /src/matio/src/mat.c:2236:21
+    #3 0x55e64ea8d6a0 in MatioRead(char const*) /src/matio/ossfuzz/./matio_wrap.h:48:9
+    #4 0x55e64ea8d847 in LLVMFuzzerTestOneInput /src/matio/ossfuzz/./matio_fuzzer.cpp:30:12
+    #5 0x55e64e9efbc0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55e64e9dae35 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55e64e9e08cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55e64ea0bb72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7fa207ef1082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #10 0x55e64e9d301d in _start (/out/matio_fuzzer+0x3101d)
+
+DEDUP_TOKEN: Mat_VarPrint--Mat_VarPrint--Mat_VarPrint
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/matio/src/mat.c:2328:56 in Mat_VarPrint
+==14==ABORTING

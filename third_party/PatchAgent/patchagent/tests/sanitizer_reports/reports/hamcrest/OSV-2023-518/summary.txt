@@ -1,0 +1,32 @@
+The sanitizer detected a xpath injection vulnerability.The explanation of the vulnerability is: An XPath query is constructed using untrusted input, leading to potential injection attacks.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh: XPath Injection
+Injected query: 
+- com.code_intelligence.jazzer.sanitizers.XPathInjection.checkXpathExecute (com/code_intelligence/jazzer/sanitizers/XPathInjection.kt:68)
+- org.hamcrest.xml.HasXPath.compiledXPath (org/hamcrest/xml/HasXPath.java:103)
+- org.hamcrest.xml.HasXPath.<init> (org/hamcrest/xml/HasXPath.java:54)
+- org.hamcrest.xml.HasXPath.hasXPath (org/hamcrest/xml/HasXPath.java:141)
+- org.hamcrest.xml.HasXPath.hasXPath (org/hamcrest/xml/HasXPath.java:122)
+- org.hamcrest.Matchers.hasXPath (org/hamcrest/Matchers.java:2124)
+- HamcrestFuzzer.runTest (HamcrestFuzzer.java:283)
+- HamcrestFuzzer.fuzzerTestOneInput (HamcrestFuzzer.java:292)
+Caused by: javax.xml.xpath.XPathExpressionException: javax.xml.transform.TransformerException: Empty expression!
+- java.xml/com.sun.org.apache.xpath.internal.jaxp.XPathImpl.compile (java/xml/com/sun/org/apache/xpath/internal/jaxp/XPathImpl.java:170)
+- java.base/java.lang.invoke.MethodHandle.invokeWithArguments (java/base/java/lang/invoke/MethodHandle.java:732)
+- com.code_intelligence.jazzer.sanitizers.XPathInjection.checkXpathExecute (com/code_intelligence/jazzer/sanitizers/XPathInjection.kt:58)
+	... 7 more
+Caused by: javax.xml.transform.TransformerException: Empty expression!
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.error (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:621)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.Lexer.tokenize (java/xml/com/sun/org/apache/xpath/internal/compiler/Lexer.java:370)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.Lexer.tokenize (java/xml/com/sun/org/apache/xpath/internal/compiler/Lexer.java:99)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.initXPath (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:115)
+- java.xml/com.sun.org.apache.xpath.internal.XPath.<init> (java/xml/com/sun/org/apache/xpath/internal/XPath.java:178)
+- java.xml/com.sun.org.apache.xpath.internal.XPath.<init> (java/xml/com/sun/org/apache/xpath/internal/XPath.java:268)
+- java.xml/com.sun.org.apache.xpath.internal.jaxp.XPathImpl.compile (java/xml/com/sun/org/apache/xpath/internal/jaxp/XPathImpl.java:162)
+	... 9 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid constructing XPath queries using untrusted input.
+2. Use parameterized queries or prepared statements to prevent injection attacks.
+3. Sanitize user input before using it in XPath queries.

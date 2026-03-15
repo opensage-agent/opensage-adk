@@ -1,0 +1,43 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libexif:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libexif/OSV-2021-1169/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce exif_from_data_fuzzer -runs=100.
++ FUZZER=exif_from_data_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer exif_from_data_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/exif_from_data_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 244188960
+INFO: Loaded 1 modules   (2820 inline 8-bit counters): 2820 [0x55c1676726b8, 0x55c1676731bc), 
+INFO: Loaded 1 PC tables (2820 PCs): 2820 [0x55c1676731c0,0x55c16767e200), 
+/out/exif_from_data_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x5111000000bc (pc 0x7f6ac68b5cd2 bp 0x7ffdabb5c810 sp 0x7ffdabb5bfc8 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x7f6ac68b5cd2  (/lib/x86_64-linux-gnu/libc.so.6+0xbbcd2) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x55c167551d72 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #2 0x55c1675b3aee in exif_mnote_data_apple_load /src/libexif/libexif/apple/exif-mnote-data-apple.c:126:9
+    #3 0x55c167596efe in exif_data_load_data /src/libexif/libexif/exif-data.c:1010:2
+    #4 0x55c16759636e in exif_data_new_from_data /src/libexif/libexif/exif-data.c:159:2
+    #5 0x55c1675938af in LLVMFuzzerTestOneInput /src/exif_from_data_fuzzer.cc:51:16
+    #6 0x55c167448330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55c1674335a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55c16743903f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55c1674642e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f6ac681e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x55c16742b78d in _start (/out/exif_from_data_fuzzer+0x8078d)
+
+DEDUP_TOKEN: __asan_memcpy--exif_mnote_data_apple_load
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0xbbcd2) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) 
+==14==ABORTING

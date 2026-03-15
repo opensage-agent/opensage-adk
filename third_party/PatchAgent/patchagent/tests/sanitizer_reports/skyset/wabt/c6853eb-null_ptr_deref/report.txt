@@ -1,0 +1,19 @@
+=================================================================
+==3365439==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7f2ae3b54981 bp 0x7fff7b242fc0 sp 0x7fff7b242778 T0)
+==3365439==The signal is caused by a READ memory access.
+==3365439==Hint: address points to the zero page.
+    #0 0x7f2ae3b54981 in __memcpy_avx_unaligned string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S:220
+    #1 0x7f2ae4583606 in __asan_memcpy build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #2 0x5587fb9ccac5 in wabt::Module::operator=(wabt::Module&&) /root/include/wabt/ir.h:1192:8
+    #3 0x5587fb9a9a34 in wabt::WastParser::ParseModuleCommand(wabt::Script*, std::unique_ptr<wabt::Command, std::default_delete<wabt::Command>>*) /root/src/wast-parser.cc:3442:15
+    #4 0x5587fb9a883a in wabt::WastParser::ParseModule(std::unique_ptr<wabt::Module, std::default_delete<wabt::Module>>*) /root/src/wast-parser.cc:1169:5
+    #5 0x5587fb9c6d9b in wabt::ParseWatModule(wabt::WastLexer*, std::unique_ptr<wabt::Module, std::default_delete<wabt::Module>>*, std::vector<wabt::Error, std::allocator<wabt::Error>>*, wabt::WastParseOptions*) /root/src/wast-parser.cc:3720:3
+    #6 0x5587fb8d3b04 in ProgramMain(int, char**) /root/src/tools/wat2wasm.cc:145:12
+    #7 0x5587fb8d4cd1 in main /root/src/tools/wat2wasm.cc:173:10
+    #8 0x7f2ae39f61c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #9 0x7f2ae39f628a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #10 0x5587fb8d2294 in _start (/root/build/wat2wasm+0xbf294) (BuildId: 8fb5fd9050b471ba90a0a2d90e0e20271541a111)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S:220 in __memcpy_avx_unaligned
+==3365439==ABORTING

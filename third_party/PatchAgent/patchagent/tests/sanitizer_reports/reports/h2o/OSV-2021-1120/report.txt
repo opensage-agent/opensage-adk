@@ -1,0 +1,132 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/h2o:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/h2o/OSV-2021-1120/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce h2o-fuzzer-http2 -runs=100.
++ FUZZER=h2o-fuzzer-http2
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer h2o-fuzzer-http2 -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/h2o-fuzzer-http2 -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -close_fd_mask=3 -max_len=16384 -dict=http.dict < /dev/null
+Dictionary: 126 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1352796498
+INFO: Loaded 1 modules   (21938 inline 8-bit counters): 21938 [0x5561b2fe8eb4, 0x5561b2fee466), 
+INFO: Loaded 1 PC tables (21938 PCs): 21938 [0x5561b2fee468,0x5561b3043f88), 
+/out/h2o-fuzzer-http2: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x50e0000076c8 at pc 0x5561b2b93570 bp 0x7ffc21291b70 sp 0x7ffc21291b68
+[1m[0m[1m[34mREAD of size 1 at 0x50e0000076c8 thread T0[1m[0m
+SCARINESS: 40 (1-byte-read-heap-use-after-free)
+    #0 0x5561b2b9356f in on_body /src/h2o/lib/core/proxy.c:387:24
+    #1 0x5561b2be1d20 in on_error /src/h2o/lib/common/http1client.c:120:9
+    #2 0x5561b2be1d20 in on_whole_request_sent /src/h2o/lib/common/http1client.c:478:9
+    #3 0x5561b2be1d20 in req_body_send_complete /src/h2o/lib/common/http1client.c:503:9
+    #4 0x5561b2a1a25c in on_write_complete /src/h2o/lib/common/socket.c:717:5
+    #5 0x5561b2a1a25c in run_socket /src/h2o/lib/common/socket/evloop.c.h:572:9
+    #6 0x5561b2a0f91a in run_pending /src/h2o/lib/common/socket/evloop.c.h:584:13
+    #7 0x5561b2a0f91a in h2o_evloop_run /src/h2o/lib/common/socket/evloop.c.h:636:5
+    #8 0x5561b2a0a047 in LLVMFuzzerTestOneInput /src/h2o/fuzz/driver.cc:325:9
+    #9 0x5561b2c13fc0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x5561b2c14c28 in fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:690:3
+    #11 0x5561b2bff281 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:332:8
+    #12 0x5561b2c04ccf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x5561b2c2ff72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fde36aee082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #15 0x5561b2930f1d in _start (/out/h2o-fuzzer-http2+0x19af1d)
+
+DEDUP_TOKEN: on_body--on_error--on_whole_request_sent
+[1m[32m0x50e0000076c8 is located 104 bytes inside of 160-byte region [0x50e000007660,0x50e000007700)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x5561b29c9c96 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x5561b2b6f6c8 in h2o_mem_release_shared /src/h2o/include/h2o/memory.h:442:9
+    #2 0x5561b2b6f6c8 in h2o_mem_clear_pool /src/h2o/lib/common/memory.c:142:13
+    #3 0x5561b2aa1083 in h2o_http2_stream_close /src/h2o/lib/http2/stream.c:75:5
+    #4 0x5561b2b9344f in on_body /src/h2o/lib/core/proxy.c:383:17
+    #5 0x5561b2be1d20 in on_error /src/h2o/lib/common/http1client.c:120:9
+    #6 0x5561b2be1d20 in on_whole_request_sent /src/h2o/lib/common/http1client.c:478:9
+    #7 0x5561b2be1d20 in req_body_send_complete /src/h2o/lib/common/http1client.c:503:9
+    #8 0x5561b2a1a25c in on_write_complete /src/h2o/lib/common/socket.c:717:5
+    #9 0x5561b2a1a25c in run_socket /src/h2o/lib/common/socket/evloop.c.h:572:9
+    #10 0x5561b2a0f91a in run_pending /src/h2o/lib/common/socket/evloop.c.h:584:13
+    #11 0x5561b2a0f91a in h2o_evloop_run /src/h2o/lib/common/socket/evloop.c.h:636:5
+    #12 0x5561b2a0a047 in LLVMFuzzerTestOneInput /src/h2o/fuzz/driver.cc:325:9
+    #13 0x5561b2c13fc0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x5561b2c14c28 in fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:690:3
+    #15 0x5561b2bff281 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:332:8
+    #16 0x5561b2c04ccf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x5561b2c2ff72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fde36aee082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--h2o_mem_release_shared--h2o_mem_clear_pool
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x5561b29c9f2f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5561b2b6fd5f in h2o_mem_alloc /src/h2o/include/h2o/memory.h:404:15
+    #2 0x5561b2b6fd5f in h2o_mem_alloc_shared /src/h2o/lib/common/memory.c:206:52
+    #3 0x5561b2b8ca61 in proxy_send_prepare /src/h2o/lib/core/proxy.c:686:35
+    #4 0x5561b2b8ca61 in h2o__proxy_process_request /src/h2o/lib/core/proxy.c:733:35
+    #5 0x5561b2a4e594 in h2o_reprocess_request /src/h2o/lib/core/request.c:438:5
+    #6 0x5561b2a6f3d5 in on_req /src/h2o/lib/handler/proxy.c:58:5
+    #7 0x5561b2a4d4cf in call_handlers /src/h2o/lib/core/request.c:166:13
+    #8 0x5561b2a4d4cf in h2o_process_request /src/h2o/lib/core/request.c:360:5
+    #9 0x5561b2a7e473 in run_pending_requests /src/h2o/lib/http2/connection.c:223:13
+    #10 0x5561b2a8bc43 in execute_or_enqueue_request_core /src/h2o/lib/http2/connection.c:244:5
+    #11 0x5561b2a8bc43 in write_req_first /src/h2o/lib/http2/connection.c:800:13
+    #12 0x5561b2a89f80 in handle_request_body_chunk /src/h2o/lib/http2/connection.c:465:9
+    #13 0x5561b2a867e2 in handle_data_frame /src/h2o/lib/http2/connection.c:851:9
+    #14 0x5561b2a85ddb in expect_default /src/h2o/lib/http2/connection.c:1145:20
+    #15 0x5561b2a7fe67 in parse_input /src/h2o/lib/http2/connection.c:1185:23
+    #16 0x5561b2a7fe67 in on_read /src/h2o/lib/http2/connection.c:1225:9
+    #17 0x5561b2a19fc0 in read_on_ready /src/h2o/lib/common/socket/evloop.c.h:255:5
+    #18 0x5561b2a19fc0 in run_socket /src/h2o/lib/common/socket/evloop.c.h:551:9
+    #19 0x5561b2a0f8b8 in run_pending /src/h2o/lib/common/socket/evloop.c.h:589:13
+    #20 0x5561b2a0f8b8 in h2o_evloop_run /src/h2o/lib/common/socket/evloop.c.h:636:5
+    #21 0x5561b2a0a047 in LLVMFuzzerTestOneInput /src/h2o/fuzz/driver.cc:325:9
+    #22 0x5561b2c13fc0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #23 0x5561b2c14c28 in fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:690:3
+    #24 0x5561b2bff281 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:332:8
+    #25 0x5561b2c04ccf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #26 0x5561b2c2ff72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #27 0x7fde36aee082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--h2o_mem_alloc--h2o_mem_alloc_shared
+SUMMARY: AddressSanitizer: heap-use-after-free /src/h2o/lib/core/proxy.c:387:24 in on_body
+Shadow bytes around the buggy address:
+  0x50e000007400: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50e000007480: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x50e000007500: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50e000007580: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x50e000007600: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+=>0x50e000007680: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x50e000007700: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50e000007780: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50e000007800: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50e000007880: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50e000007900: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==18==ABORTING
+MS: 0 ; base unit: 0000000000000000000000000000000000000000

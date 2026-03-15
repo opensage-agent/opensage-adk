@@ -1,0 +1,59 @@
+=================================================================
+==493106==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000032 at pc 0x56391f1844a5 bp 0x7fff7d7dda70 sp 0x7fff7d7dda68
+READ of size 1 at 0x502000000032 thread T0
+    #0 0x56391f1844a4 in node_from_openstep /root/src/oplist.c:684:17
+    #1 0x56391f182dda in node_from_openstep /root/src/oplist.c:621:28
+    #2 0x56391f182148 in plist_from_openstep /root/src/oplist.c:846:15
+    #3 0x56391f17f7a0 in LLVMFuzzerTestOneInput /root/fuzz/oplist_fuzzer.cc:28:2
+    #4 0x56391f164ed4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/oplist_fuzzer+0x2bed4) (BuildId: 8cbe2a204a1f731008a0cb0dd356f99a61866db0)
+    #5 0x56391f14e006 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/oplist_fuzzer+0x15006) (BuildId: 8cbe2a204a1f731008a0cb0dd356f99a61866db0)
+    #6 0x56391f153aba in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/oplist_fuzzer+0x1aaba) (BuildId: 8cbe2a204a1f731008a0cb0dd356f99a61866db0)
+    #7 0x56391f17e316 in main (/root/oplist_fuzzer+0x45316) (BuildId: 8cbe2a204a1f731008a0cb0dd356f99a61866db0)
+    #8 0x7f95849041c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7f958490428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x56391f148bd4 in _start (/root/oplist_fuzzer+0xfbd4) (BuildId: 8cbe2a204a1f731008a0cb0dd356f99a61866db0)
+
+0x502000000032 is located 0 bytes after 2-byte region [0x502000000030,0x502000000032)
+allocated by thread T0 here:
+    #0 0x7f9584cfa7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f95857d95bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+    #2 0x56391f14e006 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/oplist_fuzzer+0x15006) (BuildId: 8cbe2a204a1f731008a0cb0dd356f99a61866db0)
+    #3 0x56391f153aba in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/oplist_fuzzer+0x1aaba) (BuildId: 8cbe2a204a1f731008a0cb0dd356f99a61866db0)
+    #4 0x56391f17e316 in main (/root/oplist_fuzzer+0x45316) (BuildId: 8cbe2a204a1f731008a0cb0dd356f99a61866db0)
+    #5 0x7f95849041c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #6 0x7f958490428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x56391f148bd4 in _start (/root/oplist_fuzzer+0xfbd4) (BuildId: 8cbe2a204a1f731008a0cb0dd356f99a61866db0)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/oplist.c:684:17 in node_from_openstep
+Shadow bytes around the buggy address:
+  0x501ffffffd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x502000000000: fa fa 02 fa fa fa[02]fa fa fa fa fa fa fa fa fa
+  0x502000000080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==493106==ABORTING

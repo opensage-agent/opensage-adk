@@ -1,0 +1,26 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: out-of-memory (malloc(3006791868))
+   To change the out-of-memory limit use -rss_limit_mb=<N>
+
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::HandleMalloc(unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:131:3
+    - fuzzer::MallocHook(void const volatile*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:100:6
+    - __sanitizer::RunMallocHooks(void*, unsigned long) /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common.cpp:346:5
+    - __asan::Allocator::Allocate(unsigned long, unsigned long, __sanitizer::BufferedStackTrace*, __asan::AllocType, bool) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:658:5
+    - __asan::asan_posix_memalign(void**, unsigned long, unsigned long, __sanitizer::BufferedStackTrace*) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:1081:24
+    - posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:143:10
+    - my_malloc /src/c-blosc2/blosc/blosc2.c:173:9
+    - init_thread_context /src/c-blosc2/blosc/blosc2.c:1557:25
+    - create_thread_context /src/c-blosc2/blosc/blosc2.c:1589:3
+    - blosc2_getitem_ctx /src/c-blosc2/blosc/blosc2.c:2603:31
+    - blosc_getitem /src/c-blosc2/blosc/blosc2.c:2572:12
+    - get_coffset /src/c-blosc2/blosc/frame.c:1743:12
+    - frame_get_lazychunk /src/c-blosc2/blosc/frame.c:1913:9
+    - frame_decompress_chunk /src/c-blosc2/blosc/frame.c:2695:20
+    - LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:38:15
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10

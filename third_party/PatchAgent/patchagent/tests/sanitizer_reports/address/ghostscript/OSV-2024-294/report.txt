@@ -1,0 +1,36 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x555e1f4f06ea bp 0x7ffcaa4a3110 sp 0x7ffcaa4a30d8 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x555e1f4f06ea in gx_device_forward_finalize /src/ghostpdl/./base/gdevnfwd.c:33:5
+    #1 0x555e1f21de93 in gx_device_finalize /src/ghostpdl/./base/gsdevice.c:81:9
+    #2 0x555e1f6ce184 in restore_finalize /src/ghostpdl/./psi/isave.c:954:13
+    #3 0x555e1f6ce184 in alloc_restore_step_in /src/ghostpdl/./psi/isave.c:759:9
+    #4 0x555e1f652b86 in dorestore /src/ghostpdl/./psi/zvmem.c:194:16
+    #5 0x555e1f5c77b2 in z2restore /src/ghostpdl/./psi/zdevice2.c:380:12
+    #6 0x555e1f5eb6d5 in do_call_operator /src/ghostpdl/./psi/interp.c:91:12
+    #7 0x555e1f5e5504 in interp /src/ghostpdl/./psi/interp.c:1768:40
+    #8 0x555e1f5e5504 in gs_call_interp /src/ghostpdl/./psi/interp.c:531:12
+    #9 0x555e1f5e5504 in gs_interpret /src/ghostpdl/./psi/interp.c:488:12
+    #10 0x555e1ed6b407 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #11 0x555e1ed6b407 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #12 0x555e1ed6b407 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #13 0x555e1f8e29d0 in run_string /src/ghostpdl/./psi/imainarg.c:1170:12
+    #14 0x555e1f8df3a0 in swproc /src/ghostpdl/./psi/imainarg.c:368:20
+    #15 0x555e1f8dc582 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #16 0x555e1f8e2758 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:290:16
+    #17 0x555e1ed62fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #18 0x555e1ed63335 in LLVMFuzzerTestOneInput /src/gs_device_psdcmyk_fuzzer.cc:18:2
+    #19 0x555e1ec176d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x555e1ec02945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x555e1ec083df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x555e1ec33682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7f39df80a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #24 0x555e1ebfab2d in _start (/out/gs_device_psdcmyk_fuzzer+0x740b2d)
+
+DEDUP_TOKEN: gx_device_forward_finalize--gx_device_finalize--restore_finalize
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/ghostpdl/./base/gdevnfwd.c:33:5 in gx_device_forward_finalize
+==14==ABORTING

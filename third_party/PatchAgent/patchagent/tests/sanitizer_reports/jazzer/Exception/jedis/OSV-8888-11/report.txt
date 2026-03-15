@@ -1,0 +1,244 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /home/yk/code/oss-fuzz/build/out/jedis:/out -v /home/yk/code/oss-fuzz/oss-fuzz-jedis-20250423-142505/crashes/crash-3c5a3b403608aa04d3b5eba6ae590ee14f19e755:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce JedisURIFuzzer -runs=100.
++ FUZZER=JedisURIFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer JedisURIFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/JedisURIFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 273 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented JedisURIFuzzer (took 17 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.exceptions.InvalidURIException (took 2 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.exceptions.JedisException (took 1 ms, size +14%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f176d14fa00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3618944849
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55e0c425e3e0, 0x55e0c425e5e0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55e0c42271d0,0x55e0c42291d0), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: New number of coverage counters: 1024
+INFO: New number of coverage counters: 2048
+INFO: New number of coverage counters: 4096
+INFO: Instrumented redis.clients.jedis.Jedis (took 119 ms, size +7%)
+INFO: Instrumented redis.clients.jedis.commands.ServerCommands (took 0 ms, size +4%)
+INFO: Instrumented redis.clients.jedis.commands.DatabaseCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.JedisCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.KeyCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.StringCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.BitCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.ListCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.HashCommands (took 0 ms, size +2%)
+INFO: Instrumented redis.clients.jedis.commands.SetCommands (took 0 ms, size +5%)
+INFO: Instrumented redis.clients.jedis.commands.SortedSetCommands (took 0 ms, size +1%)
+INFO: Instrumented redis.clients.jedis.commands.GeoCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.HyperLogLogCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.StreamCommands (took 0 ms, size +1%)
+INFO: Instrumented redis.clients.jedis.commands.ScriptingKeyCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.FunctionCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.JedisBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.KeyBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.StringBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.BitBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.ListBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.HashBinaryCommands (took 0 ms, size +3%)
+INFO: Instrumented redis.clients.jedis.commands.SetBinaryCommands (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.commands.SortedSetBinaryCommands (took 0 ms, size +2%)
+INFO: Instrumented redis.clients.jedis.commands.GeoBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.HyperLogLogBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.StreamBinaryCommands (took 0 ms, size +3%)
+INFO: Instrumented redis.clients.jedis.commands.ScriptingKeyBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.FunctionBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.ControlCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.AccessControlLogCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.ClientCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.ControlBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.AccessControlLogBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.ClientBinaryCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.ClusterCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.ModuleCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.GenericControlCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.ConfigCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.ScriptingControlCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.SlowlogCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.SentinelCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.commands.CommandCommands (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.JedisClientConfig (took 1 ms, size +7%)
+INFO: Instrumented redis.clients.jedis.exceptions.JedisConnectionException (took 0 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.commands.ProtocolCommand (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.args.Rawable (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.params.IParams (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.CommandObjects (took 84 ms, size +4%)
+INFO: Instrumented redis.clients.jedis.Builder (took 0 ms, size +18%)
+INFO: Instrumented redis.clients.jedis.CommandObjects$JsonObjectBuilder (took 0 ms, size +7%)
+INFO: Instrumented redis.clients.jedis.CommandObjects$1 (took 0 ms, size +8%)
+INFO: Instrumented redis.clients.jedis.search.SearchResult$PerFieldDecoderSearchResultBuilder (took 2 ms, size +28%)
+INFO: Instrumented redis.clients.jedis.search.SearchResult$SearchResultBuilder (took 1 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.CommandObjects$SearchProfileResponseBuilder (took 1 ms, size +47%)
+INFO: Instrumented redis.clients.jedis.json.JsonObjectMapper (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.CommandObjects$JsonObjectListBuilder (took 0 ms, size +4%)
+INFO: Instrumented redis.clients.jedis.CommandObject (took 1 ms, size +22%)
+INFO: Instrumented redis.clients.jedis.Protocol$Command (took 2 ms, size +3%)
+INFO: Instrumented redis.clients.jedis.util.SafeEncoder (took 1 ms, size +18%)
+INFO: Instrumented redis.clients.jedis.CommandArguments (took 3 ms, size +11%)
+INFO: New number of coverage counters: 8192
+INFO: Instrumented redis.clients.jedis.BuilderFactory (took 2 ms, size +7%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$1 (took 0 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$2 (took 0 ms, size +12%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$3 (took 0 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$4 (took 0 ms, size +11%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$5 (took 0 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$6 (took 0 ms, size +12%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$7 (took 0 ms, size +21%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$8 (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$9 (took 0 ms, size +29%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$10 (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$11 (took 0 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$12 (took 0 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$13 (took 0 ms, size +12%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$14 (took 0 ms, size +9%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$15 (took 0 ms, size +15%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$16 (took 0 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$17 (took 0 ms, size +12%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$18 (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$19 (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$20 (took 0 ms, size +17%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$21 (took 0 ms, size +18%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$22 (took 0 ms, size +19%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$23 (took 0 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$24 (took 0 ms, size +11%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$25 (took 0 ms, size +15%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$26 (took 0 ms, size +5%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$27 (took 0 ms, size +18%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$28 (took 0 ms, size +8%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$29 (took 0 ms, size +9%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$30 (took 0 ms, size +8%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$31 (took 0 ms, size +8%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$32 (took 0 ms, size +9%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$33 (took 0 ms, size +5%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$34 (took 0 ms, size +9%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$35 (took 0 ms, size +19%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$36 (took 0 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$37 (took 0 ms, size +15%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$38 (took 0 ms, size +17%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$39 (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$40 (took 0 ms, size +17%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$41 (took 0 ms, size +5%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$42 (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$43 (took 0 ms, size +8%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$44 (took 0 ms, size +8%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$45 (took 0 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$46 (took 0 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$47 (took 0 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$48 (took 0 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$49 (took 0 ms, size +10%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$50 (took 0 ms, size +15%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$51 (took 0 ms, size +10%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$52 (took 0 ms, size +16%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$53 (took 0 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$54 (took 0 ms, size +18%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$55 (took 0 ms, size +17%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$56 (took 0 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$57 (took 0 ms, size +15%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$58 (took 0 ms, size +17%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$59 (took 0 ms, size +12%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$60 (took 0 ms, size +11%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$61 (took 0 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$62 (took 0 ms, size +9%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$63 (took 0 ms, size +11%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$64 (took 0 ms, size +11%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$65 (took 0 ms, size +20%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$66 (took 0 ms, size +15%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$67 (took 0 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$68 (took 0 ms, size +7%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$69 (took 0 ms, size +7%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$70 (took 0 ms, size +9%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$71 (took 0 ms, size +10%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$72 (took 0 ms, size +12%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$73 (took 0 ms, size +8%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$74 (took 0 ms, size +12%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$75 (took 0 ms, size +12%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$76 (took 0 ms, size +12%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$77 (took 0 ms, size +11%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$78 (took 0 ms, size +11%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$79 (took 0 ms, size +8%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$80 (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$81 (took 1 ms, size +33%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$82 (took 0 ms, size +11%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$83 (took 0 ms, size +10%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$84 (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.BuilderFactory$85 (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.resps.CommandInfo (took 1 ms, size +5%)
+INFO: Instrumented redis.clients.jedis.resps.CommandInfo$1 (took 0 ms, size +18%)
+INFO: Instrumented redis.clients.jedis.resps.CommandInfo$2 (took 0 ms, size +17%)
+INFO: Instrumented redis.clients.jedis.resps.LibraryInfo (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.resps.LibraryInfo$1 (took 1 ms, size +42%)
+INFO: Instrumented redis.clients.jedis.resps.LibraryInfo$2 (took 0 ms, size +6%)
+INFO: Instrumented redis.clients.jedis.Protocol$Keyword (took 1 ms, size +3%)
+INFO: Instrumented redis.clients.jedis.util.JedisURIHelper (took 1 ms, size +44%)
+INFO: Instrumented redis.clients.jedis.Connection (took 7 ms, size +16%)
+INFO: Instrumented redis.clients.jedis.JedisSocketFactory (took 0 ms, size +0%)
+INFO: Instrumented redis.clients.jedis.RedisCredentials (took 0 ms, size +25%)
+INFO: Instrumented redis.clients.jedis.exceptions.JedisDataException (took 0 ms, size +14%)
+INFO: Instrumented redis.clients.jedis.exceptions.JedisValidationException (took 0 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.HostAndPort (took 0 ms, size +61%)
+INFO: Instrumented redis.clients.jedis.DefaultJedisClientConfig (took 2 ms, size +7%)
+INFO: Instrumented redis.clients.jedis.DefaultJedisClientConfig$Builder (took 3 ms, size +4%)
+INFO: Instrumented redis.clients.jedis.ClientSetInfoConfig (took 1 ms, size +28%)
+INFO: Instrumented redis.clients.jedis.DefaultRedisCredentialsProvider (took 0 ms, size +13%)
+INFO: Instrumented redis.clients.jedis.RedisCredentialsProvider (took 0 ms, size +19%)
+INFO: Instrumented redis.clients.jedis.DefaultRedisCredentials (took 0 ms, size +23%)
+INFO: Instrumented redis.clients.jedis.DefaultJedisSocketFactory (took 1 ms, size +10%)
+INFO: Instrumented redis.clients.jedis.SSLSocketWrapper (took 4 ms, size +5%)
+INFO: Instrumented redis.clients.jedis.util.IOUtils (took 0 ms, size +19%)
+
+== Java Exception: redis.clients.jedis.exceptions.JedisConnectionException: Failed to create socket.
+	at redis.clients.jedis.DefaultJedisSocketFactory.createSocket(DefaultJedisSocketFactory.java:108)
+	at redis.clients.jedis.Connection.connect(Connection.java:232)
+	at redis.clients.jedis.Connection.initializeFromClientConfig(Connection.java:455)
+	at redis.clients.jedis.Connection.<init>(Connection.java:77)
+	at redis.clients.jedis.Connection.<init>(Connection.java:65)
+	at redis.clients.jedis.Jedis.<init>(Jedis.java:156)
+	at JedisURIFuzzer.fuzzerTestOneInput(JedisURIFuzzer.java:25)
+Caused by: java.net.UnknownHostException: jJ: Name or service not known
+	at java.base/java.net.Inet4AddressImpl.lookupAllHostAddr(Native Method)
+	at java.base/java.net.InetAddress$PlatformNameService.lookupAllHostAddr(InetAddress.java:933)
+	at java.base/java.net.InetAddress.getAddressesFromNameService(InetAddress.java:1519)
+	at java.base/java.net.InetAddress$NameServiceAddresses.get(InetAddress.java:852)
+	at java.base/java.net.InetAddress.getAllByName0(InetAddress.java:1509)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1367)
+	at java.base/java.net.InetAddress.getAllByName(InetAddress.java:1301)
+	at redis.clients.jedis.DefaultJedisSocketFactory.connectToFirstSuccessfulHost(DefaultJedisSocketFactory.java:63)
+	at redis.clients.jedis.DefaultJedisSocketFactory.createSocket(DefaultJedisSocketFactory.java:94)
+	... 6 more
+DEDUP_TOKEN: ab2412660bedec4f
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_3c5a3b403608aa04d3b5eba6ae590ee14f19e755.java
+

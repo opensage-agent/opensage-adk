@@ -1,0 +1,31 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a WRITE memory access.
+    - r_buf_read /src/radare2/libr/util/buf.c:418:3
+    - r_buf_read_at /src/radare2/libr/util/buf.c:562:9
+    - parse_function_starts /src/radare2/libr/bin/format/mach0/mach0.c:1036:8
+    - init_items /src/radare2/libr/bin/format/mach0/mach0.c:1474:9
+    - init /src/radare2/libr/bin/format/mach0/mach0.c:1495:7
+    - new_buf /src/radare2/libr/bin/format/mach0/mach0.c:1601:7
+    - load_buffer /src/radare2/libr/bin/p/bin_mach0.c:38:8
+    - r_bin_object_new /src/radare2/libr/bin/obj.c:181:16
+    - r_bin_file_new_from_bytes /src/radare2/libr/bin/bfile.c:465:18
+    - r_bin_open_io /src/radare2/libr/bin/bin.c:414:13
+    - cmd_open_bin /src/radare2/libr/core/cmd_open.c:252:6
+    - cmd_open /src/radare2/libr/core/cmd_open.c:1342:3
+    - r_cmd_call /src/radare2/libr/core/cmd_api.c:244:10
+    - r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:3221:12
+    - r_core_cmd_subst /src/radare2/libr/core/cmd.c:2121:9
+    - r_core_cmd /src/radare2/libr/core/cmd.c:4045:9
+    - LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

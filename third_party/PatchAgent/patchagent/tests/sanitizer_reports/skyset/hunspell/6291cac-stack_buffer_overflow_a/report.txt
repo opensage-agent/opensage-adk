@@ -1,0 +1,96 @@
+=================================================================
+==1573507==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f030263dc6d at pc 0x56116dddf873 bp 0x7fff420b6e30 sp 0x7fff420b6e28
+READ of size 1 at 0x7f030263dc6d thread T0
+    #0 0x56116dddf872 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2118:28
+    #1 0x56116dddf399 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2091:20
+    #2 0x56116dddf399 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2091:20
+    #3 0x56116dddf399 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2091:20
+    #4 0x56116dddf399 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2091:20
+    #5 0x56116dddf399 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2091:20
+    #6 0x56116dd9172b in SuggestMgr::checkword(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int*, long*) /root/src/hunspell/suggestmgr.cxx:1653:21
+    #7 0x56116dd911b5 in SuggestMgr::testsug(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int*, long*) /root/src/hunspell/suggestmgr.cxx:173:17
+    #8 0x56116dd9b1bd in SuggestMgr::forgotchar(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int) /root/src/hunspell/suggestmgr.cxx:749:7
+    #9 0x56116dd9479a in SuggestMgr::suggest(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*) /root/src/hunspell/suggestmgr.cxx:301:9
+    #10 0x56116dd6c3f3 in HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1063:22
+    #11 0x56116dd6a263 in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:900:35
+    #12 0x56116dd6fd84 in HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1272:41
+    #13 0x56116dd6a263 in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:900:35
+    #14 0x56116dd7097a in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/src/hunspell/hunspell.cxx:991:10
+    #15 0x56116dd7d374 in Hunspell::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/src/hunspell/hunspell.cxx:2079:18
+    #16 0x56116dd5f204 in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:66:14
+    #17 0x56116dd443e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3e4) (BuildId: 9fa77b96c634f4f4cba52f7af50b5e6d29a8db39)
+    #18 0x56116dd2d516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x16516) (BuildId: 9fa77b96c634f4f4cba52f7af50b5e6d29a8db39)
+    #19 0x56116dd32fca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bfca) (BuildId: 9fa77b96c634f4f4cba52f7af50b5e6d29a8db39)
+    #20 0x56116dd5d826 in main (/root/affdicfuzzer+0x46826) (BuildId: 9fa77b96c634f4f4cba52f7af50b5e6d29a8db39)
+    #21 0x7f030429d1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #22 0x7f030429d28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #23 0x56116dd280e4 in _start (/root/affdicfuzzer+0x110e4) (BuildId: 9fa77b96c634f4f4cba52f7af50b5e6d29a8db39)
+
+Address 0x7f030263dc6d is located in stack of thread T0 at offset 109 in frame
+    #0 0x56116ddd51ff in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:1582
+
+  This frame has 29 object(s):
+    [32, 40) 'words.addr'
+    [64, 96) 'st' (line 1586) <== Memory access at offset 109 overflows this variable
+    [128, 132) 'cmin' (line 1588)
+    [144, 148) 'cmax' (line 1589)
+    [160, 192) 'ref.tmp' (line 1658)
+    [224, 228) 'ref.tmp429' (line 1758)
+    [240, 244) 'ref.tmp653' (line 1798)
+    [256, 257) 'ref.tmp764' (line 1812)
+    [272, 273) 'ref.tmp776' (line 1812)
+    [288, 289) 'ref.tmp788' (line 1812)
+    [304, 306) 'ref.tmp895' (line 1812)
+    [320, 322) 'ref.tmp913' (line 1812)
+    [336, 368) 'ref.tmp961' (line 1855)
+    [400, 432) 'ref.tmp977' (line 1858)
+    [464, 465) 'ref.tmp983' (line 1858)
+    [480, 481) 'ref.tmp1186' (line 1909)
+    [496, 497) 'ref.tmp1198' (line 1909)
+    [512, 516) 'ref.tmp1260' (line 1923)
+    [528, 560) 'ref.tmp1330' (line 1935)
+    [592, 593) 'ref.tmp1335' (line 1935)
+    [608, 612) 'ref.tmp1630' (line 2012)
+    [624, 656) 'ref.tmp1665' (line 2026)
+    [688, 689) 'ref.tmp1669' (line 2026)
+    [704, 736) 'tmp' (line 2031)
+    [768, 769) 'ref.tmp1686' (line 2031)
+    [784, 816) 'ref.tmp1716' (line 2040)
+    [848, 849) 'ref.tmp1722' (line 2040)
+    [864, 865) 'ref.tmp1785' (line 2057)
+    [880, 912) 'ref.tmp1866' (line 2091)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /root/src/hunspell/affixmgr.cxx:2118:28 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*)
+Shadow bytes around the buggy address:
+  0x7f030263d980: f2 f2 f8 f8 f8 f8 f2 f2 f2 f2 f8 f2 f8 f2 f8 f2
+  0x7f030263da00: f8 f2 f8 f8 f8 f8 f2 f2 f2 f2 f8 f2 f8 f2 f8 f8
+  0x7f030263da80: f8 f8 f2 f2 f2 f2 f8 f2 f8 f8 f8 f8 f2 f2 f2 f2
+  0x7f030263db00: f8 f2 f8 f8 f8 f8 f2 f2 f2 f2 f8 f2 f8 f2 00 00
+  0x7f030263db80: 00 00 f3 f3 f3 f3 f3 f3 00 00 00 00 00 00 00 00
+=>0x7f030263dc00: f1 f1 f1 f1 00 f2 f2 f2 00 00 00 00 f2[f2]f2 f2
+  0x7f030263dc80: 04 f2 04 f2 f8 f8 f8 f8 f2 f2 f2 f2 f8 f2 f8 f2
+  0x7f030263dd00: f8 f2 f8 f2 f8 f2 f8 f2 f8 f2 f8 f8 f8 f8 f2 f2
+  0x7f030263dd80: f2 f2 f8 f8 f8 f8 f2 f2 f2 f2 f8 f2 f8 f2 f8 f2
+  0x7f030263de00: f8 f2 f8 f8 f8 f8 f2 f2 f2 f2 f8 f2 f8 f2 f8 f8
+  0x7f030263de80: f8 f8 f2 f2 f2 f2 f8 f2 f8 f8 f8 f8 f2 f2 f2 f2
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1573507==ABORTING

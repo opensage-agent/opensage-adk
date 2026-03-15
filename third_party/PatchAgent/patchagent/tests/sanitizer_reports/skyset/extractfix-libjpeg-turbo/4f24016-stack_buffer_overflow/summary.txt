@@ -1,0 +1,25 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 8 at 0x7fed80700298 thread T0
+    - get_sos /root/jdmarker.c:327:29
+    - read_markers /root/jdmarker.c:1016:13
+    - consume_markers /root/jdinput.c:386:9
+    - jpeg_consume_input /root/jdapimin.c:301:15
+    - jpeg_read_header /root/jdapimin.c:249:13
+    - main /root/djpeg.c:542:10
+
+Address 0x7fed80700298 is located in stack of thread T0 at offset 664 in frame
+    - main /root/djpeg.c:435:0
+
+  This frame has 2 object(s):
+    [32, 664) 'cinfo' (line 436) <== Memory access at offset 664 overflows this variable
+    [800, 968) 'jerr' (line 437)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

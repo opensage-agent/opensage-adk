@@ -1,0 +1,22 @@
+=================================================================
+==304267==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7fbbb54a675d bp 0x7ffd86f19530 sp 0x7ffd86f18ce8 T0)
+==304267==The signal is caused by a READ memory access.
+==304267==Hint: address points to the zero page.
+    #0 0x7fbbb54a675d  (/lib/x86_64-linux-gnu/libc.so.6+0x18b75d) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #1 0x7fbbb768d0a7 in strlen (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0x750a7) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #2 0x7fbbb5866f95 in xml_sax_append_string /root/src/utils/xml_parser.c:971:22
+    #3 0x7fbbb5850df6 in gf_xml_sax_parse_intern /root/src/utils/xml_parser.c:1085:3
+    #4 0x7fbbb58504da in gf_xml_sax_parse /root/src/utils/xml_parser.c:1120:6
+    #5 0x7fbbb5852754 in xml_sax_read_file /root/src/utils/xml_parser.c:1207:7
+    #6 0x7fbbb5852330 in gf_xml_sax_parse_file /root/src/utils/xml_parser.c:1319:9
+    #7 0x7fbbb5858c1e in gf_xml_dom_parse /root/src/utils/xml_parser.c:1854:6
+    #8 0x55a171669b07 in xml_bs_to_bin /root/applications/mp4box/mp4box.c:3960:6
+    #9 0x55a171664424 in mp4box_main /root/applications/mp4box/mp4box.c:6366:6
+    #10 0x55a17166a7c1 in main /root/applications/mp4box/mp4box.c:6930:1
+    #11 0x7fbbb53451c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7fbbb534528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x55a171649d94 in _start (/root/bin/gcc/MP4Box+0x49d94) (BuildId: 3eb782ad537de348f60e65f75336e269fd207128)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x18b75d) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f) 
+==304267==ABORTING

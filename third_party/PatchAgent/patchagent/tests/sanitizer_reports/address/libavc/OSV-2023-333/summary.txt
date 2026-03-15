@@ -1,0 +1,39 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x7fc187971000 thread T0
+    - ih264d_get_bits_h264 /src/libavc/decoder/ih264d_bitstrm.c:94:9
+    - ih264d_parse_fgc /src/libavc/decoder/ih264d_sei.c:860:34
+    - ih264d_parse_sei_message /src/libavc/decoder/ih264d_sei.c:1081:21
+    - ih264d_parse_nal_unit /src/libavc/decoder/ih264d_parse_headers.c:1322:36
+    - imvcd_view_decode /src/libavc/decoder/mvc/imvcd_api.c:815:17
+    - imvcd_decode /src/libavc/decoder/mvc/imvcd_api.c:1230:20
+    - imvcd_api_function /src/libavc/decoder/mvc/imvcd_api.c:1592:20
+    - Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/mvc_dec_fuzzer.cpp:339:11
+    - LLVMFuzzerTestOneInput /src/libavc/fuzzer/mvc_dec_fuzzer.cpp:400:43
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x7fc187971000 is located 0 bytes after 256000-byte region [0x7fc187932800,0x7fc187971000)
+allocated by thread T0 here:
+    - posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    - mvcd_aligned_malloc(void*, int, int) /src/libavc/fuzzer/mvc_dec_fuzzer.cpp:61:13
+    - imvcd_bitstream_buf_alloc /src/libavc/decoder/mvc/imvcd_api_utils.c:381:9
+    - imvcd_view_decode /src/libavc/decoder/mvc/imvcd_api.c:701:16
+    - imvcd_decode /src/libavc/decoder/mvc/imvcd_api.c:1230:20
+    - imvcd_api_function /src/libavc/decoder/mvc/imvcd_api.c:1592:20
+    - Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/mvc_dec_fuzzer.cpp:339:11
+    - LLVMFuzzerTestOneInput /src/libavc/fuzzer/mvc_dec_fuzzer.cpp:400:43
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

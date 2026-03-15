@@ -1,0 +1,15 @@
+The sanitizer detected a undefined behavior vulnerability. The explanation of the vulnerability is: The program exhibits undefined behavior, leading to unpredictable results or crashes. Here is the detail: 
+
+runtime error: shift exponent 136 is too large for 64-bit type 'long'
+    - JPEGSetupEncode /root/libtiff/tif_jpeg.c:1646:19
+    - TIFFWriteEncodedStrip /root/libtiff/tif_write.c:234:8
+    - cpDecodedStrips /root/tools/tiffcp.c:997:8
+    - tiffcp /root/tools/tiffcp.c:814:15
+    - main /root/tools/tiffcp.c:303:9
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior tif_jpeg.c:1646:19 in 
+
+To fix this issue, follow the advice below:
+
+1. Review the code for undefined behavior patterns and correct them.
+2. Check for type mismatches, signed integer overflows, and other undefined behavior triggers.

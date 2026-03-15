@@ -1,0 +1,14 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+llvm-symbolizer: error: '/dev/zero (deleted)': No such file or directory
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - zend_objects_store_del /src/php-src/Zend/zend_objects_API.c:195:3
+    - zend_reference_destroy /src/php-src/Zend/zend_variables.c:74:2
+    - i_free_compiled_variables /src/php-src/Zend/zend_execute.c:3753:3
+    - zend_leave_helper_SPEC /src/php-src/Zend/zend_vm_execute.h:1091:3
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

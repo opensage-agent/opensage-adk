@@ -1,0 +1,144 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/gstreamer:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/gstreamer/OSV-2022-1089/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gst-discoverer -runs=100.
++ FUZZER=gst-discoverer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gst-discoverer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gst-discoverer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1042795222
+INFO: Loaded 12 modules   (109780 inline 8-bit counters): 2727 [0x7fb65b2b8518, 0x7fb65b2b8fbf), 33929 [0x7fb65c313d40, 0x7fb65c31c1c9), 1079 [0x7fb65b8bea30, 0x7fb65b8bee67), 7665 [0x7fb65be82c00, 0x7fb65be849f1), 133 [0x7fb65b8d3260, 0x7fb65b8d32e5), 27831 [0x7fb65c787220, 0x7fb65c78ded7), 7934 [0x7fb65b5fe888, 0x7fb65b600786), 3749 [0x7fb65b36c4f0, 0x7fb65b36d395), 8145 [0x7fb65b4b6fa8, 0x7fb65b4b8f79), 11887 [0x7fb65b83f980, 0x7fb65b8427ef), 4690 [0x7fb65bd38810, 0x7fb65bd39a62), 11 [0x55ffbbb2d068, 0x55ffbbb2d073), 
+INFO: Loaded 12 PC tables (109780 PCs): 2727 [0x7fb65b2b8fc0,0x7fb65b2c3a30), 33929 [0x7fb65c31c1d0,0x7fb65c3a0a60), 1079 [0x7fb65b8bee68,0x7fb65b8c31d8), 7665 [0x7fb65be849f8,0x7fb65bea2908), 133 [0x7fb65b8d32e8,0x7fb65b8d3b38), 27831 [0x7fb65c78ded8,0x7fb65c7faa48), 7934 [0x7fb65b600788,0x7fb65b61f768), 3749 [0x7fb65b36d398,0x7fb65b37bde8), 8145 [0x7fb65b4b8f80,0x7fb65b4d8c90), 11887 [0x7fb65b8427f0,0x7fb65b870ee0), 4690 [0x7fb65bd39a68,0x7fb65bd4bf88), 11 [0x55ffbbb2d078,0x55ffbbb2d128), 
+/out/gst-discoverer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+0:00:00.010774534 [33m   14[00m 0x519000008560 [31;01mERROR  [00m [00;01;36m  GST_PLUGIN_LOADING gstpluginloader.c:442:gst_plugin_loader_try_helper:[00m Spawning gst-plugin-scanner helper failed: Failed to execute child process “/out/lib/../libexec/gstreamer-1.0/gst-plugin-scanner” (No such file or directory)
+WARNING : External plugin loader failed. This most likely means that the plugin loader helper binary was not found or could not be run. You might need to set the GST_PLUGIN_SCANNER environment variable if your setup is unusual. This should normally not be required though.
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: dynamic-stack-buffer-overflow on address 0x7fb65613e6f0 at pc 0x55ffbb9f57c4 bp 0x7fb65613e6e0 sp 0x7fb65613dea0
+[1m[0m[1m[34mWRITE of size 16 at 0x7fb65613e6f0 thread T2 (source:src)[1m[0m
+SCARINESS: 70 (multi-byte-write-dynamic-stack-buffer-overflow-far-from-bounds)
+    #0 0x55ffbb9f57c3 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x7fb65c0ebe4c in thread_memory_swap_magazines /work/_builddir/../../src/gstreamer/subprojects/glib/glib/gslice.c:862:19
+    #2 0x7fb65c0ebe4c in g_slice_alloc /work/_builddir/../../src/gstreamer/subprojects/glib/glib/gslice.c:1059:11
+    #3 0x7fb6566d7569 in gst_decode_chain_new /work/_builddir/../../src/gstreamer/subprojects/gst-plugins-base/gst/playback/gstdecodebin2.c:3542:27
+    #4 0x7fb6566d7569 in type_found /work/_builddir/../../src/gstreamer/subprojects/gst-plugins-base/gst/playback/gstdecodebin2.c:2908:32
+    #5 0x7fb65b8b9724 in ffi_call_unix64 /work/_builddir/../../src/gstreamer/subprojects/libffi/src/x86/unix64.S:101
+    #6 0x7fb65b8b66e2 in ffi_call_int /work/_builddir/../../src/gstreamer/subprojects/libffi/src/x86/ffi64.c:667:3
+    #7 0x7fb65bddce92 in g_cclosure_marshal_generic /work/_builddir/../../src/gstreamer/subprojects/glib/gobject/gclosure.c:1534:3
+    #8 0x7fb65bddafc2 in g_closure_invoke /work/_builddir/../../src/gstreamer/subprojects/glib/gobject/gclosure.c:830:7
+    #9 0x7fb65be19c9b in signal_emit_unlocked_R /work/_builddir/../../src/gstreamer/subprojects/glib/gobject/gsignal.c:3742:8
+    #10 0x7fb65be1d8e9 in g_signal_emit_valist /work/_builddir/../../src/gstreamer/subprojects/glib/gobject/gsignal.c:3497:5
+    #11 0x7fb65be1e801 in g_signal_emit /work/_builddir/../../src/gstreamer/subprojects/glib/gobject/gsignal.c:3553:3
+    #12 0x7fb6565983e4 in gst_type_find_element_emit_have_type /work/_builddir/../../src/gstreamer/subprojects/gstreamer/plugins/elements/gsttypefindelement.c:239:3
+    #13 0x7fb6565983e4 in gst_type_find_element_chain_do_typefinding /work/_builddir/../../src/gstreamer/subprojects/gstreamer/plugins/elements/gsttypefindelement.c:999:3
+    #14 0x7fb6565951d3 in gst_type_find_element_sink_event /work/_builddir/../../src/gstreamer/subprojects/gstreamer/plugins/elements/gsttypefindelement.c:700:11
+    #15 0x7fb65c60e035 in gst_pad_send_event_unchecked /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:5897:14
+    #16 0x7fb65c60c3ad in gst_pad_push_event_unchecked /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:5541:9
+    #17 0x7fb65c613712 in push_sticky /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:4044:17
+    #18 0x7fb65c6026cd in events_foreach /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:605:11
+    #19 0x7fb65c60b44f in check_sticky /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:4103:5
+    #20 0x7fb65c60b44f in gst_pad_push_event /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:5672:12
+    #21 0x7fb65c600f06 in event_forward_func /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:3122:19
+    #22 0x7fb65c6009c7 in gst_pad_forward /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:3076:25
+    #23 0x7fb65c600d89 in gst_pad_event_default /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:3173:5
+    #24 0x7fb65c60e035 in gst_pad_send_event_unchecked /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:5897:14
+    #25 0x7fb65c60c3ad in gst_pad_push_event_unchecked /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:5541:9
+    #26 0x7fb65c613712 in push_sticky /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:4044:17
+    #27 0x7fb65c6026cd in events_foreach /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:605:11
+    #28 0x7fb65c60b44f in check_sticky /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:4103:5
+    #29 0x7fb65c60b44f in gst_pad_push_event /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:5672:12
+    #30 0x7fb65b5a22a8 in gst_base_src_loop /work/_builddir/../../src/gstreamer/subprojects/gstreamer/libs/gst/base/gstbasesrc.c:3115:7
+    #31 0x7fb65c684ac2 in gst_task_func /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gsttask.c:384:5
+    #32 0x7fb65c1109f6 in g_thread_pool_thread_proxy /work/_builddir/../../src/gstreamer/subprojects/glib/glib/gthreadpool.c:354:15
+    #33 0x7fb65c10d627 in g_thread_proxy /work/_builddir/../../src/gstreamer/subprojects/glib/glib/gthread.c:827:20
+    #34 0x55ffbb9f5378 in asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+    #35 0x7fb65bb19608 in start_thread (/lib/x86_64-linux-gnu/libpthread.so.0+0x8608) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #36 0x7fb65b9f5352 in __clone (/lib/x86_64-linux-gnu/libc.so.6+0x11f352) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __asan_memcpy--thread_memory_swap_magazines--g_slice_alloc
+[1m[32mAddress 0x7fb65613e6f0 is located in stack of thread T2 (source:src)[1m[0m
+SUMMARY: AddressSanitizer: dynamic-stack-buffer-overflow /work/_builddir/../../src/gstreamer/subprojects/glib/glib/gslice.c:862:19 in thread_memory_swap_magazines
+Shadow bytes around the buggy address:
+  0x7fb65613e400: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fb65613e480: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fb65613e500: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fb65613e580: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fb65613e600: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x7fb65613e680: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[34mca[1m[0m [1m[34mca[1m[0m[[1m[34mca[1m[0m][1m[34mca[1m[0m
+  0x7fb65613e700: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fb65613e780: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[34mcb[1m[0m [1m[34mcb[1m[0m [1m[34mcb[1m[0m [1m[34mcb[1m[0m
+  0x7fb65613e800: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fb65613e880: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fb65613e900: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[34mca[1m[0m [1m[34mca[1m[0m [1m[34mca[1m[0m [1m[34mca[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+Thread T2 (source:src) created by T0 here:
+    #0 0x55ffbb9dd3c1 in pthread_create /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:250:3
+    #1 0x7fb65c185fca in g_system_thread_new /work/_builddir/../../src/gstreamer/subprojects/glib/glib/gthread-posix.c:1323:9
+    #2 0x7fb65c10ea0e in g_thread_pool_start_thread /work/_builddir/../../src/gstreamer/subprojects/glib/glib/gthreadpool.c:477:24
+    #3 0x7fb65c10ed98 in g_thread_pool_push /work/_builddir/../../src/gstreamer/subprojects/glib/glib/gthreadpool.c:723:12
+    #4 0x7fb65c686469 in default_push /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gsttaskpool.c:111:5
+    #5 0x7fb65c6845ba in start_task /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gsttask.c:712:7
+    #6 0x7fb65c683582 in gst_task_set_state_unlocked /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gsttask.c:744:17
+    #7 0x7fb65c683582 in gst_task_set_state /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gsttask.c:792:9
+    #8 0x7fb65c60f830 in gst_pad_start_task /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:6303:9
+    #9 0x7fb65b59aae5 in gst_base_src_perform_seek /work/_builddir/../../src/gstreamer/subprojects/gstreamer/libs/gst/base/gstbasesrc.c:1831:10
+    #10 0x7fb65b599d97 in gst_base_src_start_complete /work/_builddir/../../src/gstreamer/subprojects/gstreamer/libs/gst/base/gstbasesrc.c:3639:11
+    #11 0x7fb65b5a5937 in gst_base_src_start /work/_builddir/../../src/gstreamer/subprojects/gstreamer/libs/gst/base/gstbasesrc.c:3528:5
+    #12 0x7fb65b5a0743 in gst_base_src_activate_push /work/_builddir/../../src/gstreamer/subprojects/gstreamer/libs/gst/base/gstbasesrc.c:3894:9
+    #13 0x7fb65b5a0743 in gst_base_src_activate_mode /work/_builddir/../../src/gstreamer/subprojects/gstreamer/libs/gst/base/gstbasesrc.c:3971:13
+    #14 0x7fb65c5f6fa4 in activate_mode_internal /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:1213:11
+    #15 0x7fb65c5f64bd in gst_pad_set_active /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpad.c:1096:13
+    #16 0x7fb65c5bc13b in activate_pads /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstelement.c:3171:8
+    #17 0x7fb65c5df845 in gst_iterator_fold /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstiterator.c:617:14
+    #18 0x7fb65c5bc025 in iterator_activate_fold_with_resync /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstelement.c:3195:12
+    #19 0x7fb65c5ba7d2 in gst_element_pads_activate /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstelement.c:3232:7
+    #20 0x7fb65c5ba7d2 in gst_element_change_state_func /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstelement.c:3291:12
+    #21 0x7fb65b59c4e7 in gst_base_src_change_state /work/_builddir/../../src/gstreamer/subprojects/gstreamer/libs/gst/base/gstbasesrc.c:4009:11
+    #22 0x7fb65c5b8156 in gst_element_change_state /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstelement.c:3083:11
+    #23 0x7fb65c5baf72 in gst_element_set_state_func /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstelement.c:3037:9
+    #24 0x7fb6566fa6b4 in gst_uri_decode_bin_change_state /work/_builddir/../../src/gstreamer/subprojects/gst-plugins-base/gst/playback/gsturidecodebin.c:2906:15
+    #25 0x7fb65c5b8156 in gst_element_change_state /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstelement.c:3083:11
+    #26 0x7fb65c5baf72 in gst_element_set_state_func /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstelement.c:3037:9
+    #27 0x7fb65c55abe3 in gst_bin_element_set_state /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstbin.c:2581:9
+    #28 0x7fb65c55abe3 in gst_bin_change_state_func /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstbin.c:2923:15
+    #29 0x7fb65c619b8d in gst_pipeline_change_state /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstpipeline.c:529:12
+    #30 0x7fb65c5b8156 in gst_element_change_state /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstelement.c:3083:11
+    #31 0x7fb65c5baf72 in gst_element_set_state_func /work/_builddir/../../src/gstreamer/subprojects/gstreamer/gst/gstelement.c:3037:9
+    #32 0x7fb65bd08e84 in _setup_locked /work/_builddir/../../src/gstreamer/subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstdiscoverer.c:1913:7
+    #33 0x7fb65bcfecdc in start_discovering /work/_builddir/../../src/gstreamer/subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstdiscoverer.c:2051:11
+    #34 0x7fb65bcffe5d in gst_discoverer_discover_uri /work/_builddir/../../src/gstreamer/subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstdiscoverer.c:2608:9
+    #35 0x55ffbba3705d in LLVMFuzzerTestOneInput /work/_builddir/../../src/gstreamer/ci/fuzzing/gst-discoverer.c:108:10
+    #36 0x55ffbba53eb0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #37 0x55ffbba3f125 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #38 0x55ffbba44bbf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #39 0x55ffbba6fe62 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #40 0x7fb65b8fa082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: ___interceptor_pthread_create--g_system_thread_new--g_thread_pool_start_thread
+==14==ABORTING

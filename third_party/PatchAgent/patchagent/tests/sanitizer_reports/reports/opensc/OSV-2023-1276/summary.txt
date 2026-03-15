@@ -1,0 +1,50 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x515000004468 thread T0
+    - authentic_emu_update_tokeninfo /src/opensc/src/pkcs15init/pkcs15-authentic.c:876:15
+    - sc_pkcs15init_update_tokeninfo /src/opensc/src/pkcs15init/pkcs15-lib.c:3177:10
+    - sc_pkcs15init_update_lastupdate /src/opensc/src/pkcs15init/pkcs15-lib.c:3239:6
+    - sc_pkcs15init_unbind /src/opensc/src/pkcs15init/pkcs15-lib.c:441:7
+    - LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:356:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x515000004468 is located 104 bytes inside of 464-byte region [0x515000004400,0x5150000045d0)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - sc_file_free /src/opensc/src/libopensc/sc.c:643:2
+    - authentic_emu_update_tokeninfo /src/opensc/src/pkcs15init/pkcs15-authentic.c:872:4
+    - sc_pkcs15init_update_tokeninfo /src/opensc/src/pkcs15init/pkcs15-lib.c:3177:10
+    - sc_pkcs15init_update_lastupdate /src/opensc/src/pkcs15init/pkcs15-lib.c:3239:6
+    - sc_pkcs15init_unbind /src/opensc/src/pkcs15init/pkcs15-lib.c:441:7
+    - LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:356:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    - sc_file_new /src/opensc/src/libopensc/sc.c:619:33
+    - authentic_set_current_files /src/opensc/src/libopensc/card-authentic.c:555:11
+    - authentic_select_file /src/opensc/src/libopensc/card-authentic.c:836:7
+    - sc_select_file /src/opensc/src/libopensc/card.c:871:6
+    - authentic_emu_update_tokeninfo /src/opensc/src/pkcs15init/pkcs15-authentic.c:868:7
+    - sc_pkcs15init_update_tokeninfo /src/opensc/src/pkcs15init/pkcs15-lib.c:3177:10
+    - sc_pkcs15init_update_lastupdate /src/opensc/src/pkcs15init/pkcs15-lib.c:3239:6
+    - sc_pkcs15init_unbind /src/opensc/src/pkcs15init/pkcs15-lib.c:441:7
+    - LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:356:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

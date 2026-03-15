@@ -1,0 +1,73 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 4 at 0x502000065990 thread T0
+    - copy_object /root/libr/bin/format/pyc/marshal.c:769:23
+    - get_ref_object /root/libr/bin/format/pyc/marshal.c:693:14
+    - get_object /root/libr/bin/format/pyc/marshal.c:1021:10
+    - get_code_object /root/libr/bin/format/pyc/marshal.c:922:17
+    - get_object /root/libr/bin/format/pyc/marshal.c:1032:9
+    - get_sections_symbols_from_code_objects /root/libr/bin/format/pyc/marshal.c:1205:34
+    - pyc_get_sections_symbols /root/libr/bin/format/pyc/pyc.c:7:9
+    - symbols /root/libr/bin/p/bin_pyc.c:124:2
+    - r_bin_object_set_items /root/libr/bin/bobj.c:326:16
+    - r_bin_object_new /root/libr/bin/bobj.c:168:2
+    - r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    - r_bin_open_buf /root/libr/bin/bin.c:279:8
+    - r_bin_open_io /root/libr/bin/bin.c:339:13
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    - r_core_bin_load /root/libr/core/cfile.c:636:4
+    - r_main_radare2 /root/libr/main/radare2.c:1177:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+0x502000065990 is located 0 bytes inside of 16-byte region [0x502000065990,0x5020000659a0)
+freed by thread T0 here:
+    - free_object /root/libr/bin/format/pyc/marshal.c:760:2
+    - r_list_delete /root/libr/util/list.c:124:3
+    - r_list_purge /root/libr/util/list.c:90:3
+    - r_list_free /root/libr/util/list.c:100:3
+    - get_array_object_generic /root/libr/bin/format/pyc/marshal.c:504:4
+    - get_set_object /root/libr/bin/format/pyc/marshal.c:629:8
+    - get_object /root/libr/bin/format/pyc/marshal.c:1093:9
+    - get_code_object /root/libr/bin/format/pyc/marshal.c:919:15
+    - get_object /root/libr/bin/format/pyc/marshal.c:1032:9
+    - get_sections_symbols_from_code_objects /root/libr/bin/format/pyc/marshal.c:1205:34
+    - pyc_get_sections_symbols /root/libr/bin/format/pyc/pyc.c:7:9
+    - symbols /root/libr/bin/p/bin_pyc.c:124:2
+    - r_bin_object_set_items /root/libr/bin/bobj.c:326:16
+    - r_bin_object_new /root/libr/bin/bobj.c:168:2
+    - r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    - r_bin_open_buf /root/libr/bin/bin.c:279:8
+    - r_bin_open_io /root/libr/bin/bin.c:339:13
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    - r_core_bin_load /root/libr/core/cfile.c:636:4
+    - r_main_radare2 /root/libr/main/radare2.c:1177:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+previously allocated by thread T0 here:
+    - get_none_object /root/libr/bin/format/pyc/marshal.c:91:20
+    - get_object /root/libr/bin/format/pyc/marshal.c:1122:8
+    - get_array_object_generic /root/libr/bin/format/pyc/marshal.c:502:9
+    - get_set_object /root/libr/bin/format/pyc/marshal.c:629:8
+    - get_object /root/libr/bin/format/pyc/marshal.c:1093:9
+    - get_code_object /root/libr/bin/format/pyc/marshal.c:919:15
+    - get_object /root/libr/bin/format/pyc/marshal.c:1032:9
+    - get_sections_symbols_from_code_objects /root/libr/bin/format/pyc/marshal.c:1205:34
+    - pyc_get_sections_symbols /root/libr/bin/format/pyc/pyc.c:7:9
+    - symbols /root/libr/bin/p/bin_pyc.c:124:2
+    - r_bin_object_set_items /root/libr/bin/bobj.c:326:16
+    - r_bin_object_new /root/libr/bin/bobj.c:168:2
+    - r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    - r_bin_open_buf /root/libr/bin/bin.c:279:8
+    - r_bin_open_io /root/libr/bin/bin.c:339:13
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    - r_core_bin_load /root/libr/core/cfile.c:636:4
+    - r_main_radare2 /root/libr/main/radare2.c:1177:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

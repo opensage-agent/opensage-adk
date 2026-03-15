@@ -1,0 +1,65 @@
+=================================================================
+==1409039==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51b00000061f at pc 0x564233a89e69 bp 0x7ffea427d340 sp 0x7ffea427d338
+WRITE of size 1 at 0x51b00000061f thread T0
+    #0 0x564233a89e68 in FSE_writeNCount_generic /root/tests/fuzz/../../lib/compress/fse_compress.c:317:12
+    #1 0x564233a8964d in FSE_writeNCount /root/tests/fuzz/../../lib/compress/fse_compress.c:333:12
+    #2 0x564233af9f04 in ZSTD_buildCTable /root/tests/fuzz/../../lib/compress/zstd_compress_sequences.c:280:39
+    #3 0x564233ae5965 in ZSTD_buildSequencesStatistics /root/tests/fuzz/../../lib/compress/zstd_compress.c:2516:38
+    #4 0x564233af1420 in ZSTD_entropyCompressSeqStore_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:2649:17
+    #5 0x564233aef486 in ZSTD_entropyCompressSeqStore /root/tests/fuzz/../../lib/compress/zstd_compress.c:2701:26
+    #6 0x564233ae79cb in ZSTD_compressBlock_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:3784:13
+    #7 0x564233ae7410 in ZSTD_compress_frameChunk /root/tests/fuzz/../../lib/compress/zstd_compress.c:3971:25
+    #8 0x564233ad24ce in ZSTD_compressContinue_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:4142:30
+    #9 0x564233ad4ab4 in ZSTD_compressEnd /root/tests/fuzz/../../lib/compress/zstd_compress.c:4646:26
+    #10 0x564233ad5460 in ZSTD_compress_advanced_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:4695:12
+    #11 0x564233ad5657 in ZSTD_compress_usingDict /root/tests/fuzz/../../lib/compress/zstd_compress.c:4710:12
+    #12 0x564233ad571a in ZSTD_compressCCtx /root/tests/fuzz/../../lib/compress/zstd_compress.c:4720:12
+    #13 0x564233d70410 in LLVMFuzzerTestOneInput /root/tests/fuzz/simple_compress.c:46:24
+    #14 0x564233d70979 in main /root/tests/fuzz/regression_driver.c:77:5
+    #15 0x7f0f91b221c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x7f0f91b2228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x564233a14664 in _start (/root/simple_compress+0x9664) (BuildId: 702fd790d222defcb6260425060bac9c5ae1fddb)
+
+0x51b00000061f is located 0 bytes after 1439-byte region [0x51b000000080,0x51b00000061f)
+allocated by thread T0 here:
+    #0 0x7f0f9219d7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x564233a1c6cf in FUZZ_malloc /root/tests/fuzz/fuzz_helpers.c:19:27
+    #2 0x564233d703ec in LLVMFuzzerTestOneInput /root/tests/fuzz/simple_compress.c:45:18
+    #3 0x564233d70979 in main /root/tests/fuzz/regression_driver.c:77:5
+    #4 0x7f0f91b221c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #5 0x7f0f91b2228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #6 0x564233a14664 in _start (/root/simple_compress+0x9664) (BuildId: 702fd790d222defcb6260425060bac9c5ae1fddb)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/tests/fuzz/../../lib/compress/fse_compress.c:317:12 in FSE_writeNCount_generic
+Shadow bytes around the buggy address:
+  0x51b000000380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51b000000600: 00 00 00[07]fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51b000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51b000000700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51b000000780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51b000000800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51b000000880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1409039==ABORTING

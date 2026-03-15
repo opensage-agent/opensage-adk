@@ -1,0 +1,42 @@
+The libFuzzer report is:
+
+==16== ERROR: libFuzzer: timeout after 25 seconds
+
+Stack traces of all JVM threads:
+Thread[Finalizer,8,system]
+- java.base@17.0.14/java.lang.ref.ReferenceQueue.remove (java/base@17/0/14/java/lang/ref/ReferenceQueue.java:155)
+- java.base@17.0.14/java.lang.ref.ReferenceQueue.remove (java/base@17/0/14/java/lang/ref/ReferenceQueue.java:176)
+- java.base@17.0.14/java.lang.ref.Finalizer$FinalizerThread.run (java/base@17/0/14/java/lang/ref/Finalizer$FinalizerThread/run:172)
+
+Thread[Notification Thread,9,system]
+
+Thread[main,5,main]
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.dumpAllStackTraces (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:534)
+
+Thread[Reference Handler,10,system]
+- java.base@17.0.14/java.lang.ref.Reference.processPendingReferences (java/base@17/0/14/java/lang/ref/Reference.java:253)
+- java.base@17.0.14/java.lang.ref.Reference$ReferenceHandler.run (java/base@17/0/14/java/lang/ref/Reference$ReferenceHandler/run:215)
+
+Thread[Attach Listener,9,system]
+
+Thread[Signal Dispatcher,9,system]
+
+Thread[Common-Cleaner,8,InnocuousThreadGroup]
+- java.base@17.0.14/java.lang.ref.ReferenceQueue.remove (java/base@17/0/14/java/lang/ref/ReferenceQueue.java:155)
+- java.base@17.0.14/jdk.internal.ref.CleanerImpl.run (java/base@17/0/14/jdk/internal/ref/CleanerImpl.java:140)
+- java.base@17.0.14/java.lang.Thread.run (java/base@17/0/14/java/lang/Thread.java:840)
+- java.base@17.0.14/jdk.internal.misc.InnocuousThread.run (java/base@17/0/14/jdk/internal/misc/InnocuousThread.java:162)
+
+Thread[process reaper,10,system]
+- java.base@17.0.14/java.util.concurrent.locks.LockSupport.parkNanos (java/base@17/0/14/java/util/concurrent/locks/LockSupport.java:252)
+- java.base@17.0.14/java.util.concurrent.SynchronousQueue$TransferStack.transfer (java/base@17/0/14/java/util/concurrent/SynchronousQueue$TransferStack/transfer:401)
+- java.base@17.0.14/java.util.concurrent.SynchronousQueue.poll (java/base@17/0/14/java/util/concurrent/SynchronousQueue.java:903)
+- java.base@17.0.14/java.util.concurrent.ThreadPoolExecutor.getTask (java/base@17/0/14/java/util/concurrent/ThreadPoolExecutor.java:1061)
+- java.base@17.0.14/java.util.concurrent.ThreadPoolExecutor.runWorker (java/base@17/0/14/java/util/concurrent/ThreadPoolExecutor.java:1122)
+- java.base@17.0.14/java.util.concurrent.ThreadPoolExecutor$Worker.run (java/base@17/0/14/java/util/concurrent/ThreadPoolExecutor$Worker/run:635)
+- java.base@17.0.14/java.lang.Thread.run (java/base@17/0/14/java/lang/Thread.java:840)
+
+Garbage collector stats:
+
+PS MarkSweep: 0 collections took 0ms
+PS Scavenge: 6 collections took 29ms

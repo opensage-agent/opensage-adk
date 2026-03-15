@@ -1,0 +1,54 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/cyclonedds:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/cyclonedds/OSV-2022-892/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_config_init -runs=100.
++ FUZZER=fuzz_config_init
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_config_init -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_config_init -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 384482823
+INFO: Loaded 1 modules   (24267 inline 8-bit counters): 24267 [0x5569aca96d80, 0x5569aca9cc4b), 
+INFO: Loaded 1 PC tables (24267 PCs): 24267 [0x5569aca9cc50,0x5569acafb900), 
+/out/fuzz_config_init: Running 1 inputs 100 time(s) each.
+Running: /testcase
+1740334017.733515 [0] fuzz_confi: config: //CycloneDDS/Domain/Partitioning/NetworkPartitions/NetworkPartition: parser error expecting '/>' or '>' () at line 1 (CYCLONEDDS_URI+0 line 1)
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x5569ac6bd5f2 bp 0x000000000000 sp 0x7ffc7d54a5e0 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x5569ac6bd5f2 in atomic_compare_exchange_strong<__sanitizer::atomic_uint8_t> /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_atomic_clang.h:81:10
+    #1 0x5569ac6bd5f2 in AtomicallySetQuarantineFlagIfAllocated /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:668:10
+    #2 0x5569ac6bd5f2 in __asan::Allocator::Deallocate(void*, unsigned long, unsigned long, __sanitizer::BufferedStackTrace*, __asan::AllocType) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:724:10
+    #3 0x5569ac75407b in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:53:3
+    #4 0x5569ac79723a in free_all_elements /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:1728:7
+    #5 0x5569ac79a623 in free_configured_element /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:1781:9
+    #6 0x5569ac79a53f in free_configured_elements /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:1793:5
+    #7 0x5569ac79a53f in free_configured_element /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:1768:7
+    #8 0x5569ac79a53f in free_configured_elements /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:1793:5
+    #9 0x5569ac79a53f in free_configured_element /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:1768:7
+    #10 0x5569ac79a53f in free_configured_elements /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:1793:5
+    #11 0x5569ac79a53f in free_configured_element /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:1768:7
+    #12 0x5569ac7936da in free_configured_elements /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:1793:5
+    #13 0x5569ac7936da in ddsi_config_init /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:2653:3
+    #14 0x5569ac7917af in LLVMFuzzerTestOneInput /src/cyclonedds/fuzz/fuzz_config_init/fuzz_config_init.c:70:18
+    #15 0x5569ac6484e0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x5569ac633755 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x5569ac6391ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x5569ac664492 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f8a9d4b4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #20 0x5569ac62b93d in _start (/out/fuzz_config_init+0x11c93d)
+
+DEDUP_TOKEN: atomic_compare_exchange_strong<__sanitizer::atomic_uint8_t>--AtomicallySetQuarantineFlagIfAllocated--__asan::Allocator::Deallocate(void*, unsigned long, unsigned long, __sanitizer::BufferedStackTrace*, __asan::AllocType)
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/cyclonedds/src/core/ddsi/src/ddsi_config.c:1728:7 in free_all_elements
+==14==ABORTING

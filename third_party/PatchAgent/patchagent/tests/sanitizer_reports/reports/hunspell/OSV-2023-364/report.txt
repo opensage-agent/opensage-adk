@@ -1,0 +1,71 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/hunspell:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/hunspell/OSV-2023-364/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce affdicfuzzer -runs=100.
++ FUZZER=affdicfuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer affdicfuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/affdicfuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1638141662
+INFO: Loaded 1 modules   (18259 inline 8-bit counters): 18259 [0x5643b01adef0, 0x5643b01b2643), 
+INFO: Loaded 1 PC tables (18259 PCs): 18259 [0x5643b01b2648,0x5643b01f9b78), 
+/out/affdicfuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: attempting double-free on 0x5020000000d0 in thread T0:
+[1m[0mSCARINESS: 42 (double-free)
+    #0 0x5643aff6fc2d in operator delete[](void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:146:3
+    #1 0x5643b004372f in HashMgr::~HashMgr() /src/hunspell/src/hunspell/hashmgr.cxx:131:5
+    #2 0x5643aff737ad in HunspellImpl::~HunspellImpl() /src/hunspell/src/hunspell/hunspell.cxx:204:5
+    #3 0x5643aff97f52 in Hunspell::~Hunspell() /src/hunspell/src/hunspell/hunspell.cxx:2030:3
+    #4 0x5643aff71bb1 in LLVMFuzzerTestOneInput /src/hunspell/./src/tools/affdicfuzzer.cxx:69:1
+    #5 0x5643afe26130 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x5643afe113a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x5643afe16e3f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x5643afe420e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f35cb990082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #10 0x5643afe0958d in _start (/out/affdicfuzzer+0xbe58d)
+
+DEDUP_TOKEN: operator delete[](void*)--HashMgr::~HashMgr()--HunspellImpl::~HunspellImpl()
+[1m[32m0x5020000000d0 is located 0 bytes inside of 4-byte region [0x5020000000d0,0x5020000000d4)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x5643aff6fc2d in operator delete[](void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:146:3
+    #1 0x5643b0042ffd in free_flag /src/hunspell/src/hunspell/hashmgr.cxx:108:5
+    #2 0x5643b0042ffd in HashMgr::free_table() /src/hunspell/src/hunspell/hashmgr.cxx:119:7
+    #3 0x5643b0043692 in HashMgr::~HashMgr() /src/hunspell/src/hunspell/hashmgr.cxx:128:3
+    #4 0x5643aff737ad in HunspellImpl::~HunspellImpl() /src/hunspell/src/hunspell/hunspell.cxx:204:5
+    #5 0x5643aff97f52 in Hunspell::~Hunspell() /src/hunspell/src/hunspell/hunspell.cxx:2030:3
+    #6 0x5643aff71bb1 in LLVMFuzzerTestOneInput /src/hunspell/./src/tools/affdicfuzzer.cxx:69:1
+    #7 0x5643afe26130 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5643afe113a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5643afe16e3f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5643afe420e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f35cb990082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator delete[](void*)--free_flag--HashMgr::free_table()
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x5643aff6f3dd in operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    #1 0x5643b004c4b7 in HashMgr::decode_flags(unsigned short**, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, FileMgr*) const /src/hunspell/src/hunspell/hashmgr.cxx:727:17
+    #2 0x5643b004fcdc in HashMgr::parse_aliasf(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, FileMgr*) /src/hunspell/src/hunspell/hashmgr.cxx:1091:33
+    #3 0x5643b0040232 in HashMgr::load_config(char const*, char const*) /src/hunspell/src/hunspell/hashmgr.cxx:986:12
+    #4 0x5643b003eaea in HashMgr::HashMgr(char const*, char const*, char const*) /src/hunspell/src/hunspell/hashmgr.cxx:93:3
+    #5 0x5643aff72bb5 in HunspellImpl::HunspellImpl(char const*, char const*, char const*) /src/hunspell/src/hunspell/hunspell.cxx:179:25
+    #6 0x5643aff97ebe in Hunspell::Hunspell(char const*, char const*, char const*) /src/hunspell/src/hunspell/hunspell.cxx:2026:16
+    #7 0x5643aff71b5a in LLVMFuzzerTestOneInput /src/hunspell/./src/tools/affdicfuzzer.cxx:63:14
+    #8 0x5643afe26130 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x5643afe113a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x5643afe16e3f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x5643afe420e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f35cb990082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator new[](unsigned long)--HashMgr::decode_flags(unsigned short**, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, FileMgr*) const--HashMgr::parse_aliasf(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, FileMgr*)
+SUMMARY: AddressSanitizer: double-free /src/hunspell/src/hunspell/hashmgr.cxx:131:5 in HashMgr::~HashMgr()
+==14==ABORTING

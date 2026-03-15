@@ -1,0 +1,24 @@
+The sanitizer detected a remote code execution vulnerability.The explanation of the vulnerability is: An attacker can execute arbitrary code on a remote system, leading to full compromise.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh: Remote Code Execution
+Unrestricted class/object creation based on externally controlled data may allow
+remote code execution depending on available classes on the classpath.
+- jaz.Zer.reportFinding (jaz/Zer.java:110)
+- jaz.Zer.reportFindingIfEnabled (jaz/Zer.java:105)
+- jaz.Zer.<init> (jaz/Zer.java:78)
+- java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance (java/base/jdk/internal/reflect/NativeConstructorAccessorImpl.java:77)
+- java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance (java/base/jdk/internal/reflect/DelegatingConstructorAccessorImpl.java:45)
+- java.base/java.lang.reflect.Constructor.newInstanceWithCaller (java/base/java/lang/reflect/Constructor.java:500)
+- java.base/java.lang.reflect.Constructor.newInstance (java/base/java/lang/reflect/Constructor.java:481)
+- com.zaxxer.hikari.util.PropertyElf.setProperty (com/zaxxer/hikari/util/PropertyElf.java:169)
+- com.zaxxer.hikari.util.PropertyElf.lambda$setTargetFromProperties$0 (com/zaxxer/hikari/util/PropertyElf.java:53)
+- java.base/java.util.concurrent.ConcurrentHashMap.forEach (java/base/java/util/concurrent/ConcurrentHashMap.java:1603)
+- java.base/java.util.Properties.forEach (java/base/java/util/Properties.java:1425)
+- com.zaxxer.hikari.util.PropertyElf.setTargetFromProperties (com/zaxxer/hikari/util/PropertyElf.java:47)
+- PropertyElfFuzzer.fuzzerTestOneInput (PropertyElfFuzzer.java:30)
+
+To fix this issue, follow the advice below:
+
+1. Implement strong input validation to prevent code injection attacks.
+2. Use secure communication protocols to protect against remote code execution.
+3. Monitor network traffic for suspicious activity and unauthorized access.

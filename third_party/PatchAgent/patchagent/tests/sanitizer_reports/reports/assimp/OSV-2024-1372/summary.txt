@@ -1,0 +1,46 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x502000000090 thread T0
+    - CallbackToLogRedirector(char const*, char*) /src/assimp/code/Common/Assimp.cpp:359:8
+    - Assimp::DefaultLogger::WriteToStreams(char const*, Assimp::Logger::ErrorSeverity) /src/assimp/code/Common/DefaultLogger.cpp:412:31
+    - Assimp::DefaultLogger::OnInfo(char const*) /src/assimp/code/Common/DefaultLogger.cpp:292:5
+    - void Assimp::Logger::info<char const (&) [6], std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&>(char const (&) [6], std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/assimp/include/assimp/Logger.hpp:126:9
+    - WriteLogOpening(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/assimp/code/Common/Importer.cpp:528:5
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /src/assimp/code/Common/Importer.cpp:599:5
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /src/assimp/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:54:34
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:690:3
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:332:8
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x502000000090 is located 0 bytes inside of 16-byte region [0x502000000090,0x5020000000a0)
+freed by thread T0 here:
+    - operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    - ~LogToCallbackRedirector /src/assimp/code/Common/Assimp.cpp:143:13
+    - LogToCallbackRedirector::~LogToCallbackRedirector() /src/assimp/code/Common/Assimp.cpp:130:32
+    - aiDetachLogStream /src/assimp/code/Common/Assimp.cpp:417:5
+    - LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:64:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - Assimp::LogStream::createDefaultStream(aiDefaultLogStream, char const*, Assimp::IOSystem*) /src/assimp/code/Common/DefaultLogger.cpp:112:16
+    - aiGetPredefinedLogStream /src/assimp/code/Common/Assimp.cpp:370:25
+    - LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:50:26
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

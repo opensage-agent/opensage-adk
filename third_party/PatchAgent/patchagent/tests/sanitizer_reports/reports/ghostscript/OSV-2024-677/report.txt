@@ -1,0 +1,76 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/ghostscript/OSV-2024-677/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gstoraster_pdf_fuzzer -runs=100.
++ FUZZER=gstoraster_pdf_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gstoraster_pdf_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gstoraster_pdf_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=gstoraster_pdf_fuzzer.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1181762532
+INFO: Loaded 3 modules   (226649 inline 8-bit counters): 14221 [0x7fa6d95ab2a0, 0x7fa6d95aea2d), 958 [0x7fa6d964c778, 0x7fa6d964cb36), 211470 [0x55e3726b1bc0, 0x55e3726e55ce), 
+INFO: Loaded 3 PC tables (226649 PCs): 14221 [0x7fa6d95aea30,0x7fa6d95e6300), 958 [0x7fa6d964cb38,0x7fa6d9650718), 211470 [0x55e3726e55d0,0x55e372a1f6b0), 
+/out/gstoraster_pdf_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x55e36fbae9df bp 0x7fff46c2f200 sp 0x7fff46c2f170 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55e36fbae9df in spgetcc /src/ghostpdl/./base/stream.c:478:20
+    #1 0x55e3704acc71 in pdfi_read_byte /src/ghostpdl/./pdf/pdf_file.c:1622:12
+    #2 0x55e3704963e0 in pdfi_skip_white /src/ghostpdl/./pdf/pdf_int.c:81:13
+    #3 0x55e3704963e0 in pdfi_read_bare_int /src/ghostpdl/./pdf/pdf_int.c:159:5
+    #4 0x55e3705ce995 in pdfi_read_object /src/ghostpdl/./pdf/pdf_deref.c:562:12
+    #5 0x55e3705ca688 in pdfi_dereference_main /src/ghostpdl/./pdf/pdf_deref.c:984:20
+    #6 0x55e3705cb816 in pdfi_dereference /src/ghostpdl/./pdf/pdf_deref.c:1074:12
+    #7 0x55e3705cb816 in pdfi_deref_loop_detect /src/ghostpdl/./pdf/pdf_deref.c:1091:12
+    #8 0x55e37047cf8f in pdfi_dict_get_common /src/ghostpdl/./pdf/pdf_dict.c:339:20
+    #9 0x55e370541f14 in pdfi_dict_get /src/ghostpdl/./pdf/pdf_dict.h:26:12
+    #10 0x55e370541f14 in pdfi_copy_type1_font /src/ghostpdl/./pdf/pdf_font1.c:925:16
+    #11 0x55e37052c034 in pdfi_copy_font /src/ghostpdl/./pdf/pdf_font.c:706:18
+    #12 0x55e37052c034 in pdfi_load_font_file /src/ghostpdl/./pdf/pdf_font.c:962:16
+    #13 0x55e370526145 in pdfi_load_font /src/ghostpdl/./pdf/pdf_font.c:1131:36
+    #14 0x55e37052cc80 in pdfi_load_dict_font /src/ghostpdl/./pdf/pdf_font.c:1181:20
+    #15 0x55e37052fcca in pdfi_load_resource_font /src/ghostpdl/./pdf/pdf_font.c:1223:12
+    #16 0x55e37052fcca in pdfi_Tf /src/ghostpdl/./pdf/pdf_font.c:1582:12
+    #17 0x55e3704a2bf1 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1637:24
+    #18 0x55e3704a0f8e in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2124:24
+    #19 0x55e3704fe1bf in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:132:20
+    #20 0x55e3704fe1bf in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:156:12
+    #21 0x55e3704fe1bf in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:1031:12
+    #22 0x55e37046025a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:959:24
+    #23 0x55e3702f5425 in do_call_operator /src/ghostpdl/./psi/interp.c:91:12
+    #24 0x55e3702ef254 in interp /src/ghostpdl/./psi/interp.c:1768:40
+    #25 0x55e3702ef254 in gs_call_interp /src/ghostpdl/./psi/interp.c:531:12
+    #26 0x55e3702ef254 in gs_interpret /src/ghostpdl/./psi/interp.c:488:12
+    #27 0x55e36fa705e7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #28 0x55e36fa705e7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #29 0x55e36fa705e7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #30 0x55e3705ee760 in run_string /src/ghostpdl/./psi/imainarg.c:1170:12
+    #31 0x55e3705eb130 in swproc /src/ghostpdl/./psi/imainarg.c:368:20
+    #32 0x55e3705e82b2 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #33 0x55e3705ee4e8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:290:16
+    #34 0x55e36fa67fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #35 0x55e36fa68474 in gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    #36 0x55e36fa68474 in LLVMFuzzerTestOneInput /src/gstoraster_pdf_fuzzer.cc:35:2
+    #37 0x55e36f91c6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #38 0x55e36f907945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #39 0x55e36f90d3df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #40 0x55e36f938682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #41 0x7fa6d8fd3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #42 0x55e36f8ffb2d in _start (/out/gstoraster_pdf_fuzzer+0x742b2d)
+
+DEDUP_TOKEN: spgetcc--pdfi_read_byte--pdfi_skip_white
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/ghostpdl/./base/stream.c:478:20 in spgetcc
+==14==ABORTING

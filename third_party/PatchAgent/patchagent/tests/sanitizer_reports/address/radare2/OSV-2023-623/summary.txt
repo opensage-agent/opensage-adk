@@ -1,0 +1,72 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x503000033880 thread T0
+    - RVecRBinElfSymbol_fini /src/radare2/libr/bin/format/elf/elf.h:114:1
+    - RVecRBinElfSymbol_free /src/radare2/libr/bin/format/elf/elf.h:114:1
+    - Elf32_free /src/radare2/libr/bin/format/elf/elf.c:4965:2
+    - r_bin_file_free /src/radare2/libr/bin/bfile.c:814:3
+    - r_list_delete /src/radare2/libr/util/list.c:121:3
+    - r_list_purge /src/radare2/libr/util/list.c:87:3
+    - r_list_free /src/radare2/libr/util/list.c:97:3
+    - r_bin_free /src/radare2/libr/bin/bin.c:502:3
+    - r_core_fini /src/radare2/libr/core/core.c:2866:12
+    - r_core_free /src/radare2/libr/core/core.c:2895:3
+    - LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:16:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x503000033880 is located 0 bytes inside of 24-byte region [0x503000033880,0x503000033898)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - RVecRBinElfSymbol_free /src/radare2/libr/bin/format/elf/elf.h:114:1
+    - Elf32_free /src/radare2/libr/bin/format/elf/elf.c:4963:2
+    - r_bin_file_free /src/radare2/libr/bin/bfile.c:814:3
+    - r_list_delete /src/radare2/libr/util/list.c:121:3
+    - r_list_purge /src/radare2/libr/util/list.c:87:3
+    - r_list_free /src/radare2/libr/util/list.c:97:3
+    - r_bin_free /src/radare2/libr/bin/bin.c:502:3
+    - r_core_fini /src/radare2/libr/core/core.c:2866:12
+    - r_core_free /src/radare2/libr/core/core.c:2895:3
+    - LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:16:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - RVecRBinElfSymbol_new /src/radare2/libr/bin/format/elf/elf.h:114:1
+    - load_symbols_from_phdr /src/radare2/libr/bin/format/elf/elf.c:4178:27
+    - Elf32_load_symbols_type /src/radare2/libr/bin/format/elf/elf.c:0:0
+    - Elf32_load_symbols_from /src/radare2/libr/bin/format/elf/elf.c:4840:10
+    - Elf32_load_symbols /src/radare2/libr/bin/format/elf/elf.c:4869:23
+    - symbols_vec /src/radare2/libr/bin/p/bin_elf.inc.c:349:7
+    - lookup_symbols /src/radare2/libr/bin/p/bin_elf.inc.c:1081:7
+    - info /src/radare2/libr/bin/p/bin_elf.inc.c:1256:2
+    - r_bin_object_set_items /src/radare2/libr/bin/bobj.c:346:22
+    - r_bin_object_new /src/radare2/libr/bin/bobj.c:240:2
+    - r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    - r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    - r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    - cmd_open_bin /src/radare2/libr/core/cmd_open.inc.c:298:6
+    - cmd_open /src/radare2/libr/core/cmd_open.inc.c:2507:3
+    - r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    - r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    - r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    - run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    - r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    - LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

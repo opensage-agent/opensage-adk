@@ -1,0 +1,16 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+Hint: pc points to the zero page.
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - ubsan_GetStackTrace(__sanitizer::BufferedStackTrace*, unsigned long, unsigned long, unsigned long, void*, bool) /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag.cpp:41:10
+    - ReportDeadlySignalImpl /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_symbolizer_report.cpp:268:3
+    - __sanitizer::ReportDeadlySignal(__sanitizer::SignalContext const&, unsigned int, void (*)(__sanitizer::SignalContext const&, void const*, __sanitizer::BufferedStackTrace*), void const*) /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_symbolizer_report.cpp:282:5
+    - __sanitizer::HandleDeadlySignal(void*, void*, unsigned int, void (*)(__sanitizer::SignalContext const&, void const*, __sanitizer::BufferedStackTrace*), void const*) /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_symbolizer_report.cpp:291:3
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

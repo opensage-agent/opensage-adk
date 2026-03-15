@@ -1,0 +1,94 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x5060000000b0 at pc 0x561b688fa898 bp 0x7ffefe8a4820 sp 0x7ffefe8a3fb0
+READ of size 6 at 0x5060000000b0 thread T0
+SCARINESS: 48 (6-byte-read-heap-use-after-free)
+    #0 0x561b688fa897 in printf_common(void*, char const*, __va_list_tag*) /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors_format.inc:563:9
+    #1 0x561b688fad94 in vsnprintf /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:1652:1
+    #2 0x561b68baf232 in dispatch_print_error /src/openexr/src/lib/OpenEXRCore/internal_structs.c:134:17
+    #3 0x561b68bdf217 in check_populate_type /src/openexr/src/lib/OpenEXRCore/parse_header.c
+    #4 0x561b68bdf217 in check_req_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1616:24
+    #5 0x561b68bdf217 in pull_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1688:10
+    #6 0x561b68bdf217 in internal_exr_parse_header /src/openexr/src/lib/OpenEXRCore/parse_header.c:2431:18
+    #7 0x561b68ba9b64 in exr_start_read /src/openexr/src/lib/OpenEXRCore/context.c:255:49
+    #8 0x561b689afe06 in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1534:10
+    #9 0x561b689afe06 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    #10 0x561b689ae29f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #11 0x561b68862de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x561b6884e055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x561b68853aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x561b6887ed92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f7e29f56082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #16 0x561b6884623d in _start (/out/openexr_exrcheck_fuzzer+0x16423d)
+
+DEDUP_TOKEN: printf_common(void*, char const*, __va_list_tag*)--___interceptor_vsnprintf--dispatch_print_error
+0x5060000000b0 is located 48 bytes inside of 57-byte region [0x506000000080,0x5060000000b9)
+freed by thread T0 here:
+    #0 0x561b6896e916 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x561b68c266c7 in attr_destroy /src/openexr/src/lib/OpenEXRCore/attributes.c:263:5
+    #2 0x561b68be019f in check_populate_type /src/openexr/src/lib/OpenEXRCore/parse_header.c:1427:9
+    #3 0x561b68be019f in check_req_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1616:24
+    #4 0x561b68be019f in pull_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1688:10
+    #5 0x561b68be019f in internal_exr_parse_header /src/openexr/src/lib/OpenEXRCore/parse_header.c:2431:18
+    #6 0x561b68ba9b64 in exr_start_read /src/openexr/src/lib/OpenEXRCore/context.c:255:49
+    #7 0x561b689afe06 in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1534:10
+    #8 0x561b689afe06 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    #9 0x561b689ae29f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #10 0x561b68862de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x561b6884e055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x561b68853aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x561b6887ed92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f7e29f56082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--attr_destroy--check_populate_type
+previously allocated by thread T0 here:
+    #0 0x561b6896ebaf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x561b68c2b5d6 in create_attr_block /src/openexr/src/lib/OpenEXRCore/attributes.c:697:22
+    #2 0x561b68c2b5d6 in exr_attr_list_add_static_name /src/openexr/src/lib/OpenEXRCore/attributes.c:1055:12
+    #3 0x561b68bdf1bd in check_populate_type /src/openexr/src/lib/OpenEXRCore/parse_header.c:1377:10
+    #4 0x561b68bdf1bd in check_req_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1616:24
+    #5 0x561b68bdf1bd in pull_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1688:10
+    #6 0x561b68bdf1bd in internal_exr_parse_header /src/openexr/src/lib/OpenEXRCore/parse_header.c:2431:18
+    #7 0x561b68ba9b64 in exr_start_read /src/openexr/src/lib/OpenEXRCore/context.c:255:49
+    #8 0x561b689afe06 in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1534:10
+    #9 0x561b689afe06 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    #10 0x561b689ae29f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #11 0x561b68862de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x561b6884e055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x561b68853aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x561b6887ed92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f7e29f56082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--create_attr_block--exr_attr_list_add_static_name
+SUMMARY: AddressSanitizer: heap-use-after-free /src/openexr/src/lib/OpenEXRCore/internal_structs.c:134:17 in dispatch_print_error
+Shadow bytes around the buggy address:
+  0x505ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x505ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x505fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x505fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x506000000000: fa fa fa fa 00 00 00 00 00 00 00 06 fa fa fa fa
+=>0x506000000080: fd fd fd fd fd fd[fd]fd fa fa fa fa 00 00 00 00
+  0x506000000100: 00 00 00 00 fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

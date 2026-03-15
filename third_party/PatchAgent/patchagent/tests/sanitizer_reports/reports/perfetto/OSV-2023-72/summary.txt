@@ -1,0 +1,37 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 4 at 0x503000025a00 thread T0
+    - Set /src/perfetto/src/trace_processor/db/column_storage.h:53:48
+    - SetAtIdx /src/perfetto/src/trace_processor/db/typed_column.h:139:24
+    - Set /src/perfetto/src/trace_processor/db/typed_column.h:87:5
+    - perfetto::trace_processor::TrackEventParser::ParseTrackDescriptor(protozero::ConstBytes) /src/perfetto/src/trace_processor/importers/proto/track_event_parser.cc:1542:29
+    - perfetto::trace_processor::ProtoTraceParser::ParseTracePacketImpl(long, perfetto::trace_processor::TimestampedTracePiece const&, perfetto::trace_processor::PacketSequenceStateGeneration*, perfetto::protos::pbzero::TracePacket_Decoder const&) /src/perfetto/src/trace_processor/importers/proto/proto_trace_parser.cc:120:17
+    - perfetto::trace_processor::ProtoTraceParser::ParseTracePacket(long, perfetto::trace_processor::TimestampedTracePiece) /src/perfetto/src/trace_processor/importers/proto/proto_trace_parser.cc:92:3
+    - MaybePushEvent /src/perfetto/src/trace_processor/trace_sorter.cc:211:14
+    - perfetto::trace_processor::TraceSorter::SortAndExtractEventsUntilPacket(unsigned long) /src/perfetto/src/trace_processor/trace_sorter.cc:149:7
+    - NotifyReadBufferEvent /src/perfetto/src/trace_processor/trace_sorter.h:191:5
+    - perfetto::trace_processor::ProtoTraceReader::ParseServiceEvent(long, protozero::ConstBytes) /src/perfetto/src/trace_processor/importers/proto/proto_trace_reader.cc:404:23
+    - perfetto::trace_processor::ProtoTraceReader::ParsePacket(perfetto::trace_processor::TraceBlobView) /src/perfetto/src/trace_processor/importers/proto/proto_trace_reader.cc:118:12
+    - operator() /src/perfetto/src/trace_processor/importers/proto/proto_trace_reader.cc:60:12
+    - perfetto::base::Status perfetto::trace_processor::ProtoTraceTokenizer::ParsePacket<perfetto::trace_processor::ProtoTraceReader::Parse(perfetto::trace_processor::TraceBlobView)::$_0>(perfetto::trace_processor::TraceBlobView, perfetto::trace_processor::ProtoTraceReader::Parse(perfetto::trace_processor::TraceBlobView)::$_0) /src/perfetto/src/trace_processor/importers/proto/proto_trace_tokenizer.h:168:12
+    - perfetto::base::Status perfetto::trace_processor::ProtoTraceTokenizer::ParseInternal<perfetto::trace_processor::ProtoTraceReader::Parse(perfetto::trace_processor::TraceBlobView)::$_0>(perfetto::trace_processor::TraceBlobView, perfetto::trace_processor::ProtoTraceReader::Parse(perfetto::trace_processor::TraceBlobView)::$_0) /src/perfetto/src/trace_processor/importers/proto/proto_trace_tokenizer.h:120:7
+    - Tokenize<(lambda at ../../src/perfetto/src/trace_processor/importers/proto/proto_trace_reader.cc:59:47)> /src/perfetto/src/trace_processor/importers/proto/proto_trace_tokenizer.h:105:12
+    - perfetto::trace_processor::ProtoTraceReader::Parse(perfetto::trace_processor::TraceBlobView) /src/perfetto/src/trace_processor/importers/proto/proto_trace_reader.cc:59:21
+    - perfetto::trace_processor::ForwardingTraceParser::Parse(perfetto::trace_processor::TraceBlobView) /src/perfetto/src/trace_processor/forwarding_trace_parser.cc:150:19
+    - perfetto::trace_processor::TraceProcessorStorageImpl::Parse(perfetto::trace_processor::TraceBlobView) /src/perfetto/src/trace_processor/trace_processor_storage_impl.cc:115:48
+    - perfetto::trace_processor::TraceProcessorStorage::Parse(std::__1::unique_ptr<unsigned char [], std::__1::default_delete<unsigned char []>>, unsigned long) /src/perfetto/src/trace_processor/trace_processor_storage.cc:36:10
+    - perfetto::trace_processor::FuzzTraceProcessor(unsigned char const*, unsigned long) /src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:30:36
+    - LLVMFuzzerTestOneInput /src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:42:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x503000025a00 is a wild pointer inside of access range of size 0x000000000004.
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

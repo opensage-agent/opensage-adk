@@ -1,0 +1,55 @@
+=================================================================
+==360433==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50b000000151 at pc 0x7ff3893b4616 bp 0x7ffe911bc6d0 sp 0x7ffe911bbe90
+READ of size 2147483647 at 0x50b000000151 thread T0
+    #0 0x7ff3893b4615 in __asan_memcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf6615) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55692abe615d in get_vlmeta_from_trailer /root/blosc/frame.c:1397:5
+    #2 0x55692abe5646 in frame_get_vlmetalayers /root/blosc/frame.c:1456:9
+    #3 0x55692abe7d20 in frame_to_schunk /root/blosc/frame.c:1686:8
+    #4 0x55692abd5a69 in blosc2_schunk_from_buffer /root/blosc/schunk.c:461:27
+    #5 0x55692abaaabd in LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_decompress_frame.c:23:27
+    #6 0x55692abab006 in main /root/tests/fuzz/standalone.c:32:7
+    #7 0x7ff388fb81c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x7ff388fb828a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x55692aba9624 in _start (/root/tests/fuzz/decompress_frame_fuzzer+0x11624) (BuildId: 745dab7ae69460e9b700cd29deed46b90a52068c)
+
+0x50b000000151 is located 0 bytes after 97-byte region [0x50b0000000f0,0x50b000000151)
+allocated by thread T0 here:
+    #0 0x7ff3893b67a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55692abaafd0 in main /root/tests/fuzz/standalone.c:28:28
+    #2 0x7ff388fb81c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #3 0x7ff388fb828a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #4 0x55692aba9624 in _start (/root/tests/fuzz/decompress_frame_fuzzer+0x11624) (BuildId: 745dab7ae69460e9b700cd29deed46b90a52068c)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/blosc/frame.c:1397:5 in get_vlmeta_from_trailer
+Shadow bytes around the buggy address:
+  0x50affffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50afffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50afffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50b000000000: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x50b000000080: 00 00 00 00 04 fa fa fa fa fa fa fa fa fa 00 00
+=>0x50b000000100: 00 00 00 00 00 00 00 00 00 00[01]fa fa fa fa fa
+  0x50b000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50b000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50b000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50b000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50b000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360433==ABORTING

@@ -1,0 +1,71 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x519000003150 thread T0
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - stack_copy /src/mruby/src/vm.c:101:3
+    - mrb_funcall_with_block /src/mruby/src/vm.c:535:9
+    - mrb_instance_new /src/mruby/src/class.c:1976:5
+    - mrb_funcall_with_block /src/mruby/src/vm.c:560:13
+    - mrb_make_exception /src/mruby/src/error.c:497:18
+    - mrb_f_raise /src/mruby/src/kernel.c:385:11
+    - mrb_vm_exec /src/mruby/src/vm.c:0:0
+    - mrb_vm_run /src/mruby/src/vm.c:1130:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6891:7
+    - FuzzRB(unsigned char const*, unsigned long) /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:33:6
+    - TestOneProtoInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:43:8
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:40:1
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x519000003150 is located 976 bytes inside of 1024-byte region [0x519000002d80,0x519000003180)
+freed by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - mrb_realloc_simple /src/mruby/src/gc.c:227:8
+    - stack_extend_alloc /src/mruby/src/vm.c:181:27
+    - mrb_stack_extend /src/mruby/src/vm.c:201:5
+    - mrb_funcall_with_block /src/mruby/src/vm.c:527:5
+    - mrb_instance_new /src/mruby/src/class.c:1976:5
+    - mrb_funcall_with_block /src/mruby/src/vm.c:560:13
+    - mrb_make_exception /src/mruby/src/error.c:497:18
+    - mrb_f_raise /src/mruby/src/kernel.c:385:11
+    - mrb_vm_exec /src/mruby/src/vm.c:0:0
+    - mrb_vm_run /src/mruby/src/vm.c:1130:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6891:7
+    - FuzzRB(unsigned char const*, unsigned long) /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:33:6
+    - TestOneProtoInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:43:8
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:40:1
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - mrb_realloc_simple /src/mruby/src/gc.c:227:8
+    - mrb_realloc /src/mruby/src/gc.c:241:8
+    - mrb_malloc /src/mruby/src/gc.c:257:10
+    - mrb_calloc /src/mruby/src/gc.c:275:9
+    - stack_init /src/mruby/src/vm.c:110:28
+    - mrb_vm_run /src/mruby/src/vm.c:1123:5
+    - mrb_init_core /src/mruby/src/init.c:50:3
+    - mrb_core_init_protect /src/mruby/src/error.c:584:5
+    - mrb_open_core /src/mruby/src/state.c:53:7
+    - mrb_open_allocf /src/mruby/src/state.c:92:20
+    - mrb_open /src/mruby/src/state.c:76:20
+    - FuzzRB(unsigned char const*, unsigned long) /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:17:19
+    - TestOneProtoInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:43:8
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:40:1
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

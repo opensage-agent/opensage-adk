@@ -1,0 +1,58 @@
+ALARM: working on the last Unit for -1 seconds
+       and the timeout value is 25 (use -timeout=N to change)
+==14== ERROR: libFuzzer: timeout after 18446744073709551615 seconds
+    #0 0x562289156e81 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    #1 0x56228905be18 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x56228903f127 in fuzzer::Fuzzer::AlarmCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:304:5
+    #3 0x7fd24252541f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 9a65bb469e45a1c6fbcffae5b82a2fd7a69eb479)
+    #4 0x562289696def in gs_point_transform /src/ghostpdl/./base/gsmatrix.c:289
+    #5 0x5622891a2fbd in clamp_pattern_bbox /src/ghostpdl/./base/gsptype1.c:576:13
+    #6 0x5622891a2fbd in compute_inst_matrix /src/ghostpdl/./base/gsptype1.c:757:16
+    #7 0x5622891a2fbd in gs_pattern1_make_pattern /src/ghostpdl/./base/gsptype1.c:262:12
+    #8 0x562289c01efe in pdfi_setpattern_type1 /src/ghostpdl/./pdf/pdf_pattern.c:519:12
+    #9 0x562289c01efe in pdfi_pattern_set /src/ghostpdl/./pdf/pdf_pattern.c:727:16
+    #10 0x562289bece50 in pdfi_setcolorN /src/ghostpdl/./pdf/pdf_colour.c:823:16
+    #11 0x562289bd37b8 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c
+    #12 0x562289bd1b2e in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2145:24
+    #13 0x562289bd0ec7 in pdfi_interpret_inner_content /src/ghostpdl/./pdf/pdf_int.c:1911:12
+    #14 0x562289bd04dc in pdfi_interpret_inner_content_stream /src/ghostpdl/./pdf/pdf_int.c:2015:12
+    #15 0x562289bd04dc in pdfi_run_context /src/ghostpdl/./pdf/pdf_int.c:1847:12
+    #16 0x562289c1e348 in pdfi_do_form /src/ghostpdl/./pdf/pdf_image.c:2575:16
+    #17 0x562289c1f32b in pdfi_do_image_or_form /src/ghostpdl/./pdf/pdf_image.c:2716:16
+    #18 0x562289c20243 in pdfi_Do /src/ghostpdl/./pdf/pdf_image.c:2793:12
+    #19 0x562289bd3ac3 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1491:24
+    #20 0x562289bd1b2e in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2145:24
+    #21 0x562289bd0ec7 in pdfi_interpret_inner_content /src/ghostpdl/./pdf/pdf_int.c:1911:12
+    #22 0x562289bd04dc in pdfi_interpret_inner_content_stream /src/ghostpdl/./pdf/pdf_int.c:2015:12
+    #23 0x562289bd04dc in pdfi_run_context /src/ghostpdl/./pdf/pdf_int.c:1847:12
+    #24 0x562289c1e348 in pdfi_do_form /src/ghostpdl/./pdf/pdf_image.c:2575:16
+    #25 0x562289c1f32b in pdfi_do_image_or_form /src/ghostpdl/./pdf/pdf_image.c:2716:16
+    #26 0x562289c424f7 in pdfi_annot_draw_AP /src/ghostpdl/./pdf/pdf_annot.c:295:12
+    #27 0x562289c4b93a in pdfi_annot_draw /src/ghostpdl/./pdf/pdf_annot.c:4064:16
+    #28 0x562289c3f037 in pdfi_annot_handle /src/ghostpdl/./pdf/pdf_annot.c
+    #29 0x562289c3f037 in pdfi_do_annotations /src/ghostpdl/./pdf/pdf_annot.c:4634:16
+    #30 0x562289c2f66f in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:176:13
+    #31 0x562289c2f66f in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:1029:12
+    #32 0x562289b8eeba in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:963:24
+    #33 0x562289a236b5 in do_call_operator /src/ghostpdl/./psi/interp.c:91:12
+    #34 0x562289a1d4c4 in interp /src/ghostpdl/./psi/interp.c:1772:40
+    #35 0x562289a1d4c4 in gs_call_interp /src/ghostpdl/./psi/interp.c:535:12
+    #36 0x562289a1d4c4 in gs_interpret /src/ghostpdl/./psi/interp.c:488:12
+    #37 0x5622891943f7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #38 0x5622891943f7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #39 0x5622891943f7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #40 0x562289d27f40 in run_string /src/ghostpdl/./psi/imainarg.c:1174:12
+    #41 0x562289d24800 in swproc /src/ghostpdl/./psi/imainarg.c:368:20
+    #42 0x562289d21982 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #43 0x562289d27cc8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:290:16
+    #44 0x56228918bfae in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #45 0x56228918c325 in LLVMFuzzerTestOneInput /src/gs_device_pxlmono_fuzzer.cc:18:2
+    #46 0x5622890406c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #47 0x56228902b935 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #48 0x5622890313cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #49 0x56228905c672 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #50 0x7fd242170082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #51 0x562289023b1d in _start (/out/gs_device_pxlmono_fuzzer+0x751b1d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::AlarmCallback()
+SUMMARY: libFuzzer: timeout

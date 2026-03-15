@@ -1,0 +1,75 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/shaderc:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce shaderc_fdp_fuzzer -runs=100.
++ FUZZER=shaderc_fdp_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer shaderc_fdp_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/shaderc_fdp_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 748749318
+/out/shaderc_fdp_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address (pc 0x556050ac7c89 bp 0x7fff0e7d8860 sp 0x7fff0e7d8860 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    #0 0x556050ac7c89 in glslang::HlslTokenStream::advanceToken() /src/shaderc/third_party/glslang/glslang/HLSL/hlslTokenStream.cpp:105:15
+    #1 0x5560506914c3 in glslang::HlslGrammar::acceptLiteral(glslang::TIntermTyped*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3661:5
+    #2 0x55605069cb67 in glslang::HlslGrammar::acceptPostfixExpression(glslang::TIntermTyped*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3404:16
+    #3 0x55605069c9c6 in glslang::HlslGrammar::acceptUnaryExpression(glslang::TIntermTyped*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3350:16
+    #4 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #5 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #6 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #7 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #8 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #9 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #10 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #11 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #12 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #13 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #14 0x55605069c547 in glslang::HlslGrammar::acceptBinaryExpression(glslang::TIntermTyped*&, glslang::PrecedenceLevel) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3257:11
+    #15 0x5560506963f5 in glslang::HlslGrammar::acceptConditionalExpression(glslang::TIntermTyped*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3204:11
+    #16 0x556050692e9d in glslang::HlslGrammar::acceptAssignmentExpression(glslang::TIntermTyped*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3158:11
+    #17 0x556050693429 in glslang::HlslGrammar::acceptExpression(glslang::TIntermTyped*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3052:11
+    #18 0x55605069dbab in glslang::HlslGrammar::acceptSimpleStatement(TIntermNode*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3683:9
+    #19 0x55605069de02 in glslang::HlslGrammar::acceptStatement(TIntermNode*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3803:16
+    #20 0x55605069c21f in glslang::HlslGrammar::acceptCompoundStatement(TIntermNode*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3710:12
+    #21 0x55605069ddc7 in acceptScopedCompoundStatement /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3743:19
+    #22 0x55605069ddc7 in glslang::HlslGrammar::acceptStatement(TIntermNode*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3773:16
+    #23 0x55605069c21f in glslang::HlslGrammar::acceptCompoundStatement(TIntermNode*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:3710:12
+    #24 0x55605069b544 in glslang::HlslGrammar::acceptFunctionBody(glslang::TFunctionDeclarator&, TIntermNode*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:2988:11
+    #25 0x5560506905dd in acceptFunctionDefinition /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:2974:16
+    #26 0x5560506905dd in glslang::HlslGrammar::acceptDeclaration(TIntermNode*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:434:24
+    #27 0x55605068f5c7 in glslang::HlslGrammar::acceptDeclarationList(TIntermNode*&) /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:165:15
+    #28 0x55605068efcf in glslang::HlslGrammar::acceptCompilationUnit() /src/shaderc/third_party/glslang/glslang/HLSL/hlslGrammar.cpp:130:11
+    #29 0x55605063f663 in glslang::HlslParseContext::parseShaderStrings(glslang::TPpContext&, glslang::TInputScanner&, bool) /src/shaderc/third_party/glslang/glslang/HLSL/hlslParseHelper.cpp:132:18
+    #30 0x5560505b36ce in operator() /src/shaderc/third_party/glslang/glslang/MachineIndependent/ShaderLang.cpp:1233:28
+    #31 0x5560505b36ce in ProcessDeferred<(anonymous namespace)::DoFullParse> /src/shaderc/third_party/glslang/glslang/MachineIndependent/ShaderLang.cpp:1008:20
+    #32 0x5560505b36ce in (anonymous namespace)::CompileDeferred(TCompiler*, char const* const*, int, int const*, char const* const*, char const*, EShOptimizationLevel, TBuiltInResource const*, int, EProfile, bool, int, bool, EShMessages, glslang::TIntermediate&, glslang::TShader::Includer&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, glslang::TEnvironment*, bool) /src/shaderc/third_party/glslang/glslang/MachineIndependent/ShaderLang.cpp:1321:12
+    #33 0x5560505b533b in glslang::TShader::parse(TBuiltInResource const*, int, EProfile, bool, bool, EShMessages, glslang::TShader::Includer&) /src/shaderc/third_party/glslang/glslang/MachineIndependent/ShaderLang.cpp:1893:12
+    #34 0x556050364de5 in shaderc_util::Compiler::Compile(shaderc_util::string_piece const&, EShLanguage, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, char const*, std::__1::function<EShLanguage (std::__1::basic_ostream<char, std::__1::char_traits<char>>*, shaderc_util::string_piece const&)> const&, shaderc_util::CountingIncluder&, shaderc_util::Compiler::OutputType, std::__1::basic_ostream<char, std::__1::char_traits<char>>*, unsigned long*, unsigned long*) const /src/shaderc/libshaderc_util/src/compiler.cc:320:25
+    #35 0x55605034268c in (anonymous namespace)::CompileToSpecifiedOutputType(shaderc_compiler*, char const*, unsigned long, shaderc_shader_kind, char const*, char const*, shaderc_compile_options*, shaderc_util::Compiler::OutputType) /src/shaderc/libshaderc/src/shaderc.cc:631:40
+    #36 0x5560503422a6 in shaderc_compile_into_spv /src/shaderc/libshaderc/src/shaderc.cc:677:10
+    #37 0x55605033fa55 in CompileGlslToSpv /src/shaderc/libshaderc/include/shaderc/shaderc.hpp:428:55
+    #38 0x55605033fa55 in CompileGlslToSpv /src/shaderc/libshaderc/include/shaderc/shaderc.hpp:443:12
+    #39 0x55605033fa55 in shaderc::Compiler::CompileGlslToSpv(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, shaderc_shader_kind, char const*, shaderc::CompileOptions const&) const /src/shaderc/libshaderc/include/shaderc/shaderc.hpp:468:12
+    #40 0x55605033f0e4 in LLVMFuzzerTestOneInput /src/shaderc_fdp_fuzzer.cc:124:16
+    #41 0x5560502a0da0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #42 0x55605028c015 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #43 0x556050291aaf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #44 0x5560502bcd52 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #45 0x7f5e78b61082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #46 0x5560502841fd in _start (/out/shaderc_fdp_fuzzer+0xc61fd)
+
+DEDUP_TOKEN: glslang::HlslTokenStream::advanceToken()--glslang::HlslGrammar::acceptLiteral(glslang::TIntermTyped*&)--glslang::HlslGrammar::acceptPostfixExpression(glslang::TIntermTyped*&)
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/shaderc/third_party/glslang/glslang/HLSL/hlslTokenStream.cpp:105:15 in glslang::HlslTokenStream::advanceToken()
+==14==ABORTING

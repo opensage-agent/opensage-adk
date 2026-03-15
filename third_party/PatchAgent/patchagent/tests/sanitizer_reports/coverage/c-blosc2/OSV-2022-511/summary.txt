@@ -1,0 +1,25 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - zfp_getcell /src/c-blosc2/plugins/codecs/zfp/blosc2-zfp.c:696:113
+    - blosc_d /src/c-blosc2/blosc/blosc2.c:1716:20
+    - _blosc_getitem /src/c-blosc2/blosc/blosc2.c:2890:18
+    - blosc2_getitem_ctx /src/c-blosc2/blosc/blosc2.c:2963:12
+    - blosc2_getitem /src/c-blosc2/blosc/blosc2.c:2922:12
+    - get_coffset /src/c-blosc2/blosc/frame.c:1879:12
+    - frame_get_lazychunk /src/c-blosc2/blosc/frame.c:2093:8
+    - frame_decompress_chunk /src/c-blosc2/blosc/frame.c:3398:8
+    - blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:1001:17
+    - LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:37:15
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

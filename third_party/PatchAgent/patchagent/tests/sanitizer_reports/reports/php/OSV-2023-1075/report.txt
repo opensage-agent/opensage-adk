@@ -1,0 +1,39 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/php:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/php/OSV-2023-1075/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce php-fuzz-tracing-jit -runs=100.
++ FUZZER=php-fuzz-tracing-jit
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer php-fuzz-tracing-jit -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/php-fuzz-tracing-jit -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 705180013
+INFO: Loaded 2 modules   (183463 inline 8-bit counters): 146972 [0x563d1e3b9a60, 0x563d1e3dd87c), 36491 [0x7feb27633380, 0x7feb2763c20b), 
+INFO: Loaded 2 PC tables (183463 PCs): 146972 [0x563d1e3dd880,0x563d1e61ba40), 36491 [0x7feb2763c210,0x7feb276caac0), 
+/out/php-fuzz-tracing-jit: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x563d1d898f1f bp 0x7ffe91f9dee0 sp 0x7ffe91f9de50 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+llvm-symbolizer: [0;1;31merror: [0m'/dev/zero (deleted)': No such file or directory
+    #0 0x563d1d898f1f in zend_gc_delref /src/php-src/Zend/zend_types.h:1342:2
+    #1 0x563d1d898f1f in zval_delref_p /src/php-src/Zend/zend_types.h:1378:9
+    #2 0x563d1d898f1f in zval_ptr_dtor_nogc /src/php-src/Zend/zend_variables.h:35:35
+    #3 0x563d1d898f1f in cleanup_live_vars /src/php-src/Zend/zend_execute.c:4495:6
+    #4 0x563d1da6e761 in zend_dispatch_try_catch_finally_helper_SPEC /src/php-src/Zend/zend_vm_execute.h:3192:2
+    #5 0x563d0c800037  (/dev/zero (deleted)+0x8000037)
+
+DEDUP_TOKEN: zend_gc_delref--zval_delref_p--zval_ptr_dtor_nogc
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/php-src/Zend/zend_types.h:1342:2 in zend_gc_delref
+==14==ABORTING

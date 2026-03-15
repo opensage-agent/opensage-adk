@@ -1,0 +1,69 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f3f5f99fc20 at pc 0x55fe1ff591fa bp 0x7ffe1a070eb0 sp 0x7ffe1a070650
+WRITE of size 957 at 0x7f3f5f99fc20 thread T0
+SCARINESS: 60 (multi-byte-write-stack-buffer-overflow)
+    #0 0x55fe1ff591f9 in strcat /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:508:7
+    #1 0x55fe20061355 in prvTidystrrep /src/tidy-html5/src/tmbstr.c
+    #2 0x55fe1ffbfefe in tidyMessageCreateInitV /src/tidy-html5/src/messageobj.c:135:5
+    #3 0x55fe1ffc14d7 in prvTidytidyMessageCreateWithNode /src/tidy-html5/src/messageobj.c:270:14
+    #4 0x55fe2004d63b in formatAttributeReport /src/tidy-html5/src/message.c
+    #5 0x55fe20048db2 in vReport /src/tidy-html5/src/message.c:916:23
+    #6 0x55fe20048b6b in prvTidyReport /src/tidy-html5/src/message.c:946:5
+    #7 0x55fe20012b89 in ParseAttrs /src/tidy-html5/src/lexer.c
+    #8 0x55fe20012b89 in GetTokenFromStream /src/tidy-html5/src/lexer.c:2894:34
+    #9 0x55fe20012b89 in prvTidyGetToken /src/tidy-html5/src/lexer.c:2501:12
+    #10 0x55fe1fff3954 in prvTidyParseDocument /src/tidy-html5/src/parser.c:6249:20
+    #11 0x55fe1ffba933 in prvTidyDocParseStream /src/tidy-html5/src/tidylib.c:1509:9
+    #12 0x55fe1ffb75fb in tidyDocParseBuffer /src/tidy-html5/src/tidylib.c:1203:18
+    #13 0x55fe1ffb75fb in tidyParseBuffer /src/tidy-html5/src/tidylib.c:1122:12
+    #14 0x55fe1ffb1841 in run_tidy_parser /src/tidy_fuzzer.c:33:9
+    #15 0x55fe1ffb1a12 in LLVMFuzzerTestOneInput /src/tidy_fuzzer.c:50:5
+    #16 0x55fe1fe66330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x55fe1fe515a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x55fe1fe5703f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x55fe1fe822e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7f3f60173082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #21 0x55fe1fe4978d in _start (/out/tidy_fuzzer+0x12478d)
+
+DEDUP_TOKEN: __interceptor_strcat--prvTidystrrep--tidyMessageCreateInitV
+Address 0x7f3f5f99fc20 is located in stack of thread T0 at offset 1056 in frame
+    #0 0x55fe2006119f in prvTidystrrep /src/tidy-html5/src/tmbstr.c:251
+
+DEDUP_TOKEN: prvTidystrrep
+  This frame has 1 object(s):
+    [32, 1056) 'buf' (line 257) <== Memory access at offset 1056 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/tidy-html5/src/tmbstr.c in prvTidystrrep
+Shadow bytes around the buggy address:
+  0x7f3f5f99f980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f3f5f99fa00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f3f5f99fa80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f3f5f99fb00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f3f5f99fb80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7f3f5f99fc00: 00 00 00 00[f3]f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3
+  0x7f3f5f99fc80: f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f3f5f99fd00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f3f5f99fd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f3f5f99fe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f3f5f99fe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

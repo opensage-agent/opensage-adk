@@ -1,0 +1,233 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/qpdf:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/qpdf/OSV-2020-2245/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce qpdf_fuzzer -runs=100.
++ FUZZER=qpdf_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer qpdf_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/qpdf_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=pdf.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2531604259
+INFO: Loaded 1 modules   (45870 inline 8-bit counters): 45870 [0x55b4a24427e0, 0x55b4a244db0e), 
+INFO: Loaded 1 PC tables (45870 PCs): 45870 [0x55b4a244db10,0x55b4a2500df0), 
+/out/qpdf_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+WARNING: fuzz input: can't find PDF header
+WARNING: fuzz input: file is damaged
+WARNING: fuzz input (offset 78063): xref not found
+WARNING: fuzz input: Attempting to reconstruct cross-reference table
+WARNING: fuzz input, object 22 0 at offset 34424 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning null for attempted key retrieval
+WARNING: fuzz input, object 22 0 at offset 34424 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request
+WARNING: fuzz input, object 22 0 at offset 34424 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning null for attempted key retrieval
+WARNING: fuzz input (object 4 0, offset 36604): unknown token while reading object; treating as string
+WARNING: fuzz input (object 5 0, offset 4453): expected endstream
+WARNING: fuzz input (object 5 0, offset 3769): attempting to recover stream length
+WARNING: fuzz input (object 5 0, offset 3769): recovered stream length: 403
+WARNING: fuzz input (object 34 0, offset 35870): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 53 0, offset 14474): /Length key in stream dictionary is not an integer
+WARNING: fuzz input (object 53 0, offset 14526): attempting to recover stream length
+WARNING: fuzz input (object 53 0, offset 14526): recovered stream length: 69
+WARNING: fuzz input (object 73 0, offset 31090): unknown token while reading object; treating as string
+WARNING: fuzz input (object 73 0, offset 31050): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 73 0, offset 31050): expected dictionary key but found non-name object; inserting key /QPDFFake2
+WARNING: fuzz input (object 81 0, offset 32041): expected endobj
+WARNING: fuzz input (object 82 0, offset 17979): unknown token while reading object; treating as string
+WARNING: fuzz input (object 82 0, offset 17947): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 82 0, offset 18005): expected endobj
+WARNING: fuzz input (object 94 0, offset 33577): unexpected dictionary close token
+WARNING: fuzz input (object 94 0, offset 33581): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33594): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33745): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33758): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33806): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33814): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33818): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33857): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33862): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33865): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33865): too many errors; giving up on reading object
+WARNING: fuzz input (object 94 0, offset 33867): expected endobj
+WARNING: fuzz input (object 111 0, offset 23820): expected endstream
+WARNING: fuzz input (object 111 0, offset 23738): attempting to recover stream length
+WARNING: fuzz input (object 111 0, offset 23738): recovered stream length: 166
+WARNING: fuzz input (object 125 0, offset 11873): expected endstream
+WARNING: fuzz input (object 125 0, offset 11790): attempting to recover stream length
+WARNING: fuzz input (object 125 0, offset 11790): recovered stream length: 10
+WARNING: fuzz input (object 134 0, offset 25007): /Length key in stream dictionary is not an integer
+WARNING: fuzz input (object 134 0, offset 25141): attempting to recover stream length
+WARNING: fuzz input (object 134 0, offset 25141): recovered stream length: 84
+WARNING: fuzz input (object 141 0, offset 26019): expected endstream
+WARNING: fuzz input (object 141 0, offset 25935): attempting to recover stream length
+WARNING: fuzz input (object 141 0, offset 25935): recovered stream length: 94
+WARNING: fuzz input (object 146 0, offset 26598): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 158 0, offset 8218): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8349): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8362): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8519): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8532): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8563): invalid character (") in hexstring
+WARNING: fuzz input (object 158 0, offset 8570): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8720): unexpected >
+WARNING: fuzz input (object 158 0, offset 8538): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 158 0, offset 8538): expected dictionary key but found non-name object; inserting key /QPDFFake2
+WARNING: fuzz input (object 158 0, offset 8827): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8840): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8992): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9005): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9155): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9168): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9339): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9352): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9542): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9555): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9667): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9675): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9679): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9687): unexpected >
+WARNING: fuzz input (object 158 0, offset 9688): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9741): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9741): too many errors; giving up on reading object
+WARNING: fuzz input (object 158 0, offset 9744): expected endobj
+WARNING: fuzz input (object 161 0, offset 8563): invalid character (") in hexstring
+WARNING: fuzz input (object 161 0, offset 8570): unknown token while reading object; treating as string
+WARNING: fuzz input (object 161 0, offset 8720): unexpected >
+WARNING: fuzz input (object 161 0, offset 8538): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 161 0, offset 8538): expected dictionary key but found non-name object; inserting key /QPDFFake2
+WARNING: fuzz input (object 167 0, offset 21524): unknown token while reading object; treating as string
+WARNING: fuzz input (object 167 0, offset 21548): treating unexpected array close token as null
+WARNING: fuzz input (object 167 0, offset 21384): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 171 0, offset 34014): expected endobj
+WARNING: fuzz input (object 173 0, offset 7465): /Length key in stream dictionary is not an integer
+WARNING: fuzz input (object 173 0, offset 7539): attempting to recover stream length
+WARNING: fuzz input (object 173 0, offset 7539): recovered stream length: 144
+WARNING: fuzz input (offset 34684): error decoding stream data for object 23 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 34684): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 22947): error decoding stream data for object 104 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 22947): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 36470): error decoding stream data for object 2 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 36470): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 33175): error decoding stream data for object 90 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 33175): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 33814): error decoding stream data for object 169 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 33814): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 32913): error decoding stream data for object 88 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 32913): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 3769): error decoding stream data for object 5 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 3769): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 34323): error decoding stream data for object 20 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 34323): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 22688): error decoding stream data for object 102 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 22688): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 35045): error decoding stream data for object 26 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 35045): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 23214): error decoding stream data for object 106 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 23214): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 35406): error decoding stream data for object 29 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 35406): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 23474): error decoding stream data for object 108 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 23474): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 35768): error decoding stream data for object 32 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 35768): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 23738): error decoding stream data for object 110 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 23738): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 36068): error decoding stream data for object 35 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 36068): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 11971): error decoding stream data for object 112 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 11971): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 12716): error decoding stream data for object 38 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 12716): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 13078): error decoding stream data for object 41 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 13078): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 10732): error decoding stream data for object 116 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 10732): stream will be re-processed without filtering to avoid data loss
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5060000b78aa at pc 0x55b4a20072f3 bp 0x7ffd1042b050 sp 0x7ffd1042b048
+[1m[0m[1m[34mWRITE of size 1 at 0x5060000b78aa thread T0[1m[0m
+SCARINESS: 41 (1-byte-write-heap-buffer-overflow-far-from-bounds)
+    #0 0x55b4a20072f2 in Pl_ASCII85Decoder::write(unsigned char*, unsigned long) /src/qpdf/libqpdf/Pl_ASCII85Decoder.cc:85:32
+    #1 0x55b4a20066ef in Pl_AES_PDF::flush(bool) /src/qpdf/libqpdf/Pl_AES_PDF.cc:263:16
+    #2 0x55b4a2006b17 in Pl_AES_PDF::finish() /src/qpdf/libqpdf/Pl_AES_PDF.cc
+    #3 0x55b4a1e80fbf in QPDF::pipeStreamData(PointerHolder<QPDF::EncryptionParameters>, PointerHolder<InputSource>, QPDF&, int, int, long long, unsigned long, QPDFObjectHandle, bool, Pipeline*, bool, bool) /src/qpdf/libqpdf/QPDF.cc:2718:23
+    #4 0x55b4a1e81a32 in QPDF::pipeStreamData(int, int, long long, unsigned long, QPDFObjectHandle, Pipeline*, bool, bool) /src/qpdf/libqpdf/QPDF.cc:2738:12
+    #5 0x55b4a1f71ef5 in pipeStreamData /src/qpdf/include/qpdf/QPDF.hh:670:19
+    #6 0x55b4a1f71ef5 in QPDF_Stream::pipeStreamData(Pipeline*, unsigned long, qpdf_stream_decode_level_e, bool, bool) /src/qpdf/libqpdf/QPDF_Stream.cc:664:8
+    #7 0x55b4a1f37ccc in QPDFWriter::unparseObject(QPDFObjectHandle, int, unsigned int, unsigned long, bool) /src/qpdf/libqpdf/QPDFWriter.cc:1782:24
+    #8 0x55b4a1f4839f in unparseObject /src/qpdf/libqpdf/QPDFWriter.cc:1436:5
+    #9 0x55b4a1f4839f in QPDFWriter::writeObject(QPDFObjectHandle, int) /src/qpdf/libqpdf/QPDFWriter.cc:2103:2
+    #10 0x55b4a1f565b8 in QPDFWriter::writeStandard() /src/qpdf/libqpdf/QPDFWriter.cc:3555:2
+    #11 0x55b4a1f4f435 in QPDFWriter::write() /src/qpdf/libqpdf/QPDFWriter.cc:2686:2
+    #12 0x55b4a1e40488 in FuzzHelper::doWrite(PointerHolder<QPDFWriter>) /src/qpdf/fuzz/qpdf_fuzzer.cc:72:12
+    #13 0x55b4a1e409c8 in FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:90:5
+    #14 0x55b4a1e43c6b in doChecks /src/qpdf/fuzz/qpdf_fuzzer.cc:179:5
+    #15 0x55b4a1e43c6b in FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:195:9
+    #16 0x55b4a1e43f7c in LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:210:7
+    #17 0x55b4a1cf43d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x55b4a1cdf645 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x55b4a1ce50df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x55b4a1d10382 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7f19bea80082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #22 0x55b4a1cd782d in _start (/out/qpdf_fuzzer+0x18682d)
+
+DEDUP_TOKEN: Pl_ASCII85Decoder::write(unsigned char*, unsigned long)--Pl_AES_PDF::flush(bool)--Pl_AES_PDF::finish()
+[1m[32m0x5060000b78aa is located 10 bytes after 64-byte region [0x5060000b7860,0x5060000b78a0)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55b4a1e3d56d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x55b4a1f708fd in QPDF_Stream::pipeStreamData(Pipeline*, unsigned long, qpdf_stream_decode_level_e, bool, bool) /src/qpdf/libqpdf/QPDF_Stream.cc:578:14
+    #2 0x55b4a1f37ccc in QPDFWriter::unparseObject(QPDFObjectHandle, int, unsigned int, unsigned long, bool) /src/qpdf/libqpdf/QPDFWriter.cc:1782:24
+    #3 0x55b4a1f4839f in unparseObject /src/qpdf/libqpdf/QPDFWriter.cc:1436:5
+    #4 0x55b4a1f4839f in QPDFWriter::writeObject(QPDFObjectHandle, int) /src/qpdf/libqpdf/QPDFWriter.cc:2103:2
+    #5 0x55b4a1f565b8 in QPDFWriter::writeStandard() /src/qpdf/libqpdf/QPDFWriter.cc:3555:2
+    #6 0x55b4a1f4f435 in QPDFWriter::write() /src/qpdf/libqpdf/QPDFWriter.cc:2686:2
+    #7 0x55b4a1e40488 in FuzzHelper::doWrite(PointerHolder<QPDFWriter>) /src/qpdf/fuzz/qpdf_fuzzer.cc:72:12
+    #8 0x55b4a1e409c8 in FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:90:5
+    #9 0x55b4a1e43c6b in doChecks /src/qpdf/fuzz/qpdf_fuzzer.cc:179:5
+    #10 0x55b4a1e43c6b in FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:195:9
+    #11 0x55b4a1e43f7c in LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:210:7
+    #12 0x55b4a1cf43d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x55b4a1cdf645 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x55b4a1ce50df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x55b4a1d10382 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7f19bea80082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator new(unsigned long)--QPDF_Stream::pipeStreamData(Pipeline*, unsigned long, qpdf_stream_decode_level_e, bool, bool)--QPDFWriter::unparseObject(QPDFObjectHandle, int, unsigned int, unsigned long, bool)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/qpdf/libqpdf/Pl_ASCII85Decoder.cc:85:32 in Pl_ASCII85Decoder::write(unsigned char*, unsigned long)
+Shadow bytes around the buggy address:
+  0x5060000b7600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5060000b7680: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x5060000b7700: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x5060000b7780: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5060000b7800: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x5060000b7880: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x5060000b7900: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5060000b7980: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5060000b7a00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5060000b7a80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5060000b7b00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==18==ABORTING

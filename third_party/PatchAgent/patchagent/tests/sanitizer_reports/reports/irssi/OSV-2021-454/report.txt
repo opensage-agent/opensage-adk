@@ -1,0 +1,96 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/irssi:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/irssi/OSV-2021-454/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce server-fuzz -runs=100.
++ FUZZER=server-fuzz
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer server-fuzz -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/server-fuzz -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=server-fuzz.dict < /dev/null
+Dictionary: 143 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3032749540
+INFO: Loaded 1 modules   (41760 inline 8-bit counters): 41760 [0x5628b867b9e0, 0x5628b8685d00), 
+INFO: Loaded 1 PC tables (41760 PCs): 41760 [0x5628b8685d00,0x5628b8728f00), 
+/out/server-fuzz: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000bd6d8 at pc 0x5628b8061ef2 bp 0x7ffc94673e90 sp 0x7ffc94673e88
+[1m[0m[1m[34mREAD of size 8 at 0x5020000bd6d8 thread T0[1m[0m
+SCARINESS: 23 (8-byte-read-heap-buffer-overflow)
+    #0 0x5628b8061ef1 in irc_parse_message_tags /work/Build/../../src/irssi/src/irc/core/irc.c:437:16
+    #1 0x5628b8062309 in irc_server_event_tags /work/Build/../../src/irssi/src/irc/core/irc.c:453:15
+    #2 0x5628b7fd2944 in signal_emit_real /work/Build/../../src/irssi/src/core/signals.c:242:3
+    #3 0x5628b7fd3061 in signal_emit_id /work/Build/../../src/irssi/src/core/signals.c:304:3
+    #4 0x5628b80629dd in irc_parse_incoming_line /work/Build/../../src/irssi/src/irc/core/irc.c:524:3
+    #5 0x5628b7fd2944 in signal_emit_real /work/Build/../../src/irssi/src/core/signals.c:242:3
+    #6 0x5628b7fd25ce in signal_emit /work/Build/../../src/irssi/src/core/signals.c:286:3
+    #7 0x5628b7fa19ef in LLVMFuzzerTestOneInput /work/Build/../../src/irssi/src/fe-fuzz/server.c:185:3
+    #8 0x5628b7e55ac0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x5628b7e40d35 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x5628b7e467cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x5628b7e71a72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7fd8967b3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x5628b7e38f1d in _start (/out/server-fuzz+0x213f1d)
+
+DEDUP_TOKEN: irc_parse_message_tags--irc_server_event_tags--signal_emit_real
+[1m[32m0x5020000bd6d8 is located 0 bytes after 8-byte region [0x5020000bd6d0,0x5020000bd6d8)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x5628b7f6188f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5628b8111600 in g_malloc /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gmem.c:99:13
+    #2 0x5628b8111600 in g_malloc_n /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gmem.c:340:10
+    #3 0x5628b814c9e8 in g_strsplit /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gstrfuncs.c:2364:15
+    #4 0x5628b8061bfc in irc_parse_message_tags /work/Build/../../src/irssi/src/irc/core/irc.c:436:8
+    #5 0x5628b8062309 in irc_server_event_tags /work/Build/../../src/irssi/src/irc/core/irc.c:453:15
+    #6 0x5628b7fd2944 in signal_emit_real /work/Build/../../src/irssi/src/core/signals.c:242:3
+    #7 0x5628b7fd3061 in signal_emit_id /work/Build/../../src/irssi/src/core/signals.c:304:3
+    #8 0x5628b80629dd in irc_parse_incoming_line /work/Build/../../src/irssi/src/irc/core/irc.c:524:3
+    #9 0x5628b7fd2944 in signal_emit_real /work/Build/../../src/irssi/src/core/signals.c:242:3
+    #10 0x5628b7fd25ce in signal_emit /work/Build/../../src/irssi/src/core/signals.c:286:3
+    #11 0x5628b7fa19ef in LLVMFuzzerTestOneInput /work/Build/../../src/irssi/src/fe-fuzz/server.c:185:3
+    #12 0x5628b7e55ac0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x5628b7e40d35 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x5628b7e467cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x5628b7e71a72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7fd8967b3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--g_malloc--g_malloc_n
+SUMMARY: AddressSanitizer: heap-buffer-overflow /work/Build/../../src/irssi/src/irc/core/irc.c:437:16 in irc_parse_message_tags
+Shadow bytes around the buggy address:
+  0x5020000bd400: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m03[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x5020000bd480: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x5020000bd500: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m02[1m[0m
+  0x5020000bd580: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m07[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m07[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m01[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m03[1m[0m [1m[31mfa[1m[0m
+  0x5020000bd600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m03[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m
+=>0x5020000bd680: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m01[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5020000bd700: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5020000bd780: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5020000bd800: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5020000bd880: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x5020000bd900: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

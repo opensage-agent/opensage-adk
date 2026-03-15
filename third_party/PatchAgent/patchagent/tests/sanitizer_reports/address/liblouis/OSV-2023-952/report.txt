@@ -1,0 +1,69 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51d000001288 at pc 0x5624ef16b4e3 bp 0x7ffda0fb0190 sp 0x7ffda0faf950
+READ of size 10 at 0x51d000001288 thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x5624ef16b4e2 in __asan_memmove /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:71:3
+    #1 0x5624ef1e0cc4 in back_passDoAction /src/liblouis/liblouis/lou_backTranslateString.c:1565:5
+    #2 0x5624ef1da41e in backTranslateString /src/liblouis/liblouis/lou_backTranslateString.c:1260:5
+    #3 0x5624ef1da41e in _lou_backTranslate /src/liblouis/liblouis/lou_backTranslateString.c:255:9
+    #4 0x5624ef1d679f in lou_backTranslate /src/liblouis/liblouis/lou_backTranslateString.c:153:9
+    #5 0x5624ef1d679f in lou_backTranslateString /src/liblouis/liblouis/lou_backTranslateString.c:145:9
+    #6 0x5624ef1acaa6 in LLVMFuzzerTestOneInput /src/liblouis/tests/fuzzing/fuzz_backtranslate.c:110:3
+    #7 0x5624ef061300 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5624ef04c575 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5624ef05200f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5624ef07d2b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f5845007082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x5624ef04475d in _start (/out/fuzz_backtranslate+0x5b75d)
+
+DEDUP_TOKEN: __asan_memmove--back_passDoAction--backTranslateString
+0x51d000001288 is located 0 bytes after 2056-byte region [0x51d000000a80,0x51d000001288)
+allocated by thread T0 here:
+    #0 0x5624ef16d0cf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5624ef1b3be6 in _lou_allocMem /src/liblouis/liblouis/compileTranslationTable.c:5274:21
+    #2 0x5624ef1d6c41 in allocStringBuffer /src/liblouis/liblouis/lou_backTranslateString.c:56:9
+    #3 0x5624ef1d6c41 in getStringBuffer /src/liblouis/liblouis/lou_backTranslateString.c:79:35
+    #4 0x5624ef1d6c41 in _lou_backTranslate /src/liblouis/liblouis/lou_backTranslateString.c:204:9
+    #5 0x5624ef1d679f in lou_backTranslate /src/liblouis/liblouis/lou_backTranslateString.c:153:9
+    #6 0x5624ef1d679f in lou_backTranslateString /src/liblouis/liblouis/lou_backTranslateString.c:145:9
+    #7 0x5624ef1acaa6 in LLVMFuzzerTestOneInput /src/liblouis/tests/fuzzing/fuzz_backtranslate.c:110:3
+    #8 0x5624ef061300 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x5624ef04c575 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x5624ef05200f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x5624ef07d2b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f5845007082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--_lou_allocMem--allocStringBuffer
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/liblouis/liblouis/lou_backTranslateString.c:1565:5 in back_passDoAction
+Shadow bytes around the buggy address:
+  0x51d000001000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000001080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000001100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000001180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000001200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51d000001280: 00[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000001300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000001380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000001400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000001480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000001500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

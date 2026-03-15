@@ -1,0 +1,63 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+WRITE of size 8 at 0x50f000b79708 thread T0
+    - list_del /src/quickjs/list.h:75:16
+    - gc_decref /src/quickjs/quickjs.c:5765:13
+    - JS_RunGC /src/quickjs/quickjs.c:5863:5
+    - JS_FreeRuntime /src/quickjs/quickjs.c:1957:5
+    - LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_eval.c:47:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x50f000b79708 is located 8 bytes inside of 168-byte region [0x50f000b79700,0x50f000b797a8)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - js_free_rt /src/quickjs/quickjs.c:1321:5
+    - js_free /src/quickjs/quickjs.c:1376:5
+    - async_func_init /src/quickjs/quickjs.c:18909:9
+    - js_generator_function_call /src/quickjs/quickjs.c:19161:21
+    - JS_CallInternal /src/quickjs/quickjs.c:16231:16
+    - JS_CallInternal /src/quickjs/quickjs.c:16638:27
+    - JS_CallFree /src/quickjs/quickjs.c:18717:19
+    - JS_EvalFunctionInternal /src/quickjs/quickjs.c:34401:19
+    - __JS_EvalInternal /src/quickjs/quickjs.c:34536:19
+    - JS_EvalInternal /src/quickjs/quickjs.c:34554:12
+    - JS_EvalThis /src/quickjs/quickjs.c:34585:11
+    - JS_Eval /src/quickjs/quickjs.c:34593:12
+    - LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_eval.c:38:19
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - js_def_malloc /src/quickjs/quickjs.c:1729:11
+    - js_malloc_rt /src/quickjs/quickjs.c:1316:12
+    - js_mallocz_rt /src/quickjs/quickjs.c:1337:11
+    - js_mallocz /src/quickjs/quickjs.c:1366:11
+    - async_func_init /src/quickjs/quickjs.c:18893:9
+    - js_generator_function_call /src/quickjs/quickjs.c:19161:21
+    - JS_CallInternal /src/quickjs/quickjs.c:16231:16
+    - JS_CallInternal /src/quickjs/quickjs.c:16638:27
+    - JS_CallFree /src/quickjs/quickjs.c:18717:19
+    - JS_EvalFunctionInternal /src/quickjs/quickjs.c:34401:19
+    - __JS_EvalInternal /src/quickjs/quickjs.c:34536:19
+    - JS_EvalInternal /src/quickjs/quickjs.c:34554:12
+    - JS_EvalThis /src/quickjs/quickjs.c:34585:11
+    - JS_Eval /src/quickjs/quickjs.c:34593:12
+    - LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_eval.c:38:19
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

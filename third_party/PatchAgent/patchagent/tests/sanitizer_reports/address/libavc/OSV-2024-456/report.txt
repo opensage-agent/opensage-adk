@@ -1,0 +1,76 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7f8b179ff2a8 at pc 0x55ae80e201c9 bp 0x7ffde706fce0 sp 0x7ffde706fcd8
+READ of size 4 at 0x7f8b179ff2a8 thread T0
+SCARINESS: 17 (4-byte-read-heap-buffer-overflow)
+    #0 0x55ae80e201c8 in ih264d_read_coeff4x4_cabac /src/libavc/decoder/ih264d_parse_cabac.c:412:33
+    #1 0x55ae80e21546 in ih264d_cabac_parse_8x8block /src/libavc/decoder/ih264d_parse_cabac.c:1092:15
+    #2 0x55ae80e22313 in ih264d_parse_residual4x4_cabac /src/libavc/decoder/ih264d_parse_cabac.c:1260:29
+    #3 0x55ae80e33edd in ih264d_parse_imb_cabac /src/libavc/decoder/ih264d_parse_islice.c:724:5
+    #4 0x55ae80e36b7c in ih264d_parse_islice_data_cabac /src/libavc/decoder/ih264d_parse_islice.c:1087:23
+    #5 0x55ae80e37c53 in ih264d_parse_islice /src/libavc/decoder/ih264d_parse_islice.c:1489:15
+    #6 0x55ae80d78f6f in imvcd_parse_islice /src/libavc/decoder/mvc/imvcd_slice_functions.c:1894:9
+    #7 0x55ae80d78f6f in imvcd_parse_decode_slice /src/libavc/decoder/mvc/imvcd_slice_functions.c:2351:25
+    #8 0x55ae80d74bf4 in imvcd_nalu_parser /src/libavc/decoder/mvc/imvcd_nalu_parser.c:809:41
+    #9 0x55ae80d5da2e in imvcd_view_decode /src/libavc/decoder/mvc/imvcd_api.c:827:29
+    #10 0x55ae80d5da2e in imvcd_decode /src/libavc/decoder/mvc/imvcd_api.c:1238:20
+    #11 0x55ae80d5da2e in imvcd_api_function /src/libavc/decoder/mvc/imvcd_api.c:1600:20
+    #12 0x55ae80d5a1cf in Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/mvc_dec_fuzzer.cpp:339:11
+    #13 0x55ae80d5ae46 in LLVMFuzzerTestOneInput /src/libavc/fuzzer/mvc_dec_fuzzer.cpp:400:43
+    #14 0x55ae80c0d360 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x55ae80bf85d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x55ae80bfe06f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x55ae80c29312 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7f8b1984f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #19 0x55ae80bf07bd in _start (/out/mvc_dec_fuzzer+0x867bd)
+
+DEDUP_TOKEN: ih264d_read_coeff4x4_cabac--ih264d_cabac_parse_8x8block--ih264d_parse_residual4x4_cabac
+0x7f8b179ff2a9 is located 0 bytes after 379561-byte region [0x7f8b179a2800,0x7f8b179ff2a9)
+allocated by thread T0 here:
+    #0 0x55ae80d19bd7 in posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    #1 0x55ae80d58c56 in mvcd_aligned_malloc(void*, int, int) /src/libavc/fuzzer/mvc_dec_fuzzer.cpp:61:13
+    #2 0x55ae80d66828 in imvcd_bitstream_buf_realloc /src/libavc/decoder/mvc/imvcd_api_utils.c:402:9
+    #3 0x55ae80d5d64c in imvcd_view_decode /src/libavc/decoder/mvc/imvcd_api.c:740:34
+    #4 0x55ae80d5d64c in imvcd_decode /src/libavc/decoder/mvc/imvcd_api.c:1238:20
+    #5 0x55ae80d5d64c in imvcd_api_function /src/libavc/decoder/mvc/imvcd_api.c:1600:20
+    #6 0x55ae80d5a1cf in Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/mvc_dec_fuzzer.cpp:339:11
+    #7 0x55ae80d5ae46 in LLVMFuzzerTestOneInput /src/libavc/fuzzer/mvc_dec_fuzzer.cpp:400:43
+    #8 0x55ae80c0d360 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55ae80bf85d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55ae80bfe06f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55ae80c29312 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f8b1984f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_posix_memalign--mvcd_aligned_malloc(void*, int, int)--imvcd_bitstream_buf_realloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/libavc/decoder/ih264d_parse_cabac.c:412:33 in ih264d_read_coeff4x4_cabac
+Shadow bytes around the buggy address:
+  0x7f8b179ff000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8b179ff080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8b179ff100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8b179ff180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8b179ff200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7f8b179ff280: 00 00 00 00 00[01]fa fa fa fa fa fa fa fa fa fa
+  0x7f8b179ff300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f8b179ff380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f8b179ff400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f8b179ff480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f8b179ff500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

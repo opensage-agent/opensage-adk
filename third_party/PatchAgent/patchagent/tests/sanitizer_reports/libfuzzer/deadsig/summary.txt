@@ -1,0 +1,9 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    - person_info_parse_file /mnt/aigo/temp/code/fuzzing_target/integration-test/vuln.c:16:9
+    - Java_com_example_jni_PersonInfoParser_parsePersonInfo /mnt/aigo/temp/code/fuzzing_target/integration-test/jni/person_info_jni.c:24:19
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

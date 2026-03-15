@@ -1,0 +1,30 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - BIT_flushBitsFast /src/zstd/lib/common/bitstream.h:232:5
+    - FSE_compress_usingCTable_generic /src/zstd/lib/compress/fse_compress.c:0:0
+    - HUF_compressWeights /src/zstd/lib/compress/huf_compress.c:101:9
+    - HUF_writeCTable_wksp /src/zstd/lib/compress/huf_compress.c:136:9
+    - HUF_compress_internal /src/zstd/lib/compress/huf_compress.c:829:9
+    - HUF_compress4X_repeat /src/zstd/lib/compress/huf_compress.c:900:12
+    - ZSTD_compressLiterals /src/zstd/lib/compress/zstd_compress_literals.c:109:13
+    - ZSTD_entropyCompressSeqStore_internal /src/zstd/lib/compress/zstd_compress.c:2595:30
+    - ZSTD_entropyCompressSeqStore /src/zstd/lib/compress/zstd_compress.c:2684:26
+    - ZSTD_compressSeqStore_singleBlock /src/zstd/lib/compress/zstd_compress.c:3488:17
+    - ZSTD_compressBlock_splitBlock_internal /src/zstd/lib/compress/zstd_compress.c:3674:22
+    - ZSTD_compressBlock_splitBlock /src/zstd/lib/compress/zstd_compress.c:3719:13
+    - ZSTD_compress_frameChunk /src/zstd/lib/compress/zstd_compress.c:3941:25
+    - ZSTD_compressContinue_internal /src/zstd/lib/compress/zstd_compress.c:4116:30
+    - ZSTD_compressEnd /src/zstd/lib/compress/zstd_compress.c:4620:26
+    - ZSTD_compressCCtx /src/zstd/lib/compress/zstd_compress.c:4694:12
+    - LLVMFuzzerTestOneInput /src/zstd/tests/fuzz/simple_compress.c:46:24
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

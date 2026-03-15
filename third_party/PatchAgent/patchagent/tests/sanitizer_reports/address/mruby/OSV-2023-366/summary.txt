@@ -1,0 +1,63 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 4 at 0x52f000038500 thread T0
+    - mrb_gc_mark /src/mruby/src/gc.c:789:8
+    - gc_mark_children /src/mruby/src/gc.c:743:9
+    - incremental_marking_phase /src/mruby/src/gc.c:1097:5
+    - incremental_gc /src/mruby/src/gc.c:1237:14
+    - incremental_gc_finish /src/mruby/src/gc.c:1262:5
+    - mrb_full_gc /src/mruby/src/gc.c:1373:3
+    - gc_start /src/mruby/src/gc.c:1453:3
+    - mrb_vm_exec /src/mruby/src/vm.c:0:0
+    - mrb_vm_run /src/mruby/src/vm.c:1275:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6910:7
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x52f000038500 is located 256 bytes inside of 49200-byte region [0x52f000038400,0x52f000044430)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - mrb_default_allocf /src/mruby/src/state.c:65:5
+    - mrb_free /src/mruby/src/gc.c:296:3
+    - incremental_sweep_phase /src/mruby/src/gc.c:1205:7
+    - incremental_gc /src/mruby/src/gc.c:1246:20
+    - incremental_gc_finish /src/mruby/src/gc.c:1262:5
+    - mrb_full_gc /src/mruby/src/gc.c:1373:3
+    - gc_start /src/mruby/src/gc.c:1453:3
+    - mrb_vm_exec /src/mruby/src/vm.c:0:0
+    - mrb_vm_run /src/mruby/src/vm.c:1275:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6910:7
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - mrb_realloc_simple /src/mruby/src/gc.c:234:8
+    - mrb_realloc /src/mruby/src/gc.c:248:8
+    - mrb_malloc /src/mruby/src/gc.c:264:10
+    - mrb_calloc /src/mruby/src/gc.c:282:9
+    - add_heap /src/mruby/src/gc.c:381:42
+    - mrb_obj_alloc /src/mruby/src/gc.c:584:5
+    - str_new /src/mruby/src/string.c:140:27
+    - mrb_vm_exec /src/mruby/src/vm.c:2801:19
+    - mrb_vm_run /src/mruby/src/vm.c:1275:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6910:7
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

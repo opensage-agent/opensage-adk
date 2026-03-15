@@ -1,0 +1,66 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52d00000a2fb at pc 0x55bd61529794 bp 0x7ffe7e7e2080 sp 0x7ffe7e7e2078
+READ of size 2 at 0x52d00000a2fb thread T0
+SCARINESS: 24 (2-byte-read-heap-buffer-overflow-far-from-bounds)
+    #0 0x55bd61529793 in pcpp::BgpLayer::getHeaderLen() const /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:21:25
+    #1 0x55bd6159ab75 in pcpp::Packet::shortenLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:672:33
+    #2 0x55bd6153063b in pcpp::BgpUpdateMessageLayer::setPathAttributes(std::__1::vector<pcpp::BgpUpdateMessageLayer::path_attribute, std::__1::allocator<pcpp::BgpUpdateMessageLayer::path_attribute>> const&) /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:653:15
+    #3 0x55bd614efc35 in readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:470:24
+    #4 0x55bd614ea874 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:66:5
+    #5 0x55bd6139e1d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55bd61389445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55bd6138eedf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55bd613ba182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7fb4fa287082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #10 0x55bd6138162d in _start (/out/FuzzTarget+0x1b762d)
+
+DEDUP_TOKEN: pcpp::BgpLayer::getHeaderLen() const--pcpp::Packet::shortenLayer(pcpp::Layer*, int, unsigned long)--pcpp::BgpUpdateMessageLayer::setPathAttributes(std::__1::vector<pcpp::BgpUpdateMessageLayer::path_attribute, std::__1::allocator<pcpp::BgpUpdateMessageLayer::path_attribute>> const&)
+0x52d00000a2fb is located 261 bytes before 34102-byte region [0x52d00000a400,0x52d000012936)
+allocated by thread T0 here:
+    #0 0x55bd614e747d in operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    #1 0x55bd615a4dae in pcpp::RawPacket::reallocateData(unsigned long) /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:177:24
+    #2 0x55bd61596a78 in pcpp::Packet::reallocateRawData(unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:201:21
+    #3 0x55bd6159a1bf in pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp
+    #4 0x55bd6152f1cb in pcpp::BgpUpdateMessageLayer::setWithdrawnRoutes(std::__1::vector<pcpp::BgpUpdateMessageLayer::prefix_and_ip, std::__1::allocator<pcpp::BgpUpdateMessageLayer::prefix_and_ip>> const&) /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:566:15
+    #5 0x55bd614ef619 in readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:451:24
+    #6 0x55bd614ea874 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:66:5
+    #7 0x55bd6139e1d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55bd61389445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55bd6138eedf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55bd613ba182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fb4fa287082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new[](unsigned long)--pcpp::RawPacket::reallocateData(unsigned long)--pcpp::Packet::reallocateRawData(unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:21:25 in pcpp::BgpLayer::getHeaderLen() const
+Shadow bytes around the buggy address:
+  0x52d00000a000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52d00000a080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52d00000a100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52d00000a180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52d00000a200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x52d00000a280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa[fa]
+  0x52d00000a300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52d00000a380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52d00000a400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52d00000a480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52d00000a500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

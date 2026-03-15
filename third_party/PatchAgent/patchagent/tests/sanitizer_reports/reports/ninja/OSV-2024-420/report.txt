@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ninja:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/ninja/OSV-2024-420/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzzer -runs=100.
++ FUZZER=fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3253185789
+INFO: Loaded 1 modules   (6458 inline 8-bit counters): 6458 [0x55b8338816c0, 0x55b833882ffa), 
+INFO: Loaded 1 PC tables (6458 PCs): 6458 [0x55b833883000,0x55b83389c3a0), 
+/out/fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+
+=================================================================
+[1m[31m==14==ERROR: LeakSanitizer: detected memory leaks
+[1m[0m
+[1m[34mDirect leak of 48 byte(s) in 1 object(s) allocated from:
+[1m[0m    #0 0x55b83370b81d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x55b83371e7ea in ManifestParser::ParseRule(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:146:16
+    #2 0x55b83371999e in ManifestParser::Parse(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:53:12
+    #3 0x55b8337228c3 in Parser::Load(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*, Lexer*) /src/ninja/src/parser.cc:37:10
+    #4 0x55b83370dd9b in LLVMFuzzerTestOneInput /src/ninja/misc/manifest_fuzzer.cc:37:9
+    #5 0x55b8335c2680 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55b8335ad8f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55b8335b338f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55b8335de632 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f8eb52d0082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator new(unsigned long)--ManifestParser::ParseRule(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*)--ManifestParser::Parse(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*)
+SUMMARY: AddressSanitizer: 48 byte(s) leaked in 1 allocation(s).
+
+INFO: a leak has been found in the initial corpus.
+
+INFO: to ignore leaks on libFuzzer side use -detect_leaks=0.
+

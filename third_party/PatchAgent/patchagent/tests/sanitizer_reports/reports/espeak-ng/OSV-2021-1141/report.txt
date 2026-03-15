@@ -1,0 +1,114 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/espeak-ng:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/espeak-ng/OSV-2021-1141/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce ssml-fuzzer -runs=100.
++ FUZZER=ssml-fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ssml-fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ssml-fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1892183932
+INFO: Loaded 1 modules   (11447 inline 8-bit counters): 11447 [0x5637cdd3ad58, 0x5637cdd3da0f), 
+INFO: Loaded 1 PC tables (11447 PCs): 11447 [0x5637cdd3da10,0x5637cdd6a580), 
+/out/ssml-fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x528000004258 at pc 0x5637cdc7cc74 bp 0x7ffc4b13dd10 sp 0x7ffc4b13dd08
+[1m[0m[1m[34mREAD of size 4 at 0x528000004258 thread T0[1m[0m
+SCARINESS: 45 (4-byte-read-heap-use-after-free)
+    #0 0x5637cdc7cc73 in TranslateLetter /src/espeak-ng/src/libespeak-ng/numbers.c:839:26
+    #1 0x5637cdc092ff in TranslateWord3 /src/espeak-ng/src/libespeak-ng/translate.c:777:13
+    #2 0x5637cdc078f2 in TranslateWord /src/espeak-ng/src/libespeak-ng/translate.c:1167:14
+    #3 0x5637cdc16234 in TranslateWord2 /src/espeak-ng/src/libespeak-ng/translate.c:1505:15
+    #4 0x5637cdc1361a in TranslateClause /src/espeak-ng/src/libespeak-ng/translate.c:2663:17
+    #5 0x5637cdc028b1 in SpeakNextClause /src/espeak-ng/src/libespeak-ng/synthesize.c:1566:2
+    #6 0x5637cdbed094 in Synthesize /src/espeak-ng/src/libespeak-ng/speech.c:453:2
+    #7 0x5637cdbead6c in espeak_Synth /src/espeak-ng/src/libespeak-ng/espeak_api.c:90:32
+    #8 0x5637cdbeaa21 in LLVMFuzzerTestOneInput /src/espeak-ng/tests/ssml-fuzzer.c:64:8
+    #9 0x5637cda9f450 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x5637cda8a6c5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x5637cda9015f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x5637cdabb402 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fb920d40082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #14 0x5637cda828ad in _start (/out/ssml-fuzzer+0xa48ad)
+
+DEDUP_TOKEN: TranslateLetter--TranslateWord3--TranslateWord
+[1m[32m0x528000004258 is located 344 bytes inside of 14864-byte region [0x528000004100,0x528000007b10)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x5637cdbaaf86 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x5637cdc0cd7e in DeleteTranslator /src/espeak-ng/src/libespeak-ng/translate.c:284:2
+    #2 0x5637cdc0cd7e in SetTranslator2 /src/espeak-ng/src/libespeak-ng/translate.c:1283:4
+    #3 0x5637cdc7bd2e in TranslateLetter /src/espeak-ng/src/libespeak-ng/numbers.c:804:16
+    #4 0x5637cdc092ff in TranslateWord3 /src/espeak-ng/src/libespeak-ng/translate.c:777:13
+    #5 0x5637cdc078f2 in TranslateWord /src/espeak-ng/src/libespeak-ng/translate.c:1167:14
+    #6 0x5637cdc16234 in TranslateWord2 /src/espeak-ng/src/libespeak-ng/translate.c:1505:15
+    #7 0x5637cdc1361a in TranslateClause /src/espeak-ng/src/libespeak-ng/translate.c:2663:17
+    #8 0x5637cdc028b1 in SpeakNextClause /src/espeak-ng/src/libespeak-ng/synthesize.c:1566:2
+    #9 0x5637cdbed094 in Synthesize /src/espeak-ng/src/libespeak-ng/speech.c:453:2
+    #10 0x5637cdbead6c in espeak_Synth /src/espeak-ng/src/libespeak-ng/espeak_api.c:90:32
+    #11 0x5637cdbeaa21 in LLVMFuzzerTestOneInput /src/espeak-ng/tests/ssml-fuzzer.c:64:8
+    #12 0x5637cda9f450 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x5637cda8a6c5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x5637cda9015f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x5637cdabb402 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7fb920d40082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--DeleteTranslator--SetTranslator2
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x5637cdbab21f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5637cdc190f4 in NewTranslator /src/espeak-ng/src/libespeak-ng/tr_languages.c:241:26
+    #2 0x5637cdc190f4 in SelectTranslator /src/espeak-ng/src/libespeak-ng/tr_languages.c:472:7
+    #3 0x5637cdc0ccde in SetTranslator2 /src/espeak-ng/src/libespeak-ng/translate.c:1288:18
+    #4 0x5637cdc16191 in TranslateWord2 /src/espeak-ng/src/libespeak-ng/translate.c:1495:23
+    #5 0x5637cdc1361a in TranslateClause /src/espeak-ng/src/libespeak-ng/translate.c:2663:17
+    #6 0x5637cdc028b1 in SpeakNextClause /src/espeak-ng/src/libespeak-ng/synthesize.c:1566:2
+    #7 0x5637cdbed094 in Synthesize /src/espeak-ng/src/libespeak-ng/speech.c:453:2
+    #8 0x5637cdbead6c in espeak_Synth /src/espeak-ng/src/libespeak-ng/espeak_api.c:90:32
+    #9 0x5637cdbeaa21 in LLVMFuzzerTestOneInput /src/espeak-ng/tests/ssml-fuzzer.c:64:8
+    #10 0x5637cda9f450 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x5637cda8a6c5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x5637cda9015f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x5637cdabb402 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fb920d40082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--NewTranslator--SelectTranslator
+SUMMARY: AddressSanitizer: heap-use-after-free /src/espeak-ng/src/libespeak-ng/numbers.c:839:26 in TranslateLetter
+Shadow bytes around the buggy address:
+  0x528000003f80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x528000004000: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x528000004080: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x528000004100: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x528000004180: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+=>0x528000004200: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x528000004280: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x528000004300: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x528000004380: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x528000004400: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x528000004480: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

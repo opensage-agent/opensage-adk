@@ -1,0 +1,27 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/radare2:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce ia_fuzz -runs=100.
++ FUZZER=ia_fuzz
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ia_fuzz -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ia_fuzz -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -detect_leaks=0 < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2863140658
+INFO: Loaded 1 modules   (1 inline 8-bit counters): 1 [0x561f4662c460, 0x561f4662c461), 
+INFO: Loaded 1 PC tables (1 PCs): 1 [0x561f4662c468,0x561f4662c478), 
+/out/ia_fuzz: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==18==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x561f48a47010 (pc 0x561f4596d495 bp 0x7fffa9420370 sp 0x7fffa9420330 T18)
+[1m[0m==18==The signal is caused by a WRITE memory access.
+munmap_chunk(): invalid pointer
+==18== ERROR: libFuzzer: deadly signal
+bash: line 1:    18 Segmentation fault      (core dumped) /out/ia_fuzz -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -detect_leaks=0 < /dev/null

@@ -1,0 +1,50 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x5020000036c0 thread T0
+    - H5SM_delete /src/hdf5/src/H5SM.c:1542:24
+    - H5O__msg_write_real /src/hdf5/src/H5Omessage.c:364:13
+    - H5O_msg_write /src/hdf5/src/H5Omessage.c:246:9
+    - H5G__stab_valid /src/hdf5/src/H5Gstab.c:1016:13
+    - H5G_mkroot /src/hdf5/src/H5Groot.c:235:21
+    - H5F_open /src/hdf5/src/H5Fint.c:2134:13
+    - H5VL__native_file_open /src/hdf5/src/H5VLnative_file.c:127:9
+    - H5VL__file_open /src/hdf5/src/H5VLcallback.c:3714:25
+    - H5VL_file_open /src/hdf5/src/H5VLcallback.c:3832:30
+    - H5F__open_api_common /src/hdf5/src/H5F.c:780:29
+    - H5Fopen /src/hdf5/src/H5F.c:820:22
+    - LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:29:24
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5020000036c0 is located 0 bytes after 16-byte region [0x5020000036b0,0x5020000036c0)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - H5FL__malloc /src/hdf5/src/H5FL.c:211:30
+    - H5FL_reg_malloc /src/hdf5/src/H5FL.c:363:34
+    - H5FL_reg_calloc /src/hdf5/src/H5FL.c:395:30
+    - H5O__stab_decode /src/hdf5/src/H5Ostab.c:97:25
+    - H5O_msg_read_oh /src/hdf5/src/H5Omessage.c:486:5
+    - H5O_msg_read /src/hdf5/src/H5Omessage.c:430:30
+    - H5G__stab_valid /src/hdf5/src/H5Gstab.c:973:17
+    - H5G_mkroot /src/hdf5/src/H5Groot.c:235:21
+    - H5F_open /src/hdf5/src/H5Fint.c:2134:13
+    - H5VL__native_file_open /src/hdf5/src/H5VLnative_file.c:127:9
+    - H5VL__file_open /src/hdf5/src/H5VLcallback.c:3714:25
+    - H5VL_file_open /src/hdf5/src/H5VLcallback.c:3832:30
+    - H5F__open_api_common /src/hdf5/src/H5F.c:780:29
+    - H5Fopen /src/hdf5/src/H5F.c:820:22
+    - LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:29:24
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

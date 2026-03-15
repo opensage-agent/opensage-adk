@@ -1,0 +1,1365 @@
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+ERROR: Use dsc:// for dyld caches
+Executed /testcase in 4110 ms
+***
+*** NOTE: fuzzing was not performed, you have only
+***       executed the target code on a fixed set of inputs.
+***
+
+=================================================================
+==18==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 1157600 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e682df1ad in sdb_gh_malloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:44:9
+    #2 0x564e682df1ad in sdb_gh_calloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:70:14
+    #3 0x564e682df1ad in sdb_new /src/radare2/subprojects/sdb/src/sdb.c:33:17
+    #4 0x564e67ba4517 in r_bin_file_new /src/radare2/libr/bin/bfile.c:547:13
+    #5 0x564e67ba4ede in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:628:17
+    #6 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #7 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #8 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #9 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #10 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #11 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #12 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #13 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #14 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #15 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #16 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--sdb_gh_malloc--sdb_gh_calloc
+Direct leak of 46400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e67be20ba in info /src/radare2/libr/../libr/bin/p/bin_any.c:25:18
+    #2 0x564e67baec94 in r_bin_object_set_items /src/radare2/libr/bin/bobj.c:346:22
+    #3 0x564e67bae61b in r_bin_object_new /src/radare2/libr/bin/bobj.c:240:2
+    #4 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #5 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #6 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #7 0x564e686fb07c in r_core_file_load_for_io_plugin /src/radare2/libr/core/cfile.c:479:7
+    #8 0x564e686fb07c in r_core_bin_load /src/radare2/libr/core/cfile.c:706:4
+    #9 0x564e685cb376 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2398:5
+    #10 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #11 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #12 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #13 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #14 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #15 0x564e685662bc in r_core_cmdf /src/radare2/libr/core/cmd.c:6559:12
+    #16 0x564e67a49f12 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:10:2
+    #17 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--info--r_bin_object_set_items
+Direct leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e682bad25 in sdb_gh_malloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:44:9
+    #2 0x564e682bad25 in sdb_gh_calloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:70:14
+    #3 0x564e682bad25 in internal_ht_new /src/radare2/subprojects/sdb/src/./ht.inc.c:102:34
+    #4 0x564e682bdd4d in internal_ht_default_new /src/radare2/subprojects/sdb/src/ht_pp.c:18:9
+    #5 0x564e682bdd4d in ht_pp_new /src/radare2/subprojects/sdb/src/ht_pp.c:23:9
+    #6 0x564e682bdd4d in ht_pp_new0 /src/radare2/subprojects/sdb/src/ht_pp.c:32:9
+    #7 0x564e67bae417 in r_bin_object_new /src/radare2/libr/bin/bobj.c:209:19
+    #8 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #9 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #10 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #11 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #12 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #13 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #14 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #15 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #16 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #17 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #18 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #19 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--sdb_gh_malloc--sdb_gh_calloc
+Direct leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e682b7395 in sdb_gh_malloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:44:9
+    #2 0x564e682b7395 in sdb_gh_calloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:70:14
+    #3 0x564e682b7395 in internal_ht_new /src/radare2/subprojects/sdb/src/./ht.inc.c:102:34
+    #4 0x564e682ba4f9 in internal_ht_default_new /src/radare2/subprojects/sdb/src/ht_up.c:18:9
+    #5 0x564e682ba4f9 in ht_up_new /src/radare2/subprojects/sdb/src/ht_up.c:22:9
+    #6 0x564e682ba4f9 in ht_up_new0 /src/radare2/subprojects/sdb/src/ht_up.c:27:9
+    #7 0x564e67bae354 in r_bin_object_new /src/radare2/libr/bin/bobj.c:204:19
+    #8 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #9 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #10 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #11 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #12 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #13 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #14 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #15 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #16 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #17 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #18 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #19 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--sdb_gh_malloc--sdb_gh_calloc
+Direct leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e682bad25 in sdb_gh_malloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:44:9
+    #2 0x564e682bad25 in sdb_gh_calloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:70:14
+    #3 0x564e682bad25 in internal_ht_new /src/radare2/subprojects/sdb/src/./ht.inc.c:102:34
+    #4 0x564e682bdd4d in internal_ht_default_new /src/radare2/subprojects/sdb/src/ht_pp.c:18:9
+    #5 0x564e682bdd4d in ht_pp_new /src/radare2/subprojects/sdb/src/ht_pp.c:23:9
+    #6 0x564e682bdd4d in ht_pp_new0 /src/radare2/subprojects/sdb/src/ht_pp.c:32:9
+    #7 0x564e67bae43e in r_bin_object_new /src/radare2/libr/bin/bobj.c:210:19
+    #8 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #9 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #10 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #11 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #12 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #13 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #14 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #15 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #16 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #17 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #18 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #19 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--sdb_gh_malloc--sdb_gh_calloc
+Direct leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #3 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #4 0x564e684d39fa in r_asm_use /src/radare2/libr/asm/asm.c:366:7
+    #5 0x564e6870d482 in cb_asmarch /src/radare2/libr/core/cconfig.c:760:7
+    #6 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #7 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #8 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #9 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #10 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Direct leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #3 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #4 0x564e684d39fa in r_asm_use /src/radare2/libr/asm/asm.c:366:7
+    #5 0x564e6870d482 in cb_asmarch /src/radare2/libr/core/cconfig.c:760:7
+    #6 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #7 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #8 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #9 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #10 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #11 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Direct leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #3 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #4 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #5 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #6 0x564e686ffe7f in r_core_config_init /src/radare2/libr/core/cconfig.c:3642:6
+    #7 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #8 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #9 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #10 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Direct leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #3 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #4 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #5 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #6 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #7 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #8 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #9 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #10 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #11 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Direct leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #3 0x564e6835e74f in r_arch_use_decoder /src/radare2/libr/arch/arch.c:158:11
+    #4 0x564e687095ac in cb_archdecoder /src/radare2/libr/core/cconfig.c:437:7
+    #5 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #6 0x564e6870008f in r_core_config_init /src/radare2/libr/core/cconfig.c:3650:6
+    #7 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #8 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #9 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #10 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Direct leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #3 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #4 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #5 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #6 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #7 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #8 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #9 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #10 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #11 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #12 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Direct leak of 3200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68184dbf in r_list_new /src/radare2/libr/util/list.c:184:16
+    #2 0x564e68184dbf in r_list_newf /src/radare2/libr/util/list.c:193:13
+    #3 0x564e67bae3f0 in r_bin_object_new /src/radare2/libr/bin/bobj.c:208:16
+    #4 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #5 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #6 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #7 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #8 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #9 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #10 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #11 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #12 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #13 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #14 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #15 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_list_new--r_list_newf
+Direct leak of 3200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68184dbf in r_list_new /src/radare2/libr/util/list.c:184:16
+    #2 0x564e68184dbf in r_list_newf /src/radare2/libr/util/list.c:193:13
+    #3 0x564e6893c51d in cons_grep_reset /src/radare2/libr/cons/cons.c:73:19
+    #4 0x564e6893c51d in cons_stack_free /src/radare2/libr/cons/cons.c:92:2
+    #5 0x564e6856ad06 in r_core_cmd_str /src/radare2/libr/core/cmd.c:6701:2
+    #6 0x564e68712de8 in update_cmdpdc_options /src/radare2/libr/core/cconfig.c:641:15
+    #7 0x564e68703baa in r_core_config_init /src/radare2/libr/core/cconfig.c:4099:2
+    #8 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #9 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #10 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #11 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_list_new--r_list_newf
+Direct leak of 3200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68184dbf in r_list_new /src/radare2/libr/util/list.c:184:16
+    #2 0x564e68184dbf in r_list_newf /src/radare2/libr/util/list.c:193:13
+    #3 0x564e68932a79 in cons_grep_reset /src/radare2/libr/cons/cons.c:73:19
+    #4 0x564e68932a79 in r_cons_reset /src/radare2/libr/cons/cons.c:907:2
+    #5 0x564e68932a79 in r_cons_new /src/radare2/libr/cons/cons.c:758:2
+    #6 0x564e6851882c in r_core_init /src/radare2/libr/core/core.c:2617:15
+    #7 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #8 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #9 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_list_new--r_list_newf
+Direct leak of 3200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68184dbf in r_list_new /src/radare2/libr/util/list.c:184:16
+    #2 0x564e68184dbf in r_list_newf /src/radare2/libr/util/list.c:193:13
+    #3 0x564e689379e4 in cons_grep_reset /src/radare2/libr/cons/cons.c:73:19
+    #4 0x564e689379e4 in cons_context_init /src/radare2/libr/cons/cons.c:164:2
+    #5 0x564e689326b2 in r_cons_new /src/radare2/libr/cons/cons.c:724:2
+    #6 0x564e6851882c in r_core_init /src/radare2/libr/core/core.c:2617:15
+    #7 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #8 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #9 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_list_new--r_list_newf
+Direct leak of 3200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68184dbf in r_list_new /src/radare2/libr/util/list.c:184:16
+    #2 0x564e68184dbf in r_list_newf /src/radare2/libr/util/list.c:193:13
+    #3 0x564e6893c365 in cons_grep_reset /src/radare2/libr/cons/cons.c:73:19
+    #4 0x564e6893c365 in cons_stack_free /src/radare2/libr/cons/cons.c:88:2
+    #5 0x564e6856ad06 in r_core_cmd_str /src/radare2/libr/core/cmd.c:6701:2
+    #6 0x564e68712de8 in update_cmdpdc_options /src/radare2/libr/core/cconfig.c:641:15
+    #7 0x564e68703baa in r_core_config_init /src/radare2/libr/core/cconfig.c:4099:2
+    #8 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #9 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #10 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #11 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_list_new--r_list_newf
+Direct leak of 3200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68184dbf in r_list_new /src/radare2/libr/util/list.c:184:16
+    #2 0x564e68184dbf in r_list_newf /src/radare2/libr/util/list.c:193:13
+    #3 0x564e6893c365 in cons_grep_reset /src/radare2/libr/cons/cons.c:73:19
+    #4 0x564e6893c365 in cons_stack_free /src/radare2/libr/cons/cons.c:88:2
+    #5 0x564e6856ad06 in r_core_cmd_str /src/radare2/libr/core/cmd.c:6701:2
+    #6 0x564e685791aa in cmd_interpret /src/radare2/libr/core/cmd.c:2372:15
+    #7 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #8 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #9 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #10 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #11 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #12 0x564e686bfc0a in r_core_cmd0 /src/radare2/libr/core/cmd.c:6566:9
+    #13 0x564e686bfc0a in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:299:6
+    #14 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #15 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #16 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #17 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #18 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #19 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #20 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #21 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #22 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #23 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #24 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #25 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_list_new--r_list_newf
+Direct leak of 3168 byte(s) in 99 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68184dbf in r_list_new /src/radare2/libr/util/list.c:184:16
+    #2 0x564e68184dbf in r_list_newf /src/radare2/libr/util/list.c:193:13
+    #3 0x564e6893c51d in cons_grep_reset /src/radare2/libr/cons/cons.c:73:19
+    #4 0x564e6893c51d in cons_stack_free /src/radare2/libr/cons/cons.c:92:2
+    #5 0x564e6856ad06 in r_core_cmd_str /src/radare2/libr/core/cmd.c:6701:2
+    #6 0x564e685791aa in cmd_interpret /src/radare2/libr/core/cmd.c:2372:15
+    #7 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #8 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #9 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #10 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #11 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #12 0x564e686bfc0a in r_core_cmd0 /src/radare2/libr/core/cmd.c:6566:9
+    #13 0x564e686bfc0a in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:299:6
+    #14 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #15 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #16 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #17 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #18 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #19 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #20 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #21 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #22 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #23 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #24 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #25 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_list_new--r_list_newf
+Direct leak of 1600 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e681d9189 in r_strpool_new /src/radare2/libr/util/strpool.c:6:16
+    #2 0x564e67bae503 in r_bin_object_new /src/radare2/libr/bin/bobj.c:215:13
+    #3 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #4 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #5 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #6 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #7 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #8 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #9 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #10 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #11 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #12 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #13 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #14 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--r_strpool_new--r_bin_object_new
+Direct leak of 400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e679f26ea in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564e6835e11a in r_arch_use /src/radare2/libr/arch/arch.c:134:19
+    #2 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #3 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #4 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #5 0x564e686ffe7f in r_core_config_init /src/radare2/libr/core/cconfig.c:3642:6
+    #6 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #7 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #8 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #9 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--r_arch_use--r_anal_use
+Direct leak of 400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e679f26ea in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564e6835e11a in r_arch_use /src/radare2/libr/arch/arch.c:134:19
+    #2 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #3 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #4 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #5 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #6 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #7 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #8 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #9 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #10 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #11 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--r_arch_use--r_anal_use
+Indirect leak of 102400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e681d91c6 in r_strpool_new /src/radare2/libr/util/strpool.c:13:11
+    #2 0x564e67bae503 in r_bin_object_new /src/radare2/libr/bin/bobj.c:215:13
+    #3 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #4 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #5 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #6 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #7 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #8 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #9 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #10 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #11 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #12 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #13 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #14 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--r_strpool_new--r_bin_object_new
+Indirect leak of 18400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68a4b5bf in cs_open /src/radare2/shlr/capstone/cs.c:482:8
+    #2 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #3 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #4 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #5 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #6 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #7 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #8 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #9 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #10 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #11 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #12 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #13 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #14 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--cs_open--r_arch_cs_init
+Indirect leak of 18400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68a4b5bf in cs_open /src/radare2/shlr/capstone/cs.c:482:8
+    #2 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #3 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #4 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #5 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #6 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #7 0x564e684d39fa in r_asm_use /src/radare2/libr/asm/asm.c:366:7
+    #8 0x564e6870d482 in cb_asmarch /src/radare2/libr/core/cconfig.c:760:7
+    #9 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #10 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #11 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #12 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #13 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #14 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--cs_open--r_arch_cs_init
+Indirect leak of 18400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68a4b5bf in cs_open /src/radare2/shlr/capstone/cs.c:482:8
+    #2 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #3 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #4 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #5 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #6 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #7 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #8 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #9 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #10 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #11 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #12 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #13 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #14 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #15 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--cs_open--r_arch_cs_init
+Indirect leak of 18400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68a4b5bf in cs_open /src/radare2/shlr/capstone/cs.c:482:8
+    #2 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #3 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #4 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #5 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #6 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #7 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #8 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #9 0x564e686ffe7f in r_core_config_init /src/radare2/libr/core/cconfig.c:3642:6
+    #10 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #11 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #12 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #13 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--cs_open--r_arch_cs_init
+Indirect leak of 18400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68a4b5bf in cs_open /src/radare2/shlr/capstone/cs.c:482:8
+    #2 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #3 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #4 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #5 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #6 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #7 0x564e684d39fa in r_asm_use /src/radare2/libr/asm/asm.c:366:7
+    #8 0x564e6870d482 in cb_asmarch /src/radare2/libr/core/cconfig.c:760:7
+    #9 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #10 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #11 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #12 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #13 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--cs_open--r_arch_cs_init
+Indirect leak of 18400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68a4b5bf in cs_open /src/radare2/shlr/capstone/cs.c:482:8
+    #2 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #3 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #4 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #5 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #6 0x564e6835e74f in r_arch_use_decoder /src/radare2/libr/arch/arch.c:158:11
+    #7 0x564e687095ac in cb_archdecoder /src/radare2/libr/core/cconfig.c:437:7
+    #8 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #9 0x564e6870008f in r_core_config_init /src/radare2/libr/core/cconfig.c:3650:6
+    #10 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #11 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #12 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #13 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--cs_open--r_arch_cs_init
+Indirect leak of 10400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68360afb in r_arch_config_new /src/radare2/libr/arch/arch_config.c:86:20
+    #2 0x564e684d26a1 in r_asm_new /src/radare2/libr/asm/asm.c:193:14
+    #3 0x564e67b653c0 in r_egg_new /src/radare2/libr/egg/egg.c:55:14
+    #4 0x564e6851879a in r_core_init /src/radare2/libr/core/core.c:2610:14
+    #5 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #6 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #7 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_config_new--r_asm_new
+Indirect leak of 10400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68360907 in r_arch_config_clone /src/radare2/libr/arch/arch_config.c:75:20
+    #2 0x564e6835e73e in r_arch_use_decoder /src/radare2/libr/arch/arch.c:157:21
+    #3 0x564e687095ac in cb_archdecoder /src/radare2/libr/core/cconfig.c:437:7
+    #4 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #5 0x564e6870008f in r_core_config_init /src/radare2/libr/core/cconfig.c:3650:6
+    #6 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #7 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #8 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #9 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_config_clone--r_arch_use_decoder
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e68c589ce in X86_global_init /src/radare2/shlr/capstone/arch/X86/X86Module.c:16:8
+    #2 0x564e68a4b682 in cs_open /src/radare2/shlr/capstone/cs.c:497:9
+    #3 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #4 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #5 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #6 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #7 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #8 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #9 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #10 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #11 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #12 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #13 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #14 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #15 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #16 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--X86_global_init--cs_open
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e68c589ce in X86_global_init /src/radare2/shlr/capstone/arch/X86/X86Module.c:16:8
+    #2 0x564e68a4b682 in cs_open /src/radare2/shlr/capstone/cs.c:497:9
+    #3 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #4 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #5 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #6 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #7 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #8 0x564e684d39fa in r_asm_use /src/radare2/libr/asm/asm.c:366:7
+    #9 0x564e6870d482 in cb_asmarch /src/radare2/libr/core/cconfig.c:760:7
+    #10 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #11 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #12 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #13 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #14 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--X86_global_init--cs_open
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e68c589ce in X86_global_init /src/radare2/shlr/capstone/arch/X86/X86Module.c:16:8
+    #2 0x564e68a4b682 in cs_open /src/radare2/shlr/capstone/cs.c:497:9
+    #3 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #4 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #5 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #6 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #7 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #8 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #9 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #10 0x564e686ffe7f in r_core_config_init /src/radare2/libr/core/cconfig.c:3642:6
+    #11 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #12 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #13 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #14 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--X86_global_init--cs_open
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e68c589ce in X86_global_init /src/radare2/shlr/capstone/arch/X86/X86Module.c:16:8
+    #2 0x564e68a4b682 in cs_open /src/radare2/shlr/capstone/cs.c:497:9
+    #3 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #4 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #5 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #6 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #7 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #8 0x564e684d39fa in r_asm_use /src/radare2/libr/asm/asm.c:366:7
+    #9 0x564e6870d482 in cb_asmarch /src/radare2/libr/core/cconfig.c:760:7
+    #10 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #11 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #12 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #13 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #14 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #15 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--X86_global_init--cs_open
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e68c589ce in X86_global_init /src/radare2/shlr/capstone/arch/X86/X86Module.c:16:8
+    #2 0x564e68a4b682 in cs_open /src/radare2/shlr/capstone/cs.c:497:9
+    #3 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #4 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #5 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #6 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #7 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #8 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #9 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #10 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #11 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #12 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #13 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #14 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #15 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--X86_global_init--cs_open
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e68c589ce in X86_global_init /src/radare2/shlr/capstone/arch/X86/X86Module.c:16:8
+    #2 0x564e68a4b682 in cs_open /src/radare2/shlr/capstone/cs.c:497:9
+    #3 0x564e684845ce in r_arch_cs_init /src/radare2/libr/arch/p/x86/../capstone.inc.c:52:12
+    #4 0x564e684845ce in init /src/radare2/libr/arch/p/x86/plugin_cs.c:63:7
+    #5 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #6 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #7 0x564e6835e74f in r_arch_use_decoder /src/radare2/libr/arch/arch.c:158:11
+    #8 0x564e687095ac in cb_archdecoder /src/radare2/libr/core/cconfig.c:437:7
+    #9 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #10 0x564e6870008f in r_core_config_init /src/radare2/libr/core/cconfig.c:3650:6
+    #11 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #12 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #13 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #14 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--X86_global_init--cs_open
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e682bad25 in sdb_gh_malloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:44:9
+    #2 0x564e682bad25 in sdb_gh_calloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:70:14
+    #3 0x564e682bad25 in internal_ht_new /src/radare2/subprojects/sdb/src/./ht.inc.c:102:34
+    #4 0x564e682bdcbe in internal_ht_default_new /src/radare2/subprojects/sdb/src/ht_pp.c:18:9
+    #5 0x564e682bdcbe in ht_pp_new /src/radare2/subprojects/sdb/src/ht_pp.c:23:9
+    #6 0x564e682c9e04 in sdb_ht_new /src/radare2/subprojects/sdb/src/ht.c:11:13
+    #7 0x564e682df287 in sdb_new /src/radare2/subprojects/sdb/src/sdb.c:41:10
+    #8 0x564e67ba4517 in r_bin_file_new /src/radare2/libr/bin/bfile.c:547:13
+    #9 0x564e67ba4ede in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:628:17
+    #10 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #11 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #12 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #13 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #14 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #15 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #16 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #17 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #18 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #19 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #20 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #21 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #22 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #23 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #24 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--sdb_gh_malloc--sdb_gh_calloc
+Indirect leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835e3f3 in r_arch_use /src/radare2/libr/arch/arch.c:137:24
+    #3 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #4 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #5 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #6 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #7 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #8 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #9 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #10 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #11 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Indirect leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835e3f3 in r_arch_use /src/radare2/libr/arch/arch.c:137:24
+    #3 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #4 0x564e684d39fa in r_asm_use /src/radare2/libr/asm/asm.c:366:7
+    #5 0x564e6870d482 in cb_asmarch /src/radare2/libr/core/cconfig.c:760:7
+    #6 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #7 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #8 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #9 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #10 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Indirect leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835e3f3 in r_arch_use /src/radare2/libr/arch/arch.c:137:24
+    #3 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #4 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #5 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #6 0x564e686ffe7f in r_core_config_init /src/radare2/libr/core/cconfig.c:3642:6
+    #7 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #8 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #9 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #10 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Indirect leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835e3f3 in r_arch_use /src/radare2/libr/arch/arch.c:137:24
+    #3 0x564e6835e74f in r_arch_use_decoder /src/radare2/libr/arch/arch.c:158:11
+    #4 0x564e687095ac in cb_archdecoder /src/radare2/libr/core/cconfig.c:437:7
+    #5 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #6 0x564e6870008f in r_core_config_init /src/radare2/libr/core/cconfig.c:3650:6
+    #7 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #8 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #9 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #10 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Indirect leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835e3f3 in r_arch_use /src/radare2/libr/arch/arch.c:137:24
+    #3 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #4 0x564e684d39fa in r_asm_use /src/radare2/libr/asm/asm.c:366:7
+    #5 0x564e6870d482 in cb_asmarch /src/radare2/libr/core/cconfig.c:760:7
+    #6 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #7 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #8 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #9 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #10 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #11 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Indirect leak of 7200 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e68361dc9 in r_arch_session /src/radare2/libr/arch/arch_session.c:6:21
+    #2 0x564e6835e3f3 in r_arch_use /src/radare2/libr/arch/arch.c:137:24
+    #3 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #4 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #5 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #6 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #7 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #8 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #9 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #10 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #11 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #12 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--r_arch_session--r_arch_use
+Indirect leak of 4800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e682bae31 in sdb_gh_malloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:44:9
+    #2 0x564e682bae31 in sdb_gh_calloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:70:14
+    #3 0x564e682bae31 in internal_ht_new /src/radare2/subprojects/sdb/src/./ht.inc.c:107:29
+    #4 0x564e682bdd4d in internal_ht_default_new /src/radare2/subprojects/sdb/src/ht_pp.c:18:9
+    #5 0x564e682bdd4d in ht_pp_new /src/radare2/subprojects/sdb/src/ht_pp.c:23:9
+    #6 0x564e682bdd4d in ht_pp_new0 /src/radare2/subprojects/sdb/src/ht_pp.c:32:9
+    #7 0x564e67bae43e in r_bin_object_new /src/radare2/libr/bin/bobj.c:210:19
+    #8 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #9 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #10 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #11 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #12 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #13 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #14 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #15 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #16 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #17 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #18 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #19 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--sdb_gh_malloc--sdb_gh_calloc
+Indirect leak of 4800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e682bae31 in sdb_gh_malloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:44:9
+    #2 0x564e682bae31 in sdb_gh_calloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:70:14
+    #3 0x564e682bae31 in internal_ht_new /src/radare2/subprojects/sdb/src/./ht.inc.c:107:29
+    #4 0x564e682bdd4d in internal_ht_default_new /src/radare2/subprojects/sdb/src/ht_pp.c:18:9
+    #5 0x564e682bdd4d in ht_pp_new /src/radare2/subprojects/sdb/src/ht_pp.c:23:9
+    #6 0x564e682bdd4d in ht_pp_new0 /src/radare2/subprojects/sdb/src/ht_pp.c:32:9
+    #7 0x564e67bae417 in r_bin_object_new /src/radare2/libr/bin/bobj.c:209:19
+    #8 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #9 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #10 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #11 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #12 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #13 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #14 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #15 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #16 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #17 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #18 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #19 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--sdb_gh_malloc--sdb_gh_calloc
+Indirect leak of 4800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e682b74a1 in sdb_gh_malloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:44:9
+    #2 0x564e682b74a1 in sdb_gh_calloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:70:14
+    #3 0x564e682b74a1 in internal_ht_new /src/radare2/subprojects/sdb/src/./ht.inc.c:107:29
+    #4 0x564e682ba4f9 in internal_ht_default_new /src/radare2/subprojects/sdb/src/ht_up.c:18:9
+    #5 0x564e682ba4f9 in ht_up_new /src/radare2/subprojects/sdb/src/ht_up.c:22:9
+    #6 0x564e682ba4f9 in ht_up_new0 /src/radare2/subprojects/sdb/src/ht_up.c:27:9
+    #7 0x564e67bae354 in r_bin_object_new /src/radare2/libr/bin/bobj.c:204:19
+    #8 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #9 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #10 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #11 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #12 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #13 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #14 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #15 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #16 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #17 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #18 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #19 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--sdb_gh_malloc--sdb_gh_calloc
+Indirect leak of 4800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e682d3f3c in sdb_gh_malloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:44:9
+    #2 0x564e682d3f3c in sdb_gh_calloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:70:14
+    #3 0x564e682d3f3c in ls_new /src/radare2/subprojects/sdb/src/ls.c:26:18
+    #4 0x564e682df59c in sdb_new /src/radare2/subprojects/sdb/src/sdb.c:94:10
+    #5 0x564e67ba4517 in r_bin_file_new /src/radare2/libr/bin/bfile.c:547:13
+    #6 0x564e67ba4ede in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:628:17
+    #7 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #8 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #9 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #10 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #11 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #12 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #13 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #14 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #15 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #16 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #17 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--sdb_gh_malloc--sdb_gh_calloc
+Indirect leak of 4800 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564e682bae31 in sdb_gh_malloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:44:9
+    #2 0x564e682bae31 in sdb_gh_calloc /src/radare2/subprojects/sdb/src/../include/sdb/heap.h:70:14
+    #3 0x564e682bae31 in internal_ht_new /src/radare2/subprojects/sdb/src/./ht.inc.c:107:29
+    #4 0x564e682bdcbe in internal_ht_default_new /src/radare2/subprojects/sdb/src/ht_pp.c:18:9
+    #5 0x564e682bdcbe in ht_pp_new /src/radare2/subprojects/sdb/src/ht_pp.c:23:9
+    #6 0x564e682c9e04 in sdb_ht_new /src/radare2/subprojects/sdb/src/ht.c:11:13
+    #7 0x564e682df287 in sdb_new /src/radare2/subprojects/sdb/src/sdb.c:41:10
+    #8 0x564e67ba4517 in r_bin_file_new /src/radare2/libr/bin/bfile.c:547:13
+    #9 0x564e67ba4ede in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:628:17
+    #10 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #11 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #12 0x564e686bfbf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #13 0x564e685cbe64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #14 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #15 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #16 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #17 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #18 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #19 0x564e67a49f45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #20 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #21 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #22 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #23 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #24 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--sdb_gh_malloc--sdb_gh_calloc
+Indirect leak of 2400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e6848447a in init /src/radare2/libr/arch/p/x86/plugin_cs.c:58:19
+    #2 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #3 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #4 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #5 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #6 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #7 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #8 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #9 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #10 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #11 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #12 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--init--r_arch_session
+Indirect leak of 2400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e6848447a in init /src/radare2/libr/arch/p/x86/plugin_cs.c:58:19
+    #2 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #3 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #4 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #5 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #6 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #7 0x564e686ffe7f in r_core_config_init /src/radare2/libr/core/cconfig.c:3642:6
+    #8 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #9 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #10 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #11 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--init--r_arch_session
+Indirect leak of 2400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e6848447a in init /src/radare2/libr/arch/p/x86/plugin_cs.c:58:19
+    #2 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #3 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #4 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #5 0x564e684d39fa in r_asm_use /src/radare2/libr/asm/asm.c:366:7
+    #6 0x564e6870d482 in cb_asmarch /src/radare2/libr/core/cconfig.c:760:7
+    #7 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #8 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #9 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #10 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #11 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #12 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--init--r_arch_session
+Indirect leak of 2400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e6848447a in init /src/radare2/libr/arch/p/x86/plugin_cs.c:58:19
+    #2 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #3 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #4 0x564e6835e74f in r_arch_use_decoder /src/radare2/libr/arch/arch.c:158:11
+    #5 0x564e687095ac in cb_archdecoder /src/radare2/libr/core/cconfig.c:437:7
+    #6 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #7 0x564e6870008f in r_core_config_init /src/radare2/libr/core/cconfig.c:3650:6
+    #8 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #9 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #10 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #11 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--init--r_arch_session
+Indirect leak of 2400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e6848447a in init /src/radare2/libr/arch/p/x86/plugin_cs.c:58:19
+    #2 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #3 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #4 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #5 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #6 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #7 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #8 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #9 0x564e68701cf6 in r_core_config_init /src/radare2/libr/core/cconfig.c:3866:25
+    #10 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #11 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #12 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #13 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--init--r_arch_session
+Indirect leak of 2400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e67a0a9d9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564e6848447a in init /src/radare2/libr/arch/p/x86/plugin_cs.c:58:19
+    #2 0x564e68361e80 in r_arch_session /src/radare2/libr/arch/arch_session.c:14:15
+    #3 0x564e6835dff3 in r_arch_use /src/radare2/libr/arch/arch.c:127:18
+    #4 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #5 0x564e684d39fa in r_asm_use /src/radare2/libr/asm/asm.c:366:7
+    #6 0x564e6870d482 in cb_asmarch /src/radare2/libr/core/cconfig.c:760:7
+    #7 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #8 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #9 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #10 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #11 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--init--r_arch_session
+Indirect leak of 1500 byte(s) in 100 object(s) allocated from:
+    #0 0x564e679f26ea in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564e67be20ea in info /src/radare2/libr/../libr/bin/p/bin_any.c:27:25
+    #2 0x564e67baec94 in r_bin_object_set_items /src/radare2/libr/bin/bobj.c:346:22
+    #3 0x564e67bae61b in r_bin_object_new /src/radare2/libr/bin/bobj.c:240:2
+    #4 0x564e67ba5135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #5 0x564e67b802af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #6 0x564e67b7f8c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #7 0x564e686fb07c in r_core_file_load_for_io_plugin /src/radare2/libr/core/cfile.c:479:7
+    #8 0x564e686fb07c in r_core_bin_load /src/radare2/libr/core/cfile.c:706:4
+    #9 0x564e685cb376 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2398:5
+    #10 0x564e687ad473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #11 0x564e6861ed82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #12 0x564e6861708d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #13 0x564e68571696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #14 0x564e68566a9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #15 0x564e685662bc in r_core_cmdf /src/radare2/libr/core/cmd.c:6559:12
+    #16 0x564e67a49f12 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:10:2
+    #17 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--info--r_bin_object_set_items
+Indirect leak of 400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e679f26ea in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564e6836071e in r_arch_config_set_cpu /src/radare2/libr/arch/arch_config.c:40:41
+    #2 0x564e6870dc89 in cb_asmarch /src/radare2/libr/core/cconfig.c:811:3
+    #3 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #4 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #5 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #6 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #7 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--r_arch_config_set_cpu--cb_asmarch
+Indirect leak of 400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e679f26ea in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564e6835e11a in r_arch_use /src/radare2/libr/arch/arch.c:134:19
+    #2 0x564e6835e74f in r_arch_use_decoder /src/radare2/libr/arch/arch.c:158:11
+    #3 0x564e687095ac in cb_archdecoder /src/radare2/libr/core/cconfig.c:437:7
+    #4 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #5 0x564e6870008f in r_core_config_init /src/radare2/libr/core/cconfig.c:3650:6
+    #6 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #7 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #8 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #9 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--r_arch_use--r_arch_use_decoder
+Indirect leak of 400 byte(s) in 100 object(s) allocated from:
+    #0 0x564e679f26ea in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564e6835e11a in r_arch_use /src/radare2/libr/arch/arch.c:134:19
+    #2 0x564e67aabff7 in r_anal_use /src/radare2/libr/anal/anal.c:221:14
+    #3 0x564e68708ed4 in cb_analarch /src/radare2/libr/core/cconfig.c:391:7
+    #4 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #5 0x564e6870d89d in cb_asmarch /src/radare2/libr/core/cconfig.c:773:7
+    #6 0x564e67b5b869 in r_config_set /src/radare2/libr/config/config.c:506:8
+    #7 0x564e6851ae66 in r_core_init /src/radare2/libr/core/core.c:2767:2
+    #8 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #9 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #10 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--r_arch_use--r_anal_use
+Indirect leak of 100 byte(s) in 100 object(s) allocated from:
+    #0 0x564e679f26ea in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564e6870a9d4 in cb_asmabi /src/radare2/libr/core/cconfig.c:3292:28
+    #2 0x564e67b5b14e in r_config_set_cb /src/radare2/libr/config/config.c:404:9
+    #3 0x564e687005c2 in r_core_config_init /src/radare2/libr/core/cconfig.c:3683:2
+    #4 0x564e6851ae0a in r_core_init /src/radare2/libr/core/core.c:2753:2
+    #5 0x564e68517721 in r_core_new /src/radare2/libr/core/core.c:387:3
+    #6 0x564e67a49efb in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:8:6
+    #7 0x564e678fea40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x564e678e9cb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x564e678ef74f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x564e6791a9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fa95457b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--cb_asmabi--r_config_set_cb
+SUMMARY: AddressSanitizer: 1677968 byte(s) leaked in 5899 allocation(s).

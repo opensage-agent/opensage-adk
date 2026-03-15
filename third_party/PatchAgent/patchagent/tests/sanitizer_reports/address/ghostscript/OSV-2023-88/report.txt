@@ -1,0 +1,81 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fd964b9c060 at pc 0x561da42f6229 bp 0x7ffcf20cbf10 sp 0x7ffcf20cbf08
+WRITE of size 1 at 0x7fd964b9c060 thread T0
+SCARINESS: 46 (1-byte-write-stack-buffer-overflow)
+    #0 0x561da42f6228 in pdfi_read_cff_real /src/ghostpdl/./pdf/pdf_font1C.c:739:10
+    #1 0x561da42f6228 in pdfi_read_cff_dict /src/ghostpdl/./pdf/pdf_font1C.c:1129:21
+    #2 0x561da42f5fca in pdfi_read_cff_dict /src/ghostpdl/./pdf/pdf_font1C.c:1172:20
+    #3 0x561da42e82c9 in pdfi_read_cff /src/ghostpdl/./pdf/pdf_font1C.c:1680:12
+    #4 0x561da42e82c9 in pdfi_read_cff_font /src/ghostpdl/./pdf/pdf_font1C.c:2281:16
+    #5 0x561da42cbf7a in pdfi_load_font /src/ghostpdl/./pdf/pdf_font.c:777:32
+    #6 0x561da42d0de0 in pdfi_load_dict_font /src/ghostpdl/./pdf/pdf_font.c:872:20
+    #7 0x561da42d3dfa in pdfi_load_resource_font /src/ghostpdl/./pdf/pdf_font.c:914:12
+    #8 0x561da42d3dfa in pdfi_Tf /src/ghostpdl/./pdf/pdf_font.c:1273:12
+    #9 0x561da4255f0f in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1640:24
+    #10 0x561da4254496 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2101:24
+    #11 0x561da42a81b5 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #12 0x561da42a81b5 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #13 0x561da42a81b5 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #14 0x561da421943a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1074:24
+    #15 0x561da40ac3f9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #16 0x561da40ac3f9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #17 0x561da40ac3f9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #18 0x561da384e3b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #19 0x561da384e3b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #20 0x561da384e3b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #21 0x561da437eef0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #22 0x561da437b8c0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #23 0x561da4378a42 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #24 0x561da437ec78 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #25 0x561da3845fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #26 0x561da3846335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #27 0x561da36fa6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #28 0x561da36e5945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #29 0x561da36eb3df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #30 0x561da3716682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #31 0x7fd965369082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #32 0x561da36ddb2d in _start (/out/gs_device_pdfwrite_fuzzer+0x719b2d)
+
+DEDUP_TOKEN: pdfi_read_cff_real--pdfi_read_cff_dict--pdfi_read_cff_dict
+Address 0x7fd964b9c060 is located in stack of thread T0 at offset 96 in frame
+    #0 0x561da42f361f in pdfi_read_cff_dict /src/ghostpdl/./pdf/pdf_font1C.c:802
+
+DEDUP_TOKEN: pdfi_read_cff_dict
+  This frame has 2 object(s):
+    [32, 96) 'buf.i' (line 686) <== Memory access at offset 96 overflows this variable
+    [128, 512) 'args' (line 804)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/ghostpdl/./pdf/pdf_font1C.c:739:10 in pdfi_read_cff_real
+Shadow bytes around the buggy address:
+  0x7fd964b9bd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd964b9be00: f3 f3 f3 f3 f3 f3 f3 f3 00 00 00 00 00 00 00 00
+  0x7fd964b9be80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd964b9bf00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd964b9bf80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7fd964b9c000: f1 f1 f1 f1 00 00 00 00 00 00 00 00[f2]f2 f2 f2
+  0x7fd964b9c080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd964b9c100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd964b9c180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd964b9c200: f3 f3 f3 f3 f3 f3 f3 f3 00 00 00 00 00 00 00 00
+  0x7fd964b9c280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

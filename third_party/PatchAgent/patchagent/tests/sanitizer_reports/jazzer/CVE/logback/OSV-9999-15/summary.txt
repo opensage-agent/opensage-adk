@@ -1,0 +1,30 @@
+The sanitizer detected a server side request forgery vulnerability.The explanation of the vulnerability is: An attacker can make the server perform unauthorized requests, leading to potential data exfiltration or unauthorized access.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueMedium: Server Side Request Forgery (SSRF)
+Attempted connection to: localhost:4321
+Requests to destinations based on untrusted data could lead to exfiltration of sensitive data or exposure of internal services.
+
+If the fuzz test is expected to perform network connections, call com.code_intelligence.jazzer.api.BugDetectors#allowNetworkConnections at the beginning of your fuzz test and optionally provide a predicate matching the expected hosts.
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrf (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:127)
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrfSocket (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:71)
+- java.base/java.net.Socket.connect (java/base/java/net/Socket.java:633)
+- java.base/java.net.Socket.connect (java/base/java/net/Socket.java:583)
+- java.base/java.net.Socket.<init> (java/base/java/net/Socket.java:507)
+- java.base/java.net.Socket.<init> (java/base/java/net/Socket.java:319)
+- java.base/javax.net.DefaultSocketFactory.createSocket (java/base/javax/net/DefaultSocketFactory/createSocket:277)
+- ch.qos.logback.core.net.DefaultSocketConnector.createSocket (ch/qos/logback/core/net/DefaultSocketConnector.java:83)
+- ch.qos.logback.core.net.DefaultSocketConnector.call (ch/qos/logback/core/net/DefaultSocketConnector.java:72)
+- ch.qos.logback.core.net.AbstractSocketAppender.socketConnectionCouldBeEstablished (ch/qos/logback/core/net/AbstractSocketAppender.java:213)
+- ch.qos.logback.core.net.AbstractSocketAppender.connectSocketAndDispatchEvents (ch/qos/logback/core/net/AbstractSocketAppender.java:190)
+- ch.qos.logback.core.net.AbstractSocketAppender$1.run (ch/qos/logback/core/net/AbstractSocketAppender$1/run:151)
+- java.base/java.util.concurrent.Executors$RunnableAdapter.call (java/base/java/util/concurrent/Executors$RunnableAdapter/call:539)
+- java.base/java.util.concurrent.FutureTask.run (java/base/java/util/concurrent/FutureTask.java:264)
+- java.base/java.util.concurrent.ThreadPoolExecutor.runWorker (java/base/java/util/concurrent/ThreadPoolExecutor.java:1136)
+- java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run (java/base/java/util/concurrent/ThreadPoolExecutor$Worker/run:635)
+- java.base/java.lang.Thread.run (java/base/java/lang/Thread.java:833)
+
+To fix this issue, follow the advice below:
+
+1. Validate and sanitize all user-provided URLs to prevent SSRF attacks.
+2. Use allowlists or secure APIs to restrict server-side requests to authorized domains.
+3. Monitor server logs for unusual or unauthorized requests.

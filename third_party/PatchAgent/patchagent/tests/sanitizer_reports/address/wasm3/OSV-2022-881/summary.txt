@@ -1,0 +1,33 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x506000000030 thread T0
+    - RemoveCodePageOfCapacity /src/wasm3/source/m3_env.c:0:0
+    - Environment_AcquireCodePage /src/wasm3/source/m3_env.c:142:12
+    - AcquireCodePageWithCapacity /src/wasm3/source/m3_env.c:1119:16
+    - AcquireCodePage /src/wasm3/source/m3_env.c:1139:12
+    - AcquireCompilationCodePage /src/wasm3/source/m3_compile.c:161:24
+    - CompileElseBlock /src/wasm3/source/m3_compile.c:1908:1
+    - Compile_If /src/wasm3/source/m3_compile.c:1959:1
+    - CompileBlockStatements /src/wasm3/source/m3_compile.c:2608:1
+    - CompileFunction /src/wasm3/source/m3_compile.c:2908:1
+    - m3_FindFunction /src/wasm3/source/m3_env.c:750:1
+    - LLVMFuzzerTestOneInput /src/wasm3/platforms/app_fuzz/fuzzer.c:33:30
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x506000000030 is located 16 bytes inside of 56-byte region [0x506000000020,0x506000000058)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

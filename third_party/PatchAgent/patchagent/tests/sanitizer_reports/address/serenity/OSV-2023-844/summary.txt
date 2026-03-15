@@ -1,0 +1,36 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 16 at 0x521000003900 thread T0
+    - AK::ErrorOr<void, Media::DecoderError> Media::Video::VP9::Decoder::create_video_frame<unsigned short>(AK::Duration, Media::Video::VP9::FrameContext const&) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:177:77
+    - Media::Video::VP9::Decoder::decode_frame(AK::Duration, AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:76:13
+    - Media::Video::VP9::Decoder::receive_sample(AK::Duration, AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:33:16
+    - LLVMFuzzerTestOneInput /src/serenity/Meta/Lagom/Fuzzers/FuzzVP9Decoder.cpp:14:23
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x521000003900 is located 0 bytes after 4096-byte region [0x521000002900,0x521000003900)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - kmalloc_array /src/serenity/AK/kmalloc.h:47:12
+    - try_ensure_capacity /src/serenity/AK/Vector.h:663:54
+    - AK::Vector<unsigned short, 0ul>::try_resize(unsigned long, bool) requires !AK::Vector::contains_reference /src/serenity/AK/Vector.h:690:9
+    - try_resize_and_keep_capacity /src/serenity/AK/Vector.h:701:16
+    - Media::Video::VP9::Decoder::allocate_buffers(Media::Video::VP9::FrameContext const&) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:193:9
+    - Media::Video::VP9::Parser::parse_frame(AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Parser.cpp:104:5
+    - Media::Video::VP9::Decoder::decode_frame(AK::Duration, AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:55:26
+    - Media::Video::VP9::Decoder::receive_sample(AK::Duration, AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:33:16
+    - LLVMFuzzerTestOneInput /src/serenity/Meta/Lagom/Fuzzers/FuzzVP9Decoder.cpp:14:23
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,57 @@
+=================================================================
+==638850==ERROR: AddressSanitizer: global-buffer-overflow on address 0x557e8582b43f at pc 0x557e8541dc32 bp 0x7ffd8fb52310 sp 0x7ffd8fb52308
+READ of size 1 at 0x557e8582b43f thread T0
+    #0 0x557e8541dc31 in xmlSkipBlankChars /root/parser.c:2122:9
+    #1 0x557e8547dd47 in xmlParseMisc /root/parser.c:10758:9
+    #2 0x557e85480fdf in xmlParseDocument /root/parser.c:10924:2
+    #3 0x557e8549b729 in xmlDoRead /root/parser.c:14975:5
+    #4 0x557e8549b9d5 in xmlReadMemory /root/parser.c:15061:13
+    #5 0x557e853feb27 in LLVMFuzzerTestOneInput /root/fuzz/xinclude.c:52:11
+    #6 0x557e853e41c4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/xinclude+0x811c4) (BuildId: f19c0be22ce840edceeeba8cdbab23ad6e6a6bf6)
+    #7 0x557e853cd2f6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/xinclude+0x6a2f6) (BuildId: f19c0be22ce840edceeeba8cdbab23ad6e6a6bf6)
+    #8 0x557e853d2daa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/xinclude+0x6fdaa) (BuildId: f19c0be22ce840edceeeba8cdbab23ad6e6a6bf6)
+    #9 0x557e853fd606 in main (/root/xinclude+0x9a606) (BuildId: f19c0be22ce840edceeeba8cdbab23ad6e6a6bf6)
+    #10 0x7f5c7eaa21c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f5c7eaa228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x557e853c7ec4 in _start (/root/xinclude+0x64ec4) (BuildId: f19c0be22ce840edceeeba8cdbab23ad6e6a6bf6)
+
+0x557e8582b43f is located 33 bytes before global variable '.str.5' defined in '/root/parserInternals.c:332' (0x557e8582b460) of size 18
+  '.str.5' is ascii string 'Huge input lookup'
+0x557e8582b43f is located 1 bytes before global variable '.str.4' defined in '/root/parserInternals.c:289' (0x557e8582b440) of size 1
+  '.str.4' is ascii string ''
+0x557e8582b43f is located 37 bytes after global variable '.str.3' defined in '/root/parserInternals.c:118' (0x557e8582b400) of size 26
+  '.str.3' is ascii string 'Memory allocation failed
+'
+SUMMARY: AddressSanitizer: global-buffer-overflow /root/parser.c:2122:9 in xmlSkipBlankChars
+Shadow bytes around the buggy address:
+  0x557e8582b180: 00 00 00 00 00 06 f9 f9 f9 f9 f9 f9 00 00 03 f9
+  0x557e8582b200: f9 f9 f9 f9 02 f9 f9 f9 04 f9 f9 f9 00 00 00 00
+  0x557e8582b280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x557e8582b300: 00 00 00 00 00 00 00 03 f9 f9 f9 f9 00 00 00 00
+  0x557e8582b380: 00 00 00 04 f9 f9 f9 f9 00 00 00 07 f9 f9 f9 f9
+=>0x557e8582b400: 00 00 00 02 f9 f9 f9[f9]01 f9 f9 f9 00 00 02 f9
+  0x557e8582b480: f9 f9 f9 f9 00 00 05 f9 f9 f9 f9 f9 00 00 00 00
+  0x557e8582b500: f9 f9 f9 f9 00 00 00 00 f9 f9 f9 f9 00 00 00 00
+  0x557e8582b580: 00 00 f9 f9 f9 f9 f9 f9 00 00 00 00 04 f9 f9 f9
+  0x557e8582b600: f9 f9 f9 f9 00 00 00 00 00 00 02 f9 f9 f9 f9 f9
+  0x557e8582b680: 00 00 00 07 f9 f9 f9 f9 00 00 00 00 00 00 00 f9
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==638850==ABORTING

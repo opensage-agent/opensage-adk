@@ -1,0 +1,61 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f839c841460 at pc 0x55925763d2c9 bp 0x7ffe792abd00 sp 0x7ffe792abcf8
+READ of size 1 at 0x7f839c841460 thread T0
+SCARINESS: 27 (1-byte-read-stack-buffer-overflow)
+    #0 0x55925763d2c8 in sc_path_print /src/opensc/src/libopensc/sc.c:467:61
+    #1 0x559257679f89 in sc_select_file /src/opensc/src/libopensc/card.c:840:6
+    #2 0x559257addb4f in cflex_delete_file /src/opensc/src/pkcs15init/pkcs15-cflex.c:60:13
+    #3 0x559257ad95cd in cflex_erase_card /src/opensc/src/pkcs15init/pkcs15-cflex.c:103:4
+    #4 0x5592575e5e5f in sc_pkcs15init_erase_card /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:528:7
+    #5 0x559257624d66 in do_erase /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:265:5
+    #6 0x55925762550a in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:344:5
+    #7 0x559257494c90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55925747ff05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55925748599f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5592574b0c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f839ccb5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x5592574780ed in _start (/out/fuzz_pkcs15init+0x1f30ed)
+
+DEDUP_TOKEN: sc_path_print--sc_select_file--cflex_delete_file
+Address 0x7f839c841460 is located in stack of thread T0 at offset 96 in frame
+    #0 0x559257add97f in cflex_delete_file /src/opensc/src/pkcs15init/pkcs15-cflex.c:53
+
+DEDUP_TOKEN: cflex_delete_file
+  This frame has 2 object(s):
+    [32, 96) 'path' (line 54) <== Memory access at offset 96 overflows this variable
+    [128, 136) 'parent' (line 55)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/opensc/src/libopensc/sc.c:467:61 in sc_path_print
+Shadow bytes around the buggy address:
+  0x7f839c841180: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f839c841200: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f839c841280: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f839c841300: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f839c841380: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+=>0x7f839c841400: f1 f1 f1 f1 00 00 00 00 00 00 00 00[f2]f2 f2 f2
+  0x7f839c841480: 00 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f839c841500: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f839c841580: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f839c841600: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f839c841680: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

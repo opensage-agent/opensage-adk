@@ -1,0 +1,44 @@
+The sanitizer detected a naming context lookup vulnerability.The explanation of the vulnerability is: An attacker can perform unauthorized JNDI lookups to access sensitive resources.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueCritical: Remote JNDI Lookup
+JNDI lookups with attacker-controlled remote URLs can, depending on the JDK
+version, lead to remote code execution or the exfiltration of information.
+- com.code_intelligence.jazzer.sanitizers.NamingContextLookup.lookupHook (com/code_intelligence/jazzer/sanitizers/NamingContextLookup.kt:61)
+- org.apache.logging.log4j.core.net.JndiManager.lookup (org/apache/logging/log4j/core/net/JndiManager.java:172)
+- org.apache.logging.log4j.core.lookup.JndiLookup.lookup (org/apache/logging/log4j/core/lookup/JndiLookup.java:56)
+- org.apache.logging.log4j.core.lookup.Interpolator.lookup (org/apache/logging/log4j/core/lookup/Interpolator.java:221)
+- org.apache.logging.log4j.core.lookup.StrSubstitutor.resolveVariable (org/apache/logging/log4j/core/lookup/StrSubstitutor.java:1110)
+- org.apache.logging.log4j.core.lookup.StrSubstitutor.substitute (org/apache/logging/log4j/core/lookup/StrSubstitutor.java:1033)
+- org.apache.logging.log4j.core.lookup.StrSubstitutor.substitute (org/apache/logging/log4j/core/lookup/StrSubstitutor.java:912)
+- org.apache.logging.log4j.core.lookup.StrSubstitutor.replace (org/apache/logging/log4j/core/lookup/StrSubstitutor.java:467)
+- org.apache.logging.log4j.core.pattern.MessagePatternConverter.format (org/apache/logging/log4j/core/pattern/MessagePatternConverter.java:132)
+- org.apache.logging.log4j.core.pattern.PatternFormatter.format (org/apache/logging/log4j/core/pattern/PatternFormatter.java:38)
+- org.apache.logging.log4j.core.layout.PatternLayout$PatternSerializer.toSerializable (org/apache/logging/log4j/core/layout/PatternLayout$PatternSerializer/toSerializable:344)
+- org.apache.logging.log4j.core.layout.PatternLayout$PatternSerializer.toSerializable (org/apache/logging/log4j/core/layout/PatternLayout$PatternSerializer/toSerializable:334)
+- org.apache.logging.log4j.core.layout.PatternLayout.toSerializable (org/apache/logging/log4j/core/layout/PatternLayout.java:216)
+- org.apache.logging.log4j.core.layout.PatternLayout.toSerializable (org/apache/logging/log4j/core/layout/PatternLayout.java:59)
+- org.apache.logging.log4j.core.layout.AbstractStringLayout.toByteArray (org/apache/logging/log4j/core/layout/AbstractStringLayout.java:309)
+- com.example.Log4jFuzzer$FuzzingAppender.append (com/example/Log4jFuzzer$FuzzingAppender/append:80)
+- org.apache.logging.log4j.core.config.AppenderControl.tryCallAppender (org/apache/logging/log4j/core/config/AppenderControl.java:156)
+- org.apache.logging.log4j.core.config.AppenderControl.callAppender0 (org/apache/logging/log4j/core/config/AppenderControl.java:129)
+- org.apache.logging.log4j.core.config.AppenderControl.callAppenderPreventRecursion (org/apache/logging/log4j/core/config/AppenderControl.java:120)
+- org.apache.logging.log4j.core.config.AppenderControl.callAppender (org/apache/logging/log4j/core/config/AppenderControl.java:84)
+- org.apache.logging.log4j.core.config.LoggerConfig.callAppenders (org/apache/logging/log4j/core/config/LoggerConfig.java:540)
+- org.apache.logging.log4j.core.config.LoggerConfig.processLogEvent (org/apache/logging/log4j/core/config/LoggerConfig.java:498)
+- org.apache.logging.log4j.core.config.LoggerConfig.log (org/apache/logging/log4j/core/config/LoggerConfig.java:481)
+- org.apache.logging.log4j.core.config.LoggerConfig.log (org/apache/logging/log4j/core/config/LoggerConfig.java:456)
+- org.apache.logging.log4j.core.config.AwaitCompletionReliabilityStrategy.log (org/apache/logging/log4j/core/config/AwaitCompletionReliabilityStrategy.java:82)
+- org.apache.logging.log4j.core.Logger.log (org/apache/logging/log4j/core/Logger.java:161)
+- org.apache.logging.log4j.spi.AbstractLogger.tryLogMessage (org/apache/logging/log4j/spi/AbstractLogger.java:2205)
+- org.apache.logging.log4j.spi.AbstractLogger.logMessageTrackRecursion (org/apache/logging/log4j/spi/AbstractLogger.java:2159)
+- org.apache.logging.log4j.spi.AbstractLogger.logMessageSafely (org/apache/logging/log4j/spi/AbstractLogger.java:2142)
+- org.apache.logging.log4j.spi.AbstractLogger.logMessage (org/apache/logging/log4j/spi/AbstractLogger.java:2017)
+- org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled (org/apache/logging/log4j/spi/AbstractLogger.java:1983)
+- org.apache.logging.log4j.spi.AbstractLogger.error (org/apache/logging/log4j/spi/AbstractLogger.java:740)
+- com.example.Log4jFuzzer.fuzzerTestOneInput (com/example/Log4jFuzzer.java:42)
+
+To fix this issue, follow the advice below:
+
+1. Restrict access to naming contexts to prevent unauthorized lookups.
+2. Use secure authentication mechanisms to control access to sensitive resources.
+3. Monitor naming context lookups for suspicious activity.

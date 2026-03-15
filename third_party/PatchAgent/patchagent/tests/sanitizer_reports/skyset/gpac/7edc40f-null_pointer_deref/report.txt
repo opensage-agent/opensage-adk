@@ -1,0 +1,27 @@
+=================================================================
+==638733==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7f0ba294bc00 bp 0x7fffcc891010 sp 0x7fffcc8907c8 T0)
+==638733==The signal is caused by a READ memory access.
+==638733==Hint: address points to the zero page.
+    #0 0x7f0ba294bc00  (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0x38c00) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f0ba29f340f in strdup (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xe040f) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #2 0x7f0ba0afc4f4 in gf_strdup /root/src/utils/alloc.c:170:2
+    #3 0x7f0ba1df6169 in isor_get_chapters /root/src/filters/isoffin_load.c:92:20
+    #4 0x7f0ba1deb9a2 in isor_declare_track /root/src/filters/isoffin_load.c:1187:3
+    #5 0x7f0ba1df3051 in isor_declare_objects /root/src/filters/isoffin_load.c:1728:3
+    #6 0x7f0ba1dfa7f2 in isoffin_setup /root/src/filters/isoffin_read.c:181:6
+    #7 0x7f0ba1df708a in isoffin_configure_pid /root/src/filters/isoffin_read.c:477:9
+    #8 0x7f0ba1a50178 in gf_filter_pid_configure /root/src/filter_core/filter_pid.c:876:6
+    #9 0x7f0ba1a71646 in gf_filter_pid_connect_task /root/src/filter_core/filter_pid.c:1230:3
+    #10 0x7f0ba1ad9cd4 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    #11 0x7f0ba1ad5afb in gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    #12 0x7f0ba13e5edf in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #13 0x5632ae25e1ce in do_dash /root/applications/mp4box/mp4box.c:4831:15
+    #14 0x5632ae252cc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #15 0x5632ae259841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #16 0x7f0ba05f91c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7f0ba05f928a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x5632ae238e04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: 2eb69d58f8d4fd1e4c8a91b7a023a176801b3e63)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/src/utils/alloc.c:170:2 in gf_strdup
+==638733==ABORTING

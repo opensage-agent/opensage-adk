@@ -1,0 +1,37 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 72 at 0x7f4d205b0ff0 thread T0
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - copy_encryption_verifier /src/clamav/libclamav/ole2_extract.c:2033:5
+    - initialize_encryption_key /src/clamav/libclamav/ole2_extract.c:2362:5
+    - cli_ole2_extract /src/clamav/libclamav/ole2_extract.c:2472:22
+    - cli_scanole2 /src/clamav/libclamav/scanners.c:2638:11
+    - cli_magic_scan /src/clamav/libclamav/scanners.c:4683:23
+    - scan_common /src/clamav/libclamav/scanners.c:5472:14
+    - cl_scandesc_callback /src/clamav/libclamav/scanners.c:5716:14
+    - cl_scanfile_callback /src/clamav/libclamav/scanners.c:5795:11
+    - cl_scanfile /src/clamav/libclamav/scanners.c:5772:12
+    - LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_scanfile_fuzzer.cpp:118:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f4d205b0ff0 is located in stack of thread T0 at offset 2032 in frame
+    - cli_ole2_extract /src/clamav/libclamav/ole2_extract.c:2399:0
+
+  This frame has 5 object(s):
+    [32, 292) 'key.i' (line 2243)
+    [368, 440) 'ev.i' (line 2244)
+    [480, 1048) 'hdr' (line 2400)
+    [1184, 1444) 'key' (line 2406)
+    [1520, 2032) 'encryption_info_stream_standard' (line 2470) <== Memory access at offset 2032 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

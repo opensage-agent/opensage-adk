@@ -1,0 +1,55 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 279 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.JsonSanitizerCrashFuzzer (took 31 ms, size +11%)
+INFO: using inputs from: JsonSanitizerCrashFuzzer/crash-30ff3e70efea806e08ec1f02ce06c984d6e1025b
+INFO: found LLVMFuzzerCustomMutator (0x7fcec2760a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3190159990
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55bf4e064bb0, 0x55bf4e064db0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55bf4dfbbb70,0x55bf4dfbdb70), 
+jazzer: Running 1 inputs 1 time(s) each.
+Running: JsonSanitizerCrashFuzzer/crash-30ff3e70efea806e08ec1f02ce06c984d6e1025b
+INFO: New number of coverage counters: 1024
+INFO: Instrumented com.google.json.JsonSanitizer (took 22 ms, size +50%)
+INFO: Instrumented com.google.json.JsonSanitizer$UnbracketedComma (took 0 ms, size +15%)
+INFO: Instrumented com.google.json.JsonSanitizer$State (took 1 ms, size +10%)
+INFO: Instrumented com.google.json.JsonSanitizer$1 (took 0 ms, size +16%)
+
+== Java Exception: java.lang.IndexOutOfBoundsException: Range [68, 63) out of bounds for length 83
+	at java.base/jdk.internal.util.Preconditions$3.apply(Preconditions.java:71)
+	at java.base/jdk.internal.util.Preconditions$3.apply(Preconditions.java:68)
+	at java.base/jdk.internal.util.Preconditions$4.apply(Preconditions.java:213)
+	at java.base/jdk.internal.util.Preconditions$4.apply(Preconditions.java:210)
+	at java.base/jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:98)
+	at java.base/jdk.internal.util.Preconditions.outOfBoundsCheckFromToIndex(Preconditions.java:112)
+	at java.base/jdk.internal.util.Preconditions.checkFromToIndex(Preconditions.java:349)
+	at java.base/java.lang.AbstractStringBuilder.append(AbstractStringBuilder.java:684)
+	at java.base/java.lang.StringBuilder.append(StringBuilder.java:218)
+	at com.google.json.JsonSanitizer.elide(JsonSanitizer.java:717)
+	at com.google.json.JsonSanitizer.normalizeNumber(JsonSanitizer.java:864)
+	at com.google.json.JsonSanitizer.canonicalizeNumber(JsonSanitizer.java:919)
+	at com.google.json.JsonSanitizer.sanitize(JsonSanitizer.java:428)
+	at com.google.json.JsonSanitizer.sanitize(JsonSanitizer.java:122)
+	at com.example.JsonSanitizerCrashFuzzer.fuzzerTestOneInput(JsonSanitizerCrashFuzzer.java:26)
+DEDUP_TOKEN: 62d55741fb2f886f
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_30ff3e70efea806e08ec1f02ce06c984d6e1025b.java
+

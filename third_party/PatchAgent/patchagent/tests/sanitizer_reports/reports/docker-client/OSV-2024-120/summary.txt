@@ -1,0 +1,19 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- com.spotify.docker.client.shaded.com.fasterxml.jackson.databind.util.TokenBuffer.copyCurrentStructure (com/spotify/docker/client/shaded/com/fasterxml/jackson/databind/util/TokenBuffer.java:1107)
+Caused by: java.lang.StackOverflowError
+- java.base/java.nio.charset.CharsetEncoder.replaceWith (java/base/java/nio/charset/CharsetEncoder.java:298)
+- java.base/java.nio.charset.CharsetEncoder.<init> (java/base/java/nio/charset/CharsetEncoder.java:207)
+- java.base/java.nio.charset.CharsetEncoder.<init> (java/base/java/nio/charset/CharsetEncoder.java:233)
+- java.base/sun.nio.cs.CESU_8$Encoder.<init> (java/base/sun/nio/cs/CESU_8$Encoder/<init>:401)
+- java.base/sun.nio.cs.CESU_8.newEncoder (java/base/sun/nio/cs/CESU_8.java:70)
+- java.base/java.lang.String.encodeWithEncoder (java/base/java/lang/String.java:837)
+- java.base/java.lang.String.encode (java/base/java/lang/String.java:833)
+- java.base/java.lang.String.getBytes (java/base/java/lang/String.java:1783)
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

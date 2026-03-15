@@ -1,0 +1,12 @@
+The sanitizer detected a java generic exception vulnerability.The explanation of the vulnerability is: A Java exception occurred, indicating a potential issue in the code or environment.Here is the detail: 
+
+== Java Exception: java.lang.IllegalArgumentException: Location path contains unsupported characters. Only alphanumerics, '-', '_', '.', '*', '?', '/', and '\' are allowed.
+- org.flywaydb.core.api.Location.processRawPath (org/flywaydb/core/api/Location.java:120)
+- org.flywaydb.core.api.Location.<init> (org/flywaydb/core/api/Location.java:89)
+- LocationFuzzer.fuzzerTestOneInput (LocationFuzzer.java:30)
+
+To fix this issue, follow the advice below:
+
+1. Investigate the cause of the Java exception to identify the root cause of the error.
+2. Review the code for potential memory corruption or undefined behavior.
+3. Check for uninitialized variables or unintended pointer accesses.

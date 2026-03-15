@@ -1,0 +1,14 @@
+The sanitizer detected a script engine injection vulnerability.The explanation of the vulnerability is: An attacker can execute arbitrary scripts in the application context, leading to code execution vulnerabilities.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueCritical: Script Engine Injection: Insecure user input was used in script engine invocation.
+Depending on the script engine's capabilities this could lead to sandbox escape and remote code execution.
+- com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection.checkScriptContent (com/code_intelligence/jazzer/sanitizers/ScriptEngineInjection.java:99)
+- com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection.checkScriptEngineExecute (com/code_intelligence/jazzer/sanitizers/ScriptEngineInjection.java:90)
+- com.example.ScriptEngineInjection.insecureScriptEval (com/example/ScriptEngineInjection.java:34)
+- com.example.ScriptEngineInjection.fuzzerTestOneInput (com/example/ScriptEngineInjection.java:39)
+
+To fix this issue, follow the advice below:
+
+1. Avoid executing untrusted scripts or code in the application context.
+2. Use secure sandboxing techniques to isolate script execution.
+3. Validate script inputs and restrict access to sensitive resources.

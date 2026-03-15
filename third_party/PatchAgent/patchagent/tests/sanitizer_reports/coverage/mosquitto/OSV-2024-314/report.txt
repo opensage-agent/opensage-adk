@@ -1,0 +1,49 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mosquitto:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce broker_fuzz_test_config -runs=100.
++ FUZZER=broker_fuzz_test_config
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer broker_fuzz_test_config -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/broker_fuzz_test_config -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=broker_fuzz_test_config.dict < /dev/null
+Dictionary: 170 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2037580636
+INFO: Loaded 1 modules   (7 inline 8-bit counters): 7 [0x55edd1bba570, 0x55edd1bba577), 
+INFO: Loaded 1 PC tables (7 PCs): 7 [0x55edd1bba578,0x55edd1bba5e8), 
+/out/broker_fuzz_test_config: Running 1 inputs 100 time(s) each.
+Running: /testcase
+1744342875: The 'port' option is now deprecated and will be removed in version 3.0. Please use 'listener' instead.
+1744342875: Creating default listener due to 'port' option.
+1744342875: It is best practice to define a 'listener' first. Using the 'port' option without a listener will be disabled in the future.
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x000000000030 (pc 0x55edd1ac66a2 bp 0x7fff87b8d690 sp 0x7fff87b8d680 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+    #0 0x55edd1ac66a2 in listener__set_defaults /src/mosquitto/src/listeners.c:38:2
+    #1 0x55edd1abfe16 in config__create_default_listener /src/mosquitto/src/conf.c:186:2
+    #2 0x55edd1abdb4e in config__read_file_core /src/mosquitto/src/conf.c:2094:9
+    #3 0x55edd1ab8b87 in config__read_file /src/mosquitto/src/conf.c:2511:7
+    #4 0x55edd1ab80a7 in config__read /src/mosquitto/src/conf.c
+    #5 0x55edd1ab7b64 in config__parse_args /src/mosquitto/src/conf.c:521:8
+    #6 0x55edd1ab3135 in mosquitto_fuzz_main /src/mosquitto/src/mosquitto.c:432:7
+    #7 0x55edd1ab2eb3 in run_broker(char*) /src/mosquitto/fuzzing/broker/broker_fuzz_test_config.cpp:46:2
+    #8 0x55edd1ab2fc2 in LLVMFuzzerTestOneInput /src/mosquitto/fuzzing/broker/broker_fuzz_test_config.cpp:72:2
+    #9 0x55edd1a15430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55edd1a006a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55edd1a0613f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55edd1a313e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7ff883872082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #14 0x55edd19f888d in _start (/out/broker_fuzz_test_config+0x2488d)
+
+DEDUP_TOKEN: listener__set_defaults--config__create_default_listener--config__read_file_core
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/mosquitto/src/listeners.c:38:2 in listener__set_defaults
+==14==ABORTING

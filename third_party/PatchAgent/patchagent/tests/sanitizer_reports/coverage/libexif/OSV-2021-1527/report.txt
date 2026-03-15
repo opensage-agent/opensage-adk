@@ -1,0 +1,40 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libexif:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce exif_from_data_fuzzer -runs=100.
++ FUZZER=exif_from_data_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer exif_from_data_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/exif_from_data_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3897694986
+INFO: Loaded 1 modules   (8 inline 8-bit counters): 8 [0x55f6fef942c0, 0x55f6fef942c8), 
+INFO: Loaded 1 PC tables (8 PCs): 8 [0x55f6fef942c8,0x55f6fef94348), 
+/out/exif_from_data_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x55f701743341 (pc 0x7fdf7effeb38 bp 0x7ffd24261c60 sp 0x7ffd24261be8 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x7fdf7effeb38  (/lib/x86_64-linux-gnu/libc.so.6+0x18bb38) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x55f6feee45c1 in exif_mnote_data_canon_load /src/libexif/libexif/canon/exif-mnote-data-canon.c:306:4
+    #2 0x55f6feed8b57 in exif_data_load_data /src/libexif/libexif/exif-data.c:1012:2
+    #3 0x55f6feed8465 in exif_data_new_from_data /src/libexif/libexif/exif-data.c:159:2
+    #4 0x55f6feed72f6 in LLVMFuzzerTestOneInput /src/exif_from_data_fuzzer.cc:51:16
+    #5 0x55f6fee398c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55f6fee24b35 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55f6fee2a5cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55f6fee55872 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7fdf7ee97082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #10 0x55f6fee1cd1d in _start (/out/exif_from_data_fuzzer+0x2fd1d)
+
+DEDUP_TOKEN: exif_mnote_data_canon_load--exif_data_load_data
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x18bb38) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) 
+==14==ABORTING

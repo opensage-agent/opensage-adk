@@ -1,0 +1,52 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/php:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce php-fuzz-tracing-jit -runs=100.
++ FUZZER=php-fuzz-tracing-jit
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer php-fuzz-tracing-jit -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/php-fuzz-tracing-jit -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3696691029
+/out/php-fuzz-tracing-jit: Running 1 inputs 100 time(s) each.
+Running: /testcase
+php-fuzz-tracing-jit: ext/opcache/jit/zend_jit_trace.c:361: uint32_t zend_jit_trace_type_to_info_ex(zend_uchar, uint32_t): Assertion `info & (1 << type)' failed.
+==14== ERROR: libFuzzer: deadly signal
+    #0 0x556580c3ef14 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x556580bbdf68 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x556580ba1303 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7f5e76cfc41f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7f5e76b1e00a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7f5e76afd858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7f5e76afd728  (/lib/x86_64-linux-gnu/libc.so.6+0x22728) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7f5e76b0efd5 in __assert_fail (/lib/x86_64-linux-gnu/libc.so.6+0x33fd5) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x7f5e765bc8e9 in zend_jit_trace_type_to_info_ex /src/php-src/ext/opcache/jit/zend_jit_trace.c:361:2
+    #9 0x7f5e765bc8e9 in zend_jit_trace_add_op_guard /src/php-src/ext/opcache/jit/zend_jit_trace.c:400:32
+    #10 0x7f5e765bc8e9 in zend_jit_trace_build_tssa /src/php-src/ext/opcache/jit/zend_jit_trace.c
+    #11 0x7f5e7659f756 in zend_jit_trace /src/php-src/ext/opcache/jit/zend_jit_trace.c:3882:8
+    #12 0x7f5e7658d70f in zend_jit_compile_root_trace /src/php-src/ext/opcache/jit/zend_jit_trace.c:6873:13
+    #13 0x7f5e7658bf8e in zend_jit_trace_hot_root /src/php-src/ext/opcache/jit/zend_jit_trace.c:7385:10
+    #14 0x7f5e76645604 in zend_jit_trace_counter_helper /src/php-src/ext/opcache/jit/zend_jit_vm_helpers.c:320:7
+    #15 0x7f5e76645604 in zend_jit_func_trace_helper /src/php-src/ext/opcache/jit/zend_jit_vm_helpers.c:343:2
+    #16 0x556580f2a2be in execute_ex /src/php-src/Zend/zend_vm_execute.h:54424:7
+    #17 0x556580f2a44b in zend_execute /src/php-src/Zend/zend_vm_execute.h:58977:2
+    #18 0x556581056db3 in fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:276:5
+    #19 0x55658105634f in LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-tracing-jit.c:43:3
+    #20 0x556580ba2810 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #21 0x556580b8da85 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #22 0x556580b9351f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #23 0x556580bbe7c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #24 0x7f5e76aff082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #25 0x556580b85c6d in _start (/out/php-fuzz-tracing-jit+0x202c6d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

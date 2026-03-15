@@ -1,0 +1,47 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x55ec5d27594f bp 0x7fff422784b0 sp 0x7fff42278480 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55ec5d27594f in gs_heap_free_object /src/ghostpdl/./base/gsmalloc.c:340:9
+    #1 0x55ec5d2c970a in FF_free /src/ghostpdl/./base/fapi_ft.c:162:5
+    #2 0x55ec5d2c970a in gs_fapi_ft_get_scaled_font /src/ghostpdl/./base/fapi_ft.c:1335:17
+    #3 0x55ec5d2b9c8f in gs_fapi_prepare_font /src/ghostpdl/./base/gxfapi.c:428:50
+    #4 0x55ec5d2c48d4 in gs_fapi_passfont /src/ghostpdl/./base/gxfapi.c:1868:13
+    #5 0x55ec5dcffa5d in pdfi_fapi_passfont /src/ghostpdl/./pdf/pdf_fapi.c:1497:9
+    #6 0x55ec5d858a29 in pdfi_read_truetype_font /src/ghostpdl/./pdf/pdf_fontTT.c:629:12
+    #7 0x55ec5d815268 in pdfi_load_font /src/ghostpdl/./pdf/pdf_font.c:815:40
+    #8 0x55ec5d81a250 in pdfi_load_dict_font /src/ghostpdl/./pdf/pdf_font.c:902:20
+    #9 0x55ec5d81d26a in pdfi_load_resource_font /src/ghostpdl/./pdf/pdf_font.c:944:12
+    #10 0x55ec5d81d26a in pdfi_Tf /src/ghostpdl/./pdf/pdf_font.c:1303:12
+    #11 0x55ec5d79f07f in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1640:24
+    #12 0x55ec5d79d606 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2101:24
+    #13 0x55ec5d7f13e5 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #14 0x55ec5d7f13e5 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #15 0x55ec5d7f13e5 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #16 0x55ec5d761f9a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1074:24
+    #17 0x55ec5d5f4ef9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #18 0x55ec5d5f4ef9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #19 0x55ec5d5f4ef9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #20 0x55ec5cd96597 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #21 0x55ec5cd96597 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #22 0x55ec5cd96597 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #23 0x55ec5d8c88c0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #24 0x55ec5d8c5290 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #25 0x55ec5d8c2412 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #26 0x55ec5d8c8648 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #27 0x55ec5cd8dfbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #28 0x55ec5cd8e474 in gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    #29 0x55ec5cd8e474 in LLVMFuzzerTestOneInput /src/gstoraster_pdf_fuzzer.cc:35:2
+    #30 0x55ec5cc426d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #31 0x55ec5cc2d945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #32 0x55ec5cc333df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #33 0x55ec5cc5e682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #34 0x7fd1d9b73082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #35 0x55ec5cc25b2d in _start (/out/gstoraster_pdf_fuzzer+0x71ab2d)
+
+DEDUP_TOKEN: gs_heap_free_object--FF_free--gs_fapi_ft_get_scaled_font
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/ghostpdl/./base/gsmalloc.c:340:9 in gs_heap_free_object
+==14==ABORTING

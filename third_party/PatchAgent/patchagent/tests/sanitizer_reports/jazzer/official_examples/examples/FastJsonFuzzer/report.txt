@@ -1,0 +1,144 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 285 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 52 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.FastJsonFuzzer (took 16 ms, size +13%)
+INFO: Instrumented com.alibaba.fastjson.JSONException (took 2 ms, size +16%)
+INFO: using inputs from: FastJsonFuzzer/crash-ede8a5a8036f44f22dfb64d6f01fc4a03f1b5d58
+INFO: found LLVMFuzzerCustomMutator (0x7f456b66ba00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 4283981201
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55d49f508e60, 0x55d49f509060), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55d49f46b600,0x55d49f46d600), 
+jazzer: Running 1 inputs 1 time(s) each.
+Running: FastJsonFuzzer/crash-ede8a5a8036f44f22dfb64d6f01fc4a03f1b5d58
+INFO: Instrumented com.alibaba.fastjson.JSON (took 41 ms, size +13%)
+INFO: Instrumented com.alibaba.fastjson.JSONStreamAware (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.JSONAware (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.serializer.SerializeFilter (took 0 ms, size +0%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented com.alibaba.fastjson.parser.Feature (took 2 ms, size +15%)
+INFO: Instrumented com.alibaba.fastjson.serializer.SerializerFeature (took 3 ms, size +15%)
+INFO: Instrumented com.alibaba.fastjson.util.IOUtils (took 9 ms, size +28%)
+INFO: Instrumented com.alibaba.fastjson.util.IOUtils$1 (took 1 ms, size +11%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented com.alibaba.fastjson.parser.ParserConfig (took 17 ms, size +24%)
+INFO: Instrumented com.alibaba.fastjson.util.ASMClassLoader (took 1 ms, size +16%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.FieldDeserializer (took 2 ms, size +43%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.ArrayListTypeFieldDeserializer (took 1 ms, size +28%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.DefaultFieldDeserializer (took 1 ms, size +20%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.ObjectDeserializer (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.util.IdentityHashMap (took 1 ms, size +30%)
+INFO: Instrumented com.alibaba.fastjson.util.IdentityHashMap$Entry (took 0 ms, size +9%)
+INFO: Instrumented com.alibaba.fastjson.util.ASMUtils (took 1 ms, size +21%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented com.alibaba.fastjson.parser.SymbolTable (took 1 ms, size +43%)
+WARN: Some hooks could not be applied to class files built for Java 7 or lower.
+                       Ensure that the fuzz target and its dependencies are compiled with
+                       -target 8 or higher to identify as many bugs as possible.
+INFO: Instrumented com.alibaba.fastjson.util.TypeUtils (took 19 ms, size +42%)
+INFO: New number of coverage counters: 8192
+INFO: Instrumented com.alibaba.fastjson.JSONObject (took 5 ms, size +27%)
+INFO: Instrumented com.alibaba.fastjson.JSONPObject (took 1 ms, size +16%)
+INFO: Instrumented com.alibaba.fastjson.serializer.JSONSerializable (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.JSONArray (took 4 ms, size +8%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.ASMDeserializerFactory (took 8 ms, size +24%)
+INFO: Instrumented com.alibaba.fastjson.asm.Opcodes (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.asm.MethodVisitor (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.parser.DefaultJSONParser (took 8 ms, size +27%)
+INFO: New number of coverage counters: 16384
+INFO: Instrumented com.alibaba.fastjson.parser.JSONLexerBase (took 19 ms, size +45%)
+INFO: Instrumented com.alibaba.fastjson.parser.JSONLexer (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.util.ASMClassLoader$1 (took 0 ms, size +14%)
+INFO: Instrumented com.alibaba.fastjson.JSONPath (took 7 ms, size +27%)
+INFO: Instrumented com.alibaba.fastjson.JSONPathException (took 0 ms, size +17%)
+INFO: Instrumented com.alibaba.fastjson.JSONReader (took 3 ms, size +20%)
+INFO: Instrumented com.alibaba.fastjson.JSONWriter (took 2 ms, size +24%)
+INFO: Instrumented com.alibaba.fastjson.TypeReference (took 1 ms, size +33%)
+INFO: Instrumented com.alibaba.fastjson.util.FieldInfo (took 3 ms, size +33%)
+INFO: Instrumented com.alibaba.fastjson.util.ParameterizedTypeImpl (took 0 ms, size +49%)
+INFO: Instrumented com.alibaba.fastjson.util.JavaBeanInfo (took 4 ms, size +35%)
+INFO: Instrumented com.alibaba.fastjson.serializer.ObjectSerializer (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.serializer.JavaBeanSerializer (took 4 ms, size +30%)
+INFO: Instrumented com.alibaba.fastjson.serializer.SerializeFilterable (took 1 ms, size +20%)
+INFO: Instrumented com.alibaba.fastjson.serializer.SerializeBeanInfo (took 0 ms, size +7%)
+INFO: Instrumented com.alibaba.fastjson.serializer.JSONSerializer (took 4 ms, size +23%)
+INFO: Instrumented com.alibaba.fastjson.serializer.SerializeWriter (took 17 ms, size +37%)
+INFO: Instrumented com.alibaba.fastjson.serializer.Labels (took 0 ms, size +15%)
+INFO: Instrumented com.alibaba.fastjson.serializer.LabelFilter (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.serializer.ContextValueFilter (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.serializer.AfterFilter (took 0 ms, size +19%)
+INFO: Instrumented com.alibaba.fastjson.serializer.BeforeFilter (took 0 ms, size +34%)
+INFO: Instrumented com.alibaba.fastjson.serializer.NameFilter (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.serializer.PropertyFilter (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.serializer.PropertyPreFilter (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.serializer.ValueFilter (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.serializer.ContextObjectSerializer (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.serializer.SerialContext (took 0 ms, size +37%)
+INFO: Instrumented com.alibaba.fastjson.serializer.SerializeConfig (took 5 ms, size +29%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.JavaBeanDeserializer (took 7 ms, size +33%)
+INFO: Instrumented com.alibaba.fastjson.parser.ParseContext (took 0 ms, size +23%)
+INFO: Instrumented com.alibaba.fastjson.parser.JSONToken (took 0 ms, size +14%)
+INFO: Instrumented com.alibaba.fastjson.parser.JSONScanner (took 11 ms, size +52%)
+INFO: New number of coverage counters: 32768
+INFO: Instrumented com.alibaba.fastjson.parser.JSONReaderScanner (took 2 ms, size +23%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.AutowiredObjectDeserializer (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.ExtraProcessor (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.ParseProcess (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.ExtraProcessable (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.ExtraTypeProvider (took 0 ms, size +0%)
+INFO: Instrumented com.alibaba.fastjson.serializer.BeanContext (took 0 ms, size +7%)
+INFO: Instrumented com.alibaba.fastjson.serializer.MiscCodec (took 2 ms, size +26%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.SqlDateDeserializer (took 1 ms, size +20%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.AbstractDateDeserializer (took 0 ms, size +33%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.ContextObjectDeserializer (took 0 ms, size +8%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.TimeDeserializer (took 1 ms, size +21%)
+INFO: Instrumented com.alibaba.fastjson.serializer.DateCodec (took 1 ms, size +42%)
+INFO: Instrumented com.alibaba.fastjson.serializer.CalendarCodec (took 1 ms, size +19%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.MapDeserializer (took 2 ms, size +27%)
+INFO: Instrumented com.alibaba.fastjson.serializer.CollectionCodec (took 0 ms, size +13%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.JavaObjectDeserializer (took 0 ms, size +13%)
+INFO: Instrumented com.alibaba.fastjson.serializer.StringCodec (took 0 ms, size +11%)
+INFO: Instrumented com.alibaba.fastjson.serializer.CharacterCodec (took 0 ms, size +11%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.NumberDeserializer (took 0 ms, size +29%)
+INFO: Instrumented com.alibaba.fastjson.serializer.IntegerCodec (took 0 ms, size +12%)
+INFO: Instrumented com.alibaba.fastjson.serializer.LongCodec (took 0 ms, size +13%)
+INFO: Instrumented com.alibaba.fastjson.serializer.BigIntegerCodec (took 0 ms, size +13%)
+INFO: Instrumented com.alibaba.fastjson.serializer.BigDecimalCodec (took 0 ms, size +15%)
+INFO: Instrumented com.alibaba.fastjson.serializer.FloatCodec (took 0 ms, size +8%)
+INFO: Instrumented com.alibaba.fastjson.serializer.BooleanCodec (took 0 ms, size +11%)
+INFO: Instrumented com.alibaba.fastjson.serializer.CharArrayCodec (took 0 ms, size +18%)
+INFO: Instrumented com.alibaba.fastjson.serializer.ReferenceCodec (took 0 ms, size +10%)
+INFO: Instrumented com.alibaba.fastjson.serializer.AtomicCodec (took 0 ms, size +15%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.StackTraceElementDeserializer (took 0 ms, size +55%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.JSONPDeserializer (took 0 ms, size +15%)
+INFO: Instrumented com.alibaba.fastjson.parser.deserializer.ResolveFieldDeserializer (took 0 ms, size +12%)
+
+== Java Exception: java.lang.NumberFormatException: -
+	at com.alibaba.fastjson.parser.JSONLexerBase.integerValue(JSONLexerBase.java:486)
+	at com.alibaba.fastjson.parser.DefaultJSONParser.parse(DefaultJSONParser.java:1429)
+	at com.alibaba.fastjson.parser.DefaultJSONParser.parse(DefaultJSONParser.java:1383)
+	at com.alibaba.fastjson.JSON.parse(JSON.java:182)
+	at com.alibaba.fastjson.JSON.parse(JSON.java:192)
+	at com.alibaba.fastjson.JSON.parse(JSON.java:148)
+	at com.example.FastJsonFuzzer.fuzzerTestOneInput(FastJsonFuzzer.java:28)
+DEDUP_TOKEN: 0a849062c573f2ac
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_ede8a5a8036f44f22dfb64d6f01fc4a03f1b5d58.java
+

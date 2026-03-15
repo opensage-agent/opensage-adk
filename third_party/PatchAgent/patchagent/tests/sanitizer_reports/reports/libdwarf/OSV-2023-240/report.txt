@@ -1,0 +1,94 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libdwarf:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libdwarf/OSV-2023-240/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_die_cu_attrs -runs=100.
++ FUZZER=fuzz_die_cu_attrs
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_die_cu_attrs -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_die_cu_attrs -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3860994129
+INFO: Loaded 1 modules   (11329 inline 8-bit counters): 11329 [0x55dfda2fc4e0, 0x55dfda2ff121), 
+INFO: Loaded 1 PC tables (11329 PCs): 11329 [0x55dfda2ff128,0x55dfda32b538), 
+/out/fuzz_die_cu_attrs: Running 1 inputs 100 time(s) each.
+Running: /testcase
+
+libdwarf is unable to record error DW_DLE_DIE_ABBREV_BAD (113) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_DIE_ABBREV_BAD (113) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_DIE_ABBREV_BAD (113) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_NEXT_DIE_PAST_END(252) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_DIE_ABBREV_BAD (113) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_INVALID_NULL_ARGUMENT(498) Argument must be a valid pointer and non-null No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_ATTR_FORM_BAD (114) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_DIE_ABBREV_BAD (113) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_STRING_FORM_IMPROPER(327) An internal libdwarf logic error No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_INVALID_NULL_ARGUMENT(498) Argument must be a valid pointer and non-null No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_ATTR_FORM_BAD (114) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_DIE_ABBREV_BAD (113) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_INVALID_NULL_ARGUMENT(498) Argument must be a valid pointer and non-null No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_ATTR_FORM_BAD (114) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_DIE_ABBREV_BAD (113) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_INVALID_NULL_ARGUMENT(498) Argument must be a valid pointer and non-null No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_ATTR_FORM_BAD (114) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_DIE_ABBREV_BAD (113) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_INVALID_NULL_ARGUMENT(498) Argument must be a valid pointer and non-null No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_ATTR_FORM_BAD (114) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_DIE_ABBREV_BAD (113) No error argument or handler available
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x50400000016d in thread T0
+[1m[0mSCARINESS: 40 (bad-free)
+    #0 0x55dfda150e56 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55dfda18f0df in LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_die_cu_attrs.c:185:11
+    #2 0x55dfda045320 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #3 0x55dfda030595 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #4 0x55dfda03602f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #5 0x55dfda0612d2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #6 0x7f52664e4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x55dfda02877d in _start (/out/fuzz_die_cu_attrs+0xa277d)
+
+DEDUP_TOKEN: __interceptor_free--LLVMFuzzerTestOneInput--fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long)
+[1m[32m0x50400000016d is located 29 bytes inside of 48-byte region [0x504000000150,0x504000000180)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55dfda1510ef in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55dfda242d8d in elf_load_nolibelf_section /src/libdwarf/src/lib/libdwarf/dwarf_elfread.c:230:26
+    #2 0x55dfda1d6a01 in _dwarf_load_section /src/libdwarf/src/lib/libdwarf/dwarf_init_finish.c:1999:11
+    #3 0x55dfda197f66 in _dwarf_load_die_containing_section /src/libdwarf/src/lib/libdwarf/dwarf_die_deliv.c:1650:9
+    #4 0x55dfda192c75 in _dwarf_next_cu_header_internal /src/libdwarf/src/lib/libdwarf/dwarf_die_deliv.c:1751:15
+    #5 0x55dfda192aa0 in dwarf_next_cu_header_d /src/libdwarf/src/lib/libdwarf/dwarf_die_deliv.c:997:11
+    #6 0x55dfda18e868 in LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_die_cu_attrs.c:71:13
+    #7 0x55dfda045320 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55dfda030595 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55dfda03602f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55dfda0612d2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f52664e4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--elf_load_nolibelf_section--_dwarf_load_section
+SUMMARY: AddressSanitizer: bad-free /src/libdwarf/fuzz/fuzz_die_cu_attrs.c:185:11 in LLVMFuzzerTestOneInput
+==14==ABORTING

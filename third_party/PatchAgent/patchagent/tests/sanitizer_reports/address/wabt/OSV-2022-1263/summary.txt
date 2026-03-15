@@ -1,0 +1,44 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 8 at 0x5060000002a0 thread T0
+    - wabt::interp::(anonymous namespace)::BinaryReaderInterp::OnExport(unsigned int, wabt::ExternalKind, unsigned int, std::__1::basic_string_view<char, std::__1::char_traits<char>>) /src/wabt/src/interp/binary-reader-interp.cc:693:63
+    - wabt::(anonymous namespace)::BinaryReader::ReadExportSection(unsigned long) /src/wabt/src/binary-reader.cc:2778:5
+    - wabt::(anonymous namespace)::BinaryReader::ReadSections(wabt::(anonymous namespace)::BinaryReader::ReadSectionsOptions const&) /src/wabt/src/binary-reader.cc:3033:26
+    - ReadModule /src/wabt/src/binary-reader.cc:3119:3
+    - wabt::ReadBinary(void const*, unsigned long, wabt::BinaryReaderDelegate*, wabt::ReadBinaryOptions const&) /src/wabt/src/binary-reader.cc:3141:17
+    - wabt::interp::ReadBinaryInterp(std::__1::basic_string_view<char, std::__1::char_traits<char>>, void const*, unsigned long, wabt::ReadBinaryOptions const&, std::__1::vector<wabt::Error, std::__1::allocator<wabt::Error>>*, wabt::interp::ModuleDesc*) /src/wabt/src/interp/binary-reader-interp.cc:1720:10
+    - LLVMFuzzerTestOneInput /src/read_binary_interp_fuzzer.cc:39:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5060000002a0 is located 0 bytes after 64-byte region [0x506000000260,0x5060000002a0)
+allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - __allocate_at_least<std::__1::allocator<wabt::interp::FuncType> > /usr/local/include/c++/v1/__memory/allocate_at_least.h:55:19
+    - __split_buffer /usr/local/include/c++/v1/__split_buffer:343:25
+    - wabt::interp::FuncType* std::__1::vector<wabt::interp::FuncType, std::__1::allocator<wabt::interp::FuncType>>::__push_back_slow_path<wabt::interp::FuncType const&>(wabt::interp::FuncType const&) /usr/local/include/c++/v1/vector:1451:47
+    - push_back /usr/local/include/c++/v1/vector:1467:13
+    - wabt::interp::(anonymous namespace)::BinaryReaderInterp::OnImportFunc(unsigned int, std::__1::basic_string_view<char, std::__1::char_traits<char>>, std::__1::basic_string_view<char, std::__1::char_traits<char>>, unsigned int, unsigned int) /src/wabt/src/interp/binary-reader-interp.cc:524:15
+    - wabt::(anonymous namespace)::BinaryReader::ReadImportSection(unsigned long) /src/wabt/src/binary-reader.cc:2635:9
+    - wabt::(anonymous namespace)::BinaryReader::ReadSections(wabt::(anonymous namespace)::BinaryReader::ReadSectionsOptions const&) /src/wabt/src/binary-reader.cc:3013:26
+    - ReadModule /src/wabt/src/binary-reader.cc:3119:3
+    - wabt::ReadBinary(void const*, unsigned long, wabt::BinaryReaderDelegate*, wabt::ReadBinaryOptions const&) /src/wabt/src/binary-reader.cc:3141:17
+    - wabt::interp::ReadBinaryInterp(std::__1::basic_string_view<char, std::__1::char_traits<char>>, void const*, unsigned long, wabt::ReadBinaryOptions const&, std::__1::vector<wabt::Error, std::__1::allocator<wabt::Error>>*, wabt::interp::ModuleDesc*) /src/wabt/src/interp/binary-reader-interp.cc:1720:10
+    - LLVMFuzzerTestOneInput /src/read_binary_interp_fuzzer.cc:39:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

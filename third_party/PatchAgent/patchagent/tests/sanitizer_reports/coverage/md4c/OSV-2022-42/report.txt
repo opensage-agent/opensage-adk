@@ -1,0 +1,48 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/md4c:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz-mdhtml -runs=100.
++ FUZZER=fuzz-mdhtml
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz-mdhtml -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz-mdhtml -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=fuzz-mdhtml.dict < /dev/null
+Dictionary: 22 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1319836140
+/out/fuzz-mdhtml: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x55c335531000 (pc 0x55c332c5eacb bp 0x7fff28952c20 sp 0x7fff28952c20 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x55c332c5eacb in md_decode_utf8__ /src/md4c/src/md4c.c:817:13
+    #1 0x55c332c5ed93 in md_decode_unicode /src/md4c/src/md4c.c:886:16
+    #2 0x55c332c5ed93 in md_link_label_hash /src/md4c/src/md4c.c:1562:21
+    #3 0x55c332c69911 in md_lookup_ref_def /src/md4c/src/md4c.c:1833:12
+    #4 0x55c332c69911 in md_is_link_reference /src/md4c/src/md4c.c:2260:11
+    #5 0x55c332c62e3d in md_resolve_links /src/md4c/src/md4c.c:3615:31
+    #6 0x55c332c62e3d in md_analyze_inlines /src/md4c/src/md4c.c:4061:5
+    #7 0x55c332c5fbca in md_process_normal_block_contents /src/md4c/src/md4c.c:4639:5
+    #8 0x55c332c5ade5 in md_process_leaf_block /src/md4c/src/md4c.c:4819:13
+    #9 0x55c332c5ade5 in md_process_all_blocks /src/md4c/src/md4c.c:4901:13
+    #10 0x55c332c5ade5 in md_process_doc /src/md4c/src/md4c.c:6330:5
+    #11 0x55c332c562c9 in md_parse /src/md4c/src/md4c.c:6398:11
+    #12 0x55c332c5463e in md_html /src/md4c/src/md4c-html.c:571:12
+    #13 0x55c332c54282 in LLVMFuzzerTestOneInput /src/md4c/build/../test/fuzzers/fuzz-mdhtml.c:24:5
+    #14 0x55c332bb6820 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x55c332ba1a95 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x55c332ba752f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x55c332bd27d2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7f66cba4c082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #19 0x55c332b99c7d in _start (/out/fuzz-mdhtml+0x2cc7d)
+
+DEDUP_TOKEN: md_decode_utf8__--md_decode_unicode--md_link_label_hash
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/md4c/src/md4c.c:817:13 in md_decode_utf8__
+==14==ABORTING

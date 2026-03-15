@@ -1,0 +1,120 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /home/yk/code/oss-fuzz/build/out/metadata-extractor:/out -v /home/yk/code/oss-fuzz/oss-fuzz-metadata-extractor-20250423-142730/crashes/crash-a3ac1a7124d31c300a0e1849b9f0d9f53c4f345a:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce ImageMetadataReaderFuzzer -runs=100.
++ FUZZER=ImageMetadataReaderFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ImageMetadataReaderFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ImageMetadataReaderFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 266 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented ImageMetadataReaderFuzzer (took 18 ms, size +13%)
+INFO: Instrumented com.drew.imaging.ImageProcessingException (took 2 ms, size +11%)
+INFO: Instrumented com.drew.lang.CompoundException (took 4 ms, size +11%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f51c3660a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1863995350
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x56402310e950, 0x56402310eb50), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x5640230d6d90,0x5640230d8d90), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented com.drew.imaging.ImageMetadataReader (took 7 ms, size +12%)
+INFO: Instrumented com.drew.lang.RandomAccessReader (took 7 ms, size +17%)
+INFO: Instrumented com.drew.lang.RandomAccessStreamReader (took 4 ms, size +25%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented com.drew.metadata.Directory (took 21 ms, size +28%)
+INFO: Instrumented com.drew.metadata.file.FileTypeDirectory (took 1 ms, size +10%)
+INFO: Instrumented com.drew.imaging.FileTypeDetector (took 2 ms, size +15%)
+INFO: Instrumented com.drew.imaging.TypeChecker (took 0 ms, size +0%)
+INFO: Instrumented com.drew.imaging.quicktime.QuickTimeTypeChecker (took 1 ms, size +34%)
+INFO: Instrumented com.drew.imaging.FileType (took 2 ms, size +7%)
+INFO: Instrumented com.drew.imaging.riff.RiffTypeChecker (took 1 ms, size +96%)
+INFO: Instrumented com.drew.imaging.mp3.MpegAudioTypeChecker (took 0 ms, size +37%)
+INFO: Instrumented com.drew.lang.ByteTrie (took 1 ms, size +28%)
+INFO: Instrumented com.drew.lang.ByteTrie$ByteTrieNode (took 0 ms, size +10%)
+INFO: Instrumented com.drew.imaging.ImageMetadataReader$1 (took 0 ms, size +21%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented com.drew.imaging.jpeg.JpegMetadataReader (took 1 ms, size +7%)
+INFO: Instrumented com.drew.lang.SequentialReader (took 3 ms, size +18%)
+INFO: Instrumented com.drew.lang.StreamReader (took 2 ms, size +21%)
+INFO: Instrumented com.drew.imaging.jpeg.JpegSegmentMetadataReader (took 0 ms, size +0%)
+INFO: Instrumented com.drew.metadata.jpeg.JpegReader (took 1 ms, size +13%)
+INFO: Instrumented com.drew.metadata.jpeg.JpegDirectory (took 1 ms, size +8%)
+INFO: Instrumented com.drew.lang.SequentialByteArrayReader (took 1 ms, size +20%)
+INFO: Instrumented com.drew.metadata.jpeg.JpegCommentReader (took 1 ms, size +13%)
+INFO: Instrumented com.drew.metadata.jpeg.JpegCommentDirectory (took 0 ms, size +9%)
+INFO: Instrumented com.drew.metadata.jfif.JfifReader (took 1 ms, size +30%)
+INFO: Instrumented com.drew.metadata.MetadataReader (took 0 ms, size +0%)
+INFO: Instrumented com.drew.metadata.jfif.JfifDirectory (took 1 ms, size +8%)
+INFO: Instrumented com.drew.lang.ByteArrayReader (took 1 ms, size +20%)
+INFO: Instrumented com.drew.metadata.jfxx.JfxxReader (took 1 ms, size +30%)
+INFO: Instrumented com.drew.metadata.jfxx.JfxxDirectory (took 0 ms, size +9%)
+INFO: Instrumented com.drew.metadata.exif.ExifReader (took 2 ms, size +23%)
+INFO: Instrumented com.drew.imaging.tiff.TiffProcessingException (took 0 ms, size +12%)
+INFO: Instrumented com.drew.imaging.tiff.TiffHandler (took 0 ms, size +0%)
+INFO: Instrumented com.drew.metadata.xmp.XmpReader (took 3 ms, size +21%)
+INFO: Instrumented com.adobe.internal.xmp.XMPException (took 0 ms, size +14%)
+INFO: Instrumented com.drew.metadata.xmp.XmpDirectory (took 1 ms, size +15%)
+INFO: Instrumented com.adobe.internal.xmp.options.ParseOptions (took 1 ms, size +12%)
+INFO: Instrumented com.adobe.internal.xmp.options.Options (took 2 ms, size +22%)
+INFO: Instrumented com.drew.metadata.icc.IccReader (took 2 ms, size +20%)
+INFO: Instrumented com.drew.metadata.icc.IccDirectory (took 1 ms, size +9%)
+INFO: Instrumented com.drew.metadata.photoshop.PhotoshopReader (took 1 ms, size +26%)
+INFO: Instrumented com.drew.metadata.photoshop.PhotoshopDirectory (took 1 ms, size +9%)
+INFO: Instrumented com.drew.metadata.photoshop.DuckyReader (took 1 ms, size +26%)
+INFO: Instrumented com.drew.metadata.photoshop.DuckyDirectory (took 0 ms, size +9%)
+INFO: Instrumented com.drew.metadata.iptc.IptcReader (took 4 ms, size +18%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented com.drew.metadata.iptc.IptcDirectory (took 3 ms, size +8%)
+INFO: Instrumented com.drew.metadata.adobe.AdobeJpegReader (took 1 ms, size +30%)
+INFO: Instrumented com.drew.metadata.adobe.AdobeJpegDirectory (took 0 ms, size +9%)
+INFO: Instrumented com.drew.metadata.jpeg.JpegDhtReader (took 1 ms, size +11%)
+INFO: Instrumented com.drew.metadata.jpeg.HuffmanTablesDirectory (took 1 ms, size +6%)
+INFO: Instrumented com.drew.metadata.jpeg.JpegDnlReader (took 0 ms, size +13%)
+INFO: Instrumented com.drew.metadata.ErrorDirectory (took 0 ms, size +9%)
+INFO: Instrumented com.drew.metadata.Metadata (took 1 ms, size +16%)
+INFO: Instrumented com.drew.imaging.jpeg.JpegSegmentType (took 1 ms, size +14%)
+INFO: Instrumented com.drew.imaging.jpeg.JpegSegmentReader (took 1 ms, size +18%)
+INFO: Instrumented com.drew.imaging.jpeg.JpegProcessingException (took 0 ms, size +12%)
+INFO: Instrumented com.drew.imaging.jpeg.JpegSegmentData (took 2 ms, size +22%)
+
+== Java Exception: java.lang.NegativeArraySizeException: -1
+	at com.drew.metadata.icc.IccReader.readJpegSegments(IccReader.java:77)
+	at com.drew.imaging.jpeg.JpegMetadataReader.processJpegSegmentData(JpegMetadataReader.java:134)
+	at com.drew.imaging.jpeg.JpegMetadataReader.process(JpegMetadataReader.java:126)
+	at com.drew.imaging.jpeg.JpegMetadataReader.readMetadata(JpegMetadataReader.java:77)
+	at com.drew.imaging.jpeg.JpegMetadataReader.readMetadata(JpegMetadataReader.java:84)
+	at com.drew.imaging.ImageMetadataReader.readMetadata(ImageMetadataReader.java:146)
+	at com.drew.imaging.ImageMetadataReader.readMetadata(ImageMetadataReader.java:124)
+	at com.drew.imaging.ImageMetadataReader.readMetadata(ImageMetadataReader.java:103)
+	at ImageMetadataReaderFuzzer.fuzzerTestOneInput(ImageMetadataReaderFuzzer.java:31)
+DEDUP_TOKEN: 8005ef6cc0bbca07
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_a3ac1a7124d31c300a0e1849b9f0d9f53c4f345a.java
+

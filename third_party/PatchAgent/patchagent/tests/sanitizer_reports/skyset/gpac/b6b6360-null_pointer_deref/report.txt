@@ -1,0 +1,15 @@
+=================================================================
+==638739==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x55ad50e81a80 bp 0x7ffc3d6eda30 sp 0x7ffc3d6c4d60 T0)
+==638739==The signal is caused by a READ memory access.
+==638739==Hint: address points to the zero page.
+    #0 0x55ad50e81a80 in DumpTrackInfo /root/applications/mp4box/filedump.c:3361:7
+    #1 0x55ad50e899f5 in DumpMovieInfo /root/applications/mp4box/filedump.c:3994:3
+    #2 0x55ad50e4dcce in mp4box_main /root/applications/mp4box/mp4box.c:6367:9
+    #3 0x55ad50e53461 in main /root/applications/mp4box/mp4box.c:6811:1
+    #4 0x7fdd5acd61c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #5 0x7fdd5acd628a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #6 0x55ad50e32c84 in _start (/root/bin/gcc/MP4Box+0x48c84) (BuildId: 76063055ec4cb3d2c978bf3f7fc0a754c68edb50)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/applications/mp4box/filedump.c:3361:7 in DumpTrackInfo
+==638739==ABORTING

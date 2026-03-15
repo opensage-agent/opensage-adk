@@ -1,0 +1,46 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x502000124392 thread T0
+    - java_print_opcode /root/shlr/java/code.c:211:21
+    - r_java_disasm /root/shlr/java/code.c:309:10
+    - decode /root/libr/arch/p/java/plugin.c:215:15
+    - r_arch_decode /root/libr/arch/arch.c:320:9
+    - r_anal_op /root/libr/anal/op.c:186:8
+    - r_core_anal_esil /root/libr/core/canal.c:5715:8
+    - cmd_anal_all /root/libr/core/cmd_anal.inc.c:13183:6
+    - cmd_anal /root/libr/core/cmd_anal.inc.c:14267:8
+    - r_cmd_call /root/libr/core/cmd_api.c:520:11
+    - r_core_cmd_call /root/libr/core/cmd.c:6303:9
+    - cmd_anal_all /root/libr/core/cmd_anal.inc.c:13042:7
+    - cmd_anal /root/libr/core/cmd_anal.inc.c:14267:8
+    - r_cmd_call /root/libr/core/cmd_api.c:520:11
+    - r_core_cmd_call /root/libr/core/cmd.c:6303:9
+    - perform_analysis /root/libr/main/radare2.c:499:2
+    - r_main_radare2 /root/libr/main/radare2.c:1723:4
+    - main /root/binr/radare2/radare2.c:114:9
+
+0x502000124392 is located 0 bytes after 2-byte region [0x502000124390,0x502000124392)
+allocated by thread T0 here:
+    - r_mem_dup /root/libr/util/mem.c:306:12
+    - r_anal_op_set_bytes /root/libr/arch/arch_op.c:28:15
+    - r_anal_op /root/libr/anal/op.c:185:3
+    - r_core_anal_esil /root/libr/core/canal.c:5715:8
+    - cmd_anal_all /root/libr/core/cmd_anal.inc.c:13183:6
+    - cmd_anal /root/libr/core/cmd_anal.inc.c:14267:8
+    - r_cmd_call /root/libr/core/cmd_api.c:520:11
+    - r_core_cmd_call /root/libr/core/cmd.c:6303:9
+    - cmd_anal_all /root/libr/core/cmd_anal.inc.c:13042:7
+    - cmd_anal /root/libr/core/cmd_anal.inc.c:14267:8
+    - r_cmd_call /root/libr/core/cmd_api.c:520:11
+    - r_core_cmd_call /root/libr/core/cmd.c:6303:9
+    - perform_analysis /root/libr/main/radare2.c:499:2
+    - r_main_radare2 /root/libr/main/radare2.c:1723:4
+    - main /root/binr/radare2/radare2.c:114:9
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

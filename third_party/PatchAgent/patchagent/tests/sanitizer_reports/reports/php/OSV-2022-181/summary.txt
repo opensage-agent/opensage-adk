@@ -1,0 +1,64 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 4 at 0x512000011ec0 thread T0
+    - zend_gc_refcount /src/php-src/Zend/zend_types.h:1185:12
+    - zval_refcount_p /src/php-src/Zend/zend_types.h:1234:9
+    - zval_call_destructor /src/php-src/Zend/zend_execute_API.c:207:35
+    - zend_hash_reverse_apply /src/php-src/Zend/zend_hash.c:2152:13
+    - shutdown_destructors /src/php-src/Zend/zend_execute_API.c:252:4
+    - zend_call_destructors /src/php-src/Zend/zend.c:1225:3
+    - php_request_shutdown /src/php-src/main/main.c:1808:3
+    - fuzzer_request_shutdown /src/php-src/sapi/fuzzer/fuzzer-sapi.c:208:2
+    - fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:288:2
+    - LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-execute.c:27:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x512000011ec0 is located 0 bytes inside of 272-byte region [0x512000011ec0,0x512000011fd0)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - zend_objects_store_del /src/php-src/Zend/zend_objects_API.c:204:3
+    - i_zval_ptr_dtor /src/php-src/Zend/zend_variables.h:44:4
+    - zend_array_destroy /src/php-src/Zend/zend_hash.c:1757:5
+    - i_zval_ptr_dtor /src/php-src/Zend/zend_variables.h:44:4
+    - zend_array_destroy /src/php-src/Zend/zend_hash.c:1765:6
+    - i_zval_ptr_dtor /src/php-src/Zend/zend_variables.h:44:4
+    - zend_array_destroy /src/php-src/Zend/zend_hash.c:1757:5
+    - i_zval_ptr_dtor /src/php-src/Zend/zend_variables.h:44:4
+    - zend_object_std_dtor /src/php-src/Zend/zend_objects.c:70:5
+    - zend_objects_store_del /src/php-src/Zend/zend_objects_API.c:200:4
+    - zend_object_release /src/php-src/Zend/zend_objects_API.h:75:3
+    - fuzzer_request_shutdown /src/php-src/sapi/fuzzer/fuzzer-sapi.c:198:4
+    - fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:288:2
+    - LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-execute.c:27:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - tracked_malloc /src/php-src/Zend/zend_alloc.c:2773:14
+    - zend_generator_create /src/php-src/Zend/zend_generators.c:409:14
+    - _object_and_properties_init /src/php-src/Zend/zend_API.c:1671:3
+    - ZEND_GENERATOR_CREATE_SPEC_HANDLER /src/php-src/Zend/zend_vm_execute.h:2049:3
+    - fuzzer_execute_ex /src/php-src/sapi/fuzzer/fuzzer-execute-common.h:57:14
+    - ZEND_DO_FCALL_SPEC_RETVAL_USED_HANDLER /src/php-src/Zend/zend_vm_execute.h:1852:4
+    - fuzzer_execute_ex /src/php-src/sapi/fuzzer/fuzzer-execute-common.h:57:14
+    - zend_execute /src/php-src/Zend/zend_vm_execute.h:59858:2
+    - fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:276:5
+    - LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-execute.c:27:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

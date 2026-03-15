@@ -1,0 +1,527 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/md4c:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz-mdhtml -runs=100.
++ FUZZER=fuzz-mdhtml
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz-mdhtml -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz-mdhtml -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=fuzz-mdhtml.dict < /dev/null
+Dictionary: 22 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1295869562
+/out/fuzz-mdhtml: Running 1 inputs 100 time(s) each.
+Running: /testcase
+md_resolve_links: 53 ... 55
+md_resolve_links: 503 ... 514
+md_rollback: 507 ... 512 [all]
+md_resolve_links: 516 ... 527
+md_rollback: 520 ... 525 [all]
+md_resolve_links: 529 ... 540
+md_resolve_links: 666 ... 725
+md_resolve_links: 737 ... 748
+md_rollback: 741 ... 746 [all]
+md_resolve_links: 750 ... 761
+md_rollback: 754 ... 759 [all]
+md_resolve_links: 763 ... 774
+md_resolve_links: 900 ... 1047
+md_resolve_links: 899 ... 1048
+md_resolve_links: 1059 ... 1070
+md_rollback: 1063 ... 1068 [all]
+md_resolve_links: 1072 ... 1083
+md_rollback: 1076 ... 1081 [all]
+md_resolve_links: 1085 ... 1096
+md_resolve_links: 1259 ... 1307
+md_resolve_links: 1312 ... 1313
+md_resolve_links: 1311 ... 1322
+md_resolve_links: 1327 ... 1328
+md_resolve_links: 1326 ... 1338
+md_resolve_links: 1343 ... 1344
+md_resolve_links: 1342 ... 1353
+md_resolve_links: 1358 ... 1359
+md_resolve_links: 1357 ... 1369
+md_resolve_links: 1374 ... 1375
+md_resolve_links: 1373 ... 1384
+md_resolve_links: 1474 ... 1475
+md_resolve_links: 1479 ... 1481
+md_resolve_links: 1485 ... 1487
+md_resolve_links: 1491 ... 1493
+md_resolve_links: 1497 ... 1499
+md_resolve_links: 1503 ... 1505
+md_resolve_links: 1509 ... 1511
+md_resolve_links: 1515 ... 1517
+md_resolve_links: 1521 ... 1523
+md_resolve_links: 1527 ... 1529
+md_resolve_links: 1533 ... 1535
+md_resolve_links: 1539 ... 1541
+md_resolve_links: 1545 ... 1547
+md_resolve_links: 1551 ... 1553
+md_resolve_links: 1557 ... 1559
+md_resolve_links: 1567 ... 1569
+md_resolve_links: 1618 ... 1620
+md_resolve_links: 1624 ... 1626
+md_resolve_links: 1640 ... 1642
+md_resolve_links: 1646 ... 1648
+md_resolve_links: 1653 ... 1660
+md_resolve_links: 1795 ... 1803
+md_resolve_links: 1815 ... 1825
+md_rollback: 1818 ... 1823 [all]
+md_resolve_links: 1827 ... 1842
+md_resolve_links: 1794 ... 1917
+md_resolve_links: 1928 ... 1939
+md_rollback: 1932 ... 1937 [all]
+md_resolve_links: 1941 ... 1955
+md_resolve_links: 1927 ... 2128
+md_rollback: 1927 ... 1934 [all]
+md_rollback: 1934 ... 2128 [crossing]
+md_rollback: 1936 ... 1938 [crossing]
+md_rollback: 1935 ... 1948 [crossing]
+md_rollback: 2055 ... 2089 [all]
+md_rollback: 1951 ... 2127 [crossing]
+md_resolve_links: 2140 ... 2151
+md_rollback: 2144 ... 2149 [all]
+md_resolve_links: 2153 ... 2192
+md_resolve_links: 2275 ... 2276
+md_resolve_links: 2274 ... 2285
+md_resolve_links: 2290 ... 2291
+md_resolve_links: 2289 ... 2301
+md_resolve_links: 2306 ... 2307
+md_resolve_links: 2305 ... 2316
+md_resolve_links: 2406 ... 2407
+md_resolve_links: 2411 ... 2413
+md_resolve_links: 2417 ... 2419
+md_resolve_links: 2423 ... 2425
+md_resolve_links: 2429 ... 2431
+md_resolve_links: 2435 ... 2437
+md_resolve_links: 2441 ... 2443
+md_resolve_links: 2447 ... 2449
+md_resolve_links: 2453 ... 2455
+md_resolve_links: 2459 ... 2461
+md_resolve_links: 2465 ... 2467
+md_resolve_links: 2471 ... 2473
+md_resolve_links: 2477 ... 2479
+md_resolve_links: 2483 ... 2485
+md_resolve_links: 2489 ... 2491
+md_resolve_links: 2499 ... 2501
+md_resolve_links: 2550 ... 2552
+md_resolve_links: 2556 ... 2558
+md_resolve_links: 2572 ... 2574
+md_resolve_links: 2578 ... 2580
+md_resolve_links: 2585 ... 2592
+md_resolve_links: 2727 ... 2735
+md_resolve_links: 2747 ... 2757
+md_rollback: 2750 ... 2755 [all]
+md_resolve_links: 2759 ... 2774
+md_resolve_links: 2726 ... 2849
+md_resolve_links: 2860 ... 2871
+md_rollback: 2864 ... 2869 [all]
+md_resolve_links: 2873 ... 2887
+md_resolve_links: 2859 ... 3094
+md_rollback: 2859 ... 2866 [all]
+md_rollback: 2866 ... 3094 [crossing]
+md_rollback: 2868 ... 2870 [crossing]
+md_rollback: 2867 ... 2880 [crossing]
+md_rollback: 2987 ... 3021 [all]
+md_rollback: 2883 ... 3093 [crossing]
+md_resolve_links: 3106 ... 3117
+md_rollback: 3110 ... 3115 [all]
+md_resolve_links: 3119 ... 3158
+md_resolve_links: 3241 ... 3242
+md_resolve_links: 3240 ... 3251
+md_resolve_links: 3256 ... 3257
+md_resolve_links: 3255 ... 3267
+md_resolve_links: 3272 ... 3273
+md_resolve_links: 3271 ... 3282
+md_resolve_links: 3372 ... 3373
+md_resolve_links: 3377 ... 3379
+md_resolve_links: 3383 ... 3385
+md_resolve_links: 3389 ... 3391
+md_resolve_links: 3395 ... 3397
+md_resolve_links: 3401 ... 3403
+md_resolve_links: 3407 ... 3409
+md_resolve_links: 3413 ... 3415
+md_resolve_links: 3419 ... 3421
+md_resolve_links: 3425 ... 3427
+md_resolve_links: 3431 ... 3433
+md_resolve_links: 3437 ... 3439
+md_resolve_links: 3443 ... 3445
+md_resolve_links: 3449 ... 3451
+md_resolve_links: 3455 ... 3457
+md_resolve_links: 3465 ... 3467
+md_resolve_links: 3516 ... 3518
+md_resolve_links: 3522 ... 3524
+md_resolve_links: 3538 ... 3540
+md_resolve_links: 3544 ... 3546
+md_resolve_links: 3551 ... 3558
+md_resolve_links: 3662 ... 3670
+md_resolve_links: 3682 ... 3692
+md_rollback: 3685 ... 3690 [all]
+md_resolve_links: 3694 ... 3709
+md_resolve_links: 3661 ... 3784
+md_resolve_links: 3795 ... 3806
+md_rollback: 3799 ... 3804 [all]
+md_resolve_links: 3808 ... 3822
+md_resolve_links: 3794 ... 4245
+md_rollback: 3794 ... 3801 [all]
+md_rollback: 3801 ... 4245 [crossing]
+md_rollback: 3803 ... 3805 [crossing]
+md_rollback: 3802 ... 3815 [crossing]
+md_rollback: 3922 ... 3987 [all]
+md_rollback: 4046 ... 4088 [all]
+md_rollback: 4147 ... 4206 [all]
+md_rollback: 3818 ... 4244 [crossing]
+md_resolve_links: 4257 ... 4268
+md_rollback: 4261 ... 4266 [all]
+md_resolve_links: 4270 ... 4281
+md_rollback: 4274 ... 4279 [all]
+md_resolve_links: 4283 ... 4294
+md_resolve_links: 4256 ... 4324
+md_rollback: 4256 ... 4263 [all]
+md_rollback: 4263 ... 4324 [crossing]
+md_rollback: 4265 ... 4267 [crossing]
+md_rollback: 4264 ... 4290 [crossing]
+md_rollback: 4291 ... 4293 [crossing]
+md_resolve_links: 3660 ... 4645
+md_resolve_links: 4667 ... 4669
+md_resolve_links: 4936 ... 4964
+md_rollback: 4940 ... 4942 [crossing]
+md_rollback: 4946 ... 4953 [all]
+md_rollback: 4944 ... 4955 [crossing]
+md_rollback: 4943 ... 4957 [crossing]
+md_resolve_links: 4876 ... 4969
+md_rollback: 4876 ... 4947 [all]
+md_rollback: 4947 ... 4969 [crossing]
+md_rollback: 4950 ... 4955 [crossing]
+md_resolve_links: 4994 ... 5022
+md_rollback: 4998 ... 5000 [crossing]
+md_rollback: 5004 ... 5011 [all]
+md_rollback: 5002 ... 5013 [crossing]
+md_rollback: 5001 ... 5015 [crossing]
+md_resolve_links: 3659 ... 5030
+md_resolve_links: 3658 ... 5031
+md_rollback: 331 ... 393 [all]
+md_rollback: 452 ... 533 [all]
+md_rollback: 537 ... 539 [crossing]
+md_rollback: 536 ... 770 [crossing]
+md_rollback: 771 ... 773 [crossing]
+md_rollback: 903 ... 910 [crossing]
+md_rollback: 949 ... 1008 [all]
+md_rollback: 1089 ... 1094 [all]
+md_rollback: 1262 ... 1269 [crossing]
+md_rollback: 1095 ... 1834 [crossing]
+md_rollback: 1836 ... 2271 [all]
+md_rollback: 1835 ... 2766 [crossing]
+md_rollback: 2768 ... 3237 [all]
+md_rollback: 2767 ... 3701 [crossing]
+md_rollback: 3703 ... 4382 [all]
+md_rollback: 4459 ... 4461 [crossing]
+md_rollback: 4772 ... 4784 [crossing]
+md_rollback: 4771 ... 4789 [crossing]
+md_rollback: 4791 ... 4802 [crossing]
+md_rollback: 4766 ... 4803 [crossing]
+md_rollback: 4811 ... 4841 [crossing]
+md_rollback: 4866 ... 4993 [crossing]
+md_rollback: 4865 ... 5024 [crossing]
+md_rollback: 4863 ... 5026 [crossing]
+md_rollback: 4862 ... 5041 [crossing]
+md_rollback: 4861 ... 5046 [crossing]
+md_rollback: 4859 ... 5048 [crossing]
+md_resolve_links: 7730 ... 7738
+md_resolve_links: 7730 ... 7738
+md_resolve_links: 7750 ... 7760
+md_rollback: 7753 ... 7758 [all]
+md_resolve_links: 7762 ... 7777
+md_resolve_links: 7750 ... 7760
+md_rollback: 7753 ... 7758 [all]
+md_resolve_links: 7863 ... 7874
+md_rollback: 7867 ... 7872 [all]
+md_resolve_links: 7876 ... 7890
+md_resolve_links: 7862 ... 8063
+md_rollback: 7862 ... 7869 [all]
+md_rollback: 7869 ... 8063 [crossing]
+md_rollback: 7871 ... 7873 [crossing]
+md_rollback: 7870 ... 7883 [crossing]
+md_rollback: 7990 ... 8024 [all]
+md_rollback: 7886 ... 8062 [crossing]
+md_resolve_links: 7863 ... 7874
+md_rollback: 7867 ... 7872 [all]
+md_resolve_links: 7876 ... 7890
+md_resolve_links: 7862 ... 8063
+md_rollback: 7862 ... 7869 [all]
+md_rollback: 7869 ... 8063 [crossing]
+md_rollback: 7871 ... 7873 [crossing]
+md_rollback: 7870 ... 7883 [crossing]
+md_rollback: 7990 ... 8024 [all]
+md_rollback: 7886 ... 8062 [crossing]
+md_resolve_links: 8075 ... 8086
+md_rollback: 8079 ... 8084 [all]
+md_resolve_links: 8075 ... 8086
+md_rollback: 8079 ... 8084 [all]
+md_resolve_links: 9798 ... 9823
+md_rollback: 8426 ... 8431 [crossing]
+md_rollback: 8723 ... 8728 [crossing]
+md_rollback: 8443 ... 8740 [all]
+md_rollback: 9240 ... 9245 [crossing]
+md_rollback: 9380 ... 9385 [crossing]
+md_rollback: 9423 ... 9430 [crossing]
+md_rollback: 9449 ... 9456 [crossing]
+md_rollback: 9557 ... 9564 [crossing]
+md_rollback: 9598 ... 9606 [crossing]
+md_rollback: 9611 ... 9618 [crossing]
+md_rollback: 9623 ... 9630 [crossing]
+md_rollback: 9637 ... 9656 [crossing]
+md_rollback: 9663 ... 9670 [crossing]
+md_rollback: 9677 ... 9694 [crossing]
+md_rollback: 9799 ... 9801 [crossing]
+md_rollback: 9805 ... 9807 [crossing]
+md_rollback: 9804 ... 9809 [crossing]
+md_rollback: 9803 ... 9811 [crossing]
+md_rollback: 9389 ... 9812 [crossing]
+md_rollback: 9225 ... 9813 [crossing]
+md_rollback: 9818 ... 9827 [all]
+md_resolve_links: 10545 ... 10593
+md_resolve_links: 10544 ... 10603
+md_rollback: 10548 ... 10555 [crossing]
+md_resolve_links: 10614 ... 10624
+md_rollback: 10617 ... 10622 [all]
+md_resolve_links: 10626 ... 10641
+md_resolve_links: 10614 ... 10624
+md_rollback: 10617 ... 10622 [all]
+md_resolve_links: 10729 ... 10740
+md_rollback: 10733 ... 10738 [all]
+md_resolve_links: 10742 ... 10756
+md_resolve_links: 10729 ... 10740
+md_rollback: 10733 ... 10738 [all]
+md_resolve_links: 10941 ... 10952
+md_rollback: 10945 ... 10950 [all]
+md_resolve_links: 10954 ... 11056
+md_resolve_links: 10941 ... 10952
+md_rollback: 10945 ... 10950 [all]
+md_resolve_links: 11068 ... 11078
+md_rollback: 11071 ... 11076 [all]
+md_resolve_links: 11080 ... 11095
+md_resolve_links: 11068 ... 11078
+md_rollback: 11071 ... 11076 [all]
+md_resolve_links: 11181 ... 11192
+md_rollback: 11185 ... 11190 [all]
+md_resolve_links: 11181 ... 11192
+md_rollback: 11185 ... 11190 [all]
+md_rollback: 11785 ... 11848 [all]
+md_resolve_links: 11958 ... 11969
+md_rollback: 11962 ... 11967 [all]
+md_resolve_links: 11971 ... 11982
+md_rollback: 11975 ... 11980 [all]
+md_resolve_links: 11984 ... 11995
+md_resolve_links: 12121 ... 12169
+md_resolve_links: 12174 ... 12175
+md_resolve_links: 12173 ... 12184
+md_resolve_links: 12189 ... 12190
+md_resolve_links: 12188 ... 12200
+md_resolve_links: 12205 ... 12206
+md_resolve_links: 12204 ... 12215
+md_resolve_links: 12305 ... 12306
+md_resolve_links: 11958 ... 11969
+md_rollback: 11962 ... 11967 [all]
+md_resolve_links: 11971 ... 11982
+md_rollback: 11975 ... 11980 [all]
+md_resolve_links: 12310 ... 12312
+md_resolve_links: 12310 ... 12312
+md_resolve_links: 12316 ... 12318
+md_resolve_links: 12316 ... 12318
+md_resolve_links: 12322 ... 12324
+md_resolve_links: 12322 ... 12324
+md_resolve_links: 12328 ... 12330
+md_resolve_links: 12328 ... 12330
+md_resolve_links: 12334 ... 12336
+md_resolve_links: 12334 ... 12336
+md_resolve_links: 12340 ... 12342
+md_resolve_links: 12340 ... 12342
+md_resolve_links: 12346 ... 12348
+md_resolve_links: 12346 ... 12348
+md_resolve_links: 12352 ... 12354
+md_resolve_links: 12352 ... 12354
+md_resolve_links: 12358 ... 12360
+md_resolve_links: 12358 ... 12360
+md_resolve_links: 12364 ... 12366
+md_resolve_links: 12364 ... 12366
+md_resolve_links: 12370 ... 12372
+md_resolve_links: 12370 ... 12372
+md_resolve_links: 12376 ... 12378
+md_resolve_links: 12376 ... 12378
+md_resolve_links: 12382 ... 12384
+md_resolve_links: 12382 ... 12384
+md_resolve_links: 12388 ... 12390
+md_resolve_links: 12388 ... 12390
+md_resolve_links: 12398 ... 12400
+md_resolve_links: 12398 ... 12400
+md_resolve_links: 12449 ... 12451
+md_resolve_links: 12449 ... 12451
+md_resolve_links: 12455 ... 12457
+md_resolve_links: 12455 ... 12457
+md_resolve_links: 12471 ... 12473
+md_resolve_links: 12471 ... 12473
+md_resolve_links: 12477 ... 12479
+md_resolve_links: 12477 ... 12479
+md_resolve_links: 12595 ... 12603
+md_resolve_links: 12595 ... 12603
+md_resolve_links: 12615 ... 12625
+md_rollback: 12618 ... 12623 [all]
+md_resolve_links: 12627 ... 12642
+md_resolve_links: 12615 ... 12625
+md_rollback: 12618 ... 12623 [all]
+md_resolve_links: 12728 ... 12739
+md_rollback: 12732 ... 12737 [all]
+md_resolve_links: 12741 ... 12755
+md_resolve_links: 12727 ... 12928
+md_rollback: 12727 ... 12734 [all]
+md_rollback: 12734 ... 12928 [crossing]
+md_rollback: 12736 ... 12738 [crossing]
+md_rollback: 12735 ... 12748 [crossing]
+md_rollback: 12855 ... 12889 [all]
+md_rollback: 12751 ... 12927 [crossing]
+md_resolve_links: 12728 ... 12739
+md_rollback: 12732 ... 12737 [all]
+md_resolve_links: 12741 ... 12755
+md_resolve_links: 12727 ... 12928
+md_rollback: 12727 ... 12734 [all]
+md_rollback: 12734 ... 12928 [crossing]
+md_rollback: 12736 ... 12738 [crossing]
+md_rollback: 12735 ... 12748 [crossing]
+md_rollback: 12855 ... 12889 [all]
+md_rollback: 12751 ... 12927 [crossing]
+md_resolve_links: 12940 ... 12951
+md_rollback: 12944 ... 12949 [all]
+md_resolve_links: 12940 ... 12951
+md_rollback: 12944 ... 12949 [all]
+md_resolve_links: 13075 ... 13076
+md_resolve_links: 13074 ... 13085
+md_resolve_links: 13090 ... 13091
+md_resolve_links: 13089 ... 13101
+md_resolve_links: 13106 ... 13107
+md_resolve_links: 13105 ... 13116
+md_resolve_links: 13206 ... 13207
+md_resolve_links: 13075 ... 13076
+md_resolve_links: 13074 ... 13085
+md_resolve_links: 13090 ... 13091
+md_resolve_links: 13089 ... 13101
+md_resolve_links: 13106 ... 13107
+md_resolve_links: 13105 ... 13116
+md_resolve_links: 13206 ... 13207
+md_resolve_links: 13211 ... 13213
+md_resolve_links: 13211 ... 13213
+md_resolve_links: 13217 ... 13219
+md_resolve_links: 13217 ... 13219
+md_resolve_links: 13223 ... 13225
+md_resolve_links: 13223 ... 13225
+md_resolve_links: 13229 ... 13231
+md_resolve_links: 13229 ... 13231
+md_resolve_links: 13235 ... 13237
+md_resolve_links: 13235 ... 13237
+md_resolve_links: 13241 ... 13243
+md_resolve_links: 13241 ... 13243
+md_resolve_links: 13247 ... 13249
+md_resolve_links: 13247 ... 13249
+md_resolve_links: 13253 ... 13255
+md_resolve_links: 13253 ... 13255
+md_resolve_links: 13259 ... 13261
+md_resolve_links: 13259 ... 13261
+md_resolve_links: 13265 ... 13267
+md_resolve_links: 13265 ... 13267
+md_resolve_links: 13271 ... 13273
+md_resolve_links: 13271 ... 13273
+md_resolve_links: 13277 ... 13279
+md_resolve_links: 13277 ... 13279
+md_resolve_links: 13283 ... 13285
+md_resolve_links: 13283 ... 13285
+md_resolve_links: 13289 ... 13291
+md_resolve_links: 13289 ... 13291
+md_resolve_links: 13299 ... 13301
+md_resolve_links: 13299 ... 13301
+md_resolve_links: 13350 ... 13352
+md_resolve_links: 13350 ... 13352
+md_resolve_links: 13356 ... 13358
+md_resolve_links: 13356 ... 13358
+md_resolve_links: 13372 ... 13374
+md_resolve_links: 13372 ... 13374
+md_resolve_links: 13378 ... 13380
+md_resolve_links: 13378 ... 13380
+md_resolve_links: 13496 ... 13504
+md_resolve_links: 13496 ... 13504
+md_resolve_links: 13516 ... 13526
+md_rollback: 13519 ... 13524 [all]
+md_resolve_links: 13528 ... 13543
+md_resolve_links: 13516 ... 13526
+md_rollback: 13519 ... 13524 [all]
+md_resolve_links: 13629 ... 13640
+md_rollback: 13633 ... 13638 [all]
+md_resolve_links: 13642 ... 13656
+md_resolve_links: 13628 ... 14079
+md_rollback: 13628 ... 13635 [all]
+md_rollback: 13635 ... 14079 [crossing]
+md_rollback: 13637 ... 13639 [crossing]
+md_rollback: 13636 ... 13649 [crossing]
+md_rollback: 13756 ... 13821 [all]
+md_rollback: 13880 ... 13922 [all]
+md_rollback: 13981 ... 14040 [all]
+md_rollback: 13652 ... 14078 [crossing]
+md_resolve_links: 13629 ... 13640
+md_rollback: 13633 ... 13638 [all]
+md_resolve_links: 13642 ... 13656
+md_resolve_links: 13628 ... 14079
+md_rollback: 13628 ... 13635 [all]
+md_rollback: 13635 ... 14079 [crossing]
+md_rollback: 13637 ... 13639 [crossing]
+md_rollback: 13636 ... 13649 [crossing]
+md_rollback: 13756 ... 13821 [all]
+md_rollback: 13880 ... 13922 [all]
+md_rollback: 13981 ... 14040 [all]
+md_rollback: 13652 ... 14078 [crossing]
+md_resolve_links: 14091 ... 14102
+md_rollback: 14095 ... 14100 [all]
+md_resolve_links: 14104 ... 14115
+md_rollback: 14108 ... 14113 [all]
+md_resolve_links: 14117 ... 14128
+md_resolve_links: 14090 ... 14158
+md_rollback: 14090 ... 14097 [all]
+md_rollback: 14097 ... 14158 [crossing]
+md_rollback: 14099 ... 14101 [crossing]
+md_rollback: 14098 ... 14124 [crossing]
+md_rollback: 14125 ... 14127 [crossing]
+md_resolve_links: 14091 ... 14102
+md_rollback: 14095 ... 14100 [all]
+md_resolve_links: 14104 ... 14115
+md_rollback: 14108 ... 14113 [all]
+md_resolve_links: 14117 ... 14128
+md_resolve_links: 14090 ... 14158
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x7f76bf238ffc (pc 0x561d25d9c15e bp 0x7ffcba36c950 sp 0x7ffcba36c870 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x561d25d9c15e in md_resolve_links /src/md4c/src/md4c.c:3446:79
+    #1 0x561d25d9c15e in md_analyze_inlines /src/md4c/src/md4c.c:4067:5
+    #2 0x561d25d99bca in md_process_normal_block_contents /src/md4c/src/md4c.c:4645:5
+    #3 0x561d25d9d4c4 in md_process_table_cell /src/md4c/src/md4c.c:4494:5
+    #4 0x561d25d9bf47 in md_process_table_row /src/md4c/src/md4c.c:4539:13
+    #5 0x561d25d95327 in md_process_table_block_contents /src/md4c/src/md4c.c:4587:13
+    #6 0x561d25d95327 in md_process_leaf_block /src/md4c/src/md4c.c:4820:13
+    #7 0x561d25d95327 in md_process_all_blocks /src/md4c/src/md4c.c:4907:13
+    #8 0x561d25d95327 in md_process_doc /src/md4c/src/md4c.c:6336:5
+    #9 0x561d25d902c9 in md_parse /src/md4c/src/md4c.c:6404:11
+    #10 0x561d25d8e63e in md_html /src/md4c/src/md4c-html.c:571:12
+    #11 0x561d25d8e282 in LLVMFuzzerTestOneInput /src/md4c/build/../test/fuzzers/fuzz-mdhtml.c:24:5
+    #12 0x561d25cf0820 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x561d25cdba95 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x561d25ce152f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x561d25d0c7d2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7f76bf2ee082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #17 0x561d25cd3c7d in _start (/out/fuzz-mdhtml+0x2cc7d)
+
+DEDUP_TOKEN: md_resolve_links--md_analyze_inlines--md_process_normal_block_contents
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/md4c/src/md4c.c:3446:79 in md_resolve_links
+==14==ABORTING

@@ -1,0 +1,32 @@
+=================================================================
+==360073==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7ff8d2347037 bp 0x7ffc82f10450 sp 0x7ffc82f0ffa0 T0)
+==360073==The signal is caused by a READ memory access.
+==360073==Hint: address points to the zero page.
+    #0 0x7ff8d2347037 in iterate_chained_fixups /root/libr/../libr/bin/p/../format/mach0/mach0.c:4583:23
+    #1 0x7ff8d2328940 in rebase_buffer /root/libr/../libr/bin/p/bin_mach0.c:806:2
+    #2 0x7ff8d2328730 in rebasing_and_stripping_io_read /root/libr/../libr/bin/p/bin_mach0.c:767:3
+    #3 0x7ff8d4b1de3a in r_io_plugin_read /root/libr/io/io_plugin.c:161:9
+    #4 0x7ff8d4b246b6 in r_io_desc_read /root/libr/io/io_desc.c:213:12
+    #5 0x7ff8d4b306e1 in r_io_fd_read /root/libr/io/io_fd.c:24:15
+    #6 0x7ff8d4784997 in buf_io_read /root/libr/util/./buf_io.c:72:9
+    #7 0x7ff8d477e307 in buf_read /root/libr/util/buf.c:46:27
+    #8 0x7ff8d477d38a in r_buf_read /root/libr/util/buf.c:452:11
+    #9 0x7ff8d477d0e6 in r_buf_read_at /root/libr/util/buf.c:600:6
+    #10 0x7ff8d2343fab in get_hdr /root/libr/../libr/bin/p/../format/mach0/mach0.c:4522:6
+    #11 0x7ff8d2345dba in mach_fields /root/libr/../libr/bin/p/../format/mach0/mach0.c:4422:35
+    #12 0x7ff8d21f9329 in r_bin_object_set_items /root/libr/bin/bobj.c:312:16
+    #13 0x7ff8d21f833f in r_bin_object_new /root/libr/bin/bobj.c:170:2
+    #14 0x7ff8d21ed073 in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:585:19
+    #15 0x7ff8d21c7bfc in r_bin_open_buf /root/libr/bin/bin.c:285:8
+    #16 0x7ff8d21c6c4e in r_bin_open_io /root/libr/bin/bin.c:345:13
+    #17 0x7ff8d2bdc822 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:436:7
+    #18 0x7ff8d2bd7a6c in r_core_bin_load /root/libr/core/cfile.c:637:4
+    #19 0x7ff8d00be48b in r_main_radare2 /root/libr/main/radare2.c:1225:15
+    #20 0x5626794c667e in main /root/binr/radare2/radare2.c:96:9
+    #21 0x7ff8cfe871c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #22 0x7ff8cfe8728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #23 0x5626794c51e4 in _start (/root/bin/radare2+0x21e4) (BuildId: fe53faf9bf5d8e602b6d73f3cea2a137a52727f9)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/libr/../libr/bin/p/../format/mach0/mach0.c:4583:23 in iterate_chained_fixups
+==360073==ABORTING

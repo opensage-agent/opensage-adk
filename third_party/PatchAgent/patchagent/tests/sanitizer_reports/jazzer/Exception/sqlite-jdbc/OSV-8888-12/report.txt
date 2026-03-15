@@ -1,0 +1,126 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /home/yk/code/oss-fuzz/build/out/sqlite-jdbc:/out -v /home/yk/code/oss-fuzz/oss-fuzz-sqlite-jdbc-20250423-151607/crashes/crash-6bf33a7eaf7be8073b2ae8a05eb771b5002c2fed:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce SqliteConnectionFuzzer -runs=100.
++ FUZZER=SqliteConnectionFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer SqliteConnectionFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/SqliteConnectionFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 265 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 43 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented SqliteConnectionFuzzer (took 30 ms, size +16%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f3767a68a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2384659632
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x559530d94650, 0x559530d94850), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x559530d58b80,0x559530d5ab80), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.sqlite.SQLiteConfig (took 41 ms, size +15%)
+INFO: Instrumented org.sqlite.SQLiteConfig$Pragma (took 15 ms, size +4%)
+INFO: Instrumented org.sqlite.SQLiteConfig$PragmaValue (took 0 ms, size +0%)
+INFO: Instrumented org.sqlite.SQLiteConfig$OnOff (took 1 ms, size +18%)
+INFO: Instrumented org.sqlite.SQLiteConfig$Encoding (took 2 ms, size +18%)
+INFO: Instrumented org.sqlite.SQLiteConfig$JournalMode (took 2 ms, size +10%)
+INFO: Instrumented org.sqlite.SQLiteConfig$LockingMode (took 1 ms, size +10%)
+INFO: Instrumented org.sqlite.SQLiteConfig$SynchronousMode (took 2 ms, size +10%)
+INFO: Instrumented org.sqlite.SQLiteConfig$TempStore (took 4 ms, size +10%)
+INFO: Instrumented org.sqlite.SQLiteConfig$TransactionMode (took 2 ms, size +9%)
+INFO: Instrumented org.sqlite.SQLiteConfig$DatePrecision (took 4 ms, size +9%)
+INFO: Instrumented org.sqlite.SQLiteConfig$DateClass (took 8 ms, size +10%)
+INFO: Instrumented org.sqlite.SQLiteConfig$HexKeyMode (took 6 ms, size +10%)
+INFO: Instrumented org.sqlite.SQLiteOpenMode (took 2 ms, size +10%)
+INFO: Instrumented org.sqlite.SQLiteConnectionConfig (took 7 ms, size +10%)
+INFO: Instrumented org.sqlite.date.FastDateFormat (took 15 ms, size +6%)
+INFO: Instrumented org.sqlite.date.DateParser (took 0 ms, size +0%)
+INFO: Instrumented org.sqlite.date.DatePrinter (took 0 ms, size +0%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.sqlite.date.FormatCache (took 4 ms, size +15%)
+INFO: Instrumented org.sqlite.date.FastDateFormat$1 (took 1 ms, size +10%)
+INFO: Instrumented org.sqlite.date.FormatCache$MultipartKey (took 2 ms, size +32%)
+INFO: Instrumented org.sqlite.date.FastDatePrinter (took 11 ms, size +19%)
+INFO: Instrumented org.sqlite.date.FastDatePrinter$Rule (took 0 ms, size +0%)
+INFO: Instrumented org.sqlite.date.FastDatePrinter$NumberRule (took 0 ms, size +0%)
+INFO: Instrumented org.sqlite.date.FastDatePrinter$PaddedNumberField (took 1 ms, size +25%)
+INFO: Instrumented org.sqlite.date.FastDatePrinter$CharacterLiteral (took 0 ms, size +11%)
+INFO: Instrumented org.sqlite.date.FastDatePrinter$TwoDigitMonthField (took 1 ms, size +11%)
+INFO: Instrumented org.sqlite.date.FastDatePrinter$TwoDigitNumberField (took 1 ms, size +20%)
+INFO: Instrumented org.sqlite.date.FastDateParser (took 10 ms, size +22%)
+INFO: Instrumented org.sqlite.date.FastDateParser$Strategy (took 1 ms, size +11%)
+INFO: Instrumented org.sqlite.date.FastDateParser$1 (took 1 ms, size +22%)
+INFO: Instrumented org.sqlite.date.FastDateParser$NumberStrategy (took 11 ms, size +15%)
+INFO: Instrumented org.sqlite.date.FastDateParser$2 (took 0 ms, size +16%)
+INFO: Instrumented org.sqlite.date.FastDateParser$3 (took 0 ms, size +36%)
+INFO: Instrumented org.sqlite.date.FastDateParser$4 (took 0 ms, size +36%)
+INFO: Instrumented org.sqlite.date.FastDateParser$ISO8601TimeZoneStrategy (took 1 ms, size +34%)
+INFO: Instrumented org.sqlite.date.FastDateParser$CopyQuotedStrategy (took 1 ms, size +19%)
+INFO: Instrumented org.sqlite.date.FastDateParser$TimeZoneStrategy (took 2 ms, size +41%)
+INFO: Instrumented org.sqlite.date.FastDateParser$CaseInsensitiveTextStrategy (took 1 ms, size +19%)
+INFO: Instrumented org.sqlite.JDBC (took 2 ms, size +20%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented org.sqlite.SQLiteConnection (took 7 ms, size +21%)
+INFO: Instrumented org.sqlite.jdbc4.JDBC4Connection (took 3 ms, size +17%)
+INFO: Instrumented org.sqlite.jdbc3.JDBC3Connection (took 6 ms, size +13%)
+INFO: Instrumented org.sqlite.util.LoggerFactory (took 1 ms, size +41%)
+INFO: Instrumented org.sqlite.util.Logger (took 3 ms, size +0%)
+INFO: Instrumented org.slf4j.Logger (took 0 ms, size +0%)
+INFO: Instrumented org.sqlite.util.LoggerFactory$SLF4JLogger (took 1 ms, size +18%)
+INFO: Instrumented org.slf4j.LoggerFactory (took 8 ms, size +17%)
+INFO: Instrumented org.slf4j.event.LoggingEvent (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.ILoggerFactory (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.helpers.SubstituteLoggerFactory (took 1 ms, size +18%)
+INFO: Instrumented org.slf4j.helpers.NOPLoggerFactory (took 0 ms, size +17%)
+INFO: Instrumented org.slf4j.helpers.Util (took 2 ms, size +33%)
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+INFO: Instrumented org.slf4j.helpers.NOPLogger (took 6 ms, size +9%)
+INFO: Instrumented org.slf4j.helpers.MarkerIgnoringBase (took 2 ms, size +6%)
+INFO: Instrumented org.slf4j.helpers.NamedLoggerBase (took 0 ms, size +13%)
+INFO: Instrumented org.sqlite.core.DB (took 10 ms, size +14%)
+INFO: Instrumented org.sqlite.core.Codes (took 0 ms, size +0%)
+INFO: Instrumented org.sqlite.core.NativeDB (took 3 ms, size +15%)
+INFO: Instrumented org.sqlite.core.CoreDatabaseMetaData (took 5 ms, size +30%)
+INFO: Instrumented org.sqlite.jdbc4.JDBC4DatabaseMetaData (took 2 ms, size +6%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented org.sqlite.jdbc3.JDBC3DatabaseMetaData (took 39 ms, size +22%)
+
+== Java Exception: java.lang.ArrayIndexOutOfBoundsException: Index 0 out of bounds for length 0
+	at org.sqlite.SQLiteConnection.extractPragmasFromFilename(SQLiteConnection.java:516)
+	at org.sqlite.SQLiteConnection.open(SQLiteConnection.java:225)
+	at org.sqlite.SQLiteConnection.<init>(SQLiteConnection.java:67)
+	at org.sqlite.jdbc3.JDBC3Connection.<init>(JDBC3Connection.java:28)
+	at org.sqlite.jdbc4.JDBC4Connection.<init>(JDBC4Connection.java:19)
+	at org.sqlite.JDBC.createConnection(JDBC.java:106)
+	at org.sqlite.SQLiteConfig.createConnection(SQLiteConfig.java:109)
+	at SqliteConnectionFuzzer.fuzzerTestOneInput(SqliteConnectionFuzzer.java:30)
+DEDUP_TOKEN: 0d837f97aae5a460
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_6bf33a7eaf7be8073b2ae8a05eb771b5002c2fed.java
+

@@ -1,0 +1,24 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - MEM_read32 /root/lib/common/mem.h:214:14
+    - ZSTD_compressBlock_lazy_extDict_generic /root/lib/compress/zstd_lazy.c:2106:35
+    - ZSTD_compressBlock_greedy_extDict_row /root/lib/compress/zstd_lazy.c:2163:12
+    - ZSTD_ldm_blockCompress /root/lib/compress/zstd_ldm.c:686:12
+    - ZSTD_buildSeqStore /root/lib/compress/zstd_compress.c:2806:17
+    - ZSTD_compressBlock_targetCBlockSize /root/lib/compress/zstd_compress.c:3786:24
+    - ZSTD_compress_frameChunk /root/lib/compress/zstd_compress.c:3867:25
+    - ZSTD_compressContinue_internal /root/lib/compress/zstd_compress.c:4046:30
+    - ZSTD_compressContinue /root/lib/compress/zstd_compress.c:4070:12
+    - ZSTD_compressStream_generic /root/lib/compress/zstd_compress.c:5279:29
+    - ZSTD_compressStream2 /root/lib/compress/zstd_compress.c:5574:5
+    - compress /root/tests/fuzz/dictionary_stream_round_trip.c:93:25
+    - LLVMFuzzerTestOneInput /root/tests/fuzz/dictionary_stream_round_trip.c:181:30
+    - main /root/tests/fuzz/regression_driver.c:77:5
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

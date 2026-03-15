@@ -1,0 +1,109 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/cyclonedds:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/cyclonedds/OSV-2023-158/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_type_object -runs=100.
++ FUZZER=fuzz_type_object
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_type_object -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_type_object -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -max_len=65536 < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 186717494
+INFO: Loaded 1 modules   (24578 inline 8-bit counters): 24578 [0x560c2b744048, 0x560c2b74a04a), 
+INFO: Loaded 1 PC tables (24578 PCs): 24578 [0x560c2b74a050,0x560c2b7aa070), 
+/out/fuzz_type_object: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x5150000013f8 at pc 0x560c2b44405b bp 0x7ffee61c0430 sp 0x7ffee61c0428
+[1m[0m[1m[34mREAD of size 4 at 0x5150000013f8 thread T0[1m[0m
+SCARINESS: 45 (4-byte-read-heap-use-after-free)
+    #0 0x560c2b44405a in ddsi_type_unref_impl_locked /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:1060:7
+    #1 0x560c2b43ee92 in ddsi_type_unref_locked /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:1125:3
+    #2 0x560c2b4f008a in ddsi_xt_type_fini /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c:1617:7
+    #3 0x560c2b446dfa in ddsi_type_fini /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:358:3
+    #4 0x560c2b43b959 in ddsi_type_new /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:429:5
+    #5 0x560c2b43f67d in ddsi_type_ref_proxy /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:713:20
+    #6 0x560c2b437a9e in LLVMFuzzerTestOneInput /src/cyclonedds/fuzz/fuzz_type_object/fuzz_type_object.c:88:9
+    #7 0x560c2b2ee4e0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x560c2b2d9755 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x560c2b2df1ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x560c2b30a492 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f2582f0e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #12 0x560c2b2d193d in _start (/out/fuzz_type_object+0x11e93d)
+
+DEDUP_TOKEN: ddsi_type_unref_impl_locked--ddsi_type_unref_locked--ddsi_xt_type_fini
+[1m[32m0x5150000013f8 is located 504 bytes inside of 512-byte region [0x515000001200,0x515000001400)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x560c2b3fa016 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x560c2b4474c2 in ddsi_type_fini /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:382:3
+    #2 0x560c2b43ee92 in ddsi_type_unref_locked /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:1125:3
+    #3 0x560c2b4f1730 in ddsi_xt_type_init_impl /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c
+    #4 0x560c2b43b91b in ddsi_type_new /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:427:14
+    #5 0x560c2b43f67d in ddsi_type_ref_proxy /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:713:20
+    #6 0x560c2b437a9e in LLVMFuzzerTestOneInput /src/cyclonedds/fuzz/fuzz_type_object/fuzz_type_object.c:88:9
+    #7 0x560c2b2ee4e0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x560c2b2d9755 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x560c2b2df1ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x560c2b30a492 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f2582f0e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--ddsi_type_fini--ddsi_type_unref_locked
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x560c2b3fa479 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x560c2b52cf6d in ddsrt_calloc_s /src/cyclonedds/src/ddsrt/src/heap/posix/heap.c:57:10
+    #2 0x560c2b52cf6d in ddsrt_calloc /src/cyclonedds/src/ddsrt/src/heap/posix/heap.c:41:9
+    #3 0x560c2b43b74b in ddsi_type_new /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:423:16
+    #4 0x560c2b43af47 in ddsi_type_ref_id_locked_impl /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:589:20
+    #5 0x560c2b43a7b4 in ddsi_type_ref_id_locked /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:604:10
+    #6 0x560c2b43a7b4 in ddsi_type_register_dep_impl /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:503:16
+    #7 0x560c2b4f1159 in ddsi_xt_type_init_impl /src/cyclonedds/src/core/ddsi/src/ddsi_typewrap.c:1379:20
+    #8 0x560c2b43b91b in ddsi_type_new /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:427:14
+    #9 0x560c2b43f67d in ddsi_type_ref_proxy /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:713:20
+    #10 0x560c2b437a9e in LLVMFuzzerTestOneInput /src/cyclonedds/fuzz/fuzz_type_object/fuzz_type_object.c:88:9
+    #11 0x560c2b2ee4e0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x560c2b2d9755 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x560c2b2df1ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x560c2b30a492 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f2582f0e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_calloc--ddsrt_calloc_s--ddsrt_calloc
+SUMMARY: AddressSanitizer: heap-use-after-free /src/cyclonedds/src/core/ddsi/src/ddsi_typelib.c:1060:7 in ddsi_type_unref_impl_locked
+Shadow bytes around the buggy address:
+  0x515000001100: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x515000001180: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000001200: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000001280: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000001300: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+=>0x515000001380: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m]
+  0x515000001400: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000001480: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000001500: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000001580: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000001600: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==18==ABORTING
+MS: 0 ; base unit: 0000000000000000000000000000000000000000

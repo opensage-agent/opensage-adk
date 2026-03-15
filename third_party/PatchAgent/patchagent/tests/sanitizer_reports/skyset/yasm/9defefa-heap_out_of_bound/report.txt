@@ -1,0 +1,78 @@
+=================================================================
+==640159==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5060000204b8 at pc 0x563d4bf16f0c bp 0x7ffcd20deee0 sp 0x7ffcd20deed8
+READ of size 4 at 0x5060000204b8 thread T0
+    #0 0x563d4bf16f0b in expr_delete_term /root/libyasm/expr.c:1019:19
+    #1 0x563d4bf16858 in expr_simplify_identity /root/libyasm/expr.c:582:17
+    #2 0x563d4bf100f7 in expr_level_op /root/libyasm/expr.c:792:23
+    #3 0x563d4bf11761 in expr_level_tree /root/libyasm/expr.c:881:9
+    #4 0x563d4bf11410 in expr_level_tree /root/libyasm/expr.c:865:17
+    #5 0x563d4bf11410 in expr_level_tree /root/libyasm/expr.c:865:17
+    #6 0x563d4bf10a5e in yasm_expr__level_tree /root/libyasm/expr.c:907:9
+    #7 0x563d4bf135e9 in yasm_expr_get_intnum /root/libyasm/expr.c:1265:11
+    #8 0x563d4bf06875 in yasm_bc_create_data /root/libyasm/bc-data.c:357:24
+    #9 0x563d4be5a36c in parse_exp /root/modules/parsers/nasm/nasm-parse.c:669:20
+    #10 0x563d4be56021 in parse_line /root/modules/parsers/nasm/nasm-parse.c:289:10
+    #11 0x563d4be55952 in nasm_parser_parse /root/modules/parsers/nasm/nasm-parse.c:231:18
+    #12 0x563d4be5530b in nasm_do_parse /root/modules/parsers/nasm/nasm-parser.c:66:5
+    #13 0x563d4be55065 in nasm_parser_do_parse /root/modules/parsers/nasm/nasm-parser.c:83:5
+    #14 0x563d4bdd643f in do_assemble /root/frontends/yasm/yasm.c:641:5
+    #15 0x563d4bdd43b1 in main /root/frontends/yasm/yasm.c:877:12
+    #16 0x7effa85b01c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7effa85b028a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x563d4bdd25e4 in _start (/root/yasm+0x9e5e4) (BuildId: 1ef58fbe07e44b60233d3713dc09d862a8589cb0)
+
+0x5060000204b8 is located 0 bytes after 56-byte region [0x506000020480,0x5060000204b8)
+allocated by thread T0 here:
+    #0 0x7effa88c5bc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x563d4be1dd7c in def_xrealloc /root/libyasm/xmalloc.c:101:18
+    #2 0x563d4bf0fab1 in expr_level_op /root/libyasm/expr.c:738:9
+    #3 0x563d4bf11761 in expr_level_tree /root/libyasm/expr.c:881:9
+    #4 0x563d4bf11410 in expr_level_tree /root/libyasm/expr.c:865:17
+    #5 0x563d4bf11410 in expr_level_tree /root/libyasm/expr.c:865:17
+    #6 0x563d4bf10a5e in yasm_expr__level_tree /root/libyasm/expr.c:907:9
+    #7 0x563d4bf135e9 in yasm_expr_get_intnum /root/libyasm/expr.c:1265:11
+    #8 0x563d4bf06875 in yasm_bc_create_data /root/libyasm/bc-data.c:357:24
+    #9 0x563d4be5a36c in parse_exp /root/modules/parsers/nasm/nasm-parse.c:669:20
+    #10 0x563d4be56021 in parse_line /root/modules/parsers/nasm/nasm-parse.c:289:10
+    #11 0x563d4be55952 in nasm_parser_parse /root/modules/parsers/nasm/nasm-parse.c:231:18
+    #12 0x563d4be5530b in nasm_do_parse /root/modules/parsers/nasm/nasm-parser.c:66:5
+    #13 0x563d4be55065 in nasm_parser_do_parse /root/modules/parsers/nasm/nasm-parser.c:83:5
+    #14 0x563d4bdd643f in do_assemble /root/frontends/yasm/yasm.c:641:5
+    #15 0x563d4bdd43b1 in main /root/frontends/yasm/yasm.c:877:12
+    #16 0x7effa85b01c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7effa85b028a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x563d4bdd25e4 in _start (/root/yasm+0x9e5e4) (BuildId: 1ef58fbe07e44b60233d3713dc09d862a8589cb0)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/libyasm/expr.c:1019:19 in expr_delete_term
+Shadow bytes around the buggy address:
+  0x506000020200: fd fd fd fa fa fa fa fa fd fd fd fd fd fd fd fa
+  0x506000020280: fa fa fa fa fd fd fd fd fd fd fd fa fa fa fa fa
+  0x506000020300: fd fd fd fd fd fd fd fa fa fa fa fa fd fd fd fd
+  0x506000020380: fd fd fd fa fa fa fa fa fd fd fd fd fd fd fd fa
+  0x506000020400: fa fa fa fa fd fd fd fd fd fd fd fa fa fa fa fa
+=>0x506000020480: 00 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa fa
+  0x506000020500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000020580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000020600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000020680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000020700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==640159==ABORTING

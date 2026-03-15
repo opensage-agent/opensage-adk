@@ -1,0 +1,25 @@
+The sanitizer detected a out of memory vulnerability. The explanation of the vulnerability is: The program runs out of memory, causing allocation failures and potential crashes. Here is the detail: 
+
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - __allocate_at_least<std::__1::allocator<unsigned short> > /usr/local/include/c++/v1/__memory/allocate_at_least.h:55:19
+    - __vallocate /usr/local/include/c++/v1/vector:741:25
+    - std::__1::vector<unsigned short, std::__1::allocator<unsigned short>>::vector(unsigned long, unsigned short const&) /usr/local/include/c++/v1/vector:1144:5
+    - pcpp::computePseudoHdrChecksum(unsigned char*, unsigned long, pcpp::IPAddress::AddressType, unsigned char, pcpp::IPAddress, pcpp::IPAddress) /src/PcapPlusPlus/Packet++/src/PacketUtils.cpp:74:25
+    - pcpp::TcpLayer::calculateChecksum(bool) /src/PcapPlusPlus/Packet++/src/TcpLayer.cpp:284:9
+    - pcpp::Packet::computeCalculateFields() /src/PcapPlusPlus/Packet++/src/Packet.cpp:687:14
+    - LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:69:17
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+HINT: if you don't care about these errors you may set allocator_may_return_null=1
+
+To fix this issue, follow the advice below:
+
+1. Check for memory leaks that may be consuming system resources.
+2. Optimize memory usage by releasing unused resources.
+3. Increase system memory or swap space to accommodate memory requirements.

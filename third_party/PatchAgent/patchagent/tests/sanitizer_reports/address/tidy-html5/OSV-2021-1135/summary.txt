@@ -1,0 +1,60 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x51f000000c50 thread T0
+    - prvTidyInsertedToken /src/tidy-html5/src/istack.c:279:60
+    - prvTidyGetToken /src/tidy-html5/src/lexer.c:2487:24
+    - prvTidyParseInline /src/tidy-html5/src/parser.c:3268:20
+    - ParseHTMLWithNode /src/tidy-html5/src/parser.c:1077:25
+    - prvTidyParseDocument /src/tidy-html5/src/parser.c:6341:9
+    - prvTidyDocParseStream /src/tidy-html5/src/tidylib.c:1509:9
+    - tidyDocParseBuffer /src/tidy-html5/src/tidylib.c:1203:18
+    - tidyParseBuffer /src/tidy-html5/src/tidylib.c:1122:12
+    - run_tidy_parser /src/tidy_fuzzer.c:33:9
+    - LLVMFuzzerTestOneInput /src/tidy_fuzzer.c:50:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x51f000000c50 is located 3024 bytes inside of 3072-byte region [0x51f000000080,0x51f000000c80)
+freed by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - defaultRealloc /src/tidy-html5/src/alloc.c:83:49
+    - prvTidyPushInline /src/tidy-html5/src/istack.c:90:35
+    - prvTidyParseInline /src/tidy-html5/src/parser.c:3252:13
+    - ParseHTMLWithNode /src/tidy-html5/src/parser.c:1077:25
+    - prvTidyParseDocument /src/tidy-html5/src/parser.c:6341:9
+    - prvTidyDocParseStream /src/tidy-html5/src/tidylib.c:1509:9
+    - tidyDocParseBuffer /src/tidy-html5/src/tidylib.c:1203:18
+    - tidyParseBuffer /src/tidy-html5/src/tidylib.c:1122:12
+    - run_tidy_parser /src/tidy_fuzzer.c:33:9
+    - LLVMFuzzerTestOneInput /src/tidy_fuzzer.c:50:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - defaultRealloc /src/tidy-html5/src/alloc.c:83:49
+    - prvTidyPushInline /src/tidy-html5/src/istack.c:90:35
+    - prvTidyParseInline /src/tidy-html5/src/parser.c:3252:13
+    - ParseHTMLWithNode /src/tidy-html5/src/parser.c:1077:25
+    - prvTidyParseDocument /src/tidy-html5/src/parser.c:6341:9
+    - prvTidyDocParseStream /src/tidy-html5/src/tidylib.c:1509:9
+    - tidyDocParseBuffer /src/tidy-html5/src/tidylib.c:1203:18
+    - tidyParseBuffer /src/tidy-html5/src/tidylib.c:1122:12
+    - run_tidy_parser /src/tidy_fuzzer.c:33:9
+    - LLVMFuzzerTestOneInput /src/tidy_fuzzer.c:50:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

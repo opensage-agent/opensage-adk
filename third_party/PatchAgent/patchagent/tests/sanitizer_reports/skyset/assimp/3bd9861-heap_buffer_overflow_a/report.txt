@@ -1,0 +1,72 @@
+=================================================================
+==956273==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x503000003540 at pc 0x555555cb2683 bp 0x7fffffffbb80 sp 0x7fffffffbb78
+READ of size 1 at 0x503000003540 thread T0
+    #0 0x555555cb2682 in Assimp::MD5::MD5Parser::SkipSpacesAndLineEnd(char const*, char const**) /root/code/AssetLib/MD5/MD5Parser.h:428:13
+    #1 0x555555caec3c in Assimp::MD5::MD5Parser::SkipSpacesAndLineEnd() /root/code/AssetLib/MD5/MD5Parser.h:450:12
+    #2 0x555555ca7ca8 in Assimp::MD5::MD5Parser::ParseHeader() /root/code/AssetLib/MD5/MD5Parser.cpp:128:5
+    #3 0x555555ca7511 in Assimp::MD5::MD5Parser::MD5Parser(char*, unsigned int) /root/code/AssetLib/MD5/MD5Parser.cpp:69:5
+    #4 0x555555c97885 in Assimp::MD5Importer::LoadMD5MeshFile() /root/code/AssetLib/MD5/MD5Loader.cpp:338:20
+    #5 0x555555c9218b in Assimp::MD5Importer::InternReadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /root/code/AssetLib/MD5/MD5Loader.cpp:141:13
+    #6 0x555556a8947b in Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:131:9
+    #7 0x5555558d468f in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:709:30
+    #8 0x5555558d1fd9 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    #9 0x555555861fa9 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+    #10 0x555555847714 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2f3714) (BuildId: 9e592f2d2f853ae5a3a509ab1d28dd472a3c2040)
+    #11 0x555555830846 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2dc846) (BuildId: 9e592f2d2f853ae5a3a509ab1d28dd472a3c2040)
+    #12 0x5555558362fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2e22fa) (BuildId: 9e592f2d2f853ae5a3a509ab1d28dd472a3c2040)
+    #13 0x555555860ab6 in main (/root/assimp_fuzzer+0x30cab6) (BuildId: 9e592f2d2f853ae5a3a509ab1d28dd472a3c2040)
+    #14 0x7ffff6f1b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #15 0x7ffff6f1b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #16 0x55555582b414 in _start (/root/assimp_fuzzer+0x2d7414) (BuildId: 9e592f2d2f853ae5a3a509ab1d28dd472a3c2040)
+
+0x503000003540 is located 0 bytes after 32-byte region [0x503000003520,0x503000003540)
+allocated by thread T0 here:
+    #0 0x7ffff73117a3 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7ffff7df05db in operator new(unsigned long) /build/gcc-14-OQFzmN/gcc-14-14-20240412/build/x86_64-linux-gnu/libstdc++-v3/libsupc++/../../../../src/libstdc++-v3/libsupc++/new_op.cc:50:22
+    #2 0x555555c977bd in Assimp::MD5Importer::LoadMD5MeshFile() /root/code/AssetLib/MD5/MD5Loader.cpp:335:5
+    #3 0x555555c9218b in Assimp::MD5Importer::InternReadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /root/code/AssetLib/MD5/MD5Loader.cpp:141:13
+    #4 0x555556a8947b in Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:131:9
+    #5 0x5555558d468f in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:709:30
+    #6 0x5555558d1fd9 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    #7 0x555555861fa9 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+    #8 0x555555847714 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2f3714) (BuildId: 9e592f2d2f853ae5a3a509ab1d28dd472a3c2040)
+    #9 0x555555830846 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2dc846) (BuildId: 9e592f2d2f853ae5a3a509ab1d28dd472a3c2040)
+    #10 0x5555558362fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2e22fa) (BuildId: 9e592f2d2f853ae5a3a509ab1d28dd472a3c2040)
+    #11 0x555555860ab6 in main (/root/assimp_fuzzer+0x30cab6) (BuildId: 9e592f2d2f853ae5a3a509ab1d28dd472a3c2040)
+    #12 0x7ffff6f1b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #13 0x7ffff6f1b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #14 0x55555582b414 in _start (/root/assimp_fuzzer+0x2d7414) (BuildId: 9e592f2d2f853ae5a3a509ab1d28dd472a3c2040)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/code/AssetLib/MD5/MD5Parser.h:428:13 in Assimp::MD5::MD5Parser::SkipSpacesAndLineEnd(char const*, char const**)
+Shadow bytes around the buggy address:
+  0x503000003280: fd fd fd fa fa fa fd fd fd fd fa fa fd fd fd fd
+  0x503000003300: fa fa fd fd fd fa fa fa 00 00 00 07 fa fa 00 00
+  0x503000003380: 03 fa fa fa 00 00 00 07 fa fa fd fd fd fd fa fa
+  0x503000003400: fd fd fd fd fa fa fd fd fd fd fa fa fd fd fd fa
+  0x503000003480: fa fa 00 00 00 07 fa fa fd fd fd fa fa fa 00 00
+=>0x503000003500: 00 07 fa fa 00 00 00 00[fa]fa fd fd fd fa fa fa
+  0x503000003580: fd fd fd fd fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000003600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000003680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000003700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000003780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==956273==ABORTING

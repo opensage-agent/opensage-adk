@@ -1,0 +1,15 @@
+=================================================================
+==1307830==ERROR: AddressSanitizer: SEGV on unknown address 0x53100004f188 (pc 0x559be76beba3 bp 0x7ffe1f346920 sp 0x7ffe1f346890 T0)
+==1307830==The signal is caused by a WRITE memory access.
+    #0 0x559be76beba3 in op_CopySlot_64 /root/source/m3_exec.h:998:11
+    #1 0x559be76bca2d in op_Entry /root/source/m3_exec.h:829:21
+    #2 0x559be76d2279 in m3_CallArgv /root/source/m3_env.c:1013:25
+    #3 0x559be766ca08 in repl_call /root/platforms/app/main.c:298:14
+    #4 0x559be766ef95 in main /root/platforms/app/main.c:639:26
+    #5 0x7f2c1850b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #6 0x7f2c1850b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #7 0x559be766a0d4 in _start (/root/wasm3+0x1d0d4) (BuildId: eb024823b913f064f9d7300865920dcef234b353)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/source/m3_exec.h:998:11 in op_CopySlot_64
+==1307830==ABORTING

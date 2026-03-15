@@ -1,0 +1,19 @@
+The sanitizer detected a negative size param vulnerability. The explanation of the vulnerability is: A function receives a negative size parameter, leading to unexpected behavior or memory allocation errors. Here is the detail: 
+
+    - vfread(void*, long, void*) /root/ossfuzz/sndfile_fuzzer.cc:54:3
+    - psf_fread /root/src/file_io.c:311:10
+    - header_read /root/src/common.c:857:12
+    - psf_binheader_readf /root/src/common.c:988:20
+    - caf_read_header /root/src/caf.c:395:3
+    - caf_open /root/src/caf.c:127:17
+    - psf_open_file /root/src/sndfile.c:3180:13
+    - sf_open_virtual /root/src/sndfile.c:440:9
+    - LLVMFuzzerTestOneInput /root/ossfuzz/sndfile_fuzzer.cc:99:13
+
+Address 0x503020210104 is a wild pointer inside of access range of size 0x000000000001.
+
+To fix this issue, follow the advice below:
+
+1. Validate all size parameters before passing them to memory allocation functions.
+2. Ensure that buffer sizes and loop limits are always positive values.
+3. Use unsigned integer types to store sizes to prevent negative values.

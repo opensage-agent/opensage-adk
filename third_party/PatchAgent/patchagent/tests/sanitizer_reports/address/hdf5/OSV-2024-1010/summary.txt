@@ -1,0 +1,85 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 8 at 0x51d000004e80 thread T0
+    - H5FS__sect_link_size /src/hdf5/src/H5FSsection.c:935:26
+    - H5FS__sect_link /src/hdf5/src/H5FSsection.c:1074:9
+    - H5FS_sect_add /src/hdf5/src/H5FSsection.c:1340:13
+    - H5MF__add_sect /src/hdf5/src/H5MF.c:637:9
+    - H5MF__alloc_pagefs /src/hdf5/src/H5MF.c:906:21
+    - H5MF_alloc /src/hdf5/src/H5MF.c:806:45
+    - H5MF__alloc_pagefs /src/hdf5/src/H5MF.c:923:44
+    - H5MF_alloc /src/hdf5/src/H5MF.c:806:45
+    - H5O__alloc_chunk /src/hdf5/src/H5Oalloc.c:883:22
+    - H5O__alloc_new_chunk /src/hdf5/src/H5Oalloc.c:1154:9
+    - H5O__alloc /src/hdf5/src/H5Oalloc.c:1291:17
+    - H5O__msg_alloc /src/hdf5/src/H5Omessage.c:1729:9
+    - H5O__msg_append_real /src/hdf5/src/H5Omessage.c:191:9
+    - H5O_msg_append_oh /src/hdf5/src/H5Omessage.c:156:9
+    - H5O_msg_create /src/hdf5/src/H5Omessage.c:113:9
+    - H5F__super_ext_write_msg /src/hdf5/src/H5Fsuper.c:1701:13
+    - H5MF_settle_raw_data_fsm /src/hdf5/src/H5MF.c:2775:17
+    - H5C_flush_cache /src/hdf5/src/H5C.c:689:33
+    - H5AC_flush /src/hdf5/src/H5AC.c:645:9
+    - H5F__flush_phase2 /src/hdf5/src/H5Fint.c:2362:9
+    - H5F__dest /src/hdf5/src/H5Fint.c:1441:17
+    - H5F_try_close /src/hdf5/src/H5Fint.c:2680:9
+    - H5F__close /src/hdf5/src/H5Fint.c:2482:9
+    - H5VL__native_file_close /src/hdf5/src/H5VLnative_file.c:777:13
+    - H5VL__file_close /src/hdf5/src/H5VLcallback.c:4326:25
+    - H5VL_file_close /src/hdf5/src/H5VLcallback.c:4360:9
+    - H5F__close_cb /src/hdf5/src/H5Fint.c:249:9
+    - H5I__dec_ref /src/hdf5/src/H5Iint.c:1076:30
+    - H5I__dec_app_ref /src/hdf5/src/H5Iint.c:1156:22
+    - H5I_dec_app_ref /src/hdf5/src/H5Iint.c:1201:22
+    - H5Fclose /src/hdf5/src/H5F.c:1040:9
+    - LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:39:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x51d000004e80 is located 56 bytes after 1992-byte region [0x51d000004680,0x51d000004e48)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - H5FL__malloc /src/hdf5/src/H5FL.c:211:30
+    - H5FL_blk_malloc /src/hdf5/src/H5FL.c:773:48
+    - H5FL_blk_calloc /src/hdf5/src/H5FL.c:819:30
+    - H5FL_seq_calloc /src/hdf5/src/H5FL.c:1651:17
+    - H5FS__sinfo_new /src/hdf5/src/H5FSsection.c:142:32
+    - H5FS__sinfo_lock /src/hdf5/src/H5FSsection.c:272:42
+    - H5FS_sect_add /src/hdf5/src/H5FSsection.c:1314:9
+    - H5MF__add_sect /src/hdf5/src/H5MF.c:637:9
+    - H5MF__alloc_pagefs /src/hdf5/src/H5MF.c:906:21
+    - H5MF_alloc /src/hdf5/src/H5MF.c:806:45
+    - H5MF__alloc_pagefs /src/hdf5/src/H5MF.c:923:44
+    - H5MF_alloc /src/hdf5/src/H5MF.c:806:45
+    - H5O__alloc_chunk /src/hdf5/src/H5Oalloc.c:883:22
+    - H5O__alloc_new_chunk /src/hdf5/src/H5Oalloc.c:1154:9
+    - H5O__alloc /src/hdf5/src/H5Oalloc.c:1291:17
+    - H5O__msg_alloc /src/hdf5/src/H5Omessage.c:1729:9
+    - H5O__msg_append_real /src/hdf5/src/H5Omessage.c:191:9
+    - H5O_msg_append_oh /src/hdf5/src/H5Omessage.c:156:9
+    - H5O_msg_create /src/hdf5/src/H5Omessage.c:113:9
+    - H5F__super_ext_write_msg /src/hdf5/src/H5Fsuper.c:1701:13
+    - H5MF_settle_raw_data_fsm /src/hdf5/src/H5MF.c:2775:17
+    - H5C_flush_cache /src/hdf5/src/H5C.c:689:33
+    - H5AC_flush /src/hdf5/src/H5AC.c:645:9
+    - H5F__flush_phase2 /src/hdf5/src/H5Fint.c:2362:9
+    - H5F__dest /src/hdf5/src/H5Fint.c:1441:17
+    - H5F_try_close /src/hdf5/src/H5Fint.c:2680:9
+    - H5F__close /src/hdf5/src/H5Fint.c:2482:9
+    - H5VL__native_file_close /src/hdf5/src/H5VLnative_file.c:777:13
+    - H5VL__file_close /src/hdf5/src/H5VLcallback.c:4326:25
+    - H5VL_file_close /src/hdf5/src/H5VLcallback.c:4360:9
+    - H5F__close_cb /src/hdf5/src/H5Fint.c:249:9
+    - H5I__dec_ref /src/hdf5/src/H5Iint.c:1076:30
+    - H5I__dec_app_ref /src/hdf5/src/H5Iint.c:1156:22
+    - H5I_dec_app_ref /src/hdf5/src/H5Iint.c:1201:22
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

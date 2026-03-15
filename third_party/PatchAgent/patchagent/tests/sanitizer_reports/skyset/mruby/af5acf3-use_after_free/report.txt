@@ -1,0 +1,98 @@
+=================================================================
+==619850==ERROR: AddressSanitizer: heap-use-after-free on address 0x519000000438 at pc 0x56260edbce4c bp 0x7ffe333a8cf0 sp 0x7ffe333a8ce8
+READ of size 8 at 0x519000000438 thread T0
+    #0 0x56260edbce4b in hash_new_from_values /root/src/vm.c:1167:5
+    #1 0x56260ed72fb5 in mrb_vm_exec /root/src/vm.c:1628:7
+    #2 0x56260ed66e95 in mrb_vm_run /root/src/vm.c:1138:12
+    #3 0x56260ed63503 in mrb_top_run /root/src/vm.c:3061:12
+    #4 0x56260ede0d62 in mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6891:7
+    #5 0x56260ede153c in mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6934:12
+    #6 0x56260ece28b3 in main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+    #7 0x7faaf6cae1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x7faaf6cae28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x56260ece0a44 in _start (/root/bin/mruby+0x9aa44) (BuildId: 97713e4ba6358b06844573e0e8ec2830a653002a)
+
+0x519000000438 is located 952 bytes inside of 1024-byte region [0x519000000080,0x519000000480)
+freed by thread T0 here:
+    #0 0x7faaf7329bc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x56260ed36835 in mrb_default_allocf /root/src/state.c:69:12
+    #2 0x56260ed102ce in mrb_realloc_simple /root/src/gc.c:227:8
+    #3 0x56260ed5e38a in stack_extend_alloc /root/src/vm.c:181:27
+    #4 0x56260ed5dfa0 in mrb_stack_extend /root/src/vm.c:201:5
+    #5 0x56260ed61816 in mrb_stack_extend_adjust /root/src/vm.c:212:5
+    #6 0x56260ed60908 in mrb_funcall_with_block /root/src/vm.c:538:5
+    #7 0x56260ed5f8cd in mrb_funcall_argv /root/src/vm.c:584:10
+    #8 0x56260ed5fbcd in mrb_funcall_id /root/src/vm.c:409:10
+    #9 0x56260ed2e787 in mrb_eql /root/src/object.c:642:10
+    #10 0x56260ed207c1 in obj_eql /root/src/hash.c:379:5
+    #11 0x56260ed212f9 in ea_get_by_key /root/src/hash.c:456:3
+    #12 0x56260ed20cc8 in ar_set /root/src/hash.c:526:16
+    #13 0x56260ed1b53c in h_set /root/src/hash.c:1012:3
+    #14 0x56260ed1b234 in mrb_hash_set /root/src/hash.c:1245:3
+    #15 0x56260edbce8c in hash_new_from_values /root/src/vm.c:1167:5
+    #16 0x56260ed72fb5 in mrb_vm_exec /root/src/vm.c:1628:7
+    #17 0x56260ed66e95 in mrb_vm_run /root/src/vm.c:1138:12
+    #18 0x56260ed63503 in mrb_top_run /root/src/vm.c:3061:12
+    #19 0x56260ede0d62 in mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6891:7
+    #20 0x56260ede153c in mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6934:12
+    #21 0x56260ece28b3 in main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+    #22 0x7faaf6cae1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #23 0x7faaf6cae28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #24 0x56260ece0a44 in _start (/root/bin/mruby+0x9aa44) (BuildId: 97713e4ba6358b06844573e0e8ec2830a653002a)
+
+previously allocated by thread T0 here:
+    #0 0x7faaf7329bc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x56260ed36835 in mrb_default_allocf /root/src/state.c:69:12
+    #2 0x56260ed102ce in mrb_realloc_simple /root/src/gc.c:227:8
+    #3 0x56260ed10854 in mrb_realloc /root/src/gc.c:241:8
+    #4 0x56260ed10980 in mrb_malloc /root/src/gc.c:257:10
+    #5 0x56260ed10a2a in mrb_calloc /root/src/gc.c:275:9
+    #6 0x56260ed61182 in stack_init /root/src/vm.c:110:28
+    #7 0x56260ed66d1d in mrb_vm_run /root/src/vm.c:1131:5
+    #8 0x56260ed633bc in mrb_top_run /root/src/vm.c:3057:12
+    #9 0x56260ed26ce1 in mrb_load_proc /root/src/load.c:716:10
+    #10 0x56260ee71424 in mrb_init_mrblib /root/build/host/mrblib/mrblib.c:2328:3
+    #11 0x56260ee2b034 in mrb_init_core /root/src/init.c:50:3
+    #12 0x56260ed3695f in init_gc_and_core /root/src/state.c:35:3
+    #13 0x56260ed0dfdb in mrb_core_init_protect /root/src/error.c:575:5
+    #14 0x56260ed367a5 in mrb_open_core /root/src/state.c:53:7
+    #15 0x56260ed36a5c in mrb_open_allocf /root/src/state.c:92:20
+    #16 0x56260ed36a27 in mrb_open /root/src/state.c:76:20
+    #17 0x56260ece1f6a in main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:278:20
+    #18 0x7faaf6cae1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x7faaf6cae28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #20 0x56260ece0a44 in _start (/root/bin/mruby+0x9aa44) (BuildId: 97713e4ba6358b06844573e0e8ec2830a653002a)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/src/vm.c:1167:5 in hash_new_from_values
+Shadow bytes around the buggy address:
+  0x519000000180: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000200: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000280: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000300: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000380: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x519000000400: fd fd fd fd fd fd fd[fd]fd fd fd fd fd fd fd fd
+  0x519000000480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x519000000500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x519000000580: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000600: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000680: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==619850==ABORTING

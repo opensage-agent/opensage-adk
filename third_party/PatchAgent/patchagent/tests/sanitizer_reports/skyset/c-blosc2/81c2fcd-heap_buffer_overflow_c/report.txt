@@ -1,0 +1,55 @@
+=================================================================
+==360425==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50f0000000ed at pc 0x7f51fb821616 bp 0x7ffdf8e9dc90 sp 0x7ffdf8e9d450
+READ of size 6 at 0x50f0000000ed thread T0
+    #0 0x7f51fb821615 in __asan_memcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf6615) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x5609223f75c0 in get_meta_from_header /root/blosc/frame.c:1202:5
+    #2 0x5609223f6ab3 in frame_get_metalayers /root/blosc/frame.c:1250:9
+    #3 0x5609223fa367 in frame_to_schunk /root/blosc/frame.c:1637:8
+    #4 0x5609223e8e59 in blosc2_schunk_from_buffer /root/blosc/schunk.c:446:27
+    #5 0x560922361b1d in LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_decompress_frame.c:23:27
+    #6 0x560922362046 in main /root/tests/fuzz/standalone.c:32:7
+    #7 0x7f51fb4251c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x7f51fb42528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x560922360684 in _start (/root/tests/fuzz/decompress_frame_fuzzer+0x10684) (BuildId: a77faef08ad0421578df5e2b22237ae1a5a56dc8)
+
+0x50f0000000ed is located 0 bytes after 173-byte region [0x50f000000040,0x50f0000000ed)
+allocated by thread T0 here:
+    #0 0x7f51fb8237a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x560922362010 in main /root/tests/fuzz/standalone.c:28:28
+    #2 0x7f51fb4251c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #3 0x7f51fb42528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #4 0x560922360684 in _start (/root/tests/fuzz/decompress_frame_fuzzer+0x10684) (BuildId: a77faef08ad0421578df5e2b22237ae1a5a56dc8)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/blosc/frame.c:1202:5 in get_meta_from_header
+Shadow bytes around the buggy address:
+  0x50effffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50effffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50efffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50efffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50f000000000: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+=>0x50f000000080: 00 00 00 00 00 00 00 00 00 00 00 00 00[05]fa fa
+  0x50f000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360425==ABORTING

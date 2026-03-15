@@ -1,0 +1,16 @@
+The sanitizer detected a negative size param vulnerability. The explanation of the vulnerability is: A function receives a negative size parameter, leading to unexpected behavior or memory allocation errors. Here is the detail: 
+
+    - bytes_chunk_extract /root/src/split.c:987:7
+    - main /root/src/split.c:1625:9
+
+0x7f8a3a97e006 is located 2054 bytes inside of 135168-byte region [0x7f8a3a97d800,0x7f8a3a99e800)
+allocated by thread T0 here:
+    - xmalloc /root/lib/xmalloc.c:41:13
+    - main /root/src/split.c:1568:13
+
+
+To fix this issue, follow the advice below:
+
+1. Validate all size parameters before passing them to memory allocation functions.
+2. Ensure that buffer sizes and loop limits are always positive values.
+3. Use unsigned integer types to store sizes to prevent negative values.

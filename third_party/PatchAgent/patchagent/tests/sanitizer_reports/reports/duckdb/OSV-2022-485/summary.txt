@@ -1,0 +1,39 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - duckdb::LogicalType::operator=(duckdb::LogicalType const&) /src/duckdb/src/include/duckdb/common/types.hpp:412:15
+    - duckdb::ExpressionBinder::BindExpression(duckdb::ParameterExpression&, unsigned long) /src/duckdb/src/planner/binder/expression/bind_parameter_expression.cpp:15:32
+    - duckdb::ExpressionBinder::BindExpression(std::__1::unique_ptr<duckdb::ParsedExpression, std::__1::default_delete<duckdb::ParsedExpression>>*, unsigned long, bool) /src/duckdb/src/planner/expression_binder.cpp:65:10
+    - duckdb::SelectBinder::BindExpression(std::__1::unique_ptr<duckdb::ParsedExpression, std::__1::default_delete<duckdb::ParsedExpression>>*, unsigned long, bool) /src/duckdb/src/planner/expression_binder/select_binder.cpp:33:28
+    - duckdb::ExpressionBinder::Bind(std::__1::unique_ptr<duckdb::ParsedExpression, std::__1::default_delete<duckdb::ParsedExpression>>*, unsigned long, bool) /src/duckdb/src/planner/expression_binder.cpp:212:22
+    - duckdb::ExpressionBinder::Bind(std::__1::unique_ptr<duckdb::ParsedExpression, std::__1::default_delete<duckdb::ParsedExpression>>&, duckdb::LogicalType*, bool) /src/duckdb/src/planner/expression_binder.cpp:171:19
+    - duckdb::Binder::BindNode(duckdb::SelectNode&) /src/duckdb/src/planner/binder/query_node/bind_select_node.cpp:374:29
+    - duckdb::Binder::BindNode(duckdb::QueryNode&) /src/duckdb/src/planner/binder.cpp:95:12
+    - duckdb::Binder::Bind(duckdb::QueryNode&) /src/duckdb/src/planner/binder.cpp:109:20
+    - duckdb::Binder::Bind(duckdb::SelectStatement&) /src/duckdb/src/planner/binder/statement/bind_select.cpp:10:9
+    - duckdb::Binder::Bind(duckdb::SQLStatement&) /src/duckdb/src/planner/binder.cpp:45:10
+    - duckdb::Planner::CreatePlan(duckdb::SQLStatement&) /src/duckdb/src/planner/planner.cpp:33:33
+    - duckdb::Planner::CreatePlan(std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>) /src/duckdb/src/planner/planner.cpp:181:3
+    - duckdb::ClientContext::CreatePreparedStatement(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, std::__1::vector<duckdb::Value, std::__1::allocator<duckdb::Value>>*) /src/duckdb/src/main/client_context.cpp:265:10
+    - duckdb::ClientContext::PendingStatementInternal(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, duckdb::PendingQueryParameters) /src/duckdb/src/main/client_context.cpp:515:18
+    - duckdb::ClientContext::PendingStatementOrPreparedStatement(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, std::__1::shared_ptr<duckdb::PreparedStatementData>&, duckdb::PendingQueryParameters) /src/duckdb/src/main/client_context.cpp:604:13
+    - duckdb::ClientContext::PendingQueryInternal(duckdb::ClientContextLock&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, duckdb::PendingQueryParameters, bool) /src/duckdb/src/main/client_context.cpp:759:10
+    - duckdb::ClientContext::RunStatementInternal(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, bool, bool) /src/duckdb/src/main/client_context.cpp:525:17
+    - duckdb::ClientContext::VerifyQuery(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>) /src/duckdb/src/main/client_context.cpp:906:18
+    - duckdb::ClientContext::PendingStatementOrPreparedStatementInternal(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, std::__1::shared_ptr<duckdb::PreparedStatementData>&, duckdb::PendingQueryParameters) /src/duckdb/src/main/client_context.cpp:564:13
+    - duckdb::ClientContext::PendingQueryInternal(duckdb::ClientContextLock&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, duckdb::PendingQueryParameters, bool) /src/duckdb/src/main/client_context.cpp:757:10
+    - duckdb::ClientContext::Query(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, bool) /src/duckdb/src/main/client_context.cpp:693:24
+    - duckdb::Connection::Query(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/duckdb/src/main/connection.cpp:71:25
+    - LLVMFuzzerTestOneInput /src/duckdb/test/ossfuzz/parse_fuzz_test.cpp:14:21
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

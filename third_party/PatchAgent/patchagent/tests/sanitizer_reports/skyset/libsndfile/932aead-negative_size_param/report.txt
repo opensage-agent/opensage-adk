@@ -1,0 +1,23 @@
+=================================================================
+==640188==ERROR: AddressSanitizer: negative-size-param: (size=-539033344)
+    #0 0x7f17b312954a in __asan_memcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf654a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55d5d8c6692e in vfread(void*, long, void*) /root/ossfuzz/sndfile_fuzzer.cc:54:3
+    #2 0x55d5d8d3146b in psf_fread /root/src/file_io.c:311:10
+    #3 0x55d5d8d1b05c in header_read /root/src/common.c:857:12
+    #4 0x55d5d8d19356 in psf_binheader_readf /root/src/common.c:988:20
+    #5 0x55d5d8c993a2 in caf_read_header /root/src/caf.c:395:3
+    #6 0x55d5d8c982c2 in caf_open /root/src/caf.c:127:17
+    #7 0x55d5d8c68834 in psf_open_file /root/src/sndfile.c:3180:13
+    #8 0x55d5d8c69694 in sf_open_virtual /root/src/sndfile.c:440:9
+    #9 0x55d5d8c6634a in LLVMFuzzerTestOneInput /root/ossfuzz/sndfile_fuzzer.cc:99:13
+    #10 0x55d5d8c4dad4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/sndfile_fuzzer+0x46ad4) (BuildId: 2bcff1e396a2a2ac6a2e53f2349eb14d00fbab22)
+    #11 0x55d5d8c36d56 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/sndfile_fuzzer+0x2fd56) (BuildId: 2bcff1e396a2a2ac6a2e53f2349eb14d00fbab22)
+    #12 0x55d5d8c3c80a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/sndfile_fuzzer+0x3580a) (BuildId: 2bcff1e396a2a2ac6a2e53f2349eb14d00fbab22)
+    #13 0x55d5d8c66126 in main (/root/sndfile_fuzzer+0x5f126) (BuildId: 2bcff1e396a2a2ac6a2e53f2349eb14d00fbab22)
+    #14 0x7f17b2d621c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x7f17b2d6228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x55d5d8c31d24 in _start (/root/sndfile_fuzzer+0x2ad24) (BuildId: 2bcff1e396a2a2ac6a2e53f2349eb14d00fbab22)
+
+Address 0x503020210104 is a wild pointer inside of access range of size 0x000000000001.
+SUMMARY: AddressSanitizer: negative-size-param /root/ossfuzz/sndfile_fuzzer.cc:54:3 in vfread(void*, long, void*)
+==640188==ABORTING

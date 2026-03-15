@@ -1,0 +1,67 @@
+=================================================================
+==92302==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50700000045f at pc 0x7f706d4c935e bp 0x7ffd06c39790 sp 0x7ffd06c38f50
+READ of size 8 at 0x50700000045f thread T0
+    #0 0x7f706d4c935d in __asan_memcpy build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x5607d96ce20e in process_cu_tu_index /root/binutils/dwarf.c:9290:3
+    #2 0x5607d96a931e in load_cu_tu_indexes /root/binutils/dwarf.c:9411:8
+    #3 0x5607d96a9147 in find_cu_tu_set /root/binutils/dwarf.c:9429:9
+    #4 0x5607d968cb8a in display_debug_section /root/binutils/readelf.c:13721:25
+    #5 0x5607d965095d in process_section_contents /root/binutils/readelf.c:13814:10
+    #6 0x5607d96345c2 in process_object /root/binutils/readelf.c:18702:9
+    #7 0x5607d9624fe5 in process_file /root/binutils/readelf.c:19122:13
+    #8 0x5607d9623c3a in main /root/binutils/readelf.c:19181:11
+    #9 0x7f706d1b21c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #10 0x7f706d1b228a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #11 0x5607d961f5e4 in _start (/root/binutils/readelf+0x945e4) (BuildId: 69457eb9e3b2f31e004e8efe0c524243c38350f3)
+
+0x50700000045f is located 0 bytes after 79-byte region [0x507000000410,0x50700000045f)
+allocated by thread T0 here:
+    #0 0x7f706d4cb372 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:69:3
+    #1 0x5607d96214a2 in get_data /root/binutils/readelf.c:423:9
+    #2 0x5607d96220e2 in load_specific_debug_section /root/binutils/readelf.c:13495:38
+    #3 0x5607d96211ee in load_debug_section /root/binutils/readelf.c:13648:10
+    #4 0x5607d96cc93a in load_debug_section_with_follow /root/binutils/dwarf.c:2705:7
+    #5 0x5607d96a9300 in load_cu_tu_indexes /root/binutils/dwarf.c:9410:11
+    #6 0x5607d96a9147 in find_cu_tu_set /root/binutils/dwarf.c:9429:9
+    #7 0x5607d968cb8a in display_debug_section /root/binutils/readelf.c:13721:25
+    #8 0x5607d965095d in process_section_contents /root/binutils/readelf.c:13814:10
+    #9 0x5607d96345c2 in process_object /root/binutils/readelf.c:18702:9
+    #10 0x5607d9624fe5 in process_file /root/binutils/readelf.c:19122:13
+    #11 0x5607d9623c3a in main /root/binutils/readelf.c:19181:11
+    #12 0x7f706d1b21c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #13 0x7f706d1b228a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #14 0x5607d961f5e4 in _start (/root/binutils/readelf+0x945e4) (BuildId: 69457eb9e3b2f31e004e8efe0c524243c38350f3)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3 in __asan_memcpy
+Shadow bytes around the buggy address:
+  0x507000000180: 00 00 00 00 00 00 00 fa fa fa fa fa 00 00 00 00
+  0x507000000200: 00 00 00 00 00 fa fa fa fa fa 00 00 00 00 00 00
+  0x507000000280: 00 00 00 fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x507000000300: fd fd fa fa fa fa 00 00 00 00 00 00 00 00 00 07
+  0x507000000380: fa fa fa fa 00 00 00 00 00 00 00 00 05 fa fa fa
+=>0x507000000400: fa fa 00 00 00 00 00 00 00 00 00[07]fa fa fa fa
+  0x507000000480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==92302==ABORTING

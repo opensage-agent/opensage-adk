@@ -1,0 +1,65 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fca7776e6c9 at pc 0x55758ff47798 bp 0x7ffdce948730 sp 0x7ffdce947ec0
+READ of size 41 at 0x7fca7776e6c9 thread T0
+SCARINESS: 41 (multi-byte-read-stack-buffer-overflow)
+    #0 0x55758ff47797 in printf_common(void*, char const*, __va_list_tag*) /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors_format.inc:563:9
+    #1 0x55758ff47bf6 in vfprintf /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:1648:1
+    #2 0x55759001a89c in sc_color_fprintf_va /src/opensc/src/libopensc/log.c:276:6
+    #3 0x55759001953a in sc_do_log_va /src/opensc/src/libopensc/log.c:145:2
+    #4 0x557590018d5f in sc_do_log /src/opensc/src/libopensc/log.c:58:2
+    #5 0x5575903f4d57 in idprime_process_containermap /src/opensc/src/libopensc/card-idprime.c:317:3
+    #6 0x5575903ecd4f in idprime_init /src/opensc/src/libopensc/card-idprime.c:552:6
+    #7 0x5575900372f5 in sc_connect_card /src/opensc/src/libopensc/card.c:358:8
+    #8 0x55758ffff845 in fuzz_connect_card /src/opensc/src/tests/fuzzing/fuzzer_reader.c:205:9
+    #9 0x55758fff9f11 in fuzz_util_connect_card /src/opensc/src/tests/fuzzing/fuzz_pkcs15_crypt.c:48:9
+    #10 0x55758fff9796 in _main /src/opensc/src/tests/fuzzing/../../../src/tools/pkcs15-crypt.c:489:8
+    #11 0x55758fffc905 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15_crypt.c:134:3
+    #12 0x55758feafce0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x55758fe9af55 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x55758fea09ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x55758fecbc92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7fca77f19082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #17 0x55758fe9313d in _start (/out/fuzz_pkcs15_crypt+0x1fc13d)
+
+DEDUP_TOKEN: printf_common(void*, char const*, __va_list_tag*)--___interceptor_vfprintf--sc_color_fprintf_va
+Address 0x7fca7776e6c9 is located in stack of thread T0 at offset 73 in frame
+    #0 0x5575903f443f in idprime_process_containermap /src/opensc/src/libopensc/card-idprime.c:269
+
+DEDUP_TOKEN: idprime_process_containermap
+  This frame has 1 object(s):
+    [32, 73) 'new_container' (line 304) <== Memory access at offset 73 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/opensc/src/libopensc/log.c:276:6 in sc_color_fprintf_va
+Shadow bytes around the buggy address:
+  0x7fca7776e400: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fca7776e480: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fca7776e500: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fca7776e580: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fca7776e600: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+=>0x7fca7776e680: f1 f1 f1 f1 00 00 00 00 00[01]f3 f3 f3 f3 f3 f3
+  0x7fca7776e700: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fca7776e780: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fca7776e800: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fca7776e880: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fca7776e900: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

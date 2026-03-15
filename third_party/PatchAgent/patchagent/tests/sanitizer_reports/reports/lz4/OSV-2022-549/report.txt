@@ -1,0 +1,47 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/lz4:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/lz4/OSV-2022-549/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce round_trip_fuzzer -runs=100.
++ FUZZER=round_trip_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer round_trip_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/round_trip_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3983712168
+INFO: Loaded 1 modules   (6617 inline 8-bit counters): 6617 [0x55c1bbcf63d0, 0x55c1bbcf7da9), 
+INFO: Loaded 1 PC tables (6617 PCs): 6617 [0x55c1bbcf7db0,0x55c1bbd11b40), 
+/out/round_trip_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x5310000107ff in thread T0
+[1m[0mSCARINESS: 40 (bad-free)
+    #0 0x55c1bbbc1e16 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55c1bbc01bdc in LLVMFuzzerTestOneInput /src/lz4/ossfuzz/round_trip_fuzzer.c:111:5
+    #2 0x55c1bbab62e0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #3 0x55c1bbaa1555 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #4 0x55c1bbaa6fef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #5 0x55c1bbad2292 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #6 0x7f11c2a01082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x55c1bba9973d in _start (/out/round_trip_fuzzer+0x6773d)
+
+DEDUP_TOKEN: __interceptor_free--LLVMFuzzerTestOneInput--fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long)
+[1m[32m0x5310000107ff is located 65535 bytes inside of 65551-byte region [0x531000000800,0x53100001080f)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55c1bbbc20af in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55c1bbc017e3 in LLVMFuzzerTestOneInput /src/lz4/ossfuzz/round_trip_fuzzer.c:25:45
+    #2 0x55c1bbab62e0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #3 0x55c1bbaa1555 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #4 0x55c1bbaa6fef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #5 0x55c1bbad2292 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #6 0x7f11c2a01082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--LLVMFuzzerTestOneInput--fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long)
+SUMMARY: AddressSanitizer: bad-free /src/lz4/ossfuzz/round_trip_fuzzer.c:111:5 in LLVMFuzzerTestOneInput
+==14==ABORTING

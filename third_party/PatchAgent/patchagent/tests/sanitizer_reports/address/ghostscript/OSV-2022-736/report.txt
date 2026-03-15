@@ -1,0 +1,134 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x531000024830 at pc 0x5556eac4358b bp 0x7ffcd8ffbdd0 sp 0x7ffcd8ffb588
+READ of size 52736 at 0x531000024830 thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x5556eac4358a in memcpy /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115:5
+    #1 0x5556eb02d3dc in copy_glyph_data /src/ghostpdl/./devices/gxfcopy.c:539:21
+    #2 0x5556eb02dd67 in copy_glyph_type1 /src/ghostpdl/./devices/gxfcopy.c:1052:12
+    #3 0x5556eb02430b in gs_copy_glyph_options /src/ghostpdl/./devices/gxfcopy.c:2392:12
+    #4 0x5556eb02528a in gs_copy_glyph /src/ghostpdl/./devices/gxfcopy.c:2379:12
+    #5 0x5556eb02528a in gs_copy_font_complete /src/ghostpdl/./devices/gxfcopy.c:2511:20
+    #6 0x5556eba9fdc7 in pdf_base_font_alloc /src/ghostpdl/./devices/vector/gdevpdtb.c:322:16
+    #7 0x5556eafe6ebf in pdf_font_descriptor_alloc /src/ghostpdl/./devices/vector/gdevpdtd.c:202:16
+    #8 0x5556eb0064b2 in pdf_make_font_resource /src/ghostpdl/./devices/vector/gdevpdtt.c:1607:17
+    #9 0x5556eb009cd9 in pdf_obtain_font_resource_encoded /src/ghostpdl/./devices/vector/gdevpdtt.c:2141:24
+    #10 0x5556eb008203 in pdf_obtain_font_resource /src/ghostpdl/./devices/vector/gdevpdtt.c:2247:12
+    #11 0x5556ebaaa4e1 in pdf_process_string /src/ghostpdl/./devices/vector/gdevpdte.c:837:12
+    #12 0x5556ebaaa4e1 in pdf_process_string_aux /src/ghostpdl/./devices/vector/gdevpdte.c:81:12
+    #13 0x5556ebab5886 in process_plain_text /src/ghostpdl/./devices/vector/gdevpdte.c:1841:16
+    #14 0x5556eb015a9f in pdf_text_process /src/ghostpdl/./devices/vector/gdevpdtt.c:3752:16
+    #15 0x5556eb778b3e in pdfi_show_simple /src/ghostpdl/./pdf/pdf_text.c:445:16
+    #16 0x5556eb778b3e in pdfi_show_Tr_0 /src/ghostpdl/./pdf/pdf_text.c:460:12
+    #17 0x5556eb77431f in pdfi_show /src/ghostpdl/./pdf/pdf_text.c:842:24
+    #18 0x5556eb775958 in pdfi_Tj /src/ghostpdl/./pdf/pdf_text.c:1069:12
+    #19 0x5556eb6970a5 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1646:24
+    #20 0x5556eb695333 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2126:24
+    #21 0x5556eb693890 in pdfi_interpret_inner_content /src/ghostpdl/./pdf/pdf_int.c:1910:12
+    #22 0x5556eb693890 in pdfi_interpret_inner_content_stream /src/ghostpdl/./pdf/pdf_int.c:2009:12
+    #23 0x5556eb693890 in pdfi_run_context /src/ghostpdl/./pdf/pdf_int.c:1846:12
+    #24 0x5556eb6dd01e in pdfi_do_form /src/ghostpdl/./pdf/pdf_image.c:2470:16
+    #25 0x5556eb6dd9a2 in pdfi_do_image_or_form /src/ghostpdl/./pdf/pdf_image.c:2561:16
+    #26 0x5556eb70552c in pdfi_annot_draw_AP /src/ghostpdl/./pdf/pdf_annot.c:284:12
+    #27 0x5556eb70552c in pdfi_annot_draw /src/ghostpdl/./pdf/pdf_annot.c:3921:16
+    #28 0x5556eb6f986a in pdfi_annot_handle /src/ghostpdl/./pdf/pdf_annot.c
+    #29 0x5556eb6f986a in pdfi_do_annotations /src/ghostpdl/./pdf/pdf_annot.c:4485:16
+    #30 0x5556eb6eaeca in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:166:13
+    #31 0x5556eb6eaeca in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:953:12
+    #32 0x5556eb65842a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1157:24
+    #33 0x5556eb4eb319 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #34 0x5556eb4eb319 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #35 0x5556eb4eb319 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #36 0x5556eac8c3b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #37 0x5556eac8c3b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #38 0x5556eac8c3b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #39 0x5556eb7c8c40 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #40 0x5556eb7c5610 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #41 0x5556eb7c2792 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #42 0x5556eb7c89c8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #43 0x5556eac83fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #44 0x5556eac84335 in LLVMFuzzerTestOneInput /src/gs_device_eps2write_fuzzer.cc:18:2
+    #45 0x5556eab386d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #46 0x5556eab23945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #47 0x5556eab293df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #48 0x5556eab54682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #49 0x7fc012b8f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #50 0x5556eab1bb2d in _start (/out/gs_device_eps2write_fuzzer+0x71fb2d)
+
+DEDUP_TOKEN: __interceptor_memcpy--copy_glyph_data--copy_glyph_type1
+0x531000024830 is located 0 bytes after 65584-byte region [0x531000014800,0x531000024830)
+allocated by thread T0 here:
+    #0 0x5556eac4449f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5556eb16b620 in gs_heap_alloc_bytes /src/ghostpdl/./base/gsmalloc.c:192:34
+    #2 0x5556eadfa42e in chunk_obj_alloc /src/ghostpdl/./base/gsmchunk.c:928:36
+    #3 0x5556eb7b0220 in pdfi_object_alloc /src/ghostpdl/./pdf/pdf_obj.c:85:23
+    #4 0x5556eb7466b5 in pdf_ps_RD_oper_func /src/ghostpdl/./pdf/pdf_fontps.c:1189:28
+    #5 0x5556eb743c02 in pdfi_pscript_interpret /src/ghostpdl/./pdf/pdf_fontps.c:362:36
+    #6 0x5556eb7454d0 in pdfi_read_ps_font /src/ghostpdl/./pdf/pdf_fontps.c:1276:12
+    #7 0x5556eb723649 in pdfi_read_type1_font /src/ghostpdl/./pdf/pdf_font1.c:542:16
+    #8 0x5556eb710a11 in pdfi_load_font_buffer /src/ghostpdl/./pdf/pdf_font.c:620:24
+    #9 0x5556eb71440d in pdfi_load_font_file /src/ghostpdl/./pdf/pdf_font.c:781:24
+    #10 0x5556eb70fa03 in pdfi_load_font /src/ghostpdl/./pdf/pdf_font.c:957:28
+    #11 0x5556eb715260 in pdfi_load_dict_font /src/ghostpdl/./pdf/pdf_font.c:1006:20
+    #12 0x5556eb71828a in pdfi_load_resource_font /src/ghostpdl/./pdf/pdf_font.c:1048:12
+    #13 0x5556eb71828a in pdfi_Tf /src/ghostpdl/./pdf/pdf_font.c:1407:12
+    #14 0x5556eb696e9f in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1642:24
+    #15 0x5556eb695333 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2126:24
+    #16 0x5556eb693890 in pdfi_interpret_inner_content /src/ghostpdl/./pdf/pdf_int.c:1910:12
+    #17 0x5556eb693890 in pdfi_interpret_inner_content_stream /src/ghostpdl/./pdf/pdf_int.c:2009:12
+    #18 0x5556eb693890 in pdfi_run_context /src/ghostpdl/./pdf/pdf_int.c:1846:12
+    #19 0x5556eb6dd01e in pdfi_do_form /src/ghostpdl/./pdf/pdf_image.c:2470:16
+    #20 0x5556eb6dd9a2 in pdfi_do_image_or_form /src/ghostpdl/./pdf/pdf_image.c:2561:16
+    #21 0x5556eb70552c in pdfi_annot_draw_AP /src/ghostpdl/./pdf/pdf_annot.c:284:12
+    #22 0x5556eb70552c in pdfi_annot_draw /src/ghostpdl/./pdf/pdf_annot.c:3921:16
+    #23 0x5556eb6f986a in pdfi_annot_handle /src/ghostpdl/./pdf/pdf_annot.c
+    #24 0x5556eb6f986a in pdfi_do_annotations /src/ghostpdl/./pdf/pdf_annot.c:4485:16
+    #25 0x5556eb6eaeca in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:166:13
+    #26 0x5556eb6eaeca in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:953:12
+    #27 0x5556eb65842a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1157:24
+    #28 0x5556eb4eb319 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #29 0x5556eb4eb319 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #30 0x5556eb4eb319 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #31 0x5556eac8c3b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #32 0x5556eac8c3b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #33 0x5556eac8c3b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #34 0x5556eb7c8c40 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #35 0x5556eb7c5610 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #36 0x5556eb7c2792 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #37 0x5556eb7c89c8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #38 0x5556eac83fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #39 0x5556eac84335 in LLVMFuzzerTestOneInput /src/gs_device_eps2write_fuzzer.cc:18:2
+
+DEDUP_TOKEN: __interceptor_malloc--gs_heap_alloc_bytes--chunk_obj_alloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/ghostpdl/./devices/gxfcopy.c:539:21 in copy_glyph_data
+Shadow bytes around the buggy address:
+  0x531000024580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x531000024600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x531000024680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x531000024700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x531000024780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x531000024800: 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa
+  0x531000024880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x531000024900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x531000024980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x531000024a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x531000024a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

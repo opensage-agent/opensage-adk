@@ -1,0 +1,11 @@
+tif_jpeg.c:1646:19: runtime error: shift exponent 136 is too large for 64-bit type 'long'
+    #0 0x7f1a524cce91 in JPEGSetupEncode /root/libtiff/tif_jpeg.c:1646:19
+    #1 0x7f1a525bbbc7 in TIFFWriteEncodedStrip /root/libtiff/tif_write.c:234:8
+    #2 0x55f60ae5e13d in cpDecodedStrips /root/tools/tiffcp.c:997:8
+    #3 0x55f60ae5c134 in tiffcp /root/tools/tiffcp.c:814:15
+    #4 0x55f60ae5a07e in main /root/tools/tiffcp.c:303:9
+    #5 0x7f1a5186d1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #6 0x7f1a5186d28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #7 0x55f60ae2f674 in _start (/root/tools/.libs/tiffcp+0x9674) (BuildId: 80f817bb7ae3997eca382f6690f80fc0c5ceba73)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior tif_jpeg.c:1646:19 in 

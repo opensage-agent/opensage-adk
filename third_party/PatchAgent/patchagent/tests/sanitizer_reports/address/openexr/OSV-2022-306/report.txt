@@ -1,0 +1,68 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51b00000077f at pc 0x55b8dde82aa2 bp 0x7fff8d8bb440 sp 0x7fff8d8bac00
+READ of size 20 at 0x51b00000077f thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x55b8dde82aa1 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x55b8ddecad0c in Imf_2_5::(anonymous namespace)::memstream_read(_priv_exr_context_t const*, void*, void*, unsigned long, unsigned long, int (*)(_priv_exr_context_t const*, int, char const*, ...)) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1560:23
+    #2 0x55b8de0c3b2b in dispatch_read /src/openexr/src/lib/OpenEXRCore/context.c:49:16
+    #3 0x55b8de110fdf in extract_chunk_leader /src/openexr/src/lib/OpenEXRCore/chunk.c:290:10
+    #4 0x55b8de110aea in extract_chunk_size /src/openexr/src/lib/OpenEXRCore/chunk.c:386:12
+    #5 0x55b8de110aea in reconstruct_chunk_table /src/openexr/src/lib/OpenEXRCore/chunk.c:491:14
+    #6 0x55b8de107169 in extract_chunk_table /src/openexr/src/lib/OpenEXRCore/chunk.c:605:18
+    #7 0x55b8de1083f0 in exr_read_tile_chunk_info /src/openexr/src/lib/OpenEXRCore/chunk.c:1049:10
+    #8 0x55b8ddec7fdc in readCoreTiledPart /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1358:26
+    #9 0x55b8ddec7fdc in Imf_2_5::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1489:17
+    #10 0x55b8ddec6109 in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1599:15
+    #11 0x55b8ddec6109 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1652:17
+    #12 0x55b8ddec429f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #13 0x55b8ddd78de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x55b8ddd64055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x55b8ddd69aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x55b8ddd94d92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f42fabee082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #18 0x55b8ddd5c23d in _start (/out/openexr_exrcheck_fuzzer+0x16723d)
+
+DEDUP_TOKEN: __asan_memcpy--Imf_2_5::(anonymous namespace)::memstream_read(_priv_exr_context_t const*, void*, void*, unsigned long, unsigned long, int (*)(_priv_exr_context_t const*, int, char const*, ...))--dispatch_read
+0x51b00000077f is located 1 bytes before 1629-byte region [0x51b000000780,0x51b000000ddd)
+allocated by thread T0 here:
+    #0 0x55b8dde84baf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55b8de2504c3 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x55b8ddd64055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x55b8ddd69aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x55b8ddd94d92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7f42fabee082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1560:23 in Imf_2_5::(anonymous namespace)::memstream_read(_priv_exr_context_t const*, void*, void*, unsigned long, unsigned long, int (*)(_priv_exr_context_t const*, int, char const*, ...))
+Shadow bytes around the buggy address:
+  0x51b000000480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000680: 00 00 00 00 00 00 00 00 00 00 00 05 fa fa fa fa
+=>0x51b000000700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa[fa]
+  0x51b000000780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51b000000980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

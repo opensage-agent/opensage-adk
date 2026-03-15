@@ -1,0 +1,12 @@
+The sanitizer detected a floating point exception vulnerability. The explanation of the vulnerability is: The program encountered a floating-point exception, such as division by zero or invalid arithmetic operation. Here is the detail: 
+
+    - cvtRaster /root/tools/rgb2ycbcr.c:257:19
+    - tiffcvt /root/tools/rgb2ycbcr.c:352:11
+    - main /root/tools/rgb2ycbcr.c:127:10
+
+
+To fix this issue, follow the advice below:
+
+1. Implement input validation to prevent division by zero and other arithmetic exceptions.
+2. Use exception handling mechanisms to gracefully handle floating-point exceptions.
+3. Check for invalid arithmetic operations that may lead to floating-point exceptions.

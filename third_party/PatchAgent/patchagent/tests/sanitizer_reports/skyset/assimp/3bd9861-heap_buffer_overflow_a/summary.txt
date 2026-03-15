@@ -1,0 +1,31 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x503000003540 thread T0
+    - Assimp::MD5::MD5Parser::SkipSpacesAndLineEnd(char const*, char const**) /root/code/AssetLib/MD5/MD5Parser.h:428:13
+    - Assimp::MD5::MD5Parser::SkipSpacesAndLineEnd() /root/code/AssetLib/MD5/MD5Parser.h:450:12
+    - Assimp::MD5::MD5Parser::ParseHeader() /root/code/AssetLib/MD5/MD5Parser.cpp:128:5
+    - Assimp::MD5::MD5Parser::MD5Parser(char*, unsigned int) /root/code/AssetLib/MD5/MD5Parser.cpp:69:5
+    - Assimp::MD5Importer::LoadMD5MeshFile() /root/code/AssetLib/MD5/MD5Loader.cpp:338:20
+    - Assimp::MD5Importer::InternReadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /root/code/AssetLib/MD5/MD5Loader.cpp:141:13
+    - Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:131:9
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:709:30
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+
+0x503000003540 is located 0 bytes after 32-byte region [0x503000003520,0x503000003540)
+allocated by thread T0 here:
+    - operator new(unsigned long) /build/gcc-14-OQFzmN/gcc-14-14-20240412/src/libstdc++-v3/libsupc++/new_op.cc:50:22
+    - Assimp::MD5Importer::LoadMD5MeshFile() /root/code/AssetLib/MD5/MD5Loader.cpp:335:5
+    - Assimp::MD5Importer::InternReadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /root/code/AssetLib/MD5/MD5Loader.cpp:141:13
+    - Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:131:9
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:709:30
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,24 @@
+=================================================================
+==359711==ERROR: AddressSanitizer: SEGV on unknown address 0x0001dfff8001 (pc 0x55bee6d926ad bp 0x7ffc137cd1d0 sp 0x7ffc137cce20 T0)
+==359711==The signal is caused by a READ memory access.
+    #0 0x55bee6d926ad in md_build_attribute /root/src/md4c.c:1439:12
+    #1 0x55bee6db8c0f in md_enter_leave_span_a /root/src/md4c.c:4117:5
+    #2 0x55bee6db5d5a in md_process_inlines /root/src/md4c.c:4295:21
+    #3 0x55bee6d92295 in md_process_normal_block_contents /root/src/md4c.c:4640:5
+    #4 0x55bee6d90076 in md_process_leaf_block /root/src/md4c.c:4819:13
+    #5 0x55bee6d7b599 in md_process_all_blocks /root/src/md4c.c:4901:13
+    #6 0x55bee6d6dfad in md_process_doc /root/src/md4c.c:6330:5
+    #7 0x55bee6d6cfff in md_parse /root/src/md4c.c:6398:11
+    #8 0x55bee6d69b6e in md_html /root/src/md4c-html.c:571:12
+    #9 0x55bee6d696a2 in LLVMFuzzerTestOneInput /root/build/../test/fuzzers/fuzz-mdhtml.c:24:5
+    #10 0x55bee6d4edf4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/fuzz-mdhtml+0x5adf4) (BuildId: f637a5ad3357874241c79b5819640896fbf37f13)
+    #11 0x55bee6d37f26 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/fuzz-mdhtml+0x43f26) (BuildId: f637a5ad3357874241c79b5819640896fbf37f13)
+    #12 0x55bee6d3d9da in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/fuzz-mdhtml+0x499da) (BuildId: f637a5ad3357874241c79b5819640896fbf37f13)
+    #13 0x55bee6d68236 in main (/root/fuzz-mdhtml+0x74236) (BuildId: f637a5ad3357874241c79b5819640896fbf37f13)
+    #14 0x7f273bf8e1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x7f273bf8e28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x55bee6d32af4 in _start (/root/fuzz-mdhtml+0x3eaf4) (BuildId: f637a5ad3357874241c79b5819640896fbf37f13)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/src/md4c.c:1439:12 in md_build_attribute
+==359711==ABORTING

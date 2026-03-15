@@ -1,0 +1,74 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 8 at 0x5030000dfb08 thread T0
+    - proto_item_append_text /src/wireshark/epan/proto.c:6951:2
+    - dissect_pfcp_3gpp_enterprise_ies /src/wireshark/epan/dissectors/packet-pfcp.c:9128:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - dissect_pfcp_ies_common /src/wireshark/epan/dissectors/packet-pfcp.c:8812:18
+    - dissect_pfcp_message /src/wireshark/epan/dissectors/packet-pfcp.c:9069:5
+    - dissect_pfcp /src/wireshark/epan/dissectors/packet-pfcp.c:9105:19
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - dissector_try_uint /src/wireshark/epan/packet.c:1437:9
+    - decode_udp_ports /src/wireshark/epan/dissectors/packet-udp.c:705:7
+    - dissect /src/wireshark/epan/dissectors/packet-udp.c:1267:5
+    - dissect_udp /src/wireshark/epan/dissectors/packet-udp.c:1273:3
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_all_postdissectors /src/wireshark/epan/packet.c:3608:3
+    - dissect_frame /src/wireshark/epan/dissectors/packet-frame.c:901:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - dissect_record /src/wireshark/epan/packet.c:594:3
+    - epan_dissect_run /src/wireshark/epan/epan.c:594:2
+    - LLVMFuzzerTestOneInput /src/wireshark/fuzz/fuzzshark.c:369:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5030000dfb08 is located 16 bytes after 24-byte region [0x5030000dfae0,0x5030000dfaf8)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - wmem_alloc /src/wireshark/epan/wmem/wmem_core.c:44:12
+    - wmem_alloc0 /src/wireshark/epan/wmem/wmem_core.c:52:11
+    - dissect_pfcp_ies_common /src/wireshark/epan/dissectors/packet-pfcp.c:8778:40
+    - dissect_pfcp_message /src/wireshark/epan/dissectors/packet-pfcp.c:9069:5
+    - dissect_pfcp /src/wireshark/epan/dissectors/packet-pfcp.c:9105:19
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - dissector_try_uint /src/wireshark/epan/packet.c:1437:9
+    - decode_udp_ports /src/wireshark/epan/dissectors/packet-udp.c:705:7
+    - dissect /src/wireshark/epan/dissectors/packet-udp.c:1267:5
+    - dissect_udp /src/wireshark/epan/dissectors/packet-udp.c:1273:3
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_all_postdissectors /src/wireshark/epan/packet.c:3608:3
+    - dissect_frame /src/wireshark/epan/dissectors/packet-frame.c:901:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - dissect_record /src/wireshark/epan/packet.c:594:3
+    - epan_dissect_run /src/wireshark/epan/epan.c:594:2
+    - LLVMFuzzerTestOneInput /src/wireshark/fuzz/fuzzshark.c:369:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

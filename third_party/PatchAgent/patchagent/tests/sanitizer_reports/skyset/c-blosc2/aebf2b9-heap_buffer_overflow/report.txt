@@ -1,0 +1,58 @@
+=================================================================
+==360408==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x508000000079 at pc 0x56224f3e2bad bp 0x7fffa2e7f200 sp 0x7fffa2e7f1f8
+READ of size 4 at 0x508000000079 thread T0
+    #0 0x56224f3e2bac in sw32_ /root/blosc/blosc-private.h:44:13
+    #1 0x56224f3e8233 in blosc_d /root/blosc/blosc2.c:1116:14
+    #2 0x56224f3e6b61 in _blosc_getitem /root/blosc/blosc2.c:2596:14
+    #3 0x56224f3e8b00 in blosc_getitem /root/blosc/blosc2.c:2654:12
+    #4 0x56224f418849 in get_coffset /root/blosc/frame.c:1550:12
+    #5 0x56224f419e2d in frame_get_lazychunk /root/blosc/frame.c:1710:20
+    #6 0x56224f420786 in frame_decompress_chunk /root/blosc/frame.c:2504:20
+    #7 0x56224f409231 in blosc2_schunk_decompress_chunk /root/blosc/schunk.c:615:17
+    #8 0x56224f383c92 in LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_decompress_frame.c:33:15
+    #9 0x56224f383fc6 in main /root/tests/fuzz/standalone.c:32:7
+    #10 0x7fd78d4961c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7fd78d49628a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x56224f382664 in _start (/root/tests/fuzz/decompress_frame_fuzzer+0x10664) (BuildId: 1caac79e185903f00be422dbf69d285eaf85a843)
+
+0x508000000079 is located 0 bytes after 89-byte region [0x508000000020,0x508000000079)
+allocated by thread T0 here:
+    #0 0x7fd78d8947a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x56224f383f90 in main /root/tests/fuzz/standalone.c:28:28
+    #2 0x7fd78d4961c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #3 0x7fd78d49628a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #4 0x56224f382664 in _start (/root/tests/fuzz/decompress_frame_fuzzer+0x10664) (BuildId: 1caac79e185903f00be422dbf69d285eaf85a843)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/blosc/blosc-private.h:44:13 in sw32_
+Shadow bytes around the buggy address:
+  0x507ffffffd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x508000000000: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 00[01]
+  0x508000000080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360408==ABORTING

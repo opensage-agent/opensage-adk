@@ -1,0 +1,107 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52a00024b2d2 at pc 0x56183bfceee7 bp 0x7ffec3b6e320 sp 0x7ffec3b6e318
+READ of size 1 at 0x52a00024b2d2 thread T0
+SCARINESS: 22 (1-byte-read-heap-buffer-overflow-far-from-bounds)
+    #0 0x56183bfceee6 in Ins_JROT /src/ghostpdl/./base/ttinterp.c:1788:11
+    #1 0x56183bfbf1bb in RunIns /src/ghostpdl/./base/ttinterp.c:5057:7
+    #2 0x56183befc36b in Instance_Reset /src/ghostpdl/./base/ttobjs.c:828:15
+    #3 0x56183beec829 in ttfFont__Open /src/ghostpdl/./base/ttfmain.c:348:12
+    #4 0x56183bb41238 in ttfFont__Open_aux /src/ghostpdl/./base/gxttfb.c:448:12
+    #5 0x56183b5b31ec in gx_attach_tt_interpreter /src/ghostpdl/./base/gxccman.c:249:12
+    #6 0x56183b5b400e in gx_add_fm_pair /src/ghostpdl/./base/gxccman.c:355:20
+    #7 0x56183b5af51e in gx_lookup_fm_pair /src/ghostpdl/./base/gxccache.c:140:12
+    #8 0x56183bb37be4 in gs_type42_glyph_outline /src/ghostpdl/./base/gstype42.c:1329:12
+    #9 0x56183b43574b in gs_default_glyph_info /src/ghostpdl/./base/gsfont.c:1061:12
+    #10 0x56183bb3c904 in gs_type42_glyph_info_by_gid /src/ghostpdl/./base/gstype42.c:1366:16
+    #11 0x56183b2d56b8 in pdf_compute_font_descriptor /src/ghostpdl/./devices/vector/gdevpdtd.c:469:16
+    #12 0x56183b2d68c4 in pdf_finish_FontDescriptor /src/ghostpdl/./devices/vector/gdevpdtd.c:649:17
+    #13 0x56183b30b19f in pdf_finish_resources /src/ghostpdl/./devices/vector/gdevpdtw.c:684:24
+    #14 0x56183b1de315 in pdf_close /src/ghostpdl/./devices/vector/gdevpdf.c:2765:13
+    #15 0x56183b416e85 in gs_closedevice /src/ghostpdl/./base/gsdevice.c:786:16
+    #16 0x56183af7b457 in gs_main_finit /src/ghostpdl/./psi/imain.c:1351:20
+    #17 0x56183b7c2133 in psapi_exit /src/ghostpdl/./psi/psapi.c:517:5
+    #18 0x56183af71010 in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:144:8
+    #19 0x56183af71335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #20 0x56183ae256d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #21 0x56183ae10945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #22 0x56183ae163df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #23 0x56183ae41682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #24 0x7ff85d224082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #25 0x56183ae08b2d in _start (/out/gs_device_pdfwrite_fuzzer+0x719b2d)
+
+DEDUP_TOKEN: Ins_JROT--RunIns--Instance_Reset
+0x52a00024b2d2 is located 642 bytes after 20048-byte region [0x52a000246200,0x52a00024b050)
+allocated by thread T0 here:
+    #0 0x56183af3149f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x56183b457650 in gs_heap_alloc_bytes /src/ghostpdl/./base/gsmalloc.c:192:34
+    #2 0x56183be3a717 in alloc_acquire_clump /src/ghostpdl/./base/gsalloc.c:2445:13
+    #3 0x56183be3962b in alloc_add_clump /src/ghostpdl/./base/gsalloc.c:2395:19
+    #4 0x56183be3962b in alloc_obj /src/ghostpdl/./base/gsalloc.c:2004:17
+    #5 0x56183be321c6 in i_alloc_struct /src/ghostpdl/./base/gsalloc.c:1217:15
+    #6 0x56183b266f41 in cos_array_alloc /src/ghostpdl/./devices/vector/gdevpdfo.c:485:9
+    #7 0x56183b266f41 in cos_array_from_floats /src/ghostpdl/./devices/vector/gdevpdfo.c:495:24
+    #8 0x56183b26d040 in cos_dict_put_c_key_floats /src/ghostpdl/./devices/vector/gdevpdfo.c:1408:24
+    #9 0x56183b23ae2f in gdev_pdf_dev_spec_op /src/ghostpdl/./devices/vector/gdevpdfi.c:2569:24
+    #10 0x56183b9ce236 in pdfi_form_highlevel_begin /src/ghostpdl/./pdf/pdf_image.c:2228:12
+    #11 0x56183b9c5ac7 in pdfi_do_form /src/ghostpdl/./pdf/pdf_image.c:2437:16
+    #12 0x56183b9c4d16 in pdfi_do_highlevel_form /src/ghostpdl/./pdf/pdf_image.c:2499:12
+    #13 0x56183b9eb810 in pdfi_annot_preserve_modAP /src/ghostpdl/./pdf/pdf_annot.c:4065:20
+    #14 0x56183b9eb810 in pdfi_annot_preserve_mark /src/ghostpdl/./pdf/pdf_annot.c:4264:24
+    #15 0x56183b9e1562 in pdfi_annot_preserve /src/ghostpdl/./pdf/pdf_annot.c:4410:20
+    #16 0x56183b9e1562 in pdfi_annot_handle /src/ghostpdl/./pdf/pdf_annot.c:4437:16
+    #17 0x56183b9e1562 in pdfi_do_annotations /src/ghostpdl/./pdf/pdf_annot.c:4464:16
+    #18 0x56183b9d336a in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:166:13
+    #19 0x56183b9d336a in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #20 0x56183b94443a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1074:24
+    #21 0x56183b7d73f9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #22 0x56183b7d73f9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #23 0x56183b7d73f9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #24 0x56183af793b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #25 0x56183af793b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #26 0x56183af793b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #27 0x56183baa9ef0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #28 0x56183baa68c0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #29 0x56183baa3a42 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #30 0x56183baa9c78 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #31 0x56183af70fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #32 0x56183af71335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #33 0x56183ae256d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #34 0x56183ae10945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #35 0x56183ae163df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #36 0x56183ae41682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #37 0x7ff85d224082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--gs_heap_alloc_bytes--alloc_acquire_clump
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/ghostpdl/./base/ttinterp.c:1788:11 in Ins_JROT
+Shadow bytes around the buggy address:
+  0x52a00024b000: 00 00 00 00 00 00 00 00 00 00 fa fa fa fa fa fa
+  0x52a00024b080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52a00024b100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52a00024b180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52a00024b200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x52a00024b280: fa fa fa fa fa fa fa fa fa fa[fa]fa fa fa fa fa
+  0x52a00024b300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52a00024b380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52a00024b400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52a00024b480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52a00024b500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

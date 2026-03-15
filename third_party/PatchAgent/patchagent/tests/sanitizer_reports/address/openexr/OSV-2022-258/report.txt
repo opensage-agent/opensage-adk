@@ -1,0 +1,49 @@
+=================================================================
+==14==ERROR: AddressSanitizer: attempting double-free on 0x502000005270 in thread T0:
+SCARINESS: 42 (double-free)
+    #0 0x55dc22e807dd in operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    #1 0x55dc22fa16d0 in Imf_2_5::RgbaInputFile::~RgbaInputFile() /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1288:9
+    #2 0x55dc22e85442 in runChecks<Imf_2_5::(anonymous namespace)::PtrIStream> /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1071:13
+    #3 0x55dc22e85442 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1592:17
+    #4 0x55dc22e8229f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #5 0x55dc22d36de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55dc22d22055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55dc22d27aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55dc22d52d92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f09f5ecf082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #10 0x55dc22d1a23d in _start (/out/openexr_exrcheck_fuzzer+0x16623d)
+
+DEDUP_TOKEN: operator delete(void*)--Imf_2_5::RgbaInputFile::~RgbaInputFile()--runChecks<Imf_2_5::(anonymous namespace)::PtrIStream>
+0x502000005270 is located 0 bytes inside of 8-byte region [0x502000005270,0x502000005278)
+freed by thread T0 here:
+    #0 0x55dc22e807dd in operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    #1 0x55dc22fa35ec in Imf_2_5::RgbaInputFile::setPartAndLayer(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1383:5
+    #2 0x55dc22fa3a89 in Imf_2_5::RgbaInputFile::setPart(int) /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1400:5
+    #3 0x55dc22e92cfe in Imf_2_5::(anonymous namespace)::readRgba(Imf_2_5::RgbaInputFile&, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:92:12
+    #4 0x55dc22e84306 in runChecks<Imf_2_5::(anonymous namespace)::PtrIStream> /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1070:24
+    #5 0x55dc22e84306 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1592:17
+    #6 0x55dc22e8229f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #7 0x55dc22d36de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55dc22d22055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55dc22d27aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55dc22d52d92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f09f5ecf082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator delete(void*)--Imf_2_5::RgbaInputFile::setPartAndLayer(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&)--Imf_2_5::RgbaInputFile::setPart(int)
+previously allocated by thread T0 here:
+    #0 0x55dc22e7ff7d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x55dc22fa35fe in Imf_2_5::RgbaInputFile::setPartAndLayer(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1384:18
+    #2 0x55dc22fa3a89 in Imf_2_5::RgbaInputFile::setPart(int) /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1400:5
+    #3 0x55dc22e92cfe in Imf_2_5::(anonymous namespace)::readRgba(Imf_2_5::RgbaInputFile&, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:92:12
+    #4 0x55dc22e84306 in runChecks<Imf_2_5::(anonymous namespace)::PtrIStream> /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1070:24
+    #5 0x55dc22e84306 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1592:17
+    #6 0x55dc22e8229f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #7 0x55dc22d36de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55dc22d22055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55dc22d27aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55dc22d52d92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f09f5ecf082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new(unsigned long)--Imf_2_5::RgbaInputFile::setPartAndLayer(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&)--Imf_2_5::RgbaInputFile::setPart(int)
+SUMMARY: AddressSanitizer: double-free /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1288:9 in Imf_2_5::RgbaInputFile::~RgbaInputFile()
+==14==ABORTING

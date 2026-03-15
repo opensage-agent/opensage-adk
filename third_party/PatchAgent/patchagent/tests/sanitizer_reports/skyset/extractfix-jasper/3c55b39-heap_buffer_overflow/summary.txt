@@ -1,0 +1,14 @@
+The sanitizer detected a floating point exception vulnerability. The explanation of the vulnerability is: The program encountered a floating-point exception, such as division by zero or invalid arithmetic operation. Here is the detail: 
+
+    - jpc_dec_process_siz /root/src/libjasper/jpc/jpc_dec.c:1194:17
+    - jpc_dec_decode /root/src/libjasper/jpc/jpc_dec.c:390:10
+    - jpc_decode /root/src/libjasper/jpc/jpc_dec.c:254:6
+    - jas_image_decode /root/src/libjasper/base/jas_image.c:372:16
+    - main /root/src/appl/imginfo.c:179:16
+
+
+To fix this issue, follow the advice below:
+
+1. Implement input validation to prevent division by zero and other arithmetic exceptions.
+2. Use exception handling mechanisms to gracefully handle floating-point exceptions.
+3. Check for invalid arithmetic operations that may lead to floating-point exceptions.

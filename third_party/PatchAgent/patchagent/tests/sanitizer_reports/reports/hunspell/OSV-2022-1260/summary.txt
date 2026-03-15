@@ -1,0 +1,41 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x50b00040fe40 thread T0
+    - AffixMgr::cpdcase_check(char const*, int) /src/hunspell/src/hunspell/affixmgr.cxx:1365:29
+    - AffixMgr::compound_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /src/hunspell/src/hunspell/affixmgr.cxx:1829:17
+    - HunspellImpl::checkword(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:866:19
+    - HunspellImpl::spell_internal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:538:12
+    - HunspellImpl::spell(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:446:12
+    - HunspellImpl::suggest_internal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, bool&, unsigned long&, int&) /src/hunspell/src/hunspell/hunspell.cxx:1131:11
+    - HunspellImpl::suggest(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&) /src/hunspell/src/hunspell/hunspell.cxx:905:35
+    - suggest /src/hunspell/src/hunspell/hunspell.cxx:996:10
+    - Hunspell::suggest(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/hunspell/src/hunspell/hunspell.cxx:2076:18
+    - LLVMFuzzerTestOneInput /src/hunspell/src/tools/affdicfuzzer.cxx:66:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x50b00040fe40 is located 24 bytes after 104-byte region [0x50b00040fdc0,0x50b00040fe28)
+allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - HunspellImpl::checkword(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:786:3
+    - HunspellImpl::spell_internal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:538:12
+    - HunspellImpl::spell(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:446:12
+    - HunspellImpl::suggest_internal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, bool&, unsigned long&, int&) /src/hunspell/src/hunspell/hunspell.cxx:1131:11
+    - HunspellImpl::suggest(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&) /src/hunspell/src/hunspell/hunspell.cxx:905:35
+    - suggest /src/hunspell/src/hunspell/hunspell.cxx:996:10
+    - Hunspell::suggest(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/hunspell/src/hunspell/hunspell.cxx:2076:18
+    - LLVMFuzzerTestOneInput /src/hunspell/src/tools/affdicfuzzer.cxx:66:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

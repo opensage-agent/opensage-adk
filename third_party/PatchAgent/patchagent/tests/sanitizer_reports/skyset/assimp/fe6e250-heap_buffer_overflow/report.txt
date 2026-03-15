@@ -1,0 +1,73 @@
+=================================================================
+==576559==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5140000005e1 at pc 0x555555a3e3fd bp 0x7fffffffb880 sp 0x7fffffffb878
+READ of size 1 at 0x5140000005e1 thread T0
+    #0 0x555555a3e3fc in bool Assimp::SkipSpaces<char>(char const*, char const**, char const*) /root/include/assimp/ParsingUtils.h:106:13
+    #1 0x555555a36b65 in bool Assimp::SkipSpaces<char>(char const**, char const*) /root/include/assimp/ParsingUtils.h:116:12
+    #2 0x555555cab6ff in AI_MD5_SKIP_SPACES(char const**, char const*, int) /root/code/AssetLib/MD5/MD5Parser.cpp:227:10
+    #3 0x555555cab83a in AI_MD5_READ_TRIPLE(aiVector3t<float>&, char const**, char const*, int) /root/code/AssetLib/MD5/MD5Parser.cpp:240:5
+    #4 0x555555ca5205 in Assimp::MD5::MD5MeshParser::MD5MeshParser(std::vector<Assimp::MD5::Section, std::allocator<Assimp::MD5::Section>>&) /root/code/AssetLib/MD5/MD5Parser.cpp:323:17
+    #5 0x555555c92961 in Assimp::MD5Importer::LoadMD5MeshFile() /root/code/AssetLib/MD5/MD5Loader.cpp:341:24
+    #6 0x555555c8d23b in Assimp::MD5Importer::InternReadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /root/code/AssetLib/MD5/MD5Loader.cpp:141:13
+    #7 0x555556a7e53b in Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:131:9
+    #8 0x5555558d258f in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:709:30
+    #9 0x5555558cfed9 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    #10 0x555555860fa9 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+    #11 0x555555846714 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2f2714) (BuildId: 92939efc1b8f06034319b269d8e19d562364adcf)
+    #12 0x55555582f846 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2db846) (BuildId: 92939efc1b8f06034319b269d8e19d562364adcf)
+    #13 0x5555558352fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2e12fa) (BuildId: 92939efc1b8f06034319b269d8e19d562364adcf)
+    #14 0x55555585fab6 in main (/root/assimp_fuzzer+0x30bab6) (BuildId: 92939efc1b8f06034319b269d8e19d562364adcf)
+    #15 0x7ffff6f1b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #16 0x7ffff6f1b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #17 0x55555582a414 in _start (/root/assimp_fuzzer+0x2d6414) (BuildId: 92939efc1b8f06034319b269d8e19d562364adcf)
+
+0x5140000005e1 is located 1 bytes after 416-byte region [0x514000000440,0x5140000005e0)
+allocated by thread T0 here:
+    #0 0x7ffff73117a3 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7ffff7df05db in operator new(unsigned long) /build/gcc-14-OQFzmN/gcc-14-14-20240412/build/x86_64-linux-gnu/libstdc++-v3/libsupc++/../../../../src/libstdc++-v3/libsupc++/new_op.cc:50:22
+    #2 0x555555c9286d in Assimp::MD5Importer::LoadMD5MeshFile() /root/code/AssetLib/MD5/MD5Loader.cpp:335:5
+    #3 0x555555c8d23b in Assimp::MD5Importer::InternReadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /root/code/AssetLib/MD5/MD5Loader.cpp:141:13
+    #4 0x555556a7e53b in Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:131:9
+    #5 0x5555558d258f in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:709:30
+    #6 0x5555558cfed9 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    #7 0x555555860fa9 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+    #8 0x555555846714 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2f2714) (BuildId: 92939efc1b8f06034319b269d8e19d562364adcf)
+    #9 0x55555582f846 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2db846) (BuildId: 92939efc1b8f06034319b269d8e19d562364adcf)
+    #10 0x5555558352fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2e12fa) (BuildId: 92939efc1b8f06034319b269d8e19d562364adcf)
+    #11 0x55555585fab6 in main (/root/assimp_fuzzer+0x30bab6) (BuildId: 92939efc1b8f06034319b269d8e19d562364adcf)
+    #12 0x7ffff6f1b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #13 0x7ffff6f1b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #14 0x55555582a414 in _start (/root/assimp_fuzzer+0x2d6414) (BuildId: 92939efc1b8f06034319b269d8e19d562364adcf)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/include/assimp/ParsingUtils.h:106:13 in bool Assimp::SkipSpaces<char>(char const*, char const**, char const*)
+Shadow bytes around the buggy address:
+  0x514000000300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x514000000380: 00 00 00 00 00 00 00 00 00 00 00 07 fa fa fa fa
+  0x514000000400: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x514000000480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x514000000500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x514000000580: 00 00 00 00 00 00 00 00 00 00 00 00[fa]fa fa fa
+  0x514000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x514000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x514000000700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x514000000780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x514000000800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==576559==ABORTING

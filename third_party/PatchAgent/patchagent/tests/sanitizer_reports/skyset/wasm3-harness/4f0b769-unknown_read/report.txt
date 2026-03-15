@@ -1,0 +1,20 @@
+=================================================================
+==1591432==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000028 (pc 0x56486980b3f3 bp 0x7ffe61a04110 sp 0x7ffe61a04020 T0)
+==1591432==The signal is caused by a READ memory access.
+==1591432==Hint: address points to the zero page.
+    #0 0x56486980b3f3 in Compile_ExtendedOpcode /root/source/m3_compile.c:1117:49
+    #1 0x5648698407e7 in CompileBlockStatements /root/source/m3_compile.c:2477:1
+    #2 0x564869842542 in CompileFunction /root/source/m3_compile.c:2767:1
+    #3 0x5648697f82e6 in m3_FindFunction /root/source/m3_env.c:686:1
+    #4 0x5648697f17b5 in LLVMFuzzerTestOneInput /root/platforms/app_fuzz/fuzzer.c:33:30
+    #5 0x5648697d6e34 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/fuzzer+0x2ae34) (BuildId: 1a2a608bfcc3ab9480416e7fbafb112c8f85f488)
+    #6 0x5648697bff66 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/fuzzer+0x13f66) (BuildId: 1a2a608bfcc3ab9480416e7fbafb112c8f85f488)
+    #7 0x5648697c5a1a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/fuzzer+0x19a1a) (BuildId: 1a2a608bfcc3ab9480416e7fbafb112c8f85f488)
+    #8 0x5648697f0276 in main (/root/fuzzer+0x44276) (BuildId: 1a2a608bfcc3ab9480416e7fbafb112c8f85f488)
+    #9 0x7f2b173051c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x7f2b1730528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x5648697bab34 in _start (/root/fuzzer+0xeb34) (BuildId: 1a2a608bfcc3ab9480416e7fbafb112c8f85f488)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/source/m3_compile.c:1117:49 in Compile_ExtendedOpcode
+==1591432==ABORTING

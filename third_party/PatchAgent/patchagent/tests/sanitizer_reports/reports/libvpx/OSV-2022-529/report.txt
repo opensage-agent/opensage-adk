@@ -1,0 +1,99 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libvpx:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libvpx/OSV-2022-529/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce vpx_dec_fuzzer_vp9 -runs=100.
++ FUZZER=vpx_dec_fuzzer_vp9
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer vpx_dec_fuzzer_vp9 -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/vpx_dec_fuzzer_vp9 -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=vpx_dec_fuzzer_vp9.dict < /dev/null
+Dictionary: 3 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 825749424
+INFO: Loaded 1 modules   (9040 inline 8-bit counters): 9040 [0x562462dcb8c0, 0x562462dcdc10), 
+INFO: Loaded 1 PC tables (9040 PCs): 9040 [0x562462dcdc10,0x562462df1110), 
+/out/vpx_dec_fuzzer_vp9: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x515000000747 at pc 0x562462af7245 bp 0x7fff826b3d80 sp 0x7fff826b3550
+[1m[0m[1m[34mWRITE of size 528 at 0x515000000747 thread T0[1m[0m
+SCARINESS: 45 (multi-byte-write-heap-buffer-overflow)
+    #0 0x562462af7244 in __asan_memset /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:67:3
+    #1 0x562462b50b03 in init_mt /src/libvpx/vp9/decoder/vp9_decodeframe.c:2311:3
+    #2 0x562462b4791f in decode_tiles_mt /src/libvpx/vp9/decoder/vp9_decodeframe.c:2453:3
+    #3 0x562462b4791f in vp9_decode_frame /src/libvpx/vp9/decoder/vp9_decodeframe.c:3020:21
+    #4 0x562462b6e0d7 in vp9_receive_compressed_data /src/libvpx/vp9/decoder/vp9_decoder.c:469:3
+    #5 0x562462b3ec8b in decode_one /src/libvpx/vp9/vp9_dx_iface.c:321:7
+    #6 0x562462b3b224 in decoder_decode /src/libvpx/vp9/vp9_dx_iface.c:385:11
+    #7 0x562462b395c5 in vpx_codec_decode /src/libvpx/vpx/src/vpx_decoder.c:116:11
+    #8 0x562462b38ae3 in LLVMFuzzerTestOneInput /src/libvpx/examples/vpx_dec_fuzzer.cc:114:9
+    #9 0x5624629ed310 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x5624629d8585 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x5624629de01f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x562462a092c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fa6926a5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #14 0x5624629d076d in _start (/out/vpx_dec_fuzzer_vp9+0x7e76d)
+
+DEDUP_TOKEN: __asan_memset--init_mt--decode_tiles_mt
+[1m[32m0x515000000747 is located 0 bytes after 455-byte region [0x515000000580,0x515000000747)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x562462af90df in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x562462b74b77 in vpx_memalign /src/libvpx/vpx_mem/vpx_mem.c:62:10
+    #2 0x562462b74b77 in vpx_malloc /src/libvpx/vpx_mem/vpx_mem.c:70:40
+    #3 0x562462b74b77 in vpx_calloc /src/libvpx/vpx_mem/vpx_mem.c:76:7
+    #4 0x562462b81fff in vp9_alloc_context_buffers /src/libvpx/vp9/common/vp9_alloccommon.c:136:44
+    #5 0x562462b4f148 in resize_context_buffers /src/libvpx/vp9/decoder/vp9_decodeframe.c:1493:11
+    #6 0x562462b4ea30 in setup_frame_size /src/libvpx/vp9/decoder/vp9_decodeframe.c:1519:3
+    #7 0x562462b4046a in read_uncompressed_header /src/libvpx/vp9/decoder/vp9_decodeframe.c:2693:5
+    #8 0x562462b4046a in vp9_decode_frame /src/libvpx/vp9/decoder/vp9_decodeframe.c:2954:39
+    #9 0x562462b6e0d7 in vp9_receive_compressed_data /src/libvpx/vp9/decoder/vp9_decoder.c:469:3
+    #10 0x562462b3ec8b in decode_one /src/libvpx/vp9/vp9_dx_iface.c:321:7
+    #11 0x562462b3b224 in decoder_decode /src/libvpx/vp9/vp9_dx_iface.c:385:11
+    #12 0x562462b395c5 in vpx_codec_decode /src/libvpx/vpx/src/vpx_decoder.c:116:11
+    #13 0x562462b38ae3 in LLVMFuzzerTestOneInput /src/libvpx/examples/vpx_dec_fuzzer.cc:114:9
+    #14 0x5624629ed310 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x5624629d8585 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x5624629de01f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x562462a092c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fa6926a5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--vpx_memalign--vpx_malloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/libvpx/vp9/decoder/vp9_decodeframe.c:2311:3 in init_mt
+Shadow bytes around the buggy address:
+  0x515000000480: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000500: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000580: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x515000000600: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x515000000680: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x515000000700: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m[[1m[0m07[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000780: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000800: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000880: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000900: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000980: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

@@ -1,0 +1,45 @@
+Blosc has not been compiled with decompression support for '(null)' format. Please recompile for adding this support.
+Blosc has not been compiled with decompression support for '(null)' format. Please recompile for adding this support.
+
+=================================================================
+==14==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 26720 byte(s) in 1 object(s) allocated from:
+    #0 0x562bea37610f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x562bea55dfd0 in ZSTD_malloc /src/c-blosc2/internal-complibs/zstd-1.4.5/common/zstd_common.c:60:12
+    #2 0x562bea726669 in ZSTD_createDDict_advanced /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:152:49
+    #3 0x562bea726669 in ZSTD_createDDict /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:173:12
+    #4 0x562bea3fb562 in initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:1615:27
+    #5 0x562bea3fb562 in blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2120:11
+    #6 0x562bea3fbffc in blosc2_decompress /src/c-blosc2/blosc/blosc2.c:2211:12
+    #7 0x562bea3b59c1 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_chunk.c:34:5
+    #8 0x562bea26a340 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x562bea2555b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x562bea25b04f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x562bea2862f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f077e00a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ZSTD_malloc--ZSTD_createDDict_advanced
+Indirect leak of 32 byte(s) in 1 object(s) allocated from:
+    #0 0x562bea37610f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x562bea55dfd0 in ZSTD_malloc /src/c-blosc2/internal-complibs/zstd-1.4.5/common/zstd_common.c:60:12
+    #2 0x562bea7266c9 in ZSTD_initDDict_internal /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:130:38
+    #3 0x562bea7266c9 in ZSTD_createDDict_advanced /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:155:39
+    #4 0x562bea7266c9 in ZSTD_createDDict /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:173:12
+    #5 0x562bea3fb562 in initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:1615:27
+    #6 0x562bea3fb562 in blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2120:11
+    #7 0x562bea3fbffc in blosc2_decompress /src/c-blosc2/blosc/blosc2.c:2211:12
+    #8 0x562bea3b59c1 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_chunk.c:34:5
+    #9 0x562bea26a340 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x562bea2555b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x562bea25b04f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x562bea2862f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f077e00a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ZSTD_malloc--ZSTD_initDDict_internal
+SUMMARY: AddressSanitizer: 26752 byte(s) leaked in 2 allocation(s).
+
+INFO: a leak has been found in the initial corpus.
+
+INFO: to ignore leaks on libFuzzer side use -detect_leaks=0.
+

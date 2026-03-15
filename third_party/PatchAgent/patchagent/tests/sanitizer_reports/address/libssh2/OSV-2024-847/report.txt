@@ -1,0 +1,28 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x000000000000 bp 0x7ffd6b546bd0 sp 0x7ffd6b5466d8 T0)
+==14==Hint: pc points to the zero page.
+==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+SCARINESS: 10 (null-deref)
+    #0 0x0  (<unknown module>)
+    #1 0x55e6005d72da in _libssh2_packet_add /src/libssh2/src/packet.c:1387:14
+    #2 0x55e600562e16 in fullpacket /src/libssh2/src/transport.c:328:14
+    #3 0x55e60055f129 in _libssh2_transport_read /src/libssh2/src/transport.c:871:18
+    #4 0x55e6005de76a in _libssh2_packet_burn /src/libssh2/src/packet.c:1571:15
+    #5 0x55e6005bcd8c in diffie_hellman_sha_algo /src/libssh2/src/kex.c:421:17
+    #6 0x55e6005c7ba6 in kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:1077:11
+    #7 0x55e6005975e9 in _libssh2_kex_exchange /src/libssh2/src/kex.c:4153:23
+    #8 0x55e60054ef74 in session_startup /src/libssh2/src/session.c:787:14
+    #9 0x55e60054e5ad in libssh2_session_handshake /src/libssh2/src/session.c:878:5
+    #10 0x55e60054bf7a in LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:71:6
+    #11 0x55e600400970 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x55e6003ebbe5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x55e6003f167f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x55e60041c922 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f62439bd082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: _libssh2_packet_add--fullpacket
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (<unknown module>) 
+==14==ABORTING

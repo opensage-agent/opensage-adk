@@ -1,0 +1,41 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x561831ed7ed6 bp 0x7ffe8fb0cbf0 sp 0x7ffe8fb0cb40 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x561831ed7ed6 in duckdb::LogicalType::operator=(duckdb::LogicalType const&) /src/duckdb/src/include/duckdb/common/types.hpp:412:15
+    #1 0x561831ed7ed6 in duckdb::ExpressionBinder::BindExpression(duckdb::ParameterExpression&, unsigned long) /src/duckdb/src/planner/binder/expression/bind_parameter_expression.cpp:15:32
+    #2 0x56182fdda41d in duckdb::ExpressionBinder::BindExpression(std::__1::unique_ptr<duckdb::ParsedExpression, std::__1::default_delete<duckdb::ParsedExpression>>*, unsigned long, bool) /src/duckdb/src/planner/expression_binder.cpp:65:10
+    #3 0x56182fdad881 in duckdb::SelectBinder::BindExpression(std::__1::unique_ptr<duckdb::ParsedExpression, std::__1::default_delete<duckdb::ParsedExpression>>*, unsigned long, bool) /src/duckdb/src/planner/expression_binder/select_binder.cpp:33:28
+    #4 0x56182fddb219 in duckdb::ExpressionBinder::Bind(std::__1::unique_ptr<duckdb::ParsedExpression, std::__1::default_delete<duckdb::ParsedExpression>>*, unsigned long, bool) /src/duckdb/src/planner/expression_binder.cpp:212:22
+    #5 0x56182fddd47e in duckdb::ExpressionBinder::Bind(std::__1::unique_ptr<duckdb::ParsedExpression, std::__1::default_delete<duckdb::ParsedExpression>>&, duckdb::LogicalType*, bool) /src/duckdb/src/planner/expression_binder.cpp:171:19
+    #6 0x561831ef6539 in duckdb::Binder::BindNode(duckdb::SelectNode&) /src/duckdb/src/planner/binder/query_node/bind_select_node.cpp:374:29
+    #7 0x56182fde3776 in duckdb::Binder::BindNode(duckdb::QueryNode&) /src/duckdb/src/planner/binder.cpp:95:12
+    #8 0x56182fde3f77 in duckdb::Binder::Bind(duckdb::QueryNode&) /src/duckdb/src/planner/binder.cpp:109:20
+    #9 0x56182fd17cca in duckdb::Binder::Bind(duckdb::SelectStatement&) /src/duckdb/src/planner/binder/statement/bind_select.cpp:10:9
+    #10 0x56182fde2f38 in duckdb::Binder::Bind(duckdb::SQLStatement&) /src/duckdb/src/planner/binder.cpp:45:10
+    #11 0x56182fe00a40 in duckdb::Planner::CreatePlan(duckdb::SQLStatement&) /src/duckdb/src/planner/planner.cpp:33:33
+    #12 0x56182fe0263d in duckdb::Planner::CreatePlan(std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>) /src/duckdb/src/planner/planner.cpp:181:3
+    #13 0x56182f9da376 in duckdb::ClientContext::CreatePreparedStatement(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, std::__1::vector<duckdb::Value, std::__1::allocator<duckdb::Value>>*) /src/duckdb/src/main/client_context.cpp:265:10
+    #14 0x56182f9e670e in duckdb::ClientContext::PendingStatementInternal(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, duckdb::PendingQueryParameters) /src/duckdb/src/main/client_context.cpp:515:18
+    #15 0x56182f9ec0fa in duckdb::ClientContext::PendingStatementOrPreparedStatement(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, std::__1::shared_ptr<duckdb::PreparedStatementData>&, duckdb::PendingQueryParameters) /src/duckdb/src/main/client_context.cpp:604:13
+    #16 0x56182f9e73a3 in duckdb::ClientContext::PendingQueryInternal(duckdb::ClientContextLock&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, duckdb::PendingQueryParameters, bool) /src/duckdb/src/main/client_context.cpp:759:10
+    #17 0x56182f9e6c78 in duckdb::ClientContext::RunStatementInternal(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, bool, bool) /src/duckdb/src/main/client_context.cpp:525:17
+    #18 0x56182f9e84ef in duckdb::ClientContext::VerifyQuery(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>) /src/duckdb/src/main/client_context.cpp:906:18
+    #19 0x56182f9e4da8 in duckdb::ClientContext::PendingStatementOrPreparedStatementInternal(duckdb::ClientContextLock&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, std::__1::shared_ptr<duckdb::PreparedStatementData>&, duckdb::PendingQueryParameters) /src/duckdb/src/main/client_context.cpp:564:13
+    #20 0x56182f9e7314 in duckdb::ClientContext::PendingQueryInternal(duckdb::ClientContextLock&, std::__1::unique_ptr<duckdb::SQLStatement, std::__1::default_delete<duckdb::SQLStatement>>, duckdb::PendingQueryParameters, bool) /src/duckdb/src/main/client_context.cpp:757:10
+    #21 0x56182f9eefc8 in duckdb::ClientContext::Query(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, bool) /src/duckdb/src/main/client_context.cpp:693:24
+    #22 0x56182f9ffa66 in duckdb::Connection::Query(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/duckdb/src/main/connection.cpp:71:25
+    #23 0x56182f88fcdb in LLVMFuzzerTestOneInput /src/duckdb/./test/ossfuzz/parse_fuzz_test.cpp:14:21
+    #24 0x56182f744360 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #25 0x56182f72f5d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #26 0x56182f73506f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #27 0x56182f760312 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #28 0x7fec36037082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #29 0x56182f7277bd in _start (/out/parse_fuzz_test+0x12167bd)
+
+DEDUP_TOKEN: duckdb::LogicalType::operator=(duckdb::LogicalType const&)--duckdb::ExpressionBinder::BindExpression(duckdb::ParameterExpression&, unsigned long)--duckdb::ExpressionBinder::BindExpression(std::__1::unique_ptr<duckdb::ParsedExpression, std::__1::default_delete<duckdb::ParsedExpression>>*, unsigned long, bool)
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/duckdb/src/include/duckdb/common/types.hpp:412:15 in duckdb::LogicalType::operator=(duckdb::LogicalType const&)
+==14==ABORTING

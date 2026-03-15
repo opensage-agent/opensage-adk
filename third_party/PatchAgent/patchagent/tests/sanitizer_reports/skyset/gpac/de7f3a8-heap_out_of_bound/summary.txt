@@ -1,0 +1,40 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x529000054200 thread T0
+    - MPEG12_ParseSeqHdr /root/src/media_tools/mpeg2_ps.c:273:11
+    - get_info_from_frame /root/src/media_tools/mpeg2_ps.c:990:7
+    - get_info_for_all_streams /root/src/media_tools/mpeg2_ps.c:1204:4
+    - mpeg2ps_scan_file /root/src/media_tools/mpeg2_ps.c:1369:2
+    - mpeg2ps_init /root/src/media_tools/mpeg2_ps.c:1626:2
+    - m2psdmx_process /root/src/filters/dmx_mpegps.c:327:13
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4825:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+0x529000054200 is located 0 bytes after 16384-byte region [0x529000050200,0x529000054200)
+allocated by thread T0 here:
+    - gf_malloc /root/src/utils/alloc.c:150:9
+    - mpeg2ps_stream_create /root/src/media_tools/mpeg2_ps.c:392:26
+    - add_stream /root/src/media_tools/mpeg2_ps.c:1117:9
+    - mpeg2ps_scan_file /root/src/media_tools/mpeg2_ps.c:1294:9
+    - mpeg2ps_init /root/src/media_tools/mpeg2_ps.c:1626:2
+    - m2psdmx_process /root/src/filters/dmx_mpegps.c:327:13
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4825:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

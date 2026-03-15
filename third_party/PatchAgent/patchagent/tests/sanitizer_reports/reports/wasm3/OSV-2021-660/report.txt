@@ -1,0 +1,42 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/wasm3:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/wasm3/OSV-2021-660/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzzer -runs=100.
++ FUZZER=fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3722474039
+INFO: Loaded 1 modules   (2988 inline 8-bit counters): 2988 [0x564b90504860, 0x564b9050540c), 
+INFO: Loaded 1 PC tables (2988 PCs): 2988 [0x564b90505410,0x564b90510ed0), 
+/out/fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x5310000407fc (pc 0x564b9045beca bp 0x7ffc2abd6b80 sp 0x7ffc2abd6b50 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x564b9045beca in op_BranchIfPrologue_s /src/wasm3/source/m3_exec.h:1126:23
+    #1 0x564b90447a08 in Call /src/wasm3/source/m3_exec.h:98:5
+    #2 0x564b90447a08 in m3_CallVL /src/wasm3/source/m3_env.c:793:29
+    #3 0x564b90447196 in m3_CallV /src/wasm3/source/m3_env.c:762:18
+    #4 0x564b90440945 in LLVMFuzzerTestOneInput /src/wasm3/platforms/app_fuzz/fuzzer.c:35:25
+    #5 0x564b902f52f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x564b902e0565 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564b902e5fff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x564b903112a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f6fc3467082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #10 0x564b902d874d in _start (/out/fuzzer+0x5574d)
+
+DEDUP_TOKEN: op_BranchIfPrologue_s--Call--m3_CallVL
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/wasm3/source/m3_exec.h:1126:23 in op_BranchIfPrologue_s
+==14==ABORTING

@@ -1,0 +1,66 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f6d93a4fd30 at pc 0x5605b1d098d8 bp 0x7ffc9d8895d0 sp 0x7ffc9d8895c8
+WRITE of size 2 at 0x7f6d93a4fd30 thread T0
+SCARINESS: 48 (2-byte-write-stack-buffer-overflow)
+    #0 0x5605b1d098d7 in decNumberCopy /src/jq/src/decNumber/decNumber.c:3375:45
+    #1 0x5605b1d098d7 in decNaNs /src/jq/src/decNumber/decNumber.c:7706:33
+    #2 0x5605b1cfb128 in decCompareOp /src/jq/src/decNumber/decNumber.c:6085:7
+    #3 0x5605b1cfadb2 in decNumberCompare /src/jq/src/decNumber/decNumber.c:858:3
+    #4 0x5605b1cbe030 in jvp_number_cmp /src/jq/src/jv.c:748:5
+    #5 0x5605b1cc057e in jvp_number_equal /src/jq/src/jv.c:773:10
+    #6 0x5605b1cc057e in jv_equal /src/jq/src/jv.c:1922:11
+    #7 0x5605b1cc0e51 in jvp_array_equal /src/jq/src/jv.c:885:10
+    #8 0x5605b1cc0e51 in jv_equal /src/jq/src/jv.c:1925:11
+    #9 0x5605b1ccdfac in jv_group /src/jq/src/jv_aux.c:714:11
+    #10 0x5605b1d36a2b in f_group_by_impl /src/jq/src/builtin.c:876:12
+    #11 0x5605b1cb4597 in jq_next /src/jq/src/execute.c:918:21
+    #12 0x5605b1ca8fae in LLVMFuzzerTestOneInput /src/jq/./tests/jq_fuzz_fixed.cpp:283:23
+    #13 0x5605b1b5d740 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x5605b1b489b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x5605b1b4e44f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x5605b1b796f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f6d94252082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #18 0x5605b1b40b9d in _start (/out/jq_fuzz_fixed+0xddb9d)
+
+DEDUP_TOKEN: decNumberCopy--decNaNs--decCompareOp
+Address 0x7f6d93a4fd30 is located in stack of thread T0 at offset 48 in frame
+    #0 0x5605b1cbde9f in jvp_number_cmp /src/jq/src/jv.c:737
+
+DEDUP_TOKEN: jvp_number_cmp
+  This frame has 1 object(s):
+    [32, 48) 'res' (line 743) <== Memory access at offset 48 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/jq/src/decNumber/decNumber.c:3375:45 in decNumberCopy
+Shadow bytes around the buggy address:
+  0x7f6d93a4fa80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f6d93a4fb00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f6d93a4fb80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f6d93a4fc00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f6d93a4fc80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+=>0x7f6d93a4fd00: f1 f1 f1 f1 00 00[f3]f3 00 00 00 00 00 00 00 00
+  0x7f6d93a4fd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6d93a4fe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6d93a4fe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6d93a4ff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6d93a4ff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

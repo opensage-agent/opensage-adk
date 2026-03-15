@@ -1,0 +1,46 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libzmq:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libzmq/OSV-2020-910/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce test_connect_ws_fuzzer -runs=100.
++ FUZZER=test_connect_ws_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer test_connect_ws_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/test_connect_ws_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=test_connect_ws_fuzzer.dict < /dev/null
+Dictionary: 44 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1455746934
+INFO: Loaded 1 modules   (18157 inline 8-bit counters): 18157 [0x55878a43ca40, 0x55878a44112d), 
+INFO: Loaded 1 PC tables (18157 PCs): 18157 [0x55878a441130,0x55878a488000), 
+/out/test_connect_ws_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+[1m[31m==15==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x55878a0ce02a in zmq::stream_engine_base_t::out_event() /src/libzmq/src/stream_engine_base.cpp:360:13
+    #1 0x558789faf1e8 in zmq::epoll_t::loop() /src/libzmq/src/epoll.cpp:202:29
+    #2 0x55878a014d5b in thread_routine(void*) /src/libzmq/src/thread.cpp:250:5
+    #3 0x7f553e8bc608 in start_thread (/lib/x86_64-linux-gnu/libpthread.so.0+0x8608) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7f553e653352 in __clone (/lib/x86_64-linux-gnu/libc.so.6+0x11f352) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: zmq::stream_engine_base_t::out_event()--zmq::epoll_t::loop()--thread_routine(void*)
+  [1m[35mUninitialized value was created by a heap deallocation[1m[0m
+    #0 0x558789f6e0d9 in operator delete(void*) /src/llvm-project/compiler-rt/lib/msan/msan_new_delete.cpp:80:44
+    #1 0x55878a0d3b17 in zmq::stream_engine_base_t::error(zmq::i_engine::error_reason_t) /src/libzmq/src/stream_engine_base.cpp:715:5
+    #2 0x55878a0f99de in zmq::ws_engine_t::close_connection_after_close(zmq::msg_t*) /src/libzmq/src/ws_engine.cpp:975:5
+    #3 0x55878a0cd622 in zmq::stream_engine_base_t::out_event() /src/libzmq/src/stream_engine_base.cpp:347:17
+    #4 0x558789faf1e8 in zmq::epoll_t::loop() /src/libzmq/src/epoll.cpp:202:29
+    #5 0x55878a014d5b in thread_routine(void*) /src/libzmq/src/thread.cpp:250:5
+    #6 0x7f553e8bc608 in start_thread (/lib/x86_64-linux-gnu/libpthread.so.0+0x8608) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+
+DEDUP_TOKEN: operator delete(void*)--zmq::stream_engine_base_t::error(zmq::i_engine::error_reason_t)--zmq::ws_engine_t::close_connection_after_close(zmq::msg_t*)
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/libzmq/src/stream_engine_base.cpp:360:13 in zmq::stream_engine_base_t::out_event()
+Unique heap origins: 670
+Stack depot allocated bytes: 9764880
+Unique origin histories: 127
+History depot allocated bytes: 196608
+Exiting

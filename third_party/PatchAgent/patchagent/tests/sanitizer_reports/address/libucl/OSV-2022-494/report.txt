@@ -1,0 +1,67 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000d00 at pc 0x5650c857a88a bp 0x7ffe2a68f1f0 sp 0x7ffe2a68f1e8
+READ of size 1 at 0x502000000d00 thread T0
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x5650c857a889 in ucl_hash_search /src/libucl/src/ucl_hash.c:460:15
+    #1 0x5650c853b613 in ucl_hash_search_obj /src/libucl/src/./ucl_internal.h:464:31
+    #2 0x5650c853b613 in ucl_parser_process_object_element /src/libucl/src/ucl_parser.c:1249:10
+    #3 0x5650c8541e86 in ucl_parse_key /src/libucl/src/ucl_parser.c:1561:7
+    #4 0x5650c8541e86 in ucl_state_machine /src/libucl/src/ucl_parser.c:2525:9
+    #5 0x5650c853fd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #6 0x5650c853980d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #7 0x5650c83ee330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5650c83d95a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5650c83df03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5650c840a2e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f6124b15082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x5650c83d178d in _start (/out/ucl_add_string_fuzzer+0x5978d)
+
+DEDUP_TOKEN: ucl_hash_search--ucl_hash_search_obj--ucl_parser_process_object_element
+0x502000000d00 is located 3 bytes after 13-byte region [0x502000000cf0,0x502000000cfd)
+allocated by thread T0 here:
+    #0 0x5650c84fa0ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5650c8554e15 in ucl_copy_or_store_ptr /src/libucl/src/ucl_parser.c:607:10
+    #2 0x5650c854b499 in ucl_parse_value /src/libucl/src/ucl_parser.c:1990:20
+    #3 0x5650c854b499 in ucl_state_machine /src/libucl/src/ucl_parser.c:2560:29
+    #4 0x5650c853fd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #5 0x5650c853980d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #6 0x5650c83ee330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x5650c83d95a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x5650c83df03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x5650c840a2e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f6124b15082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_copy_or_store_ptr--ucl_parse_value
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/libucl/src/ucl_hash.c:460:15 in ucl_hash_search
+Shadow bytes around the buggy address:
+  0x502000000a80: fa fa fd fa fa fa fd fa fa fa 02 fa fa fa 04 fa
+  0x502000000b00: fa fa fd fa fa fa fd fd fa fa fd fd fa fa fd fd
+  0x502000000b80: fa fa fd fa fa fa fd fa fa fa fd fd fa fa fd fa
+  0x502000000c00: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x502000000c80: fa fa fd fa fa fa fd fa fa fa 02 fa fa fa 00 05
+=>0x502000000d00:[fa]fa 02 fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000d80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000e00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000e80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000f00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

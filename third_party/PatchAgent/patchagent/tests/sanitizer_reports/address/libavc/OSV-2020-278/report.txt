@@ -1,0 +1,78 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5260000028f8 at pc 0x5637ae24611e bp 0x7fa7895b7d30 sp 0x7fa7895b7d28
+READ of size 8 at 0x5260000028f8 thread T5
+SCARINESS: 33 (8-byte-read-heap-buffer-overflow-far-from-bounds)
+    #0 0x5637ae24611d in ih264d_decode_slice_thread /src/libavc/decoder/ih264d_thread_parse_decode.c:510:55
+    #1 0x5637ae24626f in ih264d_decode_picture_thread /src/libavc/decoder/ih264d_thread_parse_decode.c:602:9
+    #2 0x5637ae12fbf8 in asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+    #3 0x7fa78d90f608 in start_thread (/lib/x86_64-linux-gnu/libpthread.so.0+0x8608) (BuildId: 9a65bb469e45a1c6fbcffae5b82a2fd7a69eb479)
+    #4 0x7fa78d7eb352 in __clone (/lib/x86_64-linux-gnu/libc.so.6+0x11f352) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ih264d_decode_slice_thread--ih264d_decode_picture_thread--asan_thread_start(void*)
+0x5260000028f8 is located 8 bytes after 10224-byte region [0x526000000100,0x5260000028f0)
+allocated by thread T0 here:
+    #0 0x5637ae132b67 in posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    #1 0x5637ae171846 in iv_aligned_malloc(void*, int, int) /src/libavc/fuzzer/avc_dec_fuzzer.cpp:63:12
+    #2 0x5637ae20a05d in ih264d_allocate_dynamic_bufs /src/libavc/decoder/ih264d_utils.c:2026:14
+    #3 0x5637ae207fc6 in ih264d_init_pic /src/libavc/decoder/ih264d_utils.c:820:15
+    #4 0x5637ae2212a1 in ih264d_start_of_pic /src/libavc/decoder/ih264d_parse_slice.c:341:11
+    #5 0x5637ae228145 in ih264d_parse_decode_slice /src/libavc/decoder/ih264d_parse_slice.c:1554:19
+    #6 0x5637ae1f3170 in ih264d_parse_nal_unit /src/libavc/decoder/ih264d_parse_headers.c:1177:40
+    #7 0x5637ae179e6e in ih264d_video_decode /src/libavc/decoder/ih264d_api.c:2200:15
+    #8 0x5637ae173339 in Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/avc_dec_fuzzer.cpp:313:9
+    #9 0x5637ae173cbe in LLVMFuzzerTestOneInput /src/libavc/fuzzer/avc_dec_fuzzer.cpp:362:18
+    #10 0x5637ae0262f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x5637ae011565 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x5637ae016fff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x5637ae0422a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fa78d6f0082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_posix_memalign--iv_aligned_malloc(void*, int, int)--ih264d_allocate_dynamic_bufs
+Thread T5 created by T0 here:
+    #0 0x5637ae117c41 in pthread_create /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:250:3
+    #1 0x5637ae1d3e7d in ih264d_mark_err_slice_skip /src/libavc/decoder/ih264d_parse_pslice.c:1558:21
+    #2 0x5637ae2273ec in ih264d_parse_decode_slice /src/libavc/decoder/ih264d_parse_slice.c:1398:15
+    #3 0x5637ae1f3170 in ih264d_parse_nal_unit /src/libavc/decoder/ih264d_parse_headers.c:1177:40
+    #4 0x5637ae179e6e in ih264d_video_decode /src/libavc/decoder/ih264d_api.c:2200:15
+    #5 0x5637ae173339 in Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/avc_dec_fuzzer.cpp:313:9
+    #6 0x5637ae173cbe in LLVMFuzzerTestOneInput /src/libavc/fuzzer/avc_dec_fuzzer.cpp:362:18
+    #7 0x5637ae0262f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5637ae011565 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5637ae016fff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5637ae0422a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fa78d6f0082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_pthread_create--ih264d_mark_err_slice_skip--ih264d_parse_decode_slice
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/libavc/decoder/ih264d_thread_parse_decode.c:510:55 in ih264d_decode_slice_thread
+Shadow bytes around the buggy address:
+  0x526000002600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000002680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000002700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000002780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x526000002800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x526000002880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fa[fa]
+  0x526000002900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000002980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000002a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000002a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000002b00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

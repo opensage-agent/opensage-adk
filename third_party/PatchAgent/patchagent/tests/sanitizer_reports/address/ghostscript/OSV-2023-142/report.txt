@@ -1,0 +1,118 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52f0000379d0 at pc 0x5650c17305c6 bp 0x7ffd596c5140 sp 0x7ffd596c48f8
+WRITE of size 1654 at 0x52f0000379d0 thread T0
+SCARINESS: 45 (multi-byte-write-heap-buffer-overflow)
+    #0 0x5650c17305c5 in memcpy /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115:5
+    #1 0x5650c24754ed in copy_plane_part /src/ghostpdl/./base/gxblend1.c:193:9
+    #2 0x5650c24754ed in pdf14_preserve_backdrop /src/ghostpdl/./base/gxblend1.c:370:13
+    #3 0x5650c1820ff3 in pdf14_push_transparency_group /src/ghostpdl/./base/gdevp14.c:1532:13
+    #4 0x5650c1807f81 in pdf14_begin_transparency_group /src/ghostpdl/./base/gdevp14.c:6994:12
+    #5 0x5650c17bda1b in gx_begin_transparency_group /src/ghostpdl/./base/gstrans.c:382:12
+    #6 0x5650c1826885 in gx_update_pdf14_compositor /src/ghostpdl/./base/gdevp14.c:6102:20
+    #7 0x5650c24c2d07 in apply_composite /src/ghostpdl/./base/gxclrast.c:3109:12
+    #8 0x5650c24c2d07 in execute_compositor_queue /src/ghostpdl/./base/gxclrast.c:402:16
+    #9 0x5650c24b8e11 in clist_playback_band /src/ghostpdl/./base/gxclrast.c:1823:48
+    #10 0x5650c188b65a in clist_playback_file_bands /src/ghostpdl/./base/gxclread.c:1060:16
+    #11 0x5650c188f61f in clist_render_rectangle /src/ghostpdl/./base/gxclread.c:994:16
+    #12 0x5650c188eba5 in clist_rasterize_lines /src/ghostpdl/./base/gxclread.c:882:20
+    #13 0x5650c188dfd8 in clist_get_bits_rectangle /src/ghostpdl/./base/gxclread.c:771:12
+    #14 0x5650c186367d in gdev_prn_get_bits /src/ghostpdl/./base/gdevprn.c:1655:12
+    #15 0x5650c186367d in gdev_prn_copy_scan_lines /src/ghostpdl/./base/gdevprn.c:1685:16
+    #16 0x5650c19be712 in bmp_print_page /src/ghostpdl/./devices/gdevbmp.c:197:16
+    #17 0x5650c186013a in gx_default_print_page_copies /src/ghostpdl/./base/gdevprn.c:1159:12
+    #18 0x5650c185f316 in gdev_prn_output_page_aux /src/ghostpdl/./base/gdevprn.c:1061:27
+    #19 0x5650c1c1c99a in gs_output_page /src/ghostpdl/./base/gsdevice.c:207:17
+    #20 0x5650c2093587 in zoutputpage /src/ghostpdl/./psi/zdevice.c:493:12
+    #21 0x5650c1fda2d1 in interp /src/ghostpdl/./psi/interp.c:1351:28
+    #22 0x5650c1fda2d1 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #23 0x5650c1fda2d1 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #24 0x5650c17793b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #25 0x5650c17793b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #26 0x5650c17793b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #27 0x5650c22c0610 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #28 0x5650c22bcfe0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #29 0x5650c22ba162 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #30 0x5650c22c0398 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #31 0x5650c1770fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #32 0x5650c1771335 in LLVMFuzzerTestOneInput /src/gs_device_bmpmono_fuzzer.cc:18:2
+    #33 0x5650c16256d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #34 0x5650c1610945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #35 0x5650c16163df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #36 0x5650c1641682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #37 0x7f8a7ccd7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #38 0x5650c1608b2d in _start (/out/gs_device_bmpmono_fuzzer+0x727b2d)
+
+DEDUP_TOKEN: __interceptor_memcpy--copy_plane_part--pdf14_preserve_backdrop
+0x52f0000379d0 is located 0 bytes after 54736-byte region [0x52f00002a400,0x52f0000379d0)
+allocated by thread T0 here:
+    #0 0x5650c173149f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5650c1c5c710 in gs_heap_alloc_bytes /src/ghostpdl/./base/gsmalloc.c:192:34
+    #2 0x5650c2651ce7 in alloc_acquire_clump /src/ghostpdl/./base/gsalloc.c:2445:13
+    #3 0x5650c26502b3 in alloc_obj /src/ghostpdl/./base/gsalloc.c:1910:13
+    #4 0x5650c26490a8 in i_alloc_bytes /src/ghostpdl/./base/gsalloc.c:1162:15
+    #5 0x5650c181818a in pdf14_buf_new /src/ghostpdl/./base/gdevp14.c:1153:24
+    #6 0x5650c1820c50 in pdf14_push_transparency_group /src/ghostpdl/./base/gdevp14.c:1490:11
+    #7 0x5650c1807f81 in pdf14_begin_transparency_group /src/ghostpdl/./base/gdevp14.c:6994:12
+    #8 0x5650c17bda1b in gx_begin_transparency_group /src/ghostpdl/./base/gstrans.c:382:12
+    #9 0x5650c1826885 in gx_update_pdf14_compositor /src/ghostpdl/./base/gdevp14.c:6102:20
+    #10 0x5650c24c2d07 in apply_composite /src/ghostpdl/./base/gxclrast.c:3109:12
+    #11 0x5650c24c2d07 in execute_compositor_queue /src/ghostpdl/./base/gxclrast.c:402:16
+    #12 0x5650c24b8e11 in clist_playback_band /src/ghostpdl/./base/gxclrast.c:1823:48
+    #13 0x5650c188b65a in clist_playback_file_bands /src/ghostpdl/./base/gxclread.c:1060:16
+    #14 0x5650c188f61f in clist_render_rectangle /src/ghostpdl/./base/gxclread.c:994:16
+    #15 0x5650c188eba5 in clist_rasterize_lines /src/ghostpdl/./base/gxclread.c:882:20
+    #16 0x5650c188dfd8 in clist_get_bits_rectangle /src/ghostpdl/./base/gxclread.c:771:12
+    #17 0x5650c186367d in gdev_prn_get_bits /src/ghostpdl/./base/gdevprn.c:1655:12
+    #18 0x5650c186367d in gdev_prn_copy_scan_lines /src/ghostpdl/./base/gdevprn.c:1685:16
+    #19 0x5650c19be712 in bmp_print_page /src/ghostpdl/./devices/gdevbmp.c:197:16
+    #20 0x5650c186013a in gx_default_print_page_copies /src/ghostpdl/./base/gdevprn.c:1159:12
+    #21 0x5650c185f316 in gdev_prn_output_page_aux /src/ghostpdl/./base/gdevprn.c:1061:27
+    #22 0x5650c1c1c99a in gs_output_page /src/ghostpdl/./base/gsdevice.c:207:17
+    #23 0x5650c2093587 in zoutputpage /src/ghostpdl/./psi/zdevice.c:493:12
+    #24 0x5650c1fda2d1 in interp /src/ghostpdl/./psi/interp.c:1351:28
+    #25 0x5650c1fda2d1 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #26 0x5650c1fda2d1 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #27 0x5650c17793b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #28 0x5650c17793b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #29 0x5650c17793b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #30 0x5650c22c0610 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #31 0x5650c22bcfe0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #32 0x5650c22ba162 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #33 0x5650c22c0398 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #34 0x5650c1770fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #35 0x5650c1771335 in LLVMFuzzerTestOneInput /src/gs_device_bmpmono_fuzzer.cc:18:2
+
+DEDUP_TOKEN: __interceptor_malloc--gs_heap_alloc_bytes--alloc_acquire_clump
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/ghostpdl/./base/gxblend1.c:193:9 in copy_plane_part
+Shadow bytes around the buggy address:
+  0x52f000037700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52f000037780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52f000037800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52f000037880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52f000037900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x52f000037980: 00 00 00 00 00 00 00 00 00 00[fa]fa fa fa fa fa
+  0x52f000037a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52f000037a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52f000037b00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52f000037b80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52f000037c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

@@ -1,0 +1,65 @@
+=================================================================
+==1366517==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50e000000538 at pc 0x5645eab6c937 bp 0x7ffd13da20b0 sp 0x7ffd13da20a8
+READ of size 4 at 0x50e000000538 thread T0
+    #0 0x5645eab6c936 in Assimp::ScenePreprocessor::ProcessMesh(aiMesh*) /root/code/Common/ScenePreprocessor.cpp:149:26
+    #1 0x5645eab6b79e in Assimp::ScenePreprocessor::ProcessScene() /root/code/Common/ScenePreprocessor.cpp:58:9
+    #2 0x5645eab43919 in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:752:17
+    #3 0x5645eab4050f in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:512:5
+    #4 0x5645eaad5c27 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:53:34
+    #5 0x5645eaabb304 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2bb304) (BuildId: 842b19f457def77712de74a14dc6770a58ce44cf)
+    #6 0x5645eaaa4436 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2a4436) (BuildId: 842b19f457def77712de74a14dc6770a58ce44cf)
+    #7 0x5645eaaa9eea in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2a9eea) (BuildId: 842b19f457def77712de74a14dc6770a58ce44cf)
+    #8 0x5645eaad4746 in main (/root/assimp_fuzzer+0x2d4746) (BuildId: 842b19f457def77712de74a14dc6770a58ce44cf)
+    #9 0x7ff9c327a1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x7ff9c327a28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x5645eaa9f004 in _start (/root/assimp_fuzzer+0x29f004) (BuildId: 842b19f457def77712de74a14dc6770a58ce44cf)
+
+0x50e000000538 is located 0 bytes after 152-byte region [0x50e0000004a0,0x50e000000538)
+allocated by thread T0 here:
+    #0 0x7ff9c36707a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7ff9c414f5bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+    #2 0x5645eb9a9a1b in Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:112:9
+    #3 0x5645eab42df7 in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:717:30
+    #4 0x5645eab4050f in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:512:5
+    #5 0x5645eaad5c27 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:53:34
+    #6 0x5645eaabb304 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2bb304) (BuildId: 842b19f457def77712de74a14dc6770a58ce44cf)
+    #7 0x5645eaaa4436 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2a4436) (BuildId: 842b19f457def77712de74a14dc6770a58ce44cf)
+    #8 0x5645eaaa9eea in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2a9eea) (BuildId: 842b19f457def77712de74a14dc6770a58ce44cf)
+    #9 0x5645eaad4746 in main (/root/assimp_fuzzer+0x2d4746) (BuildId: 842b19f457def77712de74a14dc6770a58ce44cf)
+    #10 0x7ff9c327a1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7ff9c327a28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x5645eaa9f004 in _start (/root/assimp_fuzzer+0x29f004) (BuildId: 842b19f457def77712de74a14dc6770a58ce44cf)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/code/Common/ScenePreprocessor.cpp:149:26 in Assimp::ScenePreprocessor::ProcessMesh(aiMesh*)
+Shadow bytes around the buggy address:
+  0x50e000000280: 00 00 00 00 fa fa fa fa fa fa fa fa 00 00 00 00
+  0x50e000000300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50e000000380: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x50e000000400: 00 00 00 00 00 00 00 00 00 00 00 00 fa fa fa fa
+  0x50e000000480: fa fa fa fa ac 00 00 00 00 00 00 00 00 00 00 00
+=>0x50e000000500: 00 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa fa
+  0x50e000000580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50e000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50e000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50e000000700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50e000000780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1366517==ABORTING

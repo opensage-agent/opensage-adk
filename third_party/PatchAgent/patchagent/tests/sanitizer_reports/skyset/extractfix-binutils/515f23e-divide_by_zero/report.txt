@@ -1,0 +1,19 @@
+=================================================================
+==92308==ERROR: AddressSanitizer: FPE on unknown address 0x55a4ab68be82 (pc 0x55a4ab68be82 bp 0x7fffd4cfb100 sp 0x7fffd4cfa780 T0)
+    #0 0x55a4ab68be82 in decode_line_info /root/bfd/./dwarf2.c:2442:34
+    #1 0x55a4ab69f874 in comp_unit_maybe_decode_line_info /root/bfd/./dwarf2.c:3610:26
+    #2 0x55a4ab691f6c in comp_unit_find_line /root/bfd/./dwarf2.c:3645:8
+    #3 0x55a4ab690c5b in _bfd_dwarf2_find_nearest_line /root/bfd/./dwarf2.c:4757:11
+    #4 0x55a4ab5b8b4d in _bfd_elf_find_line /root/bfd/elf.c:8695:10
+    #5 0x55a4ab4cb02c in print_symbol /root/binutils/nm.c:1003:9
+    #6 0x55a4ab4c7dbc in print_symbols /root/binutils/nm.c:1084:7
+    #7 0x55a4ab4c66e4 in display_rel_file /root/binutils/nm.c:1200:5
+    #8 0x55a4ab4c3092 in display_file /root/binutils/nm.c:1318:7
+    #9 0x55a4ab4c285a in main /root/binutils/nm.c:1792:12
+    #10 0x7f24e311f1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #11 0x7f24e311f28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #12 0x55a4ab4c08f4 in _start (/root/binutils/nm-new+0x988f4) (BuildId: dbf6059a73bac61bc2ee349dd82597ced6f7ead9)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: FPE /root/bfd/./dwarf2.c:2442:34 in decode_line_info
+==92308==ABORTING

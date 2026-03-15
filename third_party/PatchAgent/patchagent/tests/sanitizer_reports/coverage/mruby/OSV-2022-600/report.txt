@@ -1,0 +1,42 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mruby:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce mruby_fuzzer -runs=100.
++ FUZZER=mruby_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer mruby_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/mruby_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=mruby.dict -only_ascii=1 < /dev/null
+Dictionary: 102 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3130232507
+/out/mruby_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==18==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0xfffffffffffffff8 (pc 0x55b45ccd0f30 bp 0x7fffc3c4bc70 sp 0x7fffc3c4bc20 T18)
+[1m[0m==18==The signal is caused by a READ memory access.
+    #0 0x55b45ccd0f30 in digits /src/mruby/mrbgems/mruby-bigint/core/bigint.c:93:35
+    #1 0x55b45ccd0f30 in mpz_sizeinbase /src/mruby/mrbgems/mruby-bigint/core/bigint.c:617:17
+    #2 0x55b45ccd0f30 in mrb_bint_to_s /src/mruby/mrbgems/mruby-bigint/core/bigint.c:1366:17
+    #3 0x55b45ccc8100 in int_to_s /src/mruby/src/numeric.c:1817:10
+    #4 0x55b45cca0625 in mrb_vm_exec /src/mruby/src/vm.c
+    #5 0x55b45cc9d5e5 in mrb_vm_run /src/mruby/src/vm.c:1208:12
+    #6 0x55b45ccdc296 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6889:7
+    #7 0x55b45cc9186d in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #8 0x55b45cbf3e20 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55b45cbdf095 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55b45cbe4b2f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55b45cc0fdd2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f0240bb9082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x55b45cbd727d in _start (/out/mruby_fuzzer+0x4027d)
+
+DEDUP_TOKEN: digits--mpz_sizeinbase--mrb_bint_to_s
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/mruby/mrbgems/mruby-bigint/core/bigint.c:93:35 in digits
+==18==ABORTING

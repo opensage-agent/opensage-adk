@@ -1,0 +1,62 @@
+=================================================================
+==359750==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fe570806cff at pc 0x557a13022c26 bp 0x7ffd62a443f0 sp 0x7ffd62a443e8
+READ of size 1 at 0x7fe570806cff thread T0
+    #0 0x557a13022c25 in mobi_decode_infl /root/src/index.c:991:21
+    #1 0x557a12fbd4c2 in mobi_reconstruct_infl /root/src/parse_rawml.c:1423:28
+    #2 0x557a12fbe6d1 in mobi_reconstruct_orth /root/src/parse_rawml.c:1582:23
+    #3 0x557a12fbfbe8 in mobi_reconstruct_links_kf7 /root/src/parse_rawml.c:1800:15
+    #4 0x557a12fbffd2 in mobi_reconstruct_links /root/src/parse_rawml.c:1849:15
+    #5 0x557a12fc2100 in mobi_parse_rawml_opt /root/src/parse_rawml.c:2153:15
+    #6 0x557a12fc1218 in mobi_parse_rawml /root/src/parse_rawml.c:2009:12
+    #7 0x557a12fa1fa2 in loadfilename /root/tools/mobitool.c:852:20
+    #8 0x557a12fa197b in main /root/tools/mobitool.c:1051:11
+    #9 0x7fe5745ef1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x7fe5745ef28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x557a12f9f744 in _start (/root/tools/mobitool+0x13744) (BuildId: bc98af37a9bd25f075069db9e46bc8b2dfd9dc1c)
+
+Address 0x7fe570806cff is located in stack of thread T0 at offset 1279 in frame
+    #0 0x557a12fbc99f in mobi_reconstruct_infl /root/src/parse_rawml.c:1364
+
+  This frame has 7 object(s):
+    [32, 40) 'infl_groups' (line 1366)
+    [64, 565) 'name_attr' (line 1375)
+    [640, 1141) 'infl_tag' (line 1376)
+    [1216, 1224) 'groups' (line 1395)
+    [1248, 1256) 'parts' (line 1397)
+    [1280, 1781) 'decoded' (line 1414) <== Memory access at offset 1279 underflows this variable
+    [1856, 1860) 'decoded_length' (line 1422)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /root/src/index.c:991:21 in mobi_decode_infl
+Shadow bytes around the buggy address:
+  0x7fe570806a00: 00 00 00 00 00 00 05 f2 f2 f2 f2 f2 f2 f2 f2 f2
+  0x7fe570806a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fe570806b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fe570806b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fe570806c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 f2
+=>0x7fe570806c80: f2 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 00 f2 f2[f2]
+  0x7fe570806d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fe570806d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fe570806e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fe570806e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 f2
+  0x7fe570806f00: f2 f2 f2 f2 f2 f2 f2 f2 04 f3 f3 f3 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359750==ABORTING

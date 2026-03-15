@@ -1,0 +1,37 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 1 at 0x7fd35aa84392 thread T0
+    - FSE_writeNCount_generic /root/lib/compress/fse_compress.c:270:20
+    - FSE_writeNCount /root/lib/compress/fse_compress.c:301:12
+    - HUF_compressWeights /root/lib/compress/huf_compress.c:95:9
+    - HUF_writeCTable_wksp /root/lib/compress/huf_compress.c:136:9
+    - HUF_compress_internal /root/lib/compress/huf_compress.c:829:9
+    - HUF_compress4X_repeat /root/lib/compress/huf_compress.c:900:12
+    - ZSTD_compressLiterals /root/lib/compress/zstd_compress_literals.c:109:13
+    - ZSTD_entropyCompressSeqStore_internal /root/lib/compress/zstd_compress.c:2595:30
+    - ZSTD_entropyCompressSeqStore /root/lib/compress/zstd_compress.c:2684:26
+    - ZSTD_compressSeqStore_singleBlock /root/lib/compress/zstd_compress.c:3488:17
+    - ZSTD_compressBlock_splitBlock_internal /root/lib/compress/zstd_compress.c:3674:22
+    - ZSTD_compressBlock_splitBlock /root/lib/compress/zstd_compress.c:3719:13
+    - ZSTD_compress_frameChunk /root/lib/compress/zstd_compress.c:3941:25
+    - ZSTD_compressContinue_internal /root/lib/compress/zstd_compress.c:4116:30
+    - ZSTD_compressEnd /root/lib/compress/zstd_compress.c:4620:26
+    - ZSTD_compress_advanced_internal /root/lib/compress/zstd_compress.c:4669:12
+    - ZSTD_compress_usingDict /root/lib/compress/zstd_compress.c:4684:12
+    - ZSTD_compressCCtx /root/lib/compress/zstd_compress.c:4694:12
+    - LLVMFuzzerTestOneInput /root/tests/fuzz/simple_compress.c:46:24
+    - main /root/tests/fuzz/regression_driver.c:77:5
+
+0x7fd35aa84392 is located 7 bytes after 252811-byte region [0x7fd35aa46800,0x7fd35aa8438b)
+allocated by thread T0 here:
+    - FUZZ_malloc /root/tests/fuzz/fuzz_helpers.c:19:27
+    - LLVMFuzzerTestOneInput /root/tests/fuzz/simple_compress.c:45:18
+    - main /root/tests/fuzz/regression_driver.c:77:5
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

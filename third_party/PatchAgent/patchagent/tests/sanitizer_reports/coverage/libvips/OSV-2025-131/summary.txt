@@ -1,0 +1,29 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - vips_tracked_aligned_free /src/libvips/libvips/iofuncs/memory.c:297:2
+    - vips_buffer_free /src/libvips/libvips/iofuncs/buffer.c:204:2
+    - vips_buffer_unref /src/libvips/libvips/iofuncs/buffer.c:464:4
+    - vips_region_dispose /src/libvips/libvips/iofuncs/region.c:309:2
+    - wbuffer_free /src/libvips/libvips/iofuncs/sinkdisc.c:156:2
+    - write_free /src/libvips/libvips/iofuncs/sinkdisc.c:459:2
+    - vips_sink_disc /src/libvips/libvips/iofuncs/sinkdisc.c:536:2
+    - vips_foreign_save_heif_build /src/libvips/libvips/foreign/heifsave.c:722:6
+    - vips_foreign_save_heif_target_build /src/libvips/libvips/foreign/heifsave.c:996:6
+    - vips_object_build /src/libvips/libvips/iofuncs/object.c:372:6
+    - vips_cache_operation_buildp /src/libvips/libvips/iofuncs/cache.c:834:7
+    - vips_call_required_optional /src/libvips/libvips/iofuncs/operation.c:977:6
+    - vips_call_by_name /src/libvips/libvips/iofuncs/operation.c:1017:11
+    - vips_call_split_option_string /src/libvips/libvips/iofuncs/operation.c:1138:11
+    - vips_image_write_to_buffer /src/libvips/libvips/iofuncs/image.c:2776:12
+    - LLVMFuzzerTestOneInput /src/libvips/fuzz/generic_buffer_fuzzer.cc:56:6
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

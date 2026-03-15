@@ -1,0 +1,51 @@
+=================================================================
+==575150==ERROR: AddressSanitizer: global-buffer-overflow on address 0x555fd1929242 at pc 0x555fd1910174 bp 0x7fff75a028a0 sp 0x7fff75a02898
+READ of size 1 at 0x555fd1929242 thread T0
+    #0 0x555fd1910173 in print_sep_string /root/src/pr.c:2241:19
+    #1 0x555fd190fab1 in read_line /root/src/pr.c:2493:9
+    #2 0x555fd190d78d in print_page /root/src/pr.c:1802:20
+    #3 0x555fd190bd7c in print_files /root/src/pr.c:1618:10
+    #4 0x555fd190abf5 in main /root/src/pr.c:1136:9
+    #5 0x7f95240d41c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #6 0x7f95240d428a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #7 0x555fd1908674 in _start (/root/src/pr+0x8674) (BuildId: 78d0b5f9c4e4e24459984eac4d6ca7254c6311a8)
+
+0x555fd1929242 is located 62 bytes before global variable '.str.72' defined in '/root/src/pr.c:1480' (0x555fd1929280) of size 2
+  '.str.72' is ascii string 'r'
+0x555fd1929242 is located 30 bytes before global variable '.str.71' defined in '/root/src/pr.c:1471' (0x555fd1929260) of size 2
+  '.str.71' is ascii string '-'
+0x555fd1929242 is located 0 bytes after global variable '.str.70' defined in '/root/src/pr.c:693' (0x555fd1929240) of size 2
+  '.str.70' is ascii string ' '
+SUMMARY: AddressSanitizer: global-buffer-overflow /root/src/pr.c:2241:19 in print_sep_string
+Shadow bytes around the buggy address:
+  0x555fd1928f80: 00 00 01 f9 f9 f9 f9 f9 00 02 f9 f9 00 03 f9 f9
+  0x555fd1929000: 00 04 f9 f9 00 00 f9 f9 00 00 01 f9 f9 f9 f9 f9
+  0x555fd1929080: 06 f9 f9 f9 00 03 f9 f9 05 f9 f9 f9 00 f9 f9 f9
+  0x555fd1929100: 00 00 00 02 f9 f9 f9 f9 00 00 01 f9 f9 f9 f9 f9
+  0x555fd1929180: 00 00 00 00 00 00 00 05 f9 f9 f9 f9 00 00 06 f9
+=>0x555fd1929200: f9 f9 f9 f9 02 f9 f9 f9[02]f9 f9 f9 02 f9 f9 f9
+  0x555fd1929280: 02 f9 f9 f9 03 f9 f9 f9 00 f9 f9 f9 00 00 00 00
+  0x555fd1929300: 00 00 f9 f9 f9 f9 f9 f9 00 00 05 f9 f9 f9 f9 f9
+  0x555fd1929380: 00 01 f9 f9 00 00 05 f9 f9 f9 f9 f9 05 f9 f9 f9
+  0x555fd1929400: 04 f9 f9 f9 00 00 00 00 00 00 00 f9 f9 f9 f9 f9
+  0x555fd1929480: 00 00 00 00 00 00 00 00 00 03 f9 f9 f9 f9 f9 f9
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==575150==ABORTING

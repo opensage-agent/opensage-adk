@@ -1,0 +1,48 @@
+The sanitizer detected a java native error vulnerability. The explanation of the vulnerability is: A Java native error occurred, indicating a potential issue in the native code or environment. Here is the detail: 
+
+Stack traces of all JVM threads:
+Thread[#5,Reference Handler,10,system]
+- java.base@21.0.4/java.lang.ref.Reference.processPendingReferences (java/base@21/0/4/java/lang/ref/Reference.java:246)
+- java.base@21.0.4/java.lang.ref.Reference$ReferenceHandler.run (java/base@21/0/4/java/lang/ref/Reference$ReferenceHandler/run:208)
+
+Thread[#7,Signal Dispatcher,9,system]
+
+Thread[#23,Common-Cleaner,8,InnocuousThreadGroup]
+- java.base@21.0.4/java.util.concurrent.locks.LockSupport.parkNanos (java/base@21/0/4/java/util/concurrent/locks/LockSupport.java:269)
+- java.base@21.0.4/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await (java/base@21/0/4/java/util/concurrent/locks/AbstractQueuedSynchronizer$ConditionObject/await:1847)
+- java.base@21.0.4/java.lang.ref.ReferenceQueue.await (java/base@21/0/4/java/lang/ref/ReferenceQueue.java:71)
+- java.base@21.0.4/java.lang.ref.ReferenceQueue.remove0 (java/base@21/0/4/java/lang/ref/ReferenceQueue.java:143)
+- java.base@21.0.4/java.lang.ref.ReferenceQueue.remove (java/base@21/0/4/java/lang/ref/ReferenceQueue.java:218)
+- java.base@21.0.4/jdk.internal.ref.CleanerImpl.run (java/base@21/0/4/jdk/internal/ref/CleanerImpl.java:140)
+- java.base@21.0.4/java.lang.Thread.runWith (java/base@21/0/4/java/lang/Thread.java:1596)
+- java.base@21.0.4/java.lang.Thread.run (java/base@21/0/4/java/lang/Thread.java:1583)
+- java.base@21.0.4/jdk.internal.misc.InnocuousThread.run (java/base@21/0/4/jdk/internal/misc/InnocuousThread.java:186)
+
+Thread[#24,Attach Listener,9,system]
+
+Thread[#6,Finalizer,8,system]
+- java.base@21.0.4/java.lang.Object.wait (java/base@21/0/4/java/lang/Object.java:366)
+- java.base@21.0.4/java.lang.Object.wait (java/base@21/0/4/java/lang/Object.java:339)
+- java.base@21.0.4/java.lang.ref.NativeReferenceQueue.await (java/base@21/0/4/java/lang/ref/NativeReferenceQueue.java:48)
+- java.base@21.0.4/java.lang.ref.ReferenceQueue.remove0 (java/base@21/0/4/java/lang/ref/ReferenceQueue.java:158)
+- java.base@21.0.4/java.lang.ref.NativeReferenceQueue.remove (java/base@21/0/4/java/lang/ref/NativeReferenceQueue.java:89)
+- java.base@21.0.4/java.lang.ref.Finalizer$FinalizerThread.run (java/base@21/0/4/java/lang/ref/Finalizer$FinalizerThread/run:173)
+
+Thread[#1,main,5,main]
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.dumpAllStackTraces (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:534)
+- app//com.example.ExampleFuzzerWithNative.fuzzerTestOneInput (app/com/example/ExampleFuzzerWithNative.java:33)
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.runOne (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:234)
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:551)
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:441)
+- app//com.code_intelligence.jazzer.driver.Driver.start (app/com/code_intelligence/jazzer/driver/Driver.java:166)
+- app//com.code_intelligence.jazzer.Jazzer.start (app/com/code_intelligence/jazzer/Jazzer.java:118)
+- app//com.code_intelligence.jazzer.Jazzer.main (app/com/code_intelligence/jazzer/Jazzer.java:71)
+
+Thread[#22,Notification Thread,9,system]
+
+
+To fix this issue, follow the advice below:
+
+1. Investigate the cause of the Java native error to identify the root cause of the error.
+2. Review the code for potential memory corruption or undefined behavior.
+3. Check for uninitialized variables or unintended pointer accesses.

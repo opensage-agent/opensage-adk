@@ -1,0 +1,61 @@
+=================================================================
+==359722==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000039 at pc 0x55edf54ef17a bp 0x7fff0b155d20 sp 0x7fff0b155d18
+READ of size 1 at 0x502000000039 thread T0
+    #0 0x55edf54ef179 in md_is_container_mark /root/src/md4c.c:5659:9
+    #1 0x55edf54e3218 in md_analyze_line /root/src/md4c.c:5942:12
+    #2 0x55edf54deec5 in md_process_doc /root/src/md4c.c:6259:9
+    #3 0x55edf54ddfff in md_parse /root/src/md4c.c:6337:11
+    #4 0x55edf54dab6e in md_html /root/src/md4c-html.c:571:12
+    #5 0x55edf54da6a2 in LLVMFuzzerTestOneInput /root/build/../test/fuzzers/fuzz-mdhtml.c:24:5
+    #6 0x55edf54bfdf4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/fuzz-mdhtml+0x5adf4) (BuildId: 8b7f67e00c297f70ce9833902ec6eb3ad46a424d)
+    #7 0x55edf54a8f26 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/fuzz-mdhtml+0x43f26) (BuildId: 8b7f67e00c297f70ce9833902ec6eb3ad46a424d)
+    #8 0x55edf54ae9da in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/fuzz-mdhtml+0x499da) (BuildId: 8b7f67e00c297f70ce9833902ec6eb3ad46a424d)
+    #9 0x55edf54d9236 in main (/root/fuzz-mdhtml+0x74236) (BuildId: 8b7f67e00c297f70ce9833902ec6eb3ad46a424d)
+    #10 0x7fe40722f1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7fe40722f28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x55edf54a3af4 in _start (/root/fuzz-mdhtml+0x3eaf4) (BuildId: 8b7f67e00c297f70ce9833902ec6eb3ad46a424d)
+
+0x502000000039 is located 0 bytes after 9-byte region [0x502000000030,0x502000000039)
+allocated by thread T0 here:
+    #0 0x7fe4076257a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fe4081045bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+    #2 0x55edf54a8f26 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/fuzz-mdhtml+0x43f26) (BuildId: 8b7f67e00c297f70ce9833902ec6eb3ad46a424d)
+    #3 0x55edf54ae9da in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/fuzz-mdhtml+0x499da) (BuildId: 8b7f67e00c297f70ce9833902ec6eb3ad46a424d)
+    #4 0x55edf54d9236 in main (/root/fuzz-mdhtml+0x74236) (BuildId: 8b7f67e00c297f70ce9833902ec6eb3ad46a424d)
+    #5 0x7fe40722f1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #6 0x7fe40722f28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x55edf54a3af4 in _start (/root/fuzz-mdhtml+0x3eaf4) (BuildId: 8b7f67e00c297f70ce9833902ec6eb3ad46a424d)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/md4c.c:5659:9 in md_is_container_mark
+Shadow bytes around the buggy address:
+  0x501ffffffd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x502000000000: fa fa 00 01 fa fa 00[01]fa fa 03 fa fa fa fa fa
+  0x502000000080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359722==ABORTING

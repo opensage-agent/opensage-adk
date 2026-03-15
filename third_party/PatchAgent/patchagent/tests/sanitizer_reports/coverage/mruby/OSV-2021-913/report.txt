@@ -1,0 +1,90 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mruby:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce mruby_fuzzer -runs=100.
++ FUZZER=mruby_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer mruby_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/mruby_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=mruby.dict -only_ascii=1 < /dev/null
+Dictionary: 102 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3205110410
+/out/mruby_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==18==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x55b129a1367f (pc 0x55b027077977 bp 0x7fffd8b64d00 sp 0x7fffd8b64cd0 T18)
+[1m[0m==18==The signal is caused by a READ memory access.
+    #0 0x55b027077977 in dispatch /src/mruby/mrbgems/mruby-compiler/core/codegen.c:573:21
+    #1 0x55b027073c01 in dispatch_linked /src/mruby/mrbgems/mruby-compiler/core/codegen.c:584:11
+    #2 0x55b027073c01 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1629:11
+    #3 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #4 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #5 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #6 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #7 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #8 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #9 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #10 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #11 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #12 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #13 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #14 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #15 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #16 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #17 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #18 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #19 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #20 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #21 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #22 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #23 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #24 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #25 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #26 0x55b0270737c4 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #27 0x55b0270772ee in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    #28 0x55b02707c2f6 in gen_literal_array /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1426:9
+    #29 0x55b027075593 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #30 0x55b0270747df in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    #31 0x55b02707a4d6 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #32 0x55b027079c9a in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #33 0x55b027073da8 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1917:5
+    #34 0x55b0270747df in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    #35 0x55b02707a4d6 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #36 0x55b027079c9a in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #37 0x55b027073da8 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1917:5
+    #38 0x55b0270747df in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    #39 0x55b0270772ee in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    #40 0x55b0270795df in lambda_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1058:3
+    #41 0x55b02707410e in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1700:17
+    #42 0x55b027079e7a in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1221:5
+    #43 0x55b027073da8 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1917:5
+    #44 0x55b02707a4d6 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #45 0x55b027079c9a in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #46 0x55b027073da8 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1917:5
+    #47 0x55b02707a4d6 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #48 0x55b027079c9a in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #49 0x55b027073da8 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1917:5
+    #50 0x55b0270772ee in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    #51 0x55b027079b18 in scope_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1075:3
+    #52 0x55b027072d8a in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1912:5
+    #53 0x55b027072784 in generate_code /src/mruby/mrbgems/mruby-compiler/core/codegen.c:3340:5
+    #54 0x55b0270547b2 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6843:10
+    #55 0x55b02701376d in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #56 0x55b026f75d20 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #57 0x55b026f60f95 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #58 0x55b026f66a2f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #59 0x55b026f91cd2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #60 0x7f1407248082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #61 0x55b026f5917d in _start (/out/mruby_fuzzer+0x3f17d)
+
+DEDUP_TOKEN: dispatch--dispatch_linked--codegen
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/mruby/mrbgems/mruby-compiler/core/codegen.c:573:21 in dispatch
+==18==ABORTING

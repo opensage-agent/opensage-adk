@@ -1,0 +1,37 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 708 at 0x5140000005f7 thread T0
+    - ext4_load_attrs_inline /root/tsk/fs/ext2fs.c:674:9
+    - ext2fs_dinode_copy /root/tsk/fs/ext2fs.c:865:9
+    - ext2fs_inode_walk /root/tsk/fs/ext2fs.c:1259:13
+    - tsk_fs_meta_walk /root/tsk/fs/fs_inode.c:214:12
+    - tsk_fs_dir_find_orphans /root/tsk/fs/fs_dir.c:1318:9
+    - ext2fs_dir_open_meta /root/tsk/fs/ext2fs_dent.c:298:16
+    - tsk_fs_dir_open_meta /root/tsk/fs/fs_dir.c:289:14
+    - tsk_fs_dir_walk_lcl /root/tsk/fs/fs_dir.c:625:19
+    - tsk_fs_dir_walk_lcl /root/tsk/fs/fs_dir.c:817:26
+    - tsk_fs_dir_walk /root/tsk/fs/fs_dir.c:930:14
+    - tsk_fs_fls /root/tsk/fs/fls_lib.c:262:12
+    - LLVMFuzzerTestOneInput /workspaces/nvwa/skyset/sleuthkit/sleuthkit_fls_fuzzer.cc:35:5
+
+0x5140000005f7 is located 0 bytes after 439-byte region [0x514000000440,0x5140000005f7)
+allocated by thread T0 here:
+    - tsk_malloc /root/tsk/base/mymalloc.c:32:16
+    - ext2fs_inode_walk /root/tsk/fs/ext2fs.c:1177:38
+    - tsk_fs_meta_walk /root/tsk/fs/fs_inode.c:214:12
+    - tsk_fs_dir_find_orphans /root/tsk/fs/fs_dir.c:1318:9
+    - ext2fs_dir_open_meta /root/tsk/fs/ext2fs_dent.c:298:16
+    - tsk_fs_dir_open_meta /root/tsk/fs/fs_dir.c:289:14
+    - tsk_fs_dir_walk_lcl /root/tsk/fs/fs_dir.c:625:19
+    - tsk_fs_dir_walk_lcl /root/tsk/fs/fs_dir.c:817:26
+    - tsk_fs_dir_walk /root/tsk/fs/fs_dir.c:930:14
+    - tsk_fs_fls /root/tsk/fs/fls_lib.c:262:12
+    - LLVMFuzzerTestOneInput /workspaces/nvwa/skyset/sleuthkit/sleuthkit_fls_fuzzer.cc:35:5
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,53 @@
+The sanitizer detected a container overflow vulnerability. The explanation of the vulnerability is: A data structure, such as a vector or list, is accessed beyond its allocated memory, causing memory corruption or unexpected behavior. Here is the detail: 
+
+READ of size 3 at 0x5060000001c2 thread T0
+    - StrtolFixAndCheck(void*, char const*, char**, char*, int) /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc:3566:3
+    - StrtolImpl<long (*)(const char *, char **, int)> /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:618:3
+    - strtol /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:630:1
+    - Pistache::Http::Private::BodyStep::Chunk::parse(Pistache::StreamCursor&) /src/pistache/src/common/http.cc:460:35
+    - Pistache::Http::Private::BodyStep::parseTransferEncoding(Pistache::StreamCursor&, std::__1::shared_ptr<Pistache::Http::Header::TransferEncoding> const&) /src/pistache/src/common/http.cc:507:44
+    - Pistache::Http::Private::BodyStep::apply(Pistache::StreamCursor&) /src/pistache/src/common/http.cc:397:24
+    - Pistache::Http::Private::ParserBase::parse() /src/pistache/src/common/http.cc:545:36
+    - operator() /src/pistache/tests/fuzzers/fuzz_parser.cpp:82:48
+    - ignoreExceptions<(lambda at ../tests/fuzzers/fuzz_parser.cpp:82:26)> /src/pistache/tests/fuzzers/fuzz_parser.cpp:17:9
+    - fuzz_request_parser(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/pistache/tests/fuzzers/fuzz_parser.cpp:82:9
+    - LLVMFuzzerTestOneInput /src/pistache/tests/fuzzers/fuzz_parser.cpp:153:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5060000001c2 is located 34 bytes inside of 64-byte region [0x5060000001a0,0x5060000001e0)
+allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - __allocate_at_least<std::__1::allocator<char> > /usr/local/include/c++/v1/__memory/allocate_at_least.h:55:19
+    - __split_buffer /usr/local/include/c++/v1/__split_buffer:343:25
+    - char* std::__1::vector<char, std::__1::allocator<char>>::__push_back_slow_path<char const&>(char const&) /usr/local/include/c++/v1/vector:1451:47
+    - push_back /usr/local/include/c++/v1/vector:1467:13
+    - operator= /usr/local/include/c++/v1/__iterator/back_insert_iterator.h:57:16
+    - operator()<const char *, const char *, std::__1::back_insert_iterator<std::__1::vector<char, std::__1::allocator<char> > > > /usr/local/include/c++/v1/__algorithm/copy.h:40:17
+    - __unwrap_and_dispatch<std::__1::__overload<std::__1::__copy_loop<std::__1::_ClassicAlgPolicy>, std::__1::__copy_trivial>, const char *, const char *, std::__1::back_insert_iterator<std::__1::vector<char, std::__1::allocator<char> > >, 0> /usr/local/include/c++/v1/__algorithm/copy_move_common.h:109:19
+    - __dispatch_copy_or_move<std::__1::_ClassicAlgPolicy, std::__1::__copy_loop<std::__1::_ClassicAlgPolicy>, std::__1::__copy_trivial, const char *, const char *, std::__1::back_insert_iterator<std::__1::vector<char, std::__1::allocator<char> > > > /usr/local/include/c++/v1/__algorithm/copy_move_common.h:133:10
+    - __copy<std::__1::_ClassicAlgPolicy, const char *, const char *, std::__1::back_insert_iterator<std::__1::vector<char, std::__1::allocator<char> > > > /usr/local/include/c++/v1/__algorithm/copy.h:111:10
+    - copy<const char *, std::__1::back_insert_iterator<std::__1::vector<char, std::__1::allocator<char> > > > /usr/local/include/c++/v1/__algorithm/copy.h:118:10
+    - feed /src/pistache/include/pistache/stream.h:111:13
+    - Pistache::Http::Private::ParserBase::feed(char const*, unsigned long) /src/pistache/src/common/http.cc:558:27
+    - fuzz_request_parser(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/pistache/tests/fuzzers/fuzz_parser.cpp:79:17
+    - LLVMFuzzerTestOneInput /src/pistache/tests/fuzzers/fuzz_parser.cpp:153:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+HINT: if you don't care about these errors you may set ASAN_OPTIONS=detect_container_overflow=0.
+If you suspect a false positive see also: https://github.com/google/sanitizers/wiki/AddressSanitizerContainerOverflow.
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

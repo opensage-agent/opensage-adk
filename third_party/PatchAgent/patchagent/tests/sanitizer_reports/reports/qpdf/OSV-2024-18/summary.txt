@@ -1,0 +1,70 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x506000000460 thread T0
+    - QPDF::read_xref(long long) /src/qpdf/libqpdf/QPDF.cc:715:17
+    - QPDF::reconstruct_xref(QPDFExc&) /src/qpdf/libqpdf/QPDF.cc:601:17
+    - QPDF::parse(char const*) /src/qpdf/libqpdf/QPDF.cc:464:13
+    - FuzzHelper::getQpdf() /src/qpdf/fuzz/qpdf_fuzzer.cc:59:11
+    - FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:92:9
+    - FuzzHelper::doChecks() /src/qpdf/fuzz/qpdf_fuzzer.cc:176:5
+    - FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:191:9
+    - LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:208:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x506000000460 is located 32 bytes inside of 64-byte region [0x506000000440,0x506000000480)
+freed by thread T0 here:
+    - operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    - void std::__1::__libcpp_operator_delete[abi:ne180100]<void*>(void*) /usr/local/include/c++/v1/new:280:3
+    - void std::__1::__do_deallocate_handle_size[abi:ne180100]<>(void*, unsigned long) /usr/local/include/c++/v1/new:302:10
+    - std::__1::__libcpp_deallocate[abi:ne180100](void*, unsigned long, unsigned long) /usr/local/include/c++/v1/new:317:12
+    - std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>::deallocate[abi:ne180100](std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, unsigned long) /usr/local/include/c++/v1/__memory/allocator.h:139:7
+    - std::__1::allocator_traits<std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>>::deallocate[abi:ne180100](std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>&, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, unsigned long) /usr/local/include/c++/v1/__memory/allocator_traits.h:289:9
+    - std::__1::__tree<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__map_value_compare<QPDFObjGen, std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::less<QPDFObjGen>, true>, std::__1::allocator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>>>::erase(std::__1::__tree_const_iterator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, long>) /usr/local/include/c++/v1/__tree:2051:3
+    - unsigned long std::__1::__tree<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__map_value_compare<QPDFObjGen, std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::less<QPDFObjGen>, true>, std::__1::allocator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>>>::__erase_unique<QPDFObjGen>(QPDFObjGen const&) /usr/local/include/c++/v1/__tree:2070:3
+    - std::__1::map<QPDFObjGen, QPDFXRefEntry, std::__1::less<QPDFObjGen>, std::__1::allocator<std::__1::pair<QPDFObjGen const, QPDFXRefEntry>>>::erase[abi:ne180100](QPDFObjGen const&) /usr/local/include/c++/v1/map:1314:79
+    - QPDF::removeObject(QPDFObjGen const&) /src/qpdf/libqpdf/QPDF.cc:1993:19
+    - QPDF::read_xref(long long) /src/qpdf/libqpdf/QPDF.cc:714:13
+    - QPDF::reconstruct_xref(QPDFExc&) /src/qpdf/libqpdf/QPDF.cc:601:17
+    - QPDF::parse(char const*) /src/qpdf/libqpdf/QPDF.cc:464:13
+    - FuzzHelper::getQpdf() /src/qpdf/fuzz/qpdf_fuzzer.cc:59:11
+    - FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:92:9
+    - FuzzHelper::doChecks() /src/qpdf/fuzz/qpdf_fuzzer.cc:176:5
+    - FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:191:9
+    - LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:208:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - void* std::__1::__libcpp_operator_new[abi:ne180100]<unsigned long>(unsigned long) /usr/local/include/c++/v1/new:271:10
+    - std::__1::__libcpp_allocate[abi:ne180100](unsigned long, unsigned long) /usr/local/include/c++/v1/new:295:10
+    - std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>::allocate[abi:ne180100](unsigned long) /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - std::__1::allocator_traits<std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>>::allocate[abi:ne180100](std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>&, unsigned long) /usr/local/include/c++/v1/__memory/allocator_traits.h:269:16
+    - std::__1::unique_ptr<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>, std::__1::__tree_node_destructor<std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>>> std::__1::__tree<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__map_value_compare<QPDFObjGen, std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::less<QPDFObjGen>, true>, std::__1::allocator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>>>::__construct_node<std::__1::piecewise_construct_t const&, std::__1::tuple<QPDFObjGen&&>, std::__1::tuple<>>(std::__1::piecewise_construct_t const&, std::__1::tuple<QPDFObjGen&&>&&, std::__1::tuple<>&&) /usr/local/include/c++/v1/__tree:1819:21
+    - std::__1::pair<std::__1::__tree_iterator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, long>, bool> std::__1::__tree<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__map_value_compare<QPDFObjGen, std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::less<QPDFObjGen>, true>, std::__1::allocator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>>>::__emplace_unique_key_args<QPDFObjGen, std::__1::piecewise_construct_t const&, std::__1::tuple<QPDFObjGen&&>, std::__1::tuple<>>(QPDFObjGen const&, std::__1::piecewise_construct_t const&, std::__1::tuple<QPDFObjGen&&>&&, std::__1::tuple<>&&) /usr/local/include/c++/v1/__tree:1786:25
+    - std::__1::map<QPDFObjGen, QPDFXRefEntry, std::__1::less<QPDFObjGen>, std::__1::allocator<std::__1::pair<QPDFObjGen const, QPDFXRefEntry>>>::operator[](QPDFObjGen&&) /usr/local/include/c++/v1/map:1529:8
+    - QPDF::insertReconstructedXrefEntry(int, long long, int) /src/qpdf/libqpdf/QPDF.cc:1202:9
+    - QPDF::reconstruct_xref(QPDFExc&) /src/qpdf/libqpdf/QPDF.cc:562:17
+    - QPDF::parse(char const*) /src/qpdf/libqpdf/QPDF.cc:464:13
+    - FuzzHelper::getQpdf() /src/qpdf/fuzz/qpdf_fuzzer.cc:59:11
+    - FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:92:9
+    - FuzzHelper::doChecks() /src/qpdf/fuzz/qpdf_fuzzer.cc:176:5
+    - FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:191:9
+    - LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:208:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

@@ -1,0 +1,40 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/bluez:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_xml -runs=100.
++ FUZZER=fuzz_xml
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_xml -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_xml -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1636817435
+/out/fuzz_xml: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x000000000041 (pc 0x555d381df473 bp 0x7ffe73f74740 sp 0x7ffe73f74730 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+    #0 0x555d381df473 in compute_seq_size /src/bluez/src/sdp-xml.c:62:13
+    #1 0x555d381df473 in element_end /src/bluez/src/sdp-xml.c:548:42
+    #2 0x555d381fc806 in emit_end_element /src/glib/_build/../glib/gmarkup.c:1045:5
+    #3 0x555d381fbd68 in g_markup_parse_context_parse /src/glib/_build/../glib/gmarkup.c:1603:19
+    #4 0x555d381de9bc in sdp_xml_parse_record /src/bluez/src/sdp-xml.c:621:6
+    #5 0x555d381e0801 in LLVMFuzzerTestOneInput /src/fuzz_xml.c:30:9
+    #6 0x555d38140f40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x555d3812c1b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x555d38131c4f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x555d3815cef2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f7270789082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x555d3812439d in _start (/out/fuzz_xml+0x2539d)
+
+DEDUP_TOKEN: compute_seq_size--element_end--emit_end_element
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/bluez/src/sdp-xml.c:62:13 in compute_seq_size
+==14==ABORTING

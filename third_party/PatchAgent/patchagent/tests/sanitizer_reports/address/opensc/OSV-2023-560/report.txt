@@ -1,0 +1,69 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f6ea2685b00 at pc 0x556fa2730b34 bp 0x7ffcf6152670 sp 0x7ffcf6151e38
+READ of size 66 at 0x7f6ea2685b00 thread T0
+SCARINESS: 41 (multi-byte-read-stack-buffer-overflow)
+    #0 0x556fa2730b33 in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:568:5
+    #1 0x556fa28380d6 in sc_pkcs15_get_lastupdate /src/opensc/src/libopensc/pkcs15.c:571:42
+    #2 0x556fa288b7e7 in generate_cache_filename /src/opensc/src/libopensc/pkcs15-cache.c:62:16
+    #3 0x556fa288aa9d in sc_pkcs15_read_cached_file /src/opensc/src/libopensc/pkcs15-cache.c:128:7
+    #4 0x556fa28494cd in sc_pkcs15_read_file /src/opensc/src/libopensc/pkcs15.c:2474:7
+    #5 0x556fa284853c in sc_pkcs15_parse_df /src/opensc/src/libopensc/pkcs15.c:2161:6
+    #6 0x556fa2842afb in __sc_pkcs15_search_objects /src/opensc/src/libopensc/pkcs15.c:1436:8
+    #7 0x556fa284236a in sc_pkcs15_search_objects /src/opensc/src/libopensc/pkcs15.c:1654:9
+    #8 0x556fa27afbd5 in select_id /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:2894:9
+    #9 0x556fa27a2508 in sc_pkcs15init_init_prkdf /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:1283:6
+    #10 0x556fa279e014 in sc_pkcs15init_generate_key /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:1578:6
+    #11 0x556fa27cc2a2 in do_generate_key /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:207:9
+    #12 0x556fa27cd496 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:337:5
+    #13 0x556fa263cc90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x556fa2627f05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x556fa262d99f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x556fa2658c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f6ea2e26082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #18 0x556fa26200ed in _start (/out/fuzz_pkcs15init+0x1f30ed)
+
+DEDUP_TOKEN: __interceptor_strdup--sc_pkcs15_get_lastupdate--generate_cache_filename
+Address 0x7f6ea2685b00 is located in stack of thread T0 at offset 256 in frame
+    #0 0x556fa28379ef in sc_pkcs15_get_lastupdate /src/opensc/src/libopensc/pkcs15.c:531
+
+DEDUP_TOKEN: sc_pkcs15_get_lastupdate
+  This frame has 4 object(s):
+    [32, 40) 'file' (line 533)
+    [64, 184) 'asn1_last_update' (line 534)
+    [224, 256) 'last_update' (line 535)
+    [288, 296) 'lupdate_len' (line 536) <== Memory access at offset 256 partially underflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/opensc/src/libopensc/pkcs15.c:571:42 in sc_pkcs15_get_lastupdate
+Shadow bytes around the buggy address:
+  0x7f6ea2685880: f8 f8 f8 f8 f8 f8 f8 f8 f2 f2 f2 f2 f8 f2 f2 f2
+  0x7f6ea2685900: f8 f2 f2 f2 f8 f3 f3 f3 00 00 00 00 00 00 00 00
+  0x7f6ea2685980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6ea2685a00: f1 f1 f1 f1 00 f2 f2 f2 00 00 00 00 00 00 00 00
+  0x7f6ea2685a80: 00 00 00 00 00 00 00 f2 f2 f2 f2 f2 00 00 00 00
+=>0x7f6ea2685b00:[f2]f2 f2 f2 00 f3 f3 f3 00 00 00 00 00 00 00 00
+  0x7f6ea2685b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6ea2685c00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f6ea2685c80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f6ea2685d00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f6ea2685d80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

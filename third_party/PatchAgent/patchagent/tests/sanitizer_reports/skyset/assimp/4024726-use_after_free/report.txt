@@ -1,0 +1,86 @@
+=================================================================
+==671866==ERROR: AddressSanitizer: heap-use-after-free on address 0x502000000050 at pc 0x55555586385a bp 0x7fffffffc7e0 sp 0x7fffffffc7d8
+READ of size 8 at 0x502000000050 thread T0
+    #0 0x555555863859 in CallbackToLogRedirector(char const*, char*) /root/code/Common/Assimp.cpp:359:8
+    #1 0x5555558aab77 in LogToCallbackRedirector::write(char const*) /root/code/Common/Assimp.cpp:150:9
+    #2 0x55555590a4a9 in Assimp::DefaultLogger::WriteToStreams(char const*, Assimp::Logger::ErrorSeverity) /root/code/Common/DefaultLogger.cpp:412:31
+    #3 0x55555590a889 in Assimp::DefaultLogger::OnInfo(char const*) /root/code/Common/DefaultLogger.cpp:292:5
+    #4 0x5555559098b6 in Assimp::Logger::info(char const*) /root/code/Common/DefaultLogger.cpp:194:12
+    #5 0x5555558e0853 in void Assimp::Logger::info<char const (&) [6], std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&>(char const (&) [6], std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/include/assimp/Logger.hpp:126:9
+    #6 0x5555558d5cdc in WriteLogOpening(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/code/Common/Importer.cpp:528:5
+    #7 0x5555558d2c07 in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:599:5
+    #8 0x5555558d1fd9 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    #9 0x555555861fa9 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+    #10 0x555555847714 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2f3714) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #11 0x5555558482cc in fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) (/root/assimp_fuzzer+0x2f42cc) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #12 0x55555583088e in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2dc88e) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #13 0x5555558362fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2e22fa) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #14 0x555555860ab6 in main (/root/assimp_fuzzer+0x30cab6) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #15 0x7ffff6f1b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #16 0x7ffff6f1b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #17 0x55555582b414 in _start (/root/assimp_fuzzer+0x2d7414) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+
+0x502000000050 is located 0 bytes inside of 16-byte region [0x502000000050,0x502000000060)
+freed by thread T0 here:
+    #0 0x7ffff731150a in free build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x5555558cdfb4 in Assimp::Intern::AllocateFromAssimpHeap::operator delete(void*) /root/code/Common/Importer.cpp:128:12
+    #2 0x55555590ba91 in Assimp::StdOStreamLogStream::~StdOStreamLogStream() /root/code/Common/StdOStreamLogStream.h:86:52
+    #3 0x5555558aa9df in LogToCallbackRedirector::~LogToCallbackRedirector() /root/code/Common/Assimp.cpp:143:13
+    #4 0x5555558aaad8 in LogToCallbackRedirector::~LogToCallbackRedirector() /root/code/Common/Assimp.cpp:130:32
+    #5 0x555555864245 in aiDetachLogStream /root/code/Common/Assimp.cpp:417:5
+    #6 0x555555862066 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:64:5
+    #7 0x555555847714 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2f3714) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #8 0x555555830846 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2dc846) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #9 0x5555558362fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2e22fa) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #10 0x555555860ab6 in main (/root/assimp_fuzzer+0x30cab6) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #11 0x7ffff6f1b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #12 0x7ffff6f1b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #13 0x55555582b414 in _start (/root/assimp_fuzzer+0x2d7414) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+
+previously allocated by thread T0 here:
+    #0 0x7ffff73117a3 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7ffff7df05db in operator new(unsigned long) /build/gcc-14-OQFzmN/gcc-14-14-20240412/build/x86_64-linux-gnu/libstdc++-v3/libsupc++/../../../../src/libstdc++-v3/libsupc++/new_op.cc:50:22
+    #2 0x555555909090 in Assimp::LogStream::createDefaultStream(aiDefaultLogStream, char const*, Assimp::IOSystem*) /root/code/Common/DefaultLogger.cpp:112:16
+    #3 0x555555863989 in aiGetPredefinedLogStream /root/code/Common/Assimp.cpp:370:25
+    #4 0x555555861f68 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:50:26
+    #5 0x555555847714 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2f3714) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #6 0x555555830846 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2dc846) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #7 0x5555558362fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2e22fa) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #8 0x555555860ab6 in main (/root/assimp_fuzzer+0x30cab6) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+    #9 0x7ffff6f1b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #10 0x7ffff6f1b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #11 0x55555582b414 in _start (/root/assimp_fuzzer+0x2d7414) (BuildId: d5d78d74e38444c01ccdf8262a60ae2542bf365a)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/code/Common/Assimp.cpp:359:8 in CallbackToLogRedirector(char const*, char*)
+Shadow bytes around the buggy address:
+  0x501ffffffd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x502000000000: fa fa 00 00 fa fa fd fd fa fa[fd]fd fa fa fd fd
+  0x502000000080: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fd
+  0x502000000100: fa fa fd fd fa fa fd fd fa fa fd fa fa fa fd fa
+  0x502000000180: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x502000000200: fa fa fd fd fa fa fd fa fa fa fd fa fa fa fd fd
+  0x502000000280: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==671866==ABORTING

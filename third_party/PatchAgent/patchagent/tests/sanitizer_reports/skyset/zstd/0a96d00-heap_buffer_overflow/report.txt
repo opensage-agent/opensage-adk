@@ -1,0 +1,70 @@
+=================================================================
+==360164==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7fd35aa84392 at pc 0x55ddd9fb5d27 bp 0x7ffeafea7490 sp 0x7ffeafea7488
+WRITE of size 1 at 0x7fd35aa84392 thread T0
+    #0 0x55ddd9fb5d26 in FSE_writeNCount_generic /root/tests/fuzz/../../lib/compress/fse_compress.c:270:20
+    #1 0x55ddd9fb56ad in FSE_writeNCount /root/tests/fuzz/../../lib/compress/fse_compress.c:301:12
+    #2 0x55ddd9fbbf05 in HUF_compressWeights /root/tests/fuzz/../../lib/compress/huf_compress.c:95:9
+    #3 0x55ddd9fbb879 in HUF_writeCTable_wksp /root/tests/fuzz/../../lib/compress/huf_compress.c:136:9
+    #4 0x55ddd9fc0706 in HUF_compress_internal /root/tests/fuzz/../../lib/compress/huf_compress.c:829:9
+    #5 0x55ddd9fc0c12 in HUF_compress4X_repeat /root/tests/fuzz/../../lib/compress/huf_compress.c:900:12
+    #6 0x55ddd9ff961b in ZSTD_compressLiterals /root/tests/fuzz/../../lib/compress/zstd_compress_literals.c:109:13
+    #7 0x55ddd9ff231d in ZSTD_entropyCompressSeqStore_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:2595:30
+    #8 0x55ddd9ff0896 in ZSTD_entropyCompressSeqStore /root/tests/fuzz/../../lib/compress/zstd_compress.c:2684:26
+    #9 0x55ddd9fedf5f in ZSTD_compressSeqStore_singleBlock /root/tests/fuzz/../../lib/compress/zstd_compress.c:3488:17
+    #10 0x55ddd9fed866 in ZSTD_compressBlock_splitBlock_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:3674:22
+    #11 0x55ddd9feafbc in ZSTD_compressBlock_splitBlock /root/tests/fuzz/../../lib/compress/zstd_compress.c:3719:13
+    #12 0x55ddd9fe8748 in ZSTD_compress_frameChunk /root/tests/fuzz/../../lib/compress/zstd_compress.c:3941:25
+    #13 0x55ddd9fd39de in ZSTD_compressContinue_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:4116:30
+    #14 0x55ddd9fd5fc4 in ZSTD_compressEnd /root/tests/fuzz/../../lib/compress/zstd_compress.c:4620:26
+    #15 0x55ddd9fd6970 in ZSTD_compress_advanced_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:4669:12
+    #16 0x55ddd9fd6b67 in ZSTD_compress_usingDict /root/tests/fuzz/../../lib/compress/zstd_compress.c:4684:12
+    #17 0x55ddd9fd6c2a in ZSTD_compressCCtx /root/tests/fuzz/../../lib/compress/zstd_compress.c:4694:12
+    #18 0x55ddda2b8b90 in LLVMFuzzerTestOneInput /root/tests/fuzz/simple_compress.c:46:24
+    #19 0x55ddda2b90f9 in main /root/tests/fuzz/regression_driver.c:77:5
+    #20 0x7fd35b2281c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #21 0x7fd35b22828a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #22 0x55ddd9f42664 in _start (/root/simple_compress+0x9664) (BuildId: 4355516b624e9e123017e6fcd328105db47ee2a9)
+
+0x7fd35aa84392 is located 7 bytes after 252811-byte region [0x7fd35aa46800,0x7fd35aa8438b)
+allocated by thread T0 here:
+    #0 0x7fd35b8a37a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55ddd9f49baf in FUZZ_malloc /root/tests/fuzz/fuzz_helpers.c:19:27
+    #2 0x55ddda2b8b6c in LLVMFuzzerTestOneInput /root/tests/fuzz/simple_compress.c:45:18
+    #3 0x55ddda2b90f9 in main /root/tests/fuzz/regression_driver.c:77:5
+    #4 0x7fd35b2281c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #5 0x7fd35b22828a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #6 0x55ddd9f42664 in _start (/root/simple_compress+0x9664) (BuildId: 4355516b624e9e123017e6fcd328105db47ee2a9)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/tests/fuzz/../../lib/compress/fse_compress.c:270:20 in FSE_writeNCount_generic
+Shadow bytes around the buggy address:
+  0x7fd35aa84100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd35aa84180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd35aa84200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd35aa84280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd35aa84300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7fd35aa84380: 00 03[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7fd35aa84400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7fd35aa84480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7fd35aa84500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7fd35aa84580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7fd35aa84600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360164==ABORTING

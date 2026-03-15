@@ -1,0 +1,72 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x5040000007a8 thread T0
+    - gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1658:12
+    - gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    - gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    - gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    - gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    - gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    - gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    - gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    - gf_xml_dom_reset /root/src/utils/xml_parser.c:1814:4
+    - gf_xml_dom_del /root/src/utils/xml_parser.c:1826:2
+    - ttxtin_reset /root/src/filters/load_text.c:4044:32
+    - txtin_finalize /root/src/filters/load_text.c:4293:2
+    - gf_fs_del /root/src/filter_core/filter_session.c:773:6
+    - gf_dasher_clean_inputs /root/src/media_tools/dash_segmenter.c:164:3
+    - gf_dasher_del /root/src/media_tools/dash_segmenter.c:173:2
+    - do_dash /root/applications/mp4box/mp4box.c:4894:2
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+0x5040000007a8 is located 24 bytes inside of 48-byte region [0x504000000790,0x5040000007c0)
+freed by thread T0 here:
+    - gf_free /root/src/utils/alloc.c:165:2
+    - gf_xml_dom_node_del /root/src/utils/xml_parser.c:1686:2
+    - gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    - gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    - gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    - gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    - gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    - gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    - gf_xml_dom_reset /root/src/utils/xml_parser.c:1814:4
+    - gf_xml_dom_del /root/src/utils/xml_parser.c:1826:2
+    - ttxtin_reset /root/src/filters/load_text.c:4042:19
+    - txtin_finalize /root/src/filters/load_text.c:4293:2
+    - gf_fs_del /root/src/filter_core/filter_session.c:773:6
+    - gf_dasher_clean_inputs /root/src/media_tools/dash_segmenter.c:164:3
+    - gf_dasher_del /root/src/media_tools/dash_segmenter.c:173:2
+    - do_dash /root/applications/mp4box/mp4box.c:4894:2
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+previously allocated by thread T0 here:
+    - gf_malloc /root/src/utils/alloc.c:150:9
+    - on_dom_node_start /root/src/utils/xml_parser.c:1702:2
+    - xml_sax_node_start /root/src/utils/xml_parser.c:306:4
+    - xml_sax_parse_attribute /root/src/utils/xml_parser.c:395:6
+    - xml_sax_parse /root/src/utils/xml_parser.c:932:8
+    - gf_xml_sax_parse_intern /root/src/utils/xml_parser.c:1096:9
+    - gf_xml_sax_parse /root/src/utils/xml_parser.c:1124:6
+    - xml_sax_read_file /root/src/utils/xml_parser.c:1211:7
+    - gf_xml_sax_parse_file /root/src/utils/xml_parser.c:1323:9
+    - gf_xml_dom_parse /root/src/utils/xml_parser.c:1858:6
+    - gf_text_ttml_setup /root/src/filters/load_text.c:1953:6
+    - gf_text_process_ttml /root/src/filters/load_text.c:2155:29
+    - txtin_process /root/src/filters/load_text.c:4015:6
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4831:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

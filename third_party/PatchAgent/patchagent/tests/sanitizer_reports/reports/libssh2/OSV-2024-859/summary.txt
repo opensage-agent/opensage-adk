@@ -1,0 +1,76 @@
+The sanitizer detected a heap double free vulnerability. The explanation of the vulnerability is: A heap-allocated memory block is freed twice, potentially causing memory corruption or security vulnerabilities. Here is the detail: 
+
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - libssh2_default_free /src/libssh2/src/session.c:86:5
+    - diffie_hellman_sha_algo /src/libssh2/src/kex.c:387:13
+    - kex_method_diffie_hellman_group14_key_exchange /src/libssh2/src/kex.c:1067:11
+    - kex_method_diffie_hellman_group14_sha1_key_exchange /src/libssh2/src/kex.c:1094:12
+    - _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    - _libssh2_packet_add /src/libssh2/src/packet.c:1387:14
+    - fullpacket /src/libssh2/src/transport.c:319:14
+    - _libssh2_transport_read /src/libssh2/src/transport.c:736:18
+    - _libssh2_packet_burn /src/libssh2/src/packet.c:1571:15
+    - diffie_hellman_sha_algo /src/libssh2/src/kex.c:336:17
+    - kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:975:11
+    - _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    - session_startup /src/libssh2/src/session.c:772:14
+    - libssh2_session_handshake /src/libssh2/src/session.c:863:5
+    - LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:67:6
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x504000000350 is located 0 bytes inside of 39-byte region [0x504000000350,0x504000000377)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - libssh2_default_free /src/libssh2/src/session.c:86:5
+    - diffie_hellman_sha_algo /src/libssh2/src/kex.c:387:13
+    - kex_method_diffie_hellman_group14_key_exchange /src/libssh2/src/kex.c:1067:11
+    - kex_method_diffie_hellman_group14_sha1_key_exchange /src/libssh2/src/kex.c:1094:12
+    - _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    - _libssh2_packet_add /src/libssh2/src/packet.c:1387:14
+    - fullpacket /src/libssh2/src/transport.c:319:14
+    - _libssh2_transport_read /src/libssh2/src/transport.c:736:18
+    - _libssh2_packet_burn /src/libssh2/src/packet.c:1571:15
+    - diffie_hellman_sha_algo /src/libssh2/src/kex.c:336:17
+    - kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:975:11
+    - _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    - session_startup /src/libssh2/src/session.c:772:14
+    - libssh2_session_handshake /src/libssh2/src/session.c:863:5
+    - LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:67:6
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - libssh2_default_alloc /src/libssh2/src/session.c:77:12
+    - _libssh2_copy_string /src/libssh2/src/misc.c:920:19
+    - diffie_hellman_sha_algo /src/libssh2/src/kex.c:389:12
+    - kex_method_diffie_hellman_group14_key_exchange /src/libssh2/src/kex.c:1067:11
+    - kex_method_diffie_hellman_group14_sha1_key_exchange /src/libssh2/src/kex.c:1094:12
+    - _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    - _libssh2_packet_add /src/libssh2/src/packet.c:1387:14
+    - fullpacket /src/libssh2/src/transport.c:319:14
+    - _libssh2_transport_read /src/libssh2/src/transport.c:736:18
+    - _libssh2_packet_burn /src/libssh2/src/packet.c:1571:15
+    - diffie_hellman_sha_algo /src/libssh2/src/kex.c:336:17
+    - kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:975:11
+    - _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    - session_startup /src/libssh2/src/session.c:772:14
+    - libssh2_session_handshake /src/libssh2/src/session.c:863:5
+    - LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:67:6
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

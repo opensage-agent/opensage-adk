@@ -1,0 +1,84 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x5060000477e0 thread T0
+    - extract_arg /root/libr/anal/var.c:905:57
+    - r_anal_extract_vars /root/libr/anal/var.c:1356:3
+    - fcn_recurse /root/libr/anal/fcn.c:1409:4
+    - r_anal_function_bb /root/libr/anal/fcn.c:1456:9
+    - r_anal_function /root/libr/anal/fcn.c:1577:12
+    - __core_anal_fcn /root/libr/core/canal.c:797:12
+    - r_core_anal_fcn /root/libr/core/canal.c:2024:6
+    - r_core_af /root/libr/core/cmd_anal.c:3861:2
+    - r_core_anal_all /root/libr/core/canal.c:4270:5
+    - cmd_anal_all /root/libr/core/cmd_anal.c:11070:4
+    - cmd_anal /root/libr/core/cmd_anal.c:12223:8
+    - r_cmd_call /root/libr/core/cmd_api.c:537:10
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    - run_cmd_depth /root/libr/core/cmd.c:5366:9
+    - r_core_cmd /root/libr/core/cmd.c:5449:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5606:9
+    - r_main_radare2 /root/libr/main/radare2.c:1397:11
+    - main /root/binr/radare2/radare2.c:96:9
+
+0x5060000477e0 is located 0 bytes inside of 56-byte region [0x5060000477e0,0x506000047818)
+freed by thread T0 here:
+    - r_reg_item_free /root/libr/reg/reg.c:96:2
+    - r_list_delete /root/libr/util/list.c:124:3
+    - r_list_purge /root/libr/util/list.c:90:3
+    - r_list_free /root/libr/util/list.c:100:3
+    - r_reg_free_internal /root/libr/reg/reg.c:192:4
+    - r_reg_set_profile_string /root/libr/reg/profile.c:150:2
+    - r_anal_set_reg_profile /root/libr/anal/anal.c:258:4
+    - r_anal_set_bits /root/libr/anal/anal.c:324:4
+    - cb_asmbits /root/libr/core/cconfig.c:884:8
+    - r_config_set_i /root/libr/config/config.c:574:13
+    - r_core_seek_arch_bits /root/libr/core/cio.c:377:3
+    - archbits /root/libr/core/core.c:267:2
+    - r_anal_op /root/libr/anal/op.c:111:4
+    - is_delta_pointer_table /root/libr/anal/fcn.c:195:13
+    - fcn_recurse /root/libr/anal/fcn.c:998:9
+    - r_anal_function_bb /root/libr/anal/fcn.c:1456:9
+    - r_anal_function /root/libr/anal/fcn.c:1577:12
+    - __core_anal_fcn /root/libr/core/canal.c:797:12
+    - r_core_anal_fcn /root/libr/core/canal.c:2024:6
+    - r_core_af /root/libr/core/cmd_anal.c:3861:2
+    - r_core_anal_all /root/libr/core/canal.c:4270:5
+    - cmd_anal_all /root/libr/core/cmd_anal.c:11070:4
+    - cmd_anal /root/libr/core/cmd_anal.c:12223:8
+    - r_cmd_call /root/libr/core/cmd_api.c:537:10
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    - run_cmd_depth /root/libr/core/cmd.c:5366:9
+    - r_core_cmd /root/libr/core/cmd.c:5449:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5606:9
+
+previously allocated by thread T0 here:
+    - parse_def /root/libr/reg/profile.c:68:19
+    - r_reg_set_profile_string /root/libr/reg/profile.c:221:8
+    - r_anal_set_reg_profile /root/libr/anal/anal.c:258:4
+    - r_anal_set_bits /root/libr/anal/anal.c:324:4
+    - cb_asmbits /root/libr/core/cconfig.c:884:8
+    - r_config_set_i /root/libr/config/config.c:574:13
+    - r_core_seek_arch_bits /root/libr/core/cio.c:377:3
+    - r_core_anal_fcn /root/libr/core/canal.c:1973:2
+    - r_core_af /root/libr/core/cmd_anal.c:3861:2
+    - r_core_anal_all /root/libr/core/canal.c:4270:5
+    - cmd_anal_all /root/libr/core/cmd_anal.c:11070:4
+    - cmd_anal /root/libr/core/cmd_anal.c:12223:8
+    - r_cmd_call /root/libr/core/cmd_api.c:537:10
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    - run_cmd_depth /root/libr/core/cmd.c:5366:9
+    - r_core_cmd /root/libr/core/cmd.c:5449:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5606:9
+    - r_main_radare2 /root/libr/main/radare2.c:1397:11
+    - main /root/binr/radare2/radare2.c:96:9
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

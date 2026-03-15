@@ -1,0 +1,26 @@
+The sanitizer detected a remote code execution vulnerability.The explanation of the vulnerability is: An attacker can execute arbitrary code on a remote system, leading to full compromise.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh: Remote Code Execution
+Unrestricted class/object creation based on externally controlled data may allow
+remote code execution depending on available classes on the classpath.
+- jaz.Zer.reportFinding (jaz/Zer.java:110)
+- jaz.Zer.reportFindingIfEnabled (jaz/Zer.java:105)
+- jaz.Zer.readObject (jaz/Zer.java:377)
+- java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke (java/base/jdk/internal/reflect/NativeMethodAccessorImpl.java:77)
+- java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke (java/base/jdk/internal/reflect/DelegatingMethodAccessorImpl.java:43)
+- java.base/java.lang.reflect.Method.invoke (java/base/java/lang/reflect/Method.java:568)
+- java.base/java.io.ObjectStreamClass.invokeReadObject (java/base/java/io/ObjectStreamClass.java:1231)
+- java.base/java.io.ObjectInputStream.readSerialData (java/base/java/io/ObjectInputStream.java:2434)
+- java.base/java.io.ObjectInputStream.readOrdinaryObject (java/base/java/io/ObjectInputStream.java:2268)
+- java.base/java.io.ObjectInputStream.readObject0 (java/base/java/io/ObjectInputStream.java:1744)
+- java.base/java.io.ObjectInputStream.readObject (java/base/java/io/ObjectInputStream.java:514)
+- java.base/java.io.ObjectInputStream.readObject (java/base/java/io/ObjectInputStream.java:472)
+- org.apache.commons.lang3.SerializationUtils.deserialize (org/apache/commons/lang3/SerializationUtils.java:208)
+- org.apache.commons.lang3.SerializationUtils.deserialize (org/apache/commons/lang3/SerializationUtils.java:174)
+- SerializationUtilsFuzzer.fuzzerTestOneInput (SerializationUtilsFuzzer.java:38)
+
+To fix this issue, follow the advice below:
+
+1. Implement strong input validation to prevent code injection attacks.
+2. Use secure communication protocols to protect against remote code execution.
+3. Monitor network traffic for suspicious activity and unauthorized access.

@@ -1,0 +1,46 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x5170000127b8 thread T0
+    - mp4_mux_process_fragmented /root/src/filters/mux_isom.c:6632:35
+    - mp4_mux_process /root/src/filters/mux_isom.c:7207:14
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4825:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+0x5170000127b8 is located 312 bytes inside of 672-byte region [0x517000012680,0x517000012920)
+freed by thread T0 here:
+    - gf_free /root/src/utils/alloc.c:165:2
+    - mp4_mux_configure_pid /root/src/filters/mux_isom.c:3994:4
+    - gf_filter_pid_configure /root/src/filter_core/filter_pid.c:876:6
+    - gf_filter_pid_disconnect_task /root/src/filter_core/filter_pid.c:1285:2
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4825:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+previously allocated by thread T0 here:
+    - gf_malloc /root/src/utils/alloc.c:150:9
+    - mp4_mux_setup_pid /root/src/filters/mux_isom.c:1078:3
+    - mp4_mux_configure_pid /root/src/filters/mux_isom.c:4017:9
+    - gf_filter_pid_configure /root/src/filter_core/filter_pid.c:876:6
+    - gf_filter_pid_connect_task /root/src/filter_core/filter_pid.c:1230:3
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4825:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

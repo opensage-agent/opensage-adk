@@ -1,0 +1,21 @@
+The sanitizer detected a abort vulnerability. The explanation of the vulnerability is: The program was terminated due to an abort signal, indicating a critical error. Here is the detail: 
+
+    - isvce_write_coeff4x4_cavlc /src/libavc/encoder/svc/isvce_cavlc.c:260:5
+    - isvce_encode_residue /src/libavc/encoder/svc/isvce_cavlc.c:897:13
+    - isvce_write_pslice_mb_cavlc /src/libavc/encoder/svc/isvce_cavlc.c:1587:20
+    - isvce_entropy /src/libavc/encoder/svc/isvce_process.c:903:13
+    - isvce_process_thread /src/libavc/encoder/svc/isvce_process.c:2775:32
+    - isvce_encode /src/libavc/encoder/svc/isvce_encode.c:484:13
+    - isvce_api_function /src/libavc/encoder/svc/isvce_api.c:6045:19
+    - Codec::encodeFrames(unsigned char const*, unsigned long) /src/libavc/fuzzer/svc_enc_fuzzer.cpp:1263:9
+    - LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_enc_fuzzer.cpp:1339:16
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Investigate the cause of the abort signal to identify the root cause of the error.
+2. Review the program's error handling mechanisms to ensure critical errors are handled appropriately.

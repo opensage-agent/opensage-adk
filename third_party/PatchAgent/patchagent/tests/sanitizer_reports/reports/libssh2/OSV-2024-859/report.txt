@@ -1,0 +1,100 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libssh2:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libssh2/OSV-2024-859/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce ssh2_client_fuzzer -runs=100.
++ FUZZER=ssh2_client_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ssh2_client_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ssh2_client_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3526319354
+INFO: Loaded 1 modules   (4124 inline 8-bit counters): 4124 [0x557951781588, 0x5579517825a4), 
+INFO: Loaded 1 PC tables (4124 PCs): 4124 [0x5579517825a8,0x557951792768), 
+/out/ssh2_client_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: attempting double-free on 0x504000000350 in thread T0:
+[1m[0mSCARINESS: 42 (double-free)
+    #0 0x557951623586 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x5579516643f0 in libssh2_default_free /src/libssh2/src/session.c:86:5
+    #2 0x5579516cde83 in diffie_hellman_sha_algo /src/libssh2/src/kex.c:387:13
+    #3 0x5579516d6a8a in kex_method_diffie_hellman_group14_key_exchange /src/libssh2/src/kex.c:1067:11
+    #4 0x5579516d6d83 in kex_method_diffie_hellman_group14_sha1_key_exchange /src/libssh2/src/kex.c:1094:12
+    #5 0x5579516ad9fa in _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    #6 0x5579516e5e5a in _libssh2_packet_add /src/libssh2/src/packet.c:1387:14
+    #7 0x5579516782db in fullpacket /src/libssh2/src/transport.c:319:14
+    #8 0x5579516748d8 in _libssh2_transport_read /src/libssh2/src/transport.c:736:18
+    #9 0x5579516ed2ea in _libssh2_packet_burn /src/libssh2/src/packet.c:1571:15
+    #10 0x5579516cd87e in diffie_hellman_sha_algo /src/libssh2/src/kex.c:336:17
+    #11 0x5579516d720a in kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:975:11
+    #12 0x5579516ad9fa in _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    #13 0x557951666024 in session_startup /src/libssh2/src/session.c:772:14
+    #14 0x55795166565d in libssh2_session_handshake /src/libssh2/src/session.c:863:5
+    #15 0x55795166305a in LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:67:6
+    #16 0x557951517a50 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x557951502cc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x55795150875f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x557951533a02 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7f86e4e88082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #21 0x5579514faead in _start (/out/ssh2_client_fuzzer+0x66ead)
+
+DEDUP_TOKEN: __interceptor_free--libssh2_default_free--diffie_hellman_sha_algo
+[1m[32m0x504000000350 is located 0 bytes inside of 39-byte region [0x504000000350,0x504000000377)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x557951623586 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x5579516643f0 in libssh2_default_free /src/libssh2/src/session.c:86:5
+    #2 0x5579516cde83 in diffie_hellman_sha_algo /src/libssh2/src/kex.c:387:13
+    #3 0x5579516d6a8a in kex_method_diffie_hellman_group14_key_exchange /src/libssh2/src/kex.c:1067:11
+    #4 0x5579516d6d83 in kex_method_diffie_hellman_group14_sha1_key_exchange /src/libssh2/src/kex.c:1094:12
+    #5 0x5579516ad9fa in _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    #6 0x5579516e5e5a in _libssh2_packet_add /src/libssh2/src/packet.c:1387:14
+    #7 0x5579516782db in fullpacket /src/libssh2/src/transport.c:319:14
+    #8 0x5579516748d8 in _libssh2_transport_read /src/libssh2/src/transport.c:736:18
+    #9 0x5579516ed2ea in _libssh2_packet_burn /src/libssh2/src/packet.c:1571:15
+    #10 0x5579516cd87e in diffie_hellman_sha_algo /src/libssh2/src/kex.c:336:17
+    #11 0x5579516d720a in kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:975:11
+    #12 0x5579516ad9fa in _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    #13 0x557951666024 in session_startup /src/libssh2/src/session.c:772:14
+    #14 0x55795166565d in libssh2_session_handshake /src/libssh2/src/session.c:863:5
+    #15 0x55795166305a in LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:67:6
+    #16 0x557951517a50 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x557951502cc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x55795150875f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x557951533a02 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7f86e4e88082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--libssh2_default_free--diffie_hellman_sha_algo
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x55795162381f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x557951664380 in libssh2_default_alloc /src/libssh2/src/session.c:77:12
+    #2 0x5579516df634 in _libssh2_copy_string /src/libssh2/src/misc.c:920:19
+    #3 0x5579516cdeab in diffie_hellman_sha_algo /src/libssh2/src/kex.c:389:12
+    #4 0x5579516d6a8a in kex_method_diffie_hellman_group14_key_exchange /src/libssh2/src/kex.c:1067:11
+    #5 0x5579516d6d83 in kex_method_diffie_hellman_group14_sha1_key_exchange /src/libssh2/src/kex.c:1094:12
+    #6 0x5579516ad9fa in _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    #7 0x5579516e5e5a in _libssh2_packet_add /src/libssh2/src/packet.c:1387:14
+    #8 0x5579516782db in fullpacket /src/libssh2/src/transport.c:319:14
+    #9 0x5579516748d8 in _libssh2_transport_read /src/libssh2/src/transport.c:736:18
+    #10 0x5579516ed2ea in _libssh2_packet_burn /src/libssh2/src/packet.c:1571:15
+    #11 0x5579516cd87e in diffie_hellman_sha_algo /src/libssh2/src/kex.c:336:17
+    #12 0x5579516d720a in kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:975:11
+    #13 0x5579516ad9fa in _libssh2_kex_exchange /src/libssh2/src/kex.c:3941:23
+    #14 0x557951666024 in session_startup /src/libssh2/src/session.c:772:14
+    #15 0x55795166565d in libssh2_session_handshake /src/libssh2/src/session.c:863:5
+    #16 0x55795166305a in LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:67:6
+    #17 0x557951517a50 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x557951502cc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x55795150875f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x557951533a02 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7f86e4e88082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--libssh2_default_alloc--_libssh2_copy_string
+SUMMARY: AddressSanitizer: double-free /src/libssh2/src/session.c:86:5 in libssh2_default_free
+==14==ABORTING

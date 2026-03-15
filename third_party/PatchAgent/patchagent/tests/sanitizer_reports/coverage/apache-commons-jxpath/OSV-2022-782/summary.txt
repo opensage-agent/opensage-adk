@@ -1,0 +1,23 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- org.apache.commons.jxpath.ri.compiler.CoreFunction.toString (org/apache/commons/jxpath/ri/compiler/CoreFunction.java:234)
+- java.base/java.lang.String.valueOf (java/base/java/lang/String.java:4215)
+- java.base/java.lang.StringBuffer.append (java/base/java/lang/StringBuffer.java:305)
+Caused by: java.lang.StackOverflowError
+- org.apache.commons.jxpath.ri.compiler.CoreOperation.toString (org/apache/commons/jxpath/ri/compiler/CoreOperation.java:81)
+- org.apache.commons.jxpath.ri.compiler.CoreOperation.parenthesize (org/apache/commons/jxpath/ri/compiler/CoreOperation.java:103)
+- org.apache.commons.jxpath.ri.compiler.CoreOperation.toString (org/apache/commons/jxpath/ri/compiler/CoreOperation.java:91)
+- org.apache.commons.jxpath.ri.compiler.CoreOperation.parenthesize (org/apache/commons/jxpath/ri/compiler/CoreOperation.java:103)
+- org.apache.commons.jxpath.ri.compiler.CoreOperation.toString (org/apache/commons/jxpath/ri/compiler/CoreOperation.java:91)
+- org.apache.commons.jxpath.ri.compiler.CoreOperation.parenthesize (org/apache/commons/jxpath/ri/compiler/CoreOperation.java:103)
+- org.apache.commons.jxpath.ri.compiler.CoreOperation.toString (org/apache/commons/jxpath/ri/compiler/CoreOperation.java:91)
+- org.apache.commons.jxpath.ri.compiler.CoreOperation.parenthesize (org/apache/commons/jxpath/ri/compiler/CoreOperation.java:103)
+- org.apache.commons.jxpath.ri.compiler.CoreOperation.toString (org/apache/commons/jxpath/ri/compiler/CoreOperation.java:91)
+	... 3 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

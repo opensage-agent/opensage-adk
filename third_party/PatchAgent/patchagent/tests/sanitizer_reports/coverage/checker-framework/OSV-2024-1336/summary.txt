@@ -1,0 +1,26 @@
+The sanitizer detected a out of memory vulnerability.The explanation of the vulnerability is: The program runs out of memory, causing allocation failures and potential crashes.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Out of memory (use '-Xmx1620m' to reproduce)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+- java.base/java.util.Arrays.copyOf (java/base/java/util/Arrays.java:3537)
+- java.base/java.lang.AbstractStringBuilder.ensureCapacityInternal (java/base/java/lang/AbstractStringBuilder.java:228)
+- java.base/java.lang.AbstractStringBuilder.append (java/base/java/lang/AbstractStringBuilder.java:802)
+- java.base/java.lang.StringBuilder.append (java/base/java/lang/StringBuilder.java:246)
+- java.base/java.lang.StringBuilder.append (java/base/java/lang/StringBuilder.java:91)
+- java.base/java.util.Formatter$FormatSpecifier.appendJustified (java/base/java/util/Formatter$FormatSpecifier/appendJustified:3102)
+- java.base/java.util.Formatter$FormatSpecifier.print (java/base/java/util/Formatter$FormatSpecifier/print:3083)
+- java.base/java.util.Formatter$FormatSpecifier.printFloat (java/base/java/util/Formatter$FormatSpecifier/printFloat:2968)
+- java.base/java.util.Formatter$FormatSpecifier.print (java/base/java/util/Formatter$FormatSpecifier/print:2924)
+- java.base/java.util.Formatter.format (java/base/java/util/Formatter.java:2682)
+- java.base/java.util.Formatter.format (java/base/java/util/Formatter.java:2625)
+- java.base/java.lang.String.format (java/base/java/lang/String.java:4140)
+- org.checkerframework.checker.formatter.util.FormatUtil.tryFormatSatisfiability (org/checkerframework/checker/formatter/util/FormatUtil.java:103)
+- org.checkerframework.checker.formatter.util.FormatUtil.formatParameterCategories (org/checkerframework/checker/formatter/util/FormatUtil.java:113)
+- UtilCheckerFuzzer.fuzzChecker (UtilCheckerFuzzer.java:37)
+- UtilCheckerFuzzer.fuzzerTestOneInput (UtilCheckerFuzzer.java:27)
+
+To fix this issue, follow the advice below:
+
+1. Check for memory leaks that may be consuming system resources.
+2. Optimize memory usage by releasing unused resources.
+3. Increase system memory or swap space to accommodate memory requirements.

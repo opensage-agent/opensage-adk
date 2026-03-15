@@ -1,0 +1,60 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 279 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.RegexInsecureQuoteInjection (took 20 ms, size +34%)
+INFO: using inputs from: ./sanitizer_report/RegexInsecureQuoteInjection/crash-39f49d8b145f86e2f38c3a7afdb43567c83b5e38
+INFO: found LLVMFuzzerCustomMutator (0x7fdf3cc60a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3699267973
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x564c45f28800, 0x564c45f28a00), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x564c45e993e0,0x564c45e9b3e0), 
+jazzer: Running 1 inputs 1 time(s) each.
+Running: ./sanitizer_report/RegexInsecureQuoteInjection/crash-39f49d8b145f86e2f38c3a7afdb43567c83b5e38
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Regular Expression Injection
+Regular expression patterns that contain unescaped untrusted input can consume
+arbitrary amounts of CPU time. To properly escape the input, wrap it with
+Pattern.quote(...).
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:164)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.patternHook(RegexInjection.kt:85)
+	at java.base/java.util.regex.Pattern.matches(Pattern.java:1220)
+	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:733)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:155)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.patternHook(RegexInjection.kt:85)
+	at com.example.RegexInsecureQuoteInjection.fuzzerTestOneInput(RegexInsecureQuoteInjection.java:27)
+Caused by: java.util.regex.PatternSyntaxException: Illegal/unsupported escape sequence near index 4
+\Q
+\E]\E]]]]]]\E
+    ^
+	at java.base/java.util.regex.Pattern.error(Pattern.java:2204)
+	at java.base/java.util.regex.Pattern.escape(Pattern.java:2785)
+	at java.base/java.util.regex.Pattern.atom(Pattern.java:2462)
+	at java.base/java.util.regex.Pattern.sequence(Pattern.java:2335)
+	at java.base/java.util.regex.Pattern.expr(Pattern.java:2245)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1945)
+	at java.base/java.util.regex.Pattern.<init>(Pattern.java:1576)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1101)
+	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:733)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:155)
+	... 6 more
+DEDUP_TOKEN: 1e45412e635bdc43
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_39f49d8b145f86e2f38c3a7afdb43567c83b5e38.java
+

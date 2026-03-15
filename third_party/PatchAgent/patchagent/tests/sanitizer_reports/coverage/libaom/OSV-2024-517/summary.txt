@@ -1,0 +1,30 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - od_ec_dec_refill /src/aom/aom_dsp/entdec.c:94:26
+    - od_ec_dec_init /src/aom/aom_dsp/entdec.c:152:3
+    - aom_reader_init /src/aom/aom_dsp/bitreader.c:20:3
+    - setup_bool_decoder /src/aom/av1/decoder/decodeframe.c:1412:7
+    - decode_tiles /src/aom/av1/decoder/decodeframe.c:2831:7
+    - av1_decode_tg_tiles_and_wrapup /src/aom/av1/decoder/decodeframe.c:5259:19
+    - read_one_tile_group_obu /src/aom/av1/decoder/obu.c:361:3
+    - aom_decode_frame_from_obus /src/aom/av1/decoder/obu.c:1030:33
+    - av1_receive_compressed_data /src/aom/av1/decoder/decoder.c:474:7
+    - frame_worker_hook /src/aom/av1/av1_dx_iface.c:413:16
+    - execute /src/aom/aom_util/aom_thread.c:195:27
+    - decode_one /src/aom/av1/av1_dx_iface.c:550:3
+    - decoder_decode /src/aom/av1/av1_dx_iface.c:737:11
+    - aom_codec_decode /src/aom/aom/src/aom_decoder.c:103:11
+    - LLVMFuzzerTestOneInput /src/aom/examples/av1_dec_fuzzer.cc:71:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

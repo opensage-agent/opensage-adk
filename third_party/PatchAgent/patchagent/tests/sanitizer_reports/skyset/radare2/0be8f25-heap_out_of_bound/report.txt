@@ -1,0 +1,81 @@
+=================================================================
+==360030==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000065e90 at pc 0x7fe8929f35f0 bp 0x7fff516703d0 sp 0x7fff516703c8
+READ of size 8 at 0x502000065e90 thread T0
+    #0 0x7fe8929f35ef in iterate_chained_fixups /root/libr/../libr/bin/p/../format/mach0/mach0.c:4562:8
+    #1 0x7fe8929d56e0 in rebase_buffer /root/libr/../libr/bin/p/bin_mach0.c:807:2
+    #2 0x7fe8929d54c9 in rebasing_and_stripping_io_read /root/libr/../libr/bin/p/bin_mach0.c:768:3
+    #3 0x7fe895a53d2a in r_io_plugin_read /root/libr/io/io_plugin.c:161:9
+    #4 0x7fe895a5a4af in r_io_desc_read /root/libr/io/io_desc.c:213:12
+    #5 0x7fe895a6617a in r_io_fd_read /root/libr/io/io_fd.c:24:15
+    #6 0x7fe8956b8347 in buf_io_read /root/libr/util/./buf_io.c:72:9
+    #7 0x7fe8956b1d00 in buf_read /root/libr/util/buf.c:46:27
+    #8 0x7fe8956b0de3 in r_buf_read /root/libr/util/buf.c:452:11
+    #9 0x7fe8956b0b5f in r_buf_read_at /root/libr/util/buf.c:600:6
+    #10 0x7fe8929f0b2b in get_hdr /root/libr/../libr/bin/p/../format/mach0/mach0.c:4517:6
+    #11 0x7fe8929f293a in mach_fields /root/libr/../libr/bin/p/../format/mach0/mach0.c:4417:35
+    #12 0x7fe8928a5252 in r_bin_object_set_items /root/libr/bin/bobj.c:310:16
+    #13 0x7fe8928a4275 in r_bin_object_new /root/libr/bin/bobj.c:168:2
+    #14 0x7fe89289903c in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:585:19
+    #15 0x7fe892873b25 in r_bin_open_buf /root/libr/bin/bin.c:279:8
+    #16 0x7fe892872c4d in r_bin_open_io /root/libr/bin/bin.c:339:13
+    #17 0x7fe89326eea2 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    #18 0x7fe89326a155 in r_core_bin_load /root/libr/core/cfile.c:636:4
+    #19 0x7fe8908c64c5 in r_main_radare2 /root/libr/main/radare2.c:1184:15
+    #20 0x55f0f204767e in main /root/binr/radare2/radare2.c:96:9
+    #21 0x7fe8906911c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #22 0x7fe89069128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #23 0x55f0f20461e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 7ca3955c6e2dc47e201c57d670bfb4f36c177293)
+
+0x502000065e91 is located 0 bytes after 1-byte region [0x502000065e90,0x502000065e91)
+allocated by thread T0 here:
+    #0 0x7fe895de198d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fe892a0a326 in parse_chained_fixups /root/libr/../libr/bin/p/../format/mach0/mach0.c:1517:24
+    #2 0x7fe8929fb683 in init_items /root/libr/../libr/bin/p/../format/mach0/mach0.c:2069:27
+    #3 0x7fe8929d884e in init /root/libr/../libr/bin/p/../format/mach0/mach0.c:2092:7
+    #4 0x7fe8929d8cf8 in new_buf /root/libr/../libr/bin/p/../format/mach0/mach0.c:2207:8
+    #5 0x7fe8929ccf95 in load_buffer /root/libr/../libr/bin/p/bin_mach0.c:57:30
+    #6 0x7fe8928a3f3a in r_bin_object_new /root/libr/bin/bobj.c:147:8
+    #7 0x7fe89289903c in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:585:19
+    #8 0x7fe892873b25 in r_bin_open_buf /root/libr/bin/bin.c:279:8
+    #9 0x7fe892872c4d in r_bin_open_io /root/libr/bin/bin.c:339:13
+    #10 0x7fe89326eea2 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    #11 0x7fe89326a155 in r_core_bin_load /root/libr/core/cfile.c:636:4
+    #12 0x7fe8908c64c5 in r_main_radare2 /root/libr/main/radare2.c:1184:15
+    #13 0x55f0f204767e in main /root/binr/radare2/radare2.c:96:9
+    #14 0x7fe8906911c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x7fe89069128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x55f0f20461e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 7ca3955c6e2dc47e201c57d670bfb4f36c177293)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/libr/../libr/bin/p/../format/mach0/mach0.c:4562:8 in iterate_chained_fixups
+Shadow bytes around the buggy address:
+  0x502000065c00: fa fa 06 fa fa fa 06 fa fa fa 02 fa fa fa fd fa
+  0x502000065c80: fa fa fd fa fa fa 00 00 fa fa 06 fa fa fa 00 02
+  0x502000065d00: fa fa 00 02 fa fa 02 fa fa fa 05 fa fa fa 05 fa
+  0x502000065d80: fa fa 00 00 fa fa 00 02 fa fa 05 fa fa fa 00 06
+  0x502000065e00: fa fa 00 00 fa fa 00 fa fa fa 05 fa fa fa 02 fa
+=>0x502000065e80: fa fa[01]fa fa fa 05 fa fa fa 07 fa fa fa 00 fa
+  0x502000065f00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000065f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000066000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000066080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000066100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360030==ABORTING

@@ -1,0 +1,142 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x51c000000910 at pc 0x564357296036 bp 0x7ffdee5a37e0 sp 0x7ffdee5a37d8
+READ of size 8 at 0x51c000000910 thread T0
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x564357296035 in gx_device_forward_finalize /src/ghostpdl/./base/gdevnfwd.c:33:5
+    #1 0x564356fc7b13 in gx_device_finalize /src/ghostpdl/./base/gsdevice.c:81:9
+    #2 0x56435746d634 in restore_finalize /src/ghostpdl/./psi/isave.c:954:13
+    #3 0x56435746d634 in alloc_restore_step_in /src/ghostpdl/./psi/isave.c:759:9
+    #4 0x5643573f2ce7 in dorestore /src/ghostpdl/./psi/zvmem.c:193:16
+    #5 0x56435736ac52 in z2restore /src/ghostpdl/./psi/zdevice2.c:373:12
+    #6 0x5643573883f9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #7 0x5643573883f9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #8 0x5643573883f9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #9 0x564356b2a3b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #10 0x564356b2a3b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #11 0x564356b2a3b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #12 0x56435765aef0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #13 0x5643576578c0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #14 0x564357654a42 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #15 0x56435765ac78 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #16 0x564356b21fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #17 0x564356b22335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #18 0x5643569d66d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #19 0x5643569c1945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #20 0x5643569c73df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #21 0x5643569f2682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f693cf90082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #23 0x5643569b9b2d in _start (/out/gs_device_pdfwrite_fuzzer+0x719b2d)
+
+DEDUP_TOKEN: gx_device_forward_finalize--gx_device_finalize--restore_finalize
+0x51c000000910 is located 144 bytes inside of 1808-byte region [0x51c000000880,0x51c000000f90)
+freed by thread T0 here:
+    #0 0x564356ae2206 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x5643579e1093 in alloc_free_clump /src/ghostpdl/./base/gsalloc.c:2596:9
+    #2 0x5643579e1093 in i_free_object /src/ghostpdl/./base/gsalloc.c:1542:17
+    #3 0x564356b752eb in gx_begin_image3x_generic /src/ghostpdl/./base/gximag3x.c:364:9
+    #4 0x564356de3333 in pdf_begin_typed_image /src/ghostpdl/./devices/vector/gdevpdfi.c:1142:16
+    #5 0x564356de2a44 in gdev_pdf_begin_typed_image /src/ghostpdl/./devices/vector/gdevpdfi.c:1710:12
+    #6 0x564356ff9d0d in gs_image_begin_typed /src/ghostpdl/./base/gsimage.c:268:12
+    #7 0x56435757d92e in pdfi_render_image /src/ghostpdl/./pdf/pdf_image.c:759:16
+    #8 0x564357574dc4 in pdfi_do_image /src/ghostpdl/./pdf/pdf_image.c:2060:12
+    #9 0x5643575775b9 in pdfi_do_image_or_form /src/ghostpdl/./pdf/pdf_image.c:2550:16
+    #10 0x564357577ed0 in pdfi_Do /src/ghostpdl/./pdf/pdf_image.c:2640:12
+    #11 0x564357531ee4 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1473:24
+    #12 0x564357530496 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2101:24
+    #13 0x5643575841b5 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #14 0x5643575841b5 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #15 0x5643575841b5 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #16 0x5643574f543a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1074:24
+    #17 0x5643573883f9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #18 0x5643573883f9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #19 0x5643573883f9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #20 0x564356b2a3b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #21 0x564356b2a3b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #22 0x564356b2a3b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #23 0x56435765aef0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #24 0x5643576578c0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #25 0x564357654a42 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #26 0x56435765ac78 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #27 0x564356b21fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #28 0x564356b22335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #29 0x5643569d66d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #30 0x5643569c1945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #31 0x5643569c73df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #32 0x5643569f2682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #33 0x7f693cf90082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--alloc_free_clump--i_free_object
+previously allocated by thread T0 here:
+    #0 0x564356ae249f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564357008650 in gs_heap_alloc_bytes /src/ghostpdl/./base/gsmalloc.c:192:34
+    #2 0x5643579eb717 in alloc_acquire_clump /src/ghostpdl/./base/gsalloc.c:2445:13
+    #3 0x5643579e332b in alloc_obj /src/ghostpdl/./base/gsalloc.c:1910:13
+    #4 0x5643579e332b in i_alloc_struct_immovable /src/ghostpdl/./base/gsalloc.c:1241:11
+    #5 0x564356fc9e22 in gs_copydevice2 /src/ghostpdl/./base/gsdevice.c:413:15
+    #6 0x564356dee383 in pdf_make_mxd /src/ghostpdl/./devices/vector/gdevpdfi.c:2054:16
+    #7 0x564356dee383 in pdf_image3x_make_mid /src/ghostpdl/./devices/vector/gdevpdfi.c:2177:16
+    #8 0x564356b746cb in gx_begin_image3x_generic /src/ghostpdl/./base/gximag3x.c:239:16
+    #9 0x564356de3333 in pdf_begin_typed_image /src/ghostpdl/./devices/vector/gdevpdfi.c:1142:16
+    #10 0x564356de2a44 in gdev_pdf_begin_typed_image /src/ghostpdl/./devices/vector/gdevpdfi.c:1710:12
+    #11 0x564356ff9d0d in gs_image_begin_typed /src/ghostpdl/./base/gsimage.c:268:12
+    #12 0x56435757d92e in pdfi_render_image /src/ghostpdl/./pdf/pdf_image.c:759:16
+    #13 0x564357574dc4 in pdfi_do_image /src/ghostpdl/./pdf/pdf_image.c:2060:12
+    #14 0x5643575775b9 in pdfi_do_image_or_form /src/ghostpdl/./pdf/pdf_image.c:2550:16
+    #15 0x564357577ed0 in pdfi_Do /src/ghostpdl/./pdf/pdf_image.c:2640:12
+    #16 0x564357531ee4 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1473:24
+    #17 0x564357530496 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2101:24
+    #18 0x5643575841b5 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #19 0x5643575841b5 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #20 0x5643575841b5 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #21 0x5643574f543a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1074:24
+    #22 0x5643573883f9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #23 0x5643573883f9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #24 0x5643573883f9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #25 0x564356b2a3b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #26 0x564356b2a3b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #27 0x564356b2a3b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #28 0x56435765aef0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #29 0x5643576578c0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #30 0x564357654a42 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #31 0x56435765ac78 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #32 0x564356b21fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #33 0x564356b22335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #34 0x5643569d66d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #35 0x5643569c1945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #36 0x5643569c73df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #37 0x5643569f2682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+DEDUP_TOKEN: __interceptor_malloc--gs_heap_alloc_bytes--alloc_acquire_clump
+SUMMARY: AddressSanitizer: heap-use-after-free /src/ghostpdl/./base/gdevnfwd.c:33:5 in gx_device_forward_finalize
+Shadow bytes around the buggy address:
+  0x51c000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c000000700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c000000780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c000000800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c000000880: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x51c000000900: fd fd[fd]fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51c000000980: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51c000000a00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51c000000a80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51c000000b00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51c000000b80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

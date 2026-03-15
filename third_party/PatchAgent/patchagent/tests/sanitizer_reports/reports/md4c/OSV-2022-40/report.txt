@@ -1,0 +1,48 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/md4c:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/md4c/OSV-2022-40/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz-mdhtml -runs=100.
++ FUZZER=fuzz-mdhtml
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz-mdhtml -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz-mdhtml -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=fuzz-mdhtml.dict < /dev/null
+Dictionary: 22 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1259381676
+INFO: Loaded 1 modules   (3281 inline 8-bit counters): 3281 [0x558e53d46760, 0x558e53d47431), 
+INFO: Loaded 1 PC tables (3281 PCs): 3281 [0x558e53d47438,0x558e53d54148), 
+/out/fuzz-mdhtml: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x0001dfff8001 (pc 0x558e53c9dd4b bp 0x7fff20e34df0 sp 0x7fff20e34d60 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x558e53c9dd4b in md_build_attribute /src/md4c/src/md4c.c:1439:12
+    #1 0x558e53cb8bc7 in md_enter_leave_span_a /src/md4c/src/md4c.c:4117:5
+    #2 0x558e53c9bb10 in md_process_inlines /src/md4c/src/md4c.c:4295:21
+    #3 0x558e53c9bb10 in md_process_normal_block_contents /src/md4c/src/md4c.c:4640:5
+    #4 0x558e53c8b34c in md_process_leaf_block /src/md4c/src/md4c.c:4819:13
+    #5 0x558e53c8b34c in md_process_all_blocks /src/md4c/src/md4c.c:4901:13
+    #6 0x558e53c8b34c in md_process_doc /src/md4c/src/md4c.c:6330:5
+    #7 0x558e53c8b34c in md_parse /src/md4c/src/md4c.c:6398:11
+    #8 0x558e53c7dcd7 in md_html /src/md4c/src/md4c-html.c:571:12
+    #9 0x558e53c7d818 in LLVMFuzzerTestOneInput /src/md4c/build/../test/fuzzers/fuzz-mdhtml.c:24:5
+    #10 0x558e53b322e0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x558e53b1d555 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x558e53b22fef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x558e53b4e292 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fc3ece7b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #15 0x558e53b1573d in _start (/out/fuzz-mdhtml+0x8773d)
+
+DEDUP_TOKEN: md_build_attribute--md_enter_leave_span_a--md_process_inlines
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/md4c/src/md4c.c:1439:12 in md_build_attribute
+==14==ABORTING

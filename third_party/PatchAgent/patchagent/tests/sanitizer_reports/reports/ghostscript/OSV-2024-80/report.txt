@@ -1,0 +1,102 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/ghostscript/OSV-2024-80/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gs_device_pxlcolor_fuzzer -runs=100.
++ FUZZER=gs_device_pxlcolor_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gs_device_pxlcolor_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gs_device_pxlcolor_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1131382151
+INFO: Loaded 3 modules   (221508 inline 8-bit counters): 14221 [0x7fe5e44eb2a0, 0x7fe5e44eea2d), 958 [0x7fe5e458c778, 0x7fe5e458cb36), 206329 [0x555bb99ad570, 0x555bb99dfb69), 
+INFO: Loaded 3 PC tables (221508 PCs): 14221 [0x7fe5e44eea30,0x7fe5e4526300), 958 [0x7fe5e458cb38,0x7fe5e4590718), 206329 [0x555bb99dfb70,0x555bb9d05b00), 
+/out/gs_device_pxlcolor_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fe5e376e1c8 at pc 0x555bb74fec3c bp 0x7ffc1a9853d0 sp 0x7ffc1a9853c8
+[1m[0m[1m[34mWRITE of size 4 at 0x7fe5e376e1c8 thread T0[1m[0m
+SCARINESS: 51 (4-byte-write-stack-buffer-overflow)
+    #0 0x555bb74fec3b in line_join_points /src/ghostpdl/./base/gxstroke.c:2501:9
+    #1 0x555bb74f7b77 in stroke_add_compat /src/ghostpdl/./base/gxstroke.c:2333:20
+    #2 0x555bb74f1a93 in gx_stroke_path_only_aux /src/ghostpdl/./base/gxstroke.c:1063:24
+    #3 0x555bb74f1a93 in gx_stroke_path_only /src/ghostpdl/./base/gxstroke.c:1152:12
+    #4 0x555bb74cdbdc in gx_stroke_add /src/ghostpdl/./base/gxpaint.c:121:12
+    #5 0x555bb72b7800 in gs_strokepath_aux /src/ghostpdl/./base/gspaint.c:607:12
+    #6 0x555bb78be739 in pdfi_get_current_bbox /src/ghostpdl/./pdf/pdf_misc.c:37:16
+    #7 0x555bb78b8178 in pdfi_trans_begin_simple_group /src/ghostpdl/./pdf/pdf_trans.c:468:16
+    #8 0x555bb78ba1af in pdfi_trans_setup /src/ghostpdl/./pdf/pdf_trans.c:774:16
+    #9 0x555bb77daf5f in pdfi_stroke /src/ghostpdl/./pdf/pdf_path.c:322:12
+    #10 0x555bb77ca328 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1598:24
+    #11 0x555bb77c8593 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2126:24
+    #12 0x555bb781ed1e in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #13 0x555bb781ed1e in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #14 0x555bb781ed1e in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:1003:12
+    #15 0x555bb778b68a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1157:24
+    #16 0x555bb761e529 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #17 0x555bb761e529 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #18 0x555bb761e529 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #19 0x555bb6dbf3b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #20 0x555bb6dbf3b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #21 0x555bb6dbf3b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #22 0x555bb78fcc40 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #23 0x555bb78f9610 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #24 0x555bb78f6792 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #25 0x555bb78fc9c8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #26 0x555bb6db6fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #27 0x555bb6db7335 in LLVMFuzzerTestOneInput /src/gs_device_pxlcolor_fuzzer.cc:18:2
+    #28 0x555bb6c6b6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #29 0x555bb6c56945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #30 0x555bb6c5c3df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #31 0x555bb6c87682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #32 0x7fe5e3f13082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #33 0x555bb6c4eb2d in _start (/out/gs_device_pxlcolor_fuzzer+0x71fb2d)
+
+DEDUP_TOKEN: line_join_points--stroke_add_compat--gx_stroke_path_only_aux
+[1m[32mAddress 0x7fe5e376e1c8 is located in stack of thread T0 at offset 72 in frame[1m[0m
+[1m[0m    #0 0x555bb74f6c0f in stroke_add_compat /src/ghostpdl/./base/gxstroke.c:2269
+
+DEDUP_TOKEN: stroke_add_compat
+  This frame has 1 object(s):
+    [32, 72) 'points' (line 2274)[1m[32m <== Memory access at offset 72 overflows this variable[1m[0m
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/ghostpdl/./base/gxstroke.c:2501:9 in line_join_points
+Shadow bytes around the buggy address:
+  0x7fe5e376df00: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7fe5e376df80: [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7fe5e376e000: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7fe5e376e080: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7fe5e376e100: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+=>0x7fe5e376e180: [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m[[1m[31mf3[1m[0m][1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m
+  0x7fe5e376e200: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7fe5e376e280: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7fe5e376e300: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7fe5e376e380: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7fe5e376e400: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

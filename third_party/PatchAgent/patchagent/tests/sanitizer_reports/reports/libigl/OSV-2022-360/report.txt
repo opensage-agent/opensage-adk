@@ -1,0 +1,53 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libigl:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libigl/OSV-2022-360/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce igl_fuzzer -runs=100.
++ FUZZER=igl_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer igl_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/igl_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1514980625
+INFO: Loaded 1 modules   (1329 inline 8-bit counters): 1329 [0x55fa61985200, 0x55fa61985731), 
+INFO: Loaded 1 PC tables (1329 PCs): 1329 [0x55fa61985738,0x55fa6198aa48), 
+/out/igl_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+Warning: "$El1mentData" not supported yet.  Ignored.
+=================================================================
+[1m[31m==13==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x504000000050 in thread T0
+[1m[0mSCARINESS: 40 (bad-free)
+    #0 0x55fa61872b9d in operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    #1 0x55fa6187532d in __libcpp_operator_delete<void *> /usr/local/bin/../include/c++/v1/new:280:3
+    #2 0x55fa6187532d in __do_deallocate_handle_size<> /usr/local/bin/../include/c++/v1/new:302:10
+    #3 0x55fa6187532d in __libcpp_deallocate /usr/local/bin/../include/c++/v1/new:317:12
+    #4 0x55fa6187532d in deallocate /usr/local/bin/../include/c++/v1/__memory/allocator.h:139:7
+    #5 0x55fa6187532d in deallocate /usr/local/bin/../include/c++/v1/__memory/allocator_traits.h:289:9
+    #6 0x55fa6187532d in operator() /usr/local/bin/../include/c++/v1/vector:492:9
+    #7 0x55fa6187532d in ~vector /usr/local/bin/../include/c++/v1/vector:501:67
+    #8 0x55fa6187532d in igl::MshLoader::~MshLoader() /src/libigl/cmake/../include/igl/MshLoader.h:23:7
+    #9 0x55fa61874a6e in LLVMFuzzerTestOneInput /src/igl_fuzzer.cpp:33:5
+    #10 0x55fa617291a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x55fa61714415 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x55fa61719eaf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x55fa61745152 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f68cd20a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #15 0x55fa6170c5fd in _start (/out/igl_fuzzer+0x575fd)
+
+DEDUP_TOKEN: operator delete(void*)--__libcpp_operator_delete<void *>--__do_deallocate_handle_size<>
+[1m[32m0x504000000050 is located 16 bytes after 48-byte region [0x504000000010,0x504000000040)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55fa61834f6f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55fa618f4fb3 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x55fa61745152 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #3 0x7f68cd20a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--main
+SUMMARY: AddressSanitizer: bad-free /src/libigl/cmake/../include/igl/MshLoader.h:23:7 in igl::MshLoader::~MshLoader()
+==13==ABORTING

@@ -1,0 +1,23 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: fuzz target exited
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::ExitCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:248:3
+    - gp_do_exit /src/ghostpdl/base/gp_unix.c:109:5
+    - change_reloc_ptrs /src/ghostpdl/psi/isave.c:213:21
+    - gc_do_reloc /src/ghostpdl/psi/igc.c:1250:17
+    - gs_gc_reclaim /src/ghostpdl/psi/igc.c:452:9
+    - gs_vmreclaim /src/ghostpdl/psi/ireclaim.c:165:9
+    - ireclaim /src/ghostpdl/psi/ireclaim.c:80:12
+    - interp_reclaim /src/ghostpdl/psi/interp.c:452:12
+    - gs_main_finit /src/ghostpdl/psi/imain.c:1281:20
+    - psapi_exit /src/ghostpdl/psi/psapi.c:517:5
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:144:8
+    - gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    - LLVMFuzzerTestOneInput /src/gstoraster_fuzzer.cc:23:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:690:3
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:332:8
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10

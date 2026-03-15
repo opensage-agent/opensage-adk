@@ -1,0 +1,121 @@
+=================================================================
+==304333==ERROR: AddressSanitizer: heap-use-after-free on address 0x5100000004e4 at pc 0x7fee3579779c bp 0x7fff18473b90 sp 0x7fff18473b88
+READ of size 4 at 0x5100000004e4 thread T0
+    #0 0x7fee3579779b in Q_IsTypeOn /root/src/bifs/unquantize.c:185:12
+    #1 0x7fee3579a923 in gf_bifs_dec_unquant_field /root/src/bifs/unquantize.c:397:7
+    #2 0x7fee3576458b in gf_bifs_dec_sf_field /root/src/bifs/field_decode.c:84:7
+    #3 0x7fee3576967a in BD_DecMFFieldVec /root/src/bifs/field_decode.c:426:8
+    #4 0x7fee3576a4e1 in gf_bifs_dec_field /root/src/bifs/field_decode.c:558:9
+    #5 0x7fee3576ab21 in gf_bifs_dec_node_list /root/src/bifs/field_decode.c:618:7
+    #6 0x7fee3576829d in gf_bifs_dec_node /root/src/bifs/field_decode.c:920:7
+    #7 0x7fee3574da4b in gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1143:12
+    #8 0x7fee3574ed1d in BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    #9 0x7fee35777827 in BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    #10 0x7fee357783a7 in BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    #11 0x7fee3577922c in gf_bifs_decode_command_list /root/src/bifs/memory_decoder.c:1019:6
+    #12 0x7fee35d7d7a5 in gf_sm_load_run_isom /root/src/scene_manager/loader_isom.c:303:10
+    #13 0x7fee35d24c62 in gf_sm_load_run /root/src/scene_manager/scene_manager.c:719:28
+    #14 0x5597fa6ef5a5 in dump_isom_scene /root/applications/mp4box/filedump.c:203:14
+    #15 0x5597fa6db581 in mp4boxMain /root/applications/mp4box/main.c:6146:7
+    #16 0x5597fa6e09c1 in main /root/applications/mp4box/main.c:6601:1
+    #17 0x7fee34d9e1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x7fee34d9e28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x5597fa6c0c54 in _start (/root/bin/gcc/MP4Box+0x46c54) (BuildId: 72203603397e4bf8b0b74722e64fc6b1461b3cc8)
+
+0x5100000004e4 is located 164 bytes inside of 192-byte region [0x510000000440,0x510000000500)
+freed by thread T0 here:
+    #0 0x7fee36f8850a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fee35267934 in gf_free /root/src/utils/alloc.c:165:2
+    #2 0x7fee35397186 in gf_node_free /root/src/scenegraph/base_scenegraph.c:1620:2
+    #3 0x7fee353e310c in QuantizationParameter_Del /root/src/scenegraph/mpeg4_nodes.c:11981:2
+    #4 0x7fee353dd9ad in gf_sg_mpeg4_node_del /root/src/scenegraph/mpeg4_nodes.c:37745:3
+    #5 0x7fee35390ee5 in gf_node_del /root/src/scenegraph/base_scenegraph.c:1902:59
+    #6 0x7fee3538ce69 in gf_node_unregister /root/src/scenegraph/base_scenegraph.c:761:3
+    #7 0x7fee353952c0 in gf_node_unregister_children /root/src/scenegraph/base_scenegraph.c:1369:3
+    #8 0x7fee35587c11 in gf_sg_vrml_parent_destroy /root/src/scenegraph/vrml_tools.c:161:2
+    #9 0x7fee353e52bd in TemporalTransform_Del /root/src/scenegraph/mpeg4_nodes.c:22212:2
+    #10 0x7fee353ddba5 in gf_sg_mpeg4_node_del /root/src/scenegraph/mpeg4_nodes.c:37853:3
+    #11 0x7fee35390ee5 in gf_node_del /root/src/scenegraph/base_scenegraph.c:1902:59
+    #12 0x7fee3538ce69 in gf_node_unregister /root/src/scenegraph/base_scenegraph.c:761:3
+    #13 0x7fee3576838c in gf_bifs_dec_node /root/src/bifs/field_decode.c:930:3
+    #14 0x7fee3574da4b in gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1143:12
+    #15 0x7fee3574ed1d in BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    #16 0x7fee35777827 in BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    #17 0x7fee357783a7 in BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    #18 0x7fee35778904 in gf_bifs_flush_command_list /root/src/bifs/memory_decoder.c:951:9
+    #19 0x7fee3574dc9e in gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1162:5
+    #20 0x7fee3574d971 in gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1132:8
+    #21 0x7fee3574ed1d in BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    #22 0x7fee35777827 in BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    #23 0x7fee357783a7 in BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    #24 0x7fee3577922c in gf_bifs_decode_command_list /root/src/bifs/memory_decoder.c:1019:6
+    #25 0x7fee35d7d7a5 in gf_sm_load_run_isom /root/src/scene_manager/loader_isom.c:303:10
+    #26 0x7fee35d24c62 in gf_sm_load_run /root/src/scene_manager/scene_manager.c:719:28
+    #27 0x5597fa6ef5a5 in dump_isom_scene /root/applications/mp4box/filedump.c:203:14
+    #28 0x5597fa6db581 in mp4boxMain /root/applications/mp4box/main.c:6146:7
+    #29 0x5597fa6e09c1 in main /root/applications/mp4box/main.c:6601:1
+
+previously allocated by thread T0 here:
+    #0 0x7fee36f887a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fee352678b4 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7fee353bd8f4 in QuantizationParameter_Create /root/src/scenegraph/mpeg4_nodes.c:12496:2
+    #3 0x7fee353dc1c2 in gf_sg_mpeg4_node_new /root/src/scenegraph/mpeg4_nodes.c:36873:10
+    #4 0x7fee353994c9 in gf_node_new /root/src/scenegraph/base_scenegraph.c:1994:51
+    #5 0x7fee357680c8 in gf_bifs_dec_node /root/src/bifs/field_decode.c:892:15
+    #6 0x7fee3576977b in BD_DecMFFieldVec /root/src/bifs/field_decode.c:432:24
+    #7 0x7fee3576a4e1 in gf_bifs_dec_field /root/src/bifs/field_decode.c:558:9
+    #8 0x7fee3576ab21 in gf_bifs_dec_node_list /root/src/bifs/field_decode.c:618:7
+    #9 0x7fee3576829d in gf_bifs_dec_node /root/src/bifs/field_decode.c:920:7
+    #10 0x7fee3574da4b in gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1143:12
+    #11 0x7fee3574ed1d in BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    #12 0x7fee35777827 in BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    #13 0x7fee357783a7 in BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    #14 0x7fee35778904 in gf_bifs_flush_command_list /root/src/bifs/memory_decoder.c:951:9
+    #15 0x7fee3574dc9e in gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1162:5
+    #16 0x7fee3574d971 in gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1132:8
+    #17 0x7fee3574ed1d in BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    #18 0x7fee35777827 in BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    #19 0x7fee357783a7 in BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    #20 0x7fee3577922c in gf_bifs_decode_command_list /root/src/bifs/memory_decoder.c:1019:6
+    #21 0x7fee35d7d7a5 in gf_sm_load_run_isom /root/src/scene_manager/loader_isom.c:303:10
+    #22 0x7fee35d24c62 in gf_sm_load_run /root/src/scene_manager/scene_manager.c:719:28
+    #23 0x5597fa6ef5a5 in dump_isom_scene /root/applications/mp4box/filedump.c:203:14
+    #24 0x5597fa6db581 in mp4boxMain /root/applications/mp4box/main.c:6146:7
+    #25 0x5597fa6e09c1 in main /root/applications/mp4box/main.c:6601:1
+    #26 0x7fee34d9e1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #27 0x7fee34d9e28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #28 0x5597fa6c0c54 in _start (/root/bin/gcc/MP4Box+0x46c54) (BuildId: 72203603397e4bf8b0b74722e64fc6b1461b3cc8)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/src/bifs/unquantize.c:185:12 in Q_IsTypeOn
+Shadow bytes around the buggy address:
+  0x510000000200: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x510000000280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05
+  0x510000000300: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x510000000380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x510000000400: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+=>0x510000000480: fd fd fd fd fd fd fd fd fd fd fd fd[fd]fd fd fd
+  0x510000000500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==304333==ABORTING

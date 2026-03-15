@@ -1,0 +1,48 @@
+The sanitizer detected a regular expression injection vulnerability.The explanation of the vulnerability is: Untrusted input is used in regular expressions, leading to potential injection attacks.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Regular Expression Injection
+Regular expression patterns that contain unescaped untrusted input can consume
+arbitrary amounts of CPU time. To properly escape the input, wrap it with
+Pattern.quote(...).
+- com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal (com/code_intelligence/jazzer/sanitizers/RegexInjection.kt:153)
+- com.code_intelligence.jazzer.sanitizers.RegexInjection.patternHook (com/code_intelligence/jazzer/sanitizers/RegexInjection.kt:76)
+- org.springframework.expression.spel.ast.OperatorMatches.getValueInternal (org/springframework/expression/spel/ast/OperatorMatches.java:104)
+- org.springframework.expression.spel.ast.OperatorMatches.getValueInternal (org/springframework/expression/spel/ast/OperatorMatches.java:42)
+- org.springframework.expression.spel.ast.SpelNodeImpl.getTypedValue (org/springframework/expression/spel/ast/SpelNodeImpl.java:119)
+- org.springframework.expression.spel.standard.SpelExpression.getValue (org/springframework/expression/spel/standard/SpelExpression.java:376)
+- org.springframework.data.keyvalue.core.SpelQueryEngine.evaluateExpression (org/springframework/data/keyvalue/core/SpelQueryEngine.java:95)
+- org.springframework.data.keyvalue.core.SpelQueryEngine.lambda$filterMatchingRange$0 (org/springframework/data/keyvalue/core/SpelQueryEngine.java:80)
+- java.base/java.util.stream.ReferencePipeline$2$1.accept (java/base/java/util/stream/ReferencePipeline$2$1/accept:178)
+- java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining (java/base/java/util/ArrayList$ArrayListSpliterator/forEachRemaining:1625)
+- java.base/java.util.stream.AbstractPipeline.copyInto (java/base/java/util/stream/AbstractPipeline.java:509)
+- java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto (java/base/java/util/stream/AbstractPipeline.java:499)
+- java.base/java.util.stream.ReduceOps$ReduceOp.evaluateSequential (java/base/java/util/stream/ReduceOps$ReduceOp/evaluateSequential:921)
+- java.base/java.util.stream.AbstractPipeline.evaluate (java/base/java/util/stream/AbstractPipeline.java:234)
+- java.base/java.util.stream.ReferencePipeline.collect (java/base/java/util/stream/ReferencePipeline.java:682)
+- org.springframework.data.keyvalue.core.SpelQueryEngine.filterMatchingRange (org/springframework/data/keyvalue/core/SpelQueryEngine.java:89)
+- org.springframework.data.keyvalue.core.SpelQueryEngine.sortAndFilterMatchingRange (org/springframework/data/keyvalue/core/SpelQueryEngine.java:71)
+- org.springframework.data.keyvalue.core.SpelQueryEngine.execute (org/springframework/data/keyvalue/core/SpelQueryEngine.java:53)
+- org.springframework.data.keyvalue.core.SpelQueryEngine.execute (org/springframework/data/keyvalue/core/SpelQueryEngine.java:39)
+- org.springframework.data.keyvalue.core.QueryEngine.execute (org/springframework/data/keyvalue/core/QueryEngine.java:113)
+- org.springframework.data.keyvalue.core.QueryEngine.execute (org/springframework/data/keyvalue/core/QueryEngine.java:73)
+- org.springframework.data.keyvalue.core.AbstractKeyValueAdapter.find (org/springframework/data/keyvalue/core/AbstractKeyValueAdapter.java:75)
+- org.springframework.data.keyvalue.core.KeyValueTemplate.lambda$find$6 (org/springframework/data/keyvalue/core/KeyValueTemplate.java:343)
+- org.springframework.data.keyvalue.core.KeyValueTemplate.execute (org/springframework/data/keyvalue/core/KeyValueTemplate.java:314)
+- org.springframework.data.keyvalue.core.KeyValueTemplate.executeRequired (org/springframework/data/keyvalue/core/KeyValueTemplate.java:329)
+- org.springframework.data.keyvalue.core.KeyValueTemplate.find (org/springframework/data/keyvalue/core/KeyValueTemplate.java:341)
+- KeyValueTemplateFuzzer.fuzzerTestOneInput (KeyValueTemplateFuzzer.java:73)
+Caused by: java.util.regex.PatternSyntaxException: Unmatched closing ')'
+)
+- java.base/java.util.regex.Pattern.error (java/base/java/util/regex/Pattern.java:2028)
+- java.base/java.util.regex.Pattern.compile (java/base/java/util/regex/Pattern.java:1787)
+- java.base/java.util.regex.Pattern.<init> (java/base/java/util/regex/Pattern.java:1430)
+- java.base/java.util.regex.Pattern.compile (java/base/java/util/regex/Pattern.java:1069)
+- java.base/java.lang.invoke.MethodHandle.invokeWithArguments (java/base/java/lang/invoke/MethodHandle.java:732)
+- com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal (com/code_intelligence/jazzer/sanitizers/RegexInjection.kt:144)
+	... 26 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid constructing regular expressions using untrusted input.
+2. Use predefined regex patterns or libraries to prevent injection attacks.
+3. Sanitize user input before using it in regular expressions.

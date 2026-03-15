@@ -1,0 +1,120 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/hdf5:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/hdf5/OSV-2024-1010/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce h5_extended_fuzzer -runs=100.
++ FUZZER=h5_extended_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer h5_extended_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/h5_extended_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2440382440
+INFO: Loaded 1 modules   (115857 inline 8-bit counters): 115857 [0x55e92c6dfc20, 0x55e92c6fc0b1), 
+INFO: Loaded 1 PC tables (115857 PCs): 115857 [0x55e92c6fc0b8,0x55e92c8c09c8), 
+/out/h5_extended_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+HDF5-DIAG: Error detected in HDF5 (1.15.0):
+  #000: /src/hdf5/src/H5D.c line 398 in H5Dopen2(): unable to synchronously open dataset
+    major: Dataset
+    minor: Can't open object
+  #001: /src/hdf5/src/H5D.c line 360 in H5D__open_api_common(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #002: /src/hdf5/src/H5VLcallback.c line 1954 in H5VL_dataset_open(): dataset open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #003: /src/hdf5/src/H5VLcallback.c line 1921 in H5VL__dataset_open(): dataset open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #004: /src/hdf5/src/H5VLnative_dataset.c line 332 in H5VL__native_dataset_open(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #005: /src/hdf5/src/H5Dint.c line 1426 in H5D__open_name(): not found
+    major: Dataset
+    minor: Object not found
+  #006: /src/hdf5/src/H5Gloc.c line 424 in H5G_loc_find(): can't find object
+    major: Symbol table
+    minor: Object not found
+  #007: /src/hdf5/src/H5Gtraverse.c line 824 in H5G_traverse(): internal path traversal failed
+    major: Symbol table
+    minor: Object not found
+  #008: /src/hdf5/src/H5Gtraverse.c line 551 in H5G__traverse_real(): can't look up component
+    major: Symbol table
+    minor: Object not found
+  #009: /src/hdf5/src/H5Gobj.c line 1070 in H5G__obj_lookup(): can't check for link info message
+    major: Symbol table
+    minor: Can't get value
+  #010: /src/hdf5/src/H5Gobj.c line 310 in H5G__obj_get_linfo(): unable to read object header
+    major: Symbol table
+    minor: Can't get value
+  #011: /src/hdf5/src/H5Omessage.c line 788 in H5O_msg_exists(): unable to protect object header
+    major: Object header
+    minor: Unable to protect metadata
+  #012: /src/hdf5/src/H5Oint.c line 989 in H5O_protect(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #013: /src/hdf5/src/H5AC.c line 1277 in H5AC_protect(): H5C_protect() failed
+    major: Object cache
+    minor: Unable to protect metadata
+  #014: /src/hdf5/src/H5Centry.c line 3106 in H5C_protect(): can't load entry
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #015: /src/hdf5/src/H5Centry.c line 1180 in H5C__load_entry(): incorrect metadata checksum after all read attempts
+    major: Object cache
+    minor: Read failed
+  #016: /src/hdf5/src/H5Ocache.c line 185 in H5O__cache_get_final_load_size(): can't deserialize object header prefix
+    major: Object header
+    minor: Unable to decode value
+  #017: /src/hdf5/src/H5Ocache.c line 1096 in H5O__prefix_deserialize(): bad object header version number
+    major: Object header
+    minor: Wrong version number
+[1m/src/hdf5/src/H5SL.c:694:19:[1m[31m runtime error: [1m[0m[1mmember access within null pointer of type 'H5SL_t' (aka 'struct H5SL_t')[1m[0m
+    #0 0x55e92c232583 in H5SL__insert_common /src/hdf5/src/H5SL.c:694:19
+    #1 0x55e92c22ba3f in H5SL_insert /src/hdf5/src/H5SL.c:1035:17
+    #2 0x55e92c0c3168 in H5FS__sect_link_size /src/hdf5/src/H5FSsection.c:957:13
+    #3 0x55e92c0c3168 in H5FS__sect_link /src/hdf5/src/H5FSsection.c:1074:9
+    #4 0x55e92c0c2172 in H5FS_sect_add /src/hdf5/src/H5FSsection.c:1340:13
+    #5 0x55e92c1299c4 in H5MF__add_sect /src/hdf5/src/H5MF.c:634:9
+    #6 0x55e92c12af04 in H5MF__alloc_pagefs /src/hdf5/src/H5MF.c:903:21
+    #7 0x55e92c12af04 in H5MF_alloc /src/hdf5/src/H5MF.c:803:45
+    #8 0x55e92c12a9d2 in H5MF__alloc_pagefs /src/hdf5/src/H5MF.c:920:44
+    #9 0x55e92c12a9d2 in H5MF_alloc /src/hdf5/src/H5MF.c:803:45
+    #10 0x55e92c49148b in H5O__alloc_chunk /src/hdf5/src/H5Oalloc.c:883:22
+    #11 0x55e92c495489 in H5O__alloc_new_chunk /src/hdf5/src/H5Oalloc.c:1154:9
+    #12 0x55e92c495489 in H5O__alloc /src/hdf5/src/H5Oalloc.c:1291:17
+    #13 0x55e92c176754 in H5O__msg_alloc /src/hdf5/src/H5Omessage.c:1729:9
+    #14 0x55e92c176493 in H5O__msg_append_real /src/hdf5/src/H5Omessage.c:191:9
+    #15 0x55e92c17618b in H5O_msg_append_oh /src/hdf5/src/H5Omessage.c:156:9
+    #16 0x55e92c17618b in H5O_msg_create /src/hdf5/src/H5Omessage.c:113:9
+    #17 0x55e92c0938ba in H5F__super_ext_write_msg /src/hdf5/src/H5Fsuper.c:1728:13
+    #18 0x55e92c13151f in H5MF_settle_raw_data_fsm /src/hdf5/src/H5MF.c:2772:17
+    #19 0x55e92bfdb198 in H5C_flush_cache /src/hdf5/src/H5C.c:686:33
+    #20 0x55e92bfb367f in H5AC_flush /src/hdf5/src/H5AC.c:619:9
+    #21 0x55e92c08582a in H5F__flush_phase2 /src/hdf5/src/H5Fint.c:2324:9
+    #22 0x55e92c084116 in H5F__dest /src/hdf5/src/H5Fint.c:1419:17
+    #23 0x55e92c0861e5 in H5F_try_close /src/hdf5/src/H5Fint.c:2642:9
+    #24 0x55e92c085c21 in H5F__close /src/hdf5/src/H5Fint.c:2444:9
+    #25 0x55e92c3b644c in H5VL__native_file_close /src/hdf5/src/H5VLnative_file.c:782:13
+    #26 0x55e92c39bf05 in H5VL__file_close /src/hdf5/src/H5VLcallback.c:4259:9
+    #27 0x55e92c39bf05 in H5VL_file_close /src/hdf5/src/H5VLcallback.c:4290:9
+    #28 0x55e92c08a325 in H5F__close_cb /src/hdf5/src/H5Fint.c:217:9
+    #29 0x55e92c121a3e in H5I__dec_ref /src/hdf5/src/H5Iint.c:973:43
+    #30 0x55e92c121c7b in H5I__dec_app_ref /src/hdf5/src/H5Iint.c:1044:22
+    #31 0x55e92c121bd3 in H5I_dec_app_ref /src/hdf5/src/H5Iint.c:1089:22
+    #32 0x55e92c0735ea in H5Fclose /src/hdf5/src/H5F.c:1046:9
+    #33 0x55e92bf9b6a0 in LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:39:7
+    #34 0x55e92befdb50 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #35 0x55e92bee8dc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #36 0x55e92beee85f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #37 0x55e92bf19b02 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #38 0x7f733e065082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #39 0x55e92bee0fad in _start (/out/h5_extended_fuzzer+0x43afad)
+
+DEDUP_TOKEN: H5SL__insert_common--H5SL_insert--H5FS__sect_link_size
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /src/hdf5/src/H5SL.c:694:19 

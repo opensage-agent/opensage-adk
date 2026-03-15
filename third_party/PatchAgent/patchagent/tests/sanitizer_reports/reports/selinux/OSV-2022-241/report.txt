@@ -1,0 +1,41 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/selinux:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/selinux/OSV-2022-241/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce binpolicy-fuzzer -runs=100.
++ FUZZER=binpolicy-fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer binpolicy-fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/binpolicy-fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 146436312
+INFO: Loaded 1 modules   (10089 inline 8-bit counters): 10089 [0x561a9761ad20, 0x561a9761d489), 
+INFO: Loaded 1 PC tables (10089 PCs): 10089 [0x561a9761d490,0x561a97644b20), 
+/out/binpolicy-fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==13==ERROR: AddressSanitizer: SEGV on unknown address 0x00017fff7fff (pc 0x561a974fb320 bp 0x7ffe67ae8ed0 sp 0x7ffe67ae8de0 T0)
+[1m[0m==13==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x561a974fb320 in cond_expr_to_str /src/selinux/libsepol/src/kernel_to_conf.c:45:17
+    #1 0x561a974fb320 in write_cond_nodes_to_conf /src/selinux/libsepol/src/kernel_to_conf.c:2106:10
+    #2 0x561a974f4603 in sepol_kernel_policydb_to_conf /src/selinux/libsepol/src/kernel_to_conf.c:3204:7
+    #3 0x561a974dfa45 in LLVMFuzzerTestOneInput /src/selinux/libsepol/fuzz/binpolicy-fuzzer.c:50:9
+    #4 0x561a973942e0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x561a9737f555 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x561a97384fef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x561a973b0292 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7fc98fcdf082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x561a9737773d in _start (/out/binpolicy-fuzzer+0x8d73d)
+
+DEDUP_TOKEN: cond_expr_to_str--write_cond_nodes_to_conf--sepol_kernel_policydb_to_conf
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/selinux/libsepol/src/kernel_to_conf.c:45:17 in cond_expr_to_str
+==13==ABORTING

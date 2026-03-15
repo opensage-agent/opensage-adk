@@ -1,0 +1,15 @@
+The sanitizer detected a java generic exception vulnerability.The explanation of the vulnerability is: A Java exception occurred, indicating a potential issue in the code or environment.Here is the detail: 
+
+== Java Exception: java.lang.IllegalArgumentException: Negative initial size: -70057984
+- java.base/java.io.ByteArrayOutputStream.<init> (java/base/java/io/ByteArrayOutputStream.java:78)
+- co.nstant.in.cbor.decoder.UnicodeStringDecoder.decodeFixedLength (co/nstant/in/cbor/decoder/UnicodeStringDecoder.java:58)
+- co.nstant.in.cbor.decoder.UnicodeStringDecoder.decode (co/nstant/in/cbor/decoder/UnicodeStringDecoder.java:32)
+- co.nstant.in.cbor.CborDecoder.decodeNext (co/nstant/in/cbor/CborDecoder.java:141)
+- co.nstant.in.cbor.CborDecoder.decode (co/nstant/in/cbor/CborDecoder.java:90)
+- FuzzDec.fuzzerTestOneInput (FuzzDec.java:28)
+
+To fix this issue, follow the advice below:
+
+1. Investigate the cause of the Java exception to identify the root cause of the error.
+2. Review the code for potential memory corruption or undefined behavior.
+3. Check for uninitialized variables or unintended pointer accesses.

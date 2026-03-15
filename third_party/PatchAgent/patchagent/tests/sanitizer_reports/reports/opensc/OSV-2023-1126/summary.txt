@@ -1,0 +1,53 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x502000000594 thread T0
+    - iasecc_parse_acls /src/opensc/src/libopensc/iasecc-sdo.c:60:21
+    - iasecc_parse_docp /src/opensc/src/libopensc/iasecc-sdo.c:636:7
+    - iasecc_sdo_parse_data /src/opensc/src/libopensc/iasecc-sdo.c:661:8
+    - iasecc_sdo_parse /src/opensc/src/libopensc/iasecc-sdo.c:769:8
+    - iasecc_sdo_get_tagged_data /src/opensc/src/libopensc/card-iasecc.c:2943:7
+    - iasecc_sdo_get_data /src/opensc/src/libopensc/card-iasecc.c:2960:7
+    - iasecc_pin_get_policy /src/opensc/src/libopensc/card-iasecc.c:2162:7
+    - iasecc_pin_get_info /src/opensc/src/libopensc/card-iasecc.c:2234:7
+    - iasecc_pin_cmd /src/opensc/src/libopensc/card-iasecc.c:2555:8
+    - sc_pin_cmd /src/opensc/src/libopensc/sec.c:212:7
+    - sc_pkcs15emu_din_66291_init /src/opensc/src/libopensc/pkcs15-din-66291.c:71:23
+    - sc_pkcs15emu_din_66291_init_ex /src/opensc/src/libopensc/pkcs15-din-66291.c:255:23
+    - sc_pkcs15_bind_synthetic /src/opensc/src/libopensc/pkcs15-syn.c:141:8
+    - sc_pkcs15_bind /src/opensc/src/libopensc/pkcs15.c:1341:8
+    - LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15_decode.c:78:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x502000000594 is located 0 bytes after 4-byte region [0x502000000590,0x502000000594)
+allocated by thread T0 here:
+    - calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    - iasecc_parse_get_tlv /src/opensc/src/libopensc/iasecc-sdo.c:430:15
+    - iasecc_parse_docp /src/opensc/src/libopensc/iasecc-sdo.c:589:8
+    - iasecc_sdo_parse_data /src/opensc/src/libopensc/iasecc-sdo.c:661:8
+    - iasecc_sdo_parse /src/opensc/src/libopensc/iasecc-sdo.c:769:8
+    - iasecc_sdo_get_tagged_data /src/opensc/src/libopensc/card-iasecc.c:2943:7
+    - iasecc_sdo_get_data /src/opensc/src/libopensc/card-iasecc.c:2960:7
+    - iasecc_pin_get_policy /src/opensc/src/libopensc/card-iasecc.c:2162:7
+    - iasecc_pin_get_info /src/opensc/src/libopensc/card-iasecc.c:2234:7
+    - iasecc_pin_cmd /src/opensc/src/libopensc/card-iasecc.c:2555:8
+    - sc_pin_cmd /src/opensc/src/libopensc/sec.c:212:7
+    - sc_pkcs15emu_din_66291_init /src/opensc/src/libopensc/pkcs15-din-66291.c:71:23
+    - sc_pkcs15emu_din_66291_init_ex /src/opensc/src/libopensc/pkcs15-din-66291.c:255:23
+    - sc_pkcs15_bind_synthetic /src/opensc/src/libopensc/pkcs15-syn.c:141:8
+    - sc_pkcs15_bind /src/opensc/src/libopensc/pkcs15.c:1341:8
+    - LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15_decode.c:78:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

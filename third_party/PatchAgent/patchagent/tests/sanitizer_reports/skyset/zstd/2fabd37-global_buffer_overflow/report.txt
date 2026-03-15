@@ -1,0 +1,55 @@
+=================================================================
+==1401815==ERROR: AddressSanitizer: global-buffer-overflow on address 0x556ef0daadf0 at pc 0x556ef0cd047a bp 0x7fff6e3deb50 sp 0x7fff6e3deb48
+READ of size 4 at 0x556ef0daadf0 thread T0
+    #0 0x556ef0cd0479 in ZSTD_litLengthPrice /root/tests/fuzz/../../lib/compress/zstd_opt.c:274:17
+    #1 0x556ef0cca2cb in ZSTD_compressBlock_opt_generic /root/tests/fuzz/../../lib/compress/zstd_opt.c:1072:40
+    #2 0x556ef0cc90ce in ZSTD_compressBlock_btopt /root/tests/fuzz/../../lib/compress/zstd_opt.c:1251:12
+    #3 0x556ef0b17b3d in ZSTD_buildSeqStore /root/tests/fuzz/../../lib/compress/zstd_compress.c:2887:26
+    #4 0x556ef0b16843 in ZSTD_compressBlock_splitBlock /root/tests/fuzz/../../lib/compress/zstd_compress.c:3727:28
+    #5 0x556ef0b14328 in ZSTD_compress_frameChunk /root/tests/fuzz/../../lib/compress/zstd_compress.c:3967:25
+    #6 0x556ef0aff46e in ZSTD_compressContinue_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:4142:30
+    #7 0x556ef0b01a54 in ZSTD_compressEnd /root/tests/fuzz/../../lib/compress/zstd_compress.c:4646:26
+    #8 0x556ef0b02400 in ZSTD_compress_advanced_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:4695:12
+    #9 0x556ef0b025f7 in ZSTD_compress_usingDict /root/tests/fuzz/../../lib/compress/zstd_compress.c:4710:12
+    #10 0x556ef0b026ba in ZSTD_compressCCtx /root/tests/fuzz/../../lib/compress/zstd_compress.c:4720:12
+    #11 0x556ef0d9d440 in LLVMFuzzerTestOneInput /root/tests/fuzz/simple_compress.c:46:24
+    #12 0x556ef0d9d9a9 in main /root/tests/fuzz/regression_driver.c:77:5
+    #13 0x7f2072f541c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x7f2072f5428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x556ef0a41664 in _start (/root/simple_compress+0x9664) (BuildId: 422f895cd197dd29bab66dba1135a23079288691)
+
+0x556ef0daadf0 is located 48 bytes before global variable 'ZSTD_LLcode.LL_Code' defined in '/root/tests/fuzz/../../lib/compress/zstd_compress_internal.h:452' (0x556ef0daae20) of size 64
+0x556ef0daadf0 is located 0 bytes after global variable 'LL_bits' defined in '/root/tests/fuzz/../../lib/compress/../common/zstd_internal.h:195' (0x556ef0daad60) of size 144
+SUMMARY: AddressSanitizer: global-buffer-overflow /root/tests/fuzz/../../lib/compress/zstd_opt.c:274:17 in ZSTD_litLengthPrice
+Shadow bytes around the buggy address:
+  0x556ef0daab00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x556ef0daab80: 00 00 00 00 00 00 00 00 00 f9 f9 f9 f9 f9 f9 f9
+  0x556ef0daac00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x556ef0daac80: 00 00 f9 f9 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x556ef0daad00: 00 00 00 00 00 00 00 00 f9 f9 f9 f9 00 00 00 00
+=>0x556ef0daad80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00[f9]f9
+  0x556ef0daae00: f9 f9 f9 f9 00 00 00 00 00 00 00 00 f9 f9 f9 f9
+  0x556ef0daae80: 04 f9 f9 f9 00 00 00 00 00 00 00 00 00 00 00 00
+  0x556ef0daaf00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 04 f9
+  0x556ef0daaf80: f9 f9 f9 f9 00 00 00 00 00 00 00 00 00 00 00 00
+  0x556ef0dab000: 00 00 00 00 f9 f9 f9 f9 04 f9 f9 f9 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1401815==ABORTING

@@ -1,0 +1,47 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x564cbc2e324b bp 0x7ffc4a572a50 sp 0x7ffc4a572940 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x564cbc2e324b in gs_fapi_ft_get_scaled_font /src/ghostpdl/./base/fapi_ft.c:1412:31
+    #1 0x564cbc2d5e8e in gs_fapi_prepare_font /src/ghostpdl/./base/gxfapi.c:498:43
+    #2 0x564cbc2dfd04 in gs_fapi_passfont /src/ghostpdl/./base/gxfapi.c:1868:13
+    #3 0x564cbcd26642 in pdfi_fapi_passfont /src/ghostpdl/./pdf/pdf_fapi.c:1519:9
+    #4 0x564cbc854a10 in pdfi_read_cff_font /src/ghostpdl/./pdf/pdf_font1C.c:2835:24
+    #5 0x564cbc836c8c in pdfi_load_font_buffer /src/ghostpdl/./pdf/pdf_font.c:624:24
+    #6 0x564cbc83584c in pdfi_load_font /src/ghostpdl/./pdf/pdf_font.c:924:24
+    #7 0x564cbc844f7b in pdfi_read_type0_font /src/ghostpdl/./pdf/pdf_font0.c:290:16
+    #8 0x564cbc8353bd in pdfi_load_font /src/ghostpdl/./pdf/pdf_font.c:868:20
+    #9 0x564cbc83b4b0 in pdfi_load_dict_font /src/ghostpdl/./pdf/pdf_font.c:1006:20
+    #10 0x564cbc83e4da in pdfi_load_resource_font /src/ghostpdl/./pdf/pdf_font.c:1048:12
+    #11 0x564cbc83e4da in pdfi_Tf /src/ghostpdl/./pdf/pdf_font.c:1407:12
+    #12 0x564cbc7bc21f in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1642:24
+    #13 0x564cbc7ba6b3 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2126:24
+    #14 0x564cbc810e3e in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #15 0x564cbc810e3e in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #16 0x564cbc810e3e in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:1003:12
+    #17 0x564cbc77d68a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1157:24
+    #18 0x564cbc610529 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #19 0x564cbc610529 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #20 0x564cbc610529 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #21 0x564cbbdb13b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #22 0x564cbbdb13b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #23 0x564cbbdb13b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #24 0x564cbc8eed60 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #25 0x564cbc8eb730 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #26 0x564cbc8e88b2 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #27 0x564cbc8eeae8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #28 0x564cbbda8fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #29 0x564cbbda9335 in LLVMFuzzerTestOneInput /src/gs_device_pxlcolor_fuzzer.cc:18:2
+    #30 0x564cbbc5d6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #31 0x564cbbc48945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #32 0x564cbbc4e3df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #33 0x564cbbc79682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #34 0x7f2892b63082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #35 0x564cbbc40b2d in _start (/out/gs_device_pxlcolor_fuzzer+0x71fb2d)
+
+DEDUP_TOKEN: gs_fapi_ft_get_scaled_font--gs_fapi_prepare_font--gs_fapi_passfont
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/ghostpdl/./base/fapi_ft.c:1412:31 in gs_fapi_ft_get_scaled_font
+==14==ABORTING

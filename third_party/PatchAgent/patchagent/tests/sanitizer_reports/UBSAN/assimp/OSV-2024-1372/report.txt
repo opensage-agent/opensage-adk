@@ -1,0 +1,52 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/assimp:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/assimp/OSV-2024-1372/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce assimp_fuzzer -runs=100.
++ FUZZER=assimp_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer assimp_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/assimp_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3229841053
+INFO: Loaded 1 modules   (318729 inline 8-bit counters): 318729 [0x560d48825468, 0x560d48873171), 
+INFO: Loaded 1 PC tables (318729 PCs): 318729 [0x560d48873178,0x560d48d50208), 
+/out/assimp_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+Info,  T0: Load $$$___magic___$$$.
+Info,  T0: File extension not known, trying signature-based detection
+Info,  T0: Found a matching importer for this file format: Doom 3 / MD5 Mesh Importer.
+Info,  T0: Import root directory is './'
+Info,  T0: 
+Error, T0: MD5ANIM: No frames or animated bones loaded
+Info,  T0: Entering post processing pipeline
+Info,  T0: SplitLargeMeshesProcess_Triangle finished. Meshes have been split
+Info,  T0: Leaving post processing pipeline
+[1m/src/assimp/code/Common/Assimp.cpp:359:8:[1m[31m runtime error: [1m[0m[1mmember call on address 0x560d4a0d5010 which does not point to an object of type 'Assimp::LogStream'[1m[0m
+[1m0x560d4a0d5010:[1m[30m note: [1m[0mobject has invalid vptr[1m[0m
+ 00 00 00 00  c0 61 0e 4a 0d 56 00 00  f0 63 0d 4a 0d 56 00 00  6e 49 6e 76 65 72 73 65  41 00 00 00
+[1m[32m              ^~~~~~~~~~~~~~~~~~~~~~~[1m[0m
+              invalid vptr
+    #0 0x560d47486c58 in CallbackToLogRedirector(char const*, char*) /src/assimp/code/Common/Assimp.cpp:359:8
+    #1 0x560d474d683a in Assimp::DefaultLogger::WriteToStreams(char const*, Assimp::Logger::ErrorSeverity) /src/assimp/code/Common/DefaultLogger.cpp:412:31
+    #2 0x560d474d6fad in Assimp::DefaultLogger::OnInfo(char const*) /src/assimp/code/Common/DefaultLogger.cpp:292:5
+    #3 0x560d474c2f14 in void Assimp::Logger::info<char const (&) [6], std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&>(char const (&) [6], std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/assimp/include/assimp/Logger.hpp:126:9
+    #4 0x560d474c2760 in WriteLogOpening(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/assimp/code/Common/Importer.cpp:528:5
+    #5 0x560d474bf63d in Assimp::Importer::ReadFile(char const*, unsigned int) /src/assimp/code/Common/Importer.cpp:599:5
+    #6 0x560d474bf2e0 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /src/assimp/code/Common/Importer.cpp:507:9
+    #7 0x560d47485fe0 in LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:54:34
+    #8 0x560d473e8570 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x560d473d37e5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x560d473d927f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x560d47404522 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7fc642843082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x560d473cb9cd in _start (/out/assimp_fuzzer+0xd519cd)
+
+DEDUP_TOKEN: CallbackToLogRedirector(char const*, char*)--Assimp::DefaultLogger::WriteToStreams(char const*, Assimp::Logger::ErrorSeverity)--Assimp::DefaultLogger::OnInfo(char const*)
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /src/assimp/code/Common/Assimp.cpp:359:8 

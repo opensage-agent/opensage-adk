@@ -1,0 +1,64 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x51000000023f thread T0
+    - H5HL__fl_deserialize /src/hdf5/src/H5HLcache.c:247:9
+    - H5HL__cache_datablock_deserialize /src/hdf5/src/H5HLcache.c:717:21
+    - H5C__load_entry /src/hdf5/src/H5Centry.c:1193:26
+    - H5C_protect /src/hdf5/src/H5Centry.c:3101:30
+    - H5AC_protect /src/hdf5/src/H5AC.c:1276:26
+    - H5HL_protect /src/hdf5/src/H5HL.c:338:40
+    - H5G__stab_get_name_by_idx /src/hdf5/src/H5Gstab.c:698:25
+    - H5G_obj_get_name_by_idx /src/hdf5/src/H5Gobj.c:798:13
+    - H5L__get_name_by_idx_cb /src/hdf5/src/H5Lint.c:1932:9
+    - H5G__traverse_real /src/hdf5/src/H5Gtraverse.c:743:9
+    - H5G_traverse /src/hdf5/src/H5Gtraverse.c:823:9
+    - H5L__get_name_by_idx /src/hdf5/src/H5Lint.c:1977:9
+    - H5VL__native_link_get /src/hdf5/src/H5VLnative_link.c:278:17
+    - H5VL__link_get /src/hdf5/src/H5VLcallback.c:5183:9
+    - H5VL_link_get /src/hdf5/src/H5VLcallback.c:5215:9
+    - H5Lget_name_by_idx /src/hdf5/src/H5L.c:1553:9
+    - Mat_CalcDir73 /src/matio/src/mat73.c:3329:28
+    - Mat_GetDir /src/matio/src/mat.c:808:23
+    - MatioRead(char const*) /src/matio/ossfuzz/matio_wrap.h:39:24
+    - LLVMFuzzerTestOneInput /src/matio/ossfuzz/matio_fuzzer.cpp:30:12
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x51000000023f is located 1 bytes before 184-byte region [0x510000000240,0x5100000002f8)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - H5FL__malloc /src/hdf5/src/H5FL.c:203:30
+    - H5FL_blk_malloc /src/hdf5/src/H5FL.c:765:48
+    - H5HL__cache_datablock_deserialize /src/hdf5/src/H5HLcache.c:710:41
+    - H5C__load_entry /src/hdf5/src/H5Centry.c:1193:26
+    - H5C_protect /src/hdf5/src/H5Centry.c:3101:30
+    - H5AC_protect /src/hdf5/src/H5AC.c:1276:26
+    - H5HL_protect /src/hdf5/src/H5HL.c:338:40
+    - H5G__stab_get_name_by_idx /src/hdf5/src/H5Gstab.c:698:25
+    - H5G_obj_get_name_by_idx /src/hdf5/src/H5Gobj.c:798:13
+    - H5L__get_name_by_idx_cb /src/hdf5/src/H5Lint.c:1932:9
+    - H5G__traverse_real /src/hdf5/src/H5Gtraverse.c:743:9
+    - H5G_traverse /src/hdf5/src/H5Gtraverse.c:823:9
+    - H5L__get_name_by_idx /src/hdf5/src/H5Lint.c:1977:9
+    - H5VL__native_link_get /src/hdf5/src/H5VLnative_link.c:278:17
+    - H5VL__link_get /src/hdf5/src/H5VLcallback.c:5183:9
+    - H5VL_link_get /src/hdf5/src/H5VLcallback.c:5215:9
+    - H5Lget_name_by_idx /src/hdf5/src/H5L.c:1553:9
+    - Mat_CalcDir73 /src/matio/src/mat73.c:3329:28
+    - Mat_GetDir /src/matio/src/mat.c:808:23
+    - MatioRead(char const*) /src/matio/ossfuzz/matio_wrap.h:39:24
+    - LLVMFuzzerTestOneInput /src/matio/ossfuzz/matio_fuzzer.cpp:30:12
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

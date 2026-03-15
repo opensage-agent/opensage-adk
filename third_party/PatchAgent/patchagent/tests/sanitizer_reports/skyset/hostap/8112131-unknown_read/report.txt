@@ -1,0 +1,20 @@
+=================================================================
+==343411==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x5558e02b567c bp 0x7ffe18718900 sp 0x7ffe187188e0 T0)
+==343411==The signal is caused by a READ memory access.
+==343411==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    #0 0x5558e02b567c in wpabuf_free /root/src/utils/wpabuf.c:201:11
+    #1 0x5558e020abba in p2p_device_free /root/src/p2p/p2p.c:933:3
+    #2 0x5558e022556a in p2p_flush /root/src/p2p/p2p.c:3022:3
+    #3 0x5558e0225163 in p2p_deinit /root/src/p2p/p2p.c:2994:2
+    #4 0x5558e01f9a52 in LLVMFuzzerTestOneInput /root/tests/fuzzing/p2p/p2p.c:173:2
+    #5 0x5558e01df0d4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/tests/fuzzing/p2p/p2p+0x410d4) (BuildId: 72e737a80bebebb5b191664c6a8b0a6a53ea16de)
+    #6 0x5558e01c8206 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/tests/fuzzing/p2p/p2p+0x2a206) (BuildId: 72e737a80bebebb5b191664c6a8b0a6a53ea16de)
+    #7 0x5558e01cdcba in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/tests/fuzzing/p2p/p2p+0x2fcba) (BuildId: 72e737a80bebebb5b191664c6a8b0a6a53ea16de)
+    #8 0x5558e01f8516 in main (/root/tests/fuzzing/p2p/p2p+0x5a516) (BuildId: 72e737a80bebebb5b191664c6a8b0a6a53ea16de)
+    #9 0x7f8ed22421c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x7f8ed224228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x5558e01c2dd4 in _start (/root/tests/fuzzing/p2p/p2p+0x24dd4) (BuildId: 72e737a80bebebb5b191664c6a8b0a6a53ea16de)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/src/utils/wpabuf.c:201:11 in wpabuf_free
+==343411==ABORTING

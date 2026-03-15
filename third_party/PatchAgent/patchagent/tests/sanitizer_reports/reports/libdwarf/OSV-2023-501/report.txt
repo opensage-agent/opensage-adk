@@ -1,0 +1,49 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libdwarf:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libdwarf/OSV-2023-501/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_set_frame_all -runs=100.
++ FUZZER=fuzz_set_frame_all
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_set_frame_all -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_set_frame_all -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3686486267
+INFO: Loaded 1 modules   (11640 inline 8-bit counters): 11640 [0x55d25908a740, 0x55d25908d4b8), 
+INFO: Loaded 1 PC tables (11640 PCs): 11640 [0x55d25908d4b8,0x55d2590bac38), 
+/out/fuzz_set_frame_all: Running 1 inputs 100 time(s) each.
+Running: /testcase
+ Print .debug_frame
+1 cies present. 1 fdes present. 
+Print cie of fde 0
+Print fde 0
+
+FAIL: dwarf_get_fde_info_for_reg3_b, reading reg err DW_DLE_DF_FRAME_DECODING_ERROR(193) line 382function low pc 0x20202020  and length 0x20ffffff  and midpoint addr we choose 0x30a0201f
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x505ffde000a9 (pc 0x55d258f2d67a bp 0x7ffee7ad2ba0 sp 0x7ffee7ad28e0 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55d258f2d67a in _dwarf_exec_frame_instr /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:509:14
+    #1 0x55d258f36f99 in _dwarf_get_fde_info_for_a_pc_row /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:2209:15
+    #2 0x55d258f36279 in dwarf_get_fde_info_for_all_regs3 /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:2266:11
+    #3 0x55d258f147e0 in print_fde_instrs /src/libdwarf/fuzz/fuzz_set_frame_all.c:603:9
+    #4 0x55d258f147e0 in read_frame_data /src/libdwarf/fuzz/fuzz_set_frame_all.c:181:5
+    #5 0x55d258f136e3 in LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_set_frame_all.c:93:7
+    #6 0x55d258dca330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55d258db55a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55d258dbb03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55d258de62e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f48d0fa5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x55d258dad78d in _start (/out/fuzz_set_frame_all+0xa678d)
+
+DEDUP_TOKEN: _dwarf_exec_frame_instr--_dwarf_get_fde_info_for_a_pc_row--dwarf_get_fde_info_for_all_regs3
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:509:14 in _dwarf_exec_frame_instr
+==14==ABORTING

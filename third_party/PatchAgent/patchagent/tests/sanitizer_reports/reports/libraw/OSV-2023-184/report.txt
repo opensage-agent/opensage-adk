@@ -1,0 +1,47 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libraw:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libraw/OSV-2023-184/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce libraw_nef_fuzzer -runs=100.
++ FUZZER=libraw_nef_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer libraw_nef_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/libraw_nef_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1717519595
+INFO: Loaded 1 modules   (20381 inline 8-bit counters): 20381 [0x563f6b149bf8, 0x563f6b14eb95), 
+INFO: Loaded 1 PC tables (20381 PCs): 20381 [0x563f6b14eb98,0x563f6b19e568), 
+/out/libraw_nef_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x7f34315b57fd (pc 0x563f6ae69bd2 bp 0x7ffc358bb5b0 sp 0x7ffc358bb5a0 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x563f6ae69bd2 in libraw_sget4_static /src/libraw/src/utils/read_utils.cpp:63:12
+    #1 0x563f6ae69bd2 in LibRaw::sget4(unsigned char*) /src/libraw/src/utils/read_utils.cpp:54:12
+    #2 0x563f6afe2502 in LibRaw::parseAdobeRAFMakernote() /src/libraw/src/metadata/fuji.cpp:191:19
+    #3 0x563f6afb6ed0 in LibRaw::parse_tiff_ifd(int) /src/libraw/src/metadata/tiff.cpp:1335:17
+    #4 0x563f6afb6c34 in LibRaw::parse_tiff_ifd(int) /src/libraw/src/metadata/tiff.cpp
+    #5 0x563f6afbbbae in LibRaw::parse_tiff(int) /src/libraw/src/metadata/tiff.cpp:1495:9
+    #6 0x563f6af62722 in LibRaw::identify() /src/libraw/src/metadata/identify.cpp:503:14
+    #7 0x563f6ae629ff in LibRaw::open_datastream(LibRaw_abstract_datastream*) /src/libraw/src/utils/open.cpp:464:4
+    #8 0x563f6ae61bad in LibRaw::open_buffer(void const*, unsigned long) /src/libraw/src/utils/open.cpp:227:13
+    #9 0x563f6ae3f965 in LLVMFuzzerTestOneInput /src/libraw_fuzzer.cc:62:24
+    #10 0x563f6acf3460 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x563f6acde6d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x563f6ace416f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x563f6ad0f412 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f333595e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #15 0x563f6acd68bd in _start (/out/libraw_nef_fuzzer+0xe68bd)
+
+DEDUP_TOKEN: libraw_sget4_static--LibRaw::sget4(unsigned char*)--LibRaw::parseAdobeRAFMakernote()
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/libraw/src/utils/read_utils.cpp:63:12 in libraw_sget4_static
+==14==ABORTING

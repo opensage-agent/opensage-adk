@@ -1,0 +1,57 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/zstd:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce simple_compress -runs=100.
++ FUZZER=simple_compress
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer simple_compress -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/simple_compress -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3247950142
+/out/simple_compress: Running 1 inputs 100 time(s) each.
+Running: /testcase
+simple_compress: ../../lib/compress/../common/bitstream.h:232: void BIT_flushBitsFast(BIT_CStream_t *): Assertion `bitC->ptr <= bitC->endPtr' failed.
+==14== ERROR: libFuzzer: deadly signal
+    #0 0x558f0fd92fd4 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x558f0fd12028 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x558f0fcf53c3 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7fc9c09c241f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7fc9c07bc00a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7fc9c079b858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7fc9c079b728  (/lib/x86_64-linux-gnu/libc.so.6+0x22728) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7fc9c07acfd5 in __assert_fail (/lib/x86_64-linux-gnu/libc.so.6+0x33fd5) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x558f0fe72aeb in BIT_flushBitsFast /src/zstd/tests/fuzz/../../lib/compress/../common/bitstream.h:232:5
+    #9 0x558f0fe72aeb in FSE_compress_usingCTable_generic /src/zstd/tests/fuzz/../../lib/compress/fse_compress.c
+    #10 0x558f0fe5358f in HUF_compressWeights /src/zstd/tests/fuzz/../../lib/compress/huf_compress.c:101:9
+    #11 0x558f0fe5358f in HUF_writeCTable_wksp /src/zstd/tests/fuzz/../../lib/compress/huf_compress.c:136:9
+    #12 0x558f0fe55342 in HUF_compress_internal /src/zstd/tests/fuzz/../../lib/compress/huf_compress.c:829:9
+    #13 0x558f0fe5569c in HUF_compress4X_repeat /src/zstd/tests/fuzz/../../lib/compress/huf_compress.c:900:12
+    #14 0x558f0fe5ac0c in ZSTD_compressLiterals /src/zstd/tests/fuzz/../../lib/compress/zstd_compress_literals.c:109:13
+    #15 0x558f0fe6eae8 in ZSTD_entropyCompressSeqStore_internal /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:2595:30
+    #16 0x558f0fe6eae8 in ZSTD_entropyCompressSeqStore /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:2684:26
+    #17 0x558f0fe6dee3 in ZSTD_compressSeqStore_singleBlock /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:3488:17
+    #18 0x558f0fe63c9b in ZSTD_compressBlock_splitBlock_internal /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:3674:22
+    #19 0x558f0fe63c9b in ZSTD_compressBlock_splitBlock /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:3719:13
+    #20 0x558f0fe63c9b in ZSTD_compress_frameChunk /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:3941:25
+    #21 0x558f0fe63c9b in ZSTD_compressContinue_internal /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:4116:30
+    #22 0x558f0fe65812 in ZSTD_compressEnd /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:4620:26
+    #23 0x558f0fe65d14 in ZSTD_compressCCtx /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:4694:12
+    #24 0x558f0fee77c8 in LLVMFuzzerTestOneInput /src/zstd/tests/fuzz/simple_compress.c:46:24
+    #25 0x558f0fcf68d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #26 0x558f0fce1b45 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #27 0x558f0fce75df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #28 0x558f0fd12882 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #29 0x7fc9c079d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #30 0x558f0fcd9d2d in _start (/out/simple_compress+0x20d2d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

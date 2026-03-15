@@ -1,0 +1,24 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x51e100000d27 (pc 0x7fb096579c0c bp 0x7ffdfc526f60 sp 0x7ffdfc526718 T0)
+==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x7fb096579c0c  (/lib/x86_64-linux-gnu/libc.so.6+0xbbc0c) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #1 0x55cd39de6e72 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #2 0x55cd39e70bb5 in init_struct_ops_maps /src/libbpf/src/libbpf.c:1441:3
+    #3 0x55cd39e70bb5 in bpf_object_init_struct_ops /src/libbpf/src/libbpf.c:1468:9
+    #4 0x55cd39e70bb5 in bpf_object__init_maps /src/libbpf/src/libbpf.c:3079:15
+    #5 0x55cd39e2ee95 in bpf_object_open /src/libbpf/src/libbpf.c:8056:16
+    #6 0x55cd39e2f2aa in bpf_object__open_mem /src/libbpf/src/libbpf.c:8096:20
+    #7 0x55cd39e289df in LLVMFuzzerTestOneInput /src/libbpf/fuzz/bpf-object-fuzzer.c:16:8
+    #8 0x55cd39cdd430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55cd39cc86a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55cd39cce13f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55cd39cf93e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7fb0964e2082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #13 0x55cd39cc088d in _start (/out/bpf-object-fuzzer+0xa688d)
+
+DEDUP_TOKEN: __asan_memcpy--init_struct_ops_maps
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0xbbc0c) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e) 
+==14==ABORTING

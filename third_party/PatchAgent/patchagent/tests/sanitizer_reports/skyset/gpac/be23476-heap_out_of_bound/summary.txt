@@ -1,0 +1,37 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 1 at 0x502000001d18 thread T0
+    - id3dmx_flush /root/src/filters/reframe_mp3.c:274:16
+    - mp3_dmx_flush_id3 /root/src/filters/reframe_mp3.c:344:2
+    - mp3_dmx_check_pid /root/src/filters/reframe_mp3.c:417:3
+    - mp3_dmx_process /root/src/filters/reframe_mp3.c:657:3
+    - gf_filter_process_task /root/src/filter_core/filter.c:2901:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2264:3
+    - gf_media_import /root/src/media_tools/media_import.c:1239:3
+    - convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    - mp4box_main /root/applications/mp4box/mp4box.c:6374:10
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+0x502000001d18 is located 0 bytes after 8-byte region [0x502000001d10,0x502000001d18)
+allocated by thread T0 here:
+    - gf_realloc /root/src/utils/alloc.c:160:9
+    - id3dmx_flush /root/src/filters/reframe_mp3.c:269:11
+    - mp3_dmx_flush_id3 /root/src/filters/reframe_mp3.c:344:2
+    - mp3_dmx_check_pid /root/src/filters/reframe_mp3.c:417:3
+    - mp3_dmx_process /root/src/filters/reframe_mp3.c:657:3
+    - gf_filter_process_task /root/src/filter_core/filter.c:2901:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2264:3
+    - gf_media_import /root/src/media_tools/media_import.c:1239:3
+    - convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    - mp4box_main /root/applications/mp4box/mp4box.c:6374:10
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

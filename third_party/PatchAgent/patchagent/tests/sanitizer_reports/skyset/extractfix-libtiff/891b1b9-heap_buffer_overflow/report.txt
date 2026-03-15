@@ -1,0 +1,56 @@
+=================================================================
+==3789192==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000005f1 at pc 0x7f466110b3d8 bp 0x7ffed54a4a20 sp 0x7ffed54a41e0
+WRITE of size 2 at 0x5020000005f1 thread T0
+    #0 0x7f466110b3d7 in __asan_memcpy build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x7f4660fb1584 in _TIFFmemcpy /root/libtiff/tif_unix.c:340:2
+    #2 0x5606c0679191 in t2p_readwrite_pdf_image_tile /root/tools/tiff2pdf.c:2901:6
+    #3 0x5606c0655ce3 in t2p_write_pdf /root/tools/tiff2pdf.c:5535:16
+    #4 0x5606c0652256 in main /root/tools/tiff2pdf.c:808:2
+    #5 0x7f4660a911c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #6 0x7f4660a9128a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #7 0x5606c064f5b4 in _start (/root/tools/.libs/tiff2pdf+0x95b4) (BuildId: 7e5ecc1dbb63a3f34a291c7e86ce8c1446255947)
+
+0x5020000005f1 is located 0 bytes after 1-byte region [0x5020000005f0,0x5020000005f1)
+allocated by thread T0 here:
+    #0 0x7f466110d372 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:69:3
+    #1 0x7f4660fb14cc in _TIFFmalloc /root/libtiff/tif_unix.c:316:10
+    #2 0x5606c0678f6b in t2p_readwrite_pdf_image_tile /root/tools/tiff2pdf.c:2887:29
+    #3 0x5606c0655ce3 in t2p_write_pdf /root/tools/tiff2pdf.c:5535:16
+    #4 0x5606c0652256 in main /root/tools/tiff2pdf.c:808:2
+    #5 0x7f4660a911c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #6 0x7f4660a9128a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #7 0x5606c064f5b4 in _start (/root/tools/.libs/tiff2pdf+0x95b4) (BuildId: 7e5ecc1dbb63a3f34a291c7e86ce8c1446255947)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3 in __asan_memcpy
+Shadow bytes around the buggy address:
+  0x502000000300: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x502000000380: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x502000000400: fa fa fd fa fa fa fd fa fa fa fd fa fa fa 00 07
+  0x502000000480: fa fa fd fa fa fa 02 fa fa fa fd fa fa fa 00 fa
+  0x502000000500: fa fa 00 fa fa fa fd fa fa fa 02 fa fa fa 00 fa
+=>0x502000000580: fa fa fd fa fa fa fd fa fa fa 04 fa fa fa[01]fa
+  0x502000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3789192==ABORTING

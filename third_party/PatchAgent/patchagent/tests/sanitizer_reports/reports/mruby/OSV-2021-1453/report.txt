@@ -1,0 +1,413 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mruby:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/mruby/OSV-2021-1453/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce mruby_fuzzer -runs=100.
++ FUZZER=mruby_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer mruby_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/mruby_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=mruby.dict -only_ascii=1 < /dev/null
+Dictionary: 102 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3595763265
+INFO: Loaded 1 modules   (20776 inline 8-bit counters): 20776 [0x564a1f142978, 0x564a1f147aa0), 
+INFO: Loaded 1 PC tables (20776 PCs): 20776 [0x564a1f147aa0,0x564a1f198d20), 
+/out/mruby_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51f000002880 at pc 0x564a1eeb3c92 bp 0x7ffde209c990 sp 0x7ffde209c988
+[1m[0m[1m[34mWRITE of size 8 at 0x51f000002880 thread T0[1m[0m
+SCARINESS: 42 (8-byte-write-heap-buffer-overflow)
+    #0 0x564a1eeb3c91 in mrb_funcall_with_block /src/mruby/src/vm.c
+    #1 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #2 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #3 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #4 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #5 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #6 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #7 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #8 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #9 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #10 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #11 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #12 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #13 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #14 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #15 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #16 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #17 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #18 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #19 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #20 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #21 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #22 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #23 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #24 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #25 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #26 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #27 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #28 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #29 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #30 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #31 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #32 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #33 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #34 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #35 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #36 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #37 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #38 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #39 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #40 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #41 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #42 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #43 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #44 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #45 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #46 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #47 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #48 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #49 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #50 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #51 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #52 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #53 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #54 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #55 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #56 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #57 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #58 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #59 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #60 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #61 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #62 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #63 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #64 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #65 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #66 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #67 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #68 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #69 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #70 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #71 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #72 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #73 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #74 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #75 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #76 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #77 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #78 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #79 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #80 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #81 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #82 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #83 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #84 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #85 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #86 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #87 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #88 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #89 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #90 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #91 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #92 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #93 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #94 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #95 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #96 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #97 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #98 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #99 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #100 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #101 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #102 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #103 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #104 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #105 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #106 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #107 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #108 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #109 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #110 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #111 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #112 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #113 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #114 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #115 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #116 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #117 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #118 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #119 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #120 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #121 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #122 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #123 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #124 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #125 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #126 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #127 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #128 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #129 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #130 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #131 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #132 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #133 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #134 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #135 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #136 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #137 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #138 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #139 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #140 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #141 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #142 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #143 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #144 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #145 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #146 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #147 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #148 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #149 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #150 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #151 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #152 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #153 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #154 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #155 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #156 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #157 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #158 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #159 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #160 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #161 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #162 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #163 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #164 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #165 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #166 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #167 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #168 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #169 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #170 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #171 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #172 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #173 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #174 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #175 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #176 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #177 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #178 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #179 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #180 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #181 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #182 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #183 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #184 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #185 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #186 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #187 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #188 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #189 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #190 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #191 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #192 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #193 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #194 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #195 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #196 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #197 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #198 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #199 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #200 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #201 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #202 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #203 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #204 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #205 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #206 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #207 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #208 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #209 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #210 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #211 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #212 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #213 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #214 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #215 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #216 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #217 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #218 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #219 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #220 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #221 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #222 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #223 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #224 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #225 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #226 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #227 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #228 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #229 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #230 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #231 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #232 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #233 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #234 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #235 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #236 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #237 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #238 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #239 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #240 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #241 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #242 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #243 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #244 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #245 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #246 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #247 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #248 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #249 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #250 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #251 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #252 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #253 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #254 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #255 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #256 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #257 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #258 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #259 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #260 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #261 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #262 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #263 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #264 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #265 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #266 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #267 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #268 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #269 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #270 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #271 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #272 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #273 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #274 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #275 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #276 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #277 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #278 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #279 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #280 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #281 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #282 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #283 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #284 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #285 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #286 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #287 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #288 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #289 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #290 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #291 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #292 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #293 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #294 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #295 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #296 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #297 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #298 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #299 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #300 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #301 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #302 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #303 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #304 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #305 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #306 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #307 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #308 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #309 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+
+DEDUP_TOKEN: mrb_funcall_with_block--mrb_funcall_argv--mrb_funcall_id
+[1m[32m0x51f000002880 is located 0 bytes after 3072-byte region [0x51f000001c80,0x51f000002880)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x564a1ee5a81c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x564a1ee9b08a in mrb_realloc_simple /src/mruby/src/gc.c:226:8
+    #2 0x564a1eeafd6c in stack_extend_alloc /src/mruby/src/vm.c:180:27
+    #3 0x564a1eeafd6c in mrb_stack_extend /src/mruby/src/vm.c:200:5
+    #4 0x564a1eeb2bf2 in mrb_funcall_with_block /src/mruby/src/vm.c:481:5
+    #5 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #6 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #7 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #8 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #9 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #10 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #11 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #12 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #13 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #14 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #15 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #16 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #17 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #18 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #19 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #20 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #21 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #22 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #23 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #24 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #25 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #26 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #27 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #28 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #29 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #30 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #31 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #32 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+    #33 0x564a1f01f6c4 in rational_eq /src/mruby/mrbgems/mruby-rational/src/rational.c:397:16
+    #34 0x564a1eeb35da in mrb_funcall_with_block /src/mruby/src/vm.c:525:13
+    #35 0x564a1eeb1bb7 in mrb_funcall_argv /src/mruby/src/vm.c:541:10
+    #36 0x564a1eeb1bb7 in mrb_funcall_id /src/mruby/src/vm.c:393:10
+    #37 0x564a1ef279be in mrb_equal /src/mruby/src/object.c:62:12
+
+DEDUP_TOKEN: __interceptor_realloc--mrb_realloc_simple--stack_extend_alloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/mruby/src/vm.c in mrb_funcall_with_block
+Shadow bytes around the buggy address:
+  0x51f000002600: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x51f000002680: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x51f000002700: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x51f000002780: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x51f000002800: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x51f000002880:[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x51f000002900: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x51f000002980: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x51f000002a00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x51f000002a80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x51f000002b00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==18==ABORTING

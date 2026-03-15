@@ -1,0 +1,160 @@
+HDF5-DIAG: Error detected in HDF5 (2.0.0):
+  #000: /src/hdf5/src/H5D.c line 401 in H5Dopen2(): unable to synchronously open dataset
+    major: Dataset
+    minor: Can't open object
+  #001: /src/hdf5/src/H5D.c line 363 in H5D__open_api_common(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #002: /src/hdf5/src/H5VLcallback.c line 2090 in H5VL_dataset_open(): dataset open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #003: /src/hdf5/src/H5VLcallback.c line 2057 in H5VL__dataset_open(): dataset open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #004: /src/hdf5/src/H5VLnative_dataset.c line 332 in H5VL__native_dataset_open(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #005: /src/hdf5/src/H5Dint.c line 1472 in H5D__open_name(): not found
+    major: Dataset
+    minor: Object not found
+  #006: /src/hdf5/src/H5Gloc.c line 424 in H5G_loc_find(): can't find object
+    major: Symbol table
+    minor: Object not found
+  #007: /src/hdf5/src/H5Gtraverse.c line 846 in H5G_traverse(): internal path traversal failed
+    major: Symbol table
+    minor: Object not found
+  #008: /src/hdf5/src/H5Gtraverse.c line 573 in H5G__traverse_real(): can't look up component
+    major: Symbol table
+    minor: Object not found
+  #009: /src/hdf5/src/H5Gobj.c line 1070 in H5G__obj_lookup(): can't check for link info message
+    major: Symbol table
+    minor: Can't get value
+  #010: /src/hdf5/src/H5Gobj.c line 310 in H5G__obj_get_linfo(): unable to read object header
+    major: Symbol table
+    minor: Can't get value
+  #011: /src/hdf5/src/H5Omessage.c line 788 in H5O_msg_exists(): unable to protect object header
+    major: Object header
+    minor: Unable to protect metadata
+  #012: /src/hdf5/src/H5Oint.c line 1015 in H5O_protect(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #013: /src/hdf5/src/H5AC.c line 1303 in H5AC_protect(): H5C_protect() failed
+    major: Object cache
+    minor: Unable to protect metadata
+  #014: /src/hdf5/src/H5Centry.c line 3107 in H5C_protect(): can't load entry
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #015: /src/hdf5/src/H5Centry.c line 1181 in H5C__load_entry(): incorrect metadata checksum after all read attempts
+    major: Object cache
+    minor: Read failed
+  #016: /src/hdf5/src/H5Ocache.c line 185 in H5O__cache_get_final_load_size(): can't deserialize object header prefix
+    major: Object header
+    minor: Unable to decode value
+  #017: /src/hdf5/src/H5Ocache.c line 1100 in H5O__prefix_deserialize(): bad object header version number
+    major: Object header
+    minor: Wrong version number
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x512000035b78 at pc 0x55f250311b8f bp 0x7fff6ec93d50 sp 0x7fff6ec93d48
+WRITE of size 1 at 0x512000035b78 thread T0
+SCARINESS: 31 (1-byte-write-heap-buffer-overflow)
+    #0 0x55f250311b8e in H5F_addr_encode_len /src/hdf5/src/H5Fint.c:2959:22
+    #1 0x55f250311b8e in H5F_addr_encode /src/hdf5/src/H5Fint.c:2983:5
+    #2 0x55f2504f72f4 in H5O__fsinfo_encode /src/hdf5/src/H5Ofsinfo.c:253:13
+    #3 0x55f2505281e4 in H5O_msg_flush /src/hdf5/src/H5Omessage.c:1974:13
+    #4 0x55f2504c5d56 in H5O__chunk_serialize /src/hdf5/src/H5Ocache.c:1553:17
+    #5 0x55f2504bfbd6 in H5O__cache_chk_serialize /src/hdf5/src/H5Ocache.c:777:9
+    #6 0x55f2501ecca6 in H5C__generate_image /src/hdf5/src/H5Centry.c:374:9
+    #7 0x55f2501e995f in H5C__flush_single_entry /src/hdf5/src/H5Centry.c:553:17
+    #8 0x55f250219242 in H5C__flush_ring /src/hdf5/src/H5Cint.c:1748:25
+    #9 0x55f2501e2211 in H5C_flush_cache /src/hdf5/src/H5C.c:710:17
+    #10 0x55f25019df0d in H5AC_flush /src/hdf5/src/H5AC.c:645:9
+    #11 0x55f25030f456 in H5F__flush_phase2 /src/hdf5/src/H5Fint.c:2341:9
+    #12 0x55f25030d048 in H5F__dest /src/hdf5/src/H5Fint.c:1441:17
+    #13 0x55f250310612 in H5F_try_close /src/hdf5/src/H5Fint.c:2680:9
+    #14 0x55f25030fd0c in H5F__close /src/hdf5/src/H5Fint.c:2482:9
+    #15 0x55f250bc894c in H5VL__native_file_close /src/hdf5/src/H5VLnative_file.c:777:13
+    #16 0x55f250b8c988 in H5VL__file_close /src/hdf5/src/H5VLcallback.c:4326:25
+    #17 0x55f250b8c37e in H5VL_file_close /src/hdf5/src/H5VLcallback.c:4360:9
+    #18 0x55f2503184df in H5F__close_cb /src/hdf5/src/H5Fint.c:249:9
+    #19 0x55f25047f47f in H5I__dec_ref /src/hdf5/src/H5Iint.c:1076:30
+    #20 0x55f25047fab1 in H5I__dec_app_ref /src/hdf5/src/H5Iint.c:1156:22
+    #21 0x55f25047f917 in H5I_dec_app_ref /src/hdf5/src/H5Iint.c:1201:22
+    #22 0x55f2502e9814 in H5Fclose /src/hdf5/src/H5F.c:1040:9
+    #23 0x55f25016eb88 in LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:39:7
+    #24 0x55f250023500 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #25 0x55f25000e775 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #26 0x55f25001420f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #27 0x55f25003f4b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #28 0x7f83419eb082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #29 0x55f25000695d in _start (/out/h5_extended_fuzzer+0x43795d)
+
+DEDUP_TOKEN: H5F_addr_encode_len--H5F_addr_encode--H5O__fsinfo_encode
+0x512000035b78 is located 0 bytes after 312-byte region [0x512000035a40,0x512000035b78)
+allocated by thread T0 here:
+    #0 0x55f25012f2cf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55f2503aec76 in H5FL__malloc /src/hdf5/src/H5FL.c:211:30
+    #2 0x55f2503aec76 in H5FL_blk_malloc /src/hdf5/src/H5FL.c:773:48
+    #3 0x55f2503af181 in H5FL_blk_calloc /src/hdf5/src/H5FL.c:819:30
+    #4 0x55f250d623f1 in H5O__alloc_chunk /src/hdf5/src/H5Oalloc.c:903:49
+    #5 0x55f250d686b2 in H5O__alloc_new_chunk /src/hdf5/src/H5Oalloc.c:1154:9
+    #6 0x55f250d686b2 in H5O__alloc /src/hdf5/src/H5Oalloc.c:1291:17
+    #7 0x55f25051d08f in H5O__msg_alloc /src/hdf5/src/H5Omessage.c:1729:9
+    #8 0x55f25051cb0b in H5O__msg_append_real /src/hdf5/src/H5Omessage.c:191:9
+    #9 0x55f25051c681 in H5O_msg_append_oh /src/hdf5/src/H5Omessage.c:156:9
+    #10 0x55f25051c1aa in H5O_msg_create /src/hdf5/src/H5Omessage.c:113:9
+    #11 0x55f2503287b5 in H5F__super_ext_write_msg /src/hdf5/src/H5Fsuper.c:1701:13
+    #12 0x55f25049da1a in H5MF_settle_raw_data_fsm /src/hdf5/src/H5MF.c:2775:17
+    #13 0x55f2501e20ff in H5C_flush_cache /src/hdf5/src/H5C.c:689:33
+    #14 0x55f25019df0d in H5AC_flush /src/hdf5/src/H5AC.c:645:9
+    #15 0x55f25030f456 in H5F__flush_phase2 /src/hdf5/src/H5Fint.c:2341:9
+    #16 0x55f25030d048 in H5F__dest /src/hdf5/src/H5Fint.c:1441:17
+    #17 0x55f250310612 in H5F_try_close /src/hdf5/src/H5Fint.c:2680:9
+    #18 0x55f25030fd0c in H5F__close /src/hdf5/src/H5Fint.c:2482:9
+    #19 0x55f250bc894c in H5VL__native_file_close /src/hdf5/src/H5VLnative_file.c:777:13
+    #20 0x55f250b8c988 in H5VL__file_close /src/hdf5/src/H5VLcallback.c:4326:25
+    #21 0x55f250b8c37e in H5VL_file_close /src/hdf5/src/H5VLcallback.c:4360:9
+    #22 0x55f2503184df in H5F__close_cb /src/hdf5/src/H5Fint.c:249:9
+    #23 0x55f25047f47f in H5I__dec_ref /src/hdf5/src/H5Iint.c:1076:30
+    #24 0x55f25047fab1 in H5I__dec_app_ref /src/hdf5/src/H5Iint.c:1156:22
+    #25 0x55f25047f917 in H5I_dec_app_ref /src/hdf5/src/H5Iint.c:1201:22
+    #26 0x55f2502e9814 in H5Fclose /src/hdf5/src/H5F.c:1040:9
+    #27 0x55f25016eb88 in LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:39:7
+    #28 0x55f250023500 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #29 0x55f25000e775 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #30 0x55f25001420f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #31 0x55f25003f4b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+DEDUP_TOKEN: __interceptor_malloc--H5FL__malloc--H5FL_blk_malloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/hdf5/src/H5Fint.c:2959:22 in H5F_addr_encode_len
+Shadow bytes around the buggy address:
+  0x512000035880: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x512000035900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x512000035980: 00 00 00 00 00 00 00 00 00 00 00 fa fa fa fa fa
+  0x512000035a00: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x512000035a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x512000035b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00[fa]
+  0x512000035b80: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x512000035c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x512000035c80: 00 00 00 00 00 00 00 00 00 fa fa fa fa fa fa fa
+  0x512000035d00: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x512000035d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

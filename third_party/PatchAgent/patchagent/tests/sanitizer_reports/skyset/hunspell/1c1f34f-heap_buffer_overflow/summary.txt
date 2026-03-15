@@ -1,0 +1,43 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 1 at 0x50300000178e thread T0
+    - AffixMgr::isSubset(char const*, char const*) /root/src/hunspell/affixmgr.cxx:1073:19
+    - AffixMgr::cpdpat_check(char const*, int, hentry*, hentry*, char) /root/src/hunspell/affixmgr.cxx:1332:9
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2107:22
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    - HunspellImpl::checkword(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:869:19
+    - HunspellImpl::spell_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:539:12
+    - HunspellImpl::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:447:12
+    - HunspellImpl::spell_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:710:70
+    - HunspellImpl::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:447:12
+    - Hunspell::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:2081:18
+    - LLVMFuzzerTestOneInput /root/src/tools/affdicfuzzer.cxx:65:15
+
+0x50300000178e is located 14 bytes inside of 20-byte region [0x503000001780,0x503000001794)
+freed by thread T0 here:
+
+previously allocated by thread T0 here:
+    - SfxEntry::check_twosfx(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int, int, PfxEntry*, unsigned short) /root/src/hunspell/affentry.cxx:728:17
+    - AffixMgr::suffix_check_twosfx(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int, int, PfxEntry*, unsigned short) /root/src/hunspell/affixmgr.cxx:2870:16
+    - AffixMgr::affix_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int, unsigned short, char) /root/src/hunspell/affixmgr.cxx:3150:10
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:1974:24
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    - HunspellImpl::checkword(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:869:19
+    - HunspellImpl::spell_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:539:12
+    - HunspellImpl::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:447:12
+    - HunspellImpl::spell_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:710:70
+    - HunspellImpl::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:447:12
+    - Hunspell::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:2081:18
+    - LLVMFuzzerTestOneInput /root/src/tools/affdicfuzzer.cxx:65:15
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

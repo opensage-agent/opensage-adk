@@ -1,0 +1,35 @@
+The sanitizer detected a global buffer overflow vulnerability. The explanation of the vulnerability is: A buffer overflow occurs in globally allocated memory, leading to memory corruption or crashes. Here is the detail: 
+
+WRITE of size 4 at 0x000010796e00 thread T0
+    - add_rr_to_tree /src/wireshark/epan/dissectors/packet-dns.c:1981:54
+    - dissect_dns_answer /src/wireshark/epan/dissectors/packet-dns.c:2358:5
+    - dissect_answer_records /src/wireshark/epan/dissectors/packet-dns.c:4438:15
+    - dissect_dns_common /src/wireshark/epan/dissectors/packet-dns.c:4795:16
+    - dissect_dns_udp_sctp /src/wireshark/epan/dissectors/packet-dns.c:4955:3
+    - dissect_dns /src/wireshark/epan/dissectors/packet-dns.c:5039:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:858:9
+    - call_dissector_work /src/wireshark/epan/packet.c:944:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3515:8
+    - call_all_postdissectors /src/wireshark/epan/packet.c:3978:3
+    - dissect_frame /src/wireshark/epan/dissectors/packet-frame.c:1436:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:858:9
+    - call_dissector_work /src/wireshark/epan/packet.c:944:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3515:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3528:8
+    - dissect_record /src/wireshark/epan/packet.c:662:3
+    - epan_dissect_run /src/wireshark/epan/epan.c:635:2
+    - LLVMFuzzerTestOneInput /src/wireshark/fuzz/fuzzshark.c:382:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:690:3
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:332:8
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x000010796e00 is located 0 bytes after global variable 'dns_qr_r_ra_ttls' defined in '/src/wireshark/epan/dissectors/packet-dns.c:190' (0x10792e00) of size 16384
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,256 @@
+The sanitizer detected a stack overflow vulnerability. The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably. Here is the detail: 
+
+    - JS::Parser::parse_secondary_expression(AK::NonnullRefPtr<JS::Expression const>, int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2342:0
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2305:27
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_secondary_expression(AK::NonnullRefPtr<JS::Expression const>, int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2455:126
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2305:27
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+    - JS::Parser::parse_primary_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:1767:18
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2265:50
+    - JS::Parser::parse_secondary_expression(AK::NonnullRefPtr<JS::Expression const>, int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2455:126
+    - JS::Parser::parse_expression(int, JS::Associativity, JS::Parser::ForbiddenTokens) /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2305:27
+    - JS::Parser::parse_array_expression() /src/serenity/Userland/Libraries/LibJS/Parser.cpp:2145:26
+
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

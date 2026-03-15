@@ -1,0 +1,29 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x506000000420 thread T0
+    - is_codefence /root/src/document.c:1792:6
+    - parse_listitem /root/src/document.c:2407:7
+    - parse_definition /root/src/document.c:2642:7
+    - parse_list /root/src/document.c:2670:8
+    - parse_block /root/src/document.c:3597:11
+    - parse_footnote_def /root/src/document.c:2746:2
+    - parse_footnote_list /root/src/document.c:2771:3
+    - hoedown_document_render /root/src/document.c:4159:3
+    - LLVMFuzzerTestOneInput /root/test/hoedown_fuzzer.c:89:3
+
+0x506000000420 is located 0 bytes after 64-byte region [0x5060000003e0,0x506000000420)
+allocated by thread T0 here:
+    - hoedown_realloc /root/src/buffer.c:37:14
+    - hoedown_buffer_grow /root/src/buffer.c:115:14
+    - hoedown_buffer_put /root/src/buffer.c:125:3
+    - is_footnote /root/src/document.c:3709:3
+    - hoedown_document_render /root/src/document.c:4096:28
+    - LLVMFuzzerTestOneInput /root/test/hoedown_fuzzer.c:89:3
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

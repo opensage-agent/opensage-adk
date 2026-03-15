@@ -1,0 +1,23 @@
+The sanitizer detected a global buffer overflow vulnerability. The explanation of the vulnerability is: A buffer overflow occurs in globally allocated memory, leading to memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x560fd96925c1 thread T0
+    - htmlParseHTMLAttribute /root/HTMLparser.c:2759:13
+    - htmlParseAttValue /root/HTMLparser.c:2962:8
+    - htmlParseAttribute /root/HTMLparser.c:3777:8
+    - htmlParseStartTag /root/HTMLparser.c:4052:12
+    - htmlParseElementInternal /root/HTMLparser.c:4673:14
+    - htmlParseContentInternal /root/HTMLparser.c:4883:13
+    - htmlParseDocument /root/HTMLparser.c:5043:5
+    - htmlDoRead /root/HTMLparser.c:6956:5
+    - htmlReadMemory /root/HTMLparser.c:7038:13
+    - LLVMFuzzerTestOneInput /root/fuzz/html.c:48:11
+
+0x560fd96925c1 is located 0 bytes after global variable '.str.10' defined in '/root/buf.c:1104' (0x560fd96925c0) of size 1
+  '.str.10' is ascii string ''
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

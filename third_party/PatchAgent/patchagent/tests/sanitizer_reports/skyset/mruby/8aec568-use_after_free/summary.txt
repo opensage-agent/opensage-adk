@@ -1,0 +1,64 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 1 at 0x503000005aa0 thread T0
+    - str_escape /root/src/string.c:1239:9
+    - mrb_str_inspect /root/src/string.c:2659:10
+    - mrb_vm_exec /root/src/vm.c:1638:18
+    - mrb_vm_run /root/src/vm.c:1132:12
+    - mrb_top_run /root/src/vm.c:3045:12
+    - mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6891:7
+    - mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6934:12
+    - main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+
+0x503000005aa0 is located 0 bytes inside of 29-byte region [0x503000005aa0,0x503000005abd)
+freed by thread T0 here:
+    - mrb_default_allocf /root/src/state.c:65:5
+    - mrb_free /root/src/gc.c:289:3
+    - mrb_gc_free_str /root/src/string.c:237:5
+    - obj_free /root/src/gc.c:863:5
+    - incremental_sweep_phase /root/src/gc.c:1143:11
+    - incremental_gc /root/src/gc.c:1209:20
+    - incremental_gc_until /root/src/gc.c:1225:5
+    - mrb_incremental_gc /root/src/gc.c:1276:5
+    - mrb_obj_alloc /root/src/gc.c:570:5
+    - break_new /root/src/vm.c:925:9
+    - mrb_vm_exec /root/src/vm.c:2273:41
+    - mrb_vm_run /root/src/vm.c:1132:12
+    - mrb_run /root/src/vm.c:3032:10
+    - mrb_yield_with_class /root/src/vm.c:880:11
+    - mrb_class_initialize /root/src/class.c:2000:5
+    - mrb_vm_exec /root/src/vm.c:1638:18
+    - mrb_vm_run /root/src/vm.c:1132:12
+    - mrb_top_run /root/src/vm.c:3045:12
+    - mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6891:7
+    - mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6934:12
+    - main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+
+previously allocated by thread T0 here:
+    - mrb_default_allocf /root/src/state.c:69:12
+    - mrb_realloc_simple /root/src/gc.c:227:8
+    - mrb_realloc /root/src/gc.c:241:8
+    - mrb_malloc /root/src/gc.c:257:10
+    - str_init_normal_capa /root/src/string.c:35:23
+    - str_init_normal /root/src/string.c:48:10
+    - str_new /root/src/string.c:127:10
+    - mrb_str_times /root/src/string.c:897:10
+    - mrb_vm_exec /root/src/vm.c:1638:18
+    - mrb_vm_run /root/src/vm.c:1132:12
+    - mrb_run /root/src/vm.c:3032:10
+    - mrb_yield_with_class /root/src/vm.c:880:11
+    - mrb_class_initialize /root/src/class.c:2000:5
+    - mrb_vm_exec /root/src/vm.c:1638:18
+    - mrb_vm_run /root/src/vm.c:1132:12
+    - mrb_top_run /root/src/vm.c:3045:12
+    - mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6891:7
+    - mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6934:12
+    - main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

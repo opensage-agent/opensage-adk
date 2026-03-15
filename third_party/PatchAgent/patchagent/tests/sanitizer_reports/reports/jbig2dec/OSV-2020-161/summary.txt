@@ -1,0 +1,27 @@
+The sanitizer detected a stack use after return vulnerability. The explanation of the vulnerability is: A function accesses stack memory after returning, leading to use-after-free vulnerabilities. Here is the detail: 
+
+READ of size 8 at 0x7f3eb2774f08 thread T0
+    - jbig2_release_huffman_table /src/jbig2dec/jbig2_huffman.c:504:43
+    - jbig2_text_region /src/jbig2dec/jbig2_text.c:1031:9
+    - jbig2_data_in /src/jbig2dec/jbig2.c:412:20
+    - LLVMFuzzerTestOneInput /src/jbig2_fuzzer.cc:126:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f3eb2774f08 is located in stack of thread T0 at offset 8 in frame
+    - jbig2_halftone_region /src/jbig2dec/jbig2_halftone.c:555:0
+
+  This frame has 3 object(s):
+    [32, 40) 'consumed_bytes.i.i' (line 273)
+    [64, 96) 'rparams.i.i' (line 277)
+    [128, 152) 'region_info' (line 557)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. Avoid returning addresses of local variables from functions, as stack memory is deallocated after return.
+2. If persistent storage is needed, use heap-allocated memory instead of local stack memory.
+3. Check the lifetime of variables to ensure they are not accessed after they go out of scope.

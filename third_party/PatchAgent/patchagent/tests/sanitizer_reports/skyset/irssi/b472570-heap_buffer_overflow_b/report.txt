@@ -1,0 +1,76 @@
+=================================================================
+==360361==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000b94ff at pc 0x563f8290f203 bp 0x7ffc25e7cc50 sp 0x7ffc25e7cc48
+READ of size 1 at 0x5020000b94ff thread T0
+    #0 0x563f8290f202 in unescape_tag /root/Build/../src/irc/core/irc.c:395:9
+    #1 0x563f8290efb4 in irc_parse_message_tags /root/Build/../src/irc/core/irc.c:437:3
+    #2 0x563f8290fcc6 in irc_server_event_tags /root/Build/../src/irc/core/irc.c:453:15
+    #3 0x563f8282b9b7 in signal_emit_real /root/Build/../src/core/signals.c:242:3
+    #4 0x563f8282c2cc in signal_emit_id /root/Build/../src/core/signals.c:304:3
+    #5 0x563f829102da in irc_parse_incoming_line /root/Build/../src/irc/core/irc.c:524:3
+    #6 0x563f8282b9b7 in signal_emit_real /root/Build/../src/core/signals.c:242:3
+    #7 0x563f8282b16a in signal_emit /root/Build/../src/core/signals.c:286:3
+    #8 0x563f827dabe3 in LLVMFuzzerTestOneInput /root/Build/../src/fe-fuzz/server.c:185:3
+    #9 0x563f827bf3b4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/server-fuzz+0x1973b4) (BuildId: b48c2d602f5b22f18c930ae40c4a8c3f83b4599f)
+    #10 0x563f827a84e6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/server-fuzz+0x1804e6) (BuildId: b48c2d602f5b22f18c930ae40c4a8c3f83b4599f)
+    #11 0x563f827adf9a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/server-fuzz+0x185f9a) (BuildId: b48c2d602f5b22f18c930ae40c4a8c3f83b4599f)
+    #12 0x563f827d87f6 in main (/root/server-fuzz+0x1b07f6) (BuildId: b48c2d602f5b22f18c930ae40c4a8c3f83b4599f)
+    #13 0x7fc1b38411c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x7fc1b384128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x563f827a30b4 in _start (/root/server-fuzz+0x17b0b4) (BuildId: b48c2d602f5b22f18c930ae40c4a8c3f83b4599f)
+
+0x5020000b94ff is located 0 bytes after 15-byte region [0x5020000b94f0,0x5020000b94ff)
+allocated by thread T0 here:
+    #0 0x7fc1b3c0a7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x563f82a10dcf in g_malloc /root/Build/build-subprojects/glib/../../../subprojects/glib-2.58.3/glib/gmem.c:99:13
+    #2 0x563f82a111d2 in g_malloc_n /root/Build/build-subprojects/glib/../../../subprojects/glib-2.58.3/glib/gmem.c:340:10
+    #3 0x563f82a4ee55 in g_strdup /root/Build/build-subprojects/glib/../../../subprojects/glib-2.58.3/glib/gstrfuncs.c:363:17
+    #4 0x563f82a53d52 in g_strsplit /root/Build/build-subprojects/glib/../../../subprojects/glib-2.58.3/glib/gstrfuncs.c:2361:51
+    #5 0x563f8290ef7e in irc_parse_message_tags /root/Build/../src/irc/core/irc.c:436:8
+    #6 0x563f8290fcc6 in irc_server_event_tags /root/Build/../src/irc/core/irc.c:453:15
+    #7 0x563f8282b9b7 in signal_emit_real /root/Build/../src/core/signals.c:242:3
+    #8 0x563f8282c2cc in signal_emit_id /root/Build/../src/core/signals.c:304:3
+    #9 0x563f829102da in irc_parse_incoming_line /root/Build/../src/irc/core/irc.c:524:3
+    #10 0x563f8282b9b7 in signal_emit_real /root/Build/../src/core/signals.c:242:3
+    #11 0x563f8282b16a in signal_emit /root/Build/../src/core/signals.c:286:3
+    #12 0x563f827dabe3 in LLVMFuzzerTestOneInput /root/Build/../src/fe-fuzz/server.c:185:3
+    #13 0x563f827bf3b4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/server-fuzz+0x1973b4) (BuildId: b48c2d602f5b22f18c930ae40c4a8c3f83b4599f)
+    #14 0x563f827a84e6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/server-fuzz+0x1804e6) (BuildId: b48c2d602f5b22f18c930ae40c4a8c3f83b4599f)
+    #15 0x563f827adf9a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/server-fuzz+0x185f9a) (BuildId: b48c2d602f5b22f18c930ae40c4a8c3f83b4599f)
+    #16 0x563f827d87f6 in main (/root/server-fuzz+0x1b07f6) (BuildId: b48c2d602f5b22f18c930ae40c4a8c3f83b4599f)
+    #17 0x7fc1b38411c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x7fc1b384128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x563f827a30b4 in _start (/root/server-fuzz+0x17b0b4) (BuildId: b48c2d602f5b22f18c930ae40c4a8c3f83b4599f)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/Build/../src/irc/core/irc.c:395:9 in unescape_tag
+Shadow bytes around the buggy address:
+  0x5020000b9200: fa fa 07 fa fa fa 05 fa fa fa fd fd fa fa fd fd
+  0x5020000b9280: fa fa 00 03 fa fa 00 fa fa fa fd fa fa fa fd fa
+  0x5020000b9300: fa fa fd fd fa fa fd fa fa fa fd fd fa fa fd fa
+  0x5020000b9380: fa fa fd fa fa fa fd fd fa fa 00 00 fa fa 00 02
+  0x5020000b9400: fa fa 00 07 fa fa 07 fa fa fa 00 01 fa fa 00 00
+=>0x5020000b9480: fa fa 00 00 fa fa 00 00 fa fa 01 fa fa fa 00[07]
+  0x5020000b9500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5020000b9580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5020000b9600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5020000b9680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5020000b9700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360361==ABORTING

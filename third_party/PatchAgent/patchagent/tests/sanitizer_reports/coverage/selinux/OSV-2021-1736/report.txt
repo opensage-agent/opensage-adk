@@ -1,0 +1,40 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/selinux:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce binpolicy-fuzzer -runs=100.
++ FUZZER=binpolicy-fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer binpolicy-fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/binpolicy-fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3267496601
+/out/binpolicy-fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x00000057fff8 (pc 0x558ccbb1e35c bp 0x7ffd11ca06a0 sp 0x7ffd11ca0660 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x558ccbb1e35c in mls_semantic_level_expand /src/selinux/libsepol/src/expand.c:934:11
+    #1 0x558ccbb1e662 in mls_semantic_range_expand /src/selinux/libsepol/src/expand.c:972:6
+    #2 0x558ccbafdecc in policydb_user_cache /src/selinux/libsepol/src/policydb.c:966:7
+    #3 0x558ccbb29325 in hashtab_map /src/selinux/libsepol/src/hashtab.c:234:10
+    #4 0x558ccbafe4c3 in policydb_index_others /src/selinux/libsepol/src/policydb.c:1274:6
+    #5 0x558ccbb00d1a in policydb_read /src/selinux/libsepol/src/policydb.c:4481:6
+    #6 0x558ccbaed317 in LLVMFuzzerTestOneInput /src/selinux/libsepol/fuzz/binpolicy-fuzzer.c:35:6
+    #7 0x558ccba4f890 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x558ccba3ab05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x558ccba4059f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x558ccba6b842 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fb81f68d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #12 0x558ccba32ced in _start (/out/binpolicy-fuzzer+0x20ced)
+
+DEDUP_TOKEN: mls_semantic_level_expand--mls_semantic_range_expand--policydb_user_cache
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/selinux/libsepol/src/expand.c:934:11 in mls_semantic_level_expand
+==14==ABORTING

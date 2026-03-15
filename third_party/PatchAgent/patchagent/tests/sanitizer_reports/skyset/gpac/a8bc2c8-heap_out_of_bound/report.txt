@@ -1,0 +1,72 @@
+=================================================================
+==638684==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000002a70 at pc 0x7f7a858f9d59 bp 0x7ffd69bc2ef0 sp 0x7ffd69bc2ee8
+WRITE of size 4 at 0x502000002a70 thread T0
+    #0 0x7f7a858f9d58 in swf_def_font /root/src/scene_manager/swf_parse.c:1429:19
+    #1 0x7f7a858f3f06 in swf_process_tag /root/src/scene_manager/swf_parse.c:2330:10
+    #2 0x7f7a858f38ab in swf_parse_tag /root/src/scene_manager/swf_parse.c:2402:6
+    #3 0x7f7a860d2a25 in gf_text_process_swf /root/src/filters/load_text.c:2542:7
+    #4 0x7f7a860b9f0b in txtin_process /root/src/filters/load_text.c:3992:6
+    #5 0x7f7a85d583c3 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #6 0x7f7a85d26581 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #7 0x7f7a85d2257b in gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    #8 0x7f7a8563ab6f in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #9 0x55d97f6cd19e in do_dash /root/applications/mp4box/mp4box.c:4825:15
+    #10 0x55d97f6c1c93 in mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    #11 0x55d97f6c8811 in main /root/applications/mp4box/mp4box.c:6933:1
+    #12 0x7f7a8485c1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7f7a8485c28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x55d97f6a7de4 in _start (/root/bin/gcc/MP4Box+0x49de4) (BuildId: c5f79affebc6f7dc1335f1590c6b5b81b9c4487d)
+
+0x502000002a71 is located 0 bytes after 1-byte region [0x502000002a70,0x502000002a71)
+allocated by thread T0 here:
+    #0 0x7f7a86c497a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f7a84d5bf64 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7f7a858f9d02 in swf_def_font /root/src/scene_manager/swf_parse.c:1428:24
+    #3 0x7f7a858f3f06 in swf_process_tag /root/src/scene_manager/swf_parse.c:2330:10
+    #4 0x7f7a858f38ab in swf_parse_tag /root/src/scene_manager/swf_parse.c:2402:6
+    #5 0x7f7a860d2a25 in gf_text_process_swf /root/src/filters/load_text.c:2542:7
+    #6 0x7f7a860b9f0b in txtin_process /root/src/filters/load_text.c:3992:6
+    #7 0x7f7a85d583c3 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #8 0x7f7a85d26581 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #9 0x7f7a85d2257b in gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    #10 0x7f7a8563ab6f in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #11 0x55d97f6cd19e in do_dash /root/applications/mp4box/mp4box.c:4825:15
+    #12 0x55d97f6c1c93 in mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    #13 0x55d97f6c8811 in main /root/applications/mp4box/mp4box.c:6933:1
+    #14 0x7f7a8485c1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x7f7a8485c28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x55d97f6a7de4 in _start (/root/bin/gcc/MP4Box+0x49de4) (BuildId: c5f79affebc6f7dc1335f1590c6b5b81b9c4487d)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/scene_manager/swf_parse.c:1429:19 in swf_def_font
+Shadow bytes around the buggy address:
+  0x502000002780: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fa
+  0x502000002800: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fd
+  0x502000002880: fa fa fd fa fa fa fd fd fa fa fd fa fa fa fd fd
+  0x502000002900: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fa
+  0x502000002980: fa fa fd fa fa fa fd fa fa fa 00 00 fa fa 00 00
+=>0x502000002a00: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa[01]fa
+  0x502000002a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000002b00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000002b80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000002c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000002c80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==638684==ABORTING

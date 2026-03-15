@@ -1,0 +1,51 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50f000005b0d at pc 0x55c141e92514 bp 0x7ffe49190240 sp 0x7ffe49190238
+READ of size 4 at 0x50f000005b0d thread T0
+SCARINESS: 27 (4-byte-read-heap-buffer-overflow-far-from-bounds)
+    #0 0x55c141e92513 in initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:1803:34
+    #1 0x55c141e92513 in blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2350:8
+    #2 0x55c141e9263d in blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2376:12
+    #3 0x55c141eca8e1 in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:2750:23
+    #4 0x55c141e4b945 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:38:15
+    #5 0x55c141d00380 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55c141ceb5f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55c141cf108f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55c141d1c332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7fc641524082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #10 0x55c141ce37dd in _start (/out/decompress_frame_fuzzer+0x10d7dd)
+
+DEDUP_TOKEN: initialize_context_decompression--blosc_run_decompression_with_context--blosc2_decompress_ctx
+Address 0x50f000005b0d is a wild pointer inside of access range of size 0x000000000004.
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/c-blosc2/blosc/blosc2.c:1803:34 in initialize_context_decompression
+Shadow bytes around the buggy address:
+  0x50f000005880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000005900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000005980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000005a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000005a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x50f000005b00: fa[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000005b80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000005c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000005c80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000005d00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000005d80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

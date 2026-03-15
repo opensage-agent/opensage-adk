@@ -1,0 +1,40 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 31 at 0x5070000001b3 thread T0
+    - memchr /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc:884:3
+    - _libssh2_kex_agree_instr /src/libssh2/src/kex.c:3347:34
+    - _libssh2_packet_add /src/libssh2/src/packet.c:709:24
+    - fullpacket /src/libssh2/src/transport.c:319:14
+    - _libssh2_transport_read /src/libssh2/src/transport.c:736:18
+    - _libssh2_packet_require /src/libssh2/src/packet.c:1502:15
+    - _libssh2_kex_exchange /src/libssh2/src/kex.c:3901:17
+    - session_startup /src/libssh2/src/session.c:772:14
+    - libssh2_session_handshake /src/libssh2/src/session.c:863:5
+    - LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:67:6
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5070000001b3 is located 0 bytes after 67-byte region [0x507000000170,0x5070000001b3)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - libssh2_default_alloc /src/libssh2/src/session.c:77:12
+    - _libssh2_transport_read /src/libssh2/src/transport.c:592:26
+    - _libssh2_packet_require /src/libssh2/src/packet.c:1502:15
+    - _libssh2_kex_exchange /src/libssh2/src/kex.c:3901:17
+    - session_startup /src/libssh2/src/session.c:772:14
+    - libssh2_session_handshake /src/libssh2/src/session.c:863:5
+    - LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:67:6
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

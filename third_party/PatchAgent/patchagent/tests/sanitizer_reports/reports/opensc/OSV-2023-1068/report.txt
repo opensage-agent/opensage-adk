@@ -1,0 +1,108 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/opensc:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/opensc/OSV-2023-1068/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_pkcs15_crypt -runs=100.
++ FUZZER=fuzz_pkcs15_crypt
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_pkcs15_crypt -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_pkcs15_crypt -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 936219251
+INFO: Loaded 1 modules   (43111 inline 8-bit counters): 43111 [0x561f56072cf0, 0x561f5607d557), 
+INFO: Loaded 1 PC tables (43111 PCs): 43111 [0x561f5607d558,0x561f56125bc8), 
+/out/fuzz_pkcs15_crypt: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==13==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000005b1 at pc 0x561f55bfd47a bp 0x7ffe469296e0 sp 0x7ffe469296d8
+[1m[0m[1m[34mREAD of size 1 at 0x5020000005b1 thread T0[1m[0m
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x561f55bfd479 in iasecc_parse_size /src/opensc/src/libopensc/iasecc-sdo.c:392:6
+    #1 0x561f55c0b293 in iasecc_parse_get_tlv /src/opensc/src/libopensc/iasecc-sdo.c:427:13
+    #2 0x561f55c0b9dc in iasecc_parse_docp /src/opensc/src/libopensc/iasecc-sdo.c:589:8
+    #3 0x561f55c0051a in iasecc_sdo_parse_data /src/opensc/src/libopensc/iasecc-sdo.c:661:8
+    #4 0x561f55bffa73 in iasecc_sdo_parse /src/opensc/src/libopensc/iasecc-sdo.c:769:8
+    #5 0x561f55bdcdad in iasecc_sdo_get_tagged_data /src/opensc/src/libopensc/card-iasecc.c:2943:7
+    #6 0x561f55bdb0af in iasecc_sdo_get_data /src/opensc/src/libopensc/card-iasecc.c:2960:7
+    #7 0x561f55bf68be in iasecc_pin_get_policy /src/opensc/src/libopensc/card-iasecc.c:2162:7
+    #8 0x561f55bf16c5 in iasecc_pin_get_info /src/opensc/src/libopensc/card-iasecc.c:2234:7
+    #9 0x561f55bd244c in iasecc_pin_cmd /src/opensc/src/libopensc/card-iasecc.c:2555:8
+    #10 0x561f55e341e9 in sc_pin_cmd /src/opensc/src/libopensc/sec.c:212:7
+    #11 0x561f55d2e96f in sc_pkcs15emu_din_66291_init /src/opensc/src/libopensc/pkcs15-din-66291.c:71:23
+    #12 0x561f55d2dfbd in sc_pkcs15emu_din_66291_init_ex /src/opensc/src/libopensc/pkcs15-din-66291.c:255:23
+    #13 0x561f5597f42f in sc_pkcs15_bind_synthetic /src/opensc/src/libopensc/pkcs15-syn.c:141:8
+    #14 0x561f55924633 in sc_pkcs15_bind /src/opensc/src/libopensc/pkcs15.c:1351:8
+    #15 0x561f558bc9ee in _main /src/opensc/src/tests/fuzzing/../../../src/tools/pkcs15-crypt.c:508:7
+    #16 0x561f558bf905 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15_crypt.c:134:3
+    #17 0x561f55772ce0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x561f5575df55 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x561f557639ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x561f5578ec92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7fe4d7288082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #22 0x561f5575613d in _start (/out/fuzz_pkcs15_crypt+0x1fe13d)
+
+DEDUP_TOKEN: iasecc_parse_size--iasecc_parse_get_tlv--iasecc_parse_docp
+[1m[32m0x5020000005b1 is located 0 bytes after 1-byte region [0x5020000005b0,0x5020000005b1)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x561f5587ec79 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x561f55c0b3ee in iasecc_parse_get_tlv /src/opensc/src/libopensc/iasecc-sdo.c:430:15
+    #2 0x561f55c002fe in iasecc_sdo_parse_data /src/opensc/src/libopensc/iasecc-sdo.c:653:13
+    #3 0x561f55bffa73 in iasecc_sdo_parse /src/opensc/src/libopensc/iasecc-sdo.c:769:8
+    #4 0x561f55bdcdad in iasecc_sdo_get_tagged_data /src/opensc/src/libopensc/card-iasecc.c:2943:7
+    #5 0x561f55bdb0af in iasecc_sdo_get_data /src/opensc/src/libopensc/card-iasecc.c:2960:7
+    #6 0x561f55bf68be in iasecc_pin_get_policy /src/opensc/src/libopensc/card-iasecc.c:2162:7
+    #7 0x561f55bf16c5 in iasecc_pin_get_info /src/opensc/src/libopensc/card-iasecc.c:2234:7
+    #8 0x561f55bd244c in iasecc_pin_cmd /src/opensc/src/libopensc/card-iasecc.c:2555:8
+    #9 0x561f55e341e9 in sc_pin_cmd /src/opensc/src/libopensc/sec.c:212:7
+    #10 0x561f55d2e96f in sc_pkcs15emu_din_66291_init /src/opensc/src/libopensc/pkcs15-din-66291.c:71:23
+    #11 0x561f55d2dfbd in sc_pkcs15emu_din_66291_init_ex /src/opensc/src/libopensc/pkcs15-din-66291.c:255:23
+    #12 0x561f5597f42f in sc_pkcs15_bind_synthetic /src/opensc/src/libopensc/pkcs15-syn.c:141:8
+    #13 0x561f55924633 in sc_pkcs15_bind /src/opensc/src/libopensc/pkcs15.c:1351:8
+    #14 0x561f558bc9ee in _main /src/opensc/src/tests/fuzzing/../../../src/tools/pkcs15-crypt.c:508:7
+    #15 0x561f558bf905 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15_crypt.c:134:3
+    #16 0x561f55772ce0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x561f5575df55 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x561f557639ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x561f5578ec92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7fe4d7288082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_calloc--iasecc_parse_get_tlv--iasecc_sdo_parse_data
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/opensc/src/libopensc/iasecc-sdo.c:392:6 in iasecc_parse_size
+Shadow bytes around the buggy address:
+  0x502000000300: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x502000000380: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x502000000400: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x502000000480: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x502000000500: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x502000000580: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m[[1m[0m01[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000000600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000000680: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000000700: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000000780: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000000800: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==13==ABORTING

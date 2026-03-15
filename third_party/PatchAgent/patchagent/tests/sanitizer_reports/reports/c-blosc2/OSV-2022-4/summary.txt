@@ -1,0 +1,48 @@
+The sanitizer detected a function param overlap vulnerability. The explanation of the vulnerability is: The source and destination buffers of a memory copy operation overlap, causing data corruption. Here is the detail: 
+
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - ZSTD_initDDict_internal /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:134:9
+    - ZSTD_createDDict_advanced /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:155:39
+    - ZSTD_createDDict /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:173:12
+    - initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:2028:27
+    - blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2483:8
+    - blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2509:12
+    - frame_decompress_chunk /src/c-blosc2/blosc/frame.c:3006:23
+    - blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:915:17
+    - LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:38:15
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x511000000400 is located 0 bytes inside of 252-byte region [0x511000000400,0x5110000004fc)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - ZSTD_customMalloc /src/c-blosc2/internal-complibs/zstd-1.4.9/common/zstd_common.c:60:12
+    - ZSTD_initDDict_internal /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:130:38
+    - ZSTD_createDDict_advanced /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:155:39
+    - ZSTD_createDDict /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:173:12
+    - initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:2028:27
+    - blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2483:8
+    - blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2509:12
+    - frame_decompress_chunk /src/c-blosc2/blosc/frame.c:3006:23
+    - blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:915:17
+    - LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:38:15
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5110000003b6 is located 0 bytes after 246-byte region [0x5110000002c0,0x5110000003b6)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that the source and destination buffers do not overlap in memcpy operations.
+2. If overlapping memory regions must be copied, use memmove instead of memcpy.
+3. Validate memory regions before performing copy operations.

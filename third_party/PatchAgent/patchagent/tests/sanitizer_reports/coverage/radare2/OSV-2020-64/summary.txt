@@ -1,0 +1,12 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a WRITE memory access.
+munmap_chunk(): invalid pointer
+ ERROR: libFuzzer: deadly signal
+bash: line 1:    18 Segmentation fault      (core dumped) /out/ia_fuzz -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -detect_leaks=0 < /dev/null
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

@@ -1,0 +1,84 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x5030000000d0 at pc 0x56402573bbe2 bp 0x7fff1d3631c0 sp 0x7fff1d362980
+READ of size 32 at 0x5030000000d0 thread T0
+SCARINESS: 54 (multi-byte-read-heap-use-after-free)
+    #0 0x56402573bbe1 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x5640257926cf in picture_copy_props /work/build/../../src/dav1d/src/picture.c:264:13
+    #2 0x564025793979 in dav1d_picture_alloc_copy /work/build/../../src/dav1d/src/picture.c:343:12
+    #3 0x56402577ffdb in dav1d_apply_grain /work/build/../../src/dav1d/src/lib.c:542:15
+    #4 0x56402577fc62 in output_image /work/build/../../src/dav1d/src/lib.c:368:11
+    #5 0x56402577f284 in drain_picture /work/build/../../src/dav1d/src/lib.c:447:24
+    #6 0x56402577f284 in dav1d_get_picture /work/build/../../src/dav1d/src/lib.c:525:16
+    #7 0x56402577df88 in LLVMFuzzerTestOneInput /work/build/../../src/dav1d/tests/libfuzzer/dav1d_fuzzer.c:186:24
+    #8 0x564025631f20 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x56402561d195 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x564025622c2f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x56402564ded2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7fb4aac33082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #13 0x56402561537d in _start (/out/dav1d_fuzzer_mt+0xb237d)
+
+DEDUP_TOKEN: __asan_memcpy--picture_copy_props--dav1d_picture_alloc_copy
+0x5030000000d0 is located 0 bytes inside of 32-byte region [0x5030000000d0,0x5030000000f0)
+freed by thread T0 here:
+    #0 0x56402573da56 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x564025794758 in free_itut_t35 /work/build/../../src/dav1d/src/picture.c:129:5
+    #2 0x564025794f9f in dav1d_ref_dec /work/build/../../src/dav1d/src/ref.c:100:9
+    #3 0x56402579263a in picture_copy_props /work/build/../../src/dav1d/src/picture.c:252:9
+    #4 0x564025792390 in dav1d_picture_move_props /work/build/../../src/dav1d/src/picture.c:290:12
+    #5 0x564025784186 in dav1d_parse_obus /work/build/../../src/dav1d/src/obu.c:1615:17
+    #6 0x56402577e877 in gen_picture /work/build/../../src/dav1d/src/lib.c:466:15
+    #7 0x56402577e688 in dav1d_send_data /work/build/../../src/dav1d/src/lib.c:496:15
+    #8 0x56402577dc57 in LLVMFuzzerTestOneInput /work/build/../../src/dav1d/tests/libfuzzer/dav1d_fuzzer.c:164:24
+    #9 0x564025631f20 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x56402561d195 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x564025622c2f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x56402564ded2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fb4aac33082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--free_itut_t35--dav1d_ref_dec
+previously allocated by thread T0 here:
+    #0 0x56402573e0dc in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x5640257839bf in dav1d_parse_obus /work/build/../../src/dav1d/src/obu.c:1497:45
+    #2 0x56402577e877 in gen_picture /work/build/../../src/dav1d/src/lib.c:466:15
+    #3 0x56402577e688 in dav1d_send_data /work/build/../../src/dav1d/src/lib.c:496:15
+    #4 0x56402577dc57 in LLVMFuzzerTestOneInput /work/build/../../src/dav1d/tests/libfuzzer/dav1d_fuzzer.c:164:24
+    #5 0x564025631f20 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x56402561d195 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564025622c2f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x56402564ded2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7fb4aac33082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--dav1d_parse_obus--gen_picture
+SUMMARY: AddressSanitizer: heap-use-after-free /work/build/../../src/dav1d/src/picture.c:264:13 in picture_copy_props
+Shadow bytes around the buggy address:
+  0x502ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x503000000000: fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00
+=>0x503000000080: 00 fa fa fa 00 00 00 00 fa fa[fd]fd fd fd fa fa
+  0x503000000100: 00 00 00 00 fa fa 00 00 00 00 fa fa fa fa fa fa
+  0x503000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

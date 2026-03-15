@@ -1,0 +1,17 @@
+=================================================================
+==640156==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x56262f781681 bp 0x7ffcfd42ff50 sp 0x7ffcfd42fed0 T0)
+==640156==The signal is caused by a READ memory access.
+==640156==Hint: address points to the zero page.
+    #0 0x56262f781681 in yasm_expr_get_intnum /root/libyasm/expr.c:1267:19
+    #1 0x56262f772b1b in bc_align_finalize /root/libyasm/bc-align.c:108:10
+    #2 0x56262f77a6de in yasm_bc_finalize /root/libyasm/bytecode.c:176:9
+    #3 0x56262f675629 in yasm_object_finalize /root/libyasm/section.c:546:13
+    #4 0x56262f64446c in do_assemble /root/frontends/yasm/yasm.c:647:5
+    #5 0x56262f6423b1 in main /root/frontends/yasm/yasm.c:877:12
+    #6 0x7f4f7ad471c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x7f4f7ad4728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x56262f6405e4 in _start (/root/yasm+0x9e5e4) (BuildId: 6add1c4aa7417c41ce7337c767cb38f14e05338a)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/libyasm/expr.c:1267:19 in yasm_expr_get_intnum
+==640156==ABORTING

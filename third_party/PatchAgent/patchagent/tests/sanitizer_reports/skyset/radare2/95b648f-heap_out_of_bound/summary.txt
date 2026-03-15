@@ -1,0 +1,38 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x51100014e23f thread T0
+    - decode /root/libr/arch/p/bf/plugin.c:176:22
+    - r_arch_decode /root/libr/arch/arch.c:292:9
+    - r_anal_op /root/libr/anal/op.c:186:8
+    - _anal_calls /root/libr/core/cmd_anal.c:8705:7
+    - cmd_anal_calls /root/libr/core/cmd_anal.c:8811:5
+    - cmd_anal_all /root/libr/core/cmd_anal.c:12465:11
+    - cmd_anal /root/libr/core/cmd_anal.c:13726:8
+    - r_cmd_call /root/libr/core/cmd_api.c:520:11
+    - r_core_cmd_call /root/libr/core/cmd.c:6266:9
+    - perform_analysis /root/libr/main/radare2.c:428:2
+    - r_main_radare2 /root/libr/main/radare2.c:1633:4
+    - main /root/binr/radare2/radare2.c:105:9
+
+0x51100014e23f is located 0 bytes after 255-byte region [0x51100014e140,0x51100014e23f)
+allocated by thread T0 here:
+    - decode /root/libr/arch/p/bf/plugin.c:167:10
+    - r_arch_decode /root/libr/arch/arch.c:292:9
+    - r_anal_op /root/libr/anal/op.c:186:8
+    - _anal_calls /root/libr/core/cmd_anal.c:8705:7
+    - cmd_anal_calls /root/libr/core/cmd_anal.c:8811:5
+    - cmd_anal_all /root/libr/core/cmd_anal.c:12465:11
+    - cmd_anal /root/libr/core/cmd_anal.c:13726:8
+    - r_cmd_call /root/libr/core/cmd_api.c:520:11
+    - r_core_cmd_call /root/libr/core/cmd.c:6266:9
+    - perform_analysis /root/libr/main/radare2.c:428:2
+    - r_main_radare2 /root/libr/main/radare2.c:1633:4
+    - main /root/binr/radare2/radare2.c:105:9
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

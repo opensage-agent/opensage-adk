@@ -1,0 +1,28 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - operator()<unsigned short, int> /usr/local/include/c++/v1/__algorithm/comp.h:41:12
+    - __invoke<std::__1::__less<void, void> &, unsigned short &, const int &> /usr/local/include/c++/v1/__type_traits/invoke.h:344:25
+    - unsigned short* std::__1::__lower_bound[abi:ne180100]<std::__1::_ClassicAlgPolicy, unsigned short*, unsigned short*, int, std::__1::__identity, std::__1::__less<void, void>>(unsigned short*, unsigned short*, int const&, std::__1::__less<void, void>&, std::__1::__identity&) /usr/local/include/c++/v1/__algorithm/lower_bound.h:39:9
+    - lower_bound<unsigned short *, int, std::__1::__less<void, void> &> /usr/local/include/c++/v1/__algorithm/lower_bound.h:54:10
+    - binary_search<unsigned short *, int, std::__1::__less<void, void> > /usr/local/include/c++/v1/__algorithm/binary_search.h:27:13
+    - binary_search<unsigned short *, int> /usr/local/include/c++/v1/__algorithm/binary_search.h:34:10
+    - HashMgr::free_flag(unsigned short*, short) /src/hunspell/src/hunspell/hashmgr.cxx:110:34
+    - HashMgr::add_word(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, unsigned short*, int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const*, bool, int) /src/hunspell/src/hunspell/hashmgr.cxx:0:0
+    - HashMgr::load_tables(char const*, char const*) /src/hunspell/src/hunspell/hashmgr.cxx:677:9
+    - HashMgr::HashMgr(char const*, char const*, char const*) /src/hunspell/src/hunspell/hashmgr.cxx:99:12
+    - HunspellImpl::HunspellImpl(char const*, char const*, char const*) /src/hunspell/src/hunspell/hunspell.cxx:183:25
+    - Hunspell::Hunspell(char const*, char const*, char const*) /src/hunspell/src/hunspell/hunspell.cxx:2106:16
+    - LLVMFuzzerTestOneInput /src/hunspell/src/tools/affdicfuzzer.cxx:63:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

@@ -1,0 +1,43 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 2 at 0x511000001bac thread T0
+    - composite_line /src/openexr/src/lib/OpenEXR/ImfCompositeDeepScanLine.cpp:371:25
+    - Imf_2_5::(anonymous namespace)::LineCompositeTask::execute() /src/openexr/src/lib/OpenEXR/ImfCompositeDeepScanLine.cpp:385:3
+    - IlmThread_3_4::(anonymous namespace)::NullThreadPoolProvider::addTask(IlmThread_3_4::Task*) /src/openexr/src/lib/IlmThread/IlmThreadPool.cpp:399:12
+    - addTask /src/openexr/src/lib/IlmThread/IlmThreadPool.cpp:752:28
+    - IlmThread_3_4::ThreadPool::addGlobalTask(IlmThread_3_4::Task*) /src/openexr/src/lib/IlmThread/IlmThreadPool.cpp:776:24
+    - Imf_2_5::CompositeDeepScanLine::readPixels(int, int) /src/openexr/src/lib/OpenEXR/ImfCompositeDeepScanLine.cpp:555:8
+    - Imf_2_5::InputFile::readPixels(int, int) /src/openexr/src/lib/OpenEXR/ImfInputFile.cpp:903:28
+    - readYCAScanLine /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1116:16
+    - Imf_2_5::RgbaInputFile::FromYca::readPixels(int) /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1036:3
+    - readPixels /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:945:6
+    - Imf_2_5::RgbaInputFile::readPixels(int, int) /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1303:12
+    - bool Imf_2_5::(anonymous namespace)::readRgba<Imf_2_5::RgbaInputFile>(Imf_2_5::RgbaInputFile&, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:116:19
+    - runChecks<Imf_2_5::(anonymous namespace)::PtrIStream> /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1068:24
+    - Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1173:10
+    - LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x511000001bac is located 20 bytes before 216-byte region [0x511000001bc0,0x511000001c98)
+allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - Imf_2_5::InputFile::InputFile(Imf_2_5::IStream&, int) /src/openexr/src/lib/OpenEXR/ImfInputFile.cpp:487:12
+    - Imf_2_5::RgbaInputFile::RgbaInputFile(Imf_2_5::IStream&, int) /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1168:21
+    - runChecks<Imf_2_5::(anonymous namespace)::PtrIStream> /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1067:27
+    - Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1173:10
+    - LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

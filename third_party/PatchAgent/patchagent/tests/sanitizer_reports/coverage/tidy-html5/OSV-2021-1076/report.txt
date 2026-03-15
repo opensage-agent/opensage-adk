@@ -1,0 +1,40 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/tidy-html5:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce tidy_xml_fuzzer -runs=100.
++ FUZZER=tidy_xml_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer tidy_xml_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/tidy_xml_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 4055718893
+/out/tidy_xml_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x55d6cff3f68f (pc 0x55d5ce35fc5f bp 0x7ffdda25f0e0 sp 0x7ffdda25f0b0 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x55d5ce35fc5f in ParseXMLElement /src/tidy-html5/src/parser.c:4850:43
+    #1 0x55d5ce35f9a6 in prvTidyParseXMLDocument /src/tidy-html5/src/parser.c:4907:13
+    #2 0x55d5ce34937d in prvTidyDocParseStream /src/tidy-html5/src/tidylib.c:1500:9
+    #3 0x55d5ce348887 in tidyDocParseString /src/tidy-html5/src/tidylib.c:1218:18
+    #4 0x55d5ce348887 in tidyParseString /src/tidy-html5/src/tidylib.c:1115:12
+    #5 0x55d5ce34636a in TidyXml /src/tidy_xml_fuzzer.c:40:5
+    #6 0x55d5ce3463fe in LLVMFuzzerTestOneInput /src/tidy_xml_fuzzer.c:60:3
+    #7 0x55d5ce2a8880 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55d5ce293af5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55d5ce29958f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55d5ce2c4832 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f0a7a209082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #12 0x55d5ce28bcdd in _start (/out/tidy_xml_fuzzer+0x47cdd)
+
+DEDUP_TOKEN: ParseXMLElement--prvTidyParseXMLDocument--prvTidyDocParseStream
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/tidy-html5/src/parser.c:4850:43 in ParseXMLElement
+==14==ABORTING

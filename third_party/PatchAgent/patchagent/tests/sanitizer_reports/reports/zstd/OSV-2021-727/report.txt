@@ -1,0 +1,49 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/zstd:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/zstd/OSV-2021-727/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce dictionary_stream_round_trip -runs=100.
++ FUZZER=dictionary_stream_round_trip
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer dictionary_stream_round_trip -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/dictionary_stream_round_trip -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 4278052572
+INFO: Loaded 1 modules   (43411 inline 8-bit counters): 43411 [0x562ccbbf3628, 0x562ccbbfdfbb), 
+INFO: Loaded 1 PC tables (43411 PCs): 43411 [0x562ccbbfdfc0,0x562ccbca78f0), 
+/out/dictionary_stream_round_trip: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x52f10000b1a0 (pc 0x562ccb9358ec bp 0x7ffd23441120 sp 0x7ffd23440aa0 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x562ccb9358ec in MEM_read32 /src/zstd/tests/fuzz/../../lib/compress/../common/mem.h:214:14
+    #1 0x562ccb9358ec in ZSTD_compressBlock_lazy_extDict_generic /src/zstd/tests/fuzz/../../lib/compress/zstd_lazy.c:2106:35
+    #2 0x562ccb9358ec in ZSTD_compressBlock_greedy_extDict_row /src/zstd/tests/fuzz/../../lib/compress/zstd_lazy.c:2163:12
+    #3 0x562ccb9e1aaa in ZSTD_buildSeqStore /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:2806:17
+    #4 0x562ccb9c4b4a in ZSTD_compressBlock_targetCBlockSize /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:3786:24
+    #5 0x562ccb9c4b4a in ZSTD_compress_frameChunk /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:3867:25
+    #6 0x562ccb9c4b4a in ZSTD_compressContinue_internal /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:4046:30
+    #7 0x562ccb9d68c5 in ZSTD_compressContinue /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:4070:12
+    #8 0x562ccb9d68c5 in ZSTD_compressStream_generic /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:5279:29
+    #9 0x562ccb9d3bdb in ZSTD_compressStream2 /src/zstd/tests/fuzz/../../lib/compress/zstd_compress.c:5574:5
+    #10 0x562ccbb55720 in compress /src/zstd/tests/fuzz/dictionary_stream_round_trip.c:93:25
+    #11 0x562ccbb55720 in LLVMFuzzerTestOneInput /src/zstd/tests/fuzz/dictionary_stream_round_trip.c:181:30
+    #12 0x562ccb6503a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x562ccb63b615 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x562ccb6410af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x562ccb66c352 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7efe42599082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #17 0x562ccb6337fd in _start (/out/dictionary_stream_round_trip+0x1507fd)
+
+DEDUP_TOKEN: MEM_read32--ZSTD_compressBlock_lazy_extDict_generic--ZSTD_compressBlock_greedy_extDict_row
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/zstd/tests/fuzz/../../lib/compress/../common/mem.h:214:14 in MEM_read32
+==14==ABORTING

@@ -1,0 +1,22 @@
+==18==ERROR: AddressSanitizer: out of memory: allocator is trying to allocate 0xfffffffffffffff8 bytes
+    #0 0x55c6b22d336d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x55c6b238cd2c in __libcpp_operator_new<unsigned long> /usr/local/bin/../include/c++/v1/new:271:10
+    #2 0x55c6b238cd2c in __libcpp_allocate /usr/local/bin/../include/c++/v1/new:295:10
+    #3 0x55c6b238cd2c in allocate /usr/local/bin/../include/c++/v1/__memory/allocator.h:125:32
+    #4 0x55c6b238cd2c in __allocate_at_least<std::__1::allocator<unsigned short> > /usr/local/bin/../include/c++/v1/__memory/allocate_at_least.h:55:19
+    #5 0x55c6b238cd2c in __vallocate /usr/local/bin/../include/c++/v1/vector:741:25
+    #6 0x55c6b238cd2c in std::__1::vector<unsigned short, std::__1::allocator<unsigned short>>::vector(unsigned long, unsigned short const&) /usr/local/bin/../include/c++/v1/vector:1144:5
+    #7 0x55c6b238bf2c in pcpp::computePseudoHdrChecksum(unsigned char*, unsigned long, pcpp::IPAddress::AddressType, unsigned char, pcpp::IPAddress, pcpp::IPAddress) /src/PcapPlusPlus/Packet++/src/PacketUtils.cpp:74:25
+    #8 0x55c6b23ea21f in pcpp::TcpLayer::calculateChecksum(bool) /src/PcapPlusPlus/Packet++/src/TcpLayer.cpp:284:9
+    #9 0x55c6b23871f7 in pcpp::Packet::computeCalculateFields() /src/PcapPlusPlus/Packet++/src/Packet.cpp:687:14
+    #10 0x55c6b22d6901 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:69:17
+    #11 0x55c6b218a1d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x55c6b2175445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x55c6b217aedf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x55c6b21a6182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f486821e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator new(unsigned long)--__libcpp_operator_new<unsigned long>--__libcpp_allocate
+==18==HINT: if you don't care about these errors you may set allocator_may_return_null=1
+SUMMARY: AddressSanitizer: out-of-memory /src/PcapPlusPlus/Packet++/src/PacketUtils.cpp:74:25 in pcpp::computePseudoHdrChecksum(unsigned char*, unsigned long, pcpp::IPAddress::AddressType, unsigned char, pcpp::IPAddress, pcpp::IPAddress)
+==18==ABORTING

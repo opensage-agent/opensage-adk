@@ -1,0 +1,65 @@
+[project]
+name = "patchagent"
+version = "1.1.0"
+description = "An LLM-based practical program repair agent that mimics human expertise"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Zheng Yu", email = "dataisland@outlook.com"}
+]
+dependencies = [
+    "anthropic~=0.55.0",
+    "clang==16.0.1",
+    "colorama~=0.4.6",
+    "GitPython~=3.1.44",
+    "langchain-classic~=1.0.0",
+    "langchain-core~=1.1.0",
+    "langchain-openai~=1.1.0",
+    "langchain~=1.1.0",
+    "pexpect~=4.9.0",
+    "tree-sitter-java~=0.23.5",
+    "tree-sitter~=0.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=25.1.0",
+    "flake8>=7.1.2",
+    "isort>=6.0.1",
+    "ipdb>=0.13.13",
+    "mypy>=1.15.0",
+    "pre-commit>=4.1.0",
+    "pytest>=8.3.5",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/cla7aye15I4nd/PatchAgent"
+"Bug Tracker" = "https://github.com/cla7aye15I4nd/PatchAgent/issues"
+"Documentation" = "https://github.com/cla7aye15I4nd/PatchAgent#readme"
+
+[tool.black]
+line-length = 179
+
+[tool.isort]
+profile = "black"
+line_length = 179
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[tool.setuptools]
+packages = ["patchagent"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+patchagent = ["*"]
+
+[tool.setuptools.exclude-package-data]
+patchagent = [
+    "**/__pycache__",
+    "**/.*.swp",
+    "**/.DS_Store",
+]

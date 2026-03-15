@@ -1,0 +1,12 @@
+jpc_dec.c:1234:33: runtime error: signed integer overflow: 210 * -2147483646 cannot be represented in type 'int'
+    #0 0x7fdd78babb3c in jpc_dec_process_siz /root/src/libjasper/jpc/jpc_dec.c:1234:33
+    #1 0x7fdd78bb38f0 in jpc_dec_decode /root/src/libjasper/jpc/jpc_dec.c:391:10
+    #2 0x7fdd78bb12fb in jpc_decode /root/src/libjasper/jpc/jpc_dec.c:255:6
+    #3 0x7fdd78b764c1 in jp2_decode /root/src/libjasper/jp2/jp2_dec.c:215:21
+    #4 0x7fdd78b00130 in jas_image_decode /root/src/libjasper/base/jas_image.c:395:16
+    #5 0x55a37263b1b4 in main /root/src/appl/imginfo.c:203:16
+    #6 0x7fdd780171c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #7 0x7fdd7801728a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #8 0x55a372611494 in _start (/root/src/appl/.libs/imginfo+0x5494) (BuildId: 8cf223c567005aafb64ab1a13a2bec078704547a)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior jpc_dec.c:1234:33 in 

@@ -1,0 +1,65 @@
+=================================================================
+==755362==ERROR: AddressSanitizer: heap-use-after-free on address 0x511000000108 at pc 0x563e777fc742 bp 0x7ffe216cefe0 sp 0x7ffe216cefd8
+READ of size 8 at 0x511000000108 thread T0
+    #0 0x563e777fc741 in ForEachModule /root/source/m3_env.c:211:34
+    #1 0x563e777fc7ff in Runtime_Release /root/source/m3_env.c:232:5
+    #2 0x563e777fc9d4 in m3_FreeRuntime /root/source/m3_env.c:248:9
+    #3 0x563e777a12e9 in main /root/platforms/app/main.c:722:5
+    #4 0x7efc71ad31c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #5 0x7efc71ad328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #6 0x563e7779c0d4 in _start (/root/wasm3+0x1d0d4) (BuildId: 1dce85bf745a8a97849e9eb608aa82a4fcdd2806)
+
+0x511000000108 is located 200 bytes inside of 208-byte region [0x511000000040,0x511000000110)
+freed by thread T0 here:
+    #0 0x7efc71ed150a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x563e777fa0d4 in m3_Free_Impl /root/source/m3_core.c:134:5
+    #2 0x563e77806cca in m3_FreeModule /root/source/m3_module.c:44:9
+    #3 0x563e7779db6b in repl_load /root/platforms/app/main.c:165:5
+    #4 0x563e777a0aa0 in main /root/platforms/app/main.c:627:18
+    #5 0x7efc71ad31c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #6 0x7efc71ad328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x563e7779c0d4 in _start (/root/wasm3+0x1d0d4) (BuildId: 1dce85bf745a8a97849e9eb608aa82a4fcdd2806)
+
+previously allocated by thread T0 here:
+    #0 0x7efc71ed198d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x563e777fa0b9 in m3_Malloc_Impl /root/source/m3_core.c:129:12
+    #2 0x563e7780d099 in m3_ParseModule /root/source/m3_parse.c:609:14
+    #3 0x563e7779da6c in repl_load /root/platforms/app/main.c:147:14
+    #4 0x563e777a0aa0 in main /root/platforms/app/main.c:627:18
+    #5 0x7efc71ad31c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #6 0x7efc71ad328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x563e7779c0d4 in _start (/root/wasm3+0x1d0d4) (BuildId: 1dce85bf745a8a97849e9eb608aa82a4fcdd2806)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/source/m3_env.c:211:34 in ForEachModule
+Shadow bytes around the buggy address:
+  0x510ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x510fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x510fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x511000000000: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x511000000080: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x511000000100: fd[fd]fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==755362==ABORTING

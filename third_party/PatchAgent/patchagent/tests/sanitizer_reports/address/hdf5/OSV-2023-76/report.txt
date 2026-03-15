@@ -1,0 +1,82 @@
+=================================================================
+==15==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000036c0 at pc 0x55d19aa70b02 bp 0x7ffec1491530 sp 0x7ffec1491528
+READ of size 4 at 0x5020000036c0 thread T0
+SCARINESS: 17 (4-byte-read-heap-buffer-overflow)
+    #0 0x55d19aa70b01 in H5SM_delete /src/hdf5/src/H5SM.c:1542:24
+    #1 0x55d19a8c433c in H5O__msg_write_real /src/hdf5/src/H5Omessage.c:364:13
+    #2 0x55d19a8c3ae4 in H5O_msg_write /src/hdf5/src/H5Omessage.c:246:9
+    #3 0x55d19a7a44c2 in H5G__stab_valid /src/hdf5/src/H5Gstab.c:1016:13
+    #4 0x55d19a79dc0e in H5G_mkroot /src/hdf5/src/H5Groot.c:235:21
+    #5 0x55d19a6aceb1 in H5F_open /src/hdf5/src/H5Fint.c:2134:13
+    #6 0x55d19af6abcc in H5VL__native_file_open /src/hdf5/src/H5VLnative_file.c:127:9
+    #7 0x55d19af2e157 in H5VL__file_open /src/hdf5/src/H5VLcallback.c:3714:25
+    #8 0x55d19af2d925 in H5VL_file_open /src/hdf5/src/H5VLcallback.c:3832:30
+    #9 0x55d19a68d1f2 in H5F__open_api_common /src/hdf5/src/H5F.c:780:29
+    #10 0x55d19a68c843 in H5Fopen /src/hdf5/src/H5F.c:820:22
+    #11 0x55d19a514ae2 in LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:29:24
+    #12 0x55d19a3c9500 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x55d19a3b4775 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x55d19a3ba20f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x55d19a3e54b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7fa8b6f82082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #17 0x55d19a3ac95d in _start (/out/h5_extended_fuzzer+0x43795d)
+
+DEDUP_TOKEN: H5SM_delete--H5O__msg_write_real--H5O_msg_write
+0x5020000036c0 is located 0 bytes after 16-byte region [0x5020000036b0,0x5020000036c0)
+allocated by thread T0 here:
+    #0 0x55d19a4d52cf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55d19a7539c4 in H5FL__malloc /src/hdf5/src/H5FL.c:211:30
+    #2 0x55d19a7539c4 in H5FL_reg_malloc /src/hdf5/src/H5FL.c:363:34
+    #3 0x55d19a753d2f in H5FL_reg_calloc /src/hdf5/src/H5FL.c:395:30
+    #4 0x55d19a8e1027 in H5O__stab_decode /src/hdf5/src/H5Ostab.c:97:25
+    #5 0x55d19a8c568b in H5O_msg_read_oh /src/hdf5/src/H5Omessage.c:486:5
+    #6 0x55d19a8c4d5d in H5O_msg_read /src/hdf5/src/H5Omessage.c:430:30
+    #7 0x55d19a7a4281 in H5G__stab_valid /src/hdf5/src/H5Gstab.c:973:17
+    #8 0x55d19a79dc0e in H5G_mkroot /src/hdf5/src/H5Groot.c:235:21
+    #9 0x55d19a6aceb1 in H5F_open /src/hdf5/src/H5Fint.c:2134:13
+    #10 0x55d19af6abcc in H5VL__native_file_open /src/hdf5/src/H5VLnative_file.c:127:9
+    #11 0x55d19af2e157 in H5VL__file_open /src/hdf5/src/H5VLcallback.c:3714:25
+    #12 0x55d19af2d925 in H5VL_file_open /src/hdf5/src/H5VLcallback.c:3832:30
+    #13 0x55d19a68d1f2 in H5F__open_api_common /src/hdf5/src/H5F.c:780:29
+    #14 0x55d19a68c843 in H5Fopen /src/hdf5/src/H5F.c:820:22
+    #15 0x55d19a514ae2 in LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:29:24
+    #16 0x55d19a3c9500 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x55d19a3b4775 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x55d19a3ba20f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x55d19a3e54b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7fa8b6f82082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--H5FL__malloc--H5FL_reg_malloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/hdf5/src/H5SM.c:1542:24 in H5SM_delete
+Shadow bytes around the buggy address:
+  0x502000003400: fa fa 04 fa fa fa 01 fa fa fa 01 fa fa fa 04 fa
+  0x502000003480: fa fa 00 fa fa fa 00 fa fa fa 00 00 fa fa 00 00
+  0x502000003500: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000003580: fa fa 00 00 fa fa 00 fa fa fa 00 00 fa fa 00 00
+  0x502000003600: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 fa
+=>0x502000003680: fa fa 00 00 fa fa 00 00[fa]fa 00 00 fa fa 00 00
+  0x502000003700: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000003780: fa fa 00 00 fa fa 00 00 fa fa fa fa fa fa fa fa
+  0x502000003800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000003880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000003900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==15==ABORTING

@@ -1,0 +1,50 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 2 at 0x50400000017a thread T0
+    - operator unsigned short /src/harfbuzz/src/hb-algs.hh:137:56
+    - operator unsigned int /src/harfbuzz/src/hb-open-type.hh:68:109
+    - OT::CmapSubtableTrimmed<OT::IntType<unsigned int, 4u>>::collect_unicodes(hb_set_t*) const /src/harfbuzz/src/hb-ot-cmap-table.hh:658:11
+    - test_font /src/harfbuzz/test/api/test-ot-face.c:51:3
+    - LLVMFuzzerTestOneInput /src/harfbuzz/test/fuzzing/hb-shape-fuzzer.cc:51:16
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x50400000017a is located 0 bytes after 42-byte region [0x504000000150,0x50400000017a)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - try_make_writable /src/harfbuzz/src/hb-blob.cc:492:23
+    - hb_blob_get_data_writable /src/harfbuzz/src/hb-blob.cc:403:13
+    - hb_blob_t* hb_sanitize_context_t::sanitize_blob<OT::cmap>(hb_blob_t*) /src/harfbuzz/src/hb-sanitize.hh:435:10
+    - reference_table<OT::cmap> /src/harfbuzz/src/hb-sanitize.hh:468:12
+    - OT::cmap::accelerator_t::accelerator_t(hb_face_t*) /src/harfbuzz/src/hb-ot-cmap-table.hh:1851:46
+    - cmap_accelerator_t /src/harfbuzz/src/hb-ot-cmap-table.hh:2089:42
+    - create /src/harfbuzz/src/hb-machinery.hh:262:19
+    - OT::cmap_accelerator_t* hb_data_wrapper_t<hb_face_t, 3u>::call_create<OT::cmap_accelerator_t, hb_face_lazy_loader_t<OT::cmap_accelerator_t, 3u>>() const /src/harfbuzz/src/hb-machinery.hh:162:42
+    - get_stored /src/harfbuzz/src/hb-machinery.hh:225:26
+    - get /src/harfbuzz/src/hb-machinery.hh:249:58
+    - operator-> /src/harfbuzz/src/hb-machinery.hh:209:50
+    - hb_ot_get_nominal_glyphs(hb_font_t*, void*, unsigned int, unsigned int const*, unsigned int, unsigned int*, unsigned int, void*) /src/harfbuzz/src/hb-ot-font.cc:168:10
+    - get_nominal_glyphs /src/harfbuzz/src/hb-font.hh:289:12
+    - _hb_ot_shape_normalize(hb_ot_shape_plan_t const*, hb_buffer_t*, hb_font_t*) /src/harfbuzz/src/hb-ot-shape-normalize.cc:353:28
+    - hb_ot_substitute_default /src/harfbuzz/src/hb-ot-shape.cc:896:3
+    - hb_ot_substitute_pre /src/harfbuzz/src/hb-ot-shape.cc:931:3
+    - hb_ot_shape_internal /src/harfbuzz/src/hb-ot-shape.cc:1191:3
+    - _hb_ot_shape /src/harfbuzz/src/hb-ot-shape.cc:1213:3
+    - _hb_shape_plan_execute_internal /src/harfbuzz/src/hb-shaper-list.hh:47:1
+    - hb_shape_plan_execute /src/harfbuzz/src/hb-shape-plan.cc:452:14
+    - hb_shape_full /src/harfbuzz/src/hb-shape.cc:148:19
+    - LLVMFuzzerTestOneInput /src/harfbuzz/test/fuzzing/hb-shape-fuzzer.cc:39:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

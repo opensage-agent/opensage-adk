@@ -1,0 +1,74 @@
+=================================================================
+==803054==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x531000024810 at pc 0x7f279b2c235e bp 0x7ffdfd4f8620 sp 0x7ffdfd4f7de0
+READ of size 73661 at 0x531000024810 thread T0
+    #0 0x7f279b2c235d in __asan_memcpy build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x5558d2355578 in xmlDictAddString /root/dict.c:285:5
+    #2 0x5558d23546e1 in xmlDictLookup /root/dict.c:926:11
+    #3 0x5558d20cb475 in htmlParseNameComplex /root/HTMLparser.c:2517:12
+    #4 0x5558d20a903d in htmlParseName /root/HTMLparser.c:2483:12
+    #5 0x5558d20a8192 in htmlParseEntityRef /root/HTMLparser.c:2682:16
+    #6 0x5558d20da11c in htmlParseReference /root/HTMLparser.c:4044:8
+    #7 0x5558d20b4597 in htmlParseContentInternal /root/HTMLparser.c:4619:3
+    #8 0x5558d20b68da in htmlParseDocument /root/HTMLparser.c:4769:5
+    #9 0x5558d20c9b85 in htmlDoRead /root/HTMLparser.c:6741:5
+    #10 0x5558d20c9dad in htmlReadFile /root/HTMLparser.c:6799:13
+    #11 0x5558d1f238b8 in parseAndPrintFile /root/xmllint.c:2255:8
+    #12 0x5558d1f1fb70 in main /root/xmllint.c:3767:7
+    #13 0x7f279ae721c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #14 0x7f279ae7228a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #15 0x5558d1f19824 in _start (/root/xmllint+0x6a824) (BuildId: 04a0178fa149f612c89866d48241b3d09d0203b4)
+
+0x531000024810 is located 0 bytes after 65552-byte region [0x531000014800,0x531000024810)
+allocated by thread T0 here:
+    #0 0x7f279b2c47a9 in realloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:85:3
+    #1 0x5558d21b9d20 in xmlBufGrowInternal /root/buf.c:486:23
+    #2 0x5558d21b92b0 in xmlBufGrow /root/buf.c:515:11
+    #3 0x5558d2057fc1 in xmlParserInputBufferGrow /root/xmlIO.c:3326:9
+    #4 0x5558d1f4d933 in xmlParserInputGrow /root/parserInternals.c:320:8
+    #5 0x5558d20caf94 in htmlParseNameComplex /root/HTMLparser.c:2511:6
+    #6 0x5558d20a903d in htmlParseName /root/HTMLparser.c:2483:12
+    #7 0x5558d20a8192 in htmlParseEntityRef /root/HTMLparser.c:2682:16
+    #8 0x5558d20da11c in htmlParseReference /root/HTMLparser.c:4044:8
+    #9 0x5558d20b4597 in htmlParseContentInternal /root/HTMLparser.c:4619:3
+    #10 0x5558d20b68da in htmlParseDocument /root/HTMLparser.c:4769:5
+    #11 0x5558d20c9b85 in htmlDoRead /root/HTMLparser.c:6741:5
+    #12 0x5558d20c9dad in htmlReadFile /root/HTMLparser.c:6799:13
+    #13 0x5558d1f238b8 in parseAndPrintFile /root/xmllint.c:2255:8
+    #14 0x5558d1f1fb70 in main /root/xmllint.c:3767:7
+    #15 0x7f279ae721c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #16 0x7f279ae7228a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #17 0x5558d1f19824 in _start (/root/xmllint+0x6a824) (BuildId: 04a0178fa149f612c89866d48241b3d09d0203b4)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3 in __asan_memcpy
+Shadow bytes around the buggy address:
+  0x531000024580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x531000024600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x531000024680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x531000024700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x531000024780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x531000024800: 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x531000024880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x531000024900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x531000024980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x531000024a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x531000024a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==803054==ABORTING

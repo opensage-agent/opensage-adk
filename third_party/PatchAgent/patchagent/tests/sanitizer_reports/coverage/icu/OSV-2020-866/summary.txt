@@ -1,0 +1,31 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - icu_64::UCharsTrie::branchNext(char16_t const*, int, int) /src/icu/icu4c/source/common/ucharstrie.cpp:104:22
+    - icu_64::CollationIterator::nextCE32FromContraction(icu_64::CollationData const*, unsigned int, char16_t const*, unsigned int, int, UErrorCode&) /src/icu/icu4c/source/i18n/collationiterator.cpp:550:26
+    - icu_64::CollationIterator::appendCEsFromCE32(icu_64::CollationData const*, int, unsigned int, signed char, UErrorCode&) /src/icu/icu4c/source/i18n/collationiterator.cpp:346:20
+    - icu_64::DataBuilderCollationIterator::fetchCEs(icu_64::UnicodeString const&, int, long*, int) /src/icu/icu4c/source/i18n/collationdatabuilder.cpp:195:9
+    - getCEs /src/icu/icu4c/source/i18n/collationdatabuilder.cpp:1529:22
+    - icu_64::CollationDataBuilder::getCEs(icu_64::UnicodeString const&, icu_64::UnicodeString const&, long*, int) /src/icu/icu4c/source/i18n/collationdatabuilder.cpp:1518:16
+    - icu_64::CollationBuilder::addIfDifferent(icu_64::UnicodeString const&, icu_64::UnicodeString const&, long const*, int, unsigned int, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:1350:41
+    - icu_64::CollationBuilder::addOnlyClosure(icu_64::UnicodeString const&, icu_64::UnicodeString const&, long const*, int, unsigned int, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:1141:24
+    - icu_64::CollationBuilder::addWithClosure(icu_64::UnicodeString const&, icu_64::UnicodeString const&, long const*, int, unsigned int, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:1105:12
+    - icu_64::CollationBuilder::addRelation(int, icu_64::UnicodeString const&, icu_64::UnicodeString const&, icu_64::UnicodeString const&, char const*&, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:753:5
+    - icu_64::CollationRuleParser::parseRelationStrings(int, int, UErrorCode&) /src/icu/icu4c/source/i18n/collationruleparser.cpp:284:11
+    - icu_64::CollationRuleParser::parseRuleChain(UErrorCode&) /src/icu/icu4c/source/i18n/collationruleparser.cpp:163:13
+    - icu_64::CollationRuleParser::parse(icu_64::UnicodeString const&, UErrorCode&) /src/icu/icu4c/source/i18n/collationruleparser.cpp:102:13
+    - icu_64::CollationBuilder::parseAndBuild(icu_64::UnicodeString const&, unsigned char const*, icu_64::CollationRuleParser::Importer*, UParseError*, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:260:12
+    - icu_64::RuleBasedCollator::internalBuildTailoring(icu_64::UnicodeString const&, int, UColAttributeValue, UParseError*, icu_64::UnicodeString*, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:170:48
+    - icu_64::RuleBasedCollator::RuleBasedCollator(icu_64::UnicodeString const&, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:103:5
+    - LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/collator_rulebased_fuzzer.cpp:23:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

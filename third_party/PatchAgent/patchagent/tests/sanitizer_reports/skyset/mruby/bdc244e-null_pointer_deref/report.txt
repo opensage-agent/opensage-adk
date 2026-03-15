@@ -1,0 +1,23 @@
+=================================================================
+==640231==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000010 (pc 0x556775837ccd bp 0x7fffe60eb930 sp 0x7fffe60eb890 T0)
+==640231==The signal is caused by a READ memory access.
+==640231==Hint: address points to the zero page.
+    #0 0x556775837ccd in mrb_obj_is_kind_of /root/src/object.c:468:14
+    #1 0x55677587facd in mrb_vm_exec /root/src/vm.c:1763:12
+    #2 0x556775870e55 in mrb_vm_run /root/src/vm.c:1132:12
+    #3 0x55677586c846 in mrb_run /root/src/vm.c:3048:10
+    #4 0x55677586ffd7 in mrb_yield_with_class /root/src/vm.c:880:11
+    #5 0x55677580fc4e in mrb_mod_initialize /root/src/class.c:1649:5
+    #6 0x55677587d7d0 in mrb_vm_exec /root/src/vm.c:1646:18
+    #7 0x556775870e55 in mrb_vm_run /root/src/vm.c:1132:12
+    #8 0x55677586d843 in mrb_top_run /root/src/vm.c:3061:12
+    #9 0x5567758eaf12 in mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6891:7
+    #10 0x5567758eb6ec in mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6934:12
+    #11 0x5567757ec8c3 in main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+    #12 0x7ff845e7d1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7ff845e7d28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x5567757eaa54 in _start (/root/bin/mruby+0x9aa54) (BuildId: 23f1256ab5cd8ef4fa2e797b88ed3f22d550ec72)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/src/object.c:468:14 in mrb_obj_is_kind_of
+==640231==ABORTING

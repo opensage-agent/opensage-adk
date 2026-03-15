@@ -1,0 +1,18 @@
+The sanitizer detected a stack use after scope vulnerability. The explanation of the vulnerability is: A program accesses stack memory that has gone out of scope, leading to undefined behavior or crashes. Here is the detail: 
+
+READ of size 4 at 0x7faf1d009020 thread T0
+    - main /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/stack-use-after-scope/test.c:16:27
+
+Address 0x7faf1d009020 is located in stack of thread T0 at offset 32 in frame
+    - main /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/stack-use-after-scope/test.c:3:0
+
+  This frame has 1 object(s):
+    [32, 36) 'local_variable' (line 7) <== Memory access at offset 32 is inside this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. Avoid returning addresses of local variables from functions, as stack memory is deallocated after return.
+2. If persistent storage is needed, use heap-allocated memory instead of local stack memory.
+3. Check the lifetime of variables to ensure they are not accessed after they go out of scope.

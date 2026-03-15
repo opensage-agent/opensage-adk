@@ -1,0 +1,53 @@
+=================================================================
+==639975==ERROR: AddressSanitizer: global-buffer-overflow on address 0x55d6c61614e1 at pc 0x55d6c5debb38 bp 0x7fff9d661690 sp 0x7fff9d661688
+READ of size 1 at 0x55d6c61614e1 thread T0
+    #0 0x55d6c5debb37 in xmlNextChar /root/parserInternals.c:500:18
+    #1 0x55d6c5ebe740 in htmlParseStartTag /root/HTMLparser.c:4137:3
+    #2 0x55d6c5ed06c5 in htmlParseTryOrFinish /root/HTMLparser.c:5865:12
+    #3 0x55d6c5ecd136 in htmlParseChunk /root/HTMLparser.c:6329:5
+    #4 0x55d6c5d35c06 in LLVMFuzzerTestOneInput /root/fuzz/html.c:77:9
+    #5 0x55d6c5d1b1c4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/html+0x811c4) (BuildId: 53c975e3da77340db54e89d602c29e9666c3f93e)
+    #6 0x55d6c5d042f6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/html+0x6a2f6) (BuildId: 53c975e3da77340db54e89d602c29e9666c3f93e)
+    #7 0x55d6c5d09daa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/html+0x6fdaa) (BuildId: 53c975e3da77340db54e89d602c29e9666c3f93e)
+    #8 0x55d6c5d34606 in main (/root/html+0x9a606) (BuildId: 53c975e3da77340db54e89d602c29e9666c3f93e)
+    #9 0x7f879f3dd1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x7f879f3dd28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x55d6c5cfeec4 in _start (/root/html+0x64ec4) (BuildId: 53c975e3da77340db54e89d602c29e9666c3f93e)
+
+0x55d6c61614e1 is located 31 bytes before global variable '.str.6' defined in '/root/parserInternals.c:319' (0x55d6c6161500) of size 21
+  '.str.6' is ascii string 'Growing input buffer'
+0x55d6c61614e1 is located 0 bytes after global variable '.str.5' defined in '/root/parserInternals.c:308' (0x55d6c61614e0) of size 1
+  '.str.5' is ascii string ''
+SUMMARY: AddressSanitizer: global-buffer-overflow /root/parserInternals.c:500:18 in xmlNextChar
+Shadow bytes around the buggy address:
+  0x55d6c6161200: 00 06 f9 f9 f9 f9 f9 f9 00 00 03 f9 f9 f9 f9 f9
+  0x55d6c6161280: 02 f9 f9 f9 04 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x55d6c6161300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x55d6c6161380: 00 00 00 03 f9 f9 f9 f9 00 00 00 00 00 00 00 04
+  0x55d6c6161400: f9 f9 f9 f9 00 00 00 07 f9 f9 f9 f9 00 00 00 02
+=>0x55d6c6161480: f9 f9 f9 f9 00 00 02 f9 f9 f9 f9 f9[01]f9 f9 f9
+  0x55d6c6161500: 00 00 05 f9 f9 f9 f9 f9 00 00 00 00 f9 f9 f9 f9
+  0x55d6c6161580: 00 00 00 00 f9 f9 f9 f9 00 00 00 00 00 00 f9 f9
+  0x55d6c6161600: f9 f9 f9 f9 00 00 00 00 04 f9 f9 f9 f9 f9 f9 f9
+  0x55d6c6161680: 00 00 00 00 00 00 02 f9 f9 f9 f9 f9 00 00 00 07
+  0x55d6c6161700: f9 f9 f9 f9 00 00 00 00 00 00 00 f9 f9 f9 f9 f9
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==639975==ABORTING

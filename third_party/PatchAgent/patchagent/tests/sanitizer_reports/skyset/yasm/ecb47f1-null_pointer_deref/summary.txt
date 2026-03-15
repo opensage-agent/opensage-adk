@@ -1,0 +1,17 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - yasm_expr_get_intnum /root/libyasm/expr.c:1267:19
+    - bc_align_finalize /root/libyasm/bc-align.c:108:10
+    - yasm_bc_finalize /root/libyasm/bytecode.c:176:9
+    - yasm_object_finalize /root/libyasm/section.c:546:13
+    - do_assemble /root/frontends/yasm/yasm.c:647:5
+    - main /root/frontends/yasm/yasm.c:877:12
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

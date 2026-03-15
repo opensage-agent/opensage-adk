@@ -1,0 +1,50 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 3828 at 0x51e0000016d0 thread T0
+    - __asan_memset /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:67:3
+    - opj_t1_allocate_buffers /src/openjpeg/src/lib/openjp2/t1.c:1504:9
+    - opj_t1_decode_cblk /src/openjpeg/src/lib/openjp2/t1.c:1983:10
+    - opj_t1_clbl_decode_processor /src/openjpeg/src/lib/openjp2/t1.c:1704:26
+    - opj_thread_pool_submit_job /src/openjpeg/src/lib/openjp2/thread.c:835:9
+    - opj_t1_decode_cblks /src/openjpeg/src/lib/openjp2/t1.c:1943:21
+    - opj_tcd_t1_decode /src/openjpeg/src/lib/openjp2/tcd.c:2000:9
+    - opj_tcd_decode_tile /src/openjpeg/src/lib/openjp2/tcd.c:1654:11
+    - opj_j2k_decode_tile /src/openjpeg/src/lib/openjp2/j2k.c:9862:11
+    - opj_j2k_decode_tiles /src/openjpeg/src/lib/openjp2/j2k.c:11707:15
+    - opj_j2k_exec /src/openjpeg/src/lib/openjp2/j2k.c:9006:33
+    - opj_j2k_decode /src/openjpeg/src/lib/openjp2/j2k.c:12010:11
+    - LLVMFuzzerTestOneInput /src/openjpeg/tests/fuzzers/opj_decompress_fuzzer_J2K.cpp:196:13
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x51e0000016d0 is located 0 bytes after 2640-byte region [0x51e000000c80,0x51e0000016d0)
+allocated by thread T0 here:
+    - posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    - opj_aligned_alloc_n /src/openjpeg/src/lib/openjp2/opj_malloc.c:61:9
+    - opj_aligned_malloc /src/openjpeg/src/lib/openjp2/opj_malloc.c:209:12
+    - opj_t1_allocate_buffers /src/openjpeg/src/lib/openjp2/ht_dec.c:1066:39
+    - opj_t1_ht_decode_cblk /src/openjpeg/src/lib/openjp2/ht_dec.c:1151:10
+    - opj_t1_clbl_decode_processor /src/openjpeg/src/lib/openjp2/t1.c:1690:26
+    - opj_thread_pool_submit_job /src/openjpeg/src/lib/openjp2/thread.c:835:9
+    - opj_t1_decode_cblks /src/openjpeg/src/lib/openjp2/t1.c:1943:21
+    - opj_tcd_t1_decode /src/openjpeg/src/lib/openjp2/tcd.c:2000:9
+    - opj_tcd_decode_tile /src/openjpeg/src/lib/openjp2/tcd.c:1654:11
+    - opj_j2k_decode_tile /src/openjpeg/src/lib/openjp2/j2k.c:9862:11
+    - opj_j2k_decode_tiles /src/openjpeg/src/lib/openjp2/j2k.c:11707:15
+    - opj_j2k_exec /src/openjpeg/src/lib/openjp2/j2k.c:9006:33
+    - opj_j2k_decode /src/openjpeg/src/lib/openjp2/j2k.c:12010:11
+    - LLVMFuzzerTestOneInput /src/openjpeg/tests/fuzzers/opj_decompress_fuzzer_J2K.cpp:196:13
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

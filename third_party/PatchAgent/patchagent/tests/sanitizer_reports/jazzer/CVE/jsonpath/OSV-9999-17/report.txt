@@ -1,0 +1,294 @@
++ FUZZER=PathParserFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer PathParserFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/PathParserFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 268 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented ossfuzz.PathParserFuzzer (took 24 ms, size +6%)
+INFO: Instrumented com.jayway.jsonpath.PathNotFoundException (took 2 ms, size +13%)
+INFO: Instrumented com.jayway.jsonpath.InvalidPathException (took 1 ms, size +14%)
+INFO: Instrumented com.jayway.jsonpath.JsonPathException (took 1 ms, size +14%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f7691f40a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2950574083
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x559193e7faa0, 0x559193e7fca0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x559193e5dea0,0x559193e5fea0), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented com.jayway.jsonpath.Configuration (took 6 ms, size +12%)
+INFO: Instrumented com.jayway.jsonpath.Configuration$Defaults (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.internal.DefaultsImpl (took 1 ms, size +9%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.MappingProvider (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.spi.json.JsonProvider (took 1 ms, size +5%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider (took 3 ms, size +8%)
+INFO: Instrumented net.minidev.json.writer.JsonReaderI (took 3 ms, size +5%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider$LongReader (took 1 ms, size +19%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider$IntegerReader (took 1 ms, size +19%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider$DoubleReader (took 1 ms, size +19%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider$FloatReader (took 1 ms, size +19%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider$BigDecimalReader (took 1 ms, size +10%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider$StringReader (took 1 ms, size +11%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider$DateReader (took 2 ms, size +16%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider$BigIntegerReader (took 1 ms, size +10%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider$BooleanReader (took 1 ms, size +16%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.MappingException (took 0 ms, size +18%)
+INFO: Instrumented net.minidev.json.writer.JsonReader (took 7 ms, size +18%)
+INFO: Instrumented net.minidev.json.writer.DefaultMapper (took 1 ms, size +7%)
+INFO: Instrumented net.minidev.json.writer.DefaultMapperOrdered (took 1 ms, size +7%)
+INFO: Instrumented net.minidev.json.writer.MapperRemapped (took 2 ms, size +15%)
+INFO: Instrumented net.minidev.json.writer.DefaultMapperCollection (took 1 ms, size +18%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$GenericMapper (took 1 ms, size +13%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper (took 1 ms, size +5%)
+INFO: Instrumented net.minidev.json.writer.CollectionMapper$ListClass (took 1 ms, size +10%)
+INFO: Instrumented net.minidev.json.writer.CollectionMapper$MapClass (took 1 ms, size +17%)
+INFO: Instrumented net.minidev.json.writer.BeansMapper$Bean (took 1 ms, size +16%)
+INFO: Instrumented net.minidev.json.writer.CollectionMapper$ListType (took 1 ms, size +11%)
+INFO: Instrumented net.minidev.json.writer.CollectionMapper$MapType (took 2 ms, size +16%)
+INFO: Instrumented net.minidev.json.writer.BeansMapper (took 0 ms, size +9%)
+INFO: Instrumented net.minidev.json.writer.BeansMapper$1 (took 0 ms, size +11%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$1 (took 0 ms, size +21%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$2 (took 0 ms, size +20%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$3 (took 0 ms, size +21%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$4 (took 0 ms, size +20%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$5 (took 0 ms, size +21%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$6 (took 0 ms, size +20%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$7 (took 0 ms, size +20%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$8 (took 0 ms, size +18%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$9 (took 0 ms, size +21%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$10 (took 0 ms, size +20%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$11 (took 0 ms, size +21%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$12 (took 0 ms, size +20%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$13 (took 0 ms, size +21%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$14 (took 0 ms, size +20%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$15 (took 0 ms, size +21%)
+INFO: Instrumented net.minidev.json.writer.ArraysMapper$16 (took 0 ms, size +18%)
+INFO: Instrumented net.minidev.json.JSONAwareEx (took 0 ms, size +0%)
+INFO: Instrumented net.minidev.json.JSONAware (took 0 ms, size +0%)
+INFO: Instrumented net.minidev.json.JSONArray (took 1 ms, size +5%)
+INFO: Instrumented net.minidev.json.JSONStreamAwareEx (took 0 ms, size +0%)
+INFO: Instrumented net.minidev.json.JSONStreamAware (took 0 ms, size +0%)
+INFO: Instrumented net.minidev.json.JSONObject (took 3 ms, size +22%)
+INFO: Instrumented com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider$1 (took 0 ms, size +10%)
+INFO: Instrumented com.jayway.jsonpath.Configuration$ConfigurationBuilder (took 1 ms, size +10%)
+INFO: Instrumented com.jayway.jsonpath.Option (took 0 ms, size +12%)
+INFO: Instrumented com.jayway.jsonpath.spi.json.JsonSmartJsonProvider (took 1 ms, size +10%)
+INFO: Instrumented com.jayway.jsonpath.spi.json.AbstractJsonProvider (took 2 ms, size +26%)
+INFO: Instrumented net.minidev.json.parser.ParseException (took 1 ms, size +22%)
+INFO: Instrumented com.jayway.jsonpath.InvalidJsonException (took 0 ms, size +12%)
+INFO: Instrumented net.minidev.json.JSONValue (took 5 ms, size +7%)
+INFO: Instrumented net.minidev.json.writer.CompessorMapper (took 2 ms, size +17%)
+INFO: Instrumented net.minidev.json.writer.UpdaterMapper (took 1 ms, size +6%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented net.minidev.json.JSONStyle (took 2 ms, size +12%)
+INFO: Instrumented net.minidev.json.JStylerObj$MustProtect (took 0 ms, size +0%)
+INFO: Instrumented net.minidev.json.JStylerObj$StringProtector (took 0 ms, size +0%)
+INFO: Instrumented net.minidev.json.JStylerObj (took 1 ms, size +70%)
+INFO: Instrumented net.minidev.json.JStylerObj$MPSimple (took 0 ms, size +36%)
+INFO: Instrumented net.minidev.json.JStylerObj$MPTrue (took 0 ms, size +14%)
+INFO: Instrumented net.minidev.json.JStylerObj$MPAgressive (took 0 ms, size +57%)
+INFO: Instrumented net.minidev.json.JStylerObj$EscapeLT (took 0 ms, size +27%)
+INFO: Instrumented net.minidev.json.JStylerObj$Escape4Web (took 0 ms, size +26%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter (took 1 ms, size +11%)
+INFO: Instrumented net.minidev.json.reader.JsonWriterI (took 0 ms, size +0%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$1 (took 0 ms, size +8%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$2 (took 0 ms, size +8%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$3 (took 0 ms, size +7%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$4 (took 0 ms, size +7%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$5 (took 0 ms, size +15%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$6 (took 0 ms, size +8%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$7 (took 0 ms, size +15%)
+INFO: Instrumented net.minidev.json.reader.BeansWriterASM (took 0 ms, size +15%)
+INFO: Instrumented net.minidev.asm.FieldFilter (took 0 ms, size +0%)
+INFO: Instrumented net.minidev.json.reader.BeansWriter (took 0 ms, size +24%)
+INFO: Instrumented net.minidev.json.reader.ArrayWriter (took 0 ms, size +21%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$8 (took 0 ms, size +10%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$9 (took 0 ms, size +8%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$10 (took 0 ms, size +16%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$11 (took 0 ms, size +8%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$12 (took 0 ms, size +16%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$13 (took 0 ms, size +18%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$14 (took 0 ms, size +18%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$15 (took 0 ms, size +18%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$16 (took 0 ms, size +18%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$17 (took 0 ms, size +18%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$18 (took 0 ms, size +18%)
+INFO: Instrumented net.minidev.json.reader.JsonWriter$WriterByInterface (took 0 ms, size +11%)
+INFO: Instrumented com.jayway.jsonpath.internal.Utils (took 4 ms, size +24%)
+INFO: Instrumented net.minidev.json.parser.JSONParser (took 1 ms, size +5%)
+INFO: Instrumented net.minidev.json.parser.JSONParserString (took 1 ms, size +29%)
+INFO: Instrumented net.minidev.json.parser.JSONParserMemory (took 1 ms, size +55%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented net.minidev.json.parser.JSONParserBase (took 9 ms, size +39%)
+INFO: Instrumented net.minidev.json.parser.JSONParserBase$MSB (took 0 ms, size +23%)
+INFO: Instrumented com.jayway.jsonpath.Predicate (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.JsonPath (took 5 ms, size +11%)
+INFO: Instrumented com.jayway.jsonpath.ParseContext (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.internal.ParseContextImpl (took 1 ms, size +7%)
+INFO: Instrumented com.jayway.jsonpath.DocumentContext (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.ReadContext (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.WriteContext (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.internal.JsonContext (took 2 ms, size +8%)
+INFO: Instrumented org.slf4j.LoggerFactory (took 4 ms, size +15%)
+INFO: Instrumented org.slf4j.spi.SLF4JServiceProvider (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.event.LoggingEvent (took 0 ms, size +12%)
+INFO: Instrumented org.slf4j.helpers.SubstituteServiceProvider (took 1 ms, size +10%)
+INFO: Instrumented org.slf4j.IMarkerFactory (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.spi.MDCAdapter (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.ILoggerFactory (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.helpers.SubstituteLoggerFactory (took 1 ms, size +19%)
+INFO: Instrumented org.slf4j.Logger (took 1 ms, size +11%)
+INFO: Instrumented org.slf4j.helpers.BasicMarkerFactory (took 0 ms, size +45%)
+INFO: Instrumented org.slf4j.Marker (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.helpers.BasicMDCAdapter (took 1 ms, size +17%)
+INFO: Instrumented org.slf4j.helpers.BasicMDCAdapter$1 (took 0 ms, size +9%)
+INFO: Instrumented org.slf4j.helpers.ThreadLocalMapOfStacks (took 0 ms, size +28%)
+INFO: Instrumented org.slf4j.helpers.NOP_FallbackServiceProvider (took 0 ms, size +11%)
+INFO: Instrumented org.slf4j.helpers.NOPLoggerFactory (took 0 ms, size +17%)
+INFO: Instrumented org.slf4j.helpers.NOPMDCAdapter (took 0 ms, size +9%)
+INFO: Instrumented org.slf4j.helpers.Util (took 1 ms, size +38%)
+INFO: Instrumented org.slf4j.helpers.Reporter (took 1 ms, size +31%)
+INFO: Instrumented org.slf4j.helpers.Reporter$TargetChoice (took 0 ms, size +10%)
+INFO: Instrumented org.slf4j.helpers.Reporter$Level (took 0 ms, size +9%)
+SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+INFO: Instrumented org.slf4j.helpers.NOPLogger (took 4 ms, size +8%)
+INFO: Instrumented org.slf4j.helpers.NamedLoggerBase (took 0 ms, size +13%)
+INFO: Instrumented org.slf4j.spi.LoggingEventBuilder (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.spi.cache.CacheProvider (took 0 ms, size +12%)
+INFO: Instrumented com.jayway.jsonpath.spi.cache.Cache (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.spi.cache.CacheProvider$CacheHolder (took 0 ms, size +22%)
+INFO: Instrumented com.jayway.jsonpath.spi.cache.LRUCache (took 1 ms, size +24%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.PathCompiler (took 4 ms, size +30%)
+INFO: Instrumented com.jayway.jsonpath.internal.Path (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.internal.CharacterIndex (took 4 ms, size +29%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.PathTokenFactory (took 1 ms, size +4%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.PathToken (took 2 ms, size +23%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.ScanPathToken (took 1 ms, size +12%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.FunctionPathToken (took 1 ms, size +13%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.PropertyPathToken (took 1 ms, size +18%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.PredicatePathToken (took 1 ms, size +14%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.WildcardPathToken (took 0 ms, size +17%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.ArraySliceToken (took 1 ms, size +15%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.ArrayPathToken (took 0 ms, size +20%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.ArrayIndexToken (took 0 ms, size +15%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.RootPathToken (took 1 ms, size +12%)
+INFO: Instrumented com.jayway.jsonpath.internal.EvaluationContext (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.PathTokenAppender (took 0 ms, size +0%)
+INFO: Instrumented com.jayway.jsonpath.internal.path.RootPathToken$1 (took 0 ms, size +9%)
+INFO: Instrumented com.jayway.jsonpath.internal.function.latebinding.ILateBindingValue (took 0 ms, size +0%)
+INFO: New number of coverage counters: 8192
+INFO: Instrumented com.jayway.jsonpath.internal.filter.FilterCompiler (took 4 ms, size +22%)
+INFO: Instrumented com.jayway.jsonpath.Filter (took 0 ms, size +6%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.FilterCompiler$CompiledFilter (took 0 ms, size +33%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ExpressionNode (took 0 ms, size +20%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.LogicalExpressionNode (took 1 ms, size +10%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ValueNode (took 3 ms, size +10%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ValueNodes$PathNode (took 1 ms, size +9%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ValueNodes$StringNode (took 1 ms, size +34%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ValueNodes$BooleanNode (took 0 ms, size +16%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ValueNodes$NumberNode (took 1 ms, size +15%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ValueNodes$NullNode (took 0 ms, size +16%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ValueNodes$JsonNode (took 1 ms, size +26%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ValueNodes$PatternNode (took 1 ms, size +51%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.RelationalExpressionNode (took 0 ms, size +11%)
+INFO: Instrumented com.jayway.jsonpath.Filter$AndFilter (took 1 ms, size +25%)
+INFO: Instrumented com.jayway.jsonpath.Filter$SingleFilter (took 0 ms, size +37%)
+INFO: Instrumented com.jayway.jsonpath.Filter$OrFilter (took 1 ms, size +36%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.PatternFlag (took 1 ms, size +16%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ValueNodes$ClassNode (took 0 ms, size +38%)
+INFO: Instrumented com.jayway.jsonpath.internal.filter.ValueNodes$OffsetDateTimeNode (took 0 ms, size +15%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Regular Expression Injection
+Regular expression patterns that contain unescaped untrusted input can consume
+arbitrary amounts of CPU time. To properly escape the input, wrap it with
+Pattern.quote(...).
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:153)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.compileWithFlagsHook(RegexInjection.kt:57)
+	at com.jayway.jsonpath.internal.filter.ValueNodes$PatternNode.<init>(ValueNodes.java:55)
+	at com.jayway.jsonpath.internal.filter.ValueNode.createPatternNode(ValueNode.java:211)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.readPattern(FilterCompiler.java:308)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.readLiteral(FilterCompiler.java:118)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.readValueNode(FilterCompiler.java:104)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.readExpression(FilterCompiler.java:190)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalANDOperand(FilterCompiler.java:186)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalAND(FilterCompiler.java:150)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalOR(FilterCompiler.java:132)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalANDOperand(FilterCompiler.java:181)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalAND(FilterCompiler.java:150)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.readLogicalOR(FilterCompiler.java:132)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.compile(FilterCompiler.java:78)
+	at com.jayway.jsonpath.internal.filter.FilterCompiler.compile(FilterCompiler.java:54)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readFilterToken(PathCompiler.java:478)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readNextToken(PathCompiler.java:138)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readPropertyOrFunctionToken(PathCompiler.java:256)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readNextToken(PathCompiler.java:153)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readPropertyOrFunctionToken(PathCompiler.java:256)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readNextToken(PathCompiler.java:153)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readDotToken(PathCompiler.java:175)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readNextToken(PathCompiler.java:143)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readPropertyOrFunctionToken(PathCompiler.java:256)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readNextToken(PathCompiler.java:153)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readDotToken(PathCompiler.java:175)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readNextToken(PathCompiler.java:143)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readPropertyOrFunctionToken(PathCompiler.java:256)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readNextToken(PathCompiler.java:153)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readDotToken(PathCompiler.java:175)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readNextToken(PathCompiler.java:143)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readPropertyOrFunctionToken(PathCompiler.java:256)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readNextToken(PathCompiler.java:153)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readDotToken(PathCompiler.java:175)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readNextToken(PathCompiler.java:143)
+	at com.jayway.jsonpath.internal.path.PathCompiler.readContextToken(PathCompiler.java:123)
+	at com.jayway.jsonpath.internal.path.PathCompiler.compile(PathCompiler.java:58)
+	at com.jayway.jsonpath.internal.path.PathCompiler.compile(PathCompiler.java:75)
+	at com.jayway.jsonpath.JsonPath.<init>(JsonPath.java:97)
+	at com.jayway.jsonpath.JsonPath.compile(JsonPath.java:515)
+	at com.jayway.jsonpath.internal.JsonContext.pathFromCache(JsonContext.java:222)
+	at com.jayway.jsonpath.internal.JsonContext.read(JsonContext.java:77)
+	at com.jayway.jsonpath.JsonPath.read(JsonPath.java:536)
+	at ossfuzz.PathParserFuzzer.test(PathParserFuzzer.java:49)
+	at ossfuzz.PathParserFuzzer.fuzzerTestOneInput(PathParserFuzzer.java:63)
+Caused by: java.util.regex.PatternSyntaxException: Unmatched closing ')'
+)][?(
+	at java.base/java.util.regex.Pattern.error(Pattern.java:2028)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1787)
+	at java.base/java.util.regex.Pattern.<init>(Pattern.java:1430)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1095)
+	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:732)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:144)
+	... 45 more
+DEDUP_TOKEN: f83567f9135c7354
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_0535764cb9a1aae95790824b2473139ac3aa10c0.java
+

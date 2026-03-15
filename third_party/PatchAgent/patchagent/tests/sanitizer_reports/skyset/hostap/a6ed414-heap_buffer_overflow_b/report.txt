@@ -1,0 +1,62 @@
+=================================================================
+==359548==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5140000003dd at pc 0x559d15cec1b5 bp 0x7fffa41b5af0 sp 0x7fffa41b5ae8
+READ of size 1 at 0x5140000003dd thread T0
+    #0 0x559d15cec1b4 in x509_parse_ext_basic_constraints /root/src/tls/x509v3.c:882:12
+    #1 0x559d15ceb334 in x509_parse_extension_data /root/src/tls/x509v3.c:1254:10
+    #2 0x559d15ceb0e3 in x509_parse_extension /root/src/tls/x509v3.c:1332:8
+    #3 0x559d15ceab1f in x509_parse_extensions /root/src/tls/x509v3.c:1366:7
+    #4 0x559d15ce75e5 in x509_parse_tbs_certificate /root/src/tls/x509v3.c:1566:6
+    #5 0x559d15ce5f73 in x509_certificate_parse /root/src/tls/x509v3.c:1706:6
+    #6 0x559d15ce2801 in LLVMFuzzerTestOneInput /root/tests/fuzzing/x509/x509.c:22:9
+    #7 0x559d15cc8044 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/tests/fuzzing/x509/x509+0x2b044) (BuildId: f8173f212ff550275b84a9d378e3e44a3257d1d7)
+    #8 0x559d15cb1176 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/tests/fuzzing/x509/x509+0x14176) (BuildId: f8173f212ff550275b84a9d378e3e44a3257d1d7)
+    #9 0x559d15cb6c2a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/tests/fuzzing/x509/x509+0x19c2a) (BuildId: f8173f212ff550275b84a9d378e3e44a3257d1d7)
+    #10 0x559d15ce1486 in main (/root/tests/fuzzing/x509/x509+0x44486) (BuildId: f8173f212ff550275b84a9d378e3e44a3257d1d7)
+    #11 0x7feaab4851c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7feaab48528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x559d15cabd44 in _start (/root/tests/fuzzing/x509/x509+0xed44) (BuildId: f8173f212ff550275b84a9d378e3e44a3257d1d7)
+
+0x5140000003dd is located 0 bytes after 413-byte region [0x514000000240,0x5140000003dd)
+allocated by thread T0 here:
+    #0 0x7feaab87b7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7feaac35a5bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+    #2 0x559d15cb1176 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/tests/fuzzing/x509/x509+0x14176) (BuildId: f8173f212ff550275b84a9d378e3e44a3257d1d7)
+    #3 0x559d15cb6c2a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/tests/fuzzing/x509/x509+0x19c2a) (BuildId: f8173f212ff550275b84a9d378e3e44a3257d1d7)
+    #4 0x559d15ce1486 in main (/root/tests/fuzzing/x509/x509+0x44486) (BuildId: f8173f212ff550275b84a9d378e3e44a3257d1d7)
+    #5 0x7feaab4851c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #6 0x7feaab48528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x559d15cabd44 in _start (/root/tests/fuzzing/x509/x509+0xed44) (BuildId: f8173f212ff550275b84a9d378e3e44a3257d1d7)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/tls/x509v3.c:882:12 in x509_parse_ext_basic_constraints
+Shadow bytes around the buggy address:
+  0x514000000100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x514000000180: 00 00 00 00 00 00 00 00 00 00 00 05 fa fa fa fa
+  0x514000000200: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x514000000280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x514000000300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x514000000380: 00 00 00 00 00 00 00 00 00 00 00[05]fa fa fa fa
+  0x514000000400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x514000000480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x514000000500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x514000000580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x514000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359548==ABORTING

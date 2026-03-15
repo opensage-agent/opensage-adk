@@ -1,0 +1,65 @@
+=================================================================
+==638677==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x503000000e30 at pc 0x7fb7d4d2a95f bp 0x7ffc4727f490 sp 0x7ffc4727f488
+READ of size 2 at 0x503000000e30 thread T0
+    #0 0x7fb7d4d2a95e in gf_utf8_wcslen /root/src/utils/utf.c:442:16
+    #1 0x7fb7d52d3c19 in xtra_box_dump /root/src/isomedia/box_dump.c:6471:40
+    #2 0x7fb7d52db5ce in gf_isom_box_dump /root/src/isomedia/box_funcs.c:2108:2
+    #3 0x7fb7d52989d5 in gf_isom_dump /root/src/isomedia/box_dump.c:138:3
+    #4 0x5654c92fd237 in dump_isom_xml /root/applications/mp4box/filedump.c:2061:6
+    #5 0x5654c92d7dc4 in mp4box_main /root/applications/mp4box/mp4box.c:6372:7
+    #6 0x5654c92dd461 in main /root/applications/mp4box/mp4box.c:6811:1
+    #7 0x7fb7d479d1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x7fb7d479d28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x5654c92bcc84 in _start (/root/bin/gcc/MP4Box+0x48c84) (BuildId: 4b80843684477f7a187d27fafb1fdce5e73a1e25)
+
+0x503000000e31 is located 0 bytes after 17-byte region [0x503000000e20,0x503000000e31)
+allocated by thread T0 here:
+    #0 0x7fb7d6a307a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fb7d4c76354 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7fb7d5277931 in xtra_box_read /root/src/isomedia/box_code_base.c:12890:12
+    #3 0x7fb7d52d7496 in gf_isom_box_read /root/src/isomedia/box_funcs.c:1860:9
+    #4 0x7fb7d52d5c0a in gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:271:14
+    #5 0x7fb7d52d46a4 in gf_isom_parse_root_box /root/src/isomedia/box_funcs.c:38:8
+    #6 0x7fb7d52fc802 in gf_isom_parse_movie_boxes_internal /root/src/isomedia/isom_intern.c:373:7
+    #7 0x7fb7d52fc1a6 in gf_isom_parse_movie_boxes /root/src/isomedia/isom_intern.c:860:6
+    #8 0x7fb7d5303113 in gf_isom_open_file /root/src/isomedia/isom_intern.c:980:19
+    #9 0x7fb7d530f283 in gf_isom_open /root/src/isomedia/isom_read.c:509:11
+    #10 0x5654c92d6ede in mp4box_main /root/applications/mp4box/mp4box.c:6181:12
+    #11 0x5654c92dd461 in main /root/applications/mp4box/mp4box.c:6811:1
+    #12 0x7fb7d479d1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7fb7d479d28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x5654c92bcc84 in _start (/root/bin/gcc/MP4Box+0x48c84) (BuildId: 4b80843684477f7a187d27fafb1fdce5e73a1e25)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/utils/utf.c:442:16 in gf_utf8_wcslen
+Shadow bytes around the buggy address:
+  0x503000000b80: 00 00 00 00 fa fa 00 00 00 fa fa fa 00 00 00 fa
+  0x503000000c00: fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00
+  0x503000000c80: 00 fa fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa
+  0x503000000d00: 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00 00 fa
+  0x503000000d80: fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00
+=>0x503000000e00: 00 07 fa fa 00 00[01]fa fa fa 00 00 00 00 fa fa
+  0x503000000e80: 00 00 00 fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000f00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000001000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000001080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==638677==ABORTING

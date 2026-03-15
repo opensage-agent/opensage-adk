@@ -1,0 +1,18 @@
+=================================================================
+==360430==ERROR: AddressSanitizer: SEGV on unknown address 0x507fffffff59 (pc 0x5644eec39051 bp 0x7ffe1afe1f50 sp 0x7ffe1afe1f10 T0)
+==360430==The signal is caused by a READ memory access.
+    #0 0x5644eec39051 in sw32_ /root/blosc/blosc-private.h:44:13
+    #1 0x5644eec3a18a in blosc_d /root/blosc/blosc2.c:1093:14
+    #2 0x5644eec4a51c in serial_blosc /root/blosc/blosc2.c:1244:16
+    #3 0x5644eec3072c in do_job /root/blosc/blosc2.c:1402:15
+    #4 0x5644eec35da1 in blosc_run_decompression_with_context /root/blosc/blosc2.c:2186:13
+    #5 0x5644eec37c58 in blosc2_decompress /root/blosc/blosc2.c:2254:12
+    #6 0x5644eebd7c77 in LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_decompress_chunk.c:34:5
+    #7 0x5644eebd7fb6 in main /root/tests/fuzz/standalone.c:32:7
+    #8 0x7f8968d551c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7f8968d5528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x5644eebd6624 in _start (/root/tests/fuzz/decompress_chunk_fuzzer+0x13624) (BuildId: 7518db1e5f4dec63a2f6a950b6a0c38a899c9d09)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/blosc/blosc-private.h:44:13 in sw32_
+==360430==ABORTING

@@ -1,0 +1,66 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5040000000b8 at pc 0x5590ee8cb472 bp 0x7ffceec9a4d0 sp 0x7ffceec99c90
+READ of size 72 at 0x5040000000b8 thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x5590ee8cb471 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x5590ee938853 in __parse_options /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng.c:58:10
+    #2 0x5590ee937dd0 in parse_by_block_type /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng.c:110:16
+    #3 0x5590ee938f0c in light_read_record /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng.c:356:4
+    #4 0x5590ee934af0 in light_pcapng_open_read /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng_ext.c:193:2
+    #5 0x5590ee916cca in pcpp::PcapNgFileReaderDevice::open() /src/PcapPlusPlus/Pcap++/src/PcapFileDevice.cpp:376:19
+    #6 0x5590ee90d244 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzWriter.cpp:30:15
+    #7 0x5590ee7c17b0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5590ee7aca25 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5590ee7b24bf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5590ee7dd762 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fad74729082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x5590ee7a4c0d in _start (/out/FuzzWriterNg+0xb8c0d)
+
+DEDUP_TOKEN: __asan_memcpy--__parse_options--parse_by_block_type
+0x5040000000b8 is located 0 bytes after 40-byte region [0x504000000090,0x5040000000b8)
+allocated by thread T0 here:
+    #0 0x5590ee8cd749 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x5590ee938e43 in light_read_record /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng.c:333:27
+    #2 0x5590ee934af0 in light_pcapng_open_read /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng_ext.c:193:2
+    #3 0x5590ee916cca in pcpp::PcapNgFileReaderDevice::open() /src/PcapPlusPlus/Pcap++/src/PcapFileDevice.cpp:376:19
+    #4 0x5590ee90d244 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzWriter.cpp:30:15
+    #5 0x5590ee7c17b0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x5590ee7aca25 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x5590ee7b24bf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x5590ee7dd762 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7fad74729082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--light_read_record--light_pcapng_open_read
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng.c:58:10 in __parse_options
+Shadow bytes around the buggy address:
+  0x503ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x503ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x503fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x503fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x504000000000: fa fa fd fd fd fd fd fa fa fa 00 00 00 00 00 00
+=>0x504000000080: fa fa 00 00 00 00 00[fa]fa fa fa fa fa fa fa fa
+  0x504000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x504000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x504000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x504000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x504000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

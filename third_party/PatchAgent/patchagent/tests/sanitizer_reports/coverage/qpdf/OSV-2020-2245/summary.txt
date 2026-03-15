@@ -1,0 +1,29 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - destroy /usr/local/include/c++/v1/__memory/allocator.h:176:87
+    - destroy<QPDFExc, void> /usr/local/include/c++/v1/__memory/allocator_traits.h:311:9
+    - __base_destruct_at_end /usr/local/include/c++/v1/vector:926:7
+    - __clear /usr/local/include/c++/v1/vector:920:5
+    - std::__1::vector<QPDFExc, std::__1::allocator<QPDFExc>>::__destroy_vector::operator()[abi:ne180100]() /usr/local/include/c++/v1/vector:490:16
+    - ~vector /usr/local/include/c++/v1/vector:501:67
+    - QPDF::Members::~Members() /src/qpdf/libqpdf/QPDF.cc:159:1
+    - ~Data /src/qpdf/include/qpdf/PointerHolder.hh:74:7
+    - PointerHolder<QPDF::Members>::destroy() /src/qpdf/include/qpdf/PointerHolder.hh:178:3
+    - ~Data /src/qpdf/include/qpdf/PointerHolder.hh:74:7
+    - PointerHolder<QPDF>::destroy() /src/qpdf/include/qpdf/PointerHolder.hh:178:3
+    - operator= /src/qpdf/include/qpdf/PointerHolder.hh:104:9
+    - FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:92:7
+    - doChecks /src/qpdf/fuzz/qpdf_fuzzer.cc:179:5
+    - FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:195:9
+    - LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:210:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

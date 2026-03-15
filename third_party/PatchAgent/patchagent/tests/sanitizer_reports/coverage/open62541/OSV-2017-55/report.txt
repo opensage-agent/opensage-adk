@@ -1,0 +1,53 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/open62541:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_binary_decode -runs=100.
++ FUZZER=fuzz_binary_decode
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_binary_decode -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_binary_decode -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 371008429
+/out/fuzz_binary_decode: Running 1 inputs 100 time(s) each.
+Running: /testcase
+free(): double free detected in tcache 2
+==14== ERROR: libFuzzer: deadly signal
+    #0 0x55c1ad8b8054 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x55c1ad8370a8 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x55c1ad81a443 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7f3add02041f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7f3adce1a00a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7f3adcdf9858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7f3adce64265  (/lib/x86_64-linux-gnu/libc.so.6+0x8d265) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7f3adce6c2fb  (/lib/x86_64-linux-gnu/libc.so.6+0x952fb) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x7f3adce6df6c  (/lib/x86_64-linux-gnu/libc.so.6+0x96f6c) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x55c1ad8bc2a7 in String_deleteMembers /src/open62541/src/ua_types.c:91:5
+    #10 0x55c1ad8bc2a7 in NodeId_deleteMembers /src/open62541/src/ua_types.c:200:9
+    #11 0x55c1ad8bc2a7 in ExtensionObject_deleteMembers /src/open62541/src/ua_types.c:331:9
+    #12 0x55c1ad8bb742 in deleteMembers_noInit /src/open62541/src/ua_types.c:979:13
+    #13 0x55c1ad8bb058 in UA_deleteMembers /src/open62541/src/ua_types.c:993:5
+    #14 0x55c1ad8bb058 in UA_Array_delete /src/open62541/src/ua_types.c:1060:13
+    #15 0x55c1ad8c0ed9 in Array_decodeBinary /src/open62541/src/ua_types_encoding_binary.c:572:17
+    #16 0x55c1ad8bf425 in Variant_decodeBinary /src/open62541/src/ua_types_encoding_binary.c:1156:15
+    #17 0x55c1ad8bec73 in UA_decodeBinaryInternal /src/open62541/src/ua_types_encoding_binary.c:1503:20
+    #18 0x55c1ad8bfa96 in UA_decodeBinary /src/open62541/src/ua_types_encoding_binary.c:1538:18
+    #19 0x55c1ad8b93e2 in tortureEncoding(unsigned char const*, unsigned long, unsigned long*) /src/open62541/tests/fuzz/fuzz_binary_decode.cc:32:25
+    #20 0x55c1ad8b93e2 in LLVMFuzzerTestOneInput /src/open62541/tests/fuzz/fuzz_binary_decode.cc:100:10
+    #21 0x55c1ad81b950 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #22 0x55c1ad806bc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #23 0x55c1ad80c65f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #24 0x55c1ad837902 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #25 0x7f3adcdfb082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #26 0x55c1ad7fedad in _start (/out/fuzz_binary_decode+0x2edad)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

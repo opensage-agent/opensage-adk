@@ -1,0 +1,48 @@
+=================================================================
+==891339==ERROR: AddressSanitizer: stack-use-after-scope on address 0x7faf1d009020 at pc 0x5653ed9f884a bp 0x7ffdb583b370 sp 0x7ffdb583b368
+READ of size 4 at 0x7faf1d009020 thread T0
+    #0 0x5653ed9f8849 in main /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/stack-use-after-scope/test.c:16:27
+    #1 0x7faf1f1361c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 42c84c92e6f98126b3e2230ebfdead22c235b667)
+    #2 0x7faf1f13628a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 42c84c92e6f98126b3e2230ebfdead22c235b667)
+    #3 0x5653ed91f344 in _start (/workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/stack-use-after-scope/a.out+0x2b344) (BuildId: f4be629335f6a78421de7c4a8dad1d9f076e12c1)
+
+Address 0x7faf1d009020 is located in stack of thread T0 at offset 32 in frame
+    #0 0x5653ed9f873f in main /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/stack-use-after-scope/test.c:3
+
+  This frame has 1 object(s):
+    [32, 36) 'local_variable' (line 7) <== Memory access at offset 32 is inside this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-use-after-scope /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/stack-use-after-scope/test.c:16:27 in main
+Shadow bytes around the buggy address:
+  0x7faf1d008d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7faf1d008e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7faf1d008e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7faf1d008f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7faf1d008f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7faf1d009000: f1 f1 f1 f1[f8]f3 f3 f3 00 00 00 00 00 00 00 00
+  0x7faf1d009080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7faf1d009100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7faf1d009180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7faf1d009200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7faf1d009280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==891339==ABORTING

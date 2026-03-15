@@ -1,0 +1,27 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - r_bin_class_free /src/radare2/libr/bin/bfile.c:973:3
+    - r_list_delete /src/radare2/libr/util/list.c:106:3
+    - r_list_purge /src/radare2/libr/util/list.c:72:3
+    - r_list_free /src/radare2/libr/util/list.c:82:3
+    - object_delete_items /src/radare2/libr/bin/bobj.c:46:2
+    - r_bin_object_free /src/radare2/libr/bin/bobj.c:62:3
+    - r_bin_file_free /src/radare2/libr/bin/bfile.c:711:2
+    - r_list_delete /src/radare2/libr/util/list.c:106:3
+    - r_list_purge /src/radare2/libr/util/list.c:72:3
+    - r_list_free /src/radare2/libr/util/list.c:82:3
+    - r_bin_free /src/radare2/libr/bin/bin.c:469:3
+    - r_core_fini /src/radare2/libr/core/core.c:2853:12
+    - r_core_free /src/radare2/libr/core/core.c:2879:3
+    - LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:16:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

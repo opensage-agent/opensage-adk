@@ -1,0 +1,40 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 1 at 0x7f4a3b7c0d8d thread T0
+    - IsLetterGroup /src/espeak-ng/src/libespeak-ng/dictionary.c:714:17
+    - MatchRule /src/espeak-ng/src/libespeak-ng/dictionary.c:1972:21
+    - TranslateRules /src/espeak-ng/src/libespeak-ng/dictionary.c:2259:6
+    - TranslateWord3 /src/espeak-ng/src/libespeak-ng/translate.c:800:15
+    - TranslateWord /src/espeak-ng/src/libespeak-ng/translate.c:1167:14
+    - TranslateWord2 /src/espeak-ng/src/libespeak-ng/translate.c:1505:15
+    - TranslateClause /src/espeak-ng/src/libespeak-ng/translate.c:2663:17
+    - SpeakNextClause /src/espeak-ng/src/libespeak-ng/synthesize.c:1566:2
+    - Synthesize /src/espeak-ng/src/libespeak-ng/speech.c:488:9
+    - espeak_Synth /src/espeak-ng/src/libespeak-ng/espeak_api.c:90:32
+    - LLVMFuzzerTestOneInput /src/espeak-ng/tests/ssml-fuzzer.c:64:8
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f4a3b7c0d8d is located in stack of thread T0 at offset 5517 in frame
+    - TranslateClause /src/espeak-ng/src/libespeak-ng/translate.c:1985:0
+
+  This frame has 8 object(s):
+    [32, 36) 'charix_top' (line 2019)
+    [48, 1656) 'charix' (line 2021)
+    [1792, 5392) 'words' (line 2022)
+    [5520, 6320) 'sbuf' (line 2026) <== Memory access at offset 5517 underflows this variable
+    [6448, 6452) 'tone' (line 2029)
+    [6464, 6468) 'next2_in' (line 2338)
+    [6480, 6630) 'number_buf' (line 2564)
+    [6704, 7304) 'num_wtab' (line 2565)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

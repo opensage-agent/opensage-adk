@@ -1,0 +1,89 @@
+=================================================================
+==1313969==ERROR: AddressSanitizer: heap-use-after-free on address 0x504001aa9a30 at pc 0x7f0aaca3f32f bp 0x7ffdaa14d790 sp 0x7ffdaa14d788
+READ of size 8 at 0x504001aa9a30 thread T0
+    #0 0x7f0aaca3f32e in r_io_bank_map_add_top /root/libr/io/io_bank.c:229:18
+    #1 0x7f0aaca2b12b in r_io_map_add /root/libr/io/io_map.c:158:8
+    #2 0x7f0aaa0b4db0 in add_section /root/libr/core/cbin.c:2681:16
+    #3 0x7f0aaa0a4bfb in bin_sections /root/libr/core/cbin.c:3096:4
+    #4 0x7f0aaa097a69 in r_core_bin_info /root/libr/core/cbin.c:4221:10
+    #5 0x7f0aaa097600 in r_core_bin_set_env /root/libr/core/cbin.c:340:3
+    #6 0x7f0aa9ff33f7 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:439:6
+    #7 0x7f0aa9fee915 in r_core_bin_load /root/libr/core/cfile.c:635:4
+    #8 0x7f0aa75862dc in r_main_radare2 /root/libr/main/radare2.c:1176:15
+    #9 0x55d21382467e in main /root/binr/radare2/radare2.c:96:9
+    #10 0x7f0aa73511c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f0aa735128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x55d2138231e4 in _start (/root/bin/radare2+0x21e4) (BuildId: c015579d9f658416b94c1c9240ca70161afec10c)
+
+0x504001aa9a30 is located 32 bytes inside of 40-byte region [0x504001aa9a10,0x504001aa9a38)
+freed by thread T0 here:
+    #0 0x7f0aacda550a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f0aac810409 in r_crbtree_take /root/libr/util/new_rbtree.c:359:3
+    #2 0x7f0aac811566 in r_crbtree_delete /root/libr/util/new_rbtree.c:376:9
+    #3 0x7f0aaca3f4f9 in r_io_bank_map_add_top /root/libr/io/io_bank.c:233:3
+    #4 0x7f0aaca2b12b in r_io_map_add /root/libr/io/io_map.c:158:8
+    #5 0x7f0aaa0b4db0 in add_section /root/libr/core/cbin.c:2681:16
+    #6 0x7f0aaa0a4bfb in bin_sections /root/libr/core/cbin.c:3096:4
+    #7 0x7f0aaa097a69 in r_core_bin_info /root/libr/core/cbin.c:4221:10
+    #8 0x7f0aaa097600 in r_core_bin_set_env /root/libr/core/cbin.c:340:3
+    #9 0x7f0aa9ff33f7 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:439:6
+    #10 0x7f0aa9fee915 in r_core_bin_load /root/libr/core/cfile.c:635:4
+    #11 0x7f0aa75862dc in r_main_radare2 /root/libr/main/radare2.c:1176:15
+    #12 0x55d21382467e in main /root/binr/radare2/radare2.c:96:9
+    #13 0x7f0aa73511c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x7f0aa735128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x55d2138231e4 in _start (/root/bin/radare2+0x21e4) (BuildId: c015579d9f658416b94c1c9240ca70161afec10c)
+
+previously allocated by thread T0 here:
+    #0 0x7f0aacda598d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f0aac80ef6e in _node_new /root/libr/util/new_rbtree.c:104:18
+    #2 0x7f0aac80e69b in r_crbtree_insert /root/libr/util/new_rbtree.c:161:8
+    #3 0x7f0aaca3e8a0 in r_io_bank_map_add_top /root/libr/io/io_bank.c:175:8
+    #4 0x7f0aaca2b12b in r_io_map_add /root/libr/io/io_map.c:158:8
+    #5 0x7f0aaca24508 in r_io_open_at /root/libr/io/io.c:90:2
+    #6 0x7f0aaa0b5123 in io_create_mem_map /root/libr/core/cbin.c:2629:10
+    #7 0x7f0aaa0b4b52 in add_section /root/libr/core/cbin.c:2660:8
+    #8 0x7f0aaa0a4bfb in bin_sections /root/libr/core/cbin.c:3096:4
+    #9 0x7f0aaa097a69 in r_core_bin_info /root/libr/core/cbin.c:4221:10
+    #10 0x7f0aaa097600 in r_core_bin_set_env /root/libr/core/cbin.c:340:3
+    #11 0x7f0aa9ff33f7 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:439:6
+    #12 0x7f0aa9fee915 in r_core_bin_load /root/libr/core/cfile.c:635:4
+    #13 0x7f0aa75862dc in r_main_radare2 /root/libr/main/radare2.c:1176:15
+    #14 0x55d21382467e in main /root/binr/radare2/radare2.c:96:9
+    #15 0x7f0aa73511c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x7f0aa735128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x55d2138231e4 in _start (/root/bin/radare2+0x21e4) (BuildId: c015579d9f658416b94c1c9240ca70161afec10c)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/libr/io/io_bank.c:229:18 in r_io_bank_map_add_top
+Shadow bytes around the buggy address:
+  0x504001aa9780: fa fa fd fd fd fd fd fa fa fa fd fd fd fd fd fa
+  0x504001aa9800: fa fa fd fd fd fd fd fa fa fa fd fd fd fd fd fa
+  0x504001aa9880: fa fa fd fd fd fd fd fa fa fa fd fd fd fd fd fa
+  0x504001aa9900: fa fa 00 00 00 00 00 fa fa fa 00 00 00 00 00 fa
+  0x504001aa9980: fa fa 00 00 00 00 00 fa fa fa 00 00 00 00 00 fa
+=>0x504001aa9a00: fa fa fd fd fd fd[fd]fa fa fa fd fd fd fd fd fa
+  0x504001aa9a80: fa fa fd fd fd fd fd fa fa fa fd fd fd fd fd fa
+  0x504001aa9b00: fa fa 00 00 00 00 00 fa fa fa fd fd fd fd fd fa
+  0x504001aa9b80: fa fa 00 00 00 00 00 fa fa fa fd fd fd fd fd fa
+  0x504001aa9c00: fa fa 00 00 00 00 00 fa fa fa fd fd fd fd fd fa
+  0x504001aa9c80: fa fa 00 00 00 00 00 fa fa fa 00 00 00 00 00 fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1313969==ABORTING

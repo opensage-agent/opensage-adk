@@ -1,0 +1,27 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - std::__1::__tree_node_base<void*>* std::__1::__tree_min[abi:ne180100]<std::__1::__tree_node_base<void*>*>(std::__1::__tree_node_base<void*>*) /usr/local/include/c++/v1/__tree:170:23
+    - std::__1::__tree_end_node<std::__1::__tree_node_base<void*>*>* std::__1::__tree_next_iter[abi:ne180100]<std::__1::__tree_end_node<std::__1::__tree_node_base<void*>*>*, std::__1::__tree_node_base<void*>*>(std::__1::__tree_node_base<void*>*) /usr/local/include/c++/v1/__tree:199:37
+    - std::__1::__tree_iterator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, long>::operator++[abi:ne180100]() /usr/local/include/c++/v1/__tree:751:9
+    - std::__1::__map_iterator<std::__1::__tree_iterator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, long>>::operator++[abi:ne180100]() /usr/local/include/c++/v1/map:874:5
+    - QPDF::read_xref(long long) /src/qpdf/libqpdf/QPDF.cc:712:33
+    - QPDF::reconstruct_xref(QPDFExc&) /src/qpdf/libqpdf/QPDF.cc:601:17
+    - QPDF::parse(char const*) /src/qpdf/libqpdf/QPDF.cc:464:13
+    - FuzzHelper::getQpdf() /src/qpdf/fuzz/qpdf_fuzzer.cc:59:11
+    - FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:92:9
+    - FuzzHelper::doChecks() /src/qpdf/fuzz/qpdf_fuzzer.cc:176:5
+    - FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:191:9
+    - LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:208:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

@@ -1,0 +1,22 @@
+=================================================================
+==360417==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x50d00000009e in thread T0
+    #0 0x7f5a240d550a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x563703e6f6ea in frame_get_lazychunk /root/blosc/frame.c:2036:7
+    #2 0x563703e76c0e in frame_decompress_chunk /root/blosc/frame.c:2761:8
+    #3 0x563703e58e2e in blosc2_schunk_decompress_chunk /root/blosc/schunk.c:804:17
+    #4 0x563703dd3d15 in LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_decompress_frame.c:38:15
+    #5 0x563703dd4046 in main /root/tests/fuzz/standalone.c:32:7
+    #6 0x7f5a23cd71c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x7f5a23cd728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x563703dd2684 in _start (/root/tests/fuzz/decompress_frame_fuzzer+0x10684) (BuildId: 134d650bcb78a8f3619a0016b9f8341dd3524ae3)
+
+0x50d00000009e is located 94 bytes inside of 138-byte region [0x50d000000040,0x50d0000000ca)
+allocated by thread T0 here:
+    #0 0x7f5a240d57a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x563703dd4010 in main /root/tests/fuzz/standalone.c:28:28
+    #2 0x7f5a23cd71c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #3 0x7f5a23cd728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #4 0x563703dd2684 in _start (/root/tests/fuzz/decompress_frame_fuzzer+0x10684) (BuildId: 134d650bcb78a8f3619a0016b9f8341dd3524ae3)
+
+SUMMARY: AddressSanitizer: bad-free /root/blosc/frame.c:2036:7 in frame_get_lazychunk
+==360417==ABORTING

@@ -1,0 +1,24 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - flb_sds_avail /src/fluent-bit/include/fluent-bit/flb_sds.h:77:25
+    - flb_sds_cat /src/fluent-bit/src/flb_sds.c:126:13
+    - flb_sds_cat_safe /src/fluent-bit/src/flb_sds.c:208:11
+    - flb_cf_key_translate /src/fluent-bit/src/config_format/flb_config_format.c:74:5
+    - flb_cf_section_property_add /src/fluent-bit/src/config_format/flb_config_format.c:275:11
+    - consume_event /src/fluent-bit/src/config_format/flb_cf_yaml.c:2341:17
+    - read_config /src/fluent-bit/src/config_format/flb_cf_yaml.c:2892:18
+    - flb_cf_yaml_create /src/fluent-bit/src/config_format/flb_cf_yaml.c:2973:11
+    - LLVMFuzzerTestOneInput /src/fluent-bit/tests/internal/fuzzers/config_yaml_fuzzer.c:56:10
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

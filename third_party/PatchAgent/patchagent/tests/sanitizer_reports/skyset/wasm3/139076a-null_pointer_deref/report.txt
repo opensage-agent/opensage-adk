@@ -1,0 +1,14 @@
+=================================================================
+==1247730==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7ff943ae575d bp 0x7fffc9ea0f90 sp 0x7fffc9ea0748 T0)
+==1247730==The signal is caused by a READ memory access.
+==1247730==Hint: address points to the zero page.
+    #0 0x7ff943ae575d in __strlen_avx2 string/../sysdeps/x86_64/multiarch/strlen-avx2.S:76
+    #1 0x7ff943cfe317 in strlen build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc
+    #2 0x56422b7a06fe in main /root/platforms/app/main.c:715:17
+    #3 0x7ff9439841c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #4 0x7ff94398428a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #5 0x56422b79b0d4 in _start (/root/wasm3+0x1d0d4) (BuildId: e557d2028bef284ee480efa27c9bf711ba7a6899)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV string/../sysdeps/x86_64/multiarch/strlen-avx2.S:76 in __strlen_avx2
+==1247730==ABORTING

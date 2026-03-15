@@ -1,0 +1,75 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x529000009a40 at pc 0x5624365dfb22 bp 0x7fffd1b9c770 sp 0x7fffd1b9bf30
+READ of size 948 at 0x529000009a40 thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x5624365dfb21 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x562436800dd1 in backup_lpf /work/build/../../src/dav1d/src/lr_apply_tmpl.c:88:17
+    #2 0x56243680057e in dav1d_lr_copy_lpf_16bpc /work/build/../../src/dav1d/src/lr_apply_tmpl.c:148:13
+    #3 0x56243672fab8 in dav1d_filter_sbrow_deblock_rows_16bpc /work/build/../../src/dav1d/src/recon_tmpl.c:2076:9
+    #4 0x562436730e8e in dav1d_filter_sbrow_16bpc /work/build/../../src/dav1d/src/recon_tmpl.c:2154:5
+    #5 0x562436640495 in dav1d_decode_frame_main /work/build/../../src/dav1d/src/decode.c:3331:13
+    #6 0x562436640d39 in dav1d_decode_frame /work/build/../../src/dav1d/src/decode.c:3393:19
+    #7 0x56243664433d in dav1d_submit_frame /work/build/../../src/dav1d/src/decode.c:3762:20
+    #8 0x56243668c226 in dav1d_parse_obus /work/build/../../src/dav1d/src/obu.c:1606:24
+    #9 0x562436622969 in gen_picture /work/build/../../src/dav1d/src/lib.c:394:15
+    #10 0x562436622600 in dav1d_send_data /work/build/../../src/dav1d/src/lib.c:424:15
+    #11 0x562436621b97 in LLVMFuzzerTestOneInput /work/build/../../src/dav1d/tests/libfuzzer/dav1d_fuzzer.c:164:24
+    #12 0x5624364d5e60 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x5624364c10d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x5624364c6b6f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x5624364f1e12 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7fef0f7cf082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #17 0x5624364b92bd in _start (/out/dav1d_fuzzer+0xa72bd)
+
+DEDUP_TOKEN: __asan_memcpy--backup_lpf--dav1d_lr_copy_lpf_16bpc
+0x529000009a40 is located 0 bytes after 18496-byte region [0x529000005200,0x529000009a40)
+allocated by thread T0 here:
+    #0 0x5624365e26d7 in posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    #1 0x56243663b883 in dav1d_alloc_aligned /work/build/../../src/dav1d/src/mem.h:66:9
+    #2 0x56243663b883 in dav1d_decode_frame_init /work/build/../../src/dav1d/src/decode.c:3127:27
+    #3 0x562436640c65 in dav1d_decode_frame /work/build/../../src/dav1d/src/decode.c:3375:15
+    #4 0x56243664433d in dav1d_submit_frame /work/build/../../src/dav1d/src/decode.c:3762:20
+    #5 0x56243668c226 in dav1d_parse_obus /work/build/../../src/dav1d/src/obu.c:1606:24
+    #6 0x562436622969 in gen_picture /work/build/../../src/dav1d/src/lib.c:394:15
+    #7 0x562436622600 in dav1d_send_data /work/build/../../src/dav1d/src/lib.c:424:15
+    #8 0x562436621b97 in LLVMFuzzerTestOneInput /work/build/../../src/dav1d/tests/libfuzzer/dav1d_fuzzer.c:164:24
+    #9 0x5624364d5e60 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x5624364c10d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x5624364c6b6f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x5624364f1e12 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fef0f7cf082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_posix_memalign--dav1d_alloc_aligned--dav1d_decode_frame_init
+SUMMARY: AddressSanitizer: heap-buffer-overflow /work/build/../../src/dav1d/src/lr_apply_tmpl.c:88:17 in backup_lpf
+Shadow bytes around the buggy address:
+  0x529000009780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000009800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000009880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000009900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000009980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x529000009a00: 00 00 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa
+  0x529000009a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000009b00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000009b80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000009c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000009c80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

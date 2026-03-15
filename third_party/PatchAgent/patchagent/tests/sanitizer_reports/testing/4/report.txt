@@ -1,0 +1,13 @@
+==14==ERROR: AddressSanitizer: requested allocation size 0x80000000001f401 exceeds maximum supported size of 0x200000000
+    #0 0x55c6b0a3d642 in malloc /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:1021:3
+    #1 0x55c6b0a9a23c in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:30:43
+    #2 0x55c6b09901b0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #3 0x55c6b097b425 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #4 0x55c6b0980ebf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #5 0x55c6b09ac162 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #6 0x7f46eb0f0082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--LLVMFuzzerTestOneInput--fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long)
+==14==HINT: if you don't care about these errors you may set allocator_may_return_null=1
+SUMMARY: AddressSanitizer: allocation-size-too-big /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:30:43 in LLVMFuzzerTestOneInput
+Running: docker run --rm --privileged -v /aixcc/96f1875b-1218-4fd4-a68e-a22091849049/86a5511d278528b335c392fe25bfb538-memory/fuzz-tooling/build/out/c-blosc2:/out -v /aixcc/96f1875b-1218-4fd4-a68e-a22091849049/pocs/poc-0:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce decompress_frame_fuzzer -runs=100

@@ -1,0 +1,22 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:33)
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:31)
+Caused by: java.lang.StackOverflowError
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:30)
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:33)
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:31)
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:33)
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:31)
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:33)
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:31)
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:33)
+- graphql.schema.GraphQLTypeUtil.simplePrint (graphql/schema/GraphQLTypeUtil.java:31)
+	... 2 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

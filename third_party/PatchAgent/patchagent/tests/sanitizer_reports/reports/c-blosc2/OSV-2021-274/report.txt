@@ -1,0 +1,51 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/c-blosc2:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/c-blosc2/OSV-2021-274/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce decompress_frame_fuzzer -runs=100.
++ FUZZER=decompress_frame_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer decompress_frame_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/decompress_frame_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3443243316
+INFO: Loaded 1 modules   (37217 inline 8-bit counters): 37217 [0x55c247856d60, 0x55c24785fec1), 
+INFO: Loaded 1 PC tables (37217 PCs): 37217 [0x55c24785fec8,0x55c2478f14d8), 
+/out/decompress_frame_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+==14==WARNING: AddressSanitizer failed to allocate 0xffffffffff20ffff bytes
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: memcpy-param-overlap: memory ranges [0x000000000000,0xffffffffff20ffff) and [0x50d000000115, 0x50cfff210114) overlap
+[1m[0mSCARINESS: 10 (memcpy-param-overlap)
+    #0 0x55c247382ec0 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x55c247437461 in frame_get_metalayers /src/c-blosc2/blosc/frame.c:1263:5
+    #2 0x55c247437cde in blosc2_frame_to_schunk /src/c-blosc2/blosc/frame.c:1452:8
+    #3 0x55c24742bca5 in blosc2_schunk_open_sframe /src/c-blosc2/blosc/schunk.c:290:27
+    #4 0x55c2473c4857 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:23:27
+    #5 0x55c247279380 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55c2472645f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55c24726a08f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55c247295332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f59ef44e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #10 0x55c24725c7dd in _start (/out/decompress_frame_fuzzer+0x1267dd)
+
+DEDUP_TOKEN: __asan_memcpy--frame_get_metalayers--blosc2_frame_to_schunk
+Address 0x000000000000 is a wild pointer inside of access range of size 0xffffffffff20ffff.
+[1m[32m0x50d000000115 is located 5 bytes inside of 134-byte region [0x50d000000110,0x50d000000196)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55c24738514f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55c2477d21c3 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x55c2472645f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x55c24726a08f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x55c247295332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7f59ef44e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: memcpy-param-overlap /src/c-blosc2/blosc/frame.c:1263:5 in frame_get_metalayers
+==14==ABORTING

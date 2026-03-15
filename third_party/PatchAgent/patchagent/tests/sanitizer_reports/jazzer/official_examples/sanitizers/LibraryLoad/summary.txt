@@ -1,0 +1,11 @@
+The sanitizer detected a reflective call vulnerability.The explanation of the vulnerability is: An attacker can load and execute arbitrary libraries, leading to code execution vulnerabilities.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh: load arbitrary library
+- com.code_intelligence.jazzer.sanitizers.ReflectiveCall.loadLibraryHook (com/code_intelligence/jazzer/sanitizers/ReflectiveCall.kt:116)
+- com.example.LibraryLoad.fuzzerTestOneInput (com/example/LibraryLoad.java:26)
+
+To fix this issue, follow the advice below:
+
+1. Avoid loading and executing arbitrary libraries in the application context.
+2. Use secure APIs or sandboxed environments to execute external code.
+3. Validate library paths and signatures before loading them into memory.

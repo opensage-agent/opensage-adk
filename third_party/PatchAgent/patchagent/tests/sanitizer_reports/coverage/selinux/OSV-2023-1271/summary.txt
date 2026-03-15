@@ -1,0 +1,22 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - symhash /src/selinux/libsepol/src/symtab.c:23:14
+    - hashtab_search /src/selinux/libsepol/src/hashtab.c:185:11
+    - is_id_enabled /src/selinux/libsepol/src/avrule_block.c:158:24
+    - is_decl_requires_met /src/selinux/libsepol/src/link.c:1952:9
+    - enable_avrules /src/selinux/libsepol/src/link.c:2165:9
+    - link_modules /src/selinux/libsepol/src/link.c:2549:6
+    - LLVMFuzzerTestOneInput /src/selinux/libsepol/fuzz/binpolicy-fuzzer.c:78:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

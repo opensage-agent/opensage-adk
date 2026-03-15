@@ -1,0 +1,25 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - splay_move_to_root /src/ghostpdl/base/gsalloc.c:638:21
+    - clump_locate_ptr /src/ghostpdl/base/gsalloc.c:2627:9
+    - i_free_object /src/ghostpdl/base/gsalloc.c:1540:13
+    - font_resource_free /src/ghostpdl/devices/vector/gdevpdtf.c:513:17
+    - pdf_close /src/ghostpdl/devices/vector/gdevpdf.c:3259:17
+    - gs_closedevice /src/ghostpdl/base/gsdevice.c:786:16
+    - gs_main_finit /src/ghostpdl/psi/imain.c:1351:20
+    - psapi_exit /src/ghostpdl/psi/psapi.c:517:5
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:144:8
+    - LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

@@ -1,0 +1,52 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/glog:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/glog/OSV-2023-978/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_demangle -runs=100.
++ FUZZER=fuzz_demangle
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_demangle -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_demangle -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3113489147
+INFO: Loaded 1 modules   (1129 inline 8-bit counters): 1129 [0x561ad2db6ff8, 0x561ad2db7461), 
+INFO: Loaded 1 PC tables (1129 PCs): 1129 [0x561ad2db7468,0x561ad2dbbaf8), 
+/out/fuzz_demangle: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x7ffeed2a174f (pc 0x561ad2d48ea9 bp 0x7fff001a46e0 sp 0x7fff001a4680 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x561ad2d48ea9 in ParseOneCharToken /src/glog/src/demangle.cc:211:7
+    #1 0x561ad2d48ea9 in google::ParseTemplateArg(google::State*) /src/glog/src/demangle.cc:1123:8
+    #2 0x561ad2d48f8d in ZeroOrMore /src/glog/src/demangle.cc:264:10
+    #3 0x561ad2d48f8d in google::ParseTemplateArg(google::State*) /src/glog/src/demangle.cc:1124:7
+    #4 0x561ad2d41b12 in OneOrMore /src/glog/src/demangle.cc:251:7
+    #5 0x561ad2d41b12 in ParseTemplateArgs /src/glog/src/demangle.cc:1106:7
+    #6 0x561ad2d41b12 in ParseName /src/glog/src/demangle.cc:514:7
+    #7 0x561ad2d41b12 in google::ParseEncoding(google::State*) /src/glog/src/demangle.cc:492:7
+    #8 0x561ad2d459c2 in google::ParseLocalName(google::State*) /src/glog/src/demangle.cc:1241:40
+    #9 0x561ad2d42dc5 in google::ParseName(google::State*) /src/glog/src/demangle.cc:508:33
+    #10 0x561ad2d40eaa in ParseEncoding /src/glog/src/demangle.cc:492:7
+    #11 0x561ad2d40eaa in ParseMangledName /src/glog/src/demangle.cc:484:44
+    #12 0x561ad2d40eaa in ParseTopLevelMangledName /src/glog/src/demangle.cc:1305:7
+    #13 0x561ad2d40eaa in google::Demangle(char const*, char*, unsigned long) /src/glog/src/demangle.cc:1359:10
+    #14 0x561ad2d40932 in LLVMFuzzerTestOneInput /src/glog/src/fuzz_demangle.cc:30:3
+    #15 0x561ad2bf52e0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x561ad2be0555 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x561ad2be5fef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x561ad2c11292 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f8d107f9082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #20 0x561ad2bd873d in _start (/out/fuzz_demangle+0x4873d)
+
+DEDUP_TOKEN: ParseOneCharToken--google::ParseTemplateArg(google::State*)--ZeroOrMore
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/glog/src/demangle.cc:211:7 in ParseOneCharToken
+==14==ABORTING

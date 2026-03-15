@@ -1,0 +1,73 @@
+=================================================================
+==3789694==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5150000004dc at pc 0x7f9a139f33d5 bp 0x7ffda6e5bed0 sp 0x7ffda6e5b688
+READ of size 724 at 0x5150000004dc thread T0
+    #0 0x7f9a139f33d4 in memcpy build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115:5
+    #1 0x7f9a13670d97 in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29:10
+    #2 0x7f9a13670d97 in updatewindow.isra.0 /usr/src/zlib-1:1.3.dfsg-3.1ubuntu2/inflate.c:429:9
+    #3 0x7f9a1366c924 in inflate /usr/src/zlib-1:1.3.dfsg-3.1ubuntu2/inflate.c:1279:13
+    #4 0x7f9a13869447 in PixarLogDecode /root/libtiff/tif_pixarlog.c:787:15
+    #5 0x7f9a1388f74f in TIFFReadEncodedTile /root/libtiff/tif_read.c:668:33
+    #6 0x7f9a1388f46a in TIFFReadTile /root/libtiff/tif_read.c:641:10
+    #7 0x7f9a137f2fff in gtTileContig /root/libtiff/tif_getimage.c:661:10
+    #8 0x7f9a137f0f4b in TIFFRGBAImageGet /root/libtiff/tif_getimage.c:500:12
+    #9 0x7f9a137f12b0 in TIFFReadRGBAImageOriented /root/libtiff/tif_getimage.c:519:8
+    #10 0x7f9a137f1406 in TIFFReadRGBAImage /root/libtiff/tif_getimage.c:537:9
+    #11 0x557f7a20b6e3 in tiffcvt /root/tools/rgb2ycbcr.c:315:7
+    #12 0x557f7a20ac6f in main /root/tools/rgb2ycbcr.c:127:10
+    #13 0x7f9a1338b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #14 0x7f9a1338b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #15 0x557f7a209314 in _start (/root/tools/.libs/rgb2ycbcr+0x3314) (BuildId: 723939eb96c4430e483d7321e6371fe77900cb41)
+
+0x5150000004dc is located 0 bytes after 476-byte region [0x515000000300,0x5150000004dc)
+allocated by thread T0 here:
+    #0 0x7f9a139f4372 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:69:3
+    #1 0x7f9a138a89cc in _TIFFmalloc /root/libtiff/tif_unix.c:316:10
+    #2 0x7f9a138688d4 in PixarLogSetupDecode /root/libtiff/tif_pixarlog.c:694:24
+    #3 0x7f9a1387d7e0 in PredictorSetupDecode /root/libtiff/tif_predict.c:111:7
+    #4 0x7f9a13891524 in TIFFStartTile /root/libtiff/tif_read.c:1001:8
+    #5 0x7f9a13890681 in TIFFFillTile /root/libtiff/tif_read.c:901:10
+    #6 0x7f9a1388f657 in TIFFReadEncodedTile /root/libtiff/tif_read.c:668:6
+    #7 0x7f9a1388f46a in TIFFReadTile /root/libtiff/tif_read.c:641:10
+    #8 0x7f9a137f2fff in gtTileContig /root/libtiff/tif_getimage.c:661:10
+    #9 0x7f9a137f0f4b in TIFFRGBAImageGet /root/libtiff/tif_getimage.c:500:12
+    #10 0x7f9a137f12b0 in TIFFReadRGBAImageOriented /root/libtiff/tif_getimage.c:519:8
+    #11 0x7f9a137f1406 in TIFFReadRGBAImage /root/libtiff/tif_getimage.c:537:9
+    #12 0x557f7a20b6e3 in tiffcvt /root/tools/rgb2ycbcr.c:315:7
+    #13 0x557f7a20ac6f in main /root/tools/rgb2ycbcr.c:127:10
+    #14 0x7f9a1338b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #15 0x7f9a1338b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #16 0x557f7a209314 in _start (/root/tools/.libs/rgb2ycbcr+0x3314) (BuildId: 723939eb96c4430e483d7321e6371fe77900cb41)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115:5 in memcpy
+Shadow bytes around the buggy address:
+  0x515000000200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000000380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000000400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x515000000480: 00 00 00 00 00 00 00 00 00 00 00[04]fa fa fa fa
+  0x515000000500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3789694==ABORTING

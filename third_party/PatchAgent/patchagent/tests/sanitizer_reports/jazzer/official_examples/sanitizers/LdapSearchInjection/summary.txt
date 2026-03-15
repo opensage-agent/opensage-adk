@@ -1,0 +1,12 @@
+The sanitizer detected a ldap injection vulnerability.The explanation of the vulnerability is: Untrusted input is used in LDAP queries, leading to potential injection attacks.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueCritical: LDAP Injection
+Search filters based on untrusted data must be escaped as specified in RFC 4515.
+- com.code_intelligence.jazzer.sanitizers.LdapInjection.searchLdapContext (com/code_intelligence/jazzer/sanitizers/LdapInjection.kt:113)
+- com.example.LdapSearchInjection.fuzzerTestOneInput (com/example/LdapSearchInjection.java:32)
+
+To fix this issue, follow the advice below:
+
+1. Avoid constructing LDAP queries using untrusted input.
+2. Use parameterized queries or prepared statements to prevent injection attacks.
+3. Sanitize user input before using it in LDAP queries.

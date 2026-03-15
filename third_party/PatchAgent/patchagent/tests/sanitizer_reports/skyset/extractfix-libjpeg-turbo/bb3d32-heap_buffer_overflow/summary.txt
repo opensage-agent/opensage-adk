@@ -1,0 +1,21 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5100000000f7 thread T0
+    - put_pixel_rows /root/wrbmp.c:145:61
+    - main /root/djpeg.c:762:7
+
+0x5100000000f7 is located 0 bytes after 183-byte region [0x510000000040,0x5100000000f7)
+allocated by thread T0 here:
+    - jpeg_get_large /root/jmemnobs.c:56:18
+    - alloc_large /root/jmemmgr.c:391:29
+    - alloc_sarray /root/jmemmgr.c:475:27
+    - jinit_write_bmp /root/wrbmp.c:554:22
+    - main /root/djpeg.c:646:16
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

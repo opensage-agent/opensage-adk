@@ -1,0 +1,53 @@
+The sanitizer detected a heap double free vulnerability. The explanation of the vulnerability is: A heap-allocated memory block is freed twice, potentially causing memory corruption or security vulnerabilities. Here is the detail: 
+
+    - gf_free /root/src/utils/alloc.c:165:2
+    - gf_filterpacket_del /root/src/filter_core/filter.c:38:17
+    - gf_fq_del /root/src/filter_core/filter_queue.c:105:33
+    - gf_filter_del /root/src/filter_core/filter.c:664:3
+    - gf_fs_del /root/src/filter_core/filter_session.c:782:4
+    - gf_dasher_clean_inputs /root/src/media_tools/dash_segmenter.c:164:3
+    - gf_dasher_del /root/src/media_tools/dash_segmenter.c:173:2
+    - do_dash /root/applications/mp4box/mp4box.c:4888:2
+    - mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+0x510000000c40 is located 0 bytes inside of 186-byte region [0x510000000c40,0x510000000cfa)
+freed by thread T0 here:
+    - gf_realloc /root/src/utils/alloc.c:160:9
+    - Media_GetSample /root/src/isomedia/media.c:619:30
+    - gf_isom_get_sample_ex /root/src/isomedia/isom_read.c:1950:6
+    - isor_reader_get_sample /root/src/filters/isoffin_read_ch.c:489:18
+    - isor_reader_get_sample /root/src/filters/isoffin_read_ch.c:499:5
+    - isoffin_process /root/src/filters/isoffin_read.c:1486:5
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4825:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+previously allocated by thread T0 here:
+    - gf_malloc /root/src/utils/alloc.c:150:9
+    - gf_filter_pck_new_alloc_internal /root/src/filter_core/filter_pck.c:159:15
+    - gf_filter_pck_new_alloc /root/src/filter_core/filter_pck.c:197:9
+    - isor_sample_alloc /root/src/filters/isoffin_read_ch.c:322:12
+    - Media_GetSample /root/src/isomedia/media.c:626:21
+    - gf_isom_get_sample_ex /root/src/isomedia/isom_read.c:1950:6
+    - isor_reader_get_sample /root/src/filters/isoffin_read_ch.c:489:18
+    - isoffin_process /root/src/filters/isoffin_read.c:1486:5
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4825:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    - main /root/applications/mp4box/mp4box.c:6933:1
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

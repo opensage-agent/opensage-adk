@@ -1,0 +1,24 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - listener__set_defaults /src/mosquitto/src/listeners.c:38:2
+    - config__create_default_listener /src/mosquitto/src/conf.c:186:2
+    - config__read_file_core /src/mosquitto/src/conf.c:2094:9
+    - config__read_file /src/mosquitto/src/conf.c:2511:7
+    - config__read /src/mosquitto/src/conf.c:0:0
+    - config__parse_args /src/mosquitto/src/conf.c:521:8
+    - mosquitto_fuzz_main /src/mosquitto/src/mosquitto.c:432:7
+    - run_broker(char*) /src/mosquitto/fuzzing/broker/broker_fuzz_test_config.cpp:46:2
+    - LLVMFuzzerTestOneInput /src/mosquitto/fuzzing/broker/broker_fuzz_test_config.cpp:72:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

@@ -1,0 +1,63 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 1 at 0x7f030263dc6d thread T0
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2118:28
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2091:20
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2091:20
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2091:20
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2091:20
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2091:20
+    - SuggestMgr::checkword(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int*, long*) /root/src/hunspell/suggestmgr.cxx:1653:21
+    - SuggestMgr::testsug(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int*, long*) /root/src/hunspell/suggestmgr.cxx:173:17
+    - SuggestMgr::forgotchar(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int) /root/src/hunspell/suggestmgr.cxx:749:7
+    - SuggestMgr::suggest(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*) /root/src/hunspell/suggestmgr.cxx:301:9
+    - HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1063:22
+    - HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:900:35
+    - HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1272:41
+    - HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:900:35
+    - HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/src/hunspell/hunspell.cxx:991:10
+    - Hunspell::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/src/hunspell/hunspell.cxx:2079:18
+    - LLVMFuzzerTestOneInput /root/src/tools/affdicfuzzer.cxx:66:14
+
+Address 0x7f030263dc6d is located in stack of thread T0 at offset 109 in frame
+    - AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:1582:0
+
+  This frame has 29 object(s):
+    [32, 40) 'words.addr'
+    [64, 96) 'st' (line 1586) <== Memory access at offset 109 overflows this variable
+    [128, 132) 'cmin' (line 1588)
+    [144, 148) 'cmax' (line 1589)
+    [160, 192) 'ref.tmp' (line 1658)
+    [224, 228) 'ref.tmp429' (line 1758)
+    [240, 244) 'ref.tmp653' (line 1798)
+    [256, 257) 'ref.tmp764' (line 1812)
+    [272, 273) 'ref.tmp776' (line 1812)
+    [288, 289) 'ref.tmp788' (line 1812)
+    [304, 306) 'ref.tmp895' (line 1812)
+    [320, 322) 'ref.tmp913' (line 1812)
+    [336, 368) 'ref.tmp961' (line 1855)
+    [400, 432) 'ref.tmp977' (line 1858)
+    [464, 465) 'ref.tmp983' (line 1858)
+    [480, 481) 'ref.tmp1186' (line 1909)
+    [496, 497) 'ref.tmp1198' (line 1909)
+    [512, 516) 'ref.tmp1260' (line 1923)
+    [528, 560) 'ref.tmp1330' (line 1935)
+    [592, 593) 'ref.tmp1335' (line 1935)
+    [608, 612) 'ref.tmp1630' (line 2012)
+    [624, 656) 'ref.tmp1665' (line 2026)
+    [688, 689) 'ref.tmp1669' (line 2026)
+    [704, 736) 'tmp' (line 2031)
+    [768, 769) 'ref.tmp1686' (line 2031)
+    [784, 816) 'ref.tmp1716' (line 2040)
+    [848, 849) 'ref.tmp1722' (line 2040)
+    [864, 865) 'ref.tmp1785' (line 2057)
+    [880, 912) 'ref.tmp1866' (line 2091)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

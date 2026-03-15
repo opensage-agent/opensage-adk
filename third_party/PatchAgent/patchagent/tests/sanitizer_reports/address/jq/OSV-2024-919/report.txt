@@ -1,0 +1,72 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x503000000411 at pc 0x561100fad1b6 bp 0x7ffc884b1800 sp 0x7ffc884b0fc8
+READ of size 2 at 0x503000000411 thread T0
+SCARINESS: 14 (2-byte-read-heap-buffer-overflow)
+    #0 0x561100fad1b5 in strchr /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:712:5
+    #1 0x5611010add78 in validate_relpath /src/jq/src/linker.c:96:7
+    #2 0x5611010acab8 in load_module_meta /src/jq/src/linker.c:385:30
+    #3 0x5611010758dd in jq_next /src/jq/src/execute.c:917:21
+    #4 0x56110106aefc in LLVMFuzzerTestOneInput /src/jq/./tests/jq_fuzz_execute.cpp:28:23
+    #5 0x561100f1f740 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x561100f0a9b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x561100f1044f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x561100f3b6f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f843c2b3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #10 0x561100f02b9d in _start (/out/jq_fuzz_execute+0xd8b9d)
+
+DEDUP_TOKEN: __interceptor_strchr--validate_relpath--load_module_meta
+0x503000000411 is located 0 bytes after 17-byte region [0x503000000400,0x503000000411)
+allocated by thread T0 here:
+    #0 0x56110102b50f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x56110108b77f in jv_mem_alloc /src/jq/src/jv_alloc.c:141:13
+    #2 0x56110108356f in jvp_string_alloc /src/jq/src/jv.c:1067:19
+    #3 0x56110108356f in jvp_string_empty_new /src/jq/src/jv.c:1109:19
+    #4 0x56110108356f in jv_string_empty /src/jq/src/jv.c:1246:10
+    #5 0x5611010ead64 in binop_multiply /src/jq/src/builtin.c:350:13
+    #6 0x5611010e7d7c in constant_fold /src/jq/src/parser.y:216:19
+    #7 0x5611010e7d7c in gen_binop /src/jq/src/parser.y:234:18
+    #8 0x5611010e5729 in yyparse /src/jq/src/parser.y
+    #9 0x5611010e9e69 in jq_parse /src/jq/src/parser.y:995:3
+    #10 0x5611010ae186 in load_program /src/jq/src/linker.c:413:13
+    #11 0x56110107d493 in jq_compile_args /src/jq/src/execute.c:1236:17
+    #12 0x56110106ade5 in LLVMFuzzerTestOneInput /src/jq/./tests/jq_fuzz_execute.cpp:21:9
+    #13 0x561100f1f740 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x561100f0a9b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x561100f1044f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x561100f3b6f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f843c2b3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--jv_mem_alloc--jvp_string_alloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/jq/src/linker.c:96:7 in validate_relpath
+Shadow bytes around the buggy address:
+  0x503000000180: fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa fd fd
+  0x503000000200: fd fd fa fa 00 00 00 02 fa fa 00 00 06 fa fa fa
+  0x503000000280: fd fd fd fd fa fa fd fd fd fa fa fa fd fd fd fa
+  0x503000000300: fa fa 00 00 00 04 fa fa fd fd fd fa fa fa fd fd
+  0x503000000380: fd fa fa fa 00 00 00 00 fa fa 00 00 00 00 fa fa
+=>0x503000000400: 00 00[01]fa fa fa fd fd fd fd fa fa fd fd fd fa
+  0x503000000480: fa fa fd fd fd fa fa fa fd fd fd fa fa fa fd fd
+  0x503000000500: fd fa fa fa fd fd fd fd fa fa fd fd fd fa fa fa
+  0x503000000580: fd fd fd fd fa fa fd fd fd fd fa fa fd fd fd fa
+  0x503000000600: fa fa fd fd fd fa fa fa fd fd fd fd fa fa fd fd
+  0x503000000680: fd fa fa fa fd fd fd fa fa fa fd fd fd fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

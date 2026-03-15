@@ -1,0 +1,56 @@
+=================================================================
+==812792==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50300000006d at pc 0x7f7ef5ec03d8 bp 0x7ffd5919fc90 sp 0x7ffd5919f450
+WRITE of size 19 at 0x50300000006d thread T0
+    #0 0x7f7ef5ec03d7 in __asan_memcpy build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x7f7ef5af713b in xmlStrncat /root/xmlstring.c:465:5
+    #2 0x7f7ef5af7423 in xmlStrcat /root/xmlstring.c:526:12
+    #3 0x5590dfcaa751 in crash /workspaces/nvwa/skyset/extractfix-libxml2-harness/poc-8f30bdf.c:33:5
+    #4 0x5590dfcaa77a in main /workspaces/nvwa/skyset/extractfix-libxml2-harness/poc-8f30bdf.c:37:5
+    #5 0x7f7ef55cd1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #6 0x7f7ef55cd28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #7 0x5590dfca91a4 in _start (/root/poc+0x11a4) (BuildId: 87e0edd35eed24826066e8d115c0cd7cbd428d6b)
+
+0x50300000006d is located 3 bytes before 17-byte region [0x503000000070,0x503000000081)
+allocated by thread T0 here:
+    #0 0x7f7ef5ec27a9 in realloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:85:3
+    #1 0x7f7ef5af70f0 in xmlStrncat /root/xmlstring.c:460:23
+    #2 0x7f7ef5af7423 in xmlStrcat /root/xmlstring.c:526:12
+    #3 0x5590dfcaa751 in crash /workspaces/nvwa/skyset/extractfix-libxml2-harness/poc-8f30bdf.c:33:5
+    #4 0x5590dfcaa77a in main /workspaces/nvwa/skyset/extractfix-libxml2-harness/poc-8f30bdf.c:37:5
+    #5 0x7f7ef55cd1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #6 0x7f7ef55cd28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #7 0x5590dfca91a4 in _start (/root/poc+0x11a4) (BuildId: 87e0edd35eed24826066e8d115c0cd7cbd428d6b)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3 in __asan_memcpy
+Shadow bytes around the buggy address:
+  0x502ffffffd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x503000000000: fa fa 00 00 00 fa fa fa 00 00 04 fa fa[fa]00 00
+  0x503000000080: 01 fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==812792==ABORTING

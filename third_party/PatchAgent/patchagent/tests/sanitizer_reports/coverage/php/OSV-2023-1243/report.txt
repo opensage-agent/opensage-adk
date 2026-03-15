@@ -1,0 +1,40 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/php:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce php-fuzz-function-jit -runs=100.
++ FUZZER=php-fuzz-function-jit
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer php-fuzz-function-jit -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/php-fuzz-function-jit -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 383446899
+/out/php-fuzz-function-jit: Running 1 inputs 100 time(s) each.
+Running: /testcase
+php-fuzz-function-jit: /src/php-src/Zend/zend_objects_API.c:195: void zend_objects_store_del(zend_object *): Assertion `(!(((zend_uintptr_t)((executor_globals.objects_store).object_buckets[handle])) & (1<<0)))' failed.
+==14== ERROR: libFuzzer: deadly signal
+llvm-symbolizer: [0;1;31merror: [0m'/dev/zero (deleted)': No such file or directory
+    #0 0x55d8d3a10f24 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x55d8d398ff78 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x55d8d3973313 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7f0d5866b41f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7f0d5848b00a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7f0d5846a858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7f0d5846a728  (/lib/x86_64-linux-gnu/libc.so.6+0x22728) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7f0d5847bfd5 in __assert_fail (/lib/x86_64-linux-gnu/libc.so.6+0x33fd5) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x55d8d3de188a in zend_objects_store_del /src/php-src/Zend/zend_objects_API.c:195:3
+    #9 0x55d8d3ce6d29 in zend_reference_destroy /src/php-src/Zend/zend_variables.c:74:2
+    #10 0x55d8d3da24ee in i_free_compiled_variables /src/php-src/Zend/zend_execute.c:3753:3
+    #11 0x55d8d3da24ee in zend_leave_helper_SPEC /src/php-src/Zend/zend_vm_execute.h:1091:3
+    #12 0x55d8dd400047  (/dev/zero (deleted)+0x8000047)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

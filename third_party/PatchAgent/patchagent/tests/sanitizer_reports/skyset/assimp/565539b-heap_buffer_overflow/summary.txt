@@ -1,0 +1,32 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 8 at 0x504000000a80 thread T0
+    - Assimp::LWO::AnimResolver::UpdateAnimRangeSetup() /root/code/AssetLib/LWO/LWOAnimation.cpp:214:31
+    - Assimp::LWO::AnimResolver::SetAnimationRange(double, double) /root/code/AssetLib/LWO/LWOAnimation.h:252:9
+    - Assimp::LWSImporter::BuildGraph(aiNode*, Assimp::LWS::NodeDesc&, std::vector<Assimp::AttachmentInfo, std::allocator<Assimp::AttachmentInfo>>&, Assimp::BatchLoader&, aiCamera**&, aiLight**&, std::vector<aiNodeAnim*, std::allocator<aiNodeAnim*>>&) /root/code/AssetLib/LWS/LWSLoader.cpp:435:18
+    - Assimp::LWSImporter::InternReadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /root/code/AssetLib/LWS/LWSLoader.cpp:883:13
+    - Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:110:9
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:717:30
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:512:5
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:53:34
+
+0x504000000a80 is located 16 bytes before 40-byte region [0x504000000a90,0x504000000ab8)
+allocated by thread T0 here:
+    - std::allocator_traits<std::allocator<Assimp::LWO::Key>>::allocate(std::allocator<Assimp::LWO::Key>&, unsigned long) /usr/include/c++/13/bits/alloc_traits.h:482:20
+    - std::_Vector_base<Assimp::LWO::Key, std::allocator<Assimp::LWO::Key>>::_M_allocate(unsigned long) /usr/include/c++/13/bits/stl_vector.h:378:20
+    - void std::vector<Assimp::LWO::Key, std::allocator<Assimp::LWO::Key>>::_M_realloc_insert<Assimp::LWO::Key const&>(__gnu_cxx::__normal_iterator<Assimp::LWO::Key*, std::vector<Assimp::LWO::Key, std::allocator<Assimp::LWO::Key>>>, Assimp::LWO::Key const&) /usr/include/c++/13/bits/vector.tcc:459:33
+    - std::vector<Assimp::LWO::Key, std::allocator<Assimp::LWO::Key>>::push_back(Assimp::LWO::Key const&) /usr/include/c++/13/bits/stl_vector.h:1289:4
+    - Assimp::LWSImporter::ReadEnvelope_Old(std::_List_const_iterator<Assimp::LWS::Element>&, std::_List_const_iterator<Assimp::LWS::Element> const&, Assimp::LWS::NodeDesc&, unsigned int) /root/code/AssetLib/LWS/LWSLoader.cpp:286:23
+    - Assimp::LWSImporter::InternReadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /root/code/AssetLib/LWS/LWSLoader.cpp:664:17
+    - Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:110:9
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:717:30
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:512:5
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:53:34
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,24 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x522000002e70 thread T0
+    - md_is_inline_link_spec /root/src/md4c.c:2321:42
+    - md_resolve_links /root/src/md4c.c:3543:27
+    - md_analyze_inlines /root/src/md4c.c:4004:5
+    - md_process_normal_block_contents /root/src/md4c.c:4580:5
+    - md_process_leaf_block /root/src/md4c.c:4760:13
+    - md_process_all_blocks /root/src/md4c.c:4842:13
+    - md_process_doc /root/src/md4c.c:6269:5
+    - md_parse /root/src/md4c.c:6337:11
+    - md_html /root/src/md4c-html.c:571:12
+    - LLVMFuzzerTestOneInput /root/test/fuzzers/fuzz-mdhtml.c:24:5
+
+0x522000002e70 is located 0 bytes after 5488-byte region [0x522000001900,0x522000002e70)
+allocated by thread T0 here:
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

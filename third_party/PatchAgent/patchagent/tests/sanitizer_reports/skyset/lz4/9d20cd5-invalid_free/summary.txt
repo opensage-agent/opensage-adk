@@ -1,0 +1,14 @@
+The sanitizer detected a bad free vulnerability. The explanation of the vulnerability is: A program attempts to free a memory block that was not dynamically allocated, causing undefined behavior or crashes. Here is the detail: 
+
+    - LLVMFuzzerTestOneInput /root/ossfuzz/round_trip_fuzzer.c:111:5
+
+0x5310000247ff is located 65535 bytes inside of 65551-byte region [0x531000014800,0x53100002480f)
+allocated by thread T0 here:
+    - LLVMFuzzerTestOneInput /root/ossfuzz/round_trip_fuzzer.c:25:45
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that only dynamically allocated memory is freed.
+2. Avoid freeing memory that was not allocated using malloc or similar functions.
+3. Verify pointer values before attempting to free them.

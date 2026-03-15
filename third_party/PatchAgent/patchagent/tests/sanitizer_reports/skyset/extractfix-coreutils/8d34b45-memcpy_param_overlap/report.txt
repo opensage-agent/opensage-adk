@@ -1,0 +1,38 @@
+=================================================================
+==575157==ERROR: AddressSanitizer: memcpy-param-overlap: memory ranges [0x531000029003,0x531000029007) and [0x531000029000, 0x531000029004) overlap
+    #0 0x7f905da72494 in __asan_memcpy build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x55e2e8447cb6 in fillpattern /root/src/shred.c:293:5
+    #2 0x55e2e8446b37 in dopass /root/src/shred.c:480:7
+    #3 0x55e2e8445d20 in do_wipefd /root/src/shred.c:967:17
+    #4 0x55e2e8445066 in wipefile /root/src/shred.c:1191:8
+    #5 0x55e2e8444cba in main /root/src/shred.c:1317:17
+    #6 0x7f905d75e1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #7 0x7f905d75e28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #8 0x55e2e84426f4 in _start (/root/src/shred+0x66f4) (BuildId: 5bcfb7416d4b62f9e98f2282a269a41ba05fb94f)
+
+0x531000029003 is located 2051 bytes inside of 69633-byte region [0x531000028800,0x531000039801)
+allocated by thread T0 here:
+    #0 0x7f905da747a3 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55e2e8455254 in xmalloc /root/lib/xmalloc.c:41:13
+    #2 0x55e2e844692a in dopass /root/src/shred.c:451:28
+    #3 0x55e2e8445d20 in do_wipefd /root/src/shred.c:967:17
+    #4 0x55e2e8445066 in wipefile /root/src/shred.c:1191:8
+    #5 0x55e2e8444cba in main /root/src/shred.c:1317:17
+    #6 0x7f905d75e1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #7 0x7f905d75e28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #8 0x55e2e84426f4 in _start (/root/src/shred+0x66f4) (BuildId: 5bcfb7416d4b62f9e98f2282a269a41ba05fb94f)
+
+0x531000029000 is located 2048 bytes inside of 69633-byte region [0x531000028800,0x531000039801)
+allocated by thread T0 here:
+    #0 0x7f905da747a3 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55e2e8455254 in xmalloc /root/lib/xmalloc.c:41:13
+    #2 0x55e2e844692a in dopass /root/src/shred.c:451:28
+    #3 0x55e2e8445d20 in do_wipefd /root/src/shred.c:967:17
+    #4 0x55e2e8445066 in wipefile /root/src/shred.c:1191:8
+    #5 0x55e2e8444cba in main /root/src/shred.c:1317:17
+    #6 0x7f905d75e1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #7 0x7f905d75e28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #8 0x55e2e84426f4 in _start (/root/src/shred+0x66f4) (BuildId: 5bcfb7416d4b62f9e98f2282a269a41ba05fb94f)
+
+SUMMARY: AddressSanitizer: memcpy-param-overlap /root/src/shred.c:293:5 in fillpattern
+==575157==ABORTING

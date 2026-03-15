@@ -1,0 +1,89 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/clamav:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/clamav/OSV-2024-1205/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce clamav_dbload_CDB_fuzzer -runs=100.
++ FUZZER=clamav_dbload_CDB_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer clamav_dbload_CDB_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/clamav_dbload_CDB_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1308944646
+INFO: Loaded 1 modules   (55149 inline 8-bit counters): 55149 [0x562891c77680, 0x562891c84ded), 
+INFO: Loaded 1 PC tables (55149 PCs): 55149 [0x562891c84df0,0x562891d5c4c0), 
+/out/clamav_dbload_CDB_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: memcpy-param-overlap: memory ranges [0x7f04711a52f8,0x7f047363f1f8) and [0x7f046ed0b400, 0x7f04711a5300) overlap
+[1m[0mSCARINESS: 10 (memcpy-param-overlap)
+    #0 0x562890b31e10 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x562890d8ee5d in dupl /src/clamav/libclamav/regex/regcomp.c:1188:9
+    #2 0x562890d8ee5d in repeat /src/clamav/libclamav/regex/regcomp.c:995:10
+    #3 0x562890d8f200 in repeat /src/clamav/libclamav/regex/regcomp.c:977:3
+    #4 0x562890d7f4f1 in p_ere_exp /src/clamav/libclamav/regex/regcomp.c:416:3
+    #5 0x562890d7f4f1 in p_ere /src/clamav/libclamav/regex/regcomp.c:271:4
+    #6 0x562890d7ca9e in cli_regcomp_real /src/clamav/libclamav/regex/regcomp.c:227:3
+    #7 0x562890b9fee2 in cli_loadcdb /src/clamav/libclamav/readdb.c:3181:39
+    #8 0x562890b913e9 in cli_load /src/clamav/libclamav/readdb.c:4834:15
+    #9 0x562890ba2033 in cl_load /src/clamav/libclamav/readdb.c:5313:19
+    #10 0x562890b73908 in LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_dbload_fuzzer.cpp:126:30
+    #11 0x562890a282d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x562890a13545 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x562890a18fdf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x562890a44282 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f04e43bc082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #16 0x562890a0b72d in _start (/out/clamav_dbload_CDB_fuzzer+0x34c72d)
+
+DEDUP_TOKEN: __asan_memcpy--dupl--repeat
+[1m[32m0x7f04711a52f8 is located 921103096 bytes inside of 959482360-byte region [0x7f043a336800,0x7f047363f1f8)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x562890b3448c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x562890b7505c in cli_realloc /src/clamav/libclamav/others_common.c:272:13
+    #2 0x562890d8edc0 in enlarge /src/clamav/libclamav/regex/regcomp.c:1282:14
+    #3 0x562890d8edc0 in dupl /src/clamav/libclamav/regex/regcomp.c:1186:7
+    #4 0x562890d8edc0 in repeat /src/clamav/libclamav/regex/regcomp.c:995:10
+    #5 0x562890d8f200 in repeat /src/clamav/libclamav/regex/regcomp.c:977:3
+    #6 0x562890d7f4f1 in p_ere_exp /src/clamav/libclamav/regex/regcomp.c:416:3
+    #7 0x562890d7f4f1 in p_ere /src/clamav/libclamav/regex/regcomp.c:271:4
+    #8 0x562890d7ca9e in cli_regcomp_real /src/clamav/libclamav/regex/regcomp.c:227:3
+    #9 0x562890b9fee2 in cli_loadcdb /src/clamav/libclamav/readdb.c:3181:39
+    #10 0x562890b913e9 in cli_load /src/clamav/libclamav/readdb.c:4834:15
+    #11 0x562890ba2033 in cl_load /src/clamav/libclamav/readdb.c:5313:19
+    #12 0x562890b73908 in LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_dbload_fuzzer.cpp:126:30
+    #13 0x562890a282d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x562890a13545 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x562890a18fdf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x562890a44282 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f04e43bc082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_realloc--cli_realloc--enlarge
+[1m[32m0x7f046ed0b400 is located 882723840 bytes inside of 959482360-byte region [0x7f043a336800,0x7f047363f1f8)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x562890b3448c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x562890b7505c in cli_realloc /src/clamav/libclamav/others_common.c:272:13
+    #2 0x562890d8edc0 in enlarge /src/clamav/libclamav/regex/regcomp.c:1282:14
+    #3 0x562890d8edc0 in dupl /src/clamav/libclamav/regex/regcomp.c:1186:7
+    #4 0x562890d8edc0 in repeat /src/clamav/libclamav/regex/regcomp.c:995:10
+    #5 0x562890d8f200 in repeat /src/clamav/libclamav/regex/regcomp.c:977:3
+    #6 0x562890d7f4f1 in p_ere_exp /src/clamav/libclamav/regex/regcomp.c:416:3
+    #7 0x562890d7f4f1 in p_ere /src/clamav/libclamav/regex/regcomp.c:271:4
+    #8 0x562890d7ca9e in cli_regcomp_real /src/clamav/libclamav/regex/regcomp.c:227:3
+    #9 0x562890b9fee2 in cli_loadcdb /src/clamav/libclamav/readdb.c:3181:39
+    #10 0x562890b913e9 in cli_load /src/clamav/libclamav/readdb.c:4834:15
+    #11 0x562890ba2033 in cl_load /src/clamav/libclamav/readdb.c:5313:19
+    #12 0x562890b73908 in LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_dbload_fuzzer.cpp:126:30
+    #13 0x562890a282d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x562890a13545 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x562890a18fdf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x562890a44282 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f04e43bc082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_realloc--cli_realloc--enlarge
+SUMMARY: AddressSanitizer: memcpy-param-overlap /src/clamav/libclamav/regex/regcomp.c:1188:9 in dupl
+==14==ABORTING

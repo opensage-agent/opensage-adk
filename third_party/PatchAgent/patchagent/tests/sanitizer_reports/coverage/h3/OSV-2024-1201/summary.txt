@@ -1,0 +1,19 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - iterDestroyPolygonCompact /src/h3/src/h3lib/lib/polyfill.c:598:9
+    - iterStepPolygonCompact /src/h3/src/h3lib/lib/polyfill.c:0:0
+    - iterStepPolygon /src/h3/src/h3lib/lib/polyfill.c:661:5
+    - polygonToCellsExperimental /src/h3/src/h3lib/lib/polyfill.c:713:23
+    - run /src/h3/src/apps/fuzzers/fuzzerPolygonToCellsExperimental.c:61:9
+    - LLVMFuzzerTestOneInput /src/h3/src/apps/fuzzers/fuzzerPolygonToCellsExperimental.c:97:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

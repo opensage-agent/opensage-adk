@@ -1,0 +1,42 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 279 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.ScriptEngineInjection (took 24 ms, size +22%)
+INFO: using inputs from: ./sanitizer_report/ScriptEngineInjection/crash-63b9db04cf79dc1fe761d1cb2fbe7fa167ade110
+INFO: found LLVMFuzzerCustomMutator (0x7f3733b6ea00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2389195847
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55591a99c3d0, 0x55591a99c5d0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55591a980130,0x55591a982130), 
+jazzer: Running 1 inputs 1 time(s) each.
+Running: ./sanitizer_report/ScriptEngineInjection/crash-63b9db04cf79dc1fe761d1cb2fbe7fa167ade110
+INFO: Instrumented com.example.ScriptEngineInjection$DummyScriptEngine (took 3 ms, size +7%)
+INFO: Instrumented com.example.ScriptEngineInjection$DummyScriptContext (took 3 ms, size +7%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueCritical: Script Engine Injection: Insecure user input was used in script engine invocation.
+Depending on the script engine's capabilities this could lead to sandbox escape and remote code execution.
+	at com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection.checkScriptContent(ScriptEngineInjection.java:99)
+	at com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection.checkScriptEngineExecute(ScriptEngineInjection.java:90)
+	at com.example.ScriptEngineInjection.insecureScriptEval(ScriptEngineInjection.java:34)
+	at com.example.ScriptEngineInjection.fuzzerTestOneInput(ScriptEngineInjection.java:39)
+DEDUP_TOKEN: 37bcad8798b7110e
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_63b9db04cf79dc1fe761d1cb2fbe7fa167ade110.java
+

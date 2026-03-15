@@ -1,0 +1,25 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - zend_jit_trace_type_to_info_ex /src/php-src/ext/opcache/jit/zend_jit_trace.c:361:2
+    - zend_jit_trace_add_op_guard /src/php-src/ext/opcache/jit/zend_jit_trace.c:400:32
+    - zend_jit_trace_build_tssa /src/php-src/ext/opcache/jit/zend_jit_trace.c:0:0
+    - zend_jit_trace /src/php-src/ext/opcache/jit/zend_jit_trace.c:3882:8
+    - zend_jit_compile_root_trace /src/php-src/ext/opcache/jit/zend_jit_trace.c:6873:13
+    - zend_jit_trace_hot_root /src/php-src/ext/opcache/jit/zend_jit_trace.c:7385:10
+    - zend_jit_trace_counter_helper /src/php-src/ext/opcache/jit/zend_jit_vm_helpers.c:320:7
+    - zend_jit_func_trace_helper /src/php-src/ext/opcache/jit/zend_jit_vm_helpers.c:343:2
+    - execute_ex /src/php-src/Zend/zend_vm_execute.h:54424:7
+    - zend_execute /src/php-src/Zend/zend_vm_execute.h:58977:2
+    - fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:276:5
+    - LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-tracing-jit.c:43:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

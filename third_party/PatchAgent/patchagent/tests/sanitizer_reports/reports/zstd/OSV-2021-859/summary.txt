@@ -1,0 +1,41 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 1 at 0x7f038e85f392 thread T0
+    - FSE_writeNCount_generic /src/zstd/lib/compress/fse_compress.c:270:20
+    - HUF_compressWeights /src/zstd/lib/compress/huf_compress.c:95:9
+    - HUF_writeCTable_wksp /src/zstd/lib/compress/huf_compress.c:136:9
+    - HUF_compress_internal /src/zstd/lib/compress/huf_compress.c:829:9
+    - HUF_compress4X_repeat /src/zstd/lib/compress/huf_compress.c:900:12
+    - ZSTD_compressLiterals /src/zstd/lib/compress/zstd_compress_literals.c:109:13
+    - ZSTD_entropyCompressSeqStore_internal /src/zstd/lib/compress/zstd_compress.c:2595:30
+    - ZSTD_entropyCompressSeqStore /src/zstd/lib/compress/zstd_compress.c:2684:26
+    - ZSTD_compressSeqStore_singleBlock /src/zstd/lib/compress/zstd_compress.c:3488:17
+    - ZSTD_compressBlock_splitBlock_internal /src/zstd/lib/compress/zstd_compress.c:3674:22
+    - ZSTD_compressBlock_splitBlock /src/zstd/lib/compress/zstd_compress.c:3719:13
+    - ZSTD_compress_frameChunk /src/zstd/lib/compress/zstd_compress.c:3941:25
+    - ZSTD_compressContinue_internal /src/zstd/lib/compress/zstd_compress.c:4116:30
+    - ZSTD_compressEnd /src/zstd/lib/compress/zstd_compress.c:4620:26
+    - ZSTD_compressCCtx /src/zstd/lib/compress/zstd_compress.c:4694:12
+    - LLVMFuzzerTestOneInput /src/zstd/tests/fuzz/simple_compress.c:46:24
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x7f038e85f392 is located 7 bytes after 252811-byte region [0x7f038e821800,0x7f038e85f38b)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - FUZZ_malloc /src/zstd/tests/fuzz/fuzz_helpers.c:19:27
+    - LLVMFuzzerTestOneInput /src/zstd/tests/fuzz/simple_compress.c:45:18
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

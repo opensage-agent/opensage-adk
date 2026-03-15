@@ -1,0 +1,51 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/icu:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce date_format_fuzzer -runs=100.
++ FUZZER=date_format_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer date_format_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/date_format_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1455081987
+INFO: Loaded 1 modules   (64 inline 8-bit counters): 64 [0x55d52621b970, 0x55d52621b9b0), 
+INFO: Loaded 1 PC tables (64 PCs): 64 [0x55d52621b9b0,0x55d52621bdb0), 
+/out/date_format_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x00000000007e (pc 0x55d524131320 bp 0x7ffcc13ce340 sp 0x7ffcc13ce200 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+    #0 0x55d524131320 in entryCloseInt /src/icu/icu4c/source/common/uresbund.cpp:1032:19
+    #1 0x55d524131320 in entryClose /src/icu/icu4c/source/common/uresbund.cpp:1063:3
+    #2 0x55d524131320 in (anonymous namespace)::init_resb_result(UResourceDataEntry*, unsigned int, char const*, int, UResourceDataEntry*, char const*, int, UResourceBundle*, UErrorCode*) /src/icu/icu4c/source/common/uresbund.cpp:1419:13
+    #3 0x55d52412e2b5 in init_resb_result /src/icu/icu4c/source/common/uresbund.cpp:1481:12
+    #4 0x55d52412e2b5 in ures_getByKey_75 /src/icu/icu4c/source/common/uresbund.cpp
+    #5 0x55d52413021e in ures_getFunctionalEquivalent_75 /src/icu/icu4c/source/common/uresbund.cpp:3198:17
+    #6 0x55d523f0771a in icu_75::DateTimePatternGenerator::getCalendarTypeToUse(icu_75::Locale const&, icu_75::CharString&, UErrorCode&) /src/icu/icu4c/source/i18n/dtptngen.cpp:896:9
+    #7 0x55d523f042e0 in icu_75::DateTimePatternGenerator::addCLDRData(icu_75::Locale const&, UErrorCode&) /src/icu/icu4c/source/i18n/dtptngen.cpp:1055:5
+    #8 0x55d523f027e7 in icu_75::DateTimePatternGenerator::initData(icu_75::Locale const&, UErrorCode&, signed char) /src/icu/icu4c/source/i18n/dtptngen.cpp:521:5
+    #9 0x55d523f026de in icu_75::DateTimePatternGenerator::DateTimePatternGenerator(icu_75::Locale const&, UErrorCode&, signed char) /src/icu/icu4c/source/i18n/dtptngen.cpp:365:9
+    #10 0x55d523f01e66 in icu_75::DateTimePatternGenerator::createInstanceNoStdPat(icu_75::Locale const&, UErrorCode&) /src/icu/icu4c/source/i18n/dtptngen.cpp:322:17
+    #11 0x55d523f264ca in icu_75::SimpleDateFormat::construct(icu_75::DateFormat::EStyle, icu_75::DateFormat::EStyle, icu_75::Locale const&, UErrorCode&) /src/icu/icu4c/source/i18n/smpdtfmt.cpp:759:65
+    #12 0x55d523f29202 in icu_75::SimpleDateFormat::SimpleDateFormat(icu_75::DateFormat::EStyle, icu_75::DateFormat::EStyle, icu_75::Locale const&, UErrorCode&) /src/icu/icu4c/source/i18n/smpdtfmt.cpp:481:5
+    #13 0x55d523f0032c in icu_75::DateFormat::create(icu_75::DateFormat::EStyle, icu_75::DateFormat::EStyle, icu_75::Locale const&) /src/icu/icu4c/source/i18n/datefmt.cpp:550:31
+    #14 0x55d523efefd1 in LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/date_format_fuzzer.cpp:92:9
+    #15 0x55d523e60be0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x55d523e4be55 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x55d523e518ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x55d523e7cb92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7fea66c2b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #20 0x55d523e4403d in _start (/out/date_format_fuzzer+0x6003d)
+
+DEDUP_TOKEN: entryCloseInt--entryClose--(anonymous namespace)::init_resb_result(UResourceDataEntry*, unsigned int, char const*, int, UResourceDataEntry*, char const*, int, UResourceBundle*, UErrorCode*)
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/icu/icu4c/source/common/uresbund.cpp:1032:19 in entryCloseInt
+==14==ABORTING

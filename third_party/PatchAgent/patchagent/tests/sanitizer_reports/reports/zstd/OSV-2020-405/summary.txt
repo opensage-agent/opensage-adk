@@ -1,0 +1,33 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 131082 at 0x7ffe3636fa48 thread T0
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - ZSTD_decodeLiteralsBlock /src/zstd/lib/legacy/zstd_v03.c:2529:17
+    - ZSTD_decompressBlock /src/zstd/lib/legacy/zstd_v03.c:2885:23
+    - ZSTD_decompressDCtx /src/zstd/lib/legacy/zstd_v03.c:2925:27
+    - ZSTD_decompress /src/zstd/lib/legacy/zstd_v03.c:2955:12
+    - ZSTDv03_decompress /src/zstd/lib/legacy/zstd_v03.c:3124:12
+    - ZSTD_decompressLegacy /src/zstd/lib/legacy/zstd_legacy.h:140:20
+    - ZSTD_decompressMultiFrame /src/zstd/lib/decompress/zstd_decompress.c:726:27
+    - ZSTD_decompress_usingDDict /src/zstd/lib/decompress/zstd_decompress.c:1223:12
+    - ZSTD_decompressDCtx /src/zstd/lib/decompress/zstd_decompress.c:819:12
+    - LLVMFuzzerTestOneInput /src/zstd/tests/fuzz/simple_decompress.c:37:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7ffe3636fa48 is located in stack of thread T0 at offset 141416 in frame
+    - ZSTDv03_decompress /src/zstd/lib/legacy/zstd_v03.c:3123:0
+
+  This frame has 1 object(s):
+    [32, 141416) 'ctx.i' (line 2953) <== Memory access at offset 141416 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

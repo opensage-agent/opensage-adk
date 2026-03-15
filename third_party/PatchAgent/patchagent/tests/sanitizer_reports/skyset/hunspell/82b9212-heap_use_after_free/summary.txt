@@ -1,0 +1,32 @@
+The sanitizer detected a heap double free vulnerability. The explanation of the vulnerability is: A heap-allocated memory block is freed twice, potentially causing memory corruption or security vulnerabilities. Here is the detail: 
+
+    - HashMgr::~HashMgr() /root/src/hunspell/hashmgr.cxx:133:5
+    - HunspellImpl::~HunspellImpl() /root/src/hunspell/hunspell.cxx:208:5
+    - Hunspell::~Hunspell() /root/src/hunspell/hunspell.cxx:2110:3
+    - LLVMFuzzerTestOneInput /root/src/tools/affdicfuzzer.cxx:69:1
+
+0x531000050800 is located 0 bytes inside of 65536-byte region [0x531000050800,0x531000060800)
+freed by thread T0 here:
+    - HashMgr::free_flag(unsigned short*, short) /root/src/hunspell/hashmgr.cxx:111:5
+    - HashMgr::add_word(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, unsigned short*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const*, bool, int) /root/src/hunspell/hashmgr.cxx:169:5
+    - HashMgr::load_tables(char const*, char const*) /root/src/hunspell/hashmgr.cxx:677:9
+    - HashMgr::HashMgr(char const*, char const*, char const*) /root/src/hunspell/hashmgr.cxx:99:12
+    - HunspellImpl::HunspellImpl(char const*, char const*, char const*) /root/src/hunspell/hunspell.cxx:183:25
+    - Hunspell::Hunspell(char const*, char const*, char const*) /root/src/hunspell/hunspell.cxx:2106:16
+    - LLVMFuzzerTestOneInput /root/src/tools/affdicfuzzer.cxx:63:14
+
+previously allocated by thread T0 here:
+    - HashMgr::parse_aliasf(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, FileMgr*) /root/src/hunspell/hashmgr.cxx:1125:33
+    - HashMgr::load_config(char const*, char const*) /root/src/hunspell/hashmgr.cxx:1023:12
+    - HashMgr::HashMgr(char const*, char const*, char const*) /root/src/hunspell/hashmgr.cxx:96:3
+    - HunspellImpl::HunspellImpl(char const*, char const*, char const*) /root/src/hunspell/hunspell.cxx:183:25
+    - Hunspell::Hunspell(char const*, char const*, char const*) /root/src/hunspell/hunspell.cxx:2106:16
+    - LLVMFuzzerTestOneInput /root/src/tools/affdicfuzzer.cxx:63:14
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

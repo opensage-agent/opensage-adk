@@ -1,0 +1,100 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x50d000001bf0 at pc 0x560d9f2e89d1 bp 0x7ffea2f63b90 sp 0x7ffea2f63b88
+READ of size 1 at 0x50d000001bf0 thread T0
+SCARINESS: 40 (1-byte-read-heap-use-after-free)
+    #0 0x560d9f2e89d0 in zval_get_type /src/php-src/Zend/zend_types.h:650:18
+    #1 0x560d9f2e89d0 in concat_function /src/php-src/Zend/zend_operators.c:2045:7
+    #2 0x560d9f055346 in zend_binary_op /src/php-src/Zend/zend_execute.c:1649:9
+    #3 0x560d9f055346 in ZEND_ASSIGN_DIM_OP_SPEC_CV_CONST_HANDLER /src/php-src/Zend/zend_vm_execute.h:42637:4
+    #4 0x560d9f33765c in fuzzer_execute_ex /src/php-src/sapi/fuzzer/fuzzer-execute-common.h:57:14
+    #5 0x560d9efd2a12 in zend_execute /src/php-src/Zend/zend_vm_execute.h:64247:2
+    #6 0x560d9f338433 in fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:274:5
+    #7 0x560d9f33748b in LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-execute.c:27:2
+    #8 0x560d9e61f020 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x560d9e60a295 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x560d9e60fd2f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x560d9e63afd2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7fd8708a4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #13 0x560d9e60247d in _start (/out/php-fuzz-execute+0x80247d)
+
+DEDUP_TOKEN: zval_get_type--concat_function--zend_binary_op
+0x50d000001bf0 is located 16 bytes inside of 136-byte region [0x50d000001be0,0x50d000001c68)
+freed by thread T0 here:
+    #0 0x560d9e72ab56 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x560d9f1ecc22 in zend_array_destroy /src/php-src/Zend/zend_hash.c:1863:2
+    #2 0x560d9efffe15 in zend_assign_to_variable /src/php-src/Zend/zend_execute.h:179:4
+    #3 0x560d9efffe15 in ZEND_ASSIGN_SPEC_CV_CONST_RETVAL_UNUSED_HANDLER /src/php-src/Zend/zend_vm_execute.h:44574:11
+    #4 0x560d9f33765c in fuzzer_execute_ex /src/php-src/sapi/fuzzer/fuzzer-execute-common.h:57:14
+    #5 0x560d9efb0cf0 in zend_call_function /src/php-src/Zend/zend_execute_API.c:1008:3
+    #6 0x560d9efae85b in _call_user_function_impl /src/php-src/Zend/zend_execute_API.c:800:9
+    #7 0x560d9f3307f3 in zend_error_zstr_at /src/php-src/Zend/zend.c:1550:10
+    #8 0x560d9f3317db in zend_error_va_list /src/php-src/Zend/zend.c:1604:2
+    #9 0x560d9f331a94 in zend_error /src/php-src/Zend/zend.c:1674:2
+    #10 0x560d9f2dc871 in __zval_get_string_func /src/php-src/Zend/zend_operators.c:1027:4
+    #11 0x560d9f2e80c3 in zval_get_string_func /src/php-src/Zend/zend_operators.c:1053:9
+    #12 0x560d9f2e80c3 in concat_function /src/php-src/Zend/zend_operators.c:1983:17
+    #13 0x560d9f055346 in zend_binary_op /src/php-src/Zend/zend_execute.c:1649:9
+    #14 0x560d9f055346 in ZEND_ASSIGN_DIM_OP_SPEC_CV_CONST_HANDLER /src/php-src/Zend/zend_vm_execute.h:42637:4
+    #15 0x560d9f33765c in fuzzer_execute_ex /src/php-src/sapi/fuzzer/fuzzer-execute-common.h:57:14
+    #16 0x560d9efd2a12 in zend_execute /src/php-src/Zend/zend_vm_execute.h:64247:2
+    #17 0x560d9f338433 in fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:274:5
+    #18 0x560d9f33748b in LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-execute.c:27:2
+    #19 0x560d9e61f020 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x560d9e60a295 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x560d9e60fd2f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x560d9e63afd2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7fd8708a4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--zend_array_destroy--zend_assign_to_variable
+previously allocated by thread T0 here:
+    #0 0x560d9e72adef in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x560d9ee731bd in tracked_malloc /src/php-src/Zend/zend_alloc.c:2968:14
+    #2 0x560d9f1e28bb in zend_hash_real_init_packed_ex /src/php-src/Zend/zend_hash.c
+    #3 0x560d9f1e28bb in _zend_hash_index_add_or_update_i /src/php-src/Zend/zend_hash.c:1152:4
+    #4 0x560d9f1a8587 in zend_fetch_dimension_address /src/php-src/Zend/zend_execute.c:2782:13
+    #5 0x560d9f0ba443 in zend_fetch_dimension_address_W /src/php-src/Zend/zend_execute.c:2910:2
+    #6 0x560d9f0ba443 in ZEND_FETCH_DIM_W_SPEC_CV_UNUSED_HANDLER /src/php-src/Zend/zend_vm_execute.h:49895:2
+    #7 0x560d9f33765c in fuzzer_execute_ex /src/php-src/sapi/fuzzer/fuzzer-execute-common.h:57:14
+    #8 0x560d9efd2a12 in zend_execute /src/php-src/Zend/zend_vm_execute.h:64247:2
+    #9 0x560d9f338433 in fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:274:5
+    #10 0x560d9f33748b in LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-execute.c:27:2
+    #11 0x560d9e61f020 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x560d9e60a295 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x560d9e60fd2f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x560d9e63afd2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fd8708a4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--tracked_malloc--zend_hash_real_init_packed_ex
+SUMMARY: AddressSanitizer: heap-use-after-free /src/php-src/Zend/zend_types.h:650:18 in zval_get_type
+Shadow bytes around the buggy address:
+  0x50d000001900: 00 00 00 00 00 fa fa fa fa fa fa fa fa fa 00 00
+  0x50d000001980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fa
+  0x50d000001a00: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x50d000001a80: 00 00 00 00 00 00 00 00 00 fa fa fa fa fa fa fa
+  0x50d000001b00: fa fa 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x50d000001b80: 00 00 00 fa fa fa fa fa fa fa fa fa fd fd[fd]fd
+  0x50d000001c00: fd fd fd fd fd fd fd fd fd fd fd fd fd fa fa fa
+  0x50d000001c80: fa fa fa fa fa fa fd fd fd fd fd fd fd fd fd fd
+  0x50d000001d00: fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa fa
+  0x50d000001d80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50d000001e00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

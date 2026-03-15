@@ -1,0 +1,50 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 14 at 0x502000008e9d thread T0
+    - strlen /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc:391:5
+    - CRYPTO_strdup /src/openssl/crypto/o_str.c:21:25
+    - X509V3_add_value /src/openssl/crypto/x509/v3_utl.c:46:28
+    - i2v_GENERAL_NAME /src/openssl/crypto/x509/v3_alt.c:80:18
+    - i2v_GENERAL_NAMES /src/openssl/crypto/x509/v3_alt.c:57:15
+    - X509V3_EXT_print /src/openssl/crypto/x509/v3_prn.c:117:21
+    - X509V3_extensions_print /src/openssl/crypto/x509/v3_prn.c:164:14
+    - X509_print_ex /src/openssl/crypto/x509/t_x509.c:201:9
+    - FuzzerTestOneInput /src/openssl/fuzz/x509.c:37:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x502000008e9d is located 0 bytes after 13-byte region [0x502000008e90,0x502000008e9d)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - ASN1_STRING_set /src/openssl/crypto/asn1/asn1_lib.c:284:21
+    - c2i_ASN1_INTEGER /src/openssl/crypto/asn1/a_int.c:300:9
+    - asn1_ex_c2i /src/openssl/crypto/asn1/tasn_dec.c:835:14
+    - asn1_d2i_ex_primitive /src/openssl/crypto/asn1/tasn_dec.c:761:10
+    - asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:181:16
+    - asn1_template_noexp_d2i /src/openssl/crypto/asn1/tasn_dec.c:624:15
+    - asn1_template_ex_d2i /src/openssl/crypto/asn1/tasn_dec.c:475:15
+    - asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:363:19
+    - asn1_template_noexp_d2i /src/openssl/crypto/asn1/tasn_dec.c:614:15
+    - asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:240:19
+    - asn1_template_noexp_d2i /src/openssl/crypto/asn1/tasn_dec.c:592:18
+    - asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:178:20
+    - ASN1_item_ex_d2i /src/openssl/crypto/asn1/tasn_dec.c:124:10
+    - ASN1_item_d2i /src/openssl/crypto/asn1/tasn_dec.c:114:9
+    - X509V3_EXT_print /src/openssl/crypto/x509/v3_prn.c:89:19
+    - X509V3_extensions_print /src/openssl/crypto/x509/v3_prn.c:164:14
+    - X509_print_ex /src/openssl/crypto/x509/t_x509.c:201:9
+    - FuzzerTestOneInput /src/openssl/fuzz/x509.c:37:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

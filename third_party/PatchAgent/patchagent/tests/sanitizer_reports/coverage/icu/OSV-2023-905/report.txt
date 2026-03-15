@@ -1,0 +1,43 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/icu:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce relative_date_time_formatter_fuzzer -runs=100.
++ FUZZER=relative_date_time_formatter_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer relative_date_time_formatter_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/relative_date_time_formatter_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2399100833
+INFO: Loaded 1 modules   (35 inline 8-bit counters): 35 [0x561ce0e0ce60, 0x561ce0e0ce83), 
+INFO: Loaded 1 PC tables (35 PCs): 35 [0x561ce0e0ce88,0x561ce0e0d0b8), 
+/out/relative_date_time_formatter_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address (pc 0x561cded7e1e5 bp 0x7ffcf19ccc20 sp 0x7ffcf19ccc00 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    #0 0x561cded7e1e5 in icu_74::UnicodeString::copyFrom(icu_74::UnicodeString const&, signed char) /src/icu/icu4c/source/common/unistr.cpp:505:6
+    #1 0x561cded7e19e in icu_74::UnicodeString::UnicodeString(icu_74::UnicodeString const&) /src/icu/icu4c/source/common/unistr.cpp:308:3
+    #2 0x561cdebc002a in icu_74::number::impl::SimpleModifier::SimpleModifier(icu_74::SimpleFormatter const&, icu_74::FormattedStringBuilder::Field, bool, icu_74::number::impl::Modifier::Parameters) /src/icu/icu4c/source/i18n/number_modifiers.cpp:130:11
+    #3 0x561cdeb95cdb in icu_74::RelativeDateTimeFormatter::formatNumericImpl(double, URelativeDateTimeUnit, icu_74::FormattedRelativeDateTimeData&, UErrorCode&) const /src/icu/icu4c/source/i18n/reldatefmt.cpp:1065:34
+    #4 0x561cdeb95f01 in icu_74::FormattedRelativeDateTime icu_74::RelativeDateTimeFormatter::doFormatToValue<void (icu_74::RelativeDateTimeFormatter::*)(double, URelativeDateTimeUnit, icu_74::FormattedRelativeDateTimeData&, UErrorCode&) const, double, URelativeDateTimeUnit>(void (icu_74::RelativeDateTimeFormatter::*)(double, URelativeDateTimeUnit, icu_74::FormattedRelativeDateTimeData&, UErrorCode&) const, UErrorCode&, double, URelativeDateTimeUnit) const /src/icu/icu4c/source/i18n/reldatefmt.cpp:925:5
+    #5 0x561cdeb95db3 in icu_74::RelativeDateTimeFormatter::formatNumericToValue(double, URelativeDateTimeUnit, UErrorCode&) const /src/icu/icu4c/source/i18n/reldatefmt.cpp:1015:12
+    #6 0x561cdeb92bd7 in LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/relative_date_time_formatter_fuzzer.cpp:90:36
+    #7 0x561cdeaf4bd0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x561cdeadfe45 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x561cdeae58df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x561cdeb10b82 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f8396c5e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #12 0x561cdead802d in _start (/out/relative_date_time_formatter_fuzzer+0x5d02d)
+
+DEDUP_TOKEN: icu_74::UnicodeString::copyFrom(icu_74::UnicodeString const&, signed char)--icu_74::UnicodeString::UnicodeString(icu_74::UnicodeString const&)--icu_74::number::impl::SimpleModifier::SimpleModifier(icu_74::SimpleFormatter const&, icu_74::FormattedStringBuilder::Field, bool, icu_74::number::impl::Modifier::Parameters)
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/icu/icu4c/source/common/unistr.cpp:505:6 in icu_74::UnicodeString::copyFrom(icu_74::UnicodeString const&, signed char)
+==14==ABORTING

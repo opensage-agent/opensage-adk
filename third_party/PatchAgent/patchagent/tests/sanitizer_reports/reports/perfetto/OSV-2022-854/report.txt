@@ -1,0 +1,647 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/perfetto:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/perfetto/OSV-2022-854/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce trace_processor_fuzzer -runs=100.
++ FUZZER=trace_processor_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer trace_processor_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/trace_processor_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2623057662
+INFO: Loaded 1 modules   (112957 inline 8-bit counters): 112957 [0x558655f41750, 0x558655f5d08d), 
+INFO: Loaded 1 PC tables (112957 PCs): 112957 [0x558655f5d090,0x558656116460), 
+/out/trace_processor_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+[90m[312.933] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.933] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.933] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.933] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.934] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.934] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.934] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.934] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.934] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.934] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.935] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.935] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.935] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.935] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.935] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.935] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.936] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.936] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.936] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.936] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.937] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.937] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.937] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.937] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.937] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.937] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.937] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.937] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.938] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.938] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.938] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.938] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.939] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.939] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.939] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.940] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.940] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.940] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.940] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.941] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.941] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.941] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.941] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.941] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.941] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.941] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.941] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.941] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.942] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.942] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.942] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.942] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.942] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.943] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.943] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.943] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.943] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.943] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.943] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.943] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.944] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.944] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.944] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.944] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.945] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.945] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.945] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.946] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.946] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.946] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.946] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.947] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.947] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.947] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.947] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.947] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.947] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.948] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.948] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.949] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.949] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.949] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.949] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.949] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.949] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.949] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.950] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.950] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.950] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.950] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.950] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.950] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.950] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.951] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.951] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.951] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.951] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.951] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.951] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.952] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.952] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.952] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.953] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.953] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.953] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.953] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.953] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.954] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.954] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.954] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.954] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.954] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.955] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.955] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.955] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.955] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.955] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.955] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.955] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.955] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.955] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.955] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.956] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.956] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.956] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.956] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.956] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.956] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.957] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.957] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.957] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.957] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.957] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.957] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.958] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.958] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.958] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.958] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.959] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.959] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.959] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.959] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.960] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.960] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.960] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.960] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.961] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.961] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.961] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.961] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.961] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.962] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.962] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.962] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.962] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.963] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.963] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.963] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.964] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.964] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.964] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.964] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[312.964] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[312.964] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[312.965] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[312.969] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.970] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.970] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.970] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.970] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[312.971] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.971] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.971] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.971] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.971] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.971] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.971] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.971] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.971] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.972] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.972] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.972] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.972] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.972] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.972] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.973] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.973] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.973] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.973] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.973] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.973] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.973] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.973] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.974] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.974] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.974] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.974] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.974] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.974] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.974] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.975] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.975] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.975] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.975] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.975] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.975] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.975] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.976] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.976] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.976] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.976] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.976] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.976] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.976] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.976] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.977] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.977] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.977] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.977] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.977] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.977] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.977] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.977] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.977] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.977] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623792561[0m
+[90m[312.978] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.978] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623793910[0m
+[90m[312.979] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.979] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623795167[0m
+[90m[312.979] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.979] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623797092[0m
+[90m[312.979] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.979] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623798441[0m
+[90m[312.979] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.979] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623799536[0m
+[90m[312.980] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.980] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623800885[0m
+[90m[312.980] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.980] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623802142[0m
+[90m[312.980] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.980] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.980] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.980] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.980] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.980] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.980] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.981] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623807753[0m
+[90m[312.982] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.982] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.982] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.982] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.982] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.982] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.982] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.982] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.982] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.983] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.983] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.983] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.983] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.983] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.983] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.983] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.983] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.983] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.984] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.984] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.984] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.984] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.984] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.984] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.985] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.985] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.985] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.985] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.985] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.985] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.985] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.986] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.986] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.986] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.986] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.986] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.986] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.986] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.986] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.986] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.987] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.987] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.987] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.987] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.987] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.987] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.987] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.987] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.988] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.988] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.988] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.988] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.988] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.988] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.988] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.988] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.988] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.988] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.989] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.989] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.989] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.989] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.989] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.989] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.989] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623831410[0m
+[90m[312.989] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.989] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623832759[0m
+[90m[312.989] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.989] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623834016[0m
+[90m[312.990] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.990] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623835941[0m
+[90m[312.990] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.990] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623837290[0m
+[90m[312.990] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.990] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623838385[0m
+[90m[312.990] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.990] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623839734[0m
+[90m[312.990] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623840991[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.991] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.992] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.992] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.992] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.992] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.992] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.992] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.992] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623846602[0m
+[90m[312.992] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.992] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623847951[0m
+[90m[312.992] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.992] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623849208[0m
+[90m[312.993] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.993] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[312.993] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[312.993] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[312.993] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[312.993] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.993] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.993] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.993] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.993] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.993] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.993] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.993] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623853464[0m
+[90m[312.993] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.993] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623854721[0m
+[90m[312.993] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.994] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.994] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.994] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.994] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.994] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.994] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.994] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.994] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.994] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[312.995] ck_event_tracker.cc:377[0m [31mUnknown parent track 269488184 for track 91465623859379[0m
+[90m[312.995] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[313.003] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.003] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.003] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.003] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.004] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.004] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.004] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.004] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.004] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.004] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.005] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.005] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.005] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.005] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.005] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.005] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.006] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.006] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.006] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.006] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.006] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.006] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.006] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.007] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.007] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.007] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.007] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.007] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.007] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.008] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.008] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.008] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.008] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.009] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.009] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.009] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.009] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.010] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.010] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.010] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.010] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.010] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.010] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.011] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.011] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.011] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.011] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.011] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.011] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.012] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.012] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.012] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.012] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.012] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.012] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.012] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.012] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.013] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.013] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.013] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.013] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.013] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.013] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.014] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.014] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.014] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.015] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.015] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.015] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.015] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.016] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.016] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.016] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.016] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.016] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.016] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.017] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.017] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.017] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.018] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.018] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.018] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.018] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.019] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.019] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.019] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.019] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.019] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.019] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.019] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.019] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.019] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.019] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.020] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.020] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.020] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.020] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.020] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.020] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.021] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.021] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.021] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.021] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.022] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.022] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.022] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.022] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.022] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.023] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.023] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.023] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.023] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.023] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.023] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.024] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.024] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.024] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.024] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.024] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.024] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.024] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.024] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.025] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.025] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.025] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.025] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.025] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.025] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.025] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.025] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.026] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.026] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.026] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.026] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.026] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.027] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.027] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.027] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.027] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.027] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.028] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.028] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.028] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.029] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.029] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.029] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.029] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.029] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.030] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.030] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.030] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.030] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.030] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.031] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.031] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.031] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.032] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.032] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.032] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.032] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.032] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.033] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[313.033] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[313.033] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[313.033] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 2314899720986167304[0m
+[90m[313.038] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+=================================================================
+[1m[31m==15==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000023050 at pc 0x5586556885ed bp 0x7fff3f5f3a50 sp 0x7fff3f5f3a48
+[1m[0m[1m[34mWRITE of size 4 at 0x502000023050 thread T0[1m[0m
+SCARINESS: 46 (4-byte-write-heap-buffer-overflow-far-from-bounds)
+    #0 0x5586556885ec in Set /work/build/../../src/perfetto/src/trace_processor/db/column_storage.h:53:48
+    #1 0x5586556885ec in SetAtIdx /work/build/../../src/perfetto/src/trace_processor/db/typed_column.h:139:24
+    #2 0x5586556885ec in Set /work/build/../../src/perfetto/src/trace_processor/db/typed_column.h:87:5
+    #3 0x5586556885ec in perfetto::trace_processor::TrackEventParser::ParseTrackDescriptor(protozero::ConstBytes) /work/build/../../src/perfetto/src/trace_processor/importers/proto/track_event_parser.cc:1542:29
+    #4 0x5586556686ef in perfetto::trace_processor::ProtoTraceParser::ParseTracePacketImpl(long, perfetto::trace_processor::TimestampedTracePiece const&, perfetto::trace_processor::PacketSequenceStateGeneration*, perfetto::protos::pbzero::TracePacket_Decoder const&) /work/build/../../src/perfetto/src/trace_processor/importers/proto/proto_trace_parser.cc:120:17
+    #5 0x558655668164 in perfetto::trace_processor::ProtoTraceParser::ParseTracePacket(long, perfetto::trace_processor::TimestampedTracePiece) /work/build/../../src/perfetto/src/trace_processor/importers/proto/proto_trace_parser.cc:92:3
+    #6 0x5586556d1f3e in MaybePushEvent /work/build/../../src/perfetto/src/trace_processor/trace_sorter.cc:211:14
+    #7 0x5586556d1f3e in perfetto::trace_processor::TraceSorter::SortAndExtractEventsUntilPacket(unsigned long) /work/build/../../src/perfetto/src/trace_processor/trace_sorter.cc:149:7
+    #8 0x5586556cdc0f in ExtractEventsForced /work/build/../../src/perfetto/src/trace_processor/trace_sorter.h:176:5
+    #9 0x5586556cdc0f in perfetto::trace_processor::TraceProcessorStorageImpl::NotifyEndOfFile() /work/build/../../src/perfetto/src/trace_processor/trace_processor_storage_impl.cc:126:22
+    #10 0x55865549680c in perfetto::trace_processor::FuzzTraceProcessor(unsigned char const*, unsigned long) /work/build/../../src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:33:14
+    #11 0x55865549696f in LLVMFuzzerTestOneInput /work/build/../../src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:42:3
+    #12 0x558655458920 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x558655444325 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x558655449dbf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x5586554734c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7f146e6dc082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #17 0x55865537a60d in _start (/out/trace_processor_fuzzer+0x35260d) (BuildId: a01c4a470a226e80a07153e48cfc4279642f888f)
+
+DEDUP_TOKEN: Set--SetAtIdx--Set
+Address 0x502000023050 is a wild pointer inside of access range of size 0x000000000004.
+SUMMARY: AddressSanitizer: heap-buffer-overflow /work/build/../../src/perfetto/src/trace_processor/db/column_storage.h:53:48 in Set
+Shadow bytes around the buggy address:
+  0x502000022d80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000022e00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000022e80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000022f00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000022f80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+=>0x502000023000: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000023080: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000023100: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000023180: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000023200: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000023280: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==15==ABORTING

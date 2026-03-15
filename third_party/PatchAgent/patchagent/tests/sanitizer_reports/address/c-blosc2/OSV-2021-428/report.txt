@@ -1,0 +1,58 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51000000026e at pc 0x563768ae6bb9 bp 0x7ffdfb968010 sp 0x7ffdfb968008
+READ of size 4 at 0x51000000026e thread T0
+SCARINESS: 27 (4-byte-read-heap-buffer-overflow-far-from-bounds)
+    #0 0x563768ae6bb8 in frame_get_lazychunk /src/c-blosc2/blosc/frame.c:2049:24
+    #1 0x563768aea7eb in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:2731:20
+    #2 0x563768a6b945 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:38:15
+    #3 0x563768920380 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x56376890b5f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x56376891108f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x56376893c332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7f29818e8082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #8 0x5637689037dd in _start (/out/decompress_frame_fuzzer+0x10d7dd)
+
+DEDUP_TOKEN: frame_get_lazychunk--frame_decompress_chunk--LLVMFuzzerTestOneInput
+0x51000000026e is located 115 bytes after 187-byte region [0x510000000140,0x5100000001fb)
+allocated by thread T0 here:
+    #0 0x563768a2c14f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x563768df6ed3 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x56376890b5f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x56376891108f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x56376893c332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7f29818e8082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/c-blosc2/blosc/frame.c:2049:24 in frame_get_lazychunk
+Shadow bytes around the buggy address:
+  0x50ffffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x510000000000: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x510000000080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03
+  0x510000000100: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x510000000180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03
+=>0x510000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa[fa]fa fa
+  0x510000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

@@ -1,0 +1,41 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 279 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.JsonSanitizerIdempotenceFuzzer (took 28 ms, size +52%)
+INFO: using inputs from: JsonSanitizerIdempotenceFuzzer/crash-75bfe10d3e3a48ea7af34ff3eb7214092372fc6c
+INFO: found LLVMFuzzerCustomMutator (0x7f11ef265a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 494879540
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x5648db0edcd0, 0x5648db0eded0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x5648db058fd0,0x5648db05afd0), 
+jazzer: Running 1 inputs 1 time(s) each.
+Running: JsonSanitizerIdempotenceFuzzer/crash-75bfe10d3e3a48ea7af34ff3eb7214092372fc6c
+INFO: New number of coverage counters: 1024
+INFO: Instrumented com.google.json.JsonSanitizer (took 21 ms, size +50%)
+INFO: Instrumented com.google.json.JsonSanitizer$UnbracketedComma (took 0 ms, size +15%)
+INFO: Instrumented com.google.json.JsonSanitizer$State (took 1 ms, size +10%)
+INFO: Instrumented com.google.json.JsonSanitizer$1 (took 0 ms, size +16%)
+
+== Java Exception: java.lang.AssertionError: Not idempotent
+	at com.example.JsonSanitizerIdempotenceFuzzer.fuzzerTestOneInput(JsonSanitizerIdempotenceFuzzer.java:34)
+DEDUP_TOKEN: 76d48fb4e40c1482
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_75bfe10d3e3a48ea7af34ff3eb7214092372fc6c.java
+

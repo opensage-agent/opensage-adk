@@ -1,0 +1,18 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - sw32_ /root/blosc/blosc-private.h:44:13
+    - blosc_d /root/blosc/blosc2.c:1093:14
+    - serial_blosc /root/blosc/blosc2.c:1244:16
+    - do_job /root/blosc/blosc2.c:1402:15
+    - blosc_run_decompression_with_context /root/blosc/blosc2.c:2186:13
+    - blosc2_decompress /root/blosc/blosc2.c:2254:12
+    - LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_decompress_chunk.c:34:5
+    - main /root/tests/fuzz/standalone.c:32:7
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

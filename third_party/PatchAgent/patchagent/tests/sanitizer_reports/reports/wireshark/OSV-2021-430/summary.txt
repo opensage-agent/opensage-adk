@@ -1,0 +1,80 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 49 at 0x7f071d97f64f thread T0
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - tvb_memcpy /src/wireshark/epan/tvbuff.c:859:10
+    - composite_memcpy /src/wireshark/epan/tvbuff_composite.c:142:10
+    - _tvb_get_nstringz /src/wireshark/epan/tvbuff.c:3595:2
+    - tvb_get_nstringz0 /src/wireshark/epan/tvbuff.c:3634:8
+    - dissect_megaco_text /src/wireshark/epan/dissectors/packet-megaco.c:643:9
+    - dissect_megaco_text_tcp /src/wireshark/epan/dissectors/packet-megaco.c:495:9
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - decode_tcp_ports /src/wireshark/epan/dissectors/packet-tcp.c:6130:9
+    - process_tcp_payload /src/wireshark/epan/dissectors/packet-tcp.c:6199:13
+    - dissect_tcp_payload /src/wireshark/epan/dissectors/packet-tcp.c:6281:9
+    - dissect_tcp /src/wireshark/epan/dissectors/packet-tcp.c:0:0
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - ip_try_dissect /src/wireshark/epan/dissectors/packet-ip.c:1817:7
+    - dissect_ip_v4 /src/wireshark/epan/dissectors/packet-ip.c:2295:10
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - dissect_vjc_uncomp /src/wireshark/epan/dissectors/packet-vj-comp.c:317:12
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - dissector_try_uint /src/wireshark/epan/packet.c:1437:9
+    - dissect_ppp_common /src/wireshark/epan/dissectors/packet-ppp.c:4786:10
+    - dissect_ppp /src/wireshark/epan/dissectors/packet-ppp.c:5769:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - dissector_try_uint /src/wireshark/epan/packet.c:1437:9
+    - dissect_osi /src/wireshark/epan/dissectors/packet-osi.c:468:7
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - ip_try_dissect /src/wireshark/epan/dissectors/packet-ip.c:1817:7
+    - dissect_ip_v4 /src/wireshark/epan/dissectors/packet-ip.c:2295:10
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_all_postdissectors /src/wireshark/epan/packet.c:3608:3
+    - dissect_frame /src/wireshark/epan/dissectors/packet-frame.c:901:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - dissect_record /src/wireshark/epan/packet.c:594:3
+    - epan_dissect_run /src/wireshark/epan/epan.c:594:2
+    - LLVMFuzzerTestOneInput /src/wireshark/fuzz/fuzzshark.c:381:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f071d97f64f is located in stack of thread T0 at offset 79 in frame
+    - dissect_megaco_text /src/wireshark/epan/dissectors/packet-megaco.c:578:0
+
+  This frame has 7 object(s):
+    [32, 40) 'sub_ti' (line 585)
+    [64, 79) 'word' (line 587)
+    [96, 126) 'TermID' (line 588) <== Memory access at offset 79 partially underflows this variable
+    [160, 161) 'needle' (line 593)
+    [176, 177) 'ber_class' (line 670)
+    [192, 196) 'pc' (line 671)
+    [208, 212) 'tag' (line 672)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

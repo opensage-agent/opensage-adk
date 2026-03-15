@@ -1,0 +1,101 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/opensc:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/opensc/OSV-2023-1228/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_pkcs11 -runs=100.
++ FUZZER=fuzz_pkcs11
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_pkcs11 -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_pkcs11 -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3776085198
+INFO: Loaded 1 modules   (47348 inline 8-bit counters): 47348 [0x55d02cb253b0, 0x55d02cb30ca4), 
+INFO: Loaded 1 PC tables (47348 PCs): 47348 [0x55d02cb30ca8,0x55d02cbe9be8), 
+/out/fuzz_pkcs11: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f96c2d73db0 at pc 0x55d02c38bcf2 bp 0x7ffcdb4dbb20 sp 0x7ffcdb4dbb18
+[1m[0m[1m[34mREAD of size 8 at 0x7f96c2d73db0 thread T0[1m[0m
+SCARINESS: 38 (8-byte-read-stack-buffer-overflow)
+    #0 0x55d02c38bcf1 in asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1588:18
+    #1 0x55d02c384bfa in asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    #2 0x55d02c385b3e in _sc_asn1_decode /src/opensc/src/libopensc/asn1.c:2091:9
+    #3 0x55d02c41ce0c in asn1_decode_des_params /src/opensc/src/libopensc/pkcs15-algo.c:52:6
+    #4 0x55d02c41b152 in sc_asn1_decode_algorithm_id /src/opensc/src/libopensc/pkcs15-algo.c:514:8
+    #5 0x55d02c38c8ed in asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1659:8
+    #6 0x55d02c384bfa in asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    #7 0x55d02c383af8 in sc_asn1_decode /src/opensc/src/libopensc/asn1.c:1805:9
+    #8 0x55d02c4051df in sc_pkcs15_pubkey_from_spki_fields /src/opensc/src/libopensc/pkcs15-pubkey.c:1352:6
+    #9 0x55d02c38cadc in asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1667:8
+    #10 0x55d02c384bfa in asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    #11 0x55d02c38afc6 in asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1507:8
+    #12 0x55d02c384bfa in asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    #13 0x55d02c383af8 in sc_asn1_decode /src/opensc/src/libopensc/asn1.c:1805:9
+    #14 0x55d02c3dd413 in parse_x509_cert /src/opensc/src/libopensc/pkcs15-cert.c:102:6
+    #15 0x55d02c3deac2 in sc_pkcs15_read_certificate /src/opensc/src/libopensc/pkcs15-cert.c:400:6
+    #16 0x55d02c78b007 in sc_pkcs15emu_piv_init /src/opensc/src/libopensc/pkcs15-piv.c:791:8
+    #17 0x55d02c788f69 in sc_pkcs15emu_piv_init_ex /src/opensc/src/libopensc/pkcs15-piv.c:1257:9
+    #18 0x55d02c4224af in sc_pkcs15_bind_synthetic /src/opensc/src/libopensc/pkcs15-syn.c:141:8
+    #19 0x55d02c3c7973 in sc_pkcs15_bind /src/opensc/src/libopensc/pkcs15.c:1351:8
+    #20 0x55d02c30b528 in pkcs15_bind /src/opensc/src/pkcs11/framework-pkcs15.c:335:7
+    #21 0x55d02c2c4a6c in fuzz_card_connect /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:114:8
+    #22 0x55d02c2b7909 in fuzz_pkcs11_initialize /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:161:6
+    #23 0x55d02c2bc022 in test_init_token /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:260:6
+    #24 0x55d02c2bae26 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:1082:2
+    #25 0x55d02c16de70 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #26 0x55d02c1590e5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #27 0x55d02c15eb7f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #28 0x55d02c189e22 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #29 0x7f96c358f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #30 0x55d02c1512cd in _start (/out/fuzz_pkcs11+0x2322cd)
+
+DEDUP_TOKEN: asn1_decode_entry--asn1_decode--_sc_asn1_decode
+[1m[32mAddress 0x7f96c2d73db0 is located in stack of thread T0 at offset 176 in frame[1m[0m
+[1m[0m    #0 0x55d02c41cbdf in asn1_decode_des_params /src/opensc/src/libopensc/pkcs15-algo.c:45
+
+DEDUP_TOKEN: asn1_decode_des_params
+  This frame has 3 object(s):
+    [32, 112) 'asn1_des_iv' (line 46)
+    [144, 152) 'iv' (line 47)
+    [176, 180) 'ivlen' (line 48)[1m[32m <== Memory access at offset 176 partially overflows this variable[1m[0m
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/opensc/src/libopensc/asn1.c:1588:18 in asn1_decode_entry
+Shadow bytes around the buggy address:
+  0x7f96c2d73b00: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f96c2d73b80: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f96c2d73c00: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f96c2d73c80: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f96c2d73d00: [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m
+=>0x7f96c2d73d80: [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m[[1m[0m04[1m[0m][1m[31mf3[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7f96c2d73e00: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f96c2d73e80: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f96c2d73f00: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f96c2d73f80: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f96c2d74000: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

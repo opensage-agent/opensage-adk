@@ -1,0 +1,113 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/ghostscript/OSV-2022-818/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gs_device_pdfwrite_fuzzer -runs=100.
++ FUZZER=gs_device_pdfwrite_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gs_device_pdfwrite_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gs_device_pdfwrite_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=gs_device_pdfwrite_fuzzer.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2707394995
+INFO: Loaded 3 modules   (220621 inline 8-bit counters): 14221 [0x7fe368bb22a0, 0x7fe368bb5a2d), 958 [0x7fe368c53778, 0x7fe368c53b36), 205442 [0x5625beaf54b0, 0x5625beb27732), 
+INFO: Loaded 3 PC tables (220621 PCs): 14221 [0x7fe368bb5a30,0x7fe368bed300), 958 [0x7fe368c53b38,0x7fe368c57718), 205442 [0x5625beb27738,0x5625bee49f58), 
+/out/gs_device_pdfwrite_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52d00008a458 at pc 0x5625bcf67b10 bp 0x7ffc119c4520 sp 0x7ffc119c4518
+[1m[0m[1m[34mREAD of size 1 at 0x52d00008a458 thread T0[1m[0m
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x5625bcf67b0f in GetShortIns /src/ghostpdl/./base/ttinterp.c:735:14
+    #1 0x5625bcf67b0f in Ins_NPUSHW /src/ghostpdl/./base/ttinterp.c:2361:19
+    #2 0x5625bcf5af5b in RunIns /src/ghostpdl/./base/ttinterp.c:5078:7
+    #3 0x5625bce9810b in Instance_Reset /src/ghostpdl/./base/ttobjs.c:844:15
+    #4 0x5625bce881f9 in ttfFont__Open /src/ghostpdl/./base/ttfmain.c:348:12
+    #5 0x5625bcadcae8 in ttfFont__Open_aux /src/ghostpdl/./base/gxttfb.c:448:12
+    #6 0x5625bc54dd1c in gx_attach_tt_interpreter /src/ghostpdl/./base/gxccman.c:249:12
+    #7 0x5625bcad3562 in gs_type42_glyph_outline /src/ghostpdl/./base/gstype42.c:1342:9
+    #8 0x5625bc3d02ab in gs_default_glyph_info /src/ghostpdl/./base/gsfont.c:1061:12
+    #9 0x5625bcad81b4 in gs_type42_glyph_info_by_gid /src/ghostpdl/./base/gstype42.c:1371:16
+    #10 0x5625bc9dac0e in pdfi_cidtype2_glyph_info /src/ghostpdl/./pdf/pdf_font11.c:90:12
+    #11 0x5625bc297e39 in pdf_glyph_widths /src/ghostpdl/./devices/vector/gdevpdtt.c:2786:16
+    #12 0x5625bcd228ea in scan_cmap_text /src/ghostpdl/./devices/vector/gdevpdtc.c:730:32
+    #13 0x5625bcd228ea in process_cmap_text /src/ghostpdl/./devices/vector/gdevpdtc.c:965:12
+    #14 0x5625bc29dc47 in pdf_text_process /src/ghostpdl/./devices/vector/gdevpdtt.c:3728:16
+    #15 0x5625bc9f2982 in pdfi_show_simple /src/ghostpdl/./pdf/pdf_text.c:445:16
+    #16 0x5625bc9f2982 in pdfi_show_Tr_preserve /src/ghostpdl/./pdf/pdf_text.c:780:12
+    #17 0x5625bc9f2982 in pdfi_show /src/ghostpdl/./pdf/pdf_text.c:830:16
+    #18 0x5625bc9f4891 in pdfi_TJ /src/ghostpdl/./pdf/pdf_text.c:1190:20
+    #19 0x5625bc91be49 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1648:24
+    #20 0x5625bc91a426 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2101:24
+    #21 0x5625bc96df01 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:116:28
+    #22 0x5625bc96df01 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #23 0x5625bc96df01 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #24 0x5625bc8dedba in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1074:24
+    #25 0x5625bc771d19 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #26 0x5625bc771d19 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #27 0x5625bc771d19 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #28 0x5625bbf133b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #29 0x5625bbf133b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #30 0x5625bbf133b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #31 0x5625bca456e0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #32 0x5625bca420b0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #33 0x5625bca3f232 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #34 0x5625bca45468 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #35 0x5625bbf0afbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #36 0x5625bbf0b335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #37 0x5625bbdbf6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #38 0x5625bbdaa945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #39 0x5625bbdb03df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #40 0x5625bbddb682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #41 0x7fe3685da082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #42 0x5625bbda2b2d in _start (/out/gs_device_pdfwrite_fuzzer+0x71ab2d)
+
+DEDUP_TOKEN: GetShortIns--Ins_NPUSHW--RunIns
+[1m[32m0x52d00008a458 is located 0 bytes after 32856-byte region [0x52d000082400,0x52d00008a458)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x5625bbecb49f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5625bc3f21b0 in gs_heap_alloc_bytes /src/ghostpdl/./base/gsmalloc.c:192:34
+    #2 0x5625bc08287e in chunk_obj_alloc /src/ghostpdl/./base/gsmchunk.c:928:36
+    #3 0x5625bc0908a9 in s_zlib_alloc /src/ghostpdl/./base/szlibc.c:88:9
+    #4 0x7fe3689a8708 in inflate (/lib/x86_64-linux-gnu/libz.so.1+0xa708) (BuildId: 101d8983a254f1b26637242e10b80ecae42eff2d)
+
+DEDUP_TOKEN: __interceptor_malloc--gs_heap_alloc_bytes--chunk_obj_alloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/ghostpdl/./base/ttinterp.c:735:14 in GetShortIns
+Shadow bytes around the buggy address:
+  0x52d00008a180: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x52d00008a200: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x52d00008a280: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x52d00008a300: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x52d00008a380: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x52d00008a400: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52d00008a480: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52d00008a500: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52d00008a580: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52d00008a600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52d00008a680: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

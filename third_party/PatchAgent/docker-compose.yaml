@@ -1,0 +1,8 @@
+services:
+  patchagent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      labels:
+        - "org.opencontainers.image.source=https://github.com/cla7aye15I4nd/patchagent"
+    image: ghcr.io/cla7aye15i4nd/patchagent:latest

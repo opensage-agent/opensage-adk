@@ -1,0 +1,84 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x515000004468 at pc 0x55d8ec131ca3 bp 0x7fff0ab66350 sp 0x7fff0ab66348
+READ of size 8 at 0x515000004468 thread T0
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x55d8ec131ca2 in authentic_emu_update_tokeninfo /src/opensc/src/pkcs15init/pkcs15-authentic.c:876:15
+    #1 0x55d8ebc52d87 in sc_pkcs15init_update_tokeninfo /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:3177:10
+    #2 0x55d8ebc47153 in sc_pkcs15init_update_lastupdate /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:3239:6
+    #3 0x55d8ebc46321 in sc_pkcs15init_unbind /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:441:7
+    #4 0x55d8ebc8989c in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:356:3
+    #5 0x55d8ebaf7c90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55d8ebae2f05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55d8ebae899f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55d8ebb13c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f38211ab082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #10 0x55d8ebadb0ed in _start (/out/fuzz_pkcs15init+0x1f50ed)
+
+DEDUP_TOKEN: authentic_emu_update_tokeninfo--sc_pkcs15init_update_tokeninfo--sc_pkcs15init_update_lastupdate
+0x515000004468 is located 104 bytes inside of 464-byte region [0x515000004400,0x5150000045d0)
+freed by thread T0 here:
+    #0 0x55d8ebc037c6 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55d8ebca3364 in sc_file_free /src/opensc/src/libopensc/sc.c:643:2
+    #2 0x55d8ec131b37 in authentic_emu_update_tokeninfo /src/opensc/src/pkcs15init/pkcs15-authentic.c:872:4
+    #3 0x55d8ebc52d87 in sc_pkcs15init_update_tokeninfo /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:3177:10
+    #4 0x55d8ebc47153 in sc_pkcs15init_update_lastupdate /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:3239:6
+    #5 0x55d8ebc46321 in sc_pkcs15init_unbind /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:441:7
+    #6 0x55d8ebc8989c in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:356:3
+    #7 0x55d8ebaf7c90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55d8ebae2f05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55d8ebae899f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55d8ebb13c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f38211ab082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--sc_file_free--authentic_emu_update_tokeninfo
+previously allocated by thread T0 here:
+    #0 0x55d8ebc03c29 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x55d8ebca2f3e in sc_file_new /src/opensc/src/libopensc/sc.c:619:33
+    #2 0x55d8ebf71dda in authentic_set_current_files /src/opensc/src/libopensc/card-authentic.c:555:11
+    #3 0x55d8ebf6444c in authentic_select_file /src/opensc/src/libopensc/card-authentic.c:836:7
+    #4 0x55d8ebcdff0d in sc_select_file /src/opensc/src/libopensc/card.c:871:6
+    #5 0x55d8ec131a6c in authentic_emu_update_tokeninfo /src/opensc/src/pkcs15init/pkcs15-authentic.c:868:7
+    #6 0x55d8ebc52d87 in sc_pkcs15init_update_tokeninfo /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:3177:10
+    #7 0x55d8ebc47153 in sc_pkcs15init_update_lastupdate /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:3239:6
+    #8 0x55d8ebc46321 in sc_pkcs15init_unbind /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:441:7
+    #9 0x55d8ebc8989c in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:356:3
+    #10 0x55d8ebaf7c90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x55d8ebae2f05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x55d8ebae899f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x55d8ebb13c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f38211ab082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--sc_file_new--authentic_set_current_files
+SUMMARY: AddressSanitizer: heap-use-after-free /src/opensc/src/pkcs15init/pkcs15-authentic.c:876:15 in authentic_emu_update_tokeninfo
+Shadow bytes around the buggy address:
+  0x515000004180: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x515000004200: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x515000004280: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x515000004300: fd fd fd fd fd fd fd fd fd fd fd fa fa fa fa fa
+  0x515000004380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x515000004400: fd fd fd fd fd fd fd fd fd fd fd fd fd[fd]fd fd
+  0x515000004480: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x515000004500: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x515000004580: fd fd fd fd fd fd fd fd fd fd fa fa fa fa fa fa
+  0x515000004600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000004680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

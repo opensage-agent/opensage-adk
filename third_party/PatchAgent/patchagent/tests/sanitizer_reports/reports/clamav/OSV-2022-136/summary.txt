@@ -1,0 +1,43 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x52d000008428 thread T0
+    - handle_de /src/clamav/libclamav/jsparse/js-norm.c:669:34
+    - run_decoders /src/clamav/libclamav/jsparse/js-norm.c:815:17
+    - cli_js_parse_done /src/clamav/libclamav/jsparse/js-norm.c:906:5
+    - cli_html_normalise /src/clamav/libclamav/htmlnorm.c:1838:9
+    - html_normalise_map /src/clamav/libclamav/htmlnorm.c:1890:21
+    - cli_scanhtml /src/clamav/libclamav/scanners.c:2174:5
+    - cli_magic_scan /src/clamav/libclamav/scanners.c:4487:23
+    - scan_common /src/clamav/libclamav/scanners.c:5311:14
+    - LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_scanmap_fuzzer.cpp:110:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x52d000008428 is located 8 bytes after 32800-byte region [0x52d000000400,0x52d000008420)
+allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - cli_realloc /src/clamav/libclamav/others_common.c:253:13
+    - tokens_ensure_capacity /src/clamav/libclamav/jsparse/js-norm.c:292:16
+    - add_token /src/clamav/libclamav/jsparse/js-norm.c:303:9
+    - cli_js_process_buffer /src/clamav/libclamav/jsparse/js-norm.c:1160:9
+    - js_process /src/clamav/libclamav/htmlnorm.c:633:9
+    - cli_html_normalise /src/clamav/libclamav/htmlnorm.c:1778:13
+    - html_normalise_map /src/clamav/libclamav/htmlnorm.c:1890:21
+    - cli_scanhtml /src/clamav/libclamav/scanners.c:2174:5
+    - cli_magic_scan /src/clamav/libclamav/scanners.c:4487:23
+    - scan_common /src/clamav/libclamav/scanners.c:5311:14
+    - LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_scanmap_fuzzer.cpp:110:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

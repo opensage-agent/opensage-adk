@@ -1,0 +1,37 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 4 at 0x7f9fade07530 thread T0
+    - INDEX_ORDERLY_RAM_Marshal /root/src/tpm2/NVMarshal.c:4238:9
+    - PERSISTENT_ALL_Marshal /root/src/tpm2/NVMarshal.c:4731:16
+    - TPM2_PersistentAllStore /root/src/tpm_tpm2_interface.c:270:19
+    - libtpms_plat__NvCommit /root/src/tpm2/LibtpmsCallbacks.c:144:15
+    - _plat__NvCommit /root/src/tpm2/NVMem.c:444:15
+    - NvCommit /root/src/tpm2/NVReserved.c:108:13
+    - ExecuteCommand /root/src/tpm2/ExecCommand.c:307:10
+    - _plat__RunCommand /root/src/tpm2/RunCommand.c:95:5
+    - _rpc__Send_Command /root/src/tpm2/TPMCmdp.c:245:5
+    - TPM2_Process /root/src/tpm_tpm2_interface.c:219:5
+    - TPMLIB_Process /root/src/tpm_library.c:160:12
+    - LLVMFuzzerTestOneInput /root/tests/fuzz.cc:115:11
+    - main /root/tests/fuzz-main.c:42:17
+
+Address 0x7f9fade07530 is located in stack of thread T0 at offset 5424 in frame
+    - PERSISTENT_ALL_Marshal /root/src/tpm2/NVMarshal.c:4700:0
+
+  This frame has 7 object(s):
+    [32, 36) 'magic' (line 4701)
+    [48, 1112) 'pd' (line 4702)
+    [1248, 1376) 'od' (line 4703)
+    [1408, 1872) 'srd' (line 4704)
+    [1936, 4780) 'scd' (line 4705)
+    [4912, 5424) 'indexOrderlyRam' (line 4707) <== Memory access at offset 5424 overflows this variable
+    [5488, 5584) 'block_skip' (line 4708)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

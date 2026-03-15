@@ -1,0 +1,141 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/qpdf:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/qpdf/OSV-2024-18/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce qpdf_fuzzer -runs=100.
++ FUZZER=qpdf_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer qpdf_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/qpdf_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=pdf.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2758447122
+INFO: Loaded 1 modules   (71271 inline 8-bit counters): 71271 [0x55aec2cad538, 0x55aec2cbeb9f), 
+INFO: Loaded 1 PC tables (71271 PCs): 71271 [0x55aec2cbeba0,0x55aec2dd5210), 
+/out/qpdf_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+WARNING: fuzz input: can't find PDF header
+WARNING: fuzz input: file is damaged
+WARNING: fuzz input: can't find startxref
+WARNING: fuzz input: Attempting to reconstruct cross-reference table
+WARNING: fuzz input (object -1 0, offset 59): empty object treated as null
+WARNING: fuzz input (object 8 0, offset 44): stream keyword not followed by proper line terminator
+WARNING: fuzz input (object 8 0, offset 8): stream dictionary lacks /Length key
+WARNING: fuzz input (object 8 0, offset 44): attempting to recover stream length
+WARNING: fuzz input (object 8 0, offset 44): recovered stream length: 15
+WARNING: fuzz input (xref stream: object 8 0, offset 44): stream keyword not followed by proper line terminator
+WARNING: fuzz input (xref stream: object 8 0, offset 8): stream dictionary lacks /Length key
+WARNING: fuzz input (xref stream: object 8 0, offset 44): attempting to recover stream length
+WARNING: fuzz input (xref stream: object 8 0, offset 44): recovered stream length: 15
+WARNING: fuzz input (xref stream, offset 1): Cross-reference stream data has the wrong size; expected = 8; actual = 15
+WARNING: fuzz input: reported number of objects (2) is not one plus the highest object number (8)
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x506000000460 at pc 0x55aec2564c39 bp 0x7ffec4d9ed30 sp 0x7ffec4d9ed28
+[1m[0m[1m[34mREAD of size 8 at 0x506000000460 thread T0[1m[0m
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x55aec2564c38 in QPDF::read_xref(long long) /src/qpdf/libqpdf/QPDF.cc:715:17
+    #1 0x55aec2568534 in QPDF::reconstruct_xref(QPDFExc&) /src/qpdf/libqpdf/QPDF.cc:601:17
+    #2 0x55aec255ed7b in QPDF::parse(char const*) /src/qpdf/libqpdf/QPDF.cc:464:13
+    #3 0x55aec2527c99 in FuzzHelper::getQpdf() /src/qpdf/fuzz/qpdf_fuzzer.cc:59:11
+    #4 0x55aec2528a43 in FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:92:9
+    #5 0x55aec252ddeb in FuzzHelper::doChecks() /src/qpdf/fuzz/qpdf_fuzzer.cc:176:5
+    #6 0x55aec252ddeb in FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:191:9
+    #7 0x55aec252e117 in LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:208:7
+    #8 0x55aec23dc4c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55aec23c7735 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55aec23cd1cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55aec23f8472 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f958153f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x55aec23bf91d in _start (/out/qpdf_fuzzer+0x22b91d)
+
+DEDUP_TOKEN: QPDF::read_xref(long long)--QPDF::reconstruct_xref(QPDFExc&)--QPDF::parse(char const*)
+[1m[32m0x506000000460 is located 32 bytes inside of 64-byte region [0x506000000440,0x506000000480)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x55aec2525ebd in operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    #1 0x55aec25ac32a in void std::__1::__libcpp_operator_delete[abi:ne180100]<void*>(void*) /usr/local/bin/../include/c++/v1/new:280:3
+    #2 0x55aec25ac32a in void std::__1::__do_deallocate_handle_size[abi:ne180100]<>(void*, unsigned long) /usr/local/bin/../include/c++/v1/new:302:10
+    #3 0x55aec25ac32a in std::__1::__libcpp_deallocate[abi:ne180100](void*, unsigned long, unsigned long) /usr/local/bin/../include/c++/v1/new:317:12
+    #4 0x55aec25ac32a in std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>::deallocate[abi:ne180100](std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, unsigned long) /usr/local/bin/../include/c++/v1/__memory/allocator.h:139:7
+    #5 0x55aec25ac32a in std::__1::allocator_traits<std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>>::deallocate[abi:ne180100](std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>&, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, unsigned long) /usr/local/bin/../include/c++/v1/__memory/allocator_traits.h:289:9
+    #6 0x55aec25ac32a in std::__1::__tree<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__map_value_compare<QPDFObjGen, std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::less<QPDFObjGen>, true>, std::__1::allocator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>>>::erase(std::__1::__tree_const_iterator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, long>) /usr/local/bin/../include/c++/v1/__tree:2051:3
+    #7 0x55aec25ac32a in unsigned long std::__1::__tree<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__map_value_compare<QPDFObjGen, std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::less<QPDFObjGen>, true>, std::__1::allocator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>>>::__erase_unique<QPDFObjGen>(QPDFObjGen const&) /usr/local/bin/../include/c++/v1/__tree:2070:3
+    #8 0x55aec25700f1 in std::__1::map<QPDFObjGen, QPDFXRefEntry, std::__1::less<QPDFObjGen>, std::__1::allocator<std::__1::pair<QPDFObjGen const, QPDFXRefEntry>>>::erase[abi:ne180100](QPDFObjGen const&) /usr/local/bin/../include/c++/v1/map:1314:79
+    #9 0x55aec25700f1 in QPDF::removeObject(QPDFObjGen const&) /src/qpdf/libqpdf/QPDF.cc:1993:19
+    #10 0x55aec256471e in QPDF::read_xref(long long) /src/qpdf/libqpdf/QPDF.cc:714:13
+    #11 0x55aec2568534 in QPDF::reconstruct_xref(QPDFExc&) /src/qpdf/libqpdf/QPDF.cc:601:17
+    #12 0x55aec255ed7b in QPDF::parse(char const*) /src/qpdf/libqpdf/QPDF.cc:464:13
+    #13 0x55aec2527c99 in FuzzHelper::getQpdf() /src/qpdf/fuzz/qpdf_fuzzer.cc:59:11
+    #14 0x55aec2528a43 in FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:92:9
+    #15 0x55aec252ddeb in FuzzHelper::doChecks() /src/qpdf/fuzz/qpdf_fuzzer.cc:176:5
+    #16 0x55aec252ddeb in FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:191:9
+    #17 0x55aec252e117 in LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:208:7
+    #18 0x55aec23dc4c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #19 0x55aec23c7735 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #20 0x55aec23cd1cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #21 0x55aec23f8472 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f958153f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator delete(void*)--void std::__1::__libcpp_operator_delete[abi:ne180100]<void*>(void*)--void std::__1::__do_deallocate_handle_size[abi:ne180100]<>(void*, unsigned long)
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x55aec252565d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x55aec25af052 in void* std::__1::__libcpp_operator_new[abi:ne180100]<unsigned long>(unsigned long) /usr/local/bin/../include/c++/v1/new:271:10
+    #2 0x55aec25af052 in std::__1::__libcpp_allocate[abi:ne180100](unsigned long, unsigned long) /usr/local/bin/../include/c++/v1/new:295:10
+    #3 0x55aec25af052 in std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>::allocate[abi:ne180100](unsigned long) /usr/local/bin/../include/c++/v1/__memory/allocator.h:125:32
+    #4 0x55aec25af052 in std::__1::allocator_traits<std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>>::allocate[abi:ne180100](std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>&, unsigned long) /usr/local/bin/../include/c++/v1/__memory/allocator_traits.h:269:16
+    #5 0x55aec25af052 in std::__1::unique_ptr<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>, std::__1::__tree_node_destructor<std::__1::allocator<std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>>>> std::__1::__tree<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__map_value_compare<QPDFObjGen, std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::less<QPDFObjGen>, true>, std::__1::allocator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>>>::__construct_node<std::__1::piecewise_construct_t const&, std::__1::tuple<QPDFObjGen&&>, std::__1::tuple<>>(std::__1::piecewise_construct_t const&, std::__1::tuple<QPDFObjGen&&>&&, std::__1::tuple<>&&) /usr/local/bin/../include/c++/v1/__tree:1819:21
+    #6 0x55aec25af052 in std::__1::pair<std::__1::__tree_iterator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, long>, bool> std::__1::__tree<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__map_value_compare<QPDFObjGen, std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::less<QPDFObjGen>, true>, std::__1::allocator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>>>::__emplace_unique_key_args<QPDFObjGen, std::__1::piecewise_construct_t const&, std::__1::tuple<QPDFObjGen&&>, std::__1::tuple<>>(QPDFObjGen const&, std::__1::piecewise_construct_t const&, std::__1::tuple<QPDFObjGen&&>&&, std::__1::tuple<>&&) /usr/local/bin/../include/c++/v1/__tree:1786:25
+    #7 0x55aec25672a6 in std::__1::map<QPDFObjGen, QPDFXRefEntry, std::__1::less<QPDFObjGen>, std::__1::allocator<std::__1::pair<QPDFObjGen const, QPDFXRefEntry>>>::operator[](QPDFObjGen&&) /usr/local/bin/../include/c++/v1/map:1529:8
+    #8 0x55aec25672a6 in QPDF::insertReconstructedXrefEntry(int, long long, int) /src/qpdf/libqpdf/QPDF.cc:1202:9
+    #9 0x55aec25672a6 in QPDF::reconstruct_xref(QPDFExc&) /src/qpdf/libqpdf/QPDF.cc:562:17
+    #10 0x55aec255ed7b in QPDF::parse(char const*) /src/qpdf/libqpdf/QPDF.cc:464:13
+    #11 0x55aec2527c99 in FuzzHelper::getQpdf() /src/qpdf/fuzz/qpdf_fuzzer.cc:59:11
+    #12 0x55aec2528a43 in FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:92:9
+    #13 0x55aec252ddeb in FuzzHelper::doChecks() /src/qpdf/fuzz/qpdf_fuzzer.cc:176:5
+    #14 0x55aec252ddeb in FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:191:9
+    #15 0x55aec252e117 in LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:208:7
+    #16 0x55aec23dc4c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x55aec23c7735 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x55aec23cd1cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x55aec23f8472 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7f958153f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator new(unsigned long)--void* std::__1::__libcpp_operator_new[abi:ne180100]<unsigned long>(unsigned long)--std::__1::__libcpp_allocate[abi:ne180100](unsigned long, unsigned long)
+SUMMARY: AddressSanitizer: heap-use-after-free /src/qpdf/libqpdf/QPDF.cc:715:17 in QPDF::read_xref(long long)
+Shadow bytes around the buggy address:
+  0x506000000180: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x506000000200: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x506000000280: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m02[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m01[1m[0m
+  0x506000000300: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x506000000380: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x506000000400: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x506000000480: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[34mfc[1m[0m [1m[34mfc[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x506000000500: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x506000000580: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x506000000600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x506000000680: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==18==ABORTING

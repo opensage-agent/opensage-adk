@@ -1,0 +1,45 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 4 at 0x7fd5b31900d0 thread T0
+    - std::__1::pair<unsigned int*, unsigned int*> std::__1::__uninitialized_copy[abi:ne180100]<unsigned int, unsigned int*, unsigned int*, unsigned int*, std::__1::__always_false>(unsigned int*, unsigned int*, unsigned int*, std::__1::__always_false) /usr/local/include/c++/v1/__memory/uninitialized_algorithms.h:67:49
+    - unsigned int* std::__1::uninitialized_copy[abi:ne180100]<unsigned int*, unsigned int*>(unsigned int*, unsigned int*, unsigned int*) /usr/local/include/c++/v1/__memory/uninitialized_algorithms.h:82:19
+    - fmt::v8::basic_memory_buffer<unsigned int, 32ul, std::__1::allocator<unsigned int>>::grow(unsigned long) /src/fmt/include/fmt/format.h:795:3
+    - fmt::v8::detail::buffer<unsigned int>::try_reserve(unsigned long) /src/fmt/include/fmt/core.h:818:35
+    - fmt::v8::detail::buffer<unsigned int>::try_resize(unsigned long) /src/fmt/include/fmt/core.h:809:5
+    - fmt::v8::basic_memory_buffer<unsigned int, 32ul, std::__1::allocator<unsigned int>>::resize(unsigned long) /src/fmt/include/fmt/format.h:765:53
+    - fmt::v8::detail::bigint::square() /src/fmt/include/fmt/format-inl.h:558:13
+    - fmt::v8::detail::bigint::assign_pow10(int) /src/fmt/include/fmt/format-inl.h:547:7
+    - fmt::v8::detail::format_dragon(fmt::v8::detail::fp, bool, int, fmt::v8::detail::buffer<char>&, int&) /src/fmt/include/fmt/format-inl.h:2135:15
+    - int fmt::v8::detail::format_float<long double>(long double, int, fmt::v8::detail::float_specs, fmt::v8::detail::buffer<char>&) /src/fmt/include/fmt/format-inl.h:2291:5
+    - fmt::v8::appender fmt::v8::detail::write<char, fmt::v8::appender, long double, 0>(fmt::v8::appender, long double, fmt::v8::basic_format_specs<char>, fmt::v8::detail::locale_ref) /src/fmt/include/fmt/format.h:2238:13
+    - fmt::v8::appender fmt::v8::detail::arg_formatter<char>::operator()<long double>(long double) /src/fmt/include/fmt/format.h:2429:12
+    - decltype(fp(0)) fmt::v8::visit_format_arg<fmt::v8::detail::arg_formatter<char>&, fmt::v8::basic_format_context<fmt::v8::appender, char>>(fmt::v8::detail::arg_formatter<char>&, fmt::v8::basic_format_arg<fmt::v8::basic_format_context<fmt::v8::appender, char>> const&) /src/fmt/include/fmt/core.h:1592:12
+    - void fmt::v8::detail::vformat_to<char>(fmt::v8::detail::buffer<char>&, fmt::v8::basic_string_view<char>, fmt::v8::basic_format_args<fmt::v8::basic_format_context<std::__1::conditional<std::is_same<fmt::v8::type_identity<char>::type, char>::value, fmt::v8::appender, std::__1::back_insert_iterator<fmt::v8::detail::buffer<fmt::v8::type_identity<char>::type>>>::type, fmt::v8::type_identity<char>::type>>, fmt::v8::detail::locale_ref)::format_handler::on_format_specs(int, char const*, char const*) /src/fmt/include/fmt/format.h:3189:26
+    - char const* fmt::v8::detail::parse_replacement_field<char, void fmt::v8::detail::vformat_to<char>(fmt::v8::detail::buffer<char>&, fmt::v8::basic_string_view<char>, fmt::v8::basic_format_args<fmt::v8::basic_format_context<std::__1::conditional<std::is_same<fmt::v8::type_identity<char>::type, char>::value, fmt::v8::appender, std::__1::back_insert_iterator<fmt::v8::detail::buffer<fmt::v8::type_identity<char>::type>>>::type, fmt::v8::type_identity<char>::type>>, fmt::v8::detail::locale_ref)::format_handler&>(char const*, char const*, void fmt::v8::detail::vformat_to<char>(fmt::v8::detail::buffer<char>&, fmt::v8::basic_string_view<char>, fmt::v8::basic_format_args<fmt::v8::basic_format_context<std::__1::conditional<std::is_same<fmt::v8::type_identity<char>::type, char>::value, fmt::v8::appender, std::__1::back_insert_iterator<fmt::v8::detail::buffer<fmt::v8::type_identity<char>::type>>>::type, fmt::v8::type_identity<char>::type>>, fmt::v8::detail::locale_ref)::format_handler&) /src/fmt/include/fmt/core.h:2583:23
+    - void fmt::v8::detail::parse_format_string<false, char, void fmt::v8::detail::vformat_to<char>(fmt::v8::detail::buffer<char>&, fmt::v8::basic_string_view<char>, fmt::v8::basic_format_args<fmt::v8::basic_format_context<std::__1::conditional<std::is_same<fmt::v8::type_identity<char>::type, char>::value, fmt::v8::appender, std::__1::back_insert_iterator<fmt::v8::detail::buffer<fmt::v8::type_identity<char>::type>>>::type, fmt::v8::type_identity<char>::type>>, fmt::v8::detail::locale_ref)::format_handler>(fmt::v8::basic_string_view<char>, void fmt::v8::detail::vformat_to<char>(fmt::v8::detail::buffer<char>&, fmt::v8::basic_string_view<char>, fmt::v8::basic_format_args<fmt::v8::basic_format_context<std::__1::conditional<std::is_same<fmt::v8::type_identity<char>::type, char>::value, fmt::v8::appender, std::__1::back_insert_iterator<fmt::v8::detail::buffer<fmt::v8::type_identity<char>::type>>>::type, fmt::v8::type_identity<char>::type>>, fmt::v8::detail::locale_ref)::format_handler&&) /src/fmt/include/fmt/core.h:2608:21
+    - void fmt::v8::detail::vformat_to<char>(fmt::v8::detail::buffer<char>&, fmt::v8::basic_string_view<char>, fmt::v8::basic_format_args<fmt::v8::basic_format_context<std::__1::conditional<std::is_same<fmt::v8::type_identity<char>::type, char>::value, fmt::v8::appender, std::__1::back_insert_iterator<fmt::v8::detail::buffer<fmt::v8::type_identity<char>::type>>>::type, fmt::v8::type_identity<char>::type>>, fmt::v8::detail::locale_ref) /src/fmt/include/fmt/format.h:3193:3
+    - fmt::v8::appender fmt::v8::format_to<long double const&, 500ul, std::__1::allocator<char>>(fmt::v8::basic_memory_buffer<char, 500ul, std::__1::allocator<char>>&, fmt::v8::basic_format_string<char, fmt::v8::type_identity<long double const&>::type>, long double const&) /src/fmt/include/fmt/format.h:3272:3
+    - void invoke_fmt<long double, long double>(unsigned char const*, unsigned long) /src/fmt/test/fuzzing/one-arg.cc:34:5
+    - LLVMFuzzerTestOneInput /src/fmt/test/fuzzing/one-arg.cc:85:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7fd5b31900d0 is located in stack of thread T0 at offset 208 in frame
+    - fmt::v8::detail::format_dragon(fmt::v8::detail::fp, bool, int, fmt::v8::detail::buffer<char>&, int&) /src/fmt/include/fmt/format-inl.h:2111:0
+
+  This frame has 4 object(s):
+    [32, 208) 'numerator' (line 2112) <== Memory access at offset 208 overflows this variable
+    [272, 448) 'denominator' (line 2113)
+    [512, 688) 'lower' (line 2115)
+    [752, 928) 'upper_store' (line 2116)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

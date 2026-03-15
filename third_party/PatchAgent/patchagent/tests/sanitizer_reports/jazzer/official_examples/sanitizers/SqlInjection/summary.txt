@@ -1,0 +1,16 @@
+The sanitizer detected a sql injection vulnerability.The explanation of the vulnerability is: Untrusted input is used in SQL queries, leading to potential injection attacks.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh: SQL Injection
+Injected query: INSERT INTO pet (name) VALUES (''
+
+')
+
+- com.code_intelligence.jazzer.sanitizers.SqlInjection.checkSqlExecute (com/code_intelligence/jazzer/sanitizers/SqlInjection.java:120)
+- com.example.SqlInjection.insecureInsertUser (com/example/SqlInjection.java:37)
+- com.example.SqlInjection.fuzzerTestOneInput (com/example/SqlInjection.java:41)
+
+To fix this issue, follow the advice below:
+
+1. Avoid constructing SQL queries using untrusted input.
+2. Use parameterized queries or prepared statements to prevent injection attacks.
+3. Sanitize user input before using it in SQL queries.

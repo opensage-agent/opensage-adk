@@ -1,0 +1,79 @@
+=================================================================
+==1008802==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000124392 at pc 0x7fdfa8d13fe4 bp 0x7ffd14ec7a90 sp 0x7ffd14ec7a88
+READ of size 1 at 0x502000124392 thread T0
+    #0 0x7fdfa8d13fe3 in java_print_opcode /root/shlr/java/code.c:211:21
+    #1 0x7fdfa8d15f92 in r_java_disasm /root/shlr/java/code.c:309:10
+    #2 0x7fdfa8ad8f02 in decode /root/libr/arch/p/java/plugin.c:215:15
+    #3 0x7fdfa84322e5 in r_arch_decode /root/libr/arch/arch.c:320:9
+    #4 0x7fdfa6f65ab3 in r_anal_op /root/libr/anal/op.c:186:8
+    #5 0x7fdfaa44290d in r_core_anal_esil /root/libr/core/canal.c:5715:8
+    #6 0x7fdfaa23aba5 in cmd_anal_all /root/libr/core/./cmd_anal.inc.c:13183:6
+    #7 0x7fdfaa15a4d4 in cmd_anal /root/libr/core/./cmd_anal.inc.c:14267:8
+    #8 0x7fdfaa41baa6 in r_cmd_call /root/libr/core/cmd_api.c:520:11
+    #9 0x7fdfaa104b37 in r_core_cmd_call /root/libr/core/cmd.c:6303:9
+    #10 0x7fdfaa2396b2 in cmd_anal_all /root/libr/core/./cmd_anal.inc.c:13042:7
+    #11 0x7fdfaa15a4d4 in cmd_anal /root/libr/core/./cmd_anal.inc.c:14267:8
+    #12 0x7fdfaa41baa6 in r_cmd_call /root/libr/core/cmd_api.c:520:11
+    #13 0x7fdfaa104b37 in r_core_cmd_call /root/libr/core/cmd.c:6303:9
+    #14 0x7fdfa6c53e4b in perform_analysis /root/libr/main/radare2.c:499:2
+    #15 0x7fdfa6c4f73f in r_main_radare2 /root/libr/main/radare2.c:1723:4
+    #16 0x5600ed6b5878 in main /root/binr/radare2/radare2.c:114:9
+    #17 0x7fdfa6a0e1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x7fdfa6a0e28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x5600ed6b4224 in _start (/root/bin/radare2+0x2224) (BuildId: 0f9ed4cc954b455d0dc1a498cbdedb07a6bb161e)
+
+0x502000124392 is located 0 bytes after 2-byte region [0x502000124390,0x502000124392)
+allocated by thread T0 here:
+    #0 0x7fdfab1bd7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fdfaaa318ce in r_mem_dup /root/libr/util/mem.c:306:12
+    #2 0x7fdfa8433d6e in r_anal_op_set_bytes /root/libr/arch/arch_op.c:28:15
+    #3 0x7fdfa6f65a6f in r_anal_op /root/libr/anal/op.c:185:3
+    #4 0x7fdfaa44290d in r_core_anal_esil /root/libr/core/canal.c:5715:8
+    #5 0x7fdfaa23aba5 in cmd_anal_all /root/libr/core/./cmd_anal.inc.c:13183:6
+    #6 0x7fdfaa15a4d4 in cmd_anal /root/libr/core/./cmd_anal.inc.c:14267:8
+    #7 0x7fdfaa41baa6 in r_cmd_call /root/libr/core/cmd_api.c:520:11
+    #8 0x7fdfaa104b37 in r_core_cmd_call /root/libr/core/cmd.c:6303:9
+    #9 0x7fdfaa2396b2 in cmd_anal_all /root/libr/core/./cmd_anal.inc.c:13042:7
+    #10 0x7fdfaa15a4d4 in cmd_anal /root/libr/core/./cmd_anal.inc.c:14267:8
+    #11 0x7fdfaa41baa6 in r_cmd_call /root/libr/core/cmd_api.c:520:11
+    #12 0x7fdfaa104b37 in r_core_cmd_call /root/libr/core/cmd.c:6303:9
+    #13 0x7fdfa6c53e4b in perform_analysis /root/libr/main/radare2.c:499:2
+    #14 0x7fdfa6c4f73f in r_main_radare2 /root/libr/main/radare2.c:1723:4
+    #15 0x5600ed6b5878 in main /root/binr/radare2/radare2.c:114:9
+    #16 0x7fdfa6a0e1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7fdfa6a0e28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x5600ed6b4224 in _start (/root/bin/radare2+0x2224) (BuildId: 0f9ed4cc954b455d0dc1a498cbdedb07a6bb161e)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/shlr/java/code.c:211:21 in java_print_opcode
+Shadow bytes around the buggy address:
+  0x502000124100: fa fa 04 fa fa fa 04 fa fa fa 04 fa fa fa 00 00
+  0x502000124180: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 01
+  0x502000124200: fa fa 00 00 fa fa 00 01 fa fa 00 00 fa fa 00 01
+  0x502000124280: fa fa 00 00 fa fa 00 01 fa fa 00 00 fa fa 00 01
+  0x502000124300: fa fa 00 00 fa fa 00 00 fa fa 00 01 fa fa 04 fa
+=>0x502000124380: fa fa[02]fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000124400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000124480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000124500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000124580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000124600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1008802==ABORTING

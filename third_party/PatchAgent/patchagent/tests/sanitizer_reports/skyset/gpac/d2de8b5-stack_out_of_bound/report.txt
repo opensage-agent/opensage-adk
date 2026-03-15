@@ -1,0 +1,71 @@
+=================================================================
+==304417==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fd0ae9388e0 at pc 0x7fd0b30a53b4 bp 0x7ffe8156fc70 sp 0x7ffe8156f428
+WRITE of size 2048 at 0x7fd0ae9388e0 thread T0
+    #0 0x7fd0b30a53b3 in strcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xe03b3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fd0b251f5d0 in gf_text_get_utf8_line /root/src/filters/load_text.c:381:3
+    #2 0x7fd0b2529ed3 in txtin_process_srt /root/src/filters/load_text.c:996:12
+    #3 0x7fd0b2523ed2 in txtin_process /root/src/filters/load_text.c:4015:6
+    #4 0x7fd0b21bbc03 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #5 0x7fd0b218b164 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    #6 0x7fd0b2186f8b in gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    #7 0x7fd0b1a972cf in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #8 0x5612890141ce in do_dash /root/applications/mp4box/mp4box.c:4831:15
+    #9 0x561289008cc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #10 0x56128900f841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #11 0x7fd0b0caa1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7fd0b0caa28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x561288feee04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: a6317f7745829a36ec8912838998761ca7eff19b)
+
+Address 0x7fd0ae9388e0 is located in stack of thread T0 at offset 2272 in frame
+    #0 0x7fd0b252919f in txtin_process_srt /root/src/filters/load_text.c:949
+
+  This frame has 14 object(s):
+    [32, 36) 'sh' (line 950)
+    [48, 52) 'sm' (line 950)
+    [64, 68) 'ss' (line 950)
+    [80, 84) 'sms' (line 950)
+    [96, 100) 'eh' (line 950)
+    [112, 116) 'em' (line 950)
+    [128, 132) 'es' (line 950)
+    [144, 148) 'ems' (line 950)
+    [160, 164) 'char_len' (line 950)
+    [176, 180) 'set_start_char' (line 951)
+    [192, 196) 'set_end_char' (line 951)
+    [208, 212) 'line' (line 952)
+    [224, 2272) 'szLine' (line 953)
+    [2400, 2424) '.compoundliteral' <== Memory access at offset 2272 partially underflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /root/src/filters/load_text.c:381:3 in gf_text_get_utf8_line
+Shadow bytes around the buggy address:
+  0x7fd0ae938600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd0ae938680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd0ae938700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd0ae938780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd0ae938800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7fd0ae938880: 00 00 00 00 00 00 00 00 00 00 00 00[f2]f2 f2 f2
+  0x7fd0ae938900: f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 00 00 00 f3
+  0x7fd0ae938980: f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd0ae938a00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd0ae938a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fd0ae938b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==304417==ABORTING

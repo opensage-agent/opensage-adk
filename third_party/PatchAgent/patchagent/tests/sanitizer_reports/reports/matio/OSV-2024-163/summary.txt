@@ -1,0 +1,53 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 8 at 0x7fce79683628 thread T0
+    - H5S_extent_get_dims /src/hdf5/src/H5S.c:920:29
+    - H5S_get_simple_extent_dims /src/hdf5/src/H5S.c:962:22
+    - H5Sget_simple_extent_dims /src/hdf5/src/H5S.c:882:17
+    - Mat_H5ReadFieldNames /src/matio/src/mat73.c:635:11
+    - Mat_H5ReadGroupInfo /src/matio/src/mat73.c:903:15
+    - Mat_VarReadNextInfoIterate /src/matio/src/mat73.c:3240:19
+    - H5G__iterate_cb /src/hdf5/src/H5Gint.c:819:25
+    - H5G__node_iterate /src/hdf5/src/H5Gnode.c:937:25
+    - H5B__iterate_helper /src/hdf5/src/H5B.c:1086:25
+    - H5B_iterate /src/hdf5/src/H5B.c:1125:22
+    - H5G__stab_iterate /src/hdf5/src/H5Gstab.c:504:26
+    - H5G__obj_iterate /src/hdf5/src/H5Gobj.c:664:26
+    - H5G_iterate /src/hdf5/src/H5Gint.c:872:14
+    - H5L_iterate /src/hdf5/src/H5Lint.c:2148:22
+    - H5VL__native_link_specific /src/hdf5/src/H5VLnative_link.c:364:38
+    - H5VL__link_specific /src/hdf5/src/H5VLcallback.c:5283:22
+    - H5VL_link_specific /src/hdf5/src/H5VLcallback.c:5317:14
+    - H5L__iterate_api_common /src/hdf5/src/H5L.c:1611:22
+    - H5Literate2 /src/hdf5/src/H5L.c:1646:22
+    - Mat_VarReadNextInfo73 /src/matio/src/mat73.c:3162:12
+    - Mat_VarReadNextInfoPredicate /src/matio/src/mat.c:2590:22
+    - Mat_VarReadInfo /src/matio/src/mat.c:2637:22
+    - Mat_VarRead /src/matio/src/mat.c:2716:18
+    - MatioRead(char const*) /src/matio/ossfuzz/matio_wrap.h:49:18
+    - LLVMFuzzerTestOneInput /src/matio/ossfuzz/matio_fuzzer.cpp:30:12
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7fce79683628 is located in stack of thread T0 at offset 40 in frame
+    - Mat_H5ReadGroupInfo /src/matio/src/mat73.c:835:0
+
+  This frame has 7 object(s):
+    [32, 40) 'nfields' (line 837) <== Memory access at offset 40 overflows this variable
+    [64, 68) 'nrows' (line 852)
+    [80, 112) 'group_info' (line 909)
+    [144, 160) 'group_data' (line 914)
+    [176, 248) 'object_info' (line 937)
+    [288, 296) 'nelems_x_nfields' (line 1019)
+    [320, 392) 'object_info229' (line 1034)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

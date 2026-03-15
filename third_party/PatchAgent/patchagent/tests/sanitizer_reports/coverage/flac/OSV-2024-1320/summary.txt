@@ -1,0 +1,19 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - safe_realloc_nofree_mul_2op_ /src/flac/include/share/alloc.h:0:0
+    - process_page_ /src/flac/src/libFLAC/ogg_decoder_aspect.c:132:27
+    - FLAC__ogg_decoder_aspect_skip_link /src/flac/src/libFLAC/ogg_decoder_aspect.c:668:49
+    - seek_to_absolute_sample_ogg_ /src/flac/src/libFLAC/stream_decoder.c:3873:13
+    - FLAC__stream_decoder_seek_absolute /src/flac/src/libFLAC/stream_decoder.c:1332:4
+    - LLVMFuzzerTestOneInput /src/flac/oss-fuzz/seek.cc:184:21
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

@@ -1,0 +1,62 @@
+=================================================================
+==18==ERROR: AddressSanitizer: global-buffer-overflow on address 0x559c6add7c9f at pc 0x559c6a792d5e bp 0x7ffded0003a0 sp 0x7ffded000398
+READ of size 1 at 0x559c6add7c9f thread T0
+SCARINESS: 12 (1-byte-read-global-buffer-overflow)
+    #0 0x559c6a792d5d in llvm_ks::StringRef::find_last_not_of(llvm_ks::StringRef, unsigned long) const /src/keystone/llvm/lib/Support/StringRef.cpp:278:39
+    #1 0x559c6a6cb065 in llvm_ks::StringRef::rtrim(llvm_ks::StringRef) const /src/keystone/llvm/include/llvm/ADT/StringRef.h:554:50
+    #2 0x559c6a6cb065 in llvm_ks::StringRef::trim(llvm_ks::StringRef) const /src/keystone/llvm/include/llvm/ADT/StringRef.h:560:27
+    #3 0x559c6a6a7cc9 in (anonymous namespace)::AsmParser::parseDirectiveIfc(llvm_ks::SMLoc, bool) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp:5017:49
+    #4 0x559c6a6a08b9 in (anonymous namespace)::AsmParser::parseStatement((anonymous namespace)::ParseStatementInfo&, llvm_ks::MCAsmParserSemaCallback*, unsigned long&) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp
+    #5 0x559c6a69186e in (anonymous namespace)::AsmParser::Run(bool, unsigned long, bool) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp:712:10
+    #6 0x559c6a64581d in ks_asm /src/keystone/llvm/keystone/ks.cpp:691:27
+    #7 0x559c6a63f503 in LLVMFuzzerTestOneInput /src/keystone/suite/fuzz/fuzz_asm_hex.c:42:9
+    #8 0x559c6a4f3e60 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x559c6a4df0d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x559c6a4e4b6f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x559c6a50fe12 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f8caf4cc082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #13 0x559c6a4d72bd in _start (/out/fuzz_asm_hex+0x49e2bd)
+
+DEDUP_TOKEN: llvm_ks::StringRef::find_last_not_of(llvm_ks::StringRef, unsigned long) const--llvm_ks::StringRef::rtrim(llvm_ks::StringRef) const--llvm_ks::StringRef::trim(llvm_ks::StringRef) const
+0x559c6add7c9f is located 33 bytes before global variable '__PRETTY_FUNCTION__._ZN7llvm_ks15SmallVectorImplINS_8AsmTokenEE6insertEPS1_OS1_' defined in '/src/keystone/llvm/include/llvm/ADT/SmallVector.h:494' (0x559c6add7cc0) of size 101
+  '__PRETTY_FUNCTION__._ZN7llvm_ks15SmallVectorImplINS_8AsmTokenEE6insertEPS1_OS1_' is ascii string 'iterator llvm_ks::SmallVectorImpl<llvm_ks::AsmToken>::insert(iterator, T &&) [T = llvm_ks::AsmToken]'
+0x559c6add7c9f is located 1 bytes before global variable '.str.69' defined in '/src/keystone/llvm/lib/Target/Hexagon/AsmParser/HexagonAsmParser.cpp:1329' (0x559c6add7ca0) of size 2
+  '.str.69' is ascii string ','
+0x559c6add7c9f is located 22 bytes after global variable '.str.68' defined in '/src/keystone/llvm/lib/Target/Hexagon/AsmParser/HexagonAsmParser.cpp:1126' (0x559c6add7c80) of size 9
+  '.str.68' is ascii string 'sp3loop0'
+SUMMARY: AddressSanitizer: global-buffer-overflow /src/keystone/llvm/lib/Support/StringRef.cpp:278:39 in llvm_ks::StringRef::find_last_not_of(llvm_ks::StringRef, unsigned long) const
+Shadow bytes around the buggy address:
+  0x559c6add7a00: 00 00 00 00 02 f9 f9 f9 f9 f9 f9 f9 05 f9 f9 f9
+  0x559c6add7a80: 05 f9 f9 f9 02 f9 f9 f9 02 f9 f9 f9 03 f9 f9 f9
+  0x559c6add7b00: 02 f9 f9 f9 00 00 00 00 00 00 00 00 00 00 00 00
+  0x559c6add7b80: 00 00 00 00 00 00 00 00 05 f9 f9 f9 f9 f9 f9 f9
+  0x559c6add7c00: 06 f9 f9 f9 06 f9 f9 f9 00 01 f9 f9 00 01 f9 f9
+=>0x559c6add7c80: 00 01 f9[f9]02 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x559c6add7d00: 00 00 00 00 05 f9 f9 f9 f9 f9 f9 f9 03 f9 f9 f9
+  0x559c6add7d80: 00 00 00 00 00 06 f9 f9 f9 f9 f9 f9 02 f9 f9 f9
+  0x559c6add7e00: 05 f9 f9 f9 02 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x559c6add7e80: 00 00 00 00 00 00 00 00 00 00 00 03 f9 f9 f9 f9
+  0x559c6add7f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING
+MS: 0 ; base unit: 0000000000000000000000000000000000000000
+0x2e,0x23,0x23,0x23,0x23,0x23,0x23,0x23,0x27,0x23,0x2e,0x2e,0x69,0x46,0x63,0xc,0x46,0x80,0xff,0xee,0xff,0x10,0x2b,0x23,0x26,0x23,0x69,0x36,0xd,0x2e,0x77,0x6f,0x72,0x64,0x9,0x36,0x33,0x2b,0x2e,0x25,0x25,
+.#######'#..iFc\014F\200\377\356\377\020+#&#i6\015.word\01163+.%%

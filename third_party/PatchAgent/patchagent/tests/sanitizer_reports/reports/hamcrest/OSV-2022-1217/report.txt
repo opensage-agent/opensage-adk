@@ -1,0 +1,122 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/hamcrest:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/hamcrest/OSV-2022-1217/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce HamcrestFuzzer -runs=100.
++ FUZZER=HamcrestFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer HamcrestFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/HamcrestFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 265 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented HamcrestFuzzer (took 85 ms, size +8%)
+INFO: Instrumented org.w3c.dom.DOMException (took 2 ms, size +8%)
+INFO: Instrumented org.w3c.dom.Node (took 3 ms, size +0%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f9a62b71a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2529968660
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x5629ddddc650, 0x5629ddddc850), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x5629ddda6bb0,0x5629ddda8bb0), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.hamcrest.Matchers (took 46 ms, size +4%)
+INFO: Instrumented org.hamcrest.core.StringContains (took 2 ms, size +41%)
+INFO: Instrumented org.hamcrest.core.SubstringMatcher (took 3 ms, size +17%)
+INFO: Instrumented org.hamcrest.TypeSafeMatcher (took 4 ms, size +17%)
+INFO: Instrumented org.hamcrest.BaseMatcher (took 2 ms, size +8%)
+INFO: Instrumented org.hamcrest.Matcher (took 0 ms, size +0%)
+INFO: Instrumented org.hamcrest.SelfDescribing (took 0 ms, size +0%)
+INFO: Instrumented org.hamcrest.internal.ReflectiveTypeFinder (took 3 ms, size +40%)
+INFO: Instrumented org.hamcrest.Description (took 1 ms, size +7%)
+INFO: Instrumented org.hamcrest.MatcherAssert (took 2 ms, size +17%)
+INFO: Instrumented org.hamcrest.core.StringStartsWith (took 3 ms, size +40%)
+INFO: Instrumented org.hamcrest.core.AllOf (took 3 ms, size +11%)
+INFO: Instrumented org.hamcrest.DiagnosingMatcher (took 2 ms, size +11%)
+INFO: Instrumented org.hamcrest.Description$NullDescription (took 4 ms, size +6%)
+INFO: Instrumented org.hamcrest.core.Is (took 4 ms, size +6%)
+INFO: Instrumented org.hamcrest.core.IsEqual (took 6 ms, size +35%)
+INFO: Instrumented org.hamcrest.collection.IsMapWithSize (took 4 ms, size +6%)
+INFO: Instrumented org.hamcrest.FeatureMatcher (took 3 ms, size +12%)
+INFO: Instrumented org.hamcrest.TypeSafeDiagnosingMatcher (took 4 ms, size +16%)
+INFO: Instrumented org.hamcrest.StringDescription (took 3 ms, size +9%)
+INFO: Instrumented org.hamcrest.BaseDescription (took 6 ms, size +13%)
+INFO: Instrumented org.hamcrest.collection.IsCollectionWithSize (took 3 ms, size +6%)
+INFO: Instrumented HamcrestFuzzer$1 (took 1 ms, size +10%)
+INFO: Instrumented org.hamcrest.collection.IsEmptyCollection (took 2 ms, size +6%)
+INFO: Instrumented HamcrestFuzzer$2 (took 1 ms, size +10%)
+INFO: Instrumented HamcrestFuzzer$3 (took 1 ms, size +10%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.hamcrest.collection.IsEmptyIterable (took 3 ms, size +11%)
+INFO: Instrumented org.hamcrest.internal.SelfDescribingValueIterator (took 2 ms, size +9%)
+INFO: Instrumented org.hamcrest.internal.SelfDescribingValue (took 1 ms, size +10%)
+INFO: Instrumented HamcrestFuzzer$4 (took 1 ms, size +10%)
+INFO: Instrumented org.hamcrest.collection.IsIterableContainingInOrder (took 3 ms, size +7%)
+INFO: Instrumented org.hamcrest.internal.NullSafety (took 1 ms, size +19%)
+INFO: Instrumented org.hamcrest.collection.IsIterableContainingInOrder$MatchSeries (took 4 ms, size +12%)
+INFO: Instrumented org.hamcrest.collection.IsIterableContainingInAnyOrder (took 3 ms, size +9%)
+INFO: Instrumented org.hamcrest.collection.IsIterableContainingInAnyOrder$Matching (took 1 ms, size +13%)
+INFO: Instrumented org.hamcrest.collection.IsMapContaining (took 3 ms, size +8%)
+INFO: Instrumented org.hamcrest.core.IsAnything (took 1 ms, size +9%)
+INFO: Instrumented org.hamcrest.collection.IsIn (took 2 ms, size +6%)
+INFO: Instrumented org.hamcrest.number.IsCloseTo (took 2 ms, size +9%)
+INFO: Instrumented org.hamcrest.number.IsNaN (took 2 ms, size +9%)
+INFO: Instrumented org.hamcrest.number.OrderingComparison (took 2 ms, size +10%)
+INFO: Instrumented org.hamcrest.comparator.ComparatorMatcherBuilder (took 2 ms, size +6%)
+INFO: Instrumented org.hamcrest.comparator.ComparatorMatcherBuilder$1 (took 1 ms, size +10%)
+INFO: Instrumented org.hamcrest.comparator.ComparatorMatcherBuilder$ComparatorMatcher (took 2 ms, size +13%)
+INFO: Instrumented org.hamcrest.text.IsEqualIgnoringCase (took 2 ms, size +27%)
+INFO: Instrumented org.hamcrest.text.IsEmptyString (took 2 ms, size +33%)
+INFO: Instrumented org.hamcrest.core.IsNull (took 1 ms, size +9%)
+INFO: Instrumented org.hamcrest.core.AnyOf (took 2 ms, size +6%)
+INFO: Instrumented org.hamcrest.core.ShortcutCombination (took 2 ms, size +16%)
+INFO: Instrumented org.hamcrest.text.IsBlankString (took 3 ms, size +20%)
+INFO: Instrumented org.hamcrest.text.MatchesPattern (took 2 ms, size +18%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Regular Expression Injection
+Regular expression patterns that contain unescaped untrusted input can consume
+arbitrary amounts of CPU time. To properly escape the input, wrap it with
+Pattern.quote(...).
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:153)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.patternHook(RegexInjection.kt:76)
+	at org.hamcrest.text.MatchesPattern.matchesPattern(MatchesPattern.java:48)
+	at org.hamcrest.Matchers.matchesPattern(Matchers.java:1912)
+	at HamcrestFuzzer.runTest(HamcrestFuzzer.java:243)
+	at HamcrestFuzzer.fuzzerTestOneInput(HamcrestFuzzer.java:292)
+Caused by: java.util.regex.PatternSyntaxException: Unexpected internal error near index 1
+\
+	at java.base/java.util.regex.Pattern.error(Pattern.java:2028)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1789)
+	at java.base/java.util.regex.Pattern.<init>(Pattern.java:1430)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1069)
+	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:732)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:144)
+	... 5 more
+DEDUP_TOKEN: df6b5a8ce05b949b
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_2cd1d3836794c09355b10926b2190034fc9c5061.java
+

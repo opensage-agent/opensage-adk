@@ -1,0 +1,25 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- java.xml/com.sun.org.apache.xalan.internal.xsltc.trax.DOM2TO.parse (java/xml/com/sun/org/apache/xalan/internal/xsltc/trax/DOM2TO.java:229)
+Caused by: java.lang.StackOverflowError
+- java.base/java.lang.String.indexOf (java/base/java/lang/String.java:2418)
+- java.base/java.lang.String.indexOf (java/base/java/lang/String.java:2375)
+- java.xml/com.sun.org.apache.xerces.internal.dom.ElementNSImpl.setName (java/xml/com/sun/org/apache/xerces/internal/dom/ElementNSImpl.java:112)
+- java.xml/com.sun.org.apache.xerces.internal.dom.ElementNSImpl.<init> (java/xml/com/sun/org/apache/xerces/internal/dom/ElementNSImpl.java:84)
+- java.xml/com.sun.org.apache.xerces.internal.dom.CoreDocumentImpl.createElementNS (java/xml/com/sun/org/apache/xerces/internal/dom/CoreDocumentImpl.java:2097)
+- java.xml/com.sun.org.apache.xalan.internal.xsltc.trax.SAX2DOM.startElement (java/xml/com/sun/org/apache/xalan/internal/xsltc/trax/SAX2DOM.java:159)
+- java.xml/com.sun.org.apache.xml.internal.serializer.ToXMLSAXHandler.closeStartTag (java/xml/com/sun/org/apache/xml/internal/serializer/ToXMLSAXHandler.java:206)
+- java.xml/com.sun.org.apache.xml.internal.serializer.ToSAXHandler.flushPending (java/xml/com/sun/org/apache/xml/internal/serializer/ToSAXHandler.java:250)
+- java.xml/com.sun.org.apache.xml.internal.serializer.ToXMLSAXHandler.startElement (java/xml/com/sun/org/apache/xml/internal/serializer/ToXMLSAXHandler.java:648)
+- java.xml/com.sun.org.apache.xml.internal.serializer.ToXMLSAXHandler.startElement (java/xml/com/sun/org/apache/xml/internal/serializer/ToXMLSAXHandler.java:503)
+- java.xml/com.sun.org.apache.xalan.internal.xsltc.trax.DOM2TO.parse (java/xml/com/sun/org/apache/xalan/internal/xsltc/trax/DOM2TO.java:151)
+- java.xml/com.sun.org.apache.xalan.internal.xsltc.trax.DOM2TO.parse (java/xml/com/sun/org/apache/xalan/internal/xsltc/trax/DOM2TO.java:229)
+- java.xml/com.sun.org.apache.xalan.internal.xsltc.trax.DOM2TO.parse (java/xml/com/sun/org/apache/xalan/internal/xsltc/trax/DOM2TO.java:229)
+	... 1 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

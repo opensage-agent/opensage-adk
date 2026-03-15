@@ -1,0 +1,114 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libaom:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libaom/OSV-2022-663/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce av1_dec_fuzzer -runs=100.
++ FUZZER=av1_dec_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer av1_dec_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/av1_dec_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=av1_dec_fuzzer.dict < /dev/null
+Dictionary: 2 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1801807178
+INFO: Loaded 1 modules   (30573 inline 8-bit counters): 30573 [0x55c18cdbbf28, 0x55c18cdc3695), 
+INFO: Loaded 1 PC tables (30573 PCs): 30573 [0x55c18cdc3698,0x55c18ce3ad68), 
+/out/av1_dec_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5190000004b4 at pc 0x55c18c5fb247 bp 0x7ffcb7838870 sp 0x7ffcb7838868
+[1m[0m[1m[34mWRITE of size 1 at 0x5190000004b4 thread T0[1m[0m
+SCARINESS: 41 (1-byte-write-heap-buffer-overflow-far-from-bounds)
+    #0 0x55c18c5fb246 in intra_copy_frame_mvs /src/aom/av1/decoder/decodemv.c:1558:21
+    #1 0x55c18c5fb246 in av1_read_mode_info /src/aom/av1/decoder/decodemv.c:1575:7
+    #2 0x55c18c5eb565 in decode_mbmi_block /src/aom/av1/decoder/decodeframe.c:376:3
+    #3 0x55c18c5eb565 in parse_decode_block /src/aom/av1/decoder/decodeframe.c:1121:3
+    #4 0x55c18c5e791e in decode_partition /src/aom/av1/decoder/decodeframe.c
+    #5 0x55c18c5d896c in parse_tile_row_mt /src/aom/av1/decoder/decodeframe.c:3143:7
+    #6 0x55c18c5d896c in row_mt_worker_hook /src/aom/av1/decoder/decodeframe.c:3216:7
+    #7 0x55c18c88396f in execute /src/aom/aom_util/aom_thread.c:163:27
+    #8 0x55c18c5cdc32 in launch_dec_workers /src/aom/av1/decoder/decodeframe.c:3443:7
+    #9 0x55c18c5cdc32 in decode_tiles_row_mt /src/aom/av1/decoder/decodeframe.c:3819:3
+    #10 0x55c18c5cdc32 in av1_decode_tg_tiles_and_wrapup /src/aom/av1/decoder/decodeframe.c:5246:9
+    #11 0x55c18c63eff6 in read_one_tile_group_obu /src/aom/av1/decoder/obu.c:361:3
+    #12 0x55c18c63eff6 in aom_decode_frame_from_obus /src/aom/av1/decoder/obu.c:1030:33
+    #13 0x55c18c61b248 in av1_receive_compressed_data /src/aom/av1/decoder/decoder.c:469:7
+    #14 0x55c18c5af7ee in frame_worker_hook /src/aom/av1/av1_dx_iface.c:409:16
+    #15 0x55c18c88396f in execute /src/aom/aom_util/aom_thread.c:163:27
+    #16 0x55c18c5a03b1 in decode_one /src/aom/av1/av1_dx_iface.c:526:3
+    #17 0x55c18c5a03b1 in decoder_decode /src/aom/av1/av1_dx_iface.c:713:11
+    #18 0x55c18c59f184 in aom_codec_decode /src/aom/aom/src/aom_decoder.c:103:11
+    #19 0x55c18c59da70 in LLVMFuzzerTestOneInput /src/aom/examples/av1_dec_fuzzer.cc:56:9
+    #20 0x55c18c452310 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #21 0x55c18c43d585 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #22 0x55c18c44301f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #23 0x55c18c46e2c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #24 0x7f3503dbd082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #25 0x55c18c43576d in _start (/out/av1_dec_fuzzer+0x12176d)
+
+DEDUP_TOKEN: intra_copy_frame_mvs--av1_read_mode_info--decode_mbmi_block
+[1m[32m0x5190000004b4 is located 165 bytes after 911-byte region [0x519000000080,0x51900000040f)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55c18c55e0df in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55c18c882b04 in aom_memalign /src/aom/aom_mem/aom_mem.c:59:22
+    #2 0x55c18c882b04 in aom_malloc /src/aom/aom_mem/aom_mem.c:67:40
+    #3 0x55c18c882b04 in aom_calloc /src/aom/aom_mem/aom_mem.c:72:19
+    #4 0x55c18c5d35ea in ensure_mv_buffer /src/aom/av1/common/av1_common_int.h:1236:7
+    #5 0x55c18c5d35ea in resize_context_buffers /src/aom/av1/decoder/decodeframe.c:1918:3
+    #6 0x55c18c5d2ccf in setup_frame_size /src/aom/av1/decoder/decodeframe.c:1974:3
+    #7 0x55c18c5b9a32 in read_uncompressed_header /src/aom/av1/decoder/decodeframe.c:4801:5
+    #8 0x55c18c5b472e in av1_decode_frame_headers_and_setup /src/aom/av1/decoder/decodeframe.c:5160:3
+    #9 0x55c18c63b6c7 in read_frame_header_obu /src/aom/av1/decoder/obu.c:282:7
+    #10 0x55c18c63b6c7 in aom_decode_frame_from_obus /src/aom/av1/decoder/obu.c:966:31
+    #11 0x55c18c61b248 in av1_receive_compressed_data /src/aom/av1/decoder/decoder.c:469:7
+    #12 0x55c18c5af7ee in frame_worker_hook /src/aom/av1/av1_dx_iface.c:409:16
+    #13 0x55c18c88396f in execute /src/aom/aom_util/aom_thread.c:163:27
+    #14 0x55c18c5a03b1 in decode_one /src/aom/av1/av1_dx_iface.c:526:3
+    #15 0x55c18c5a03b1 in decoder_decode /src/aom/av1/av1_dx_iface.c:713:11
+    #16 0x55c18c59f184 in aom_codec_decode /src/aom/aom/src/aom_decoder.c:103:11
+    #17 0x55c18c59da70 in LLVMFuzzerTestOneInput /src/aom/examples/av1_dec_fuzzer.cc:56:9
+    #18 0x55c18c452310 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #19 0x55c18c43d585 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #20 0x55c18c44301f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #21 0x55c18c46e2c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f3503dbd082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--aom_memalign--aom_malloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/aom/av1/decoder/decodemv.c:1558:21 in intra_copy_frame_mvs
+Shadow bytes around the buggy address:
+  0x519000000200: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x519000000280: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x519000000300: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x519000000380: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x519000000400: [1m[0m00[1m[0m [1m[0m07[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+=>0x519000000480: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x519000000500: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x519000000580: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x519000000600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x519000000680: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x519000000700: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

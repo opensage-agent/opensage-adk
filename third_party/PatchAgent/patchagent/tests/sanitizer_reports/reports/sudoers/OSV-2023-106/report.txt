@@ -1,0 +1,47 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/sudoers:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/sudoers/OSV-2023-106/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_sudoers -runs=100.
++ FUZZER=fuzz_sudoers
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_sudoers -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_sudoers -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=fuzz_sudoers.dict < /dev/null
+Dictionary: 202 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 905375048
+INFO: Loaded 1 modules   (4129 inline 8-bit counters): 4129 [0x5651732d9f78, 0x5651732daf99), 
+INFO: Loaded 1 PC tables (4129 PCs): 4129 [0x5651732dafa0,0x5651732eb1b0), 
+/out/fuzz_sudoers: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x7f7f58ac523f (pc 0x5651732476fc bp 0x7ffe706b04c0 sp 0x7ffe706b0320 T0)
+[1m[0m==14==The signal is caused by a WRITE memory access.
+SCARINESS: 30 (wild-addr-write)
+    #0 0x5651732476fc in sudo_lbuf_append_quoted_v1 /src/sudo/lib/util/./lbuf.c:149:23
+    #1 0x5651731f9f5b in sudoers_format_member_int /src/sudo/plugins/sudoers/./fmtsudoers.c:128:7
+    #2 0x5651731f9947 in sudoers_format_member_int /src/sudo/plugins/sudoers/./fmtsudoers.c:107:4
+    #3 0x5651731f9947 in sudoers_format_member_int /src/sudo/plugins/sudoers/./fmtsudoers.c:107:4
+    #4 0x5651731f9677 in sudoers_format_member /src/sudo/plugins/sudoers/./fmtsudoers.c:142:12
+    #5 0x5651731fffec in display_priv_long /src/sudo/plugins/sudoers/./parse.c:641:4
+    #6 0x5651731fffec in sudo_display_userspecs /src/sudo/plugins/sudoers/./parse.c:751:16
+    #7 0x5651731fffec in display_privs /src/sudo/plugins/sudoers/./parse.c:957:10
+    #8 0x5651731f913f in LLVMFuzzerTestOneInput /src/sudo/plugins/sudoers/./regress/fuzz/fuzz_sudoers.c:371:6
+    #9 0x5651730ab520 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x565173096795 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x56517309c22f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x5651730c74d2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f7fdd0ef082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #14 0x56517308e97d in _start (/out/fuzz_sudoers+0x6c97d)
+
+DEDUP_TOKEN: sudo_lbuf_append_quoted_v1--sudoers_format_member_int--sudoers_format_member_int
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/sudo/lib/util/./lbuf.c:149:23 in sudo_lbuf_append_quoted_v1
+==14==ABORTING

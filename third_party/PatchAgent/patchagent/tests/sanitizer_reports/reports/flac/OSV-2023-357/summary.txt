@@ -1,0 +1,37 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 4 at 0x7ffdace0e4bc thread T0
+    - dump_stats /src/flac/src/flac/analyze.c:219:53
+    - flac__analyze_frame /src/flac/src/flac/analyze.c:159:10
+    - write_callback /src/flac/src/flac/decode.c:1231:4
+    - write_audio_frame_to_client_ /src/flac/src/libFLAC/stream_decoder.c:3206:12
+    - read_frame_ /src/flac/src/libFLAC/stream_decoder.c:2241:7
+    - FLAC__stream_decoder_process_single /src/flac/src/libFLAC/stream_decoder.c:1002:9
+    - seek_to_absolute_sample_ /src/flac/src/libFLAC/stream_decoder.c:3418:7
+    - FLAC__stream_decoder_seek_absolute /src/flac/src/libFLAC/stream_decoder.c:1165:4
+    - DecoderSession_process /src/flac/src/flac/decode.c:462:7
+    - flac__decode_file /src/flac/src/flac/decode.c:188:6
+    - decode_file /src/flac/src/flac/main.c:0:0
+    - do_it /src/flac/src/flac/main.c:524:15
+    - main_to_fuzz /src/flac/src/flac/main.c:349:13
+    - LLVMFuzzerTestOneInput /src/flac/oss-fuzz/tool_flac.c:81:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7ffdace0e4bc is located in stack of thread T0 at offset 1180 in frame
+    - flac__analyze_frame /src/flac/src/flac/analyze.c:66:0
+
+  This frame has 2 object(s):
+    [32, 1056) 'outfilename' (line 68)
+    [1184, 525520) 'stats' (line 69) <== Memory access at offset 1180 underflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

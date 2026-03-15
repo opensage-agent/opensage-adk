@@ -1,0 +1,51 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 5 at 0x7fe12c1b59d8 thread T0
+    - strcat /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:508:7
+    - TranslateNumber_1 /src/espeak-ng/src/libespeak-ng/numbers.c:2049:4
+    - TranslateNumber /src/espeak-ng/src/libespeak-ng/numbers.c:2080:10
+    - TranslateWord3 /src/espeak-ng/src/libespeak-ng/translate.c:711:12
+    - TranslateWord /src/espeak-ng/src/libespeak-ng/translate.c:1167:14
+    - TranslateWord2 /src/espeak-ng/src/libespeak-ng/translate.c:1418:11
+    - TranslateClause /src/espeak-ng/src/libespeak-ng/translate.c:2655:18
+    - SpeakNextClause /src/espeak-ng/src/libespeak-ng/synthesize.c:1566:2
+    - Synthesize /src/espeak-ng/src/libespeak-ng/speech.c:453:2
+    - espeak_Synth /src/espeak-ng/src/libespeak-ng/espeak_api.c:90:32
+    - LLVMFuzzerTestOneInput /src/espeak-ng/tests/ssml-fuzzer.c:64:8
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7fe12c1b59d8 is located in stack of thread T0 at offset 472 in frame
+    - TranslateWord3 /src/espeak-ng/src/libespeak-ng/translate.c:546:0
+
+  This frame has 19 object(s):
+    [32, 112) 'word_buf.i' (line 499)
+    [144, 152) 'word1' (line 549)
+    [176, 184) 'dictionary_flags' (line 555)
+    [208, 216) 'dictionary_flags2' (line 556)
+    [240, 248) 'wordx' (line 561)
+    [272, 472) 'phonemes' (line 562) <== Memory access at offset 472 overflows this variable
+    [544, 744) 'phonemes2' (line 563)
+    [816, 1016) 'prefix_phonemes' (line 564)
+    [1088, 1288) 'unpron_phonemes' (line 565)
+    [1360, 1560) 'end_phonemes' (line 566)
+    [1632, 1832) 'end_phonemes2' (line 567)
+    [1904, 2064) 'word_copy' (line 568)
+    [2128, 2288) 'word_copy2' (line 569)
+    [2352, 2417) 'prefix_chars' (line 571)
+    [2464, 2560) 'wtab_null' (line 586)
+    [2592, 2596) 'wc' (line 809)
+    [2608, 2808) 'end_phonemes2408' (line 830)
+    [2880, 2888) 'wordpf' (line 888)
+    [2912, 2924) 'prefix_phonemes2' (line 889)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

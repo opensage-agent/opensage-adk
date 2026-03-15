@@ -1,0 +1,90 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libvips:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce heifsave_buffer_fuzzer -runs=100.
++ FUZZER=heifsave_buffer_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer heifsave_buffer_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/heifsave_buffer_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1861620606
+/out/heifsave_buffer_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.424[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.424[0m: TIFF directory is missing required "StripByteCounts" field, calculating from imagelength
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.426[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.426[0m: TIFF directory is missing required "StripByteCounts" field, calculating from imagelength
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.426[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.426[0m: TIFF directory is missing required "StripByteCounts" field, calculating from imagelength
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.426[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.426[0m: TIFF directory is missing required "StripByteCounts" field, calculating from imagelength
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.426[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.426[0m: TIFF directory is missing required "StripByteCounts" field, calculating from imagelength
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.427[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.427[0m: TIFF directory is missing required "StripByteCounts" field, calculating from imagelength
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.427[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.427[0m: TIFF directory is missing required "StripByteCounts" field, calculating from imagelength
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.427[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:15:09.427[0m: TIFF directory is missing required "StripByteCounts" field, calculating from imagelength
+free(): invalid pointer
+==14== ERROR: libFuzzer: deadly signal
+    #0 0x558d935c6344 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x558d93545398 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x558d93528733 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7ff67ec8541f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7ff67ea7f00a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7ff67ea5e858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7ff67eac9265  (/lib/x86_64-linux-gnu/libc.so.6+0x8d265) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7ff67ead12fb  (/lib/x86_64-linux-gnu/libc.so.6+0x952fb) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x7ff67ead2b2b  (/lib/x86_64-linux-gnu/libc.so.6+0x96b2b) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x558d935d2755 in vips_tracked_aligned_free /src/libvips/build/../libvips/iofuncs/memory.c:297:2
+    #10 0x558d935e650a in vips_buffer_free /src/libvips/build/../libvips/iofuncs/buffer.c:204:2
+    #11 0x558d935e650a in vips_buffer_unref /src/libvips/build/../libvips/iofuncs/buffer.c:464:4
+    #12 0x558d935def7f in vips_region_dispose /src/libvips/build/../libvips/iofuncs/region.c:309:2
+    #13 0x558d938d6df2 in g_object_unref (/out/heifsave_buffer_fuzzer+0x461df2)
+    #14 0x558d935d236f in wbuffer_free /src/libvips/build/../libvips/iofuncs/sinkdisc.c:156:2
+    #15 0x558d935d1df9 in write_free /src/libvips/build/../libvips/iofuncs/sinkdisc.c:459:2
+    #16 0x558d935d1df9 in vips_sink_disc /src/libvips/build/../libvips/iofuncs/sinkdisc.c:536:2
+    #17 0x558d9363fb78 in vips_foreign_save_heif_build /src/libvips/build/../libvips/foreign/heifsave.c:722:6
+    #18 0x558d93640801 in vips_foreign_save_heif_target_build /src/libvips/build/../libvips/foreign/heifsave.c:996:6
+    #19 0x558d9370e192 in vips_object_build /src/libvips/build/../libvips/iofuncs/object.c:372:6
+    #20 0x558d93713861 in vips_cache_operation_buildp /src/libvips/build/../libvips/iofuncs/cache.c:834:7
+    #21 0x558d935d5d3b in vips_call_required_optional /src/libvips/build/../libvips/iofuncs/operation.c:977:6
+    #22 0x558d935d6871 in vips_call_by_name /src/libvips/build/../libvips/iofuncs/operation.c:1017:11
+    #23 0x558d935d69d0 in vips_call_split_option_string /src/libvips/build/../libvips/iofuncs/operation.c:1138:11
+    #24 0x558d935cb52b in vips_image_write_to_buffer /src/libvips/build/../libvips/iofuncs/image.c:2776:12
+    #25 0x558d935c77c2 in LLVMFuzzerTestOneInput /src/libvips/build/../fuzz/generic_buffer_fuzzer.cc:56:6
+    #26 0x558d93529c40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #27 0x558d93514eb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #28 0x558d9351a94f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #29 0x558d93545bf2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #30 0x7ff67ea60082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #31 0x558d9350d09d in _start (/out/heifsave_buffer_fuzzer+0x9809d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

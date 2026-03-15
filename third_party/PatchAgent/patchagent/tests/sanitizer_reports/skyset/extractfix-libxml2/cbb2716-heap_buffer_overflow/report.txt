@@ -1,0 +1,69 @@
+=================================================================
+==792811==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52900000926c at pc 0x558a6d7d04e8 bp 0x7ffda02b7210 sp 0x7ffda02b7208
+READ of size 1 at 0x52900000926c thread T0
+    #0 0x558a6d7d04e7 in xmlParseEndTag2 /root/parser.c:9837:13
+    #1 0x558a6d7c7ce4 in xmlParseElement /root/parser.c:10247:2
+    #2 0x558a6d7da79a in xmlParseDocument /root/parser.c:10921:2
+    #3 0x558a6d7fce39 in xmlDoRead /root/parser.c:15400:5
+    #4 0x558a6d7fd05d in xmlReadFile /root/parser.c:15462:13
+    #5 0x558a6d72248a in parseAndPrintFile /root/xmllint.c:2408:9
+    #6 0x558a6d71db70 in main /root/xmllint.c:3767:7
+    #7 0x7f11282301c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #8 0x7f112823028a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #9 0x558a6d717824 in _start (/root/xmllint+0x6a824) (BuildId: 29be0f763ba94a4effcdf422645d16026a1db8bf)
+
+0x52900000926c is located 104 bytes after 16388-byte region [0x529000005200,0x529000009204)
+allocated by thread T0 here:
+    #0 0x7f11286827a9 in realloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:85:3
+    #1 0x558a6d9b7c10 in xmlBufGrowInternal /root/buf.c:486:23
+    #2 0x558a6d9b71a0 in xmlBufGrow /root/buf.c:515:11
+    #3 0x558a6d855eb1 in xmlParserInputBufferGrow /root/xmlIO.c:3326:9
+    #4 0x558a6d74b933 in xmlParserInputGrow /root/parserInternals.c:320:8
+    #5 0x558a6d761a2f in xmlGROW /root/parser.c:2083:5
+    #6 0x558a6d80418e in xmlParseNCNameComplex /root/parser.c:3501:6
+    #7 0x558a6d803b4a in xmlParseNCName /root/parser.c:3593:12
+    #8 0x558a6d8019b7 in xmlParseQName /root/parser.c:8868:9
+    #9 0x558a6d7c9178 in xmlParseStartTag2 /root/parser.c:9390:17
+    #10 0x558a6d7c5d17 in xmlParseElement /root/parser.c:10138:16
+    #11 0x558a6d7da79a in xmlParseDocument /root/parser.c:10921:2
+    #12 0x558a6d7fce39 in xmlDoRead /root/parser.c:15400:5
+    #13 0x558a6d7fd05d in xmlReadFile /root/parser.c:15462:13
+    #14 0x558a6d72248a in parseAndPrintFile /root/xmllint.c:2408:9
+    #15 0x558a6d71db70 in main /root/xmllint.c:3767:7
+    #16 0x7f11282301c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #17 0x7f112823028a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #18 0x558a6d717824 in _start (/root/xmllint+0x6a824) (BuildId: 29be0f763ba94a4effcdf422645d16026a1db8bf)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/parser.c:9837:13 in xmlParseEndTag2
+Shadow bytes around the buggy address:
+  0x529000008f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000009000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000009080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000009100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000009180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x529000009200: 04 fa fa fa fa fa fa fa fa fa fa fa fa[fa]fa fa
+  0x529000009280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000009300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000009380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000009400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000009480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==792811==ABORTING

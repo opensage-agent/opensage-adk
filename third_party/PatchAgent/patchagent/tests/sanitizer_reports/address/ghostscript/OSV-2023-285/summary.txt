@@ -1,0 +1,48 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 4 at 0x7fa1a895d644 thread T0
+    - fn_ElIn_evaluate /src/ghostpdl/base/gsfunc3.c:121:16
+    - pdfi_set_blackgeneration /src/ghostpdl/pdf/pdf_gstate.c:607:24
+    - GS_BG /src/ghostpdl/pdf/pdf_gstate.c:644:12
+    - pdfi_set_ExtGState /src/ghostpdl/pdf/pdf_gstate.c:2231:20
+    - pdfi_setgstate /src/ghostpdl/pdf/pdf_gstate.c:2271:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1499:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2084:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:127:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:152:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:895:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:1074:24
+    - interp /src/ghostpdl/psi/interp.c:1725:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:522:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:479:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    - LLVMFuzzerTestOneInput /src/gstoraster_pdf_fuzzer.cc:35:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7fa1a895d644 is located in stack of thread T0 at offset 68 in frame
+    - pdfi_set_blackgeneration /src/ghostpdl/pdf/pdf_gstate.c:580:0
+
+  This frame has 3 object(s):
+    [32, 40) 'pfn' (line 582)
+    [64, 68) 'v' (line 603) <== Memory access at offset 68 overflows this variable
+    [80, 84) 'f' (line 603)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,98 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 289 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.CommonsTextFuzzer (took 17 ms, size +10%)
+INFO: using inputs from: CommonsTextFuzzer/crash-d5bf38f9a08e33c79cb20e480301b7b6722a150d
+INFO: found LLVMFuzzerCustomMutator (0x7f0fa9c4ea00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3183647238
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x556f2d0d24c0, 0x556f2d0d26c0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x556f2d045be0,0x556f2d047be0), 
+jazzer: Running 1 inputs 1 time(s) each.
+Running: CommonsTextFuzzer/crash-d5bf38f9a08e33c79cb20e480301b7b6722a150d
+INFO: Instrumented org.apache.commons.text.StringSubstitutor (took 17 ms, size +9%)
+INFO: Instrumented org.apache.commons.text.matcher.StringMatcherFactory (took 3 ms, size +13%)
+INFO: Instrumented org.apache.commons.text.matcher.StringMatcher (took 1 ms, size +8%)
+INFO: Instrumented org.apache.commons.text.matcher.AbstractStringMatcher$CharMatcher (took 1 ms, size +20%)
+INFO: Instrumented org.apache.commons.text.matcher.AbstractStringMatcher (took 0 ms, size +9%)
+INFO: Instrumented org.apache.commons.text.matcher.AbstractStringMatcher$NoneMatcher (took 0 ms, size +13%)
+INFO: Instrumented org.apache.commons.text.matcher.AbstractStringMatcher$CharSetMatcher (took 1 ms, size +19%)
+INFO: Instrumented org.apache.commons.text.matcher.AbstractStringMatcher$TrimMatcher (took 0 ms, size +25%)
+INFO: New number of coverage counters: 1024
+INFO: New number of coverage counters: 2048
+INFO: Instrumented org.apache.commons.lang3.StringUtils (took 46 ms, size +34%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented org.apache.commons.lang3.ArrayUtils (took 36 ms, size +28%)
+INFO: Instrumented org.apache.commons.text.matcher.AbstractStringMatcher$CharArrayMatcher (took 1 ms, size +20%)
+INFO: Instrumented org.apache.commons.text.lookup.StringLookupFactory (took 2 ms, size +5%)
+INFO: Instrumented org.apache.commons.text.lookup.StringLookup (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.text.lookup.BiStringLookup (took 0 ms, size +10%)
+INFO: Instrumented org.apache.commons.text.lookup.FunctionStringLookup (took 0 ms, size +4%)
+INFO: Instrumented org.apache.commons.text.lookup.AbstractStringLookup (took 0 ms, size +8%)
+INFO: Instrumented org.apache.commons.text.lookup.InterpolatorStringLookup (took 1 ms, size +22%)
+INFO: Instrumented org.apache.commons.text.lookup.DefaultStringLookup (took 0 ms, size +6%)
+INFO: Instrumented org.apache.commons.text.lookup.ConstantStringLookup (took 0 ms, size +35%)
+INFO: Instrumented org.apache.commons.text.lookup.DateStringLookup (took 0 ms, size +10%)
+INFO: Instrumented org.apache.commons.text.lookup.DnsStringLookup (took 0 ms, size +79%)
+INFO: Instrumented org.apache.commons.text.lookup.FileStringLookup (took 0 ms, size +26%)
+INFO: Instrumented org.apache.commons.text.lookup.JavaPlatformStringLookup (took 1 ms, size +46%)
+INFO: Instrumented org.apache.commons.text.lookup.LocalHostStringLookup (took 0 ms, size +91%)
+INFO: Instrumented org.apache.commons.text.lookup.PropertiesStringLookup (took 0 ms, size +23%)
+INFO: Instrumented org.apache.commons.text.lookup.ResourceBundleStringLookup (took 0 ms, size +17%)
+INFO: Instrumented org.apache.commons.text.lookup.ScriptStringLookup (took 0 ms, size +22%)
+INFO: New number of coverage counters: 8192
+INFO: Instrumented org.apache.commons.text.lookup.UrlStringLookup (took 0 ms, size +13%)
+INFO: Instrumented org.apache.commons.text.lookup.UrlDecoderStringLookup (took 0 ms, size +9%)
+INFO: Instrumented org.apache.commons.text.lookup.UrlEncoderStringLookup (took 0 ms, size +9%)
+INFO: Instrumented org.apache.commons.text.lookup.XmlStringLookup (took 0 ms, size +34%)
+INFO: Instrumented org.apache.commons.lang3.Validate (took 4 ms, size +14%)
+INFO: Instrumented org.apache.commons.text.TextStringBuilder (took 18 ms, size +23%)
+INFO: Instrumented org.apache.commons.text.Builder (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.text.TextStringBuilder$TextStringBuilderWriter (took 0 ms, size +8%)
+INFO: Instrumented org.apache.commons.text.TextStringBuilder$TextStringBuilderReader (took 0 ms, size +32%)
+INFO: Instrumented org.apache.commons.text.StringTokenizer (took 5 ms, size +14%)
+INFO: Instrumented org.apache.commons.text.TextStringBuilder$TextStringBuilderTokenizer (took 0 ms, size +11%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueMedium: Server Side Request Forgery (SSRF)
+Attempted connection to: o:21
+Requests to destinations based on untrusted data could lead to exfiltration of sensitive data or exposure of internal services.
+
+If the fuzz test is expected to perform network connections, call com.code_intelligence.jazzer.api.BugDetectors#allowNetworkConnections at the beginning of your fuzz test and optionally provide a predicate matching the expected hosts.
+	at com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrf(ServerSideRequestForgery.java:127)
+	at com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrfSocket(ServerSideRequestForgery.java:71)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at java.base/sun.net.ftp.impl.FtpClient.doConnect(FtpClient.java:1045)
+	at java.base/sun.net.ftp.impl.FtpClient.tryConnect(FtpClient.java:1010)
+	at java.base/sun.net.ftp.impl.FtpClient.connect(FtpClient.java:1102)
+	at java.base/sun.net.ftp.impl.FtpClient.connect(FtpClient.java:1088)
+	at java.base/sun.net.www.protocol.ftp.FtpURLConnection.connect(FtpURLConnection.java:314)
+	at java.base/sun.net.www.protocol.ftp.FtpURLConnection.getInputStream(FtpURLConnection.java:420)
+	at java.base/java.net.URL.openStream(URL.java:1325)
+	at org.apache.commons.text.lookup.UrlStringLookup.lookup(UrlStringLookup.java:79)
+	at org.apache.commons.text.lookup.InterpolatorStringLookup.lookup(InterpolatorStringLookup.java:135)
+	at org.apache.commons.text.StringSubstitutor.resolveVariable(StringSubstitutor.java:1067)
+	at org.apache.commons.text.StringSubstitutor.substitute(StringSubstitutor.java:1433)
+	at org.apache.commons.text.StringSubstitutor.substitute(StringSubstitutor.java:1308)
+	at org.apache.commons.text.StringSubstitutor.replace(StringSubstitutor.java:816)
+	at com.example.CommonsTextFuzzer.fuzzerTestOneInput(CommonsTextFuzzer.java:25)
+DEDUP_TOKEN: 130837905519c6c5
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_d5bf38f9a08e33c79cb20e480301b7b6722a150d.java
+

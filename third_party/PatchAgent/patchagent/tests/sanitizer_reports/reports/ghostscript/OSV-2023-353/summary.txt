@@ -1,0 +1,53 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 1 at 0x7fa5d6490861 thread T0
+    - pdfi_read_cff_real /src/ghostpdl/pdf/pdf_font1C.c:744:10
+    - pdfi_read_cff_dict /src/ghostpdl/pdf/pdf_font1C.c:1136:21
+    - pdfi_read_cff_dict /src/ghostpdl/pdf/pdf_font1C.c:1179:20
+    - pdfi_read_cff /src/ghostpdl/pdf/pdf_font1C.c:1687:12
+    - pdfi_read_cff_font /src/ghostpdl/pdf/pdf_font1C.c:2292:16
+    - pdfi_load_font_buffer /src/ghostpdl/pdf/pdf_font.c:624:24
+    - pdfi_load_font /src/ghostpdl/pdf/pdf_font.c:954:24
+    - pdfi_read_type0_font /src/ghostpdl/pdf/pdf_font0.c:299:16
+    - pdfi_load_font /src/ghostpdl/pdf/pdf_font.c:882:20
+    - pdfi_load_dict_font /src/ghostpdl/pdf/pdf_font.c:1036:20
+    - pdfi_load_resource_font /src/ghostpdl/pdf/pdf_font.c:1078:12
+    - pdfi_Tf /src/ghostpdl/pdf/pdf_font.c:1437:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1637:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2124:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:127:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:149:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:1024:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:1157:24
+    - interp /src/ghostpdl/psi/interp.c:1725:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:522:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:479:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_ps2write_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7fa5d6490861 is located in stack of thread T0 at offset 97 in frame
+    - pdfi_read_cff_dict /src/ghostpdl/pdf/pdf_font1C.c:807:0
+
+  This frame has 2 object(s):
+    [32, 97) 'buf.i' (line 691) <== Memory access at offset 97 overflows this variable
+    [144, 528) 'args' (line 809)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

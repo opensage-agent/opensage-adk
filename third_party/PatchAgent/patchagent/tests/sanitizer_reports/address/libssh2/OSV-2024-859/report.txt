@@ -1,0 +1,101 @@
+
+=================================================================
+==14==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 1630 byte(s) in 1 object(s) allocated from:
+    #0 0x5594d09c073f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5594d0a012d0 in libssh2_default_alloc /src/libssh2/src/session.c:77:12
+    #2 0x5594d0a4c45d in kexinit /src/libssh2/src/kex.c:3396:20
+    #3 0x5594d0a4a73e in _libssh2_kex_exchange /src/libssh2/src/kex.c:4092:23
+    #4 0x5594d0a02f74 in session_startup /src/libssh2/src/session.c:787:14
+    #5 0x5594d0a025ad in libssh2_session_handshake /src/libssh2/src/session.c:878:5
+    #6 0x5594d09fff7a in LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:71:6
+    #7 0x5594d08b4970 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5594d089fbe5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5594d08a567f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5594d08d0922 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f193d945082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--libssh2_default_alloc--kexinit
+Direct leak of 136 byte(s) in 4 object(s) allocated from:
+    #0 0x5594d09c073f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7f193de65c0d in CRYPTO_zalloc (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x17bc0d) (BuildId: ff0ff411aa0eb5de40716e6cb22752f4687818fd)
+    #2 0x5594d0a7bba6 in kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:1077:11
+    #3 0x5594d0a4b5e9 in _libssh2_kex_exchange /src/libssh2/src/kex.c:4153:23
+    #4 0x5594d0a02f74 in session_startup /src/libssh2/src/session.c:787:14
+    #5 0x5594d0a025ad in libssh2_session_handshake /src/libssh2/src/session.c:878:5
+    #6 0x5594d09fff7a in LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:71:6
+    #7 0x5594d08b4970 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5594d089fbe5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5594d08a567f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5594d08d0922 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f193d945082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--CRYPTO_zalloc--kex_method_diffie_hellman_group1_sha1_key_exchange
+Direct leak of 134 byte(s) in 1 object(s) allocated from:
+    #0 0x5594d09c073f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5594d0a012d0 in libssh2_default_alloc /src/libssh2/src/session.c:77:12
+    #2 0x5594d0a704dc in diffie_hellman_sha_algo /src/libssh2/src/kex.c:363:13
+    #3 0x5594d0a7bba6 in kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:1077:11
+    #4 0x5594d0a4b5e9 in _libssh2_kex_exchange /src/libssh2/src/kex.c:4153:23
+    #5 0x5594d0a02f74 in session_startup /src/libssh2/src/session.c:787:14
+    #6 0x5594d0a025ad in libssh2_session_handshake /src/libssh2/src/session.c:878:5
+    #7 0x5594d09fff7a in LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:71:6
+    #8 0x5594d08b4970 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x5594d089fbe5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x5594d08a567f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x5594d08d0922 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f193d945082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--libssh2_default_alloc--diffie_hellman_sha_algo
+Direct leak of 48 byte(s) in 2 object(s) allocated from:
+    #0 0x5594d09c073f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7f193de65c0d in CRYPTO_zalloc (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x17bc0d) (BuildId: ff0ff411aa0eb5de40716e6cb22752f4687818fd)
+    #2 0x5594d0a4b5e9 in _libssh2_kex_exchange /src/libssh2/src/kex.c:4153:23
+    #3 0x5594d0a02f74 in session_startup /src/libssh2/src/session.c:787:14
+    #4 0x5594d0a025ad in libssh2_session_handshake /src/libssh2/src/session.c:878:5
+    #5 0x5594d09fff7a in LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:71:6
+    #6 0x5594d08b4970 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x5594d089fbe5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x5594d08a567f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x5594d08d0922 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f193d945082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--CRYPTO_zalloc--_libssh2_kex_exchange
+Direct leak of 24 byte(s) in 1 object(s) allocated from:
+    #0 0x5594d09c073f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7f193de65c0d in CRYPTO_zalloc (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x17bc0d) (BuildId: ff0ff411aa0eb5de40716e6cb22752f4687818fd)
+    #2 0x5594d0a7002f in diffie_hellman_sha_algo /src/libssh2/src/kex.c:328:9
+    #3 0x5594d0a7bba6 in kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:1077:11
+    #4 0x5594d0a4b5e9 in _libssh2_kex_exchange /src/libssh2/src/kex.c:4153:23
+    #5 0x5594d0a02f74 in session_startup /src/libssh2/src/session.c:787:14
+    #6 0x5594d0a025ad in libssh2_session_handshake /src/libssh2/src/session.c:878:5
+    #7 0x5594d09fff7a in LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:71:6
+    #8 0x5594d08b4970 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x5594d089fbe5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x5594d08a567f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x5594d08d0922 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f193d945082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--CRYPTO_zalloc--diffie_hellman_sha_algo
+Indirect leak of 1704 byte(s) in 18 object(s) allocated from:
+    #0 0x5594d09c073f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7f193de65c0d in CRYPTO_zalloc (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x17bc0d) (BuildId: ff0ff411aa0eb5de40716e6cb22752f4687818fd)
+
+DEDUP_TOKEN: __interceptor_malloc--CRYPTO_zalloc
+Indirect leak of 400 byte(s) in 1 object(s) allocated from:
+    #0 0x5594d09c073f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7f193dd9d5d9 in BN_CTX_get (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0xb35d9) (BuildId: ff0ff411aa0eb5de40716e6cb22752f4687818fd)
+
+DEDUP_TOKEN: __interceptor_malloc--BN_CTX_get
+Indirect leak of 128 byte(s) in 1 object(s) allocated from:
+    #0 0x5594d09c073f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7f193dd9d3bf in BN_CTX_start (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0xb33bf) (BuildId: ff0ff411aa0eb5de40716e6cb22752f4687818fd)
+
+DEDUP_TOKEN: __interceptor_malloc--BN_CTX_start
+SUMMARY: AddressSanitizer: 4204 byte(s) leaked in 29 allocation(s).
+
+INFO: a leak has been found in the initial corpus.
+
+INFO: to ignore leaks on libFuzzer side use -detect_leaks=0.
+

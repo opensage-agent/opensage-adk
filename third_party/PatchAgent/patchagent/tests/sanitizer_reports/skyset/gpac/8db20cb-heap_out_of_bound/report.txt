@@ -1,0 +1,77 @@
+=================================================================
+==638778==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000001740 at pc 0x7f4133c44270 bp 0x7fffa1bb5120 sp 0x7fffa1bb5118
+READ of size 8 at 0x502000001740 thread T0
+    #0 0x7f4133c4426f in gf_isom_box_size /root/src/isomedia/box_funcs.c:1997:9
+    #1 0x7f4133cb52f6 in gf_isom_is_identical_sgpd /root/src/isomedia/isom_read.c:5865:3
+    #2 0x7f4133ddae3f in MergeTrack /root/src/isomedia/track.c:913:11
+    #3 0x7f4133c65c00 in MergeFragment /root/src/isomedia/isom_intern.c:92:7
+    #4 0x7f4133c6ccaf in gf_isom_parse_movie_boxes_internal /root/src/isomedia/isom_intern.c:722:9
+    #5 0x7f4133c67b06 in gf_isom_parse_movie_boxes /root/src/isomedia/isom_intern.c:868:6
+    #6 0x7f4133c6ebde in gf_isom_open_file /root/src/isomedia/isom_intern.c:988:19
+    #7 0x7f4133c7af23 in gf_isom_open /root/src/isomedia/isom_read.c:509:11
+    #8 0x5653a7735f8e in mp4box_main /root/applications/mp4box/mp4box.c:6221:12
+    #9 0x5653a773c501 in main /root/applications/mp4box/mp4box.c:6846:1
+    #10 0x7f41330e21c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f41330e228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x5653a771bd14 in _start (/root/bin/gcc/MP4Box+0x48d14) (BuildId: 08e35b2b70d96d565dda967082b067e72616ef71)
+
+0x502000001740 is located 0 bytes after 16-byte region [0x502000001730,0x502000001740)
+allocated by thread T0 here:
+    #0 0x7f41354147a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f41335ca774 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7f4133bbce11 in sgpd_parse_entry /root/src/isomedia/box_code_base.c:9994:2
+    #3 0x7f4133bb9e0a in sgpd_box_read /root/src/isomedia/box_code_base.c:10259:9
+    #4 0x7f4133c42d86 in gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    #5 0x7f4133c41507 in gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    #6 0x7f4133c44c89 in gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    #7 0x7f4133b99594 in traf_box_read /root/src/isomedia/box_code_base.c:6363:13
+    #8 0x7f4133c42d86 in gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    #9 0x7f4133c41507 in gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    #10 0x7f4133c44c89 in gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    #11 0x7f4133b76e1c in moof_box_read /root/src/isomedia/box_code_base.c:3676:9
+    #12 0x7f4133c42d86 in gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    #13 0x7f4133c41507 in gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    #14 0x7f4133c3fdd4 in gf_isom_parse_root_box /root/src/isomedia/box_funcs.c:38:8
+    #15 0x7f4133c68162 in gf_isom_parse_movie_boxes_internal /root/src/isomedia/isom_intern.c:378:7
+    #16 0x7f4133c67b06 in gf_isom_parse_movie_boxes /root/src/isomedia/isom_intern.c:868:6
+    #17 0x7f4133c6ebde in gf_isom_open_file /root/src/isomedia/isom_intern.c:988:19
+    #18 0x7f4133c7af23 in gf_isom_open /root/src/isomedia/isom_read.c:509:11
+    #19 0x5653a7735f8e in mp4box_main /root/applications/mp4box/mp4box.c:6221:12
+    #20 0x5653a773c501 in main /root/applications/mp4box/mp4box.c:6846:1
+    #21 0x7f41330e21c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #22 0x7f41330e228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #23 0x5653a771bd14 in _start (/root/bin/gcc/MP4Box+0x48d14) (BuildId: 08e35b2b70d96d565dda967082b067e72616ef71)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/isomedia/box_funcs.c:1997:9 in gf_isom_box_size
+Shadow bytes around the buggy address:
+  0x502000001480: fa fa 00 00 fa fa 01 fa fa fa 00 00 fa fa 01 fa
+  0x502000001500: fa fa 00 00 fa fa 01 fa fa fa 00 00 fa fa 00 00
+  0x502000001580: fa fa 00 00 fa fa 00 00 fa fa 07 fa fa fa 00 00
+  0x502000001600: fa fa 00 00 fa fa 00 fa fa fa 00 00 fa fa 00 00
+  0x502000001680: fa fa 00 00 fa fa 00 fa fa fa 01 fa fa fa 00 00
+=>0x502000001700: fa fa 00 00 fa fa 00 00[fa]fa 01 fa fa fa 00 00
+  0x502000001780: fa fa 01 fa fa fa 00 00 fa fa 01 fa fa fa 00 00
+  0x502000001800: fa fa 01 fa fa fa 00 00 fa fa 01 fa fa fa 00 00
+  0x502000001880: fa fa 01 fa fa fa 00 00 fa fa 01 fa fa fa 00 00
+  0x502000001900: fa fa 01 fa fa fa 00 00 fa fa 01 fa fa fa 00 00
+  0x502000001980: fa fa 01 fa fa fa 00 00 fa fa 01 fa fa fa 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==638778==ABORTING

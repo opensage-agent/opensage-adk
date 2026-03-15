@@ -1,0 +1,76 @@
+<memstream>: (EXR_ERR_INVALID_ATTR) attribute 'type': Mismatch between file flags and type string 'deeptile', believing file flags
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51d000000880 at pc 0x55caff460b34 bp 0x7ffe2e476150 sp 0x7ffe2e475910
+WRITE of size 2 at 0x51d000000880 thread T0
+SCARINESS: 33 (2-byte-write-heap-buffer-overflow)
+    #0 0x55caff460b33 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x55caff6fd04e in unpack_16bit_4chan_planar /src/openexr/src/lib/OpenEXRCore/unpack.c:769:9
+    #2 0x55caff6ecbf9 in exr_decoding_run /src/openexr/src/lib/OpenEXRCore/decoding.c:682:14
+    #3 0x55caff4a6b85 in readCoreTiledPart /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1397:30
+    #4 0x55caff4a6b85 in Imf_2_5::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1446:18
+    #5 0x55caff4a40ce in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1538:15
+    #6 0x55caff4a40ce in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    #7 0x55caff4a229f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #8 0x55caff356de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55caff342055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55caff347aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55caff372d92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7fafa3327082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #13 0x55caff33a23d in _start (/out/openexr_exrcheck_fuzzer+0x16523d)
+
+DEDUP_TOKEN: __asan_memcpy--unpack_16bit_4chan_planar--exr_decoding_run
+0x51d000000880 is located 0 bytes after 2048-byte region [0x51d000000080,0x51d000000880)
+allocated by thread T0 here:
+    #0 0x55caff49ff7d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x55caff4a622b in __libcpp_operator_new<unsigned long> /usr/local/bin/../include/c++/v1/new:271:10
+    #2 0x55caff4a622b in __libcpp_allocate /usr/local/bin/../include/c++/v1/new:295:10
+    #3 0x55caff4a622b in allocate /usr/local/bin/../include/c++/v1/__memory/allocator.h:125:32
+    #4 0x55caff4a622b in __allocate_at_least<std::__1::allocator<unsigned char> > /usr/local/bin/../include/c++/v1/__memory/allocate_at_least.h:55:19
+    #5 0x55caff4a622b in __split_buffer /usr/local/bin/../include/c++/v1/__split_buffer:343:25
+    #6 0x55caff4a622b in __append /usr/local/bin/../include/c++/v1/vector:1095:49
+    #7 0x55caff4a622b in resize /usr/local/bin/../include/c++/v1/vector:1750:11
+    #8 0x55caff4a622b in readCoreTiledPart /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1363:38
+    #9 0x55caff4a622b in Imf_2_5::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1446:18
+    #10 0x55caff4a40ce in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1538:15
+    #11 0x55caff4a40ce in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    #12 0x55caff4a229f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #13 0x55caff356de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x55caff342055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x55caff347aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x55caff372d92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7fafa3327082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new(unsigned long)--__libcpp_operator_new<unsigned long>--__libcpp_allocate
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/openexr/src/lib/OpenEXRCore/unpack.c:769:9 in unpack_16bit_4chan_planar
+Shadow bytes around the buggy address:
+  0x51d000000600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000000680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000000700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000000780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000000800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51d000000880:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000000900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000000980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000000a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000000a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000000b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

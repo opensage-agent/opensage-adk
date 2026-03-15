@@ -1,0 +1,75 @@
+=================================================================
+==360345==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50600000017b at pc 0x562fb9479099 bp 0x7ffd8f16cdd0 sp 0x7ffd8f16cdc8
+READ of size 8 at 0x50600000017b thread T0
+    #0 0x562fb9479098 in fasthuf_decode /root/src/lib/OpenEXRCore/internal_huf.c:1474:34
+    #1 0x562fb9476c38 in internal_huf_decompress /root/src/lib/OpenEXRCore/internal_huf.c:1803:18
+    #2 0x562fb94720af in internal_exr_undo_piz /root/src/lib/OpenEXRCore/internal_piz.c:624:14
+    #3 0x562fb94539f2 in decompress_data /root/src/lib/OpenEXRCore/decoding.c:246:18
+    #4 0x562fb9451a0b in default_decompress_chunk /root/src/lib/OpenEXRCore/decoding.c:318:14
+    #5 0x562fb94524ea in exr_decoding_run /root/src/lib/OpenEXRCore/decoding.c:654:14
+    #6 0x562fb91a08a9 in Imf_3_2::(anonymous namespace)::readCoreScanlinePart(_priv_exr_context_t*, int, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1291:18
+    #7 0x562fb919fbe8 in Imf_3_2::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1500:17
+    #8 0x562fb919e6f1 in Imf_3_2::(anonymous namespace)::runCoreChecks(char const*, unsigned long, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1615:15
+    #9 0x562fb919e30a in Imf_3_2::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1655:16
+    #10 0x562fb919cbf0 in LLVMFuzzerTestOneInput /root/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcorecheck_fuzzer.cc:17:5
+    #11 0x562fb91823e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/openexr_exrcorecheck_fuzzer+0x633e4) (BuildId: e57629dafb59e591900b1fd9bbdab8ba4ee7128c)
+    #12 0x562fb916b516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/openexr_exrcorecheck_fuzzer+0x4c516) (BuildId: e57629dafb59e591900b1fd9bbdab8ba4ee7128c)
+    #13 0x562fb9170fca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/openexr_exrcorecheck_fuzzer+0x51fca) (BuildId: e57629dafb59e591900b1fd9bbdab8ba4ee7128c)
+    #14 0x562fb919b826 in main (/root/openexr_exrcorecheck_fuzzer+0x7c826) (BuildId: e57629dafb59e591900b1fd9bbdab8ba4ee7128c)
+    #15 0x7f10da0a51c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x7f10da0a528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x562fb91660e4 in _start (/root/openexr_exrcorecheck_fuzzer+0x470e4) (BuildId: e57629dafb59e591900b1fd9bbdab8ba4ee7128c)
+
+0x50600000017b is located 3 bytes after 56-byte region [0x506000000140,0x506000000178)
+allocated by thread T0 here:
+    #0 0x7f10da4b97a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x562fb948bed8 in internal_exr_alloc /root/src/lib/OpenEXRCore/memory.c:38:12
+    #2 0x562fb948f431 in internal_decode_alloc_buffer /root/src/lib/OpenEXRCore/coding.c:261:22
+    #3 0x562fb9450f34 in default_read_chunk /root/src/lib/OpenEXRCore/decoding.c:189:14
+    #4 0x562fb945238c in exr_decoding_run /root/src/lib/OpenEXRCore/decoding.c:641:10
+    #5 0x562fb91a08a9 in Imf_3_2::(anonymous namespace)::readCoreScanlinePart(_priv_exr_context_t*, int, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1291:18
+    #6 0x562fb919fbe8 in Imf_3_2::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1500:17
+    #7 0x562fb919e6f1 in Imf_3_2::(anonymous namespace)::runCoreChecks(char const*, unsigned long, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1615:15
+    #8 0x562fb919e30a in Imf_3_2::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1655:16
+    #9 0x562fb919cbf0 in LLVMFuzzerTestOneInput /root/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcorecheck_fuzzer.cc:17:5
+    #10 0x562fb91823e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/openexr_exrcorecheck_fuzzer+0x633e4) (BuildId: e57629dafb59e591900b1fd9bbdab8ba4ee7128c)
+    #11 0x562fb916b516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/openexr_exrcorecheck_fuzzer+0x4c516) (BuildId: e57629dafb59e591900b1fd9bbdab8ba4ee7128c)
+    #12 0x562fb9170fca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/openexr_exrcorecheck_fuzzer+0x51fca) (BuildId: e57629dafb59e591900b1fd9bbdab8ba4ee7128c)
+    #13 0x562fb919b826 in main (/root/openexr_exrcorecheck_fuzzer+0x7c826) (BuildId: e57629dafb59e591900b1fd9bbdab8ba4ee7128c)
+    #14 0x7f10da0a51c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x7f10da0a528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x562fb91660e4 in _start (/root/openexr_exrcorecheck_fuzzer+0x470e4) (BuildId: e57629dafb59e591900b1fd9bbdab8ba4ee7128c)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/lib/OpenEXRCore/internal_huf.c:1474:34 in fasthuf_decode
+Shadow bytes around the buggy address:
+  0x505ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x505fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x505fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x506000000000: fa fa fa fa 00 00 00 00 00 00 00 00 fa fa fa fa
+  0x506000000080: 00 00 00 00 00 00 00 00 fa fa fa fa fd fd fd fd
+=>0x506000000100: fd fd fd fd fa fa fa fa 00 00 00 00 00 00 00[fa]
+  0x506000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360345==ABORTING

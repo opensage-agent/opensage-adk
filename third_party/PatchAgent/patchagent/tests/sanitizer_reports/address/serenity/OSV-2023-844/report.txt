@@ -1,0 +1,68 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x521000003900 at pc 0x5575801ffbe4 bp 0x7ffebb59e650 sp 0x7ffebb59e648
+READ of size 16 at 0x521000003900 thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x5575801ffbe3 in AK::ErrorOr<void, Media::DecoderError> Media::Video::VP9::Decoder::create_video_frame<unsigned short>(AK::Duration, Media::Video::VP9::FrameContext const&) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:177:77
+    #1 0x5575801fa88d in Media::Video::VP9::Decoder::decode_frame(AK::Duration, AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:76:13
+    #2 0x5575801f9bd3 in Media::Video::VP9::Decoder::receive_sample(AK::Duration, AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:33:16
+    #3 0x5575801f8bec in LLVMFuzzerTestOneInput /src/serenity/Meta/Lagom/Fuzzers/FuzzVP9Decoder.cpp:14:23
+    #4 0x5575800ab960 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x557580095f85 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x55758009ba1f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x5575800c7912 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f8ac432e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #9 0x55758008e16d in _start (/out/FuzzVP9Decoder+0x86f16d)
+
+DEDUP_TOKEN: AK::ErrorOr<void, Media::DecoderError> Media::Video::VP9::Decoder::create_video_frame<unsigned short>(AK::Duration, Media::Video::VP9::FrameContext const&)--Media::Video::VP9::Decoder::decode_frame(AK::Duration, AK::Span<unsigned char const>)--Media::Video::VP9::Decoder::receive_sample(AK::Duration, AK::Span<unsigned char const>)
+0x521000003900 is located 0 bytes after 4096-byte region [0x521000002900,0x521000003900)
+allocated by thread T0 here:
+    #0 0x5575801b791f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x557580221bf6 in kmalloc_array /src/serenity/Meta/Lagom/../../AK/kmalloc.h:47:12
+    #2 0x557580221bf6 in try_ensure_capacity /src/serenity/Meta/Lagom/../../AK/Vector.h:663:54
+    #3 0x557580221bf6 in AK::Vector<unsigned short, 0ul>::try_resize(unsigned long, bool) requires !AK::Vector::contains_reference /src/serenity/Meta/Lagom/../../AK/Vector.h:690:9
+    #4 0x5575802015d6 in try_resize_and_keep_capacity /src/serenity/Meta/Lagom/../../AK/Vector.h:701:16
+    #5 0x5575802015d6 in Media::Video::VP9::Decoder::allocate_buffers(Media::Video::VP9::FrameContext const&) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:193:9
+    #6 0x557580281b93 in Media::Video::VP9::Parser::parse_frame(AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Parser.cpp:104:5
+    #7 0x5575801fa46d in Media::Video::VP9::Decoder::decode_frame(AK::Duration, AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:55:26
+    #8 0x5575801f9bd3 in Media::Video::VP9::Decoder::receive_sample(AK::Duration, AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:33:16
+    #9 0x5575801f8bec in LLVMFuzzerTestOneInput /src/serenity/Meta/Lagom/Fuzzers/FuzzVP9Decoder.cpp:14:23
+    #10 0x5575800ab960 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x557580095f85 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x55758009ba1f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x5575800c7912 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f8ac432e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--kmalloc_array--try_ensure_capacity
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/serenity/Userland/Libraries/LibMedia/Video/VP9/Decoder.cpp:177:77 in AK::ErrorOr<void, Media::DecoderError> Media::Video::VP9::Decoder::create_video_frame<unsigned short>(AK::Duration, Media::Video::VP9::FrameContext const&)
+Shadow bytes around the buggy address:
+  0x521000003680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000003700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000003780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000003800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000003880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x521000003900:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000003980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000003a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000003a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000003b00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000003b80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

@@ -1,0 +1,34 @@
+The sanitizer detected a regular expression injection vulnerability.The explanation of the vulnerability is: Untrusted input is used in regular expressions, leading to potential injection attacks.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Regular Expression Injection
+Regular expression patterns that contain unescaped untrusted input can consume
+arbitrary amounts of CPU time. To properly escape the input, wrap it with
+Pattern.quote(...).
+- com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal (com/code_intelligence/jazzer/sanitizers/RegexInjection.kt:153)
+- com.code_intelligence.jazzer.sanitizers.RegexInjection.patternHook (com/code_intelligence/jazzer/sanitizers/RegexInjection.kt:76)
+- org.reflections.util.FilterBuilder$Matcher.<init> (org/reflections/util/FilterBuilder$Matcher/<init>:132)
+- org.reflections.util.FilterBuilder$Include.<init> (org/reflections/util/FilterBuilder$Include/<init>:141)
+- org.reflections.util.FilterBuilder.includePattern (org/reflections/util/FilterBuilder.java:50)
+- org.reflections.util.FilterBuilder.includePackage (org/reflections/util/FilterBuilder.java:37)
+- org.reflections.util.ConfigurationBuilder.build (org/reflections/util/ConfigurationBuilder.java:89)
+- ConfigurationBuilderFuzzer.fuzzerTestOneInput (ConfigurationBuilderFuzzer.java:26)
+Caused by: java.util.regex.PatternSyntaxException: Unclosed character class near index 5
+[
+\..*
+     ^
+- java.base/java.util.regex.Pattern.error (java/base/java/util/regex/Pattern.java:2028)
+- java.base/java.util.regex.Pattern.clazz (java/base/java/util/regex/Pattern.java:2690)
+- java.base/java.util.regex.Pattern.sequence (java/base/java/util/regex/Pattern.java:2139)
+- java.base/java.util.regex.Pattern.expr (java/base/java/util/regex/Pattern.java:2069)
+- java.base/java.util.regex.Pattern.compile (java/base/java/util/regex/Pattern.java:1783)
+- java.base/java.util.regex.Pattern.<init> (java/base/java/util/regex/Pattern.java:1430)
+- java.base/java.util.regex.Pattern.compile (java/base/java/util/regex/Pattern.java:1069)
+- java.base/java.lang.invoke.MethodHandle.invokeWithArguments (java/base/java/lang/invoke/MethodHandle.java:732)
+- com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal (com/code_intelligence/jazzer/sanitizers/RegexInjection.kt:144)
+	... 7 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid constructing regular expressions using untrusted input.
+2. Use predefined regex patterns or libraries to prevent injection attacks.
+3. Sanitize user input before using it in regular expressions.

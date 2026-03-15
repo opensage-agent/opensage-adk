@@ -1,0 +1,81 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x508000006550 at pc 0x55b9d834ea4f bp 0x7ffe1d7a1880 sp 0x7ffe1d7a1878
+READ of size 1 at 0x508000006550 thread T0
+SCARINESS: 40 (1-byte-read-heap-use-after-free)
+    #0 0x55b9d834ea4e in canAssign /src/PcapPlusPlus/Packet++/header/DhcpLayer.h:485:14
+    #1 0x55b9d834ea4e in getFirstTLVRecord /src/PcapPlusPlus/Packet++/header/TLVData.h:293:9
+    #2 0x55b9d834ea4e in pcpp::TLVRecordReader<pcpp::DhcpOption>::getTLVRecord(unsigned int, unsigned char*, unsigned long) const /src/PcapPlusPlus/Packet++/header/TLVData.h:355:27
+    #3 0x55b9d834d33c in getOptionData /src/PcapPlusPlus/Packet++/src/DhcpLayer.cpp:204:25
+    #4 0x55b9d834d33c in getMessageType /src/PcapPlusPlus/Packet++/src/DhcpLayer.cpp:178:20
+    #5 0x55b9d834d33c in pcpp::DhcpLayer::toString() const /src/PcapPlusPlus/Packet++/src/DhcpLayer.cpp:127:11
+    #6 0x55b9d83006a6 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:64:25
+    #7 0x55b9d81b41d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55b9d819f445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55b9d81a4edf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55b9d81d0182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f8f7f430082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x55b9d819762d in _start (/out/FuzzTarget+0x1b762d)
+
+DEDUP_TOKEN: canAssign--getFirstTLVRecord--pcpp::TLVRecordReader<pcpp::DhcpOption>::getTLVRecord(unsigned int, unsigned char*, unsigned long) const
+0x508000006550 is located 48 bytes inside of 96-byte region [0x508000006520,0x508000006580)
+freed by thread T0 here:
+    #0 0x55b9d82fdbcd in operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    #1 0x55b9d83b2243 in __libcpp_operator_delete<void *> /usr/local/bin/../include/c++/v1/new:280:3
+    #2 0x55b9d83b2243 in __do_deallocate_handle_size<> /usr/local/bin/../include/c++/v1/new:302:10
+    #3 0x55b9d83b2243 in __libcpp_deallocate /usr/local/bin/../include/c++/v1/new:311:10
+    #4 0x55b9d83b2243 in deallocate /usr/local/bin/../include/c++/v1/__memory/allocator.h:139:7
+    #5 0x55b9d83b2243 in deallocate /usr/local/bin/../include/c++/v1/__memory/allocator_traits.h:289:9
+    #6 0x55b9d83b2243 in ~basic_string /usr/local/bin/../include/c++/v1/string:1105:7
+    #7 0x55b9d83b2243 in destroy /usr/local/bin/../include/c++/v1/__memory/allocator.h:176:87
+    #8 0x55b9d83b2243 in destroy<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, void> /usr/local/bin/../include/c++/v1/__memory/allocator_traits.h:311:9
+    #9 0x55b9d83b2243 in __base_destruct_at_end /usr/local/bin/../include/c++/v1/vector:926:7
+    #10 0x55b9d83b2243 in __clear /usr/local/bin/../include/c++/v1/vector:920:5
+    #11 0x55b9d83b2243 in operator() /usr/local/bin/../include/c++/v1/vector:490:16
+    #12 0x55b9d83b2243 in ~vector /usr/local/bin/../include/c++/v1/vector:501:67
+    #13 0x55b9d83b2243 in pcpp::Packet::toString(bool) const /src/PcapPlusPlus/Packet++/src/Packet.cpp:824:2
+    #14 0x55b9d830061e in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:60:17
+    #15 0x55b9d81b41d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x55b9d819f445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x55b9d81a4edf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x55b9d81d0182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f8f7f430082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator delete(void*)--__libcpp_operator_delete<void *>--__do_deallocate_handle_size<>
+previously allocated by thread T0 here:
+    #0 0x55b9d82fd36d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x55b9d85ba40d in std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>::append(char const*, unsigned long) (/out/FuzzTarget+0x5da40d)
+
+DEDUP_TOKEN: operator new(unsigned long)--std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>::append(char const*, unsigned long)
+SUMMARY: AddressSanitizer: heap-use-after-free /src/PcapPlusPlus/Packet++/header/DhcpLayer.h:485:14 in canAssign
+Shadow bytes around the buggy address:
+  0x508000006280: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+  0x508000006300: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+  0x508000006380: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+  0x508000006400: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 00 04
+  0x508000006480: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x508000006500: fa fa fa fa fd fd fd fd fd fd[fd]fd fd fd fd fd
+  0x508000006580: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+  0x508000006600: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+  0x508000006680: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+  0x508000006700: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+  0x508000006780: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

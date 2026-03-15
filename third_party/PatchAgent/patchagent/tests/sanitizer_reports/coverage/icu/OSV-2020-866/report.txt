@@ -1,0 +1,52 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/icu:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce collator_rulebased_fuzzer -runs=100.
++ FUZZER=collator_rulebased_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer collator_rulebased_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/collator_rulebased_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 4049902056
+INFO: Loaded 1 modules   (16 inline 8-bit counters): 16 [0x55b8007ef9b0, 0x55b8007ef9c0), 
+INFO: Loaded 1 PC tables (16 PCs): 16 [0x55b8007ef9c0,0x55b8007efac0), 
+/out/collator_rulebased_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x7f006d7cda40 (pc 0x55b7feb450e0 bp 0x7fffaf5d9000 sp 0x7fffaf5d8fd8 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x55b7feb450e0 in icu_64::UCharsTrie::branchNext(char16_t const*, int, int) /src/icu/icu4c/source/common/ucharstrie.cpp:104:22
+    #1 0x55b7feaf02db in icu_64::CollationIterator::nextCE32FromContraction(icu_64::CollationData const*, unsigned int, char16_t const*, unsigned int, int, UErrorCode&) /src/icu/icu4c/source/i18n/collationiterator.cpp:550:26
+    #2 0x55b7feaeef84 in icu_64::CollationIterator::appendCEsFromCE32(icu_64::CollationData const*, int, unsigned int, signed char, UErrorCode&) /src/icu/icu4c/source/i18n/collationiterator.cpp:346:20
+    #3 0x55b7feb004d7 in icu_64::DataBuilderCollationIterator::fetchCEs(icu_64::UnicodeString const&, int, long*, int) /src/icu/icu4c/source/i18n/collationdatabuilder.cpp:195:9
+    #4 0x55b7feb05fda in getCEs /src/icu/icu4c/source/i18n/collationdatabuilder.cpp:1529:22
+    #5 0x55b7feb05fda in icu_64::CollationDataBuilder::getCEs(icu_64::UnicodeString const&, icu_64::UnicodeString const&, long*, int) /src/icu/icu4c/source/i18n/collationdatabuilder.cpp:1518:16
+    #6 0x55b7feae110d in icu_64::CollationBuilder::addIfDifferent(icu_64::UnicodeString const&, icu_64::UnicodeString const&, long const*, int, unsigned int, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:1350:41
+    #7 0x55b7feae16ca in icu_64::CollationBuilder::addOnlyClosure(icu_64::UnicodeString const&, icu_64::UnicodeString const&, long const*, int, unsigned int, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:1141:24
+    #8 0x55b7feae124f in icu_64::CollationBuilder::addWithClosure(icu_64::UnicodeString const&, icu_64::UnicodeString const&, long const*, int, unsigned int, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:1105:12
+    #9 0x55b7feae05ad in icu_64::CollationBuilder::addRelation(int, icu_64::UnicodeString const&, icu_64::UnicodeString const&, icu_64::UnicodeString const&, char const*&, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:753:5
+    #10 0x55b7feb0b183 in icu_64::CollationRuleParser::parseRelationStrings(int, int, UErrorCode&) /src/icu/icu4c/source/i18n/collationruleparser.cpp:284:11
+    #11 0x55b7feb08625 in icu_64::CollationRuleParser::parseRuleChain(UErrorCode&) /src/icu/icu4c/source/i18n/collationruleparser.cpp:163:13
+    #12 0x55b7feb0839b in icu_64::CollationRuleParser::parse(icu_64::UnicodeString const&, UErrorCode&) /src/icu/icu4c/source/i18n/collationruleparser.cpp:102:13
+    #13 0x55b7feadc25c in icu_64::CollationBuilder::parseAndBuild(icu_64::UnicodeString const&, unsigned char const*, icu_64::CollationRuleParser::Importer*, UParseError*, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:260:12
+    #14 0x55b7feadbc00 in icu_64::RuleBasedCollator::internalBuildTailoring(icu_64::UnicodeString const&, int, UColAttributeValue, UParseError*, icu_64::UnicodeString*, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:170:48
+    #15 0x55b7feadbad6 in icu_64::RuleBasedCollator::RuleBasedCollator(icu_64::UnicodeString const&, UErrorCode&) /src/icu/icu4c/source/i18n/collationbuilder.cpp:103:5
+    #16 0x55b7feadb740 in LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/collator_rulebased_fuzzer.cpp:23:11
+    #17 0x55b7fea3db60 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x55b7fea28dd5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x55b7fea2e86f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x55b7fea59b12 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7f0050c81082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #22 0x55b7fea20fbd in _start (/out/collator_rulebased_fuzzer+0x3dfbd)
+
+DEDUP_TOKEN: icu_64::UCharsTrie::branchNext(char16_t const*, int, int)--icu_64::CollationIterator::nextCE32FromContraction(icu_64::CollationData const*, unsigned int, char16_t const*, unsigned int, int, UErrorCode&)--icu_64::CollationIterator::appendCEsFromCE32(icu_64::CollationData const*, int, unsigned int, signed char, UErrorCode&)
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/icu/icu4c/source/common/ucharstrie.cpp:104:22 in icu_64::UCharsTrie::branchNext(char16_t const*, int, int)
+==14==ABORTING

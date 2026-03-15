@@ -1,0 +1,26 @@
+=================================================================
+==1407875==ERROR: AddressSanitizer: SEGV on unknown address 0x52f10000b1a0 (pc 0x7fc77a23fa55 bp 0x7ffdc52a9530 sp 0x7ffdc52a8ce8 T0)
+==1407875==The signal is caused by a READ memory access.
+    #0 0x7fc77a23fa55  (/lib/x86_64-linux-gnu/libc.so.6+0x188a55) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #1 0x7fc77a75a396 in __asan_memcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf6396) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #2 0x5629d490445d in MEM_read32 /root/tests/fuzz/../../lib/compress/../common/mem.h:214:14
+    #3 0x5629d48fe0a0 in ZSTD_compressBlock_lazy_extDict_generic /root/tests/fuzz/../../lib/compress/zstd_lazy.c:2106:35
+    #4 0x5629d48fe0a0 in ZSTD_compressBlock_greedy_extDict_row /root/tests/fuzz/../../lib/compress/zstd_lazy.c:2163:12
+    #5 0x5629d49790db in ZSTD_ldm_blockCompress /root/tests/fuzz/../../lib/compress/zstd_ldm.c:686:12
+    #6 0x5629d4831b56 in ZSTD_buildSeqStore /root/tests/fuzz/../../lib/compress/zstd_compress.c:2806:17
+    #7 0x5629d483075b in ZSTD_compressBlock_targetCBlockSize /root/tests/fuzz/../../lib/compress/zstd_compress.c:3786:24
+    #8 0x5629d482e8ae in ZSTD_compress_frameChunk /root/tests/fuzz/../../lib/compress/zstd_compress.c:3867:25
+    #9 0x5629d4819adc in ZSTD_compressContinue_internal /root/tests/fuzz/../../lib/compress/zstd_compress.c:4046:30
+    #10 0x5629d4819653 in ZSTD_compressContinue /root/tests/fuzz/../../lib/compress/zstd_compress.c:4070:12
+    #11 0x5629d48252e0 in ZSTD_compressStream_generic /root/tests/fuzz/../../lib/compress/zstd_compress.c:5279:29
+    #12 0x5629d48229f4 in ZSTD_compressStream2 /root/tests/fuzz/../../lib/compress/zstd_compress.c:5574:5
+    #13 0x5629d4afeb24 in compress /root/tests/fuzz/dictionary_stream_round_trip.c:93:25
+    #14 0x5629d4afe14b in LLVMFuzzerTestOneInput /root/tests/fuzz/dictionary_stream_round_trip.c:181:30
+    #15 0x5629d4affbf9 in main /root/tests/fuzz/regression_driver.c:77:5
+    #16 0x7fc77a0e11c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7fc77a0e128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x5629d4788664 in _start (/root/dictionary_stream_round_trip+0xa664) (BuildId: 837a2bf9921c1eaa7a41291bacb29e2100e1caed)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x188a55) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f) 
+==1407875==ABORTING

@@ -1,0 +1,23 @@
+The sanitizer detected a global buffer overflow vulnerability. The explanation of the vulnerability is: A buffer overflow occurs in globally allocated memory, leading to memory corruption or crashes. Here is the detail: 
+
+READ of size 2 at 0x55f93ee6f3e4 thread T0
+    - SubstitutePhonemes /src/espeak-ng/src/libespeak-ng/phonemelist.c:75:20
+    - MakePhonemeList /src/espeak-ng/src/libespeak-ng/phonemelist.c:276:15
+    - TranslateClause /src/espeak-ng/src/libespeak-ng/translate.c:2719:2
+    - SpeakNextClause /src/espeak-ng/src/libespeak-ng/synthesize.c:1566:2
+    - Synthesize /src/espeak-ng/src/libespeak-ng/speech.c:453:2
+    - espeak_Synth /src/espeak-ng/src/libespeak-ng/espeak_api.c:90:32
+    - LLVMFuzzerTestOneInput /src/espeak-ng/tests/ssml-fuzzer.c:64:8
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x55f93ee6f3e4 is located 4 bytes after global variable 'ph_list2' defined in 'src/libespeak-ng/translate.c' (0x55f93ee6d4a0) of size 8000
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

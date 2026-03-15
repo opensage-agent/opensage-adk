@@ -1,0 +1,104 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libaom:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libaom/OSV-2024-151/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce av1_dec_fuzzer -runs=100.
++ FUZZER=av1_dec_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer av1_dec_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/av1_dec_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=av1_dec_fuzzer.dict < /dev/null
+Dictionary: 2 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1948800708
+INFO: Loaded 1 modules   (30138 inline 8-bit counters): 30138 [0x56088d0ab068, 0x56088d0b2622), 
+INFO: Loaded 1 PC tables (30138 PCs): 30138 [0x56088d0b2628,0x56088d1281c8), 
+/out/av1_dec_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50f0000001de at pc 0x56088c9fe757 bp 0x7ffea78cb490 sp 0x7ffea78cb488
+[1m[0m[1m[34mREAD of size 1 at 0x50f0000001de thread T0[1m[0m
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x56088c9fe756 in od_ec_dec_refill /src/aom/aom_dsp/entdec.c:94:26
+    #1 0x56088c9fe756 in od_ec_dec_normalize /src/aom/aom_dsp/entdec.c:136:21
+    #2 0x56088c9feaef in od_ec_decode_cdf_q15 /src/aom/aom_dsp/entdec.c:222:10
+    #3 0x56088c870c7f in aom_read_cdf_ /src/aom/aom_dsp/bitreader.h:172:10
+    #4 0x56088c870c7f in aom_read_symbol_ /src/aom/aom_dsp/bitreader.h:223:9
+    #5 0x56088c870c7f in decode_color_map_tokens /src/aom/av1/decoder/detokenize.c:44:29
+    #6 0x56088c870c7f in av1_decode_palette_tokens /src/aom/av1/decoder/detokenize.c:77:3
+    #7 0x56088c860194 in av1_visit_palette /src/aom/av1/decoder/decoder.c:243:11
+    #8 0x56088c834381 in parse_decode_block /src/aom/av1/decoder/decodeframe.c:1126:3
+    #9 0x56088c830461 in decode_partition /src/aom/av1/decoder/decodeframe.c:1337:7
+    #10 0x56088c8302b2 in decode_partition /src/aom/av1/decoder/decodeframe.c:1345:7
+    #11 0x56088c8302d9 in decode_partition /src/aom/av1/decoder/decodeframe.c:1346:7
+    #12 0x56088c81e1bc in parse_tile_row_mt /src/aom/av1/decoder/decodeframe.c:3151:7
+    #13 0x56088c81e1bc in row_mt_worker_hook /src/aom/av1/decoder/decodeframe.c:3222:7
+    #14 0x56088cb6d89f in execute /src/aom/aom_util/aom_thread.c:195:27
+    #15 0x56088c813cb5 in launch_dec_workers /src/aom/av1/decoder/decodeframe.c:3449:7
+    #16 0x56088c813cb5 in decode_tiles_row_mt /src/aom/av1/decoder/decodeframe.c:3825:3
+    #17 0x56088c813cb5 in av1_decode_tg_tiles_and_wrapup /src/aom/av1/decoder/decodeframe.c:5254:9
+    #18 0x56088c8865f0 in read_one_tile_group_obu /src/aom/av1/decoder/obu.c:361:3
+    #19 0x56088c8865f0 in aom_decode_frame_from_obus /src/aom/av1/decoder/obu.c:1030:33
+    #20 0x56088c861ee5 in av1_receive_compressed_data /src/aom/av1/decoder/decoder.c:474:7
+    #21 0x56088c7f51de in frame_worker_hook /src/aom/av1/av1_dx_iface.c:413:16
+    #22 0x56088cb6d89f in execute /src/aom/aom_util/aom_thread.c:195:27
+    #23 0x56088c7e59d1 in decode_one /src/aom/av1/av1_dx_iface.c:550:3
+    #24 0x56088c7e59d1 in decoder_decode /src/aom/av1/av1_dx_iface.c:737:11
+    #25 0x56088c7e4744 in aom_codec_decode /src/aom/aom/src/aom_decoder.c:103:11
+    #26 0x56088c7e2b40 in LLVMFuzzerTestOneInput /src/aom/examples/av1_dec_fuzzer.cc:71:9
+    #27 0x56088c697310 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #28 0x56088c682585 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #29 0x56088c68801f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #30 0x56088c6b32c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #31 0x7f7090280082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #32 0x56088c67a76d in _start (/out/av1_dec_fuzzer+0x12076d)
+
+DEDUP_TOKEN: od_ec_dec_refill--od_ec_dec_normalize--od_ec_decode_cdf_q15
+[1m[32m0x50f0000001de is located 0 bytes after 174-byte region [0x50f000000130,0x50f0000001de)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x56088c7a30df in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x56088cf868b3 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x56088c682585 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x56088c68801f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x56088c6b32c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7f7090280082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/aom/aom_dsp/entdec.c:94:26 in od_ec_dec_refill
+Shadow bytes around the buggy address:
+  0x50efffffff00: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x50efffffff80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x50f000000000: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x50f000000080: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m06[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50f000000100: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x50f000000180: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m[[1m[0m06[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50f000000200: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50f000000280: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50f000000300: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50f000000380: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50f000000400: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

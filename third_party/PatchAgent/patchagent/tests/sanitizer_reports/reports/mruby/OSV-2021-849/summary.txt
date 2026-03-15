@@ -1,0 +1,40 @@
+The sanitizer detected a negative size param vulnerability. The explanation of the vulnerability is: A function receives a negative size parameter, leading to unexpected behavior or memory allocation errors. Here is the detail: 
+
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - mrb_str_format /src/mruby/mrbgems/mruby-sprintf/src/sprintf.c:841:9
+    - mrb_f_sprintf /src/mruby/mrbgems/mruby-sprintf/src/sprintf.c:566:12
+    - mrb_vm_exec /src/mruby/src/vm.c:0:0
+    - mrb_vm_run /src/mruby/src/vm.c:1115:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6867:7
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x52f0000023f4 is located 8180 bytes inside of 49200-byte region [0x52f000000400,0x52f00000c430)
+allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - mrb_realloc_simple /src/mruby/src/gc.c:229:8
+    - mrb_realloc /src/mruby/src/gc.c:243:8
+    - mrb_malloc /src/mruby/src/gc.c:259:10
+    - mrb_calloc /src/mruby/src/gc.c:277:9
+    - add_heap /src/mruby/src/gc.c:375:42
+    - mrb_gc_init /src/mruby/src/gc.c:409:3
+    - init_gc_and_core /src/mruby/src/state.c:29:3
+    - mrb_core_init_protect /src/mruby/src/error.c:570:5
+    - mrb_open_core /src/mruby/src/state.c:52:7
+    - mrb_open_allocf /src/mruby/src/state.c:91:20
+    - mrb_open /src/mruby/src/state.c:75:20
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:13:22
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Validate all size parameters before passing them to memory allocation functions.
+2. Ensure that buffer sizes and loop limits are always positive values.
+3. Use unsigned integer types to store sizes to prevent negative values.

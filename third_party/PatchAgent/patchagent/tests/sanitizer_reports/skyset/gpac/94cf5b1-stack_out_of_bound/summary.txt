@@ -1,0 +1,46 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 4 at 0x7f2dbb10f12c thread T0
+    - Q_DecCoordOnUnitSphere /root/src/bifs/unquantize.c:307:15
+    - Q_DecNormal /root/src/bifs/unquantize.c:347:6
+    - gf_bifs_dec_unquant_field /root/src/bifs/unquantize.c:423:7
+    - gf_bifs_dec_sf_field /root/src/bifs/field_decode.c:84:7
+    - gf_bifs_dec_field /root/src/bifs/field_decode.c:517:7
+    - gf_bifs_dec_node_list /root/src/bifs/field_decode.c:618:7
+    - gf_bifs_dec_node /root/src/bifs/field_decode.c:920:7
+    - BD_DecMFFieldVec /root/src/bifs/field_decode.c:432:24
+    - gf_bifs_dec_field /root/src/bifs/field_decode.c:558:9
+    - gf_bifs_dec_node_list /root/src/bifs/field_decode.c:618:7
+    - gf_bifs_dec_node /root/src/bifs/field_decode.c:920:7
+    - gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1143:12
+    - BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    - BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    - BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    - gf_bifs_flush_command_list /root/src/bifs/memory_decoder.c:956:9
+    - gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1162:5
+    - gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1132:8
+    - BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    - BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    - BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    - gf_bifs_decode_command_list /root/src/bifs/memory_decoder.c:1031:6
+    - gf_sm_load_run_isom /root/src/scene_manager/loader_isom.c:303:10
+    - gf_sm_load_run /root/src/scene_manager/scene_manager.c:719:28
+    - dump_isom_scene /root/applications/mp4box/filedump.c:203:14
+    - mp4boxMain /root/applications/mp4box/main.c:6146:7
+    - main /root/applications/mp4box/main.c:6601:1
+
+Address 0x7f2dbb10f12c is located in stack of thread T0 at offset 44 in frame
+    - Q_DecNormal /root/src/bifs/unquantize.c:343:0
+
+  This frame has 2 object(s):
+    [32, 44) 'comp' (line 344) <== Memory access at offset 44 overflows this variable
+    [64, 76) 'v' (line 345)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

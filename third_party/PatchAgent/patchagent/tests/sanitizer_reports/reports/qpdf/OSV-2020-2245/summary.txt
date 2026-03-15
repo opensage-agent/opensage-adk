@@ -1,0 +1,51 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 1 at 0x5060000b78aa thread T0
+    - Pl_ASCII85Decoder::write(unsigned char*, unsigned long) /src/qpdf/libqpdf/Pl_ASCII85Decoder.cc:85:32
+    - Pl_AES_PDF::flush(bool) /src/qpdf/libqpdf/Pl_AES_PDF.cc:263:16
+    - Pl_AES_PDF::finish() /src/qpdf/libqpdf/Pl_AES_PDF.cc:0:0
+    - QPDF::pipeStreamData(PointerHolder<QPDF::EncryptionParameters>, PointerHolder<InputSource>, QPDF&, int, int, long long, unsigned long, QPDFObjectHandle, bool, Pipeline*, bool, bool) /src/qpdf/libqpdf/QPDF.cc:2718:23
+    - QPDF::pipeStreamData(int, int, long long, unsigned long, QPDFObjectHandle, Pipeline*, bool, bool) /src/qpdf/libqpdf/QPDF.cc:2738:12
+    - pipeStreamData /src/qpdf/include/qpdf/QPDF.hh:670:19
+    - QPDF_Stream::pipeStreamData(Pipeline*, unsigned long, qpdf_stream_decode_level_e, bool, bool) /src/qpdf/libqpdf/QPDF_Stream.cc:664:8
+    - QPDFWriter::unparseObject(QPDFObjectHandle, int, unsigned int, unsigned long, bool) /src/qpdf/libqpdf/QPDFWriter.cc:1782:24
+    - unparseObject /src/qpdf/libqpdf/QPDFWriter.cc:1436:5
+    - QPDFWriter::writeObject(QPDFObjectHandle, int) /src/qpdf/libqpdf/QPDFWriter.cc:2103:2
+    - QPDFWriter::writeStandard() /src/qpdf/libqpdf/QPDFWriter.cc:3555:2
+    - QPDFWriter::write() /src/qpdf/libqpdf/QPDFWriter.cc:2686:2
+    - FuzzHelper::doWrite(PointerHolder<QPDFWriter>) /src/qpdf/fuzz/qpdf_fuzzer.cc:72:12
+    - FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:90:5
+    - doChecks /src/qpdf/fuzz/qpdf_fuzzer.cc:179:5
+    - FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:195:9
+    - LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:210:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5060000b78aa is located 10 bytes after 64-byte region [0x5060000b7860,0x5060000b78a0)
+allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - QPDF_Stream::pipeStreamData(Pipeline*, unsigned long, qpdf_stream_decode_level_e, bool, bool) /src/qpdf/libqpdf/QPDF_Stream.cc:578:14
+    - QPDFWriter::unparseObject(QPDFObjectHandle, int, unsigned int, unsigned long, bool) /src/qpdf/libqpdf/QPDFWriter.cc:1782:24
+    - unparseObject /src/qpdf/libqpdf/QPDFWriter.cc:1436:5
+    - QPDFWriter::writeObject(QPDFObjectHandle, int) /src/qpdf/libqpdf/QPDFWriter.cc:2103:2
+    - QPDFWriter::writeStandard() /src/qpdf/libqpdf/QPDFWriter.cc:3555:2
+    - QPDFWriter::write() /src/qpdf/libqpdf/QPDFWriter.cc:2686:2
+    - FuzzHelper::doWrite(PointerHolder<QPDFWriter>) /src/qpdf/fuzz/qpdf_fuzzer.cc:72:12
+    - FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:90:5
+    - doChecks /src/qpdf/fuzz/qpdf_fuzzer.cc:179:5
+    - FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:195:9
+    - LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:210:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

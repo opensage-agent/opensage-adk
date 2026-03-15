@@ -1,0 +1,33 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x50c000000191 thread T0
+    - pcpp::byteArrayToHexString(unsigned char const*, unsigned long, int) /src/PcapPlusPlus/Common++/src/GeneralUtils.cpp:24:72
+    - pcpp::PacketTrailerLayer::toString() const /src/PcapPlusPlus/Packet++/src/PacketTrailerLayer.cpp:18:28
+    - LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:64:25
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x50c000000191 is located 17 bytes after 128-byte region [0x50c000000100,0x50c000000180)
+allocated by thread T0 here:
+    - operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    - pcpp::RawPacket::reallocateData(unsigned long) /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:177:24
+    - pcpp::Packet::reallocateRawData(unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:201:21
+    - pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:0:0
+    - extendLayer /src/PcapPlusPlus/Packet++/src/DnsLayer.cpp:109:15
+    - pcpp::DnsLayer::addQuery(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, pcpp::DnsType, pcpp::DnsClass) /src/PcapPlusPlus/Packet++/src/DnsLayer.cpp:570:8
+    - readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:484:14
+    - LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:66:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

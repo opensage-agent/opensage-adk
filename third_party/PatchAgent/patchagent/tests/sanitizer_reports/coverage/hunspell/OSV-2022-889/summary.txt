@@ -1,0 +1,28 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - operator()<unsigned short, unsigned short> /usr/local/include/c++/v1/__algorithm/comp.h:41:12
+    - __invoke<std::__1::__less<void, void> &, const unsigned short &, const unsigned short &> /usr/local/include/c++/v1/__type_traits/invoke.h:344:25
+    - unsigned short const* std::__1::__lower_bound[abi:ne180100]<std::__1::_ClassicAlgPolicy, unsigned short const*, unsigned short const*, unsigned short, std::__1::__identity, std::__1::__less<void, void>>(unsigned short const*, unsigned short const*, unsigned short const&, std::__1::__less<void, void>&, std::__1::__identity&) /usr/local/include/c++/v1/__algorithm/lower_bound.h:39:9
+    - lower_bound<const unsigned short *, unsigned short, std::__1::__less<void, void> &> /usr/local/include/c++/v1/__algorithm/lower_bound.h:54:10
+    - binary_search<const unsigned short *, unsigned short, std::__1::__less<void, void> > /usr/local/include/c++/v1/__algorithm/binary_search.h:27:13
+    - binary_search<const unsigned short *, unsigned short> /usr/local/include/c++/v1/__algorithm/binary_search.h:34:10
+    - AffixMgr::prefix_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int, char, unsigned short) /src/hunspell/src/hunspell/affixmgr.cxx:1098:13
+    - AffixMgr::affix_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int, unsigned short, char) /src/hunspell/src/hunspell/affixmgr.cxx:3128:23
+    - HunspellImpl::checkword(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:834:17
+    - HunspellImpl::spell_internal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:534:12
+    - HunspellImpl::spell(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:442:12
+    - Hunspell::spell(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:2070:18
+    - LLVMFuzzerTestOneInput /src/hunspell/src/tools/affdicfuzzer.cxx:65:15
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

@@ -1,0 +1,26 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+Hint: pc points to the zero page.
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - _libssh2_packet_add /src/libssh2/src/packet.c:1387:14
+    - fullpacket /src/libssh2/src/transport.c:328:14
+    - _libssh2_transport_read /src/libssh2/src/transport.c:871:18
+    - _libssh2_packet_burn /src/libssh2/src/packet.c:1571:15
+    - diffie_hellman_sha_algo /src/libssh2/src/kex.c:421:17
+    - kex_method_diffie_hellman_group1_sha1_key_exchange /src/libssh2/src/kex.c:1077:11
+    - _libssh2_kex_exchange /src/libssh2/src/kex.c:4153:23
+    - session_startup /src/libssh2/src/session.c:787:14
+    - libssh2_session_handshake /src/libssh2/src/session.c:878:5
+    - LLVMFuzzerTestOneInput /src/libssh2/tests/ossfuzz/ssh2_client_fuzzer.cc:71:6
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

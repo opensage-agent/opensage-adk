@@ -1,0 +1,57 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mruby:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/mruby/OSV-2022-632/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce mruby_fuzzer -runs=100.
++ FUZZER=mruby_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer mruby_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/mruby_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=mruby.dict -only_ascii=1 < /dev/null
+Dictionary: 102 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2462605755
+INFO: Loaded 1 modules   (22505 inline 8-bit counters): 22505 [0x5651563c4f28, 0x5651563ca711), 
+INFO: Loaded 1 PC tables (22505 PCs): 22505 [0x5651563ca718,0x5651564225a8), 
+/out/mruby_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x565156198547 bp 0x7fffdff7d180 sp 0x7fffdff7d120 T0)
+[1m[0m==18==The signal is caused by a READ memory access.
+==18==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x565156198547 in ucmp /src/mruby/mrbgems/mruby-bigint/core/bigint.c:190:17
+    #1 0x565156198547 in mpz_cmp /src/mruby/mrbgems/mruby-bigint/core/bigint.c:569:10
+    #2 0x565156198547 in mrb_bint_cmp /src/mruby/mrbgems/mruby-bigint/core/bigint.c:1284:10
+    #3 0x5651561856b3 in int_eql /src/mruby/src/numeric.c:558:27
+    #4 0x56515610ffa4 in mrb_funcall_with_block /src/mruby/src/vm.c:637:13
+    #5 0x56515610e727 in mrb_funcall_argv /src/mruby/src/vm.c:653:10
+    #6 0x56515610e727 in mrb_funcall_id /src/mruby/src/vm.c:479:10
+    #7 0x56515618b693 in mrb_eql /src/mruby/src/object.c:642:10
+    #8 0x565156107f3e in obj_eql /src/mruby/src/hash.c:379:5
+    #9 0x565156109460 in ht_set_without_ib_adjustment /src/mruby/src/hash.c:854:3
+    #10 0x565156109460 in ht_set /src/mruby/src/hash.c:896:3
+    #11 0x565156104216 in h_set /src/mruby/src/hash.c:1012:3
+    #12 0x565156104216 in mrb_hash_set /src/mruby/src/hash.c:1245:3
+    #13 0x5651561059b3 in mrb_hash_aset /src/mruby/src/hash.c:1565:3
+    #14 0x565156128437 in mrb_vm_exec /src/mruby/src/vm.c
+    #15 0x565156115a8c in mrb_vm_run /src/mruby/src/vm.c:1208:12
+    #16 0x5651561bb673 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6889:7
+    #17 0x5651560f5c70 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #18 0x565155faa760 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #19 0x565155f959d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #20 0x565155f9b46f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #21 0x565155fc6712 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f4243b01082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #23 0x565155f8dbbd in _start (/out/mruby_fuzzer+0x159bbd)
+
+DEDUP_TOKEN: ucmp--mpz_cmp--mrb_bint_cmp
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/mruby/mrbgems/mruby-bigint/core/bigint.c:190:17 in ucmp
+==18==ABORTING

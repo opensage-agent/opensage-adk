@@ -1,0 +1,19 @@
+The sanitizer detected a negative size param vulnerability. The explanation of the vulnerability is: A function receives a negative size parameter, leading to unexpected behavior or memory allocation errors. Here is the detail: 
+
+    - readextension /root/tools/gif2tiff.c:316:9
+    - convert /root/tools/gif2tiff.c:217:25
+    - main /root/tools/gif2tiff.c:174:14
+
+Address 0x7f78f7000020 is located in stack of thread T0 at offset 32 in frame
+    - readextension /root/tools/gif2tiff.c:310:0
+
+  This frame has 1 object(s):
+    [32, 287) 'buf' (line 312) <== Memory access at offset 32 is inside this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. Validate all size parameters before passing them to memory allocation functions.
+2. Ensure that buffer sizes and loop limits are always positive values.
+3. Use unsigned integer types to store sizes to prevent negative values.

@@ -1,0 +1,91 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-underflow on address 0x7f72d9c8f61c at pc 0x557ea38ac2af bp 0x7fffd8334a50 sp 0x7fffd8334a48
+READ of size 4 at 0x7f72d9c8f61c thread T0
+SCARINESS: 32 (4-byte-read-stack-buffer-underflow)
+    #0 0x557ea38ac2ae in gs_type2_interpret /src/ghostpdl/./base/gstype2.c:758:34
+    #1 0x557ea387d483 in gs_type1_glyph_info /src/ghostpdl/./base/gxtype1.c:664:16
+    #2 0x557ea2fe4c06 in gs_default_font_info /src/ghostpdl/./base/gsfont.c:907:20
+    #3 0x557ea2ebe640 in gs_copy_font /src/ghostpdl/./devices/gxfcopy.c:2091:12
+    #4 0x557ea39304f7 in pdf_base_font_alloc /src/ghostpdl/./devices/vector/gdevpdtb.c:293:12
+    #5 0x557ea2e8449f in pdf_font_descriptor_alloc /src/ghostpdl/./devices/vector/gdevpdtd.c:202:16
+    #6 0x557ea2ea3a92 in pdf_make_font_resource /src/ghostpdl/./devices/vector/gdevpdtt.c:1583:17
+    #7 0x557ea2ea72b9 in pdf_obtain_font_resource_encoded /src/ghostpdl/./devices/vector/gdevpdtt.c:2117:24
+    #8 0x557ea2ea57e3 in pdf_obtain_font_resource /src/ghostpdl/./devices/vector/gdevpdtt.c:2223:12
+    #9 0x557ea393b301 in pdf_process_string /src/ghostpdl/./devices/vector/gdevpdte.c:837:12
+    #10 0x557ea393b301 in pdf_process_string_aux /src/ghostpdl/./devices/vector/gdevpdte.c:81:12
+    #11 0x557ea39466a6 in process_plain_text /src/ghostpdl/./devices/vector/gdevpdte.c:1841:16
+    #12 0x557ea2eb303c in pdf_text_process /src/ghostpdl/./devices/vector/gdevpdtt.c:3722:16
+    #13 0x557ea3607212 in pdfi_show_simple /src/ghostpdl/./pdf/pdf_text.c:445:16
+    #14 0x557ea3607212 in pdfi_show_Tr_preserve /src/ghostpdl/./pdf/pdf_text.c:780:12
+    #15 0x557ea3607212 in pdfi_show /src/ghostpdl/./pdf/pdf_text.c:830:16
+    #16 0x557ea36081b8 in pdfi_Tj /src/ghostpdl/./pdf/pdf_text.c:1069:12
+    #17 0x557ea3531115 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1644:24
+    #18 0x557ea352f496 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2101:24
+    #19 0x557ea35831b5 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #20 0x557ea35831b5 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #21 0x557ea35831b5 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #22 0x557ea34f443a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1074:24
+    #23 0x557ea33873f9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #24 0x557ea33873f9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #25 0x557ea33873f9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #26 0x557ea2b293b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #27 0x557ea2b293b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #28 0x557ea2b293b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #29 0x557ea3659ef0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #30 0x557ea36568c0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #31 0x557ea3653a42 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #32 0x557ea3659c78 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #33 0x557ea2b20fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #34 0x557ea2b21335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #35 0x557ea29d56d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #36 0x557ea29c0945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #37 0x557ea29c63df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #38 0x557ea29f1682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #39 0x7f72da40e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #40 0x557ea29b8b2d in _start (/out/gs_device_pdfwrite_fuzzer+0x719b2d)
+
+DEDUP_TOKEN: gs_type2_interpret--gs_type1_glyph_info--gs_default_font_info
+Address 0x7f72d9c8f61c is located in stack of thread T0 at offset 28 in frame
+    #0 0x557ea38a544f in gs_type2_interpret /src/ghostpdl/./base/gstype2.c:124
+
+DEDUP_TOKEN: gs_type2_interpret
+  This frame has 4 object(s):
+    [32, 224) 'cstack' (line 129) <== Memory access at offset 28 underflows this variable
+    [288, 300) 'mask' (line 459)
+    [320, 336) 'join' (line 851)
+    [352, 368) 'end' (line 851)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-underflow /src/ghostpdl/./base/gstype2.c:758:34 in gs_type2_interpret
+Shadow bytes around the buggy address:
+  0x7f72d9c8f380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f72d9c8f400: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f72d9c8f480: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f72d9c8f500: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f72d9c8f580: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+=>0x7f72d9c8f600: f1 f1 f1[f1]00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f72d9c8f680: 00 00 00 00 00 00 00 00 00 00 00 00 f2 f2 f2 f2
+  0x7f72d9c8f700: f2 f2 f2 f2 f8 f8 f2 f2 f8 f8 f2 f2 f8 f8 f3 f3
+  0x7f72d9c8f780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f72d9c8f800: f1 f1 f1 f1 00 f2 f2 f2 00 00 00 00 00 00 02 f2
+  0x7f72d9c8f880: f2 f2 f2 f2 00 00 00 00 00 00 02 f2 f2 f2 f2 f2
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

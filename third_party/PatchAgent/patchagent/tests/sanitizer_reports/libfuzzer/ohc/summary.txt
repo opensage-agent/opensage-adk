@@ -1,0 +1,62 @@
+The libFuzzer report is:
+
+==16== ERROR: libFuzzer: timeout after 25 seconds
+
+Stack traces of all JVM threads:
+Thread[Attach Listener,9,system]
+
+Thread[Common-Cleaner,8,InnocuousThreadGroup]
+- java.base@15.0.2/java.lang.ref.ReferenceQueue.remove (java/base@15/0/2/java/lang/ref/ReferenceQueue.java:155)
+- java.base@15.0.2/jdk.internal.ref.CleanerImpl.run (java/base@15/0/2/jdk/internal/ref/CleanerImpl.java:148)
+- java.base@15.0.2/java.lang.Thread.run (java/base@15/0/2/java/lang/Thread.java:832)
+- java.base@15.0.2/jdk.internal.misc.InnocuousThread.run (java/base@15/0/2/jdk/internal/misc/InnocuousThread.java:134)
+
+Thread[main,5,main]
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.dumpAllStackTraces (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:534)
+- app//OhcFuzzer$ReadableByteChannelImpl.read (app/OhcFuzzer$ReadableByteChannelImpl/read:163)
+- app//org.caffinitas.ohc.linked.Util.readFully (app/org/caffinitas/ohc/linked/Util.java:115)
+- app//org.caffinitas.ohc.linked.OHCacheLinkedImpl.deserializeEntry (app/org/caffinitas/ohc/linked/OHCacheLinkedImpl.java:1009)
+- app//OhcFuzzer.fuzzerTestOneInput (app/OhcFuzzer/fuzzerTestOneInput:99)
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.runOne (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:234)
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:551)
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:441)
+- app//com.code_intelligence.jazzer.driver.Driver.start (app/com/code_intelligence/jazzer/driver/Driver.java:166)
+- app//com.code_intelligence.jazzer.Jazzer.start (app/com/code_intelligence/jazzer/Jazzer.java:118)
+- app//com.code_intelligence.jazzer.Jazzer.main (app/com/code_intelligence/jazzer/Jazzer.java:77)
+
+Thread[Log4j2-AsyncAppenderEventDispatcher-1-async,5,main]
+- java.base@15.0.2/java.util.concurrent.locks.LockSupport.park (java/base@15/0/2/java/util/concurrent/locks/LockSupport.java:341)
+- java.base@15.0.2/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block (java/base@15/0/2/java/util/concurrent/locks/AbstractQueuedSynchronizer$ConditionNode/block:505)
+- java.base@15.0.2/java.util.concurrent.ForkJoinPool.managedBlock (java/base@15/0/2/java/util/concurrent/ForkJoinPool.java:3137)
+- java.base@15.0.2/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await (java/base@15/0/2/java/util/concurrent/locks/AbstractQueuedSynchronizer$ConditionObject/await:1614)
+- java.base@15.0.2/java.util.concurrent.ArrayBlockingQueue.take (java/base@15/0/2/java/util/concurrent/ArrayBlockingQueue.java:420)
+- app//org.apache.logging.log4j.core.appender.AsyncAppenderEventDispatcher.dispatchAll (app/org/apache/logging/log4j/core/appender/AsyncAppenderEventDispatcher.java:71)
+- app//org.apache.logging.log4j.core.appender.AsyncAppenderEventDispatcher.run (app/org/apache/logging/log4j/core/appender/AsyncAppenderEventDispatcher.java:63)
+
+Thread[Reference Handler,10,system]
+- java.base@15.0.2/java.lang.ref.Reference.processPendingReferences (java/base@15/0/2/java/lang/ref/Reference.java:241)
+- java.base@15.0.2/java.lang.ref.Reference$ReferenceHandler.run (java/base@15/0/2/java/lang/ref/Reference$ReferenceHandler/run:213)
+
+Thread[Notification Thread,9,system]
+
+Thread[Signal Dispatcher,9,system]
+
+Thread[Finalizer,8,system]
+- java.base@15.0.2/java.lang.ref.ReferenceQueue.remove (java/base@15/0/2/java/lang/ref/ReferenceQueue.java:155)
+- java.base@15.0.2/java.lang.ref.ReferenceQueue.remove (java/base@15/0/2/java/lang/ref/ReferenceQueue.java:176)
+- java.base@15.0.2/java.lang.ref.Finalizer$FinalizerThread.run (java/base@15/0/2/java/lang/ref/Finalizer$FinalizerThread/run:170)
+
+Thread[process reaper,10,system]
+- java.base@15.0.2/java.util.concurrent.locks.LockSupport.parkNanos (java/base@15/0/2/java/util/concurrent/locks/LockSupport.java:252)
+- java.base@15.0.2/java.util.concurrent.SynchronousQueue$TransferStack.awaitFulfill (java/base@15/0/2/java/util/concurrent/SynchronousQueue$TransferStack/awaitFulfill:462)
+- java.base@15.0.2/java.util.concurrent.SynchronousQueue$TransferStack.transfer (java/base@15/0/2/java/util/concurrent/SynchronousQueue$TransferStack/transfer:361)
+- java.base@15.0.2/java.util.concurrent.SynchronousQueue.poll (java/base@15/0/2/java/util/concurrent/SynchronousQueue.java:937)
+- java.base@15.0.2/java.util.concurrent.ThreadPoolExecutor.getTask (java/base@15/0/2/java/util/concurrent/ThreadPoolExecutor.java:1055)
+- java.base@15.0.2/java.util.concurrent.ThreadPoolExecutor.runWorker (java/base@15/0/2/java/util/concurrent/ThreadPoolExecutor.java:1116)
+- java.base@15.0.2/java.util.concurrent.ThreadPoolExecutor$Worker.run (java/base@15/0/2/java/util/concurrent/ThreadPoolExecutor$Worker/run:630)
+- java.base@15.0.2/java.lang.Thread.run (java/base@15/0/2/java/lang/Thread.java:832)
+
+Garbage collector stats:
+
+PS MarkSweep: 0 collections took 0ms
+PS Scavenge: 10 collections took 46ms

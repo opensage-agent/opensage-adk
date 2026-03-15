@@ -1,0 +1,35 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 4 at 0x7f3830f7eec0 thread T0
+    - gf_hevc_read_pps_bs_internal /root/src/media_tools/av_parsers.c:8510:24
+    - gf_hevc_parse_nalu_bs /root/src/media_tools/av_parsers.c:8635:30
+    - naludmx_parse_nal_hevc /root/src/filters/reframe_nalu.c:2164:8
+    - naludmx_process /root/src/filters/reframe_nalu.c:3059:23
+    - gf_filter_process_task /root/src/filter_core/filter.c:2582:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1799:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2043:2
+    - gf_media_import /root/src/media_tools/media_import.c:1225:3
+    - convert_file_info /root/applications/mp4box/fileimport.c:128:6
+    - mp4boxMain /root/applications/mp4box/main.c:6052:6
+    - main /root/applications/mp4box/main.c:6585:1
+
+0x7f3830f7eec0 is located 0 bytes after 157376-byte region [0x7f3830f58800,0x7f3830f7eec0)
+allocated by thread T0 here:
+    - gf_malloc /root/src/utils/alloc.c:150:9
+    - naludmx_configure_pid /root/src/filters/reframe_nalu.c:348:25
+    - gf_filter_pid_configure /root/src/filter_core/filter_pid.c:758:6
+    - gf_filter_pid_connect_task /root/src/filter_core/filter_pid.c:1068:3
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:1799:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2043:2
+    - gf_media_import /root/src/media_tools/media_import.c:1225:3
+    - convert_file_info /root/applications/mp4box/fileimport.c:128:6
+    - mp4boxMain /root/applications/mp4box/main.c:6052:6
+    - main /root/applications/mp4box/main.c:6585:1
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

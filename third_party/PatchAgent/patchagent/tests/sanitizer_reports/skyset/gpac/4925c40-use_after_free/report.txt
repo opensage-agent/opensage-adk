@@ -1,0 +1,109 @@
+=================================================================
+==304394==ERROR: AddressSanitizer: heap-use-after-free on address 0x5040000007a8 at pc 0x7f356686be8b bp 0x7ffc3df85720 sp 0x7ffc3df85718
+READ of size 8 at 0x5040000007a8 thread T0
+    #0 0x7f356686be8a in gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1658:12
+    #1 0x7f356686c15b in gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    #2 0x7f356686c110 in gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    #3 0x7f356686c15b in gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    #4 0x7f356686c110 in gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    #5 0x7f356686c15b in gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    #6 0x7f356686c110 in gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    #7 0x7f356686c15b in gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    #8 0x7f356686c7db in gf_xml_dom_reset /root/src/utils/xml_parser.c:1814:4
+    #9 0x7f356686c3e9 in gf_xml_dom_del /root/src/utils/xml_parser.c:1826:2
+    #10 0x7f3567bcb84c in ttxtin_reset /root/src/filters/load_text.c:4044:32
+    #11 0x7f3567bcb064 in txtin_finalize /root/src/filters/load_text.c:4293:2
+    #12 0x7f3567824100 in gf_fs_del /root/src/filter_core/filter_session.c:773:6
+    #13 0x7f356713d1e0 in gf_dasher_clean_inputs /root/src/media_tools/dash_segmenter.c:164:3
+    #14 0x7f356713d2a1 in gf_dasher_del /root/src/media_tools/dash_segmenter.c:173:2
+    #15 0x557fbdfd1579 in do_dash /root/applications/mp4box/mp4box.c:4894:2
+    #16 0x557fbdfc5cc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #17 0x557fbdfcc841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #18 0x7f35663531c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x7f356635328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #20 0x557fbdfabe04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: 47dbb7131febfb173e2ee389885751feb2ceb818)
+
+0x5040000007a8 is located 24 bytes inside of 48-byte region [0x504000000790,0x5040000007c0)
+freed by thread T0 here:
+    #0 0x7f356876650a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f35668564d4 in gf_free /root/src/utils/alloc.c:165:2
+    #2 0x7f356686c2fc in gf_xml_dom_node_del /root/src/utils/xml_parser.c:1686:2
+    #3 0x7f356686c110 in gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    #4 0x7f356686c15b in gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    #5 0x7f356686c110 in gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    #6 0x7f356686c15b in gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    #7 0x7f356686c110 in gf_xml_dom_node_reset /root/src/utils/xml_parser.c:1672:4
+    #8 0x7f356686c15b in gf_xml_dom_node_del /root/src/utils/xml_parser.c:1681:2
+    #9 0x7f356686c7db in gf_xml_dom_reset /root/src/utils/xml_parser.c:1814:4
+    #10 0x7f356686c3e9 in gf_xml_dom_del /root/src/utils/xml_parser.c:1826:2
+    #11 0x7f3567bcb7af in ttxtin_reset /root/src/filters/load_text.c:4042:19
+    #12 0x7f3567bcb064 in txtin_finalize /root/src/filters/load_text.c:4293:2
+    #13 0x7f3567824100 in gf_fs_del /root/src/filter_core/filter_session.c:773:6
+    #14 0x7f356713d1e0 in gf_dasher_clean_inputs /root/src/media_tools/dash_segmenter.c:164:3
+    #15 0x7f356713d2a1 in gf_dasher_del /root/src/media_tools/dash_segmenter.c:173:2
+    #16 0x557fbdfd1579 in do_dash /root/applications/mp4box/mp4box.c:4894:2
+    #17 0x557fbdfc5cc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #18 0x557fbdfcc841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #19 0x7f35663531c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #20 0x7f356635328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #21 0x557fbdfabe04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: 47dbb7131febfb173e2ee389885751feb2ceb818)
+
+previously allocated by thread T0 here:
+    #0 0x7f35687667a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f3566856454 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7f356686cc1b in on_dom_node_start /root/src/utils/xml_parser.c:1702:2
+    #3 0x7f356687d352 in xml_sax_node_start /root/src/utils/xml_parser.c:306:4
+    #4 0x7f356687fa41 in xml_sax_parse_attribute /root/src/utils/xml_parser.c:395:6
+    #5 0x7f3566869f42 in xml_sax_parse /root/src/utils/xml_parser.c:932:8
+    #6 0x7f3566864da0 in gf_xml_sax_parse_intern /root/src/utils/xml_parser.c:1096:9
+    #7 0x7f356686430a in gf_xml_sax_parse /root/src/utils/xml_parser.c:1124:6
+    #8 0x7f35668665f4 in xml_sax_read_file /root/src/utils/xml_parser.c:1211:7
+    #9 0x7f35668661d0 in gf_xml_sax_parse_file /root/src/utils/xml_parser.c:1323:9
+    #10 0x7f356686cabe in gf_xml_dom_parse /root/src/utils/xml_parser.c:1858:6
+    #11 0x7f3567bf7022 in gf_text_ttml_setup /root/src/filters/load_text.c:1953:6
+    #12 0x7f3567bdfeca in gf_text_process_ttml /root/src/filters/load_text.c:2155:29
+    #13 0x7f3567bccc22 in txtin_process /root/src/filters/load_text.c:4015:6
+    #14 0x7f3567864993 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #15 0x7f3567833ef4 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    #16 0x7f356782fd1b in gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    #17 0x7f35671400df in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #18 0x557fbdfd11ce in do_dash /root/applications/mp4box/mp4box.c:4831:15
+    #19 0x557fbdfc5cc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #20 0x557fbdfcc841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #21 0x7f35663531c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #22 0x7f356635328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #23 0x557fbdfabe04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: 47dbb7131febfb173e2ee389885751feb2ceb818)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/src/utils/xml_parser.c:1658:12 in gf_xml_dom_node_reset
+Shadow bytes around the buggy address:
+  0x504000000500: fa fa 00 00 00 00 00 06 fa fa fd fd fd fd fd fd
+  0x504000000580: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fa
+  0x504000000600: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000000680: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000000700: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+=>0x504000000780: fa fa fd fd fd[fd]fd fd fa fa fd fd fd fd fd fd
+  0x504000000800: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000000880: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000000900: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000000980: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000000a00: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==304394==ABORTING

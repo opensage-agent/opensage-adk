@@ -1,0 +1,74 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gs_device_pdfwrite_fuzzer -runs=100.
++ FUZZER=gs_device_pdfwrite_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gs_device_pdfwrite_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gs_device_pdfwrite_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=gs_device_pdfwrite_fuzzer.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1135306836
+INFO: Loaded 1 modules   (19 inline 8-bit counters): 19 [0x55b2f09d2210, 0x55b2f09d2223), 
+INFO: Loaded 1 PC tables (19 PCs): 19 [0x55b2f09d2228,0x55b2f09d2358), 
+/out/gs_device_pdfwrite_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x000000000018 (pc 0x55b2eecd315d bp 0x7ffdecc69b30 sp 0x7ffdecc69980 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+    #0 0x55b2eecd315d in get_colorant /src/ghostpdl/./base/gsicc_create.c:2439:5
+    #1 0x55b2eecd315d in gsicc_create_v2displayrgb /src/ghostpdl/./base/gsicc_create.c:3074:9
+    #2 0x55b2eecd315d in gsicc_create_v2display /src/ghostpdl/./base/gsicc_create.c:3112:9
+    #3 0x55b2eecd315d in gsicc_create_v2 /src/ghostpdl/./base/gsicc_create.c:3353:13
+    #4 0x55b2eecd315d in gsicc_create_getv2buffer /src/ghostpdl/./base/gsicc_create.c:3409:5
+    #5 0x55b2eed36865 in pdf_iccbased_color_space /src/ghostpdl/./devices/vector/gdevpdfk.c:861:21
+    #6 0x55b2eed18eb3 in pdf_color_space_named /src/ghostpdl/./devices/vector/gdevpdfc.c:926:16
+    #7 0x55b2eed484e8 in pdf_make_group_dict /src/ghostpdl/./devices/vector/gdevpdft.c
+    #8 0x55b2eed484e8 in pdf_begin_transparency_group /src/ghostpdl/./devices/vector/gdevpdft.c:181:12
+    #9 0x55b2eec664ae in send_pdf14trans /src/ghostpdl/./base/gdevp14.c:9723:12
+    #10 0x55b2eec508dc in gs_gstate_update_pdf14trans2 /src/ghostpdl/./base/gstrans.c:142:12
+    #11 0x55b2eec4f989 in gs_gstate_update_pdf14trans /src/ghostpdl/./base/gstrans.c:167:12
+    #12 0x55b2eec4f989 in gs_begin_transparency_group /src/ghostpdl/./base/gstrans.c:325:12
+    #13 0x55b2eeffbdfb in pdfi_gs_begin_transparency_group /src/ghostpdl/./pdf/pdf_trans.c:368:12
+    #14 0x55b2eeffbdfb in pdfi_transparency_group_common /src/ghostpdl/./pdf/pdf_trans.c:423:12
+    #15 0x55b2eeffbf2b in pdfi_trans_begin_form_group /src/ghostpdl/./pdf/pdf_trans.c:537:12
+    #16 0x55b2eefc0332 in pdfi_do_form /src/ghostpdl/./pdf/pdf_image.c:2451:16
+    #17 0x55b2eefc06de in pdfi_do_image_or_form /src/ghostpdl/./pdf/pdf_image.c:2558:16
+    #18 0x55b2eefc0b13 in pdfi_Do /src/ghostpdl/./pdf/pdf_image.c:2640:12
+    #19 0x55b2eefa6ad7 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1473:24
+    #20 0x55b2eefa5bc6 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2101:24
+    #21 0x55b2eefc5e2c in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #22 0x55b2eefc5e2c in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #23 0x55b2eefc5e2c in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #24 0x55b2eef9177b in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1074:24
+    #25 0x55b2eef1ad5c in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #26 0x55b2eef1ad5c in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #27 0x55b2eef18d22 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #28 0x55b2eec37b02 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #29 0x55b2eec37b02 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #30 0x55b2eec37b02 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #31 0x55b2ef01681d in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #32 0x55b2ef01557b in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #33 0x55b2ef013eab in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #34 0x55b2ef0166c4 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #35 0x55b2eec34971 in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #36 0x55b2eec34bec in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #37 0x55b2eeb96d10 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #38 0x55b2eeb81f85 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #39 0x55b2eeb87a1f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #40 0x55b2eebb2cc2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #41 0x7ff8842ad082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #42 0x55b2eeb7a16d in _start (/out/gs_device_pdfwrite_fuzzer+0xab16d)
+
+DEDUP_TOKEN: get_colorant--gsicc_create_v2displayrgb--gsicc_create_v2display
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/ghostpdl/./base/gsicc_create.c:2439:5 in get_colorant
+==14==ABORTING

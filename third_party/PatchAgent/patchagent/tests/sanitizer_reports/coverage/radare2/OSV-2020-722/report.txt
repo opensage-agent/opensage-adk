@@ -1,0 +1,54 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/radare2:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce ia_fuzz -runs=100.
++ FUZZER=ia_fuzz
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ia_fuzz -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ia_fuzz -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -detect_leaks=0 < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3253145793
+INFO: Loaded 1 modules   (1 inline 8-bit counters): 1 [0x55adac5a5710, 0x55adac5a5711), 
+INFO: Loaded 1 PC tables (1 PCs): 1 [0x55adac5a5718,0x55adac5a5728), 
+/out/ia_fuzz: Running 1 inputs 100 time(s) each.
+Running: /testcase
+3
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==18==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x55adae620000 (pc 0x7f1ddffe8e2b bp 0x7ffdb80f5650 sp 0x7ffdb80f5628 T18)
+[1m[0m==18==The signal is caused by a WRITE memory access.
+    #0 0x7f1ddffe8e2b  (/lib/x86_64-linux-gnu/libc.so.6+0x18be2b) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x55adab79c553 in r_buf_read /src/radare2/libr/util/buf.c:418:3
+    #2 0x55adab79c553 in r_buf_read_at /src/radare2/libr/util/buf.c:562:9
+    #3 0x55adab948b85 in parse_function_starts /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:1036:8
+    #4 0x55adab948b85 in init_items /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:1474:9
+    #5 0x55adab93f176 in init /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:1495:7
+    #6 0x55adab93f380 in new_buf /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:1601:7
+    #7 0x55adab8f07b8 in load_buffer /src/radare2/libr/../libr/bin/p/bin_mach0.c:38:8
+    #8 0x55adab9637af in r_bin_object_new /src/radare2/libr/bin/obj.c:181:16
+    #9 0x55adab8cd8ce in r_bin_file_new_from_bytes /src/radare2/libr/bin/bfile.c:465:18
+    #10 0x55adab8d0f8e in r_bin_open_io /src/radare2/libr/bin/bin.c:414:13
+    #11 0x55adab6cf842 in cmd_open_bin /src/radare2/libr/core/./cmd_open.c:252:6
+    #12 0x55adab683ed7 in cmd_open /src/radare2/libr/core/./cmd_open.c:1342:3
+    #13 0x55adab6dcd77 in r_cmd_call /src/radare2/libr/core/cmd_api.c:244:10
+    #14 0x55adab69ed6e in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:3221:12
+    #15 0x55adab660f1f in r_core_cmd_subst /src/radare2/libr/core/cmd.c:2121:9
+    #16 0x55adab65deb2 in r_core_cmd /src/radare2/libr/core/cmd.c:4045:9
+    #17 0x55adab652a08 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #18 0x55adab5b4fa0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #19 0x55adab5a0215 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #20 0x55adab5a5caf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #21 0x55adab5d0f52 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f1ddfe81082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #23 0x55adab5983fd in _start (/out/ia_fuzz+0x37d3fd)
+
+DEDUP_TOKEN: r_buf_read--r_buf_read_at
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x18be2b) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) 
+==18==ABORTING

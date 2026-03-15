@@ -1,0 +1,41 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/htslib:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/htslib/OSV-2020-1222/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce hts_open_fuzzer -runs=100.
++ FUZZER=hts_open_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer hts_open_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/hts_open_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2722954959
+INFO: Loaded 1 modules   (29805 inline 8-bit counters): 29805 [0x55958eaf6e88, 0x55958eafe2f5), 
+INFO: Loaded 1 PC tables (29805 PCs): 29805 [0x55958eafe2f8,0x55958eb729c8), 
+/out/hts_open_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x000000010000 (pc 0x7f26c09be97c bp 0x7fffe82f9430 sp 0x7fffe82f93e8 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x7f26c09be97c  (/lib/x86_64-linux-gnu/libc.so.6+0x18b97c) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x55958e935143 in hpeek /src/htslib/hfile.c:290:5
+    #2 0x55958e95d00b in sam_hdr_create /src/htslib/sam.c:1343:28
+    #3 0x55958e95d00b in sam_hdr_read /src/htslib/sam.c:1483:16
+    #4 0x55958e9247df in view_sam /src/htslib/test/fuzz/hts_open_fuzzer.c:52:22
+    #5 0x55958e9247df in LLVMFuzzerTestOneInput /src/htslib/test/fuzz/hts_open_fuzzer.c:140:13
+    #6 0x55958e886c40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55958e871eb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55958e87794f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55958e8a2bf2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f26c0857082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x55958e86a09d in _start (/out/hts_open_fuzzer+0x12909d)
+
+DEDUP_TOKEN: hpeek--sam_hdr_create
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x18b97c) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) 
+==14==ABORTING

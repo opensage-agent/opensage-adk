@@ -1,0 +1,35 @@
+The sanitizer detected a use of uninitialized memory vulnerability. The explanation of the vulnerability is: The program reads uninitialized memory, leading to undefined behavior or crashes. Here is the detail: 
+
+    - udiv /src/mruby/mrbgems/mruby-bigint/core/bigint.c:435:9
+    - mpz_mmod /src/mruby/mrbgems/mruby-bigint/core/bigint.c:493:3
+    - mrb_bint_mod /src/mruby/mrbgems/mruby-bigint/core/bigint.c:1225:3
+    - int_mod /src/mruby/src/numeric.c:1207:12
+    - mrb_vm_exec /src/mruby/src/vm.c:0:0
+    - mrb_vm_run /src/mruby/src/vm.c:1208:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6889:7
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was created by a heap deallocation
+    - free /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:218:3
+    - mrb_default_allocf /src/mruby/src/state.c:65:5
+    - iv_free /src/mruby/src/variable.c:233:3
+    - mrb_gc_free_iv /src/mruby/src/variable.c:279:5
+    - obj_free /src/mruby/src/gc.c:0:0
+    - free_heap /src/mruby/src/gc.c:434:9
+    - mrb_gc_destroy /src/mruby/src/gc.c:443:3
+    - mrb_close /src/mruby/src/state.c:197:3
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:15:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Initialize all variables before using them to prevent uninitialized memory access.
+2. Check for uninitialized pointers or memory buffers that may lead to undefined behavior.

@@ -1,0 +1,62 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x515000000780 at pc 0x55b6f7681d02 bp 0x7fffcc7d4050 sp 0x7fffcc7d4048
+READ of size 1 at 0x515000000780 thread T0
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x55b6f7681d01 in Gfx::ICC::TextDescriptionTagData::from_bytes(AK::Span<unsigned char const>, unsigned int, unsigned int) /src/serenity/Userland/Libraries/LibGfx/ICC/TagTypes.cpp:1147:56
+    #1 0x55b6f76230ce in read_tag /src/serenity/Userland/Libraries/LibGfx/ICC/Profile.cpp:489:16
+    #2 0x55b6f76230ce in operator() /src/serenity/Userland/Libraries/LibGfx/ICC/Profile.cpp:542:43
+    #3 0x55b6f76230ce in try_ensure<(lambda at /src/serenity/Userland/Libraries/LibGfx/ICC/Profile.cpp:542:43)> /src/serenity/Meta/Lagom/../../AK/HashMap.h:274:27
+    #4 0x55b6f76230ce in read_tag_table /src/serenity/Userland/Libraries/LibGfx/ICC/Profile.cpp:542:43
+    #5 0x55b6f76230ce in Gfx::ICC::Profile::try_load_from_externally_owned_memory(AK::Span<unsigned char const>) /src/serenity/Userland/Libraries/LibGfx/ICC/Profile.cpp:1219:22
+    #6 0x55b6f76139c3 in LLVMFuzzerTestOneInput /src/serenity/Meta/Lagom/Fuzzers/FuzzICCProfile.cpp:14:11
+    #7 0x55b6f74c67d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55b6f74b0df5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55b6f74b688f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55b6f74e2782 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f7efe602082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x55b6f74a8fdd in _start (/out/FuzzICCProfile+0x54ffdd)
+
+DEDUP_TOKEN: Gfx::ICC::TextDescriptionTagData::from_bytes(AK::Span<unsigned char const>, unsigned int, unsigned int)--read_tag--operator()
+0x515000000780 is located 0 bytes after 512-byte region [0x515000000580,0x515000000780)
+allocated by thread T0 here:
+    #0 0x55b6f75d278f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55b6f7774793 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x55b6f74b0df5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x55b6f74b688f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x55b6f74e2782 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7f7efe602082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/serenity/Userland/Libraries/LibGfx/ICC/TagTypes.cpp:1147:56 in Gfx::ICC::TextDescriptionTagData::from_bytes(AK::Span<unsigned char const>, unsigned int, unsigned int)
+Shadow bytes around the buggy address:
+  0x515000000500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000000600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000000680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000000700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x515000000780:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000000a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

@@ -1,0 +1,148 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/jdom:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce SAXBuilderFuzzer -runs=100.
++ FUZZER=SAXBuilderFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer SAXBuilderFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/SAXBuilderFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 265 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented SAXBuilderFuzzer (took 57 ms, size +11%)
+INFO: Instrumented org.jdom2.JDOMException (took 6 ms, size +15%)
+INFO: Instrumented org.jdom2.IllegalNameException (took 7 ms, size +16%)
+INFO: Instrumented org.jdom2.IllegalTargetException (took 2 ms, size +15%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f7f208cea00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 133988652
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55b34d927bb0, 0x55b34d927db0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55b34d8f16d0,0x55b34d8f36d0), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.jdom2.input.SAXBuilder (took 38 ms, size +15%)
+INFO: Instrumented org.jdom2.input.sax.SAXEngine (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.input.sax.XMLReaderJDOMFactory (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.input.sax.SAXHandlerFactory (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.JDOMFactory (took 1 ms, size +0%)
+INFO: Instrumented org.xml.sax.XMLReader (took 1 ms, size +0%)
+INFO: Instrumented org.xml.sax.SAXNotSupportedException (took 1 ms, size +19%)
+INFO: Instrumented org.xml.sax.SAXException (took 8 ms, size +11%)
+INFO: Instrumented org.xml.sax.SAXNotRecognizedException (took 1 ms, size +18%)
+INFO: Instrumented org.xml.sax.ContentHandler (took 1 ms, size +9%)
+INFO: Instrumented org.xml.sax.DTDHandler (took 0 ms, size +0%)
+INFO: Instrumented org.xml.sax.ErrorHandler (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.input.sax.DefaultSAXHandlerFactory (took 1 ms, size +13%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.jdom2.input.sax.SAXHandler (took 41 ms, size +41%)
+INFO: Instrumented org.xml.sax.ext.LexicalHandler (took 0 ms, size +0%)
+INFO: Instrumented org.xml.sax.ext.DeclHandler (took 0 ms, size +0%)
+INFO: Instrumented org.xml.sax.helpers.DefaultHandler (took 9 ms, size +7%)
+INFO: Instrumented org.xml.sax.EntityResolver (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.input.sax.DefaultSAXHandlerFactory$DefaultSAXHandler (took 1 ms, size +16%)
+INFO: Instrumented org.jdom2.DefaultJDOMFactory (took 23 ms, size +5%)
+INFO: Instrumented org.jdom2.input.sax.XMLReaders (took 4 ms, size +5%)
+INFO: Instrumented org.jdom2.input.sax.XMLReaders$FactorySupplier (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.Content (took 21 ms, size +13%)
+INFO: Instrumented org.jdom2.NamespaceAware (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.CloneBase (took 1 ms, size +12%)
+INFO: Instrumented org.jdom2.Comment (took 4 ms, size +9%)
+INFO: Instrumented org.jdom2.Parent (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.ProcessingInstruction (took 9 ms, size +22%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented org.jdom2.Element (took 28 ms, size +23%)
+INFO: Instrumented org.jdom2.CDATA (took 7 ms, size +29%)
+INFO: Instrumented org.jdom2.Text (took 6 ms, size +11%)
+INFO: Instrumented org.jdom2.DocType (took 5 ms, size +8%)
+INFO: Instrumented org.jdom2.EntityRef (took 5 ms, size +9%)
+INFO: Instrumented org.jdom2.input.sax.TextBuffer (took 1 ms, size +28%)
+INFO: Instrumented org.jdom2.Document (took 17 ms, size +17%)
+INFO: Instrumented org.jdom2.util.IteratorIterable (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.IllegalAddException (took 4 ms, size +26%)
+INFO: Instrumented org.jdom2.ContentList (took 14 ms, size +16%)
+INFO: Instrumented org.jdom2.input.sax.XMLReaders$NONSingleton (took 2 ms, size +9%)
+INFO: Instrumented org.xml.sax.Parser (took 0 ms, size +0%)
+INFO: Instrumented org.xml.sax.AttributeList (took 0 ms, size +0%)
+INFO: Instrumented org.xml.sax.ext.Attributes2 (took 0 ms, size +0%)
+INFO: Instrumented org.xml.sax.Attributes (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.input.sax.BuilderErrorHandler (took 1 ms, size +15%)
+INFO: Instrumented org.xml.sax.SAXParseException (took 3 ms, size +16%)
+INFO: Instrumented org.jdom2.input.sax.SAXBuilderEngine (took 4 ms, size +8%)
+INFO: Instrumented org.jdom2.input.JDOMParseException (took 1 ms, size +24%)
+INFO: Instrumented org.xml.sax.InputSource (took 2 ms, size +22%)
+INFO: Instrumented org.xml.sax.ext.Locator2 (took 0 ms, size +0%)
+INFO: Instrumented org.xml.sax.Locator (took 0 ms, size +0%)
+INFO: Instrumented org.jdom2.IllegalDataException (took 1 ms, size +18%)
+INFO: Instrumented org.jdom2.Content$CType (took 1 ms, size +12%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented org.jdom2.Verifier (took 19 ms, size +24%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueMedium: Server Side Request Forgery (SSRF)
+Attempted connection to: www.w3.org:80
+Requests to destinations based on untrusted data could lead to exfiltration of sensitive data or exposure of internal services.
+
+If the fuzz test is expected to perform network connections, call com.code_intelligence.jazzer.api.BugDetectors#allowNetworkConnections at the beginning of your fuzz test and optionally provide a predicate matching the expected hosts.
+	at com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrf(ServerSideRequestForgery.java:127)
+	at com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrfSocket(ServerSideRequestForgery.java:71)
+	at java.base/java.net.Socket.connect(Socket.java:633)
+	at java.base/java.net.Socket.connect(Socket.java:583)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:183)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:498)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:603)
+	at java.base/sun.net.www.http.HttpClient.<init>(HttpClient.java:246)
+	at java.base/sun.net.www.http.HttpClient.New(HttpClient.java:351)
+	at java.base/sun.net.www.http.HttpClient.New(HttpClient.java:373)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getNewHttpClient(HttpURLConnection.java:1309)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1242)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1128)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1057)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1665)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1589)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLEntityManager.setupCurrentEntity(XMLEntityManager.java:677)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLEntityManager.startEntity(XMLEntityManager.java:1397)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLEntityManager.startDTDEntity(XMLEntityManager.java:1363)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDTDScannerImpl.setInputSource(XMLDTDScannerImpl.java:257)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$DTDDriver.dispatch(XMLDocumentScannerImpl.java:1152)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$DTDDriver.next(XMLDocumentScannerImpl.java:1040)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$PrologDriver.next(XMLDocumentScannerImpl.java:943)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl.next(XMLDocumentScannerImpl.java:605)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLNSDocumentScannerImpl.next(XMLNSDocumentScannerImpl.java:112)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanDocument(XMLDocumentFragmentScannerImpl.java:542)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:889)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:825)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XMLParser.parse(XMLParser.java:141)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.parse(AbstractSAXParser.java:1224)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl$JAXPSAXParser.parse(SAXParserImpl.java:637)
+	at org.jdom2.input.sax.SAXBuilderEngine.build(SAXBuilderEngine.java:217)
+	at org.jdom2.input.sax.SAXBuilderEngine.build(SAXBuilderEngine.java:303)
+	at org.jdom2.input.SAXBuilder.build(SAXBuilder.java:1184)
+	at SAXBuilderFuzzer.fuzzerTestOneInput(SAXBuilderFuzzer.java:37)
+DEDUP_TOKEN: ab42bf87872262a9
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_5afa1c5a53e3d18b0f3d538f1e7053c4fec8f99c.java
+

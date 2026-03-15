@@ -1,0 +1,20 @@
+=================================================================
+==360010==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7fde06f96873 bp 0x7fffdeb0c210 sp 0x7fffdeb0c020 T0)
+==360010==The signal is caused by a WRITE memory access.
+==360010==Hint: address points to the zero page.
+    #0 0x7fde06f96873 in load_buffer /root/libr/../libr/bin/p/bin_xnu_kernelcache.c:245:17
+    #1 0x7fde06c3b9fa in r_bin_object_new /root/libr/bin/bobj.c:147:8
+    #2 0x7fde06c30f8c in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    #3 0x7fde06c0ba75 in r_bin_open_buf /root/libr/bin/bin.c:279:8
+    #4 0x7fde06c0ab9d in r_bin_open_io /root/libr/bin/bin.c:339:13
+    #5 0x7fde07691092 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    #6 0x7fde0768c345 in r_core_bin_load /root/libr/core/cfile.c:636:4
+    #7 0x7fde04c1c3f3 in r_main_radare2 /root/libr/main/radare2.c:1177:15
+    #8 0x55ed0e0df67e in main /root/binr/radare2/radare2.c:96:9
+    #9 0x7fde049e71c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x7fde049e728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x55ed0e0de1e4 in _start (/root/bin/radare2+0x21e4) (BuildId: ee1ebc995960a5693ebd8baaf6e09672bf62eb89)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/libr/../libr/bin/p/bin_xnu_kernelcache.c:245:17 in load_buffer
+==360010==ABORTING

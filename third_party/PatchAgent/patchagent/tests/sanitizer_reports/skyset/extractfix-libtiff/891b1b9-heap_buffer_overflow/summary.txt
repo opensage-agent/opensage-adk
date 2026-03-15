@@ -1,0 +1,22 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 2 at 0x5020000005f1 thread T0
+    - _TIFFmemcpy /root/libtiff/tif_unix.c:340:2
+    - t2p_readwrite_pdf_image_tile /root/tools/tiff2pdf.c:2901:6
+    - t2p_write_pdf /root/tools/tiff2pdf.c:5535:16
+    - main /root/tools/tiff2pdf.c:808:2
+
+0x5020000005f1 is located 0 bytes after 1-byte region [0x5020000005f0,0x5020000005f1)
+allocated by thread T0 here:
+    - _TIFFmalloc /root/libtiff/tif_unix.c:316:10
+    - t2p_readwrite_pdf_image_tile /root/tools/tiff2pdf.c:2887:29
+    - t2p_write_pdf /root/tools/tiff2pdf.c:5535:16
+    - main /root/tools/tiff2pdf.c:808:2
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

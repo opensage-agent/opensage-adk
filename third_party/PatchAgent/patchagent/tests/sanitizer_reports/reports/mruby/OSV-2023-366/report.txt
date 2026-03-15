@@ -1,0 +1,1090 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mruby:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/mruby/OSV-2023-366/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce mruby_fuzzer -runs=100.
++ FUZZER=mruby_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer mruby_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/mruby_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=mruby.dict -only_ascii=1 < /dev/null
+Dictionary: 102 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1910191075
+INFO: Loaded 1 modules   (22991 inline 8-bit counters): 22991 [0x558f4ec992a8, 0x558f4ec9ec77), 
+INFO: Loaded 1 PC tables (22991 PCs): 22991 [0x558f4ec9ec78,0x558f4ecf8968), 
+/out/mruby_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+to_i
+slice!
+!
+tr!
+tr_s!
+tap
+to_s
+rstrip
+%
++
+then
+*
+strip!
+to_f
+initialize
+__sub_replace
+upto
+<
+>
+tr_s
+rindex
+__method__
+`
+__id__
+Hash
+byterindex
+instance_of?
+delete_prefix
+between?
+delete_suffix
+bytesize
+casecmp?
+__callee__
+__case_eqq
+instance_exec
+__to_int
+String
+unpack
+__send__
+upcase
+instance_eval
+to_str
+p
+codepoints
+_inspect
+capitalize
+to_sym
+Array
+raise
+instance_variable_defined?
+Complex
+print
+remove_instance_variable
+__printstr__
+ord
+<<
+==
+define_singleton_method
+<=
+block_given?
+singleton_method_added
+byteindex
+__ENCODING__
+instance_variable_set
+byteslice
+!~
+!=
+oct
+next!
+delete_suffix!
+each_byte
+downcase!
+each_codepoint
+yield_self
+sub
+srand
+method_missing
+split
+instance_variable_get
+strip
+each_line
+succ!
+public_methods
+each_char
+__upto_endless
+[]
+instance_variables
+end_with?
+rjust
+Rational
+delete_prefix!
+rpartition
+Float
+>=
+slice
+iterator?
+<=>
+hash
+open
+initialize_copy
+gsub
+local_variables
+is_a?
+printf
+===
+__lines
+nil?
+index
+unpack1
+partition
+upcase!
+gsub!
+object_id
+[]=
+to_enum
+method
+singleton_class
+lines
+include?
+private_methods
+respond_to?
+start_with?
+ljust
+kind_of?
+setbyte
+lstrip
+fail
+eval
+loop
+swapcase!
+length
+sprintf
+eql?
+squeeze
+reverse
+lambda
+tr
+itself
+replace
+gets
+downcase
+next
+insert
+global_variables
+intern
+rstrip!
+Integer
+enum_for
+delete!
+empty?
+count
+equal?
+singleton_method
+succ
+dump
+sub!
+clear
+extend
+chomp
+chop!
+clone
+hex
+size
+clamp
+class
+bytes
+prepend
+chop
+send
+format
+chars
+freeze
+frozen?
+caller
+getbyte
+singleton_methods
+reverse!
+chomp!
+inspect
+center
+squeeze!
+capitalize!
+dup
+proc
+swapcase
+lstrip!
+chr
+protected_methods
+casecmp
+delete
+puts
+rand
+concat
+methods
+to_i
+slice!
+!
+tr!
+tr_s!
+tap
+to_s
+rstrip
+%
++
+then
+*
+strip!
+to_f
+initialize
+__sub_replace
+upto
+<
+>
+tr_s
+rindex
+__method__
+`
+__id__
+Hash
+byterindex
+instance_of?
+delete_prefix
+between?
+delete_suffix
+bytesize
+casecmp?
+__callee__
+__case_eqq
+instance_exec
+__to_int
+String
+unpack
+__send__
+upcase
+instance_eval
+to_str
+p
+codepoints
+_inspect
+capitalize
+to_sym
+Array
+raise
+instance_variable_defined?
+Complex
+print
+remove_instance_variable
+__printstr__
+ord
+<<
+==
+define_singleton_method
+<=
+block_given?
+singleton_method_added
+byteindex
+__ENCODING__
+instance_variable_set
+byteslice
+!~
+!=
+oct
+next!
+delete_suffix!
+each_byte
+downcase!
+each_codepoint
+yield_self
+sub
+srand
+method_missing
+split
+instance_variable_get
+strip
+each_line
+succ!
+public_methods
+each_char
+__upto_endless
+[]
+instance_variables
+end_with?
+rjust
+Rational
+delete_prefix!
+rpartition
+Float
+>=
+slice
+iterator?
+<=>
+hash
+open
+initialize_copy
+gsub
+local_variables
+is_a?
+printf
+===
+__lines
+nil?
+index
+unpack1
+partition
+upcase!
+gsub!
+object_id
+[]=
+to_enum
+method
+singleton_class
+lines
+include?
+private_methods
+respond_to?
+start_with?
+ljust
+kind_of?
+setbyte
+lstrip
+fail
+eval
+loop
+swapcase!
+length
+sprintf
+eql?
+squeeze
+reverse
+lambda
+tr
+itself
+replace
+gets
+downcase
+next
+insert
+global_variables
+intern
+rstrip!
+Integer
+enum_for
+delete!
+empty?
+count
+equal?
+singleton_method
+succ
+dump
+sub!
+clear
+extend
+chomp
+chop!
+clone
+hex
+size
+clamp
+class
+bytes
+prepend
+chop
+send
+format
+chars
+freeze
+frozen?
+caller
+getbyte
+singleton_methods
+reverse!
+chomp!
+inspect
+center
+squeeze!
+capitalize!
+dup
+proc
+swapcase
+lstrip!
+chr
+protected_methods
+casecmp
+delete
+puts
+rand
+concat
+methods
+to_i
+slice!
+!
+tr!
+tr_s!
+tap
+to_s
+rstrip
+%
++
+then
+*
+strip!
+to_f
+initialize
+__sub_replace
+upto
+<
+>
+tr_s
+rindex
+__method__
+`
+__id__
+Hash
+byterindex
+instance_of?
+delete_prefix
+between?
+delete_suffix
+bytesize
+casecmp?
+__callee__
+__case_eqq
+instance_exec
+__to_int
+String
+unpack
+__send__
+upcase
+instance_eval
+to_str
+p
+codepoints
+_inspect
+capitalize
+to_sym
+Array
+raise
+instance_variable_defined?
+Complex
+print
+remove_instance_variable
+__printstr__
+ord
+<<
+==
+define_singleton_method
+<=
+block_given?
+singleton_method_added
+byteindex
+__ENCODING__
+instance_variable_set
+byteslice
+!~
+!=
+oct
+next!
+delete_suffix!
+each_byte
+downcase!
+each_codepoint
+yield_self
+sub
+srand
+method_missing
+split
+instance_variable_get
+strip
+each_line
+succ!
+public_methods
+each_char
+__upto_endless
+[]
+instance_variables
+end_with?
+rjust
+Rational
+delete_prefix!
+rpartition
+Float
+>=
+slice
+iterator?
+<=>
+hash
+open
+initialize_copy
+gsub
+local_variables
+is_a?
+printf
+===
+__lines
+nil?
+index
+unpack1
+partition
+upcase!
+gsub!
+object_id
+[]=
+to_enum
+method
+singleton_class
+lines
+include?
+private_methods
+respond_to?
+start_with?
+ljust
+kind_of?
+setbyte
+lstrip
+fail
+eval
+loop
+swapcase!
+length
+sprintf
+eql?
+squeeze
+reverse
+lambda
+tr
+itself
+replace
+gets
+downcase
+next
+insert
+global_variables
+intern
+rstrip!
+Integer
+enum_for
+delete!
+empty?
+count
+equal?
+singleton_method
+succ
+dump
+sub!
+clear
+extend
+chomp
+chop!
+clone
+hex
+size
+clamp
+class
+bytes
+prepend
+chop
+send
+format
+chars
+freeze
+frozen?
+caller
+getbyte
+singleton_methods
+reverse!
+chomp!
+inspect
+center
+squeeze!
+capitalize!
+dup
+proc
+swapcase
+lstrip!
+chr
+protected_methods
+casecmp
+delete
+puts
+rand
+concat
+methods
+to_i
+slice!
+!
+tr!
+tr_s!
+tap
+to_s
+rstrip
+%
++
+then
+*
+strip!
+to_f
+initialize
+__sub_replace
+upto
+<
+>
+tr_s
+rindex
+__method__
+`
+__id__
+Hash
+byterindex
+instance_of?
+delete_prefix
+between?
+delete_suffix
+bytesize
+casecmp?
+__callee__
+__case_eqq
+instance_exec
+__to_int
+String
+unpack
+__send__
+upcase
+instance_eval
+to_str
+p
+codepoints
+_inspect
+capitalize
+to_sym
+Array
+raise
+instance_variable_defined?
+Complex
+print
+remove_instance_variable
+__printstr__
+ord
+<<
+==
+define_singleton_method
+<=
+block_given?
+singleton_method_added
+byteindex
+__ENCODING__
+instance_variable_set
+byteslice
+!~
+!=
+oct
+next!
+delete_suffix!
+each_byte
+downcase!
+each_codepoint
+yield_self
+sub
+srand
+method_missing
+split
+instance_variable_get
+strip
+each_line
+succ!
+public_methods
+each_char
+__upto_endless
+[]
+instance_variables
+end_with?
+rjust
+Rational
+delete_prefix!
+rpartition
+Float
+>=
+slice
+iterator?
+<=>
+hash
+open
+initialize_copy
+gsub
+local_variables
+is_a?
+printf
+===
+__lines
+nil?
+index
+unpack1
+partition
+upcase!
+gsub!
+object_id
+[]=
+to_enum
+method
+singleton_class
+lines
+include?
+private_methods
+respond_to?
+start_with?
+ljust
+kind_of?
+setbyte
+lstrip
+fail
+eval
+loop
+swapcase!
+length
+sprintf
+eql?
+squeeze
+reverse
+lambda
+tr
+itself
+replace
+gets
+downcase
+next
+insert
+global_variables
+intern
+rstrip!
+Integer
+enum_for
+delete!
+empty?
+count
+equal?
+singleton_method
+succ
+dump
+sub!
+clear
+extend
+chomp
+chop!
+clone
+hex
+size
+clamp
+class
+bytes
+prepend
+chop
+send
+format
+chars
+freeze
+frozen?
+caller
+getbyte
+singleton_methods
+reverse!
+chomp!
+inspect
+center
+squeeze!
+capitalize!
+dup
+proc
+swapcase
+lstrip!
+chr
+protected_methods
+casecmp
+delete
+puts
+rand
+concat
+methods
+fz
+to_i
+slice!
+!
+tr!
+tr_s!
+tap
+to_s
+rstrip
+%
++
+then
+*
+strip!
+to_f
+initialize
+__sub_replace
+upto
+<
+>
+tr_s
+rindex
+__method__
+`
+__id__
+Hash
+byterindex
+instance_of?
+delete_prefix
+between?
+delete_suffix
+bytesize
+casecmp?
+__callee__
+__case_eqq
+instance_exec
+__to_int
+String
+unpack
+__send__
+upcase
+instance_eval
+to_str
+p
+codepoints
+_inspect
+capitalize
+to_sym
+Array
+raise
+instance_variable_defined?
+Complex
+print
+remove_instance_variable
+__printstr__
+ord
+<<
+==
+define_singleton_method
+<=
+block_given?
+singleton_method_added
+byteindex
+__ENCODING__
+instance_variable_set
+byteslice
+!~
+!=
+oct
+next!
+delete_suffix!
+each_byte
+downcase!
+each_codepoint
+yield_self
+sub
+srand
+method_missing
+split
+instance_variable_get
+strip
+each_line
+succ!
+public_methods
+each_char
+__upto_endless
+[]
+instance_variables
+end_with?
+rjust
+Rational
+delete_prefix!
+rpartition
+Float
+>=
+slice
+iterator?
+<=>
+hash
+open
+initialize_copy
+gsub
+local_variables
+is_a?
+printf
+===
+__lines
+nil?
+index
+unpack1
+partition
+upcase!
+gsub!
+object_id
+[]=
+to_enum
+method
+singleton_class
+lines
+include?
+private_methods
+respond_to?
+start_with?
+ljust
+kind_of?
+setbyte
+lstrip
+fail
+eval
+loop
+swapcase!
+length
+sprintf
+eql?
+squeeze
+reverse
+lambda
+tr
+itself
+replace
+gets
+downcase
+next
+insert
+global_variables
+intern
+rstrip!
+Integer
+enum_for
+delete!
+empty?
+count
+equal?
+singleton_method
+succ
+dump
+sub!
+clear
+extend
+chomp
+chop!
+clone
+hex
+size
+clamp
+class
+bytes
+prepend
+chop
+send
+format
+chars
+freeze
+frozen?
+caller
+getbyte
+singleton_methods
+reverse!
+chomp!
+inspect
+center
+squeeze!
+capitalize!
+dup
+proc
+swapcase
+lstrip!
+chr
+protected_methods
+casecmp
+delete
+puts
+rand
+concat
+methods
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x52f000038500 at pc 0x558f4e9c8f9c bp 0x7ffc75763660 sp 0x7ffc75763658
+[1m[0m[1m[34mREAD of size 4 at 0x52f000038500 thread T0[1m[0m
+SCARINESS: 45 (4-byte-read-heap-use-after-free)
+    #0 0x558f4e9c8f9b in mrb_gc_mark /src/mruby/src/gc.c:789:8
+    #1 0x558f4e9c8f9b in gc_mark_children /src/mruby/src/gc.c:743:9
+    #2 0x558f4e9c43f6 in incremental_marking_phase /src/mruby/src/gc.c:1097:5
+    #3 0x558f4e9c43f6 in incremental_gc /src/mruby/src/gc.c:1237:14
+    #4 0x558f4e9be651 in incremental_gc_finish /src/mruby/src/gc.c:1262:5
+    #5 0x558f4e9be651 in mrb_full_gc /src/mruby/src/gc.c:1373:3
+    #6 0x558f4e9c23df in gc_start /src/mruby/src/gc.c:1453:3
+    #7 0x558f4e9edbbb in mrb_vm_exec /src/mruby/src/vm.c
+    #8 0x558f4e9db77c in mrb_vm_run /src/mruby/src/vm.c:1275:12
+    #9 0x558f4ea81ab3 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6910:7
+    #10 0x558f4e9bcc70 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #11 0x558f4e871760 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x558f4e85c9d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x558f4e86246f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x558f4e88d712 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f002b58b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #16 0x558f4e854bbd in _start (/out/mruby_fuzzer+0x165bbd)
+
+DEDUP_TOKEN: mrb_gc_mark--gc_mark_children--incremental_marking_phase
+[1m[32m0x52f000038500 is located 256 bytes inside of 49200-byte region [0x52f000038400,0x52f000044430)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x558f4e97d296 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x558f4e9bcea5 in mrb_default_allocf /src/mruby/src/state.c:65:5
+    #2 0x558f4e9c4136 in mrb_free /src/mruby/src/gc.c:296:3
+    #3 0x558f4e9c4136 in incremental_sweep_phase /src/mruby/src/gc.c:1205:7
+    #4 0x558f4e9c4136 in incremental_gc /src/mruby/src/gc.c:1246:20
+    #5 0x558f4e9be651 in incremental_gc_finish /src/mruby/src/gc.c:1262:5
+    #6 0x558f4e9be651 in mrb_full_gc /src/mruby/src/gc.c:1373:3
+    #7 0x558f4e9c23df in gc_start /src/mruby/src/gc.c:1453:3
+    #8 0x558f4e9edbbb in mrb_vm_exec /src/mruby/src/vm.c
+    #9 0x558f4e9db77c in mrb_vm_run /src/mruby/src/vm.c:1275:12
+    #10 0x558f4ea81ab3 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6910:7
+    #11 0x558f4e9bcc70 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #12 0x558f4e871760 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x558f4e85c9d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x558f4e86246f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x558f4e88d712 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7f002b58b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--mrb_default_allocf--mrb_free
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x558f4e97d91c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x558f4e9bff45 in mrb_realloc_simple /src/mruby/src/gc.c:234:8
+    #2 0x558f4e9bff45 in mrb_realloc /src/mruby/src/gc.c:248:8
+    #3 0x558f4e9bff45 in mrb_malloc /src/mruby/src/gc.c:264:10
+    #4 0x558f4e9bff45 in mrb_calloc /src/mruby/src/gc.c:282:9
+    #5 0x558f4e9bff45 in add_heap /src/mruby/src/gc.c:381:42
+    #6 0x558f4e9bf743 in mrb_obj_alloc /src/mruby/src/gc.c:584:5
+    #7 0x558f4ead1d76 in str_new /src/mruby/src/string.c:140:27
+    #8 0x558f4e9e3af1 in mrb_vm_exec /src/mruby/src/vm.c:2801:19
+    #9 0x558f4e9db77c in mrb_vm_run /src/mruby/src/vm.c:1275:12
+    #10 0x558f4ea81ab3 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6910:7
+    #11 0x558f4e9bcc70 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #12 0x558f4e871760 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x558f4e85c9d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x558f4e86246f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x558f4e88d712 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7f002b58b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_realloc--mrb_realloc_simple--mrb_realloc
+SUMMARY: AddressSanitizer: heap-use-after-free /src/mruby/src/gc.c:789:8 in mrb_gc_mark
+Shadow bytes around the buggy address:
+  0x52f000038280: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52f000038300: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52f000038380: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52f000038400: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f000038480: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+=>0x52f000038500:[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f000038580: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f000038600: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f000038680: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f000038700: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f000038780: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==18==ABORTING

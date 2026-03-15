@@ -1,0 +1,30 @@
+==14==WARNING: AddressSanitizer failed to allocate 0xffffffff80000000 bytes
+=================================================================
+==14==ERROR: AddressSanitizer: memcpy-param-overlap: memory ranges [0x000000000000,0xffffffff80000000) and [0x50d000000115, 0x50cf80000115) overlap
+SCARINESS: 10 (memcpy-param-overlap)
+    #0 0x56341b269ec0 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x56341b31e461 in frame_get_metalayers /src/c-blosc2/blosc/frame.c:1263:5
+    #2 0x56341b31ecde in blosc2_frame_to_schunk /src/c-blosc2/blosc/frame.c:1452:8
+    #3 0x56341b312ca5 in blosc2_schunk_open_sframe /src/c-blosc2/blosc/schunk.c:290:27
+    #4 0x56341b2ab857 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:23:27
+    #5 0x56341b160380 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x56341b14b5f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x56341b15108f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x56341b17c332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f8b2d706082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #10 0x56341b1437dd in _start (/out/decompress_frame_fuzzer+0x1267dd)
+
+DEDUP_TOKEN: __asan_memcpy--frame_get_metalayers--blosc2_frame_to_schunk
+Address 0x000000000000 is a wild pointer inside of access range of size 0xffffffff80000000.
+0x50d000000115 is located 5 bytes inside of 132-byte region [0x50d000000110,0x50d000000194)
+allocated by thread T0 here:
+    #0 0x56341b26c14f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x56341b6b91c3 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x56341b14b5f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x56341b15108f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x56341b17c332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7f8b2d706082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: memcpy-param-overlap /src/c-blosc2/blosc/frame.c:1263:5 in frame_get_metalayers
+==14==ABORTING

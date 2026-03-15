@@ -1,0 +1,41 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 2048 at 0x7fd0ae9388e0 thread T0
+    - gf_text_get_utf8_line /root/src/filters/load_text.c:381:3
+    - txtin_process_srt /root/src/filters/load_text.c:996:12
+    - txtin_process /root/src/filters/load_text.c:4015:6
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4831:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+Address 0x7fd0ae9388e0 is located in stack of thread T0 at offset 2272 in frame
+    - txtin_process_srt /root/src/filters/load_text.c:949:0
+
+  This frame has 14 object(s):
+    [32, 36) 'sh' (line 950)
+    [48, 52) 'sm' (line 950)
+    [64, 68) 'ss' (line 950)
+    [80, 84) 'sms' (line 950)
+    [96, 100) 'eh' (line 950)
+    [112, 116) 'em' (line 950)
+    [128, 132) 'es' (line 950)
+    [144, 148) 'ems' (line 950)
+    [160, 164) 'char_len' (line 950)
+    [176, 180) 'set_start_char' (line 951)
+    [192, 196) 'set_end_char' (line 951)
+    [208, 212) 'line' (line 952)
+    [224, 2272) 'szLine' (line 953)
+    [2400, 2424) '.compoundliteral' <== Memory access at offset 2272 partially underflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

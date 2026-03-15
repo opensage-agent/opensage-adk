@@ -1,0 +1,59 @@
+=================================================================
+==360167==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50300000005a at pc 0x7fee319ba616 bp 0x7ffdc94a70f0 sp 0x7ffdc94a68b0
+READ of size 16 at 0x50300000005a thread T0
+    #0 0x7fee319ba615 in __asan_memcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf6615) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55f80353dcc1 in ZSTD_copy16 /root/tests/fuzz/../../lib/common/zstd_internal.h:197:55
+    #2 0x55f80353f805 in ZSTD_wildcopy_16min /root/tests/fuzz/../../lib/common/zstd_internal.h:266:11
+    #3 0x55f80353f805 in ZSTD_execSequence /root/tests/fuzz/../../lib/decompress/zstd_decompress_block.c:644:9
+    #4 0x55f80353f805 in ZSTD_decompressSequences_body /root/tests/fuzz/../../lib/decompress/zstd_decompress_block.c:936:43
+    #5 0x55f80353f805 in ZSTD_decompressSequences_bmi2 /root/tests/fuzz/../../lib/decompress/zstd_decompress_block.c:1153:12
+    #6 0x55f803531895 in ZSTD_decompressSequences /root/tests/fuzz/../../lib/decompress/zstd_decompress_block.c:1185:16
+    #7 0x55f803531562 in ZSTD_decompressBlock_internal /root/tests/fuzz/../../lib/decompress/zstd_decompress_block.c:1310:16
+    #8 0x55f803531914 in ZSTD_decompressBlock /root/tests/fuzz/../../lib/decompress/zstd_decompress_block.c:1322:13
+    #9 0x55f803754987 in LLVMFuzzerTestOneInput /root/tests/fuzz/block_decompress.c:43:5
+    #10 0x55f803754eac in main /root/tests/fuzz/regression_driver.c:68:5
+    #11 0x7fee313411c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7fee3134128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x55f8034fc574 in _start (/root/block_decompress+0x8574) (BuildId: 0932123ceeb65a798c926984e9029b04b9499331)
+
+0x50300000005a is located 0 bytes after 26-byte region [0x503000000040,0x50300000005a)
+allocated by thread T0 here:
+    #0 0x7fee319bc7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55f803754cd9 in main /root/tests/fuzz/regression_driver.c:55:27
+    #2 0x7fee313411c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #3 0x7fee3134128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #4 0x55f8034fc574 in _start (/root/block_decompress+0x8574) (BuildId: 0932123ceeb65a798c926984e9029b04b9499331)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/tests/fuzz/../../lib/common/zstd_internal.h:197:55 in ZSTD_copy16
+Shadow bytes around the buggy address:
+  0x502ffffffd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x503000000000: fa fa 00 00 00 fa fa fa 00 00 00[02]fa fa fa fa
+  0x503000000080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360167==ABORTING

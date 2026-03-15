@@ -1,0 +1,64 @@
+The sanitizer detected a function param overlap vulnerability. The explanation of the vulnerability is: The source and destination buffers of a memory copy operation overlap, causing data corruption. Here is the detail: 
+
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - dupl /src/clamav/libclamav/regex/regcomp.c:1188:9
+    - repeat /src/clamav/libclamav/regex/regcomp.c:995:10
+    - repeat /src/clamav/libclamav/regex/regcomp.c:977:3
+    - p_ere_exp /src/clamav/libclamav/regex/regcomp.c:416:3
+    - p_ere /src/clamav/libclamav/regex/regcomp.c:271:4
+    - cli_regcomp_real /src/clamav/libclamav/regex/regcomp.c:227:3
+    - cli_loadcdb /src/clamav/libclamav/readdb.c:3181:39
+    - cli_load /src/clamav/libclamav/readdb.c:4834:15
+    - cl_load /src/clamav/libclamav/readdb.c:5313:19
+    - LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_dbload_fuzzer.cpp:126:30
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x7f04711a52f8 is located 921103096 bytes inside of 959482360-byte region [0x7f043a336800,0x7f047363f1f8)
+allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - cli_realloc /src/clamav/libclamav/others_common.c:272:13
+    - enlarge /src/clamav/libclamav/regex/regcomp.c:1282:14
+    - dupl /src/clamav/libclamav/regex/regcomp.c:1186:7
+    - repeat /src/clamav/libclamav/regex/regcomp.c:995:10
+    - repeat /src/clamav/libclamav/regex/regcomp.c:977:3
+    - p_ere_exp /src/clamav/libclamav/regex/regcomp.c:416:3
+    - p_ere /src/clamav/libclamav/regex/regcomp.c:271:4
+    - cli_regcomp_real /src/clamav/libclamav/regex/regcomp.c:227:3
+    - cli_loadcdb /src/clamav/libclamav/readdb.c:3181:39
+    - cli_load /src/clamav/libclamav/readdb.c:4834:15
+    - cl_load /src/clamav/libclamav/readdb.c:5313:19
+    - LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_dbload_fuzzer.cpp:126:30
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x7f046ed0b400 is located 882723840 bytes inside of 959482360-byte region [0x7f043a336800,0x7f047363f1f8)
+allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - cli_realloc /src/clamav/libclamav/others_common.c:272:13
+    - enlarge /src/clamav/libclamav/regex/regcomp.c:1282:14
+    - dupl /src/clamav/libclamav/regex/regcomp.c:1186:7
+    - repeat /src/clamav/libclamav/regex/regcomp.c:995:10
+    - repeat /src/clamav/libclamav/regex/regcomp.c:977:3
+    - p_ere_exp /src/clamav/libclamav/regex/regcomp.c:416:3
+    - p_ere /src/clamav/libclamav/regex/regcomp.c:271:4
+    - cli_regcomp_real /src/clamav/libclamav/regex/regcomp.c:227:3
+    - cli_loadcdb /src/clamav/libclamav/readdb.c:3181:39
+    - cli_load /src/clamav/libclamav/readdb.c:4834:15
+    - cl_load /src/clamav/libclamav/readdb.c:5313:19
+    - LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_dbload_fuzzer.cpp:126:30
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that the source and destination buffers do not overlap in memcpy operations.
+2. If overlapping memory regions must be copied, use memmove instead of memcpy.
+3. Validate memory regions before performing copy operations.

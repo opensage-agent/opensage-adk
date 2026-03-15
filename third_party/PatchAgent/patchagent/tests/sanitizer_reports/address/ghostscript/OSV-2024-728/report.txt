@@ -1,0 +1,79 @@
+=================================================================
+==14==ERROR: AddressSanitizer: negative-size-param: (size=-6441)
+SCARINESS: 10 (negative-size-param)
+    #0 0x557bb07d9a6e in memset /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:87:3
+    #1 0x557bb0b85964 in pdf_resize_array /src/ghostpdl/./devices/vector/gdevpdtf.c:362:5
+    #2 0x557bb0b85964 in pdf_resize_resource_arrays /src/ghostpdl/./devices/vector/gdevpdtf.c:679:12
+    #3 0x557bb162fdd8 in scan_cmap_text /src/ghostpdl/./devices/vector/gdevpdtc.c:569:24
+    #4 0x557bb162fdd8 in process_cmap_text /src/ghostpdl/./devices/vector/gdevpdtc.c:965:12
+    #5 0x557bb0bad0e7 in pdf_text_process /src/ghostpdl/./devices/vector/gdevpdtt.c:3728:16
+    #6 0x557bb1301212 in pdfi_show_simple /src/ghostpdl/./pdf/pdf_text.c:445:16
+    #7 0x557bb1301212 in pdfi_show_Tr_preserve /src/ghostpdl/./pdf/pdf_text.c:780:12
+    #8 0x557bb1301212 in pdfi_show /src/ghostpdl/./pdf/pdf_text.c:830:16
+    #9 0x557bb13021b8 in pdfi_Tj /src/ghostpdl/./pdf/pdf_text.c:1069:12
+    #10 0x557bb122b115 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1644:24
+    #11 0x557bb1229496 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2101:24
+    #12 0x557bb127d1b5 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #13 0x557bb127d1b5 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #14 0x557bb127d1b5 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #15 0x557bb11ee43a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1074:24
+    #16 0x557bb10813f9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #17 0x557bb10813f9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #18 0x557bb10813f9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #19 0x557bb08233b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #20 0x557bb08233b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #21 0x557bb08233b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #22 0x557bb1353ef0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #23 0x557bb13508c0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #24 0x557bb134da42 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #25 0x557bb1353c78 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #26 0x557bb081afbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #27 0x557bb081b335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #28 0x557bb06cf6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #29 0x557bb06ba945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #30 0x557bb06c03df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #31 0x557bb06eb682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #32 0x7f274670d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #33 0x557bb06b2b2d in _start (/out/gs_device_pdfwrite_fuzzer+0x719b2d)
+
+DEDUP_TOKEN: ___interceptor_memset--pdf_resize_array--pdf_resize_resource_arrays
+0x52a00031b561 is located 13153 bytes inside of 20048-byte region [0x52a000318200,0x52a00031d050)
+allocated by thread T0 here:
+    #0 0x557bb07db49f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x557bb0d01650 in gs_heap_alloc_bytes /src/ghostpdl/./base/gsmalloc.c:192:34
+    #2 0x557bb16e4717 in alloc_acquire_clump /src/ghostpdl/./base/gsalloc.c:2445:13
+    #3 0x557bb16e362b in alloc_add_clump /src/ghostpdl/./base/gsalloc.c:2395:19
+    #4 0x557bb16e362b in alloc_obj /src/ghostpdl/./base/gsalloc.c:2004:17
+    #5 0x557bb16dc1c6 in i_alloc_struct /src/ghostpdl/./base/gsalloc.c:1217:15
+    #6 0x557bb0caf353 in c_param_add /src/ghostpdl/./base/gscparam.c:237:9
+    #7 0x557bb0caeac8 in c_param_write /src/ghostpdl/./base/gscparam.c:276:26
+    #8 0x557bb0d22913 in param_write_int /src/ghostpdl/./base/gsparam.c:645:5
+    #9 0x557bb0b63f94 in psdf_DCT_filter /src/ghostpdl/./devices/vector/gdevpsdu.c:383:21
+    #10 0x557bb0b572d0 in psdf_put_image_dict_param /src/ghostpdl/./devices/vector/gdevpsdp.c:867:20
+    #11 0x557bb0b54fb8 in psdf_put_image_params /src/ghostpdl/./devices/vector/gdevpsdp.c:939:16
+    #12 0x557bb0b54261 in gdev_psdf_put_params /src/ghostpdl/./devices/vector/gdevpsdp.c:1207:13
+    #13 0x557bb0b21695 in gdev_pdf_put_params_impl /src/ghostpdl/./devices/vector/gdevpdfp.c:758:13
+    #14 0x557bb0b21695 in gdev_pdf_put_params /src/ghostpdl/./devices/vector/gdevpdfp.c:918:12
+    #15 0x557bb0cd1e1d in gs_putdeviceparams /src/ghostpdl/./base/gsdparam.c:1087:12
+    #16 0x557bb1137a50 in zputdeviceparams /src/ghostpdl/./psi/zdevice.c:546:12
+    #17 0x557bb10813f9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #18 0x557bb10813f9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #19 0x557bb10813f9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #20 0x557bb081f0cb in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #21 0x557bb081f0cb in gs_run_init_file /src/ghostpdl/./psi/imain.c:861:12
+    #22 0x557bb081f0cb in gs_main_init2aux /src/ghostpdl/./psi/imain.c:305:16
+    #23 0x557bb081fff9 in gs_main_init2 /src/ghostpdl/./psi/imain.c:491:12
+    #24 0x557bb1350871 in swproc /src/ghostpdl/./psi/imainarg.c:363:20
+    #25 0x557bb134da42 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #26 0x557bb1353c78 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #27 0x557bb081afbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #28 0x557bb081b335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #29 0x557bb06cf6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #30 0x557bb06ba945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #31 0x557bb06c03df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #32 0x557bb06eb682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #33 0x7f274670d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--gs_heap_alloc_bytes--alloc_acquire_clump
+SUMMARY: AddressSanitizer: negative-size-param /src/ghostpdl/./devices/vector/gdevpdtf.c:362:5 in pdf_resize_array
+==14==ABORTING

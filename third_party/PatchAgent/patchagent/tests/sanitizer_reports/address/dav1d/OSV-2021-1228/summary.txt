@@ -1,0 +1,43 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 948 at 0x529000009a40 thread T0
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - backup_lpf /src/dav1d/src/lr_apply_tmpl.c:88:17
+    - dav1d_lr_copy_lpf_16bpc /src/dav1d/src/lr_apply_tmpl.c:148:13
+    - dav1d_filter_sbrow_deblock_rows_16bpc /src/dav1d/src/recon_tmpl.c:2076:9
+    - dav1d_filter_sbrow_16bpc /src/dav1d/src/recon_tmpl.c:2154:5
+    - dav1d_decode_frame_main /src/dav1d/src/decode.c:3331:13
+    - dav1d_decode_frame /src/dav1d/src/decode.c:3393:19
+    - dav1d_submit_frame /src/dav1d/src/decode.c:3762:20
+    - dav1d_parse_obus /src/dav1d/src/obu.c:1606:24
+    - gen_picture /src/dav1d/src/lib.c:394:15
+    - dav1d_send_data /src/dav1d/src/lib.c:424:15
+    - LLVMFuzzerTestOneInput /src/dav1d/tests/libfuzzer/dav1d_fuzzer.c:164:24
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x529000009a40 is located 0 bytes after 18496-byte region [0x529000005200,0x529000009a40)
+allocated by thread T0 here:
+    - posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    - dav1d_alloc_aligned /src/dav1d/src/mem.h:66:9
+    - dav1d_decode_frame_init /src/dav1d/src/decode.c:3127:27
+    - dav1d_decode_frame /src/dav1d/src/decode.c:3375:15
+    - dav1d_submit_frame /src/dav1d/src/decode.c:3762:20
+    - dav1d_parse_obus /src/dav1d/src/obu.c:1606:24
+    - gen_picture /src/dav1d/src/lib.c:394:15
+    - dav1d_send_data /src/dav1d/src/lib.c:424:15
+    - LLVMFuzzerTestOneInput /src/dav1d/tests/libfuzzer/dav1d_fuzzer.c:164:24
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

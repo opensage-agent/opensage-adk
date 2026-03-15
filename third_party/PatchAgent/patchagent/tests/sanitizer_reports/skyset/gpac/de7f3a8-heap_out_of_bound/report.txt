@@ -1,0 +1,73 @@
+=================================================================
+==639870==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x529000054200 at pc 0x7fceed373a48 bp 0x7ffdf7e9f8b0 sp 0x7ffdf7e9f8a8
+READ of size 1 at 0x529000054200 thread T0
+    #0 0x7fceed373a47 in MPEG12_ParseSeqHdr /root/src/media_tools/mpeg2_ps.c:273:11
+    #1 0x7fceed37e271 in get_info_from_frame /root/src/media_tools/mpeg2_ps.c:990:7
+    #2 0x7fceed37ca26 in get_info_for_all_streams /root/src/media_tools/mpeg2_ps.c:1204:4
+    #3 0x7fceed3765cf in mpeg2ps_scan_file /root/src/media_tools/mpeg2_ps.c:1369:2
+    #4 0x7fceed3755e6 in mpeg2ps_init /root/src/media_tools/mpeg2_ps.c:1626:2
+    #5 0x7fceeda4257d in m2psdmx_process /root/src/filters/dmx_mpegps.c:327:13
+    #6 0x7fceed8921e3 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #7 0x7fceed8603a1 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #8 0x7fceed85c39b in gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    #9 0x7fceed174b6f in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #10 0x559c77eef19e in do_dash /root/applications/mp4box/mp4box.c:4825:15
+    #11 0x559c77ee3c93 in mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    #12 0x559c77eea811 in main /root/applications/mp4box/mp4box.c:6933:1
+    #13 0x7fceec3961c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x7fceec39628a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x559c77ec9de4 in _start (/root/bin/gcc/MP4Box+0x49de4) (BuildId: 23593cf7ca15359ef11884dbd3222d579291a0f6)
+
+0x529000054200 is located 0 bytes after 16384-byte region [0x529000050200,0x529000054200)
+allocated by thread T0 here:
+    #0 0x7fceee7837a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fceec895f64 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7fceed37dfdb in mpeg2ps_stream_create /root/src/media_tools/mpeg2_ps.c:392:26
+    #3 0x7fceed37bc05 in add_stream /root/src/media_tools/mpeg2_ps.c:1117:9
+    #4 0x7fceed375d2f in mpeg2ps_scan_file /root/src/media_tools/mpeg2_ps.c:1294:9
+    #5 0x7fceed3755e6 in mpeg2ps_init /root/src/media_tools/mpeg2_ps.c:1626:2
+    #6 0x7fceeda4257d in m2psdmx_process /root/src/filters/dmx_mpegps.c:327:13
+    #7 0x7fceed8921e3 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #8 0x7fceed8603a1 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #9 0x7fceed85c39b in gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    #10 0x7fceed174b6f in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #11 0x559c77eef19e in do_dash /root/applications/mp4box/mp4box.c:4825:15
+    #12 0x559c77ee3c93 in mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    #13 0x559c77eea811 in main /root/applications/mp4box/mp4box.c:6933:1
+    #14 0x7fceec3961c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x7fceec39628a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x559c77ec9de4 in _start (/root/bin/gcc/MP4Box+0x49de4) (BuildId: 23593cf7ca15359ef11884dbd3222d579291a0f6)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/media_tools/mpeg2_ps.c:273:11 in MPEG12_ParseSeqHdr
+Shadow bytes around the buggy address:
+  0x529000053f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000054000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000054080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000054100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000054180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x529000054200:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000054280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000054300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000054380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000054400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000054480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==639870==ABORTING

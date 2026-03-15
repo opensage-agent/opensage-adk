@@ -1,0 +1,68 @@
+=================================================================
+==1114402==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7f40861ee000 at pc 0x7f408c19b114 bp 0x7ffe46baab40 sp 0x7ffe46baab38
+READ of size 8 at 0x7f40861ee000 thread T0
+    #0 0x7f408c19b113 in va2pa /root/libr/../libr/bin/p/bin_dyldcache.c:125:23
+    #1 0x7f408c19d6fc in read_cache_accel /root/libr/../libr/bin/p/bin_dyldcache.c:1742:16
+    #2 0x7f408c1955c2 in load_buffer /root/libr/../libr/bin/p/bin_dyldcache.c:1898:17
+    #3 0x7f408c119cfa in r_bin_object_new /root/libr/bin/bobj.c:147:8
+    #4 0x7f408c10f28c in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    #5 0x7f408c0e9d75 in r_bin_open_buf /root/libr/bin/bin.c:279:8
+    #6 0x7f408c0e8e9d in r_bin_open_io /root/libr/bin/bin.c:339:13
+    #7 0x7f408cadec12 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    #8 0x7f408cad9ec5 in r_core_bin_load /root/libr/core/cfile.c:636:4
+    #9 0x7f408a0fc45c in r_main_radare2 /root/libr/main/radare2.c:1179:15
+    #10 0x55c20643d67e in main /root/binr/radare2/radare2.c:96:9
+    #11 0x7f4089ec71c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7f4089ec728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x55c20643c1e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 177a3622f29288771e99b48cbbbe14c574f7e9ab)
+
+0x7f40861ee000 is located 0 bytes after 12503040-byte region [0x7f4085601800,0x7f40861ee000)
+allocated by thread T0 here:
+    #0 0x7f408f6a898d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f408c19ce8d in populate_cache_maps /root/libr/../libr/bin/p/bin_dyldcache.c:1704:10
+    #2 0x7f408c1954d3 in load_buffer /root/libr/../libr/bin/p/bin_dyldcache.c:1893:2
+    #3 0x7f408c119cfa in r_bin_object_new /root/libr/bin/bobj.c:147:8
+    #4 0x7f408c10f28c in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    #5 0x7f408c0e9d75 in r_bin_open_buf /root/libr/bin/bin.c:279:8
+    #6 0x7f408c0e8e9d in r_bin_open_io /root/libr/bin/bin.c:339:13
+    #7 0x7f408cadec12 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    #8 0x7f408cad9ec5 in r_core_bin_load /root/libr/core/cfile.c:636:4
+    #9 0x7f408a0fc45c in r_main_radare2 /root/libr/main/radare2.c:1179:15
+    #10 0x55c20643d67e in main /root/binr/radare2/radare2.c:96:9
+    #11 0x7f4089ec71c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7f4089ec728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x55c20643c1e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 177a3622f29288771e99b48cbbbe14c574f7e9ab)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/libr/../libr/bin/p/bin_dyldcache.c:125:23 in va2pa
+Shadow bytes around the buggy address:
+  0x7f40861edd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f40861ede00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f40861ede80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f40861edf00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f40861edf80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7f40861ee000:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f40861ee080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f40861ee100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f40861ee180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f40861ee200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f40861ee280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1114402==ABORTING

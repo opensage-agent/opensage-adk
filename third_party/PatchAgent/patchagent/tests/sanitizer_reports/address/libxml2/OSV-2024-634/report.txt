@@ -1,0 +1,75 @@
+=================================================================
+==13==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x521000006100 at pc 0x55fc8da567bb bp 0x7ffe85342d40 sp 0x7ffe85342d38
+READ of size 1 at 0x521000006100 thread T0
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x55fc8da567ba in htmlCurrentChar /src/libxml2/HTMLparser.c:423:9
+    #1 0x55fc8da5c4c1 in htmlParseCharDataInternal /src/libxml2/HTMLparser.c:3130:8
+    #2 0x55fc8da5c4c1 in htmlParseCharData /src/libxml2/HTMLparser.c:3169:5
+    #3 0x55fc8da435dd in htmlParseContentInternal /src/libxml2/HTMLparser.c:4710:13
+    #4 0x55fc8da4640f in htmlParseDocument /src/libxml2/HTMLparser.c:4818:5
+    #5 0x55fc8da545df in htmlCtxtParseDocument /src/libxml2/HTMLparser.c:6352:5
+    #6 0x55fc8d92ea16 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/html.c:49:15
+    #7 0x55fc8d7e3400 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55fc8d7ce675 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55fc8d7d410f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55fc8d7ff3b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7ffada2ed082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x55fc8d7c685d in _start (/out/html+0x1bc85d)
+
+DEDUP_TOKEN: htmlCurrentChar--htmlParseCharDataInternal--htmlParseCharData
+0x521000006100 is located 0 bytes after 4096-byte region [0x521000005100,0x521000006100)
+allocated by thread T0 here:
+    #0 0x55fc8d8ef1cf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55fc8d92ee9a in xmlFuzzMalloc /src/libxml2/fuzz/fuzz.c:94:11
+    #2 0x55fc8dbd37a5 in xmlBufCreate /src/libxml2/buf.c:132:32
+    #3 0x55fc8d9a56b1 in xmlInputSetEncodingHandler /src/libxml2/parserInternals.c:1335:11
+    #4 0x55fc8d9a5353 in xmlSwitchInputEncodingName /src/libxml2/parserInternals.c:1250:12
+    #5 0x55fc8d9a6f00 in xmlSwitchEncodingName /src/libxml2/parserInternals.c:1279:12
+    #6 0x55fc8d9a6f00 in xmlSetDeclaredEncoding /src/libxml2/parserInternals.c:1551:9
+    #7 0x55fc8da41900 in htmlCheckMeta /src/libxml2/HTMLparser.c:3727:17
+    #8 0x55fc8da41900 in htmlParseStartTag /src/libxml2/HTMLparser.c:3919:2
+    #9 0x55fc8da4378b in htmlParseElementInternal /src/libxml2/HTMLparser.c:4454:14
+    #10 0x55fc8da4378b in htmlParseContentInternal /src/libxml2/HTMLparser.c:4669:13
+    #11 0x55fc8da4640f in htmlParseDocument /src/libxml2/HTMLparser.c:4818:5
+    #12 0x55fc8da545df in htmlCtxtParseDocument /src/libxml2/HTMLparser.c:6352:5
+    #13 0x55fc8d92ea16 in LLVMFuzzerTestOneInput /src/libxml2/fuzz/html.c:49:15
+    #14 0x55fc8d7e3400 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x55fc8d7ce675 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x55fc8d7d410f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x55fc8d7ff3b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7ffada2ed082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--xmlFuzzMalloc--xmlBufCreate
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/libxml2/HTMLparser.c:423:9 in htmlCurrentChar
+Shadow bytes around the buggy address:
+  0x521000005e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000005f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000005f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000006000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000006080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x521000006100:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000006180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000006200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000006280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000006300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000006380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==13==ABORTING

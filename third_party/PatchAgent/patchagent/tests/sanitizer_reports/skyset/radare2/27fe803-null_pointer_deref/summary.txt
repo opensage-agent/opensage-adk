@@ -1,0 +1,21 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - symbols /root/libr/bin/p/bin_symbols.c:364:21
+    - r_bin_object_set_items /root/libr/bin/bobj.c:324:17
+    - r_bin_object_new /root/libr/bin/bobj.c:168:2
+    - r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    - r_bin_open_buf /root/libr/bin/bin.c:279:8
+    - r_bin_open_io /root/libr/bin/bin.c:339:13
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    - r_core_bin_load /root/libr/core/cfile.c:636:4
+    - r_main_radare2 /root/libr/main/radare2.c:1179:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

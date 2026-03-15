@@ -1,0 +1,72 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51300000b416 at pc 0x557c1a96e3b3 bp 0x7fffcbfcc790 sp 0x7fffcbfcbf50
+READ of size 255 at 0x51300000b416 thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x557c1a96e3b2 in __asan_memmove /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:71:3
+    #1 0x557c1a9b4803 in __constexpr_memmove<char, const char, 0> /usr/local/bin/../include/c++/v1/__string/constexpr_c_functions.h:212:5
+    #2 0x557c1a9b4803 in __copy_trivial_impl<const char, char> /usr/local/bin/../include/c++/v1/__algorithm/copy_move_common.h:66:3
+    #3 0x557c1a9b4803 in operator()<const char, char, 0> /usr/local/bin/../include/c++/v1/__algorithm/copy.h:104:12
+    #4 0x557c1a9b4803 in __unwrap_and_dispatch<std::__1::__overload<std::__1::__copy_loop<std::__1::_ClassicAlgPolicy>, std::__1::__copy_trivial>, const char *, const char *, char *, 0> /usr/local/bin/../include/c++/v1/__algorithm/copy_move_common.h:109:19
+    #5 0x557c1a9b4803 in __dispatch_copy_or_move<std::__1::_ClassicAlgPolicy, std::__1::__copy_loop<std::__1::_ClassicAlgPolicy>, std::__1::__copy_trivial, const char *, const char *, char *> /usr/local/bin/../include/c++/v1/__algorithm/copy_move_common.h:133:10
+    #6 0x557c1a9b4803 in __copy<std::__1::_ClassicAlgPolicy, const char *, const char *, char *> /usr/local/bin/../include/c++/v1/__algorithm/copy.h:111:10
+    #7 0x557c1a9b4803 in copy<const char *, char *> /usr/local/bin/../include/c++/v1/__algorithm/copy.h:118:10
+    #8 0x557c1a9b4803 in copy_n<const char *, unsigned long, char *, 0> /usr/local/bin/../include/c++/v1/__algorithm/copy_n.h:55:10
+    #9 0x557c1a9b4803 in copy /usr/local/bin/../include/c++/v1/__string/char_traits.h:246:5
+    #10 0x557c1a9b4803 in __init /usr/local/bin/../include/c++/v1/string:2219:3
+    #11 0x557c1a9b4803 in basic_string /usr/local/bin/../include/c++/v1/string:971:5
+    #12 0x557c1a9b4803 in getValueAsString /src/PcapPlusPlus/Packet++/header/DhcpLayer.h:446:11
+    #13 0x557c1a9b4803 in readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:414:9
+    #14 0x557c1a9b0874 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:66:5
+    #15 0x557c1a8641d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x557c1a84f445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x557c1a854edf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x557c1a880182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7fc977094082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #20 0x557c1a84762d in _start (/out/FuzzTarget+0x1b762d)
+
+DEDUP_TOKEN: __asan_memmove--__constexpr_memmove<char, const char, 0>--__copy_trivial_impl<const char, char>
+0x51300000b416 is located 0 bytes after 342-byte region [0x51300000b2c0,0x51300000b416)
+allocated by thread T0 here:
+    #0 0x557c1a9ad47d in operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    #1 0x557c1a9c4980 in pcpp::PcapFileReaderDevice::getNextPacket(pcpp::RawPacket&) /src/PcapPlusPlus/Pcap++/src/PcapFileDevice.cpp:338:28
+    #2 0x557c1a9b096d in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:71:19
+    #3 0x557c1a8641d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x557c1a84f445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x557c1a854edf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x557c1a880182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7fc977094082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new[](unsigned long)--pcpp::PcapFileReaderDevice::getNextPacket(pcpp::RawPacket&)--LLVMFuzzerTestOneInput
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/PcapPlusPlus/Packet++/header/DhcpLayer.h:446:11 in getValueAsString
+Shadow bytes around the buggy address:
+  0x51300000b180: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51300000b200: fd fd fd fd fd fd fd fd fd fd fd fa fa fa fa fa
+  0x51300000b280: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x51300000b300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51300000b380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51300000b400: 00 00[06]fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51300000b480: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51300000b500: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51300000b580: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fa fa
+  0x51300000b600: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x51300000b680: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

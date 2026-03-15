@@ -1,0 +1,75 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 1 at 0x50e0000076c8 thread T0
+    - on_body /src/h2o/lib/core/proxy.c:387:24
+    - on_error /src/h2o/lib/common/http1client.c:120:9
+    - on_whole_request_sent /src/h2o/lib/common/http1client.c:478:9
+    - req_body_send_complete /src/h2o/lib/common/http1client.c:503:9
+    - on_write_complete /src/h2o/lib/common/socket.c:717:5
+    - run_socket /src/h2o/lib/common/socket/evloop.c.h:572:9
+    - run_pending /src/h2o/lib/common/socket/evloop.c.h:584:13
+    - h2o_evloop_run /src/h2o/lib/common/socket/evloop.c.h:636:5
+    - LLVMFuzzerTestOneInput /src/h2o/fuzz/driver.cc:325:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:690:3
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:332:8
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x50e0000076c8 is located 104 bytes inside of 160-byte region [0x50e000007660,0x50e000007700)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - h2o_mem_release_shared /src/h2o/include/h2o/memory.h:442:9
+    - h2o_mem_clear_pool /src/h2o/lib/common/memory.c:142:13
+    - h2o_http2_stream_close /src/h2o/lib/http2/stream.c:75:5
+    - on_body /src/h2o/lib/core/proxy.c:383:17
+    - on_error /src/h2o/lib/common/http1client.c:120:9
+    - on_whole_request_sent /src/h2o/lib/common/http1client.c:478:9
+    - req_body_send_complete /src/h2o/lib/common/http1client.c:503:9
+    - on_write_complete /src/h2o/lib/common/socket.c:717:5
+    - run_socket /src/h2o/lib/common/socket/evloop.c.h:572:9
+    - run_pending /src/h2o/lib/common/socket/evloop.c.h:584:13
+    - h2o_evloop_run /src/h2o/lib/common/socket/evloop.c.h:636:5
+    - LLVMFuzzerTestOneInput /src/h2o/fuzz/driver.cc:325:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:690:3
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:332:8
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - h2o_mem_alloc /src/h2o/include/h2o/memory.h:404:15
+    - h2o_mem_alloc_shared /src/h2o/lib/common/memory.c:206:52
+    - proxy_send_prepare /src/h2o/lib/core/proxy.c:686:35
+    - h2o__proxy_process_request /src/h2o/lib/core/proxy.c:733:35
+    - h2o_reprocess_request /src/h2o/lib/core/request.c:438:5
+    - on_req /src/h2o/lib/handler/proxy.c:58:5
+    - call_handlers /src/h2o/lib/core/request.c:166:13
+    - h2o_process_request /src/h2o/lib/core/request.c:360:5
+    - run_pending_requests /src/h2o/lib/http2/connection.c:223:13
+    - execute_or_enqueue_request_core /src/h2o/lib/http2/connection.c:244:5
+    - write_req_first /src/h2o/lib/http2/connection.c:800:13
+    - handle_request_body_chunk /src/h2o/lib/http2/connection.c:465:9
+    - handle_data_frame /src/h2o/lib/http2/connection.c:851:9
+    - expect_default /src/h2o/lib/http2/connection.c:1145:20
+    - parse_input /src/h2o/lib/http2/connection.c:1185:23
+    - on_read /src/h2o/lib/http2/connection.c:1225:9
+    - read_on_ready /src/h2o/lib/common/socket/evloop.c.h:255:5
+    - run_socket /src/h2o/lib/common/socket/evloop.c.h:551:9
+    - run_pending /src/h2o/lib/common/socket/evloop.c.h:589:13
+    - h2o_evloop_run /src/h2o/lib/common/socket/evloop.c.h:636:5
+    - LLVMFuzzerTestOneInput /src/h2o/fuzz/driver.cc:325:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:690:3
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:332:8
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

@@ -1,0 +1,35 @@
+svc_enc_fuzzer: /src/libavc/encoder/svc/isvce_cavlc.c:260: IH264E_ERROR_T isvce_write_coeff4x4_cavlc(WORD16 *, UWORD32, ENTROPY_BLK_TYPE, UWORD8 *, UWORD32, bitstrm_t *, UWORD32): Assertion `(u4_total_coeff <= u4_max_num_coeff)' failed.
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: ABRT on unknown address 0x00000000000e (pc 0x7fda9bb5f00b bp 0x7fda9bcd4588 sp 0x7fda969b5440 T5399)
+SCARINESS: 10 (signal)
+    #0 0x7fda9bb5f00b in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300b) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #1 0x7fda9bb3e858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #2 0x7fda9bb3e728  (/lib/x86_64-linux-gnu/libc.so.6+0x22728) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #3 0x7fda9bb4ffd5 in __assert_fail (/lib/x86_64-linux-gnu/libc.so.6+0x33fd5) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #4 0x5557bd5e51be in isvce_write_coeff4x4_cavlc /src/libavc/encoder/svc/isvce_cavlc.c:260:5
+    #5 0x5557bd5e079c in isvce_encode_residue /src/libavc/encoder/svc/isvce_cavlc.c:897:13
+    #6 0x5557bd5e213a in isvce_write_pslice_mb_cavlc /src/libavc/encoder/svc/isvce_cavlc.c:1587:20
+    #7 0x5557bd52dffe in isvce_entropy /src/libavc/encoder/svc/isvce_process.c:896:13
+    #8 0x5557bd53c0ed in isvce_process_thread /src/libavc/encoder/svc/isvce_process.c:2770:32
+    #9 0x5557bd4b4ca8 in asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+    #10 0x7fda9bd5f608 in start_thread (/lib/x86_64-linux-gnu/libpthread.so.0+0x8608) (BuildId: 9a65bb469e45a1c6fbcffae5b82a2fd7a69eb479)
+    #11 0x7fda9bc3b352 in __clone (/lib/x86_64-linux-gnu/libc.so.6+0x11f352) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: raise--abort--
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: ABRT (/lib/x86_64-linux-gnu/libc.so.6+0x4300b) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e) in raise
+Thread T5399 created by T0 here:
+    #0 0x5557bd49ccf1 in pthread_create /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:250:3
+    #1 0x5557bd51d9cb in isvce_encode /src/libavc/encoder/svc/isvce_encode.c:482:17
+    #2 0x5557bd5064e4 in isvce_api_function /src/libavc/encoder/svc/isvce_api.c:6043:19
+    #3 0x5557bd5013d2 in Codec::encodeFrames(unsigned char const*, unsigned long) /src/libavc/fuzzer/svc_enc_fuzzer.cpp:1263:9
+    #4 0x5557bd5022ff in LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_enc_fuzzer.cpp:1339:16
+    #5 0x5557bd3ab3a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x5557bd396615 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x5557bd39c0af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x5557bd3c7352 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7fda9bb40082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_pthread_create--isvce_encode--isvce_api_function
+==14==ABORTING

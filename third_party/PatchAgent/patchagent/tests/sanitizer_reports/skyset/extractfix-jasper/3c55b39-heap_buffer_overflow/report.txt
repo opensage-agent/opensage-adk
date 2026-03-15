@@ -1,0 +1,14 @@
+=================================================================
+==2263468==ERROR: AddressSanitizer: FPE on unknown address 0x7fd4f18fe7d2 (pc 0x7fd4f18fe7d2 bp 0x7fff7c1df180 sp 0x7fff7c1de9d0 T0)
+    #0 0x7fd4f18fe7d2 in jpc_dec_process_siz /root/src/libjasper/jpc/jpc_dec.c:1194:17
+    #1 0x7fd4f1902dff in jpc_dec_decode /root/src/libjasper/jpc/jpc_dec.c:390:10
+    #2 0x7fd4f19019cc in jpc_decode /root/src/libjasper/jpc/jpc_dec.c:254:6
+    #3 0x7fd4f18a7321 in jas_image_decode /root/src/libjasper/base/jas_image.c:372:16
+    #4 0x55d2ec9b08f0 in main /root/src/appl/imginfo.c:179:16
+    #5 0x7fd4f15a21c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #6 0x7fd4f15a228a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #7 0x55d2ec9af244 in _start (/root/src/appl/.libs/imginfo+0x2244) (BuildId: b907526fefc1d6b04506f1972d7af446a7205b17)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: FPE /root/src/libjasper/jpc/jpc_dec.c:1194:17 in jpc_dec_process_siz
+==2263468==ABORTING

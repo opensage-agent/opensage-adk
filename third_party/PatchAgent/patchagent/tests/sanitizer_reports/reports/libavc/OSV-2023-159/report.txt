@@ -1,0 +1,50 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libavc:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libavc/OSV-2023-159/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce svc_enc_fuzzer -runs=100.
++ FUZZER=svc_enc_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer svc_enc_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/svc_enc_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 686943648
+INFO: Loaded 1 modules   (13149 inline 8-bit counters): 13149 [0x5577b6eb20c0, 0x5577b6eb541d), 
+INFO: Loaded 1 PC tables (13149 PCs): 13149 [0x5577b6eb5420,0x5577b6ee89f0), 
+/out/svc_enc_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x51d100000a7f (pc 0x5577b6d0a02d bp 0x7f01885b69b0 sp 0x7f01885b6940 T13)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x5577b6d0a02d in isvce_cabac_flush /src/libavc/encoder/svc/isvce_cabac.c:264:16
+    #1 0x5577b6c6726b in isvce_entropy /src/libavc/encoder/svc/isvce_process.c:1074:13
+    #2 0x5577b6c72c2d in isvce_process_thread /src/libavc/encoder/svc/isvce_process.c:2775:32
+    #3 0x5577b6bebc88 in asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+    #4 0x7f018d14a608 in start_thread (/lib/x86_64-linux-gnu/libpthread.so.0+0x8608) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #5 0x7f018d026352 in __clone (/lib/x86_64-linux-gnu/libc.so.6+0x11f352) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: isvce_cabac_flush--isvce_entropy--isvce_process_thread
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/libavc/encoder/svc/isvce_cabac.c:264:16 in isvce_cabac_flush
+Thread T13 created by T0 here:
+    #0 0x5577b6bd3cd1 in pthread_create /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:250:3
+    #1 0x5577b6c5414f in isvce_encode /src/libavc/encoder/svc/isvce_encode.c:475:17
+    #2 0x5577b6c3d474 in isvce_api_function /src/libavc/encoder/svc/isvce_api.c:6045:19
+    #3 0x5577b6c38362 in Codec::encodeFrames(unsigned char const*, unsigned long) /src/libavc/fuzzer/svc_enc_fuzzer.cpp:1263:9
+    #4 0x5577b6c3928f in LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_enc_fuzzer.cpp:1339:16
+    #5 0x5577b6ae2380 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x5577b6acd5f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x5577b6ad308f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x5577b6afe332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f018cf2b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: ___interceptor_pthread_create--isvce_encode--isvce_api_function
+==14==ABORTING

@@ -1,0 +1,77 @@
+=================================================================
+==842658==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x519000004080 at pc 0x564f9ccb8666 bp 0x7fffc18cfbf0 sp 0x7fffc18cfbe8
+READ of size 1 at 0x519000004080 thread T0
+    #0 0x564f9ccb8665 in ntfs_dinode_lookup /root/tsk/fs/ntfs.c:393:15
+    #1 0x564f9cd09134 in ntfs_proc_attrlist /root/tsk/fs/ntfs.c:2588:17
+    #2 0x564f9cd00ef7 in ntfs_proc_attrseq /root/tsk/fs/ntfs.c:2383:23
+    #3 0x564f9ccec6fb in ntfs_dinode_copy /root/tsk/fs/ntfs.c:2810:19
+    #4 0x564f9ccc3cd0 in ntfs_inode_lookup /root/tsk/fs/ntfs.c:2911:9
+    #5 0x564f9cc358b7 in tsk_fs_file_open_meta /root/tsk/fs/fs_file.c:128:9
+    #6 0x564f9cce6848 in ntfs_load_ver /root/tsk/fs/ntfs.c:3202:20
+    #7 0x564f9ccbf8a1 in ntfs_open /root/tsk/fs/ntfs.c:5266:9
+    #8 0x564f9cc3f178 in tsk_fs_open_img_decrypt /root/tsk/fs/fs_open.c:202:16
+    #9 0x564f9cc3f659 in tsk_fs_open_img /root/tsk/fs/fs_open.c:106:12
+    #10 0x564f9cc29879 in LLVMFuzzerTestOneInput /workspaces/nvwa/skyset/sleuthkit/sleuthkit_fls_fuzzer.cc:33:8
+    #11 0x564f9cc0eaa4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/sleuthkit_fls_ntfs_fuzzer+0x58aa4) (BuildId: 9719c6e7638a78c3ec493d082ff19d1a7da54235)
+    #12 0x564f9cbf7bd6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/sleuthkit_fls_ntfs_fuzzer+0x41bd6) (BuildId: 9719c6e7638a78c3ec493d082ff19d1a7da54235)
+    #13 0x564f9cbfd68a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/sleuthkit_fls_ntfs_fuzzer+0x4768a) (BuildId: 9719c6e7638a78c3ec493d082ff19d1a7da54235)
+    #14 0x564f9cc27ee6 in main (/root/sleuthkit_fls_ntfs_fuzzer+0x71ee6) (BuildId: 9719c6e7638a78c3ec493d082ff19d1a7da54235)
+    #15 0x7f0bcda241c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x7f0bcda2428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x564f9cbf27a4 in _start (/root/sleuthkit_fls_ntfs_fuzzer+0x3c7a4) (BuildId: 9719c6e7638a78c3ec493d082ff19d1a7da54235)
+
+0x519000004080 is located 0 bytes after 1024-byte region [0x519000003c80,0x519000004080)
+allocated by thread T0 here:
+    #0 0x7f0bcde387a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x564f9cd59f54 in tsk_malloc /root/tsk/base/mymalloc.c:32:16
+    #2 0x564f9cd06566 in ntfs_proc_attrlist /root/tsk/fs/ntfs.c:2435:29
+    #3 0x564f9cd00ef7 in ntfs_proc_attrseq /root/tsk/fs/ntfs.c:2383:23
+    #4 0x564f9ccec6fb in ntfs_dinode_copy /root/tsk/fs/ntfs.c:2810:19
+    #5 0x564f9ccc3cd0 in ntfs_inode_lookup /root/tsk/fs/ntfs.c:2911:9
+    #6 0x564f9cc358b7 in tsk_fs_file_open_meta /root/tsk/fs/fs_file.c:128:9
+    #7 0x564f9cce6848 in ntfs_load_ver /root/tsk/fs/ntfs.c:3202:20
+    #8 0x564f9ccbf8a1 in ntfs_open /root/tsk/fs/ntfs.c:5266:9
+    #9 0x564f9cc3f178 in tsk_fs_open_img_decrypt /root/tsk/fs/fs_open.c:202:16
+    #10 0x564f9cc3f659 in tsk_fs_open_img /root/tsk/fs/fs_open.c:106:12
+    #11 0x564f9cc29879 in LLVMFuzzerTestOneInput /workspaces/nvwa/skyset/sleuthkit/sleuthkit_fls_fuzzer.cc:33:8
+    #12 0x564f9cc0eaa4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/sleuthkit_fls_ntfs_fuzzer+0x58aa4) (BuildId: 9719c6e7638a78c3ec493d082ff19d1a7da54235)
+    #13 0x564f9cbf7bd6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/sleuthkit_fls_ntfs_fuzzer+0x41bd6) (BuildId: 9719c6e7638a78c3ec493d082ff19d1a7da54235)
+    #14 0x564f9cbfd68a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/sleuthkit_fls_ntfs_fuzzer+0x4768a) (BuildId: 9719c6e7638a78c3ec493d082ff19d1a7da54235)
+    #15 0x564f9cc27ee6 in main (/root/sleuthkit_fls_ntfs_fuzzer+0x71ee6) (BuildId: 9719c6e7638a78c3ec493d082ff19d1a7da54235)
+    #16 0x7f0bcda241c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7f0bcda2428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x564f9cbf27a4 in _start (/root/sleuthkit_fls_ntfs_fuzzer+0x3c7a4) (BuildId: 9719c6e7638a78c3ec493d082ff19d1a7da54235)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/tsk/fs/ntfs.c:393:15 in ntfs_dinode_lookup
+Shadow bytes around the buggy address:
+  0x519000003e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x519000003e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x519000003f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x519000003f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x519000004000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x519000004080:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x519000004100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x519000004180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x519000004200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x519000004280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x519000004300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==842658==ABORTING

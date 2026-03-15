@@ -1,0 +1,46 @@
+The sanitizer detected a bad free vulnerability. The explanation of the vulnerability is: A program attempts to free a memory block that was not dynamically allocated, causing undefined behavior or crashes. Here is the detail: 
+
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - llvm_ks::SmallVectorImpl<llvm_ks::MCFixup>::~SmallVectorImpl() /src/keystone/llvm/include/llvm/ADT/SmallVector.h:374:7
+    - llvm_ks::MCEncodedFragmentWithFixups<32u, 4u>::~MCEncodedFragmentWithFixups() /src/keystone/llvm/include/llvm/MC/MCFragment.h:185:7
+    - llvm_ks::MCFragment::destroy() /src/keystone/llvm/lib/MC/MCFragment.cpp:295:7
+    - llvm_ks::iplist<llvm_ks::MCFragment, llvm_ks::ilist_traits<llvm_ks::MCFragment>>::erase(llvm_ks::ilist_iterator<llvm_ks::MCFragment>) /src/keystone/llvm/include/llvm/ADT/ilist.h:518:5
+    - llvm_ks::iplist<llvm_ks::MCFragment, llvm_ks::ilist_traits<llvm_ks::MCFragment>>::erase(llvm_ks::ilist_iterator<llvm_ks::MCFragment>, llvm_ks::ilist_iterator<llvm_ks::MCFragment>) /src/keystone/llvm/include/llvm/ADT/ilist.h:601:15
+    - llvm_ks::iplist<llvm_ks::MCFragment, llvm_ks::ilist_traits<llvm_ks::MCFragment>>::clear() /src/keystone/llvm/include/llvm/ADT/ilist.h:605:28
+    - llvm_ks::iplist<llvm_ks::MCFragment, llvm_ks::ilist_traits<llvm_ks::MCFragment>>::~iplist() /src/keystone/llvm/include/llvm/ADT/ilist.h:403:5
+    - llvm_ks::MCSection::~MCSection() /src/keystone/llvm/lib/MC/MCSection.cpp:35:1
+    - llvm_ks::SpecificBumpPtrAllocator<llvm_ks::MCSectionELF>::DestroyAll()::'lambda'(char*, char*)::operator()(char*, char*) const /src/keystone/llvm/include/llvm/Support/Allocator.h:384:38
+    - llvm_ks::SpecificBumpPtrAllocator<llvm_ks::MCSectionELF>::DestroyAll() /src/keystone/llvm/include/llvm/Support/Allocator.h:395:7
+    - llvm_ks::MCContext::reset() /src/keystone/llvm/lib/MC/MCContext.cpp:75:16
+    - llvm_ks::MCContext::~MCContext() /src/keystone/llvm/lib/MC/MCContext.cpp:62:5
+    - ks_asm /src/keystone/llvm/keystone/ks.cpp:716:1
+    - LLVMFuzzerTestOneInput /src/keystone/suite/fuzz/fuzz_asm_sparc.c:42:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x519000000595 is located 21 bytes inside of 936-byte region [0x519000000580,0x519000000928)
+allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - llvm_ks::SmallVectorBase::grow_pod(void*, unsigned long, unsigned long) /src/keystone/llvm/lib/Support/SmallVector.cpp:34:15
+    - llvm_ks::SmallVectorTemplateCommon<llvm_ks::MCFixup, void>::grow_pod(unsigned long, unsigned long) /src/keystone/llvm/include/llvm/ADT/SmallVector.h:81:22
+    - llvm_ks::SmallVectorTemplateBase<llvm_ks::MCFixup, true>::grow(unsigned long) /src/keystone/llvm/include/llvm/ADT/SmallVector.h:334:11
+    - llvm_ks::SmallVectorTemplateBase<llvm_ks::MCFixup, true>::push_back(llvm_ks::MCFixup const&) /src/keystone/llvm/include/llvm/ADT/SmallVector.h:339:13
+    - llvm_ks::MCObjectStreamer::EmitValueImpl(llvm_ks::MCExpr const*, unsigned int, llvm_ks::SMLoc) /src/keystone/llvm/lib/MC/MCObjectStreamer.cpp:155:19
+    - (anonymous namespace)::SparcAsmParser::parseDirectiveWord(unsigned int, llvm_ks::SMLoc) /src/keystone/llvm/lib/Target/Sparc/AsmParser/SparcAsmParser.cpp:684:33
+    - (anonymous namespace)::AsmParser::parseStatement((anonymous namespace)::ParseStatementInfo&, llvm_ks::MCAsmParserSemaCallback*, unsigned long&) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp:1700:30
+    - (anonymous namespace)::AsmParser::Run(bool, unsigned long, bool) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp:712:10
+    - ks_asm /src/keystone/llvm/keystone/ks.cpp:691:27
+    - LLVMFuzzerTestOneInput /src/keystone/suite/fuzz/fuzz_asm_sparc.c:42:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that only dynamically allocated memory is freed.
+2. Avoid freeing memory that was not allocated using malloc or similar functions.
+3. Verify pointer values before attempting to free them.

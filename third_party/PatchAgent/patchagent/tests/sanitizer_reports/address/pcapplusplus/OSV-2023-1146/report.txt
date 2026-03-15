@@ -1,0 +1,35 @@
+=================================================================
+==18==ERROR: AddressSanitizer: negative-size-param: (size=-2)
+SCARINESS: 10 (negative-size-param)
+    #0 0x56084aef6847 in __asan_memmove /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:71:3
+    #1 0x56084aff37c5 in pcpp::RawPacket::insertData(int, unsigned char const*, unsigned long) /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:137:2
+    #2 0x56084afe914c in pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:573:15
+    #3 0x56084af82bde in pcpp::BgpUpdateMessageLayer::setNetworkLayerReachabilityInfo(std::__1::vector<pcpp::BgpUpdateMessageLayer::prefix_and_ip, std::__1::allocator<pcpp::BgpUpdateMessageLayer::prefix_and_ip>> const&) /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:716:14
+    #4 0x56084af3de93 in readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:459:36
+    #5 0x56084af38e96 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:67:5
+    #6 0x56084adec7c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x56084add7a35 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x56084addd4cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x56084ae08772 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f4d98bf0082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #11 0x56084adcfc1d in _start (/out/FuzzTargetNg+0x1b5c1d)
+
+DEDUP_TOKEN: __asan_memmove--pcpp::RawPacket::insertData(int, unsigned char const*, unsigned long)--pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long)
+0x517000000154 is located 212 bytes inside of 674-byte region [0x517000000080,0x517000000322)
+allocated by thread T0 here:
+    #0 0x56084af35a6d in operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    #1 0x56084aff39ee in pcpp::RawPacket::reallocateData(unsigned long) /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:160:23
+    #2 0x56084afe59b8 in pcpp::Packet::reallocateRawData(unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:201:20
+    #3 0x56084afe90af in pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp
+    #4 0x56084af7fc8b in pcpp::BgpUpdateMessageLayer::setWithdrawnRoutes(std::__1::vector<pcpp::BgpUpdateMessageLayer::prefix_and_ip, std::__1::allocator<pcpp::BgpUpdateMessageLayer::prefix_and_ip>> const&) /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:566:14
+    #5 0x56084af3dccc in readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:451:36
+    #6 0x56084af38e96 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:67:5
+    #7 0x56084adec7c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x56084add7a35 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x56084addd4cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x56084ae08772 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f4d98bf0082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new[](unsigned long)--pcpp::RawPacket::reallocateData(unsigned long)--pcpp::Packet::reallocateRawData(unsigned long)
+SUMMARY: AddressSanitizer: negative-size-param /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:137:2 in pcpp::RawPacket::insertData(int, unsigned char const*, unsigned long)
+==18==ABORTING

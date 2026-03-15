@@ -1,0 +1,57 @@
+=================================================================
+==360396==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52d0000124a1 at pc 0x55981579722c bp 0x7fff1d06e010 sp 0x7fff1d06e008
+WRITE of size 1 at 0x52d0000124a1 thread T0
+    #0 0x55981579722b in blosclz_compress /root/blosc/blosclz.c:474:11
+    #1 0x559815792dd1 in blosc_c /root/blosc/blosc.c:653:16
+    #2 0x559815792212 in serial_blosc /root/blosc/blosc.c:836:18
+    #3 0x559815789a40 in do_job /root/blosc/blosc.c:914:15
+    #4 0x559815789703 in blosc_compress_context /root/blosc/blosc.c:1255:13
+    #5 0x55981578ca00 in blosc_compress /root/blosc/blosc.c:1417:14
+    #6 0x559815788e02 in LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_compress.c:44:7
+    #7 0x559815789246 in main /root/tests/fuzz/standalone.c:32:7
+    #8 0x7fd5844491c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7fd58444928a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x559815787504 in _start (/root/compress_fuzzer+0xb504) (BuildId: 10725e4b8867c8391fd93afd81e974f825e3b72a)
+
+0x52d0000124a1 is located 0 bytes after 32929-byte region [0x52d00000a400,0x52d0000124a1)
+allocated by thread T0 here:
+    #0 0x7fd58475e7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x559815788d9a in LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_compress.c:40:12
+    #2 0x559815789246 in main /root/tests/fuzz/standalone.c:32:7
+    #3 0x7fd5844491c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #4 0x7fd58444928a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #5 0x559815787504 in _start (/root/compress_fuzzer+0xb504) (BuildId: 10725e4b8867c8391fd93afd81e974f825e3b72a)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/blosc/blosclz.c:474:11 in blosclz_compress
+Shadow bytes around the buggy address:
+  0x52d000012200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52d000012280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52d000012300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52d000012380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52d000012400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x52d000012480: 00 00 00 00[01]fa fa fa fa fa fa fa fa fa fa fa
+  0x52d000012500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52d000012580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52d000012600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52d000012680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52d000012700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360396==ABORTING

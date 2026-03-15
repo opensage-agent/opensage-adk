@@ -1,0 +1,83 @@
++ FUZZER=PropertyElfFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer PropertyElfFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/PropertyElfFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 277 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 64 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 55 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented PropertyElfFuzzer (took 27 ms, size +11%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7fdbcc1efa00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3658019064
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x563d298eda00, 0x563d298edc00), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x563d298b6bc0,0x563d298b8bc0), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented TestObject (took 4 ms, size +11%)
+INFO: Instrumented com.zaxxer.hikari.util.PropertyElf (took 13 ms, size +37%)
+INFO: Instrumented com.zaxxer.hikari.HikariConfig (took 20 ms, size +19%)
+INFO: Instrumented com.zaxxer.hikari.HikariConfigMXBean (took 0 ms, size +0%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.slf4j.LoggerFactory (took 7 ms, size +17%)
+INFO: Instrumented org.slf4j.ILoggerFactory (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.event.LoggingEvent (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.helpers.SubstituteLoggerFactory (took 1 ms, size +18%)
+INFO: Instrumented org.slf4j.Logger (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.helpers.NOPLoggerFactory (took 0 ms, size +17%)
+INFO: Instrumented org.slf4j.helpers.Util (took 1 ms, size +33%)
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+INFO: Instrumented org.slf4j.helpers.NOPLogger (took 8 ms, size +9%)
+INFO: Instrumented org.slf4j.helpers.MarkerIgnoringBase (took 6 ms, size +6%)
+INFO: Instrumented org.slf4j.helpers.NamedLoggerBase (took 0 ms, size +13%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh: Remote Code Execution
+Unrestricted class/object creation based on externally controlled data may allow
+remote code execution depending on available classes on the classpath.
+	at jaz.Zer.reportFinding(Zer.java:110)
+	at jaz.Zer.reportFindingIfEnabled(Zer.java:105)
+	at jaz.Zer.<init>(Zer.java:78)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:481)
+	at com.zaxxer.hikari.util.PropertyElf.setProperty(PropertyElf.java:169)
+	at com.zaxxer.hikari.util.PropertyElf.lambda$setTargetFromProperties$0(PropertyElf.java:53)
+	at java.base/java.util.concurrent.ConcurrentHashMap.forEach(ConcurrentHashMap.java:1603)
+	at java.base/java.util.Properties.forEach(Properties.java:1425)
+	at com.zaxxer.hikari.util.PropertyElf.setTargetFromProperties(PropertyElf.java:47)
+	at PropertyElfFuzzer.fuzzerTestOneInput(PropertyElfFuzzer.java:30)
+DEDUP_TOKEN: 9abc75100be76b78
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_ee69e5c738af20783cb084b030a9d5926f55a0db.java
+

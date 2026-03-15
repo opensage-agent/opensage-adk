@@ -1,0 +1,24 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - m2tsdmx_on_event /root/src/filters/dmx_m2ts.c:1215:42
+    - gf_m2ts_section_complete /root/src/media_tools/mpegts.c:375:4
+    - gf_m2ts_gather_section /root/src/media_tools/mpegts.c:705:2
+    - gf_m2ts_process_packet /root/src/media_tools/mpegts.c:2702:4
+    - gf_m2ts_process_data /root/src/media_tools/mpegts.c:2803:18
+    - m2tsdmx_process /root/src/filters/dmx_m2ts.c:1604:3
+    - gf_filter_process_task /root/src/filter_core/filter.c:3164:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2145:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2452:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1263:6
+    - do_dash /root/applications/mp4box/mp4box.c:4835:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6267:7
+    - main /root/applications/mp4box/mp4box.c:6962:1
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

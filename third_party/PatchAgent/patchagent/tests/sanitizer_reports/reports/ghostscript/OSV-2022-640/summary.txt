@@ -1,0 +1,62 @@
+The sanitizer detected a stack use after return vulnerability. The explanation of the vulnerability is: A function accesses stack memory after returning, leading to use-after-free vulnerabilities. Here is the detail: 
+
+READ of size 8 at 0x7f0a4a3adaa0 thread T0
+    - rc_free_text_enum /src/ghostpdl/base/gstext.c:792:17
+    - pdf_text_release /src/ghostpdl/devices/vector/gdevpdtt.c:306:9
+    - rc_free_text_enum /src/ghostpdl/base/gstext.c:792:5
+    - pdfi_show_simple /src/ghostpdl/pdf/pdf_text.c:446:9
+    - pdfi_show_Tr_0 /src/ghostpdl/pdf/pdf_text.c:460:12
+    - pdfi_show /src/ghostpdl/pdf/pdf_text.c:842:24
+    - pdfi_TJ /src/ghostpdl/pdf/pdf_text.c:1190:20
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1648:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2115:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:127:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:152:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:916:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:1074:24
+    - interp /src/ghostpdl/psi/interp.c:1725:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:522:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:479:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_ps2write_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f0a4a3adaa0 is located in stack of thread T0 at offset 672 in frame
+    - pdf_text_process /src/ghostpdl/devices/vector/gdevpdtt.c:3251:0
+
+  This frame has 17 object(s):
+    [32, 120) 'text1.i' (line 2913)
+    [160, 184) 'm.i920' (line 2938)
+    [224, 248) 'm.i' (line 3024)
+    [288, 376) 'text1.i.i' (line 2913)
+    [416, 424) 'pte_default.i' (line 3197)
+    [448, 456) 'pte_default' (line 3255)
+    [480, 584) 'buf' (line 3262)
+    [624, 680) 'special_procs' (line 3395) <== Memory access at offset 672 is inside this variable
+    [720, 744) 'm' (line 3397)
+    [784, 792) 'log2_scale' (line 3413)
+    [816, 824) 'subpix_origin' (line 3414)
+    [848, 856) 'pair' (line 3415)
+    [880, 888) 'cc277' (line 3521)
+    [912, 920) 'pair278' (line 3522)
+    [944, 952) 'log2_scale279' (line 3523)
+    [976, 984) 'pcs' (line 3611)
+    [1008, 1016) 'pcc' (line 3612)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. Avoid returning addresses of local variables from functions, as stack memory is deallocated after return.
+2. If persistent storage is needed, use heap-allocated memory instead of local stack memory.
+3. Check the lifetime of variables to ensure they are not accessed after they go out of scope.

@@ -1,0 +1,49 @@
+=================================================================
+==304366==ERROR: AddressSanitizer: memcpy-param-overlap: memory ranges [0x52a000066200,0x52a00006b01f) and [0x52a000066201, 0x52a00006b020) overlap
+    #0 0x7f3e23ef2494 in __asan_memcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf6494) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f3e2353092f in mpgviddmx_process /root/src/filters/reframe_mpgvid.c:959:7
+    #2 0x7f3e22ff2993 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #3 0x7f3e22fc1ef4 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    #4 0x7f3e22fbdd1b in gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    #5 0x7f3e228ce0df in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #6 0x556da6b4a1ce in do_dash /root/applications/mp4box/mp4box.c:4831:15
+    #7 0x556da6b3ecc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #8 0x556da6b45841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #9 0x7f3e21ae11c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x7f3e21ae128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x556da6b24e04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: 9e702aa72dd8872fd29d586e160c8a6e50950877)
+
+0x52a000066200 is located 0 bytes inside of 20000-byte region [0x52a000066200,0x52a00006b020)
+allocated by thread T0 here:
+    #0 0x7f3e23ef4bc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f3e21fe44ac in gf_realloc /root/src/utils/alloc.c:160:9
+    #2 0x7f3e2352d9db in mpgviddmx_process /root/src/filters/reframe_mpgvid.c:670:21
+    #3 0x7f3e22ff2993 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #4 0x7f3e22fc1ef4 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    #5 0x7f3e22fbdd1b in gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    #6 0x7f3e228ce0df in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #7 0x556da6b4a1ce in do_dash /root/applications/mp4box/mp4box.c:4831:15
+    #8 0x556da6b3ecc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #9 0x556da6b45841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #10 0x7f3e21ae11c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f3e21ae128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x556da6b24e04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: 9e702aa72dd8872fd29d586e160c8a6e50950877)
+
+0x52a000066201 is located 1 bytes inside of 20000-byte region [0x52a000066200,0x52a00006b020)
+allocated by thread T0 here:
+    #0 0x7f3e23ef4bc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f3e21fe44ac in gf_realloc /root/src/utils/alloc.c:160:9
+    #2 0x7f3e2352d9db in mpgviddmx_process /root/src/filters/reframe_mpgvid.c:670:21
+    #3 0x7f3e22ff2993 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #4 0x7f3e22fc1ef4 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    #5 0x7f3e22fbdd1b in gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    #6 0x7f3e228ce0df in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #7 0x556da6b4a1ce in do_dash /root/applications/mp4box/mp4box.c:4831:15
+    #8 0x556da6b3ecc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #9 0x556da6b45841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #10 0x7f3e21ae11c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f3e21ae128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x556da6b24e04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: 9e702aa72dd8872fd29d586e160c8a6e50950877)
+
+SUMMARY: AddressSanitizer: memcpy-param-overlap /root/src/filters/reframe_mpgvid.c:959:7 in mpgviddmx_process
+==304366==ABORTING

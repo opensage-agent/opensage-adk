@@ -1,0 +1,30 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x519000001380 thread T0
+    - ntfs_make_data_run /root/tsk/fs/ntfs.c:629:42
+    - ntfs_proc_attrseq /root/tsk/fs/ntfs.c:1963:22
+    - ntfs_dinode_copy /root/tsk/fs/ntfs.c:2799:19
+    - ntfs_inode_lookup /root/tsk/fs/ntfs.c:2900:9
+    - tsk_fs_file_open_meta /root/tsk/fs/fs_file.c:128:9
+    - ntfs_open /root/tsk/fs/ntfs.c:5219:13
+    - tsk_fs_open_img_decrypt /root/tsk/fs/fs_open.c:202:16
+    - tsk_fs_open_img /root/tsk/fs/fs_open.c:106:12
+    - LLVMFuzzerTestOneInput /workspaces/nvwa/skyset/sleuthkit/sleuthkit_fls_fuzzer.cc:33:8
+
+0x519000001380 is located 0 bytes after 1024-byte region [0x519000000f80,0x519000001380)
+allocated by thread T0 here:
+    - tsk_malloc /root/tsk/base/mymalloc.c:32:16
+    - ntfs_inode_lookup /root/tsk/fs/ntfs.c:2889:25
+    - tsk_fs_file_open_meta /root/tsk/fs/fs_file.c:128:9
+    - ntfs_open /root/tsk/fs/ntfs.c:5219:13
+    - tsk_fs_open_img_decrypt /root/tsk/fs/fs_open.c:202:16
+    - tsk_fs_open_img /root/tsk/fs/fs_open.c:106:12
+    - LLVMFuzzerTestOneInput /workspaces/nvwa/skyset/sleuthkit/sleuthkit_fls_fuzzer.cc:33:8
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,65 @@
+=================================================================
+==359780==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000070d3 at pc 0x56355fec51bc bp 0x7ffdfc26b6a0 sp 0x7ffdfc26b698
+READ of size 1 at 0x5020000070d3 thread T0
+    #0 0x56355fec51bb in handle_dot_label /root/./modules/parsers/nasm/nasm-token.re:82:13
+    #1 0x56355feb919a in nasm_parser_lex /root/./modules/parsers/nasm/nasm-token.re:384:17
+    #2 0x56355fdbf186 in demand_eol_ /root/modules/parsers/nasm/nasm-parse.c:149:9
+    #3 0x56355fdbc965 in nasm_parser_parse /root/modules/parsers/nasm/nasm-parse.c:232:13
+    #4 0x56355fdbc30b in nasm_do_parse /root/modules/parsers/nasm/nasm-parser.c:66:5
+    #5 0x56355fdbc065 in nasm_parser_do_parse /root/modules/parsers/nasm/nasm-parser.c:83:5
+    #6 0x56355fd3d43f in do_assemble /root/frontends/yasm/yasm.c:641:5
+    #7 0x56355fd3b3b1 in main /root/frontends/yasm/yasm.c:877:12
+    #8 0x7feebefca1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7feebefca28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x56355fd395e4 in _start (/root/yasm+0x9e5e4) (BuildId: cf7e8ba04fc859854e6dd2b975dea7ec1ef905ba)
+
+0x5020000070d3 is located 0 bytes after 3-byte region [0x5020000070d0,0x5020000070d3)
+allocated by thread T0 here:
+    #0 0x7feebf2df7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x56355fd84c97 in def_xmalloc /root/libyasm/xmalloc.c:69:14
+    #2 0x56355fd84f20 in yasm__xstrndup /root/libyasm/xstrdup.c:64:16
+    #3 0x56355fec50fa in handle_dot_label /root/./modules/parsers/nasm/nasm-token.re:79:26
+    #4 0x56355feb919a in nasm_parser_lex /root/./modules/parsers/nasm/nasm-token.re:384:17
+    #5 0x56355fdbf186 in demand_eol_ /root/modules/parsers/nasm/nasm-parse.c:149:9
+    #6 0x56355fdbc965 in nasm_parser_parse /root/modules/parsers/nasm/nasm-parse.c:232:13
+    #7 0x56355fdbc30b in nasm_do_parse /root/modules/parsers/nasm/nasm-parser.c:66:5
+    #8 0x56355fdbc065 in nasm_parser_do_parse /root/modules/parsers/nasm/nasm-parser.c:83:5
+    #9 0x56355fd3d43f in do_assemble /root/frontends/yasm/yasm.c:641:5
+    #10 0x56355fd3b3b1 in main /root/frontends/yasm/yasm.c:877:12
+    #11 0x7feebefca1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7feebefca28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x56355fd395e4 in _start (/root/yasm+0x9e5e4) (BuildId: cf7e8ba04fc859854e6dd2b975dea7ec1ef905ba)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/./modules/parsers/nasm/nasm-token.re:82:13 in handle_dot_label
+Shadow bytes around the buggy address:
+  0x502000006e00: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x502000006e80: fa fa fd fa fa fa fd fa fa fa fd fa fa fa 06 fa
+  0x502000006f00: fa fa fd fd fa fa fd fd fa fa fd fa fa fa fd fa
+  0x502000006f80: fa fa fd fa fa fa fd fa fa fa 05 fa fa fa 05 fa
+  0x502000007000: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+=>0x502000007080: fa fa fd fa fa fa fd fa fa fa[03]fa fa fa fa fa
+  0x502000007100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000007180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000007200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000007280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000007300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359780==ABORTING

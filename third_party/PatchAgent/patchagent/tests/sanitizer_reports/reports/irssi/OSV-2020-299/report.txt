@@ -1,0 +1,68 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/irssi:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/irssi/OSV-2020-299/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce server-fuzz -runs=100.
++ FUZZER=server-fuzz
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer server-fuzz -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/server-fuzz -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=server-fuzz.dict < /dev/null
+Dictionary: 143 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3082868245
+INFO: Loaded 1 modules   (41376 inline 8-bit counters): 41376 [0x561ca2249860, 0x561ca2253a00), 
+INFO: Loaded 1 PC tables (41376 PCs): 41376 [0x561ca2253a00,0x561ca22f5400), 
+/out/server-fuzz: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==15==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x519000000ce0 in thread T0
+[1m[0mSCARINESS: 40 (bad-free)
+    #0 0x561ca1b385f6 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x561ca1c2ec73 in sig_destroyed /work/Build/../../src/irssi/src/irc/core/irc-servers.c:459:2
+    #2 0x561ca1ba9224 in signal_emit_real /work/Build/../../src/irssi/src/core/signals.c:242:3
+    #3 0x561ca1ba8eae in signal_emit /work/Build/../../src/irssi/src/core/signals.c:286:3
+    #4 0x561ca1b9e188 in server_unref /work/Build/../../src/irssi/src/core/servers.c:523:3
+    #5 0x561ca1b78a5d in LLVMFuzzerTestOneInput /work/Build/../../src/irssi/src/fe-fuzz/server.c:192:2
+    #6 0x561ca1a2cac0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x561ca1a17d35 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x561ca1a1d7cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x561ca1a48a72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f75f2104082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x561ca1a0ff1d in _start (/out/server-fuzz+0x20ff1d)
+
+DEDUP_TOKEN: __interceptor_free--sig_destroyed--signal_emit_real
+[1m[32m0x519000000ce0 is located 224 bytes inside of 496-byte region [0x519000000c00,0x519000000df0)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x561ca1b39337 in posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    #1 0x561ca1d1332f in allocator_memalign /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gslice.c:1409:9
+    #2 0x561ca1d1332f in allocator_add_slab /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gslice.c:1283:20
+    #3 0x561ca1d1332f in slab_allocator_alloc_chunk /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gslice.c:1329:5
+    #4 0x561ca1d12f57 in magazine_cache_pop_magazine /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gslice.c:730:25
+    #5 0x561ca1d12f57 in thread_memory_magazine1_reload /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gslice.c:800:17
+    #6 0x561ca1d12923 in g_slice_alloc /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gslice.c:1013:13
+    #7 0x561ca1d22aad in g_string_sized_new /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gstring.c:121:21
+    #8 0x561ca1d22aad in g_string_new /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gstring.c:148:14
+    #9 0x561ca1feed35 in g_scanner_get_token_ll /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gscanner.c:2148:15
+    #10 0x561ca1feed35 in g_scanner_get_token_i /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gscanner.c:1660:7
+    #11 0x561ca1febc93 in g_scanner_peek_next_token /work/Build/build-subprojects/glib/../../../../src/irssi/subprojects/glib-2.58.3/glib/gscanner.c:956:7
+    #12 0x561ca1fe3998 in config_parse_peek_token /work/Build/../../src/irssi/src/lib-config/parse.c:100:3
+    #13 0x561ca1fe27fd in config_parse_loop /work/Build/../../src/irssi/src/lib-config/parse.c:219:3
+    #14 0x561ca1fe3295 in config_parse_data /work/Build/../../src/irssi/src/lib-config/parse.c:295:2
+    #15 0x561ca1ba75d9 in parse_configfile /work/Build/../../src/irssi/src/core/settings.c:751:3
+    #16 0x561ca1ba7c8a in init_configfile /work/Build/../../src/irssi/src/core/settings.c:775:15
+    #17 0x561ca1ba7c8a in settings_init /work/Build/../../src/irssi/src/core/settings.c:882:2
+    #18 0x561ca1b7a4a6 in core_init /work/Build/../../src/irssi/src/core/core.c:241:2
+    #19 0x561ca1b78867 in LLVMFuzzerInitialize /work/Build/../../src/irssi/src/fe-fuzz/server.c:155:2
+    #20 0x561ca1a1b7b4 in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:650:5
+    #21 0x561ca1a48a72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f75f2104082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: ___interceptor_posix_memalign--allocator_memalign--allocator_add_slab
+SUMMARY: AddressSanitizer: bad-free /work/Build/../../src/irssi/src/irc/core/irc-servers.c:459:2 in sig_destroyed
+==15==ABORTING

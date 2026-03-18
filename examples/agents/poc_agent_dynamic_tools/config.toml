@@ -22,6 +22,7 @@ PDB_PORT = 1112
 GDB_PORT = 1111
 JOERN_PORT = 18087
 ABSOLUTE_SHARED_DATA_PATH = ""
+TARGET_BINARY = "/out/coder_MNG_fuzzer"
 
 
 task_name = "${TASK_NAME}"

@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
+
 from opensage.config import (
     ContainerConfig,
     OpenSageConfig,

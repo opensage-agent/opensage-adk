@@ -2,6 +2,7 @@ import types as _types
 
 import pytest
 from google.adk.agents.run_config import RunConfig
+
 from opensage.features.summarization import (
     quota_after_tool_callback,
     tool_response_summarizer_callback,

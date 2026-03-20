@@ -21,6 +21,8 @@ from google.adk.planners import BasePlanner, BuiltInPlanner
 from google.adk.plugins import ReflectAndRetryToolPlugin
 from google.adk.sessions import InMemorySessionService, Session
 from google.genai import types
+from pydantic import BaseModel, ConfigDict, Field
+
 from opensage import OpenSageSession
 from opensage.evaluation.base import Evaluation, EvaluationTask
 from opensage.session import get_opensage_session
@@ -40,7 +42,6 @@ from opensage.toolbox.static_analysis.cpg import (
     search_function,
 )
 from opensage.utils.project_info import PROJECT_PATH, SRC_PATH, find_path
-from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 

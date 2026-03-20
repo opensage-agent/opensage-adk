@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from opensage.plugins.claude_code_hook_loader import (
     _CC_ONLY_ACTION_FIELDS,
     _UNBRIDGEABLE_EVENTS,

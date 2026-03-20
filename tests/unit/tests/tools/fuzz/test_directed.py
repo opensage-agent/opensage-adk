@@ -2,6 +2,7 @@ import logging
 
 import docker
 import pytest
+
 from opensage.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)

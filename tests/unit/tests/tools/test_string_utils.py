@@ -11,6 +11,7 @@ Matching OpenCode's 9-strategy replacer chain architecture.
 """
 
 import pytest
+
 from opensage.toolbox.general.string_utils import (
     block_anchor_replacer,
     context_aware_replacer,

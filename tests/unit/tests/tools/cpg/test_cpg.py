@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
+
 from opensage.session import OpenSageSession, get_opensage_session
 from opensage.session.neo4j_client import AsyncNeo4jClient
 from opensage.toolbox.static_analysis.cpg import (
@@ -11,7 +12,6 @@ from opensage.toolbox.static_analysis.cpg import (
     search_function,
 )
 from opensage.utils.project_info import PROJECT_PATH
-
 from tests.unit.utils.utils import fix_neo4j_client
 
 # Increase timeout for slow CPG tests

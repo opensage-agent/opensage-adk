@@ -22,6 +22,11 @@ from google.adk.plugins import ReflectAndRetryToolPlugin
 from google.adk.sessions import InMemorySessionService, Session
 from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
+from pydantic import BaseModel, ConfigDict, Field
+
+from examples.agents.code_understanding_agent import (
+    create_code_understanding_agent_tool,
+)
 from opensage import OpenSageSession
 from opensage.evaluation.base import Evaluation, EvaluationTask
 from opensage.session import get_opensage_session
@@ -41,11 +46,6 @@ from opensage.toolbox.static_analysis.cpg import (
     search_function,
 )
 from opensage.utils.project_info import PROJECT_PATH, SRC_PATH, find_path
-from pydantic import BaseModel, ConfigDict, Field
-
-from examples.agents.code_understanding_agent import (
-    create_code_understanding_agent_tool,
-)
 
 logger = logging.getLogger(__name__)
 

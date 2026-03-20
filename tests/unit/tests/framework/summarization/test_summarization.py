@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from google.adk.events.event import Event
 from google.genai import types
+
 from opensage.features.summarization import (
     _get_summary_async,
     history_summarizer_callback,

@@ -4,6 +4,7 @@ import types as _types
 from pathlib import Path
 
 import pytest
+
 from opensage.plugins.default.adk_plugins.message_board_diff_plugin import (
     MessageBoardDiffPlugin,
 )

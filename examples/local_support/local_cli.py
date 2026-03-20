@@ -19,6 +19,8 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.sessions import Session
 from google.adk.tools import ToolContext
 from google.genai import types
+from pydantic_core import to_json
+
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.features.agent_history_tracker import enable_neo4j_logging
 from opensage.features.opensage_in_memory_session_service import (
@@ -51,7 +53,6 @@ from opensage.toolbox.general.dynamic_subagent import (
     create_subagent,
     list_active_agents,
 )
-from pydantic_core import to_json
 
 logger = logging.getLogger(__name__)
 

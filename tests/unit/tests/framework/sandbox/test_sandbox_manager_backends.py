@@ -13,6 +13,7 @@ from typing import Optional
 import docker
 import pytest
 from docker.errors import APIError, ImageNotFound, NotFound
+
 from opensage.config.config_dataclass import (
     ContainerConfig,
     OpenSageConfig,

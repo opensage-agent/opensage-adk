@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from google.adk.events.event import Event
 from google.genai import types
+
 from opensage.utils.neo4j_history_management import (
     _create_event_node,
     _create_summarize_relation,

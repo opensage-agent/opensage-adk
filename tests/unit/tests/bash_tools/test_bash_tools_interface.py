@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from opensage.toolbox.general.bash_task_manager import Task, TaskStatus
 from opensage.toolbox.general.bash_tools_interface import (
     BashToolMetadata,

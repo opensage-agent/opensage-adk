@@ -5,10 +5,10 @@ pytestmark = pytest.mark.skip(reason="Skipping all fuzz tests for now")
 from unittest.mock import MagicMock
 
 import pytest_asyncio
+
 from opensage.sandbox.base_sandbox import SandboxState
 from opensage.session import OpenSageSession, get_opensage_session
 from opensage.utils.project_info import PROJECT_PATH
-
 from tests.unit.utils.utils import extract_infos_from_arvo_script
 
 

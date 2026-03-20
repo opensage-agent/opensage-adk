@@ -12,6 +12,7 @@ from pathlib import Path
 
 import datasets
 import fire
+
 from opensage.evaluation.base import Evaluation, EvaluationTask
 from opensage.session import get_opensage_session
 from opensage.utils.project_info import PROJECT_PATH, SRC_PATH, find_path

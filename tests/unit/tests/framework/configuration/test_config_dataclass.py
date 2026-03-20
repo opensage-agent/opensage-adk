@@ -10,6 +10,7 @@ from unittest import mock
 
 import pytest
 import toml
+
 from opensage.config.config_dataclass import (
     AgentEnsembleConfig,
     BuildConfig,

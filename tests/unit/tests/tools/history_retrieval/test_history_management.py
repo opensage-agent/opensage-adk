@@ -8,6 +8,7 @@ from unittest import mock
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
 from opensage.toolbox.general.history_management import (
     drop_or_summarize_events,
     get_all_agent_runs,

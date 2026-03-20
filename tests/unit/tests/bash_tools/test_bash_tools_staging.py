@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+
 from opensage.utils.bash_tools_staging import (
     build_bash_tools_staging_dir,
     compute_bash_tools_top_roots,

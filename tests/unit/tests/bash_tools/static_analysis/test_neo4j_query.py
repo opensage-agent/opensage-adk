@@ -7,10 +7,10 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
+
 from opensage.session import OpenSageSession, get_opensage_session
 from opensage.toolbox.general.bash_tools_interface import run_terminal_command
 from opensage.utils.project_info import PROJECT_PATH
-
 from tests.unit.utils.utils import fix_neo4j_client
 
 # Increase timeout for slow static analysis tests

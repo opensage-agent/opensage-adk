@@ -7,8 +7,8 @@ from typing import Optional, Type
 from opensage.sandbox.initializers import (
     CodeQLInitializer,
     CoverageInitializer,
-    DebuggerInitializer,
     FuzzInitializer,
+    GDBDebuggerInitializer,
     JoernInitializer,
     MainInitializer,
     Neo4jInitializer,
@@ -42,7 +42,7 @@ SANDBOX_INITIALIZERS = {
     "fuzz": FuzzInitializer,
     "neo4j": Neo4jInitializer,
     "coverage": CoverageInitializer,
-    "debugger": DebuggerInitializer,
+    "gdb_mcp": GDBDebuggerInitializer,
 }
 
 

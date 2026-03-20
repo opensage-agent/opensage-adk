@@ -129,7 +129,9 @@ def send_to_pdb(session_state: SessionState, command, timeout_multiplier=1.0):
 
             # Check if process ended right after the command
             if pdb_process.poll() is not None:
-                pdb_running = False
+                pdb_running = (
+                    False  # TODO: also need to update the session_state.pdb_running?
+                )
                 # Try to get any final output
                 final_output = get_pdb_output(session_state, timeout=0.1)
                 return f"Command output:\n{output}\n{final_output}\n\n*** The debugging session has ended. ***"

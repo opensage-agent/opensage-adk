@@ -39,7 +39,9 @@ class AigiseMCPToolset(McpToolset):
         self,
         *,
         name: str,
-        tool_name_prefix: Optional[str] = None,
+        tool_name_prefix: Optional[
+            str
+        ] = None,  # TODO: this means it is a prefixed tool name? or prefix added to the tool name?
         **kwargs,
     ):
         if not isinstance(name, str) or not name.strip():
@@ -211,7 +213,7 @@ class ToolLoader:
             # This lets users specify a toolset folder (e.g. "static_analysis") and
             # still load all nested tools under it recursively.
             allowed = False
-            for prefix in self._filter_skills:
+            for prefix in self._filter_skills:  # TODO: the prefix here still a little confusing, it means prefixed tool name or prefix of a tool name? what is our tool naming system
                 if tool_name == prefix or tool_name.startswith(f"{prefix}/"):
                     allowed = True
                     break
@@ -532,7 +534,7 @@ class AigiseAgent(LlmAgent):
     def __init__(
         self,
         *args,
-        tools: Optional[List] = None,
+        tools: Optional[List] = None,  # TODO: this should be the initial tool list?
         tool_combos: Optional[List[ToolCombo]] = None,
         enabled_skills: Optional[Union[List[str], str]] = None,
         enable_memory_management: bool = False,
@@ -541,7 +543,7 @@ class AigiseAgent(LlmAgent):
         tools = list(tools) if tools else []
 
         sub_agents = kwargs.get("sub_agents", [])
-        for combo in tool_combos or []:
+        for combo in tool_combos or []:  # TODO: why tool combos for sub-agents?
             if combo.return_history:
                 sub_agents.append(combo.sequential_agent)
             else:
@@ -629,7 +631,7 @@ class AigiseAgent(LlmAgent):
                 f"{description_preamble}\n{tool_prompt}{sandbox_description}\n\n"
                 "## Tool Usage Policy (MUST FOLLOW)\n\n"
                 f"{tool_usage_policy}"
-            )
+            )  # TODO: is this instruction too long and some should be written as skills?
         else:
             logger.info("No dynamically loaded tool descriptions found")
 

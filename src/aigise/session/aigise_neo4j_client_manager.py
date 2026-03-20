@@ -15,6 +15,8 @@ from aigise.session.neo4j_client import AsyncNeo4jClient
 
 logger = logging.getLogger(__name__)
 
+# TODO: Do we need a clean up and get_session_statistics function here?
+
 
 class AigiseNeo4jClientManager:
     """Session-specific Neo4j client manager.
@@ -49,7 +51,7 @@ class AigiseNeo4jClientManager:
     @property
     def sandbox_manager(self):
         """Get sandbox manager from session dynamically."""
-        return self._session.sandboxes
+        return self._session.sandboxes  # TODO: this is never used.
 
     def _get_database_name_for_type(self, client_type: str) -> str:
         """Get database name for a specific client type.

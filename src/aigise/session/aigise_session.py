@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from .message_board import MessageBoardManager
 
+# TODO: clearly define the session in aigise
+
 
 class AigiseSession:
     """
@@ -156,7 +158,9 @@ class AigiseSession:
         """
         Cleanup all resources for this session.
         """
-        if self.config.auto_cleanup:
+        if (
+            self.config.auto_cleanup
+        ):  # TODO: this auto_cleanup flag seems not very useful?
             self.sandboxes.cleanup()
             self.agents.cleanup()
             self.ensemble.cleanup()

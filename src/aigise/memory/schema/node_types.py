@@ -83,7 +83,7 @@ class NodeTypeConfig:
     embedding_property: Optional[str] = None
     """Name of the property containing vector embeddings (if any)."""
 
-    embedding_dimension: int = 3072
+    embedding_dimension: int = 3072  # TODO can we make this configuraable?
     """Dimension of the embedding vectors (default: Gemini's 3072)."""
 
     unique_key: Optional[str] = None

@@ -59,7 +59,7 @@ async def simplified_python_fuzzer(
         # 6. Run the fuzzer script for 180 seconds
         logger.info("Running fuzzer script for 180 seconds...")
         output, exit_code = sandbox.run_command_in_container(
-            f"timeout 180s python3 {container_fuzzer_path}",
+            f"timeout 70s python3 {container_fuzzer_path}",
             timeout=70,  # Give a bit more time for timeout command to complete
         )
 
@@ -168,11 +168,12 @@ async def run_fuzzing_campaign(
         fuzz_sandbox.run_command_in_container('echo "1234" > /fuzz/in/seed.txt')
 
     # Run fuzzing campaign
-    duration_seconds = duration_minutes * 60
+    duration_seconds = duration_minutes * 60  # TODO: make this configurable
     env_cmd = ""
     if custom_mutator:
         env_cmd += "export PYTHONPATH=/fuzz/mutator && export AFL_PYTHON_MODULE=custom_mutator && "
     env_cmd = f"export AFL_NO_UI=1 && timeout {duration_seconds}s /out/afl-fuzz -i /fuzz/in -o /fuzz/out /out/{fuzz_target}"
+    # TODO: this will override the env_cmd? make the customer mutator not useful....
 
     res, exit_code = fuzz_sandbox.run_command_in_container(env_cmd)
 

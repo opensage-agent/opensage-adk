@@ -117,6 +117,7 @@ class EntityExtractor:
         Returns:
             ExtractionResult with extracted entities.
         """
+        # TODO: can we merge some of these extractions to reduce LLM calls? Let them extract together in one call; or constrain and only extract from long context
         try:
             if content_type == "question":
                 return await self._extract_from_question(content, metadata)
@@ -171,6 +172,7 @@ class EntityExtractor:
             )
         )
 
+        # TODO: _extract_topics and _generate_embedding can be run asyncly
         # Extract topics from question using patterns or LLM
         topics = await self._extract_topics(question_text)
         entities.extend(topics)

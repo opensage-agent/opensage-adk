@@ -498,6 +498,7 @@ class OpenSageConfig:
     task_name: str = None
     src_dir_in_sandbox: str = None
     agent_storage_path: Optional[str] = None
+    load_dynamic_agents: bool = False
     default_host: str = None
 
     auto_cleanup: bool = True

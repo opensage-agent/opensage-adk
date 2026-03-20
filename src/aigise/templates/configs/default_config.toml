@@ -28,6 +28,7 @@ ABSOLUTE_SHARED_DATA_PATH = ""
 task_name = "${TASK_NAME}"
 src_dir_in_sandbox = "/shared/code"
 agent_storage_path = "${AGENT_STORAGE_PATH}"
+load_dynamic_agents = false
 default_host = ""
 
 [neo4j]

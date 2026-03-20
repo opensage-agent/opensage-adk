@@ -149,7 +149,10 @@ class TestDynamicAgentManager:
         session = MockSession("test-session", config)
         manager = DynamicAgentManager(session)
 
-        assert manager.storage_path == Path("/tmp/opensage_agent_storage")
+        assert (
+            manager.storage_path
+            == Path("~/.local/opensage/dynamic_agents").expanduser()
+        )
 
     def test_init_with_empty_storage_path(self):
         """Test manager initialization with empty storage path."""
@@ -164,7 +167,10 @@ class TestDynamicAgentManager:
         session = MockSession("test-session", config)
         manager = DynamicAgentManager(session)
 
-        assert manager.storage_path == Path("/tmp/opensage_agent_storage")
+        assert (
+            manager.storage_path
+            == Path("~/.local/opensage/dynamic_agents").expanduser()
+        )
 
     @patch("opensage.session.opensage_dynamic_agent_manager.OpenSageAgent")
     def test_create_agent_instance(self, mock_opensage_agent):

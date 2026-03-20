@@ -1,0 +1,32 @@
+#!/bin/bash -eu
+
+# This script is to fix the clang version issue in AFL++ less than 6
+CLANG_VERSION=$(clang --version | head -n1 | awk '{print $3}' | cut -d. -f1)
+
+echo "[*] Detected clang version: $CLANG_VERSION"
+if [ "$CLANG_VERSION" -eq 5 ]; then
+    # error: no member named 'CreateXorReduce' in 'llvm::IRBuilder<llvm::ConstantFolder, llvm::IRBuilderDefaultInserter>'
+    echo "[*] Fix clang version issue in AFL++ with clang-6.0"
+    apt update && apt install -y clang-6.0
+
+    export CC=clang-6.0
+    export CXX=clang++-6.0
+    export LLVM_CONFIG=llvm-config-6.0
+elif [ "$CLANG_VERSION" -eq 14 ]; then
+    # https://github.com/AFLplusplus/AFLplusplus/issues/1179
+    echo "[*] Fix clang version issue in AFL++ with clang-12"
+    apt update && apt install -y clang-12
+
+    export CC=clang-12
+    export CXX=clang++-12
+    export LLVM_CONFIG=llvm-config-12
+elif [ "$CLANG_VERSION" -eq 11 ]; then
+    echo "[*] Fix clang version issue in AFL++ with clang-8"
+    apt update && apt install -y clang-8
+
+    export CC=clang-8
+    export CXX=clang++-8
+    export LLVM_CONFIG=llvm-config-8
+else
+    echo "[*] clang version is $CLANG_VERSION, no need to fix."
+fi

@@ -1,0 +1,63 @@
+# Default build flags for various sanitizers.
+export SANITIZER_FLAGS_address="-fsanitize=address -fsanitize-address-use-after-scope"
+export SANITIZER_FLAGS_hwaddress="-fsanitize=hwaddress -fuse-ld=lld -Wno-unused-command-line-argument"
+
+# Set of '-fsanitize' flags matches '-fno-sanitize-recover' + 'unsigned-integer-overflow'.
+export SANITIZER_FLAGS_undefined="-fsanitize=array-bounds,bool,builtin,enum,function,integer-divide-by-zero,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,unsigned-integer-overflow,unreachable,vla-bound,vptr -fno-sanitize-recover=array-bounds,bool,builtin,enum,function,integer-divide-by-zero,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,unreachable,vla-bound,vptr"
+
+# Don't include "function" since it is unsupported on aarch64.
+export SANITIZER_FLAGS_undefined_aarch64="-fsanitize=array-bounds,bool,builtin,enum,integer-divide-by-zero,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,unsigned-integer-overflow,unreachable,vla-bound,vptr -fno-sanitize-recover=array-bounds,bool,builtin,enum,integer-divide-by-zero,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,unreachable,vla-bound,vptr"
+
+export SANITIZER_FLAGS_memory="-fsanitize=memory -fsanitize-memory-track-origins"
+
+export SANITIZER_FLAGS_thread="-fsanitize=thread"
+
+export SANITIZER_FLAGS_introspector="-O0 -flto -fno-inline-functions -fuse-ld=gold -Wno-unused-command-line-argument"
+
+# Do not use any sanitizers in the coverage build.
+export SANITIZER_FLAGS_coverage=""
+
+# We use unsigned-integer-overflow as an additional coverage signal and have to
+# suppress error messages. See https://github.com/google/oss-fuzz/issues/910.
+export UBSAN_OPTIONS="silence_unsigned_overflow=1"
+
+# To suppress warnings from binaries running during compilation.
+export DFSAN_OPTIONS='warn_unimplemented=0'
+
+# Default build flags for coverage feedback.
+export COVERAGE_FLAGS="-fsanitize=fuzzer-no-link"
+
+# Use '-Wno-unused-command-line-argument' to suppress "warning: -ldl: 'linker' input unused"
+# messages which are treated as errors by some projects.
+export COVERAGE_FLAGS_coverage="-fprofile-instr-generate -fcoverage-mapping -pthread -Wl,--no-as-needed -Wl,-ldl -Wl,-lm -Wno-unused-command-line-argument"
+
+# Default sanitizer, fuzzing engine and architecture to use.
+export SANITIZER="address"
+export FUZZING_ENGINE="afl"
+export ARCHITECTURE="x86_64"
+
+# DEPRECATED - NEW CODE SHOULD NOT USE THIS. OLD CODE SHOULD STOP. Please use
+# LIB_FUZZING_ENGINE instead.
+# Path to fuzzing engine library to support some old users of
+# LIB_FUZZING_ENGINE.
+export LIB_FUZZING_ENGINE_DEPRECATED="/usr/lib/libFuzzingEngine.a"
+
+# Argument passed to compiler to link against fuzzing engine.
+# Defaults to the path, but is "-fsanitize=fuzzer" in libFuzzer builds.
+export LIB_FUZZING_ENGINE="/usr/lib/libFuzzingEngine.a"
+
+# FROM: infra/base-images/base-clang/Dockerfile
+export CFLAGS="-O1 \
+  -fno-omit-frame-pointer \
+  -gline-tables-only \
+  -Wno-error=enum-constexpr-conversion \
+  -Wno-error=incompatible-function-pointer-types \
+  -Wno-error=int-conversion \
+  -Wno-error=deprecated-declarations \
+  -Wno-error=implicit-function-declaration \
+  -Wno-error=implicit-int \
+  -Wno-error=vla-cxx-extension \
+  -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
+
+export CXXFLAGS_EXTRA="-stdlib=libc++"
+export CXXFLAGS="$CFLAGS $CXXFLAGS_EXTRA"

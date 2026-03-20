@@ -1,0 +1,17 @@
+#!/bin/bash -eu
+
+DEST_DIR="$SRC/aflplusplus"
+OLD_DIR="$SRC/aflplusplus.old"
+TAG=${TAG:-"v4.30c"}
+
+# Check if the destination directory exists
+if [ -d "$DEST_DIR" ]; then
+    echo "Directory $DEST_DIR exists. Moving to $OLD_DIR"
+    rm -rf "$OLD_DIR"  # remove previous .old if it exists
+    mv "$DEST_DIR" "$OLD_DIR"
+fi
+
+git clone https://github.com/AFLplusplus/AFLplusplus "$DEST_DIR"
+pushd "$DEST_DIR" > /dev/null
+git checkout $TAG
+popd > /dev/null

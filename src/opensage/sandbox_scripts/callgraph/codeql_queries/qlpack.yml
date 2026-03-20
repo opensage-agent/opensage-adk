@@ -1,0 +1,7 @@
+---
+library: false
+warnOnImplicitThis: false
+name: opensage/callgraph
+version: 0.0.1
+dependencies:
+  codeql/cpp-all: ^5.5.0

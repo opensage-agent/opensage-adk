@@ -12,6 +12,7 @@ Category of tools for automated fuzzing and bug discovery using AFL++ and other 
 - **run-fuzzing-campaign**: Run a complete AFL++ fuzzing campaign with configurable duration, seeds, and custom mutators
 - **extract-crashes**: Extract and analyze crash information from fuzzing results
 - **simplified-python-fuzzer**: Simplified Python-based fuzzing tool for quick testing
+- **selective-instrument**: Recompile with AFL++ selective instrumentation (AFL_LLVM_ALLOWLIST) and run focused fuzzing on specific functions/files
 
 ## Usage
 

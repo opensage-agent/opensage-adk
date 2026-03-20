@@ -128,7 +128,7 @@ def _collect_dynamic_skill_dependencies(
         try:
             content = file_path.read_text(encoding="utf-8")
             match = re.search(
-                r"^## Requires Sandbox\\s*\\n(.*?)(?=\\n## |\\Z)",
+                r"^## Requires Sandbox\s*\n(.*?)(?=\n## |\Z)",
                 content,
                 re.MULTILINE | re.DOTALL,
             )

@@ -3,6 +3,7 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV JOERN_VERSION="v4.0.407" \
+    JOERN_QUERYDB_VERSION="4.0.457" \
     SBT_VERSION="1.11.3" \
     LANG="C.UTF-8"
 
@@ -42,7 +43,7 @@ RUN git clone https://github.com/joernio/joern.git /data/joern && \
     sbt createDistribution && \
     unzip -qo -d /opt/joern /data/joern/target/joern-cli.zip && \
     cd /opt/joern/joern-cli && \
-    ./joern-scan --updatedb --dbversion ""
+    ./joern-scan --updatedb --dbversion "${JOERN_QUERYDB_VERSION}"
 
 ENV PATH="/opt/joern/joern-cli:$PATH"
 

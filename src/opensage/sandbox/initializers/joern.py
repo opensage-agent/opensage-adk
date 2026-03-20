@@ -74,10 +74,6 @@ class JoernInitializer(SandboxInitializer):
             logger.error(f"Joern initialization failed: {e}")
             return False
 
-        # Write Joern server host to ~/.bashrc
-        self._write_joern_env_to_bashrc(opensage_session)
-        return True
-
     async def _initialize_joern_with_timeout(
         self, opensage_session, all_sandboxes: dict[str, BaseSandbox]
     ) -> None:
@@ -120,12 +116,6 @@ class JoernInitializer(SandboxInitializer):
 
         await import_joern_callgraph(neo4j_client, "/")
         await update_joern_cpg(neo4j_client, fix_identical_methods=True)
-
-        client = JoernClient(
-            server_endpoint=f"{opensage_session.config.default_host}:18087"
-        )
-
-        await client.aexecute("importCpg('/cpg.bin')")
 
     def _write_joern_env_to_bashrc(self, opensage_session) -> None:
         """Write Joern server host environment variable to /shared/bashrc."""
@@ -170,3 +160,23 @@ fi
                 f"Joern environment variables written to /shared/bashrc: "
                 f"JOERN_SERVER_HOST={joern_host}, JOERN_SERVER_PORT={joern_port}"
             )
+
+    async def _ensure_ready_impl(self: BaseSandbox) -> bool:
+        """Ensure Joern server is ready to be used."""
+
+        from opensage.session.opensage_session import get_opensage_session
+
+        try:
+            assert isinstance(self, BaseSandbox)
+            opensage_session = get_opensage_session(self.opensage_session_id)
+            client = JoernClient(
+                server_endpoint=f"{opensage_session.config.default_host}:18087"
+            )
+
+            await client.aexecute("importCpg('/cpg.bin')")
+            # Write Joern server host to ~/.bashrc
+            self._write_joern_env_to_bashrc(opensage_session)
+        except Exception as e:
+            logger.error(f"Joern server is collapsed during ensure_ready: {e}")
+            return False
+        return True

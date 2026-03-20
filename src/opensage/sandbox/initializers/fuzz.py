@@ -43,9 +43,6 @@ class FuzzInitializer(SandboxInitializer):
             else:
                 infos = self._extract_infos_from_arvo_script(res)
 
-            # # Set up fuzzing environment
-            # await self._setup_fuzzing_environment(infos)
-
             # Compile with AFL++
             await self._compile_with_aflpp(infos)
             return True
@@ -92,10 +89,6 @@ class FuzzInitializer(SandboxInitializer):
                 infos["FUZZ_TARGET"] = m.group(1)
                 break
         return infos
-
-    # async def _setup_fuzzing_environment(self, infos: dict[str, str]) -> None:
-    #     """Set up the fuzzing environment."""
-    #     pass
 
     async def _compile_with_aflpp(self, infos: dict[str, str]) -> None:
         """Compile the project with AFL++.

@@ -16,6 +16,7 @@ class Neo4jInitializer(SandboxInitializer):
     """Initializer that initializes Neo4j code analysis capabilities to sandboxes."""
 
     async def _ensure_ready_impl(self: BaseSandbox) -> bool:
+        """Ensure Neo4j is ready to be used."""
         from opensage.session.opensage_session import get_opensage_session
 
         assert isinstance(self, BaseSandbox)

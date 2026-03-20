@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from opensage.agents.opensage_agent import ToolLoader
 
 

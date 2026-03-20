@@ -12,6 +12,7 @@ from unittest import mock
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
 from opensage.config.config_dataclass import OpenSageConfig
 from opensage.session.opensage_dynamic_agent_manager import (
     AgentMetadata,

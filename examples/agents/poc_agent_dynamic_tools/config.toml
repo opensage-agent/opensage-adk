@@ -43,7 +43,7 @@ absolute_shared_data_path = "${ABSOLUTE_SHARED_DATA_PATH}"
 # Main sandbox configuration
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/main/Dockerfile"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/main/Dockerfile"
 timeout = 300
 [sandbox.sandboxes.main.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"
@@ -53,7 +53,7 @@ initializer_timeout_sec = 1800
 # GDB MCP sandbox configuration
 [sandbox.sandboxes.gdb_mcp]
 image = "${TASK_NAME}_gdb_mcp"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/gdb_mcp/Dockerfile"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/gdb_mcp/Dockerfile"
 command = ""
 [sandbox.sandboxes.gdb_mcp.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"
@@ -65,7 +65,7 @@ initializer_timeout_sec = 1800
 # PDB MCP sandbox configuration
 [sandbox.sandboxes.pdb_mcp]
 image = "${TASK_NAME}_pdb_mcp"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/pdb_mcp/Dockerfile"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/pdb_mcp/Dockerfile"
 command = ""
 [sandbox.sandboxes.pdb_mcp.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"
@@ -76,8 +76,8 @@ initializer_timeout_sec = 1800
 
 # Joern sandbox
 [sandbox.sandboxes.joern]
-image = "aigise/joern"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/joern/Dockerfile"
+image = "opensage/joern"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/joern/Dockerfile"
 command = ""
 ports = { "8081/tcp" = "${JOERN_PORT}" }
 [sandbox.sandboxes.joern.extra]
@@ -175,7 +175,7 @@ initializer_timeout_sec = 1800
 # coverage sandbox
 [sandbox.sandboxes.coverage]
 image = "${TASK_NAME}_coverage"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/coverage/Dockerfile"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/coverage/Dockerfile"
 command = "tail -f /dev/null"
 [sandbox.sandboxes.coverage.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"

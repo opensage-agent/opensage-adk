@@ -5,14 +5,14 @@ This defines node types and relationships for question-answer pairs:
 - Relationships like ABOUT, HAS_ANSWER, HAS_TOPIC, RELATED_TO
 """
 
-from aigise.memory.config.domain_config import DomainConfig, register_domain
-from aigise.memory.schema.node_types import (
+from opensage.memory.config.domain_config import DomainConfig, register_domain
+from opensage.memory.schema.node_types import (
     ANSWER_NODE,
     QUESTION_NODE,
     TEXT_NODE,
     TOPIC_NODE,
 )
-from aigise.memory.schema.relationship_types import (
+from opensage.memory.schema.relationship_types import (
     ABOUT_RELATIONSHIP,
     HAS_ANSWER_RELATIONSHIP,
     HAS_TOPIC_RELATIONSHIP,

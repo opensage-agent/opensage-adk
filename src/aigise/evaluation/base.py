@@ -33,17 +33,16 @@ from google.adk.runners import Runner
 from google.adk.sessions import Session
 from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
-from tqdm import tqdm
-
-from aigise import get_aigise_session
-from aigise.features.aigise_in_memory_session_service import (
-    AigiseInMemorySessionService,
+from opensage import get_opensage_session
+from opensage.features.opensage_in_memory_session_service import (
+    OpenSageInMemorySessionService,
 )
-from aigise.plugins import load_plugins
-from aigise.session.aigise_session import AigiseSession
-from aigise.toolbox.sandbox_requirements import collect_sandbox_dependencies
-from aigise.utils.bash_tools_staging import compute_bash_tools_top_roots
-from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
+from opensage.plugins import load_plugins
+from opensage.session.opensage_session import OpenSageSession
+from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
+from opensage.utils.bash_tools_staging import compute_bash_tools_top_roots
+from opensage.utils.project_info import PROJECT_PATH, SRC_PATH
+from tqdm import tqdm
 
 # TODO: incompatibility between litellm and multiple async event loops
 litellm.disable_streaming_logging = True
@@ -208,9 +207,9 @@ class EvaluationTask:
     """Optional model override (BaseLlm instance or string model name)"""
 
     @property
-    def aigise_session(self) -> AigiseSession:
+    def opensage_session(self) -> OpenSageSession:
         """Get or create AIgiSE session for this task."""
-        return get_aigise_session(self.session_id, create_if_missing=False)
+        return get_opensage_session(self.session_id, create_if_missing=False)
 
 
 @dataclass(kw_only=True)
@@ -244,9 +243,6 @@ class Evaluation(abc.ABC):
     max_workers: int = 6
 
     run_until_explicit_finish: bool = False
-
-    use_multiprocessing: bool = True
-    """Use multiprocessing (True) or threading (False) for local parallel execution"""
 
     runner_type: str = "native"
     """Execution backend: "native" (threading/multiprocessing) or "ray" (distributed)"""
@@ -452,8 +448,10 @@ class Evaluation(abc.ABC):
 
         # Determine model name for logging
         model_name = "agent_default"
-        if self.use_config_model and task.aigise_session:
-            main_model_config = task.aigise_session.config.llm.model_configs.get("main")
+        if self.use_config_model and task.opensage_session:
+            main_model_config = task.opensage_session.config.llm.model_configs.get(
+                "main"
+            )
             if main_model_config:
                 model_name = main_model_config.model_name
 
@@ -692,9 +690,11 @@ class Evaluation(abc.ABC):
             model_source = "task.model (RL integration)"
         elif self.use_config_model:
             # Priority 2: config model
-            aigise_session = task.aigise_session
-            if aigise_session and aigise_session.config.llm:
-                main_model_config = aigise_session.config.llm.model_configs.get("main")
+            opensage_session = task.opensage_session
+            if opensage_session and opensage_session.config.llm:
+                main_model_config = opensage_session.config.llm.model_configs.get(
+                    "main"
+                )
                 if main_model_config:
                     # Convert config to dict and extract all parameters
                     config_dict = (
@@ -721,14 +721,14 @@ class Evaluation(abc.ABC):
             if "model" in sig.parameters:
                 # mk_agent supports model parameter - use it
                 agent = self._mk_agent_original(
-                    aigise_session_id=task.session_id, model=model_to_use
+                    opensage_session_id=task.session_id, model=model_to_use
                 )
                 logger.warning(
                     f"Created agent with model from {model_source} (session {task.session_id})"
                 )
             else:
                 # mk_agent doesn't support model parameter - fallback to replacement
-                agent = self._mk_agent_original(aigise_session_id=task.session_id)
+                agent = self._mk_agent_original(opensage_session_id=task.session_id)
                 if model_to_use is not None:
                     self._replace_agent_models_recursive(agent, model_to_use)
                     logger.warning(
@@ -744,7 +744,7 @@ class Evaluation(abc.ABC):
             logger.warning(
                 f"Failed to create agent with model parameter, falling back: {e}"
             )
-            agent = self._mk_agent_original(aigise_session_id=task.session_id)
+            agent = self._mk_agent_original(opensage_session_id=task.session_id)
             if model_to_use is not None:
                 self._replace_agent_models_recursive(agent, model_to_use)
 
@@ -768,8 +768,8 @@ class Evaluation(abc.ABC):
 
             self._before_generate_one_callback(task)
 
-            # === 0. Get aigise_session ===
-            self._register_aigise_session(task)
+            # === 0. Get opensage_session ===
+            self._register_opensage_session(task)
 
             # === 1. Prepare Environment ===
             await self._prepare_environment(task)
@@ -779,7 +779,7 @@ class Evaluation(abc.ABC):
 
             # === 2.5 Save Config ===
             config_output_path = Path(task.output_dir) / "config_used.toml"
-            task.aigise_session.config.save_to_toml(str(config_output_path))
+            task.opensage_session.config.save_to_toml(str(config_output_path))
             logger.warning(f"Config saved to {config_output_path}")
 
             # === 3. Run Agent ===
@@ -790,7 +790,7 @@ class Evaluation(abc.ABC):
 
             # === 5. Cleanup ===
             try:
-                task.aigise_session.cleanup()
+                task.opensage_session.cleanup()
                 logger.warning(f"Cleanup completed for session: {task.session_id}")
             except Exception as e:
                 logger.warning(f"Cleanup failed for session {task.session_id}: {e}")
@@ -821,8 +821,8 @@ class Evaluation(abc.ABC):
 
             # Try to cleanup even on error
             try:
-                if task.aigise_session:
-                    task.aigise_session.cleanup()
+                if task.opensage_session:
+                    task.opensage_session.cleanup()
             except Exception as cleanup_error:
                 logger.error(f"Cleanup after error failed: {cleanup_error}")
 
@@ -857,8 +857,8 @@ class Evaluation(abc.ABC):
         """
         _ = (results, failed_samples, mode)
 
-    def _register_aigise_session(self, task: EvaluationTask):
-        """Register AigiseSession with task-specific config.
+    def _register_opensage_session(self, task: EvaluationTask):
+        """Register OpenSageSession with task-specific config.
 
         Args:
             task: EvaluationTask containing session_id and config_template_path
@@ -867,13 +867,13 @@ class Evaluation(abc.ABC):
         """
         # Copy config template to a temporary file for this task
         config_template = Path(self.config_template_path)
-        temp_dir = tempfile.mkdtemp(prefix=f"aigise_{task.session_id}_")
+        temp_dir = tempfile.mkdtemp(prefix=f"opensage_{task.session_id}_")
         temp_config_path = Path(temp_dir) / config_template.name
         shutil.copy(config_template, temp_config_path)
         template_variables = self._get_config_template_variables(task)
         self._replace_template_variables_in_config(temp_config_path, template_variables)
 
-        get_aigise_session(task.session_id, config_path=temp_config_path)
+        get_opensage_session(task.session_id, config_path=temp_config_path)
 
         # clean up temp config file
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -884,10 +884,10 @@ class Evaluation(abc.ABC):
         Args:
             task: EvaluationTask instance with all task data
         """
-        aigise_session = task.aigise_session
+        opensage_session = task.opensage_session
 
         # 1. Configure Neo4j logging
-        from aigise.features.agent_history_tracker import (
+        from opensage.features.agent_history_tracker import (
             disable_neo4j_logging,
             enable_neo4j_logging,
             is_neo4j_logging_enabled,
@@ -902,7 +902,7 @@ class Evaluation(abc.ABC):
                 disable_neo4j_logging()
                 logger.warning("Neo4j logging disabled (neo4j_logging=False).")
 
-        dummy_agent = self._mk_agent_original(aigise_session_id=task.session_id)
+        dummy_agent = self._mk_agent_original(opensage_session_id=task.session_id)
 
         # Collect sandbox dependencies from agent
         sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
@@ -911,8 +911,11 @@ class Evaluation(abc.ABC):
         # Strong behavior:
         # - If dependencies mention sandboxes that are not configured, drop them and warn.
         # - If config contains sandboxes that are not needed, remove them and warn.
-        if aigise_session.config.sandbox and aigise_session.config.sandbox.sandboxes:
-            configured_sandboxes = set(aigise_session.config.sandbox.sandboxes.keys())
+        if (
+            opensage_session.config.sandbox
+            and opensage_session.config.sandbox.sandboxes
+        ):
+            configured_sandboxes = set(opensage_session.config.sandbox.sandboxes.keys())
 
             missing_in_config = sorted(
                 sb for sb in sandbox_dependencies if sb not in configured_sandboxes
@@ -930,11 +933,11 @@ class Evaluation(abc.ABC):
 
             sandboxes_to_remove = [
                 sandbox_type
-                for sandbox_type in aigise_session.config.sandbox.sandboxes.keys()
+                for sandbox_type in opensage_session.config.sandbox.sandboxes.keys()
                 if sandbox_type not in sandbox_dependencies
             ]
             for sandbox_type in sandboxes_to_remove:
-                del aigise_session.config.sandbox.sandboxes[sandbox_type]
+                del opensage_session.config.sandbox.sandboxes[sandbox_type]
                 logger.warning(
                     f"Removed unused sandbox '{sandbox_type}' from config "
                     f"(not in agent dependencies: {sandbox_dependencies})"
@@ -944,29 +947,31 @@ class Evaluation(abc.ABC):
         unfound_cached_sandboxes = []
         if self.use_sandbox_cache:
             unfound_cached_sandboxes = (
-                aigise_session.sandboxes.load_sandbox_caches_to_config()
+                opensage_session.sandboxes.load_sandbox_caches_to_config()
             )
 
         # 4. Initialize shared volumes
-        aigise_session.sandboxes.initialize_shared_volumes(
+        opensage_session.sandboxes.initialize_shared_volumes(
             tools_top_roots=tools_top_roots,
             enabled_skills=getattr(dummy_agent, "_enabled_skills", None),
         )
 
         # 5. Launch all sandboxes (create containers only, not initialized yet)
-        await aigise_session.sandboxes.launch_all_sandboxes()
+        await opensage_session.sandboxes.launch_all_sandboxes()
 
         await self._before_initialize_callback(task)
 
         # 6. Initialize all sandboxes
         # continue_on_error=True is important for the evaluation to continue even if some sandboxes fail to initialize
-        await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
+        await opensage_session.sandboxes.initialize_all_sandboxes(
+            continue_on_error=True
+        )
 
         await self._after_initialize_callback(task)
 
         # 7. Cache sandboxes if needed
         if self.use_sandbox_cache and unfound_cached_sandboxes:
-            aigise_session.sandboxes.cache_sandboxes(cache_dir=task.sandbox_cache_dir)
+            opensage_session.sandboxes.cache_sandboxes(cache_dir=task.sandbox_cache_dir)
 
     async def _run_agent(self, task: EvaluationTask, agent: adk.Agent) -> Session:
         """Run agent with the given prompt.
@@ -981,11 +986,11 @@ class Evaluation(abc.ABC):
         # 2. Create runner and session service
         user_id = self.output_dir.replace("/", "_")
         app_name = Path(self.agent_dir).resolve().parent.name
-        session_service = AigiseInMemorySessionService()
+        session_service = OpenSageInMemorySessionService()
         enabled_plugins = []
         plugin_params = {}
-        if task.aigise_session and getattr(task.aigise_session, "config", None):
-            plugins_cfg = getattr(task.aigise_session.config, "plugins", None)
+        if task.opensage_session and getattr(task.opensage_session, "config", None):
+            plugins_cfg = getattr(task.opensage_session.config, "plugins", None)
             enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
             plugin_params = getattr(plugins_cfg, "params", {}) or {}
             extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
@@ -1007,13 +1012,13 @@ class Evaluation(abc.ABC):
             session_service=session_service,
         )
 
-        # 3. Create session with aigise_session_id in state
+        # 3. Create session with opensage_session_id in state
         await session_service.create_session(
             app_name=app_name,
             user_id=user_id,
             session_id=task.session_id,
             state={
-                "aigise_session_id": task.session_id,
+                "opensage_session_id": task.session_id,
             },
         )
 
@@ -1143,8 +1148,8 @@ class Evaluation(abc.ABC):
         Returns:
             Dictionary with output information
         """
-        # Get aigise_session
-        aigise_session = get_aigise_session(task.session_id)
+        # Get opensage_session
+        opensage_session = get_opensage_session(task.session_id)
 
         # Create output directory
         output_path = Path(task.output_dir)
@@ -1152,7 +1157,7 @@ class Evaluation(abc.ABC):
 
         # 1. Copy output from sandbox (if specified)
         if task.export_dir_in_sandbox:
-            sandbox = aigise_session.sandboxes.get_sandbox("main")
+            sandbox = opensage_session.sandboxes.get_sandbox("main")
 
             # Support single string or iterable (list/tuple) of strings
             paths_to_copy = (
@@ -1193,7 +1198,9 @@ class Evaluation(abc.ABC):
                     logger.warning(f"Failed to copy {src_path}: {e}. Skipping.")
 
         # 2. Export Neo4j history database
-        await self._export_neo4j_database(aigise_session, output_path / "neo4j_history")
+        await self._export_neo4j_database(
+            opensage_session, output_path / "neo4j_history"
+        )
 
         # 3. Export session trace
         self._export_session_trace(session, output_path / "session_trace.json")
@@ -1209,23 +1216,25 @@ class Evaluation(abc.ABC):
         return info
 
     async def _export_neo4j_database(
-        self, aigise_session: AigiseSession, output_path: Path
+        self, opensage_session: OpenSageSession, output_path: Path
     ) -> None:
         # TODO: Should implement the export in the session management, not in evaluations
         """Export Neo4j history database files.
 
         Args:
-            aigise_session: AIgiSE session instance
+            opensage_session: AIgiSE session instance
             output_path: Local path to save database files
         """
         output_path.mkdir(parents=True, exist_ok=True)
 
         try:
             # Get Neo4j sandbox
-            neo4j_sandbox = aigise_session.sandboxes.get_sandbox("neo4j")
+            neo4j_sandbox = opensage_session.sandboxes.get_sandbox("neo4j")
 
             # Get database name from Neo4j client manager (reuse naming logic)
-            database_name = aigise_session.neo4j._get_database_name_for_type("history")
+            database_name = opensage_session.neo4j._get_database_name_for_type(
+                "history"
+            )
 
             # Create tar archive in container
             tar_path_in_container = f"/tmp/{database_name}.tar.gz"
@@ -1379,11 +1388,9 @@ class Evaluation(abc.ABC):
         pass
 
     def generate(self) -> None:
-        from aigise.evaluation.dispatchers import get_dispatcher
+        from opensage.evaluation.dispatchers import get_dispatcher
 
         dispatcher_kwargs = {"max_workers": self.max_workers}
-        if self.runner_type == "native":
-            dispatcher_kwargs["use_multiprocessing"] = self.use_multiprocessing
         dispatcher = get_dispatcher(self.runner_type, **dispatcher_kwargs)
         dispatcher.run(self)
 
@@ -1394,7 +1401,7 @@ class Evaluation(abc.ABC):
 
     def run_debug(self) -> dict:
         """Run evaluation in single-threaded mode for debugging."""
-        from aigise.evaluation.dispatchers.native import NativeDispatcher
+        from opensage.evaluation.dispatchers.native import NativeDispatcher
 
         NativeDispatcher(max_workers=1).run(self)
         self.evaluate()

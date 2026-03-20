@@ -17,13 +17,12 @@ import pytest
 from google.adk import Runner
 from google.adk.apps.app import App
 from google.genai import types
-
-from aigise.features.aigise_in_memory_session_service import (
-    AigiseInMemorySessionService,
+from opensage.features.opensage_in_memory_session_service import (
+    OpenSageInMemorySessionService,
 )
-from aigise.plugins import load_plugins
-from aigise.session import get_aigise_session
-from aigise.toolbox.sandbox_requirements import collect_sandbox_dependencies
+from opensage.plugins import load_plugins
+from opensage.session import get_opensage_session
+from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +50,7 @@ class TestSummarizationIntegration:
     def setup_test_environment(self):
         """Set up test environment with temporary directories and database cleanup."""
         # Generate unique shared session ID
-        aigise_session_id = str(uuid.uuid4())
+        opensage_session_id = str(uuid.uuid4())
 
         # Create temporary directory for agent storage
         test_storage_dir = "/tmp/summarization_test/agent_storage"
@@ -61,27 +60,29 @@ class TestSummarizationIntegration:
         database_name = f"agent-history"
 
         yield {
-            "aigise_session_id": aigise_session_id,
+            "opensage_session_id": opensage_session_id,
             "test_storage_dir": test_storage_dir,
             "database_name": database_name,
         }
 
         # Cleanup: Remove sessions and resources
-        from aigise.session.aigise_session import AigiseSessionRegistry
+        from opensage.session.opensage_session import OpenSageSessionRegistry
 
-        AigiseSessionRegistry.cleanup_all_sessions()
+        OpenSageSessionRegistry.cleanup_all_sessions()
 
-    async def _cleanup_test_database(self, aigise_session_id: str, database_name: str):
+    async def _cleanup_test_database(
+        self, opensage_session_id: str, database_name: str
+    ):
         """Clean up the test database."""
         try:
             # Import here to avoid circular import
-            from aigise.session import get_aigise_session
+            from opensage.session import get_opensage_session
 
-            # Get aigise session to access Neo4j client
-            aigise_session = get_aigise_session(aigise_session_id)
+            # Get opensage session to access Neo4j client
+            opensage_session = get_opensage_session(opensage_session_id)
 
             # Get the default Neo4j client (connected to 'neo4j' database)
-            default_client = await aigise_session.neo4j.get_async_client(
+            default_client = await opensage_session.neo4j.get_async_client(
                 "default", "neo4j"
             )
 
@@ -96,7 +97,7 @@ class TestSummarizationIntegration:
     async def _manual_cleanup(self, test_env):
         """Manual cleanup after test completion."""
         try:
-            aigise_session_id = test_env["aigise_session_id"]
+            opensage_session_id = test_env["opensage_session_id"]
             database_name = test_env["database_name"]
             test_storage_dir = test_env["test_storage_dir"]
 
@@ -105,7 +106,7 @@ class TestSummarizationIntegration:
                 shutil.rmtree(test_storage_dir)
 
             # Drop the test database
-            await self._cleanup_test_database(aigise_session_id, database_name)
+            await self._cleanup_test_database(opensage_session_id, database_name)
 
         except Exception as e:
             print(f"Warning: Manual cleanup failed: {e}")
@@ -149,9 +150,9 @@ class TestSummarizationIntegration:
         # Clean up isolated databases for each test case
         for session_result in session_results:
             try:
-                aigise_session_id = session_result["aigise_session_id"]
+                opensage_session_id = session_result["opensage_session_id"]
                 database_name = f"agent-history"
-                await self._cleanup_test_database(aigise_session_id, database_name)
+                await self._cleanup_test_database(opensage_session_id, database_name)
                 print(f"✅ Cleaned up isolated database: {database_name}")
             except Exception as e:
                 print(
@@ -164,10 +165,10 @@ class TestSummarizationIntegration:
     async def _run_isolated_test_case(self, test_case, storage_dir: str):
         """Run a single test case with completely isolated environment."""
         # Generate unique shared session ID for this test case
-        isolated_aigise_session_id = str(uuid.uuid4())
+        isolated_opensage_session_id = str(uuid.uuid4())
 
         print(f"Running isolated test case: {test_case['description']}")
-        print(f"Isolated aigise_session_id: {isolated_aigise_session_id}")
+        print(f"Isolated opensage_session_id: {isolated_opensage_session_id}")
 
         # Load the sample_summarization agent
         import sys
@@ -183,7 +184,9 @@ class TestSummarizationIntegration:
 
         from sample_summarization import agent as agent_module
 
-        root_agent = agent_module.mk_agent(aigise_session_id=isolated_aigise_session_id)
+        root_agent = agent_module.mk_agent(
+            opensage_session_id=isolated_opensage_session_id
+        )
 
         # Prepare AIgiSE environment for this isolated test case
         config_path = os.path.join(
@@ -191,35 +194,37 @@ class TestSummarizationIntegration:
             "sample_summarization",
             "config.toml",
         )
-        aigise_session = get_aigise_session(
-            aigise_session_id=isolated_aigise_session_id, config_path=config_path
+        opensage_session = get_opensage_session(
+            opensage_session_id=isolated_opensage_session_id, config_path=config_path
         )
         # Force storage path via config to avoid env coupling
-        aigise_session.config.agent_storage_path = storage_dir
+        opensage_session.config.agent_storage_path = storage_dir
         try:
             deps = collect_sandbox_dependencies(root_agent)
             if (
-                aigise_session.config.sandbox
-                and aigise_session.config.sandbox.sandboxes
+                opensage_session.config.sandbox
+                and opensage_session.config.sandbox.sandboxes
                 and deps
             ):
                 unused = [
                     s
-                    for s in list(aigise_session.config.sandbox.sandboxes.keys())
+                    for s in list(opensage_session.config.sandbox.sandboxes.keys())
                     if s not in deps
                 ]
                 for s in unused:
-                    del aigise_session.config.sandbox.sandboxes[s]
+                    del opensage_session.config.sandbox.sandboxes[s]
         except Exception:
             pass
-        aigise_session.sandboxes.initialize_shared_volumes()
-        await aigise_session.sandboxes.launch_all_sandboxes()
-        await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
+        opensage_session.sandboxes.initialize_shared_volumes()
+        await opensage_session.sandboxes.launch_all_sandboxes()
+        await opensage_session.sandboxes.initialize_all_sandboxes(
+            continue_on_error=True
+        )
 
         # Create completely isolated session service and runner
-        session_service = AigiseInMemorySessionService()
+        session_service = OpenSageInMemorySessionService()
         enabled_plugins = (
-            getattr(getattr(aigise_session.config, "plugins", None), "enabled", [])
+            getattr(getattr(opensage_session.config, "plugins", None), "enabled", [])
             or []
         )
         plugins = load_plugins(enabled_plugins)
@@ -233,11 +238,11 @@ class TestSummarizationIntegration:
             session_service=session_service,
         )
 
-        # Create session with isolated aigise_session_id
+        # Create session with isolated opensage_session_id
         session = await session_service.create_session(
             app_name="summarization_test",
             user_id="test_user",
-            state={"aigise_session_id": isolated_aigise_session_id},
+            state={"opensage_session_id": isolated_opensage_session_id},
         )
 
         # Run the agent
@@ -279,10 +284,10 @@ class TestSummarizationIntegration:
             f"Expected result {expected_str} not found in final response or not in the required format: {final_text}"
         )
 
-        # Return session result with isolated aigise_session_id for verification
+        # Return session result with isolated opensage_session_id for verification
         return {
             "session_id": session.id,
-            "aigise_session_id": isolated_aigise_session_id,
+            "opensage_session_id": isolated_opensage_session_id,
             "input": test_case["input"],
             "expected_result": test_case["expected_result"],
             "description": test_case["description"],
@@ -291,8 +296,8 @@ class TestSummarizationIntegration:
     async def _verify_summarization_with_history_management(self, session_results):
         """Verify summarization functionality using history_management.py functions."""
         # Import here to avoid circular import
-        from aigise.session import get_aigise_session
-        from aigise.toolbox.general.history_management import (
+        from opensage.session import get_opensage_session
+        from opensage.toolbox.general.history_management import (
             get_all_agent_runs,
             get_all_invocations_for_agent,
             list_all_events_for_session,
@@ -308,9 +313,9 @@ class TestSummarizationIntegration:
                 self._invocation_context = MockInvocationContext(session_obj)
 
         class MockSession:
-            def __init__(self, session_id, aigise_session_id):
+            def __init__(self, session_id, opensage_session_id):
                 self.id = session_id
-                self.state = {"aigise_session_id": aigise_session_id}
+                self.state = {"opensage_session_id": opensage_session_id}
 
         print(
             f"\n🔍 Verifying summarization functionality for {len(session_results)} isolated test cases..."
@@ -318,7 +323,7 @@ class TestSummarizationIntegration:
 
         # Verify each test case independently in its own database
         for i, session_result in enumerate(session_results):
-            aigise_session_id = session_result["aigise_session_id"]
+            opensage_session_id = session_result["opensage_session_id"]
             main_session_id = session_result["session_id"]
             expected_input = session_result["input"]
             expected_output = session_result["expected_result"]
@@ -327,9 +332,9 @@ class TestSummarizationIntegration:
             print(f"\n--- Verifying test case {i + 1}: {description} ---")
             print(f"Database: agent-history")
 
-            # Get aigise session for this specific test case
-            aigise_session = get_aigise_session(aigise_session_id)
-            mock_session = MockSession("mock_session_id", aigise_session_id)
+            # Get opensage session for this specific test case
+            opensage_session = get_opensage_session(opensage_session_id)
+            mock_session = MockSession("mock_session_id", opensage_session_id)
             tool_context = MockToolContext(mock_session)
 
             # Test 1: Get agent runs for this specific test case
@@ -358,7 +363,7 @@ class TestSummarizationIntegration:
 
                 # Test 3: Verify geometry_calculator has raw tool response relation
                 geometry_session_id = geometry_calculator_runs[0]["session_id"]
-                client = await aigise_session.neo4j.get_async_client("history")
+                client = await opensage_session.neo4j.get_async_client("history")
                 raw_tool_response_query = """
                 MATCH (a:AgentRun {session_id: $session_id})-[:AGENT_RUN_HAS_RAW_TOOL_RESPONSE]->(r:RawToolResponse)
                 RETURN r.node_id as node_id, r.tool_name as tool_name, r.raw_content as raw_content
@@ -497,6 +502,6 @@ if __name__ == "__main__":
                 shutil.rmtree(test_storage_dir)
 
             # Note: Individual test cases will clean up their own databases
-            # since each one has its own isolated aigise_session_id
+            # since each one has its own isolated opensage_session_id
 
     asyncio.run(run_manual_test())

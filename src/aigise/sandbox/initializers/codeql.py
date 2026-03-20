@@ -7,9 +7,9 @@ import os
 import tempfile
 import time
 
-from aigise.sandbox.base_sandbox import BaseSandbox
-from aigise.sandbox.initializers.base import SandboxInitializer
-from aigise.utils.merge_joern_codeql import insert_codeql_results_to_cpg
+from opensage.sandbox.base_sandbox import BaseSandbox
+from opensage.sandbox.initializers.base import SandboxInitializer
+from opensage.utils.merge_joern_codeql import insert_codeql_results_to_cpg
 
 logger = logging.getLogger(__name__)
 
@@ -21,23 +21,23 @@ class CodeQLInitializer(SandboxInitializer):
         self: BaseSandbox, all_sandboxes: dict[str, BaseSandbox]
     ) -> bool:
         """Initialize CodeQL environment (async version)."""
-        from aigise.session.aigise_session import get_aigise_session
+        from opensage.session.opensage_session import get_opensage_session
 
         assert isinstance(self, BaseSandbox)
         assert "neo4j" in all_sandboxes
 
         logger.info(
-            f"Async creating CodeQL environment for session {self.aigise_session_id}..."
+            f"Async creating CodeQL environment for session {self.opensage_session_id}..."
         )
 
-        aigise_session = get_aigise_session(self.aigise_session_id)
+        opensage_session = get_opensage_session(self.opensage_session_id)
         try:
             t0 = time.monotonic()
             msg, err = self.run_command_in_container(
                 [
                     "bash",
                     "/sandbox_scripts/callgraph/run_codeql.sh",
-                    aigise_session.config.build.compile_command,
+                    opensage_session.config.build.compile_command,
                 ],
                 timeout=3600,
             )
@@ -58,7 +58,7 @@ class CodeQLInitializer(SandboxInitializer):
             if not await all_sandboxes["neo4j"].wait_for_ready_or_error():
                 logger.error(f"CodeQL initialization failed: Neo4j sandbox error")
                 return False
-            neo4j_client = await aigise_session.neo4j.get_async_client("analysis")
+            neo4j_client = await opensage_session.neo4j.get_async_client("analysis")
 
             with tempfile.TemporaryDirectory() as tmpdir:
                 for res_file in ["results.csv", "fp_accesses.csv", "expr_calls.csv"]:

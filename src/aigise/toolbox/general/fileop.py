@@ -5,14 +5,13 @@ import textwrap
 from typing import Any, Dict, Optional
 
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.toolbox.general.edit_failure_analyzer import analyze_edit_failure
-from aigise.toolbox.general.string_utils import (
+from opensage.toolbox.general.edit_failure_analyzer import analyze_edit_failure
+from opensage.toolbox.general.string_utils import (
     get_multiple_match_info,
     replace_with_fallback,
     unescape_llm_output,
 )
-from aigise.utils.agent_utils import get_sandbox_from_context
+from opensage.utils.agent_utils import get_sandbox_from_context
 
 logger = logging.getLogger(__name__)
 

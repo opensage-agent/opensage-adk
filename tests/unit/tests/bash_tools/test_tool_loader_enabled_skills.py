@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from aigise.agents.aigise_agent import ToolLoader
+from opensage.agents.opensage_agent import ToolLoader
 
 
 def _write_skill_md(

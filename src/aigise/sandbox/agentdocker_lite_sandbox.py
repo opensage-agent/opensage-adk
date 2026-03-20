@@ -15,7 +15,7 @@ Configuration::
 
     [sandbox.sandboxes.main.extra]
     fs_backend = "btrfs"                  # "overlayfs" (default) or "btrfs"
-    env_base_dir = "/tmp/aigise_ns"       # workspace base directory
+    env_base_dir = "/tmp/opensage_ns"       # workspace base directory
     cpu_max = "50000 100000"              # cgroup cpu.max
     memory_max = "536870912"              # cgroup memory.max (512 MB)
     pids_max = "256"                      # cgroup pids.max
@@ -33,9 +33,8 @@ from typing import Awaitable, Optional
 
 from agentdocker_lite import Sandbox as _make_sandbox
 from agentdocker_lite import SandboxConfig as _SandboxConfig
-
-from aigise.config.config_dataclass import ContainerConfig
-from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.config.config_dataclass import ContainerConfig
+from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +58,8 @@ def _container_config_to_sandbox_config(
         environment={k: str(v) for k, v in (cc.environment or {}).items()},
         volumes=list(cc.volumes or []),
         fs_backend=extra.get("fs_backend", "overlayfs"),
-        env_base_dir=extra.get("env_base_dir", "/tmp/aigise_ns"),
-        rootfs_cache_dir=extra.get("rootfs_cache_dir", "/tmp/aigise_rootfs_cache"),
+        env_base_dir=extra.get("env_base_dir", "/tmp/opensage_ns"),
+        rootfs_cache_dir=extra.get("rootfs_cache_dir", "/tmp/opensage_rootfs_cache"),
         cpu_max=extra.get("cpu_max"),
         memory_max=extra.get("memory_max"),
         pids_max=extra.get("pids_max"),
@@ -81,7 +80,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
     def __init__(
         self,
         container_config: ContainerConfig,
-        aigise_session_id: str = None,
+        opensage_session_id: str = None,
         backend_type: str = None,
         sandbox_type: str = None,
     ):
@@ -89,11 +88,11 @@ class AgentDockerLiteSandbox(BaseSandbox):
             f"AgentDockerLiteSandbox requires backend_type='agentdocker-lite', got {backend_type!r}"
         )
         super().__init__(
-            container_config, aigise_session_id, backend_type, sandbox_type
+            container_config, opensage_session_id, backend_type, sandbox_type
         )
 
         cfg, name = _container_config_to_sandbox_config(
-            container_config, aigise_session_id, sandbox_type
+            container_config, opensage_session_id, sandbox_type
         )
         t0 = time.monotonic()
         self._inner = _make_sandbox(cfg, name)
@@ -191,8 +190,8 @@ class AgentDockerLiteSandbox(BaseSandbox):
 
         t0 = time.monotonic()
 
-        from aigise.utils.bash_tools_staging import build_bash_tools_staging_dir
-        from aigise.utils.project_info import SRC_PATH
+        from opensage.utils.bash_tools_staging import build_bash_tools_staging_dir
+        from opensage.utils.project_info import SRC_PATH
 
         base = Path(cls.DEFAULT_ENV_BASE_DIR) / "shared_volumes"
         base.mkdir(parents=True, exist_ok=True)
@@ -236,7 +235,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
     async def create_single_sandbox(
         cls, session_id: str, sandbox_type: str, container_config: ContainerConfig
     ) -> tuple[str, "AgentDockerLiteSandbox"]:
-        from aigise.sandbox.factory import create_sandbox_class, get_initializer_class
+        from opensage.sandbox.factory import create_sandbox_class, get_initializer_class
 
         t0 = time.monotonic()
         initializer_class = get_initializer_class(sandbox_type)
@@ -286,10 +285,10 @@ class AgentDockerLiteSandbox(BaseSandbox):
 
         # Namespace mode shares host network — services are at 127.0.0.1
         try:
-            from aigise.session.aigise_session import get_aigise_session
+            from opensage.session.opensage_session import get_opensage_session
 
-            aigise_session = get_aigise_session(session_id)
-            aigise_session.config.default_host = "127.0.0.1"
+            opensage_session = get_opensage_session(session_id)
+            opensage_session.config.default_host = "127.0.0.1"
         except Exception:
             pass
 
@@ -377,13 +376,13 @@ class AgentDockerLiteSandbox(BaseSandbox):
         t0 = time.monotonic()
         final_state: Optional[SandboxState] = None
         sandboxes = None
-        aigise_session_id = getattr(sandbox_instance, "aigise_session_id", None)
+        opensage_session_id = getattr(sandbox_instance, "opensage_session_id", None)
 
-        if aigise_session_id:
+        if opensage_session_id:
             try:
-                from aigise.session.aigise_session import get_aigise_session
+                from opensage.session.opensage_session import get_opensage_session
 
-                sandboxes = get_aigise_session(aigise_session_id).sandboxes
+                sandboxes = get_opensage_session(opensage_session_id).sandboxes
             except Exception:
                 pass
 

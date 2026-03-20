@@ -1,5 +1,5 @@
 """
-AigiseNeo4jClientManager: Session-specific Neo4j client management
+OpenSageNeo4jClientManager: Session-specific Neo4j client management
 
 This module provides session-bound Neo4j client management with support for
 different database types (history, analysis, etc.).
@@ -10,15 +10,15 @@ from __future__ import annotations
 import logging
 from typing import Dict, Literal, Optional
 
-from aigise.session.aigise_sandbox_manager import AigiseSandboxManager
-from aigise.session.neo4j_client import AsyncNeo4jClient
+from opensage.session.neo4j_client import AsyncNeo4jClient
+from opensage.session.opensage_sandbox_manager import OpenSageSandboxManager
 
 logger = logging.getLogger(__name__)
 
 # TODO: Do we need a clean up and get_session_statistics function here?
 
 
-class AigiseNeo4jClientManager:
+class OpenSageNeo4jClientManager:
     """Session-specific Neo4j client manager.
 
     Manages different types of async Neo4j clients for different purposes:
@@ -29,18 +29,18 @@ class AigiseNeo4jClientManager:
     """
 
     def __init__(self, session):
-        """Initialize AigiseNeo4jClientManager.
+        """Initialize OpenSageNeo4jClientManager.
 
         Args:
-            session: AigiseSession instance (stores reference, not copied)
+            session: OpenSageSession instance (stores reference, not copied)
         """
         self._session = session
-        self.aigise_session_id = session.aigise_session_id
+        self.opensage_session_id = session.opensage_session_id
 
         self._clients: Dict[str, AsyncNeo4jClient] = {}
 
         logger.info(
-            f"Created AigiseNeo4jClientManager (async-only) for session: {session.aigise_session_id}"
+            f"Created OpenSageNeo4jClientManager (async-only) for session: {session.opensage_session_id}"
         )
 
     @property

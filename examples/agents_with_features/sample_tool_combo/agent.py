@@ -16,9 +16,8 @@ import os
 from typing import Any, Dict
 
 from google.adk.models.lite_llm import LiteLlm
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.features.tool_combo import ToolCombo
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.features.tool_combo import ToolCombo
 
 
 # Arithmetic operation tools
@@ -64,7 +63,7 @@ def multiply_by_two(result: float) -> Dict[str, Any]:
     }
 
 
-def mk_agent(aigise_session_id: str):
+def mk_agent(opensage_session_id: str):
     # two-step operation, shows intermediate steps
     simple_combo_with_history = ToolCombo(
         name="simple_combo_with_history",
@@ -82,7 +81,7 @@ def mk_agent(aigise_session_id: str):
         model=LiteLlm(model="openai/o4-mini"),
         return_history=False,
     )
-    root_agent = AigiseAgent(
+    root_agent = OpenSageAgent(
         name="tool_combo_demo_agent",
         model=LiteLlm(model="openai/o4-mini"),
         description="Demonstrates ToolCombo functionality with return_history True and False settings.",

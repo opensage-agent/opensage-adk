@@ -2,7 +2,7 @@
 - the definition of session_id may be confusing as the session id is typically refer to the conversation of agents
 -  what are skills in opensage
 - patching folde maybe confusing as it is different from the patching task
-- agents/aigise_agent.py
+- agents/opensage_agent.py
     - shall we consider cache the loaded skills in load_tools
     - Shall we make the generate_system_prompt_part more structued using markdown table or group by tool types?
     - shall we make the tool and sandbox config as skills rather than system prompts to save tokens?

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional, Type
 
-from aigise.sandbox.initializers import (
+from opensage.sandbox.initializers import (
     CodeQLInitializer,
     CoverageInitializer,
     DebuggerInitializer,

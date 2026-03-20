@@ -2,17 +2,16 @@ import logging
 
 from google.adk.models import BaseLlm
 from google.adk.tools.agent_tool import AgentTool
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.memory.search_tool import search_memory
-from aigise.toolbox.general.history_management import (
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.memory.search_tool import search_memory
+from opensage.toolbox.general.history_management import (
     get_all_events_for_summarization,
     get_all_invocations_for_agent,
     get_full_tool_res,
     get_full_tool_res_and_grep,
     list_all_events_for_session,
 )
-from aigise.toolbox.neo4j import (
+from opensage.toolbox.neo4j import (
     list_node_types,
     list_relations,
     run_neo4j_query,
@@ -29,7 +28,7 @@ You are a Memory Management Agent that manages the memory of the system.
 def create_memory_management_agent(
     model: BaseLlm,
     name: str = "memory_management_agent",
-) -> AigiseAgent:
+) -> OpenSageAgent:
     """
     Create a Memory Management Agent that manages the memory of the system.
 
@@ -38,7 +37,7 @@ def create_memory_management_agent(
         name: Name for the agent.
 
     Returns:
-        AigiseAgent configured as a Memory Management Agent.
+        OpenSageAgent configured as a Memory Management Agent.
     """
     logger.info(f"Creating Memory Management Agent with name {name}")
 
@@ -59,7 +58,7 @@ def create_memory_management_agent(
     all_tools = short_term_memory_tools + long_term_memory_tools
 
     # Create the agent
-    agent = AigiseAgent(
+    agent = OpenSageAgent(
         name=name,
         model=model,
         description="Memory management agent that manages the memory of the system. Use this tool when you need to manage the memory of the system.",

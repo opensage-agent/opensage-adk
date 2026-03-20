@@ -4,11 +4,10 @@ from google.adk import Agent
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.features import enable_neo4j_logging
-from aigise.session import get_aigise_session
-from aigise.toolbox.general.agent_tools import (
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.features import enable_neo4j_logging
+from opensage.session import get_opensage_session
+from opensage.toolbox.general.agent_tools import (
     agent_ensemble,
     flag_unjustified_claims,
     get_available_agents_for_ensemble,
@@ -44,17 +43,17 @@ calculation_agent_tool = AgentTool(agent=calculation_agent)
 enable_neo4j_logging()
 
 
-def mk_agent(aigise_session_id: str):
-    aigise_session = get_aigise_session(aigise_session_id)
-    ensemble_manager = aigise_session.ensemble
+def mk_agent(opensage_session_id: str):
+    opensage_session = get_opensage_session(opensage_session_id)
+    ensemble_manager = opensage_session.ensemble
     ensemble_manager.add_thread_safe_tool("calculate_add")
-    config = aigise_session.config
+    config = opensage_session.config
     config.agent_ensemble.available_models_for_ensemble = [
         "openai/o4-mini",
         "openai/gpt-5",
     ]
-    aigise_session.config = config
-    root_agent = AigiseAgent(
+    opensage_session.config = config
+    root_agent = OpenSageAgent(
         model=LiteLlm(model="openai/gpt-5"),
         name="simple_math_agent",
         instruction="""

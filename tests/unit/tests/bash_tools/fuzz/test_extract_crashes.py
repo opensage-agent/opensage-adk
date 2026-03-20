@@ -6,40 +6,39 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
-
-from aigise.session import AigiseSession, get_aigise_session
-from aigise.toolbox.general.bash_tools_interface import run_terminal_command
-from aigise.utils.project_info import PROJECT_PATH
+from opensage.session import OpenSageSession, get_opensage_session
+from opensage.toolbox.general.bash_tools_interface import run_terminal_command
+from opensage.utils.project_info import PROJECT_PATH
 
 # Increase timeout for slow fuzz tests
 pytestmark = pytest.mark.timeout(1200)
 
 
 @pytest_asyncio.fixture(scope="module")
-async def aigise_session():
-    """Create aigise session for testing fuzz tools (requires main and fuzz sandboxes)."""
-    aigise_session = None
+async def opensage_session():
+    """Create opensage session for testing fuzz tools (requires main and fuzz sandboxes)."""
+    opensage_session = None
     try:
-        aigise_session = get_aigise_session(
+        opensage_session = get_opensage_session(
             "test-bash-tools-fuzz-extract",
             str(PROJECT_PATH / "tests/unit/data/configs/test_fuzz_only.toml"),
         )
 
-        aigise_session.sandboxes.initialize_shared_volumes()
-        await aigise_session.sandboxes.launch_all_sandboxes()
-        await aigise_session.sandboxes.initialize_all_sandboxes()
-        yield aigise_session
+        opensage_session.sandboxes.initialize_shared_volumes()
+        await opensage_session.sandboxes.launch_all_sandboxes()
+        await opensage_session.sandboxes.initialize_all_sandboxes()
+        yield opensage_session
     finally:
-        if aigise_session is not None:
-            aigise_session.cleanup()
+        if opensage_session is not None:
+            opensage_session.cleanup()
 
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_extract_crashes_missing_target_dir(aigise_session: AigiseSession):
+async def test_extract_crashes_missing_target_dir(opensage_session: OpenSageSession):
     """Test extract-crashes tool with missing target_dir argument."""
     mock_context = MagicMock()
-    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
+    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test extract-crashes without target_dir (should fail)
     result = run_terminal_command(
@@ -61,10 +60,10 @@ async def test_extract_crashes_missing_target_dir(aigise_session: AigiseSession)
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_extract_crashes_no_crashes_directory(aigise_session: AigiseSession):
+async def test_extract_crashes_no_crashes_directory(opensage_session: OpenSageSession):
     """Test extract-crashes tool when no crashes directory exists."""
     mock_context = MagicMock()
-    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
+    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test extract-crashes with target_dir but no crashes directory
     result = run_terminal_command(
@@ -85,10 +84,10 @@ async def test_extract_crashes_no_crashes_directory(aigise_session: AigiseSessio
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_extract_crashes_json_structure(aigise_session: AigiseSession):
+async def test_extract_crashes_json_structure(opensage_session: OpenSageSession):
     """Test extract-crashes returns correct JSON structure."""
     mock_context = MagicMock()
-    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
+    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     result = run_terminal_command(
         command='bash /bash_tools/fuzz/extract-crashes/scripts/extract_crashes.sh "/tmp/test_crashes"',

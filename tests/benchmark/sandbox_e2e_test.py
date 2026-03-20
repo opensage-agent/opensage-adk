@@ -58,8 +58,8 @@ AGENT_COMMANDS = [
 def _worker_adl(args: tuple) -> dict:
     """Single worker: create agentdocker-lite sandbox, run agent commands, reset, repeat."""
     image, worker_id, round_id = args
-    from aigise.config.config_dataclass import ContainerConfig
-    from aigise.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+    from opensage.config.config_dataclass import ContainerConfig
+    from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
     cfg = ContainerConfig(
         image=image,
@@ -67,7 +67,7 @@ def _worker_adl(args: tuple) -> dict:
         timeout=300,
         extra={
             "fs_backend": "btrfs",
-            "env_base_dir": "/data/aigise_ns",
+            "env_base_dir": "/data/opensage_ns",
             "rootfs_cache_dir": "/data/rootfs_cache",
         },
     )
@@ -84,7 +84,7 @@ def _worker_adl(args: tuple) -> dict:
         t0 = time.monotonic()
         sandbox = AgentDockerLiteSandbox(
             container_config=cfg,
-            aigise_session_id=session_id,
+            opensage_session_id=session_id,
             backend_type="agentdocker-lite",
             sandbox_type="main",
         )
@@ -144,8 +144,8 @@ def _worker_adl(args: tuple) -> dict:
 def _worker_docker(args: tuple) -> dict:
     """Single worker: create Docker sandbox, run agent commands, delete."""
     image, worker_id, round_id = args
-    from aigise.config.config_dataclass import ContainerConfig
-    from aigise.sandbox.native_docker_sandbox import NativeDockerSandbox
+    from opensage.config.config_dataclass import ContainerConfig
+    from opensage.sandbox.native_docker_sandbox import NativeDockerSandbox
 
     cfg = ContainerConfig(
         image=image,
@@ -218,8 +218,8 @@ def _worker_docker(args: tuple) -> dict:
 
 def warmup_adl(image: str):
     """Pre-build rootfs cache so timing test doesn't include one-time cost."""
-    from aigise.config.config_dataclass import ContainerConfig
-    from aigise.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+    from opensage.config.config_dataclass import ContainerConfig
+    from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
     logger.info("Warming up agentdocker-lite rootfs cache for image: %s", image)
     cfg = ContainerConfig(
@@ -228,14 +228,14 @@ def warmup_adl(image: str):
         timeout=300,
         extra={
             "fs_backend": "btrfs",
-            "env_base_dir": "/data/aigise_ns",
+            "env_base_dir": "/data/opensage_ns",
             "rootfs_cache_dir": "/data/rootfs_cache",
         },
     )
     t0 = time.monotonic()
     sandbox = AgentDockerLiteSandbox(
         container_config=cfg,
-        aigise_session_id="warmup_ns",
+        opensage_session_id="warmup_ns",
         backend_type="agentdocker-lite",
         sandbox_type="main",
     )

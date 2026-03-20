@@ -20,7 +20,7 @@ class _StubAgent(BaseAgent):
         return
 
 
-from aigise.features import agent_history_tracker
+from opensage.features import agent_history_tracker
 
 
 class _DummyInvCostMgr:
@@ -94,7 +94,7 @@ async def test_agenttool_runs_with_remaining_quota_and_merges_child_usage(monkey
     tool_context = _DummyToolContext(used=7, limit=10)
     child_used = 2
 
-    import aigise.patches.neo4j_logging as patch_mod
+    import opensage.patches.neo4j_logging as patch_mod
 
     monkeypatch.setattr(
         patch_mod, "Runner", _types.SimpleNamespace(__call__=None), raising=False
@@ -131,7 +131,7 @@ async def test_agenttool_passes_zero_remaining_when_parent_exhausted(monkeypatch
                 yield None
             return
 
-    import aigise.patches.neo4j_logging as patch_mod
+    import opensage.patches.neo4j_logging as patch_mod
 
     def _runner_ctor(**kwargs):
         kwargs["session_service"] = _DummySessionService(child_used=0)

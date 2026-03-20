@@ -14,8 +14,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 import toml
 from dacite import Config as DaciteConfig
 from dacite import from_dict
-
-from aigise.utils.project_info import PROJECT_PATH, SRC_PATH
+from opensage.utils.project_info import PROJECT_PATH, SRC_PATH
 
 
 def _expand_template_variables(config_data: dict) -> dict:
@@ -123,7 +122,7 @@ class Neo4jConfig:
     bolt_port: int = 7687  # Neo4j bolt port
     host: Optional[str] = None  # override host if needed
     neo4j_http_port: int = 7474  # Neo4j HTTP port
-    _parent_config: Optional["AigiseConfig"] = field(default=None, repr=False)
+    _parent_config: Optional["OpenSageConfig"] = field(default=None, repr=False)
 
     @property
     def uri(self) -> str:
@@ -206,7 +205,7 @@ class ContainerConfig:
     # MCP services
     #
     # List of MCP service names this sandbox depends on / should wait for.
-    # Each name must exist in `AigiseConfig.mcp.services`.
+    # Each name must exist in `OpenSageConfig.mcp.services`.
     mcp_services: List[str] = field(default_factory=list)
 
     # Anything else
@@ -318,17 +317,17 @@ class PluginsConfig:
     The ``enabled`` list can contain:
 
     - **Python plugin names** (e.g. ``"doom_loop_detector_plugin"``) — loaded from
-      the corresponding ``.py`` file in ``aigise/plugins/``.
+      the corresponding ``.py`` file in ``opensage/plugins/``.
     - **Claude Code hook names** (e.g. ``"careful_edit"``) — loaded from
-      the corresponding ``.json`` file in ``aigise/plugins/default/claude_code_hooks/``.
+      the corresponding ``.json`` file in ``opensage/plugins/default/claude_code_hooks/``.
     - **Regex patterns** (e.g. ``".*_plugin"``) — auto-detected by metacharacters
       and matched via ``re.fullmatch`` against all discovered plugin names.
 
     Plugins are searched in order (later entries shadow earlier ones):
 
-    1. Default ADK plugins: ``aigise/plugins/default/adk_plugins/``
-    2. Default Claude Code hooks: ``aigise/plugins/default/claude_code_hooks/``
-    3. User-local defaults: ``~/.local/aigise/plugins/`` (both ``.py`` and
+    1. Default ADK plugins: ``opensage/plugins/default/adk_plugins/``
+    2. Default Claude Code hooks: ``opensage/plugins/default/claude_code_hooks/``
+    3. User-local defaults: ``~/.local/opensage/plugins/`` (both ``.py`` and
        ``.json``)
     4. Custom directories: paths listed in ``extra_plugin_dirs`` (both ``.py``
        and ``.json``)
@@ -416,14 +415,14 @@ class MCPServiceConfig:
         self,
         sse_port: int,
         sse_host: Optional[str] = None,
-        _parent_config: "AigiseConfig" = None,
+        _parent_config: "OpenSageConfig" = None,
     ):
         """Initialize MCP service config.
 
         Args:
             sse_port: SSE server port
             sse_host: Explicit SSE host. If None, will dynamically use parent config's default_host
-            _parent_config: Reference to parent AigiseConfig for dynamic default_host
+            _parent_config: Reference to parent OpenSageConfig for dynamic default_host
         """
         self._sse_port = sse_port
         self._sse_host = sse_host  # None means "use default_host dynamically"
@@ -464,9 +463,9 @@ class MCPConfig:
     """MCP servers configuration supporting multiple services."""
 
     services: Dict[str, MCPServiceConfig] = field(default_factory=dict)
-    _parent_config: Optional["AigiseConfig"] = field(default=None, repr=False)
+    _parent_config: Optional["OpenSageConfig"] = field(default=None, repr=False)
 
-    def set_parent_config(self, parent_config: "AigiseConfig") -> None:
+    def set_parent_config(self, parent_config: "OpenSageConfig") -> None:
         """Set parent config reference for all services."""
         self._parent_config = parent_config
         for service in self.services.values():
@@ -484,7 +483,7 @@ class MCPConfig:
 
 
 @dataclass
-class AigiseConfig:
+class OpenSageConfig:
     """Complete SecAgentFramework configuration."""
 
     neo4j: Neo4jConfig = None
@@ -504,12 +503,12 @@ class AigiseConfig:
     auto_cleanup: bool = True
 
     @classmethod
-    def create_default(cls) -> "AigiseConfig":
+    def create_default(cls) -> "OpenSageConfig":
         """Create a default configuration from TOML file with environment variable overrides."""
         return cls.from_toml()
 
     @classmethod
-    def from_toml(cls, config_path: Optional[str] = None) -> "AigiseConfig":
+    def from_toml(cls, config_path: Optional[str] = None) -> "OpenSageConfig":
         """Create configuration from TOML file with template variable expansion."""
         if config_path is None:
             config_path = SRC_PATH / "templates/configs/default_config.toml"
@@ -728,13 +727,13 @@ class AigiseConfig:
         with open(toml_path, "w", encoding="utf-8") as f:
             toml.dump(config_dict, f)
 
-    def copy(self) -> "AigiseConfig":
+    def copy(self) -> "OpenSageConfig":
         """Create a deep copy of this configuration."""
         import copy
 
         return copy.deepcopy(self)
 
 
-def load_config_from_toml(config_path: Optional[str] = None) -> AigiseConfig:
+def load_config_from_toml(config_path: Optional[str] = None) -> OpenSageConfig:
     """Convenience function to load configuration from TOML file."""
-    return AigiseConfig.from_toml(config_path)
+    return OpenSageConfig.from_toml(config_path)

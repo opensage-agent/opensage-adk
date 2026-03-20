@@ -11,8 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from google.adk.events.event import Event
 from google.genai import types
-
-from aigise.utils.neo4j_history_management import (
+from opensage.utils.neo4j_history_management import (
     _create_event_node,
     _create_summarize_relation,
     _determine_event_type,
@@ -195,14 +194,14 @@ class TestNeo4jOperations:
 
         # Mock get_neo4j_client_from_context
         self.mock_get_client_patcher = patch(
-            "aigise.utils.neo4j_history_management.get_neo4j_client_from_context"
+            "opensage.utils.neo4j_history_management.get_neo4j_client_from_context"
         )
         self.mock_get_client = self.mock_get_client_patcher.start()
         self.mock_get_client.return_value = self.mock_neo4j_client
 
-        # Mock get_aigise_session_id_from_context
+        # Mock get_opensage_session_id_from_context
         self.mock_get_session_id_patcher = patch(
-            "aigise.utils.neo4j_history_management.get_aigise_session_id_from_context"
+            "opensage.utils.neo4j_history_management.get_opensage_session_id_from_context"
         )
         self.mock_get_session_id = self.mock_get_session_id_patcher.start()
         self.mock_get_session_id.return_value = "shared-session-123"
@@ -549,7 +548,7 @@ class TestNeo4jOperations:
     @pytest.mark.asyncio
     async def test_maybe_create_summarize_relation_with_summary(self):
         """Test maybe create summarize relation with summary tags in text."""
-        summary_text = "<Summary by aigise>This is a summary</Summary by aigise>"
+        summary_text = "<Summary by opensage>This is a summary</Summary by opensage>"
         text_part = types.Part.from_text(text=summary_text)
         content = types.Content(role="user", parts=[text_part])
         event = Event(
@@ -560,7 +559,7 @@ class TestNeo4jOperations:
         )
 
         with patch(
-            "aigise.utils.neo4j_history_management._create_summarize_relation"
+            "opensage.utils.neo4j_history_management._create_summarize_relation"
         ) as mock_create_relation:
             mock_create_relation.return_value = True
 
@@ -576,7 +575,7 @@ class TestNeo4jOperations:
     @pytest.mark.asyncio
     async def test_maybe_create_summarize_relation_in_function_response(self):
         """Test maybe create summarize relation with summary in function response."""
-        summary_content = "<Summary by aigise>Function summary</Summary by aigise>"
+        summary_content = "<Summary by opensage>Function summary</Summary by opensage>"
         func_response_part = types.Part.from_function_response(
             name="test_func", response={"result": summary_content}
         )
@@ -589,7 +588,7 @@ class TestNeo4jOperations:
         )
 
         with patch(
-            "aigise.utils.neo4j_history_management._create_summarize_relation"
+            "opensage.utils.neo4j_history_management._create_summarize_relation"
         ) as mock_create_relation:
             mock_create_relation.return_value = True
 
@@ -633,12 +632,14 @@ class TestNeo4jOperations:
         )
 
         with (
-            patch("aigise.utils.neo4j_history_management._event_exists") as mock_exists,
             patch(
-                "aigise.utils.neo4j_history_management._create_event_node"
+                "opensage.utils.neo4j_history_management._event_exists"
+            ) as mock_exists,
+            patch(
+                "opensage.utils.neo4j_history_management._create_event_node"
             ) as mock_create,
             patch(
-                "aigise.utils.neo4j_history_management._maybe_create_summarize_relation"
+                "opensage.utils.neo4j_history_management._maybe_create_summarize_relation"
             ) as mock_summarize,
         ):
             mock_exists.return_value = False  # Event doesn't exist
@@ -664,9 +665,11 @@ class TestNeo4jOperations:
         )
 
         with (
-            patch("aigise.utils.neo4j_history_management._event_exists") as mock_exists,
             patch(
-                "aigise.utils.neo4j_history_management._create_event_node"
+                "opensage.utils.neo4j_history_management._event_exists"
+            ) as mock_exists,
+            patch(
+                "opensage.utils.neo4j_history_management._create_event_node"
             ) as mock_create,
         ):
             mock_exists.return_value = True  # Event already exists

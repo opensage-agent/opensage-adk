@@ -33,10 +33,10 @@ uv sync --extra cuda
 
 | File | Role |
 |------|------|
-| `examples/aigise/aigise_grpo_mt.yaml` | Training config (model, generation_kwargs, etc.) |
-| `examples/aigise/run_aigise_grpo.sh` | AReaL-side launch script |
-| `examples/aigise/workflow.py` | RL workflow orchestration |
-| `examples/aigise/aigise_rl_mt.py` | Entry point |
+| `examples/opensage/opensage_grpo_mt.yaml` | Training config (model, generation_kwargs, etc.) |
+| `examples/opensage/run_opensage_grpo.sh` | AReaL-side launch script |
+| `examples/opensage/workflow.py` | RL workflow orchestration |
+| `examples/opensage/opensage_rl_mt.py` | Entry point |
 
 ## Docs
 

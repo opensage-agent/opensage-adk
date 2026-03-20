@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from aigise.config import ContainerConfig
+from opensage.config import ContainerConfig
 
 logger = logging.getLogger(__name__)
 
@@ -25,12 +25,12 @@ class BaseSandbox(ABC):
     def __init__(
         self,
         container_config: ContainerConfig,
-        aigise_session_id: str = None,
+        opensage_session_id: str = None,
         backend_type: str = None,
         sandbox_type: str = None,
     ):
         self.container_config_obj = container_config
-        self.aigise_session_id = aigise_session_id
+        self.opensage_session_id = opensage_session_id
         self.backend_type = backend_type
         self.sandbox_type = sandbox_type
         self.state = SandboxState.UNINITIALIZED
@@ -49,11 +49,11 @@ class BaseSandbox(ABC):
             await asyncio.sleep(1)
         if self.state == SandboxState.ERROR:
             logger.error(
-                f"Waiting for sandbox '{self.sandbox_type}' in session {self.aigise_session_id} to be ready or error: result is error"
+                f"Waiting for sandbox '{self.sandbox_type}' in session {self.opensage_session_id} to be ready or error: result is error"
             )
             return False
         logger.info(
-            f"Waiting for sandbox '{self.sandbox_type}' in session {self.aigise_session_id} to be ready or error: result is ready"
+            f"Waiting for sandbox '{self.sandbox_type}' in session {self.opensage_session_id} to be ready or error: result is ready"
         )
         return True
 

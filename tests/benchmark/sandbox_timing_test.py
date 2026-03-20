@@ -24,8 +24,8 @@ logger = logging.getLogger("sandbox_timing")
 
 
 def _time_adl(image: str, round_idx: int) -> dict:
-    from aigise.config.config_dataclass import ContainerConfig
-    from aigise.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+    from opensage.config.config_dataclass import ContainerConfig
+    from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
     cfg = ContainerConfig(
         image=image,
@@ -33,7 +33,7 @@ def _time_adl(image: str, round_idx: int) -> dict:
         timeout=300,
         extra={
             "fs_backend": "btrfs",
-            "env_base_dir": "/data/aigise_ns",
+            "env_base_dir": "/data/opensage_ns",
             "rootfs_cache_dir": "/data/rootfs_cache",
         },
     )
@@ -44,7 +44,7 @@ def _time_adl(image: str, round_idx: int) -> dict:
     t0 = time.monotonic()
     sandbox = AgentDockerLiteSandbox(
         container_config=cfg,
-        aigise_session_id=session_id,
+        opensage_session_id=session_id,
         backend_type="agentdocker-lite",
         sandbox_type="main",
     )
@@ -82,8 +82,8 @@ def _time_adl(image: str, round_idx: int) -> dict:
 
 
 def _time_adl_overlayfs(image: str, round_idx: int) -> dict:
-    from aigise.config.config_dataclass import ContainerConfig
-    from aigise.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+    from opensage.config.config_dataclass import ContainerConfig
+    from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
     cfg = ContainerConfig(
         image=image,
@@ -91,7 +91,7 @@ def _time_adl_overlayfs(image: str, round_idx: int) -> dict:
         timeout=300,
         extra={
             "fs_backend": "overlayfs",
-            "env_base_dir": "/data/aigise_ns_ovl",
+            "env_base_dir": "/data/opensage_ns_ovl",
             "rootfs_cache_dir": "/data/rootfs_cache_overlayfs",
         },
     )
@@ -102,7 +102,7 @@ def _time_adl_overlayfs(image: str, round_idx: int) -> dict:
     t0 = time.monotonic()
     sandbox = AgentDockerLiteSandbox(
         container_config=cfg,
-        aigise_session_id=session_id,
+        opensage_session_id=session_id,
         backend_type="agentdocker-lite",
         sandbox_type="main",
     )
@@ -140,8 +140,8 @@ def _time_adl_overlayfs(image: str, round_idx: int) -> dict:
 
 
 def _time_docker(image: str, round_idx: int) -> dict:
-    from aigise.config.config_dataclass import ContainerConfig
-    from aigise.sandbox.native_docker_sandbox import NativeDockerSandbox
+    from opensage.config.config_dataclass import ContainerConfig
+    from opensage.sandbox.native_docker_sandbox import NativeDockerSandbox
 
     cfg = ContainerConfig(
         image=image,

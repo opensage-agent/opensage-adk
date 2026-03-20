@@ -1,4 +1,4 @@
-"""Unit tests for AigiseAgent.update_enabled_skills branching behavior."""
+"""Unit tests for OpenSageAgent.update_enabled_skills branching behavior."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Any
 
 
 def test_update_enabled_skills_all_uses_recursive(monkeypatch) -> None:
-    import aigise.agents.aigise_agent as mod
+    import opensage.agents.opensage_agent as mod
 
     calls: list[str] = []
 
@@ -40,13 +40,13 @@ def test_update_enabled_skills_all_uses_recursive(monkeypatch) -> None:
         instruction="hello\n\nHere are the available bash tools you can use:\nOLD",
     )
 
-    mod.AigiseAgent.update_enabled_skills(dummy, "all")
+    mod.OpenSageAgent.update_enabled_skills(dummy, "all")
 
     assert calls == ["load_tools"]
 
 
 def test_update_enabled_skills_list_uses_load_tools(monkeypatch) -> None:
-    import aigise.agents.aigise_agent as mod
+    import opensage.agents.opensage_agent as mod
 
     calls: list[str] = []
 
@@ -78,6 +78,6 @@ def test_update_enabled_skills_list_uses_load_tools(monkeypatch) -> None:
         instruction="hello\n\nHere are the available bash tools you can use:\nOLD",
     )
 
-    mod.AigiseAgent.update_enabled_skills(dummy, ["neo4j"])
+    mod.OpenSageAgent.update_enabled_skills(dummy, ["neo4j"])
 
     assert calls == ["load_tools"]

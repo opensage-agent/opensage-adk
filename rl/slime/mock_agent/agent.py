@@ -120,20 +120,20 @@ def summarize_findings(
 
 
 def mk_agent(
-    aigise_session_id: str | None = None,
+    opensage_session_id: str | None = None,
     model: BaseLlm | None = None,
 ):
     """Build a lightweight mock vulnerability analysis agent.
 
     Args:
-        aigise_session_id: Optional session identifier, unused by this mock agent.
+        opensage_session_id: Optional session identifier, unused by this mock agent.
         model: Optional ADK-compatible model for RL integration. If not provided,
             a default LiteLlm model is used.
 
     Returns:
         Configured ADK agent instance.
     """
-    _ = aigise_session_id
+    _ = opensage_session_id
     selected_model = model if model is not None else LiteLlm(model="openai/o4-mini")
 
     return Agent(

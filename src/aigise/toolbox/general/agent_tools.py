@@ -5,12 +5,11 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-
-from aigise.session import get_aigise_session
-from aigise.utils.agent_utils import (
+from opensage.session import get_opensage_session
+from opensage.utils.agent_utils import (
     INHERIT_MODEL,
-    get_aigise_session_id_from_context,
     get_model_from_agent,
+    get_opensage_session_id_from_context,
 )
 
 logger = logging.getLogger(__name__)
@@ -66,8 +65,8 @@ async def critique(tool_context: ToolContext):
         dict with 'idea' containing the other model's suggestion
     """
     try:
-        aigise_session_id = get_aigise_session_id_from_context(tool_context)
-        session = get_aigise_session(aigise_session_id)
+        opensage_session_id = get_opensage_session_id_from_context(tool_context)
+        session = get_opensage_session(opensage_session_id)
         FLAG_UNJUSTIFIED_CLAIMS_MODEL = session.config.llm.flag_claims_model
         if not FLAG_UNJUSTIFIED_CLAIMS_MODEL:
             print("FLAG_UNJUSTIFIED_CLAIMS_MODEL not configured in LLM settings")
@@ -222,8 +221,8 @@ async def flag_unjustified_claims(tool_context: ToolContext):
         A natural language analysis of unjustified claims found in the conversation
     """
     # Get model name from environment variable
-    aigise_session_id = get_aigise_session_id_from_context(tool_context)
-    session = get_aigise_session(aigise_session_id)
+    opensage_session_id = get_opensage_session_id_from_context(tool_context)
+    session = get_opensage_session(opensage_session_id)
     FLAG_UNJUSTIFIED_CLAIMS_MODEL = session.config.llm.flag_claims_model
     if not FLAG_UNJUSTIFIED_CLAIMS_MODEL:
         print("FLAG_UNJUSTIFIED_CLAIMS_MODEL not configured in LLM settings")
@@ -360,11 +359,11 @@ async def get_available_agents_for_ensemble(tool_context: ToolContext):
     """
     try:
         # Get session ID from tool context or use default
-        session_id = get_aigise_session_id_from_context(tool_context)
+        session_id = get_opensage_session_id_from_context(tool_context)
 
-        # Use session-specific AigiseEnsembleManager
-        aigise_session = get_aigise_session(session_id)
-        ensemble_manager = aigise_session.ensemble
+        # Use session-specific OpenSageEnsembleManager
+        opensage_session = get_opensage_session(session_id)
+        ensemble_manager = opensage_session.ensemble
         current_agent = tool_context._invocation_context.agent
 
         # Get all ensemble-ready agents (static + dynamic) in current session
@@ -436,11 +435,11 @@ async def get_available_models(tool_context: ToolContext):
     """
     try:
         # Get session ID from tool context or use default
-        session_id = get_aigise_session_id_from_context(tool_context)
+        session_id = get_opensage_session_id_from_context(tool_context)
 
-        # Use session-specific AigiseEnsembleManager
-        aigise_session = get_aigise_session(session_id)
-        ensemble_manager = aigise_session.ensemble
+        # Use session-specific OpenSageEnsembleManager
+        opensage_session = get_opensage_session(session_id)
+        ensemble_manager = opensage_session.ensemble
 
         # Get available models for ensemble
         available_models = ensemble_manager.get_available_models()
@@ -539,12 +538,12 @@ async def agent_ensemble(
         )
 
         # Get session and validate agent
-        session_id = get_aigise_session_id_from_context(tool_context)
-        aigise_session = get_aigise_session(session_id)
+        session_id = get_opensage_session_id_from_context(tool_context)
+        opensage_session = get_opensage_session(session_id)
         current_agent = tool_context._invocation_context.agent
 
         # Validate the agent is in the safe agents list and get agent info
-        ensemble_result = aigise_session.ensemble.get_ensemble_ready_agents(
+        ensemble_result = opensage_session.ensemble.get_ensemble_ready_agents(
             current_agent=current_agent, include_dynamic=True
         )
 
@@ -571,7 +570,7 @@ async def agent_ensemble(
             }
 
         # Delegate to ensemble manager with validated agent info
-        return await aigise_session.ensemble.execute_agent_ensemble(
+        return await opensage_session.ensemble.execute_agent_ensemble(
             full_instruction=full_instruction,
             target_agent_info=target_agent_info,
             model_name_to_count=model_name_to_count,
@@ -649,11 +648,11 @@ async def agent_ensemble_pairwise(
                 }
 
         # Get session and validate agent
-        session_id = get_aigise_session_id_from_context(tool_context)
-        aigise_session = get_aigise_session(session_id)
+        session_id = get_opensage_session_id_from_context(tool_context)
+        opensage_session = get_opensage_session(session_id)
         current_agent = tool_context._invocation_context.agent
 
-        ensemble_result = aigise_session.ensemble.get_ensemble_ready_agents(
+        ensemble_result = opensage_session.ensemble.get_ensemble_ready_agents(
             current_agent=current_agent, include_dynamic=True
         )
         safe_agent_names = [agent.name for agent in ensemble_result["safe_agents"]]
@@ -680,7 +679,7 @@ async def agent_ensemble_pairwise(
             full_instruction = _build_full_instruction(
                 instr, history_passed_in, tool_context
             )
-            return await aigise_session.ensemble.execute_agent_ensemble(
+            return await opensage_session.ensemble.execute_agent_ensemble(
                 full_instruction=full_instruction,
                 target_agent_info=target_agent_info,
                 model_name_to_count={model_name: 1},

@@ -3,9 +3,8 @@ import os
 import shlex
 
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.toolbox.sandbox_requirements import requires_sandbox
-from aigise.utils.agent_utils import (
+from opensage.toolbox.sandbox_requirements import requires_sandbox
+from opensage.utils.agent_utils import (
     get_neo4j_client_from_context,
     get_sandbox_from_context,
 )
@@ -172,10 +171,10 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
         dict: A dictionary with key "result" pointing to a list of symbol information.
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
-    from aigise import get_aigise_session
+    from opensage import get_opensage_session
 
-    aigise_session = get_aigise_session(sandbox.aigise_session_id)
-    src_dir_path = aigise_session.config.src_dir_in_sandbox
+    opensage_session = get_opensage_session(sandbox.opensage_session_id)
+    src_dir_path = opensage_session.config.src_dir_in_sandbox
     # Generate tags file if not exists or regenerate
     output, exit_code = sandbox.run_command_in_container(
         f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R {src_dir_path}"

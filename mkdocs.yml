@@ -65,7 +65,7 @@ nav:
     - Project Structure: Project-Structure.md
   - Entry Points:
     - Overview: Entry-Points.md
-    - Aigise Web Entry: Aigise-Web-Entry.md
+    - OpenSage Web Entry: OpenSage-Web-Entry.md
     - Evaluation Entry: Evaluation-Entry.md
   - Architecture:
     - Architecture: Architecture.md

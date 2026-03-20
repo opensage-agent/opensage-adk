@@ -7,20 +7,20 @@
 # Requires 2+ GPUs (tensor-parallel-size=2). NOT run by CI.
 #
 # Usage:
-#   bash /root/aigise/tests/rl/test_smoke_qwen3_4b_2gpu.sh
-#   bash /root/aigise/tests/rl/test_smoke_qwen3_4b_2gpu.sh --gpus 6,7
+#   bash /root/opensage/tests/rl/test_smoke_qwen3_4b_2gpu.sh
+#   bash /root/opensage/tests/rl/test_smoke_qwen3_4b_2gpu.sh --gpus 6,7
 # ==========================================================================
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-AIGISE_DIR="${SCRIPT_DIR}/.."
+OPENSAGE_DIR="${SCRIPT_DIR}/.."
 SLIME_DIR="${SLIME_DIR:-/root/slime}"
 GPUS=""
 TIMEOUT=300
 RAY_ADDR="http://127.0.0.1:8265"
-JOB_ID="aigise-debug"          # must match --submission-id in launch script
-LOG_FILE="/tmp/aigise_smoke_test.log"
+JOB_ID="opensage-debug"          # must match --submission-id in launch script
+LOG_FILE="/tmp/opensage_smoke_test.log"
 MIN_GPUS=2                     # Qwen3-4B requires TP=2
 
 while [[ $# -gt 0 ]]; do
@@ -45,19 +45,19 @@ echo ""
 echo "--- Pre-flight checks ---"
 
 [[ -d "$SLIME_DIR" ]] && pass "SLIME dir exists: $SLIME_DIR" || { fail "SLIME dir not found: $SLIME_DIR"; exit 1; }
-[[ -d "$AIGISE_DIR/src/aigise" ]] && pass "AIgiSE dir exists: $AIGISE_DIR" || { fail "AIgiSE dir not found"; exit 1; }
+[[ -d "$OPENSAGE_DIR/src/opensage" ]] && pass "AIgiSE dir exists: $OPENSAGE_DIR" || { fail "AIgiSE dir not found"; exit 1; }
 
-python3 -c "import aigise" 2>/dev/null && pass "aigise importable" || { fail "aigise not importable (pip install -e ?)"; exit 1; }
+python3 -c "import opensage" 2>/dev/null && pass "opensage importable" || { fail "opensage not importable (pip install -e ?)"; exit 1; }
 python3 -c "import slime" 2>/dev/null && pass "slime importable" || { fail "slime not importable"; exit 1; }
 
 command -v ray &>/dev/null && pass "ray CLI available" || { fail "ray not found"; exit 1; }
 command -v nvidia-smi &>/dev/null && pass "nvidia-smi available" || { fail "nvidia-smi not found"; exit 1; }
 
-DATA_FILE="${AIGISE_DIR}/src/aigise/evaluations/mock_debug/mock_test_dataset.json"
+DATA_FILE="${OPENSAGE_DIR}/src/opensage/evaluations/mock_debug/mock_test_dataset.json"
 [[ -f "$DATA_FILE" ]] && pass "Mock dataset exists" || { fail "Mock dataset not found: $DATA_FILE"; exit 1; }
 
 # Check SLIME launch script
-LAUNCH_SCRIPT="${SLIME_DIR}/examples/aigise/run_qwen3_4B_debug.sh"
+LAUNCH_SCRIPT="${SLIME_DIR}/examples/opensage/run_qwen3_4B_debug.sh"
 [[ -f "$LAUNCH_SCRIPT" ]] && pass "Debug launch script exists" || { fail "Launch script not found: $LAUNCH_SCRIPT"; exit 1; }
 
 # Check model checkpoint
@@ -66,12 +66,12 @@ LAUNCH_SCRIPT="${SLIME_DIR}/examples/aigise/run_qwen3_4B_debug.sh"
 echo ""
 
 # --- Generate SLIME JSONL if missing ---
-SLIME_DATA="/root/aigise_data/mock_tasks.jsonl"
+SLIME_DATA="/root/opensage_data/mock_tasks.jsonl"
 if [[ ! -f "$SLIME_DATA" ]]; then
     echo "--- Generating SLIME JSONL data ---"
-    mkdir -p /root/aigise_data
-    python3 "${SLIME_DIR}/examples/aigise/aigise_mock.py" \
-        --local_dir /root/aigise_data \
+    mkdir -p /root/opensage_data
+    python3 "${SLIME_DIR}/examples/opensage/opensage_mock.py" \
+        --local_dir /root/opensage_data \
         --dataset_path "$DATA_FILE" \
         --output_filename mock_tasks.jsonl
     [[ -f "$SLIME_DATA" ]] && pass "SLIME JSONL generated" || { fail "Failed to generate SLIME JSONL"; exit 1; }
@@ -89,11 +89,11 @@ sleep 1
 # Kill any existing smoke test job
 ray job stop --address="$RAY_ADDR" "$JOB_ID" 2>/dev/null || true
 
-# Clean aigise containers
-CONTAINERS=$(docker ps -aq --filter 'name=aigise_' 2>/dev/null || true)
+# Clean opensage containers
+CONTAINERS=$(docker ps -aq --filter 'name=opensage_' 2>/dev/null || true)
 if [[ -n "$CONTAINERS" ]]; then
     docker rm -f $CONTAINERS 2>/dev/null || true
-    echo "  Cleaned up $(echo "$CONTAINERS" | wc -w) aigise container(s)"
+    echo "  Cleaned up $(echo "$CONTAINERS" | wc -w) opensage container(s)"
 fi
 
 echo ""
@@ -125,11 +125,11 @@ echo "  Timeout: ${TIMEOUT}s"
 echo "  Log: $LOG_FILE"
 echo ""
 
-export AIGISE_AGENT_NAME="mock_rl_agent"
-export AIGISE_BENCHMARK_NAME="mock_debug"
-export AIGISE_DATA_FILE="$SLIME_DATA"
-export AIGISE_SRC="${AIGISE_DIR}/src"
-export AIGISE_MAX_CONCURRENT=2
+export OPENSAGE_AGENT_NAME="mock_rl_agent"
+export OPENSAGE_BENCHMARK_NAME="mock_debug"
+export OPENSAGE_DATA_FILE="$SLIME_DATA"
+export OPENSAGE_SRC="${OPENSAGE_DIR}/src"
+export OPENSAGE_MAX_CONCURRENT=2
 export NUM_GPUS="$MIN_GPUS"
 export EXTRA_TRAIN_ARGS="--debug-rollout-only"
 
@@ -161,7 +161,7 @@ else
     fail "No reward computation in logs"
 fi
 
-if grep -q "Job 'aigise-" "$LOG_FILE" 2>/dev/null && grep -q "succeeded" "$LOG_FILE" 2>/dev/null; then
+if grep -q "Job 'opensage-" "$LOG_FILE" 2>/dev/null && grep -q "succeeded" "$LOG_FILE" 2>/dev/null; then
     pass "Job succeeded message in logs"
 elif grep -q "SUCCEEDED" "$LOG_FILE" 2>/dev/null; then
     pass "SUCCEEDED found in logs"
@@ -172,7 +172,7 @@ fi
 if grep -qi "error\|traceback\|exception" "$LOG_FILE" 2>/dev/null; then
     # Filter out expected log lines that contain "error" in non-error context
     REAL_ERRORS=$(grep -i "error\|traceback\|exception" "$LOG_FILE" | \
-        grep -v "AIGISE_LOG_LEVEL\|error_sample\|error_handling\|LOG_TO_STDERR\|ErrorHandling" | \
+        grep -v "OPENSAGE_LOG_LEVEL\|error_sample\|error_handling\|LOG_TO_STDERR\|ErrorHandling" | \
         head -5)
     if [[ -n "$REAL_ERRORS" ]]; then
         fail "Errors found in logs:"

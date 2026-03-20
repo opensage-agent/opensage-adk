@@ -4,11 +4,10 @@ import types as _types
 from pathlib import Path
 
 import pytest
-
-from aigise.plugins.default.adk_plugins.message_board_diff_plugin import (
+from opensage.plugins.default.adk_plugins.message_board_diff_plugin import (
     MessageBoardDiffPlugin,
 )
-from aigise.session.message_board import MessageBoardManager, message_board_context
+from opensage.session.message_board import MessageBoardManager, message_board_context
 
 
 class _DummyAgent:
@@ -33,7 +32,7 @@ class _DummyToolContext:
 class _DummySession:
     def __init__(self, sid: str, board: MessageBoardManager):
         self.id = sid
-        self.state = {"aigise_session_id": sid}
+        self.state = {"opensage_session_id": sid}
         self._boards = {"b1": board}
 
     def get_message_board(self, *, board_id=None):
@@ -56,11 +55,11 @@ async def test_message_board_diff_plugin_piggybacks_diff(tmp_path, monkeypatch):
     tc_b = _DummyToolContext(inv_b)
 
     # Patch session lookup helper used by the plugin.
-    import aigise.plugins.default.adk_plugins.message_board_diff_plugin as plugin_mod
+    import opensage.plugins.default.adk_plugins.message_board_diff_plugin as plugin_mod
 
-    monkeypatch.setattr(plugin_mod, "get_aigise_session", lambda _sid: session)
+    monkeypatch.setattr(plugin_mod, "get_opensage_session", lambda _sid: session)
     monkeypatch.setattr(
-        plugin_mod, "get_aigise_session_id_from_context", lambda _tc: sid
+        plugin_mod, "get_opensage_session_id_from_context", lambda _tc: sid
     )
 
     await board.append(agent_id="a__1", kind="note", text="hello from a")
@@ -112,11 +111,11 @@ async def test_message_board_diff_plugin_uses_context_board_id(tmp_path, monkeyp
     inv_b = _DummyInvocationContext(agent_b, session)
     tc_b = _DummyToolContext(inv_b)
 
-    import aigise.plugins.default.adk_plugins.message_board_diff_plugin as plugin_mod
+    import opensage.plugins.default.adk_plugins.message_board_diff_plugin as plugin_mod
 
-    monkeypatch.setattr(plugin_mod, "get_aigise_session", lambda _sid: session)
+    monkeypatch.setattr(plugin_mod, "get_opensage_session", lambda _sid: session)
     monkeypatch.setattr(
-        plugin_mod, "get_aigise_session_id_from_context", lambda _tc: sid
+        plugin_mod, "get_opensage_session_id_from_context", lambda _tc: sid
     )
 
     # Write to temp board only; without context there should be no diff.

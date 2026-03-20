@@ -21,10 +21,9 @@ from google.adk.agents.llm_agent import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.features import enable_neo4j_logging
-from aigise.toolbox.general.dynamic_subagent import (
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.features import enable_neo4j_logging
+from opensage.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
     list_active_agents,
@@ -79,7 +78,7 @@ def calculate_area_and_perimeter(
     }
 
 
-geometry_calculator = AigiseAgent(
+geometry_calculator = OpenSageAgent(
     name="geometry_calculator",
     description="Calculates geometric properties like area and perimeter of shapes",
     model=LiteLlm(model="openai/o4-mini"),
@@ -94,10 +93,10 @@ Always explain the geometric concepts involved and show the calculation steps.""
 geometry_tool = AgentTool(agent=geometry_calculator)
 
 
-def mk_agent(aigise_session_id: str):
+def mk_agent(opensage_session_id: str):
     enable_neo4j_logging()
 
-    root_agent = AigiseAgent(
+    root_agent = OpenSageAgent(
         name="calculation_orchestrator",
         description="Main agent that coordinates mathematical and geometric calculations with Neo4j history logging",
         model=LiteLlm(model="openai/o4-mini"),

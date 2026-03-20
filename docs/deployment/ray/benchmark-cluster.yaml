@@ -6,7 +6,7 @@
 # Usage (from head node with ray configured):
 #   ray up ray/benchmark-cluster.yaml -y --no-config-cache
 #   ray exec ray/benchmark-cluster.yaml \
-#       "sudo python3 ~/aigise/ray/benchmark_scaling.py --output /data/evals/benchmark_results.json"
+#       "sudo python3 ~/opensage/ray/benchmark_scaling.py --output /data/evals/benchmark_results.json"
 #   ray rsync_down ray/benchmark-cluster.yaml /data/evals/benchmark_results.json ./benchmark_results.json
 #   ray down ray/benchmark-cluster.yaml -y
 #
@@ -95,12 +95,12 @@ setup_commands:
       [ -f /tmp/startup-script-done ] && break
       sleep 2
     done
-  # Symlink aigise repo for ubuntu user
-  - ln -sf /home/<VM_USER>/aigise ~/aigise
+  # Symlink opensage repo for ubuntu user
+  - ln -sf /home/<VM_USER>/opensage ~/opensage
   # Sync AIgiSE code
   - |
-    if [ -d ~/aigise ]; then
-      cd ~/aigise && git pull --ff-only 2>/dev/null || true
+    if [ -d ~/opensage ]; then
+      cd ~/opensage && git pull --ff-only 2>/dev/null || true
     fi
 
 head_setup_commands: []

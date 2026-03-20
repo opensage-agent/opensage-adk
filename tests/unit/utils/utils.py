@@ -1,8 +1,8 @@
 import re
 import subprocess
 
-from aigise.session.aigise_session import AigiseSession
-from aigise.session.neo4j_client import AsyncNeo4jClient
+from opensage.session.neo4j_client import AsyncNeo4jClient
+from opensage.session.opensage_session import OpenSageSession
 
 
 def copy_from_container(container_id: str, src: str, dst: str):
@@ -32,15 +32,15 @@ def extract_infos_from_arvo_script(arvo_script: str) -> dict[str, str]:
 
 
 def fix_neo4j_client(
-    aigise_session: AigiseSession, client_type: str
+    opensage_session: OpenSageSession, client_type: str
 ) -> AsyncNeo4jClient:
     new_client = AsyncNeo4jClient(
-        aigise_session.config.neo4j.uri,
-        aigise_session.config.neo4j.user,
-        aigise_session.config.neo4j.password,
-        database=aigise_session.neo4j._get_database_name_for_type(client_type),
+        opensage_session.config.neo4j.uri,
+        opensage_session.config.neo4j.user,
+        opensage_session.config.neo4j.password,
+        database=opensage_session.neo4j._get_database_name_for_type(client_type),
     )
 
-    aigise_session.neo4j._clients[client_type] = new_client
+    opensage_session.neo4j._clients[client_type] = new_client
 
     return new_client

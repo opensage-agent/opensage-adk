@@ -22,13 +22,12 @@ from google.adk import Runner
 from google.adk.apps.app import App
 from google.adk.events import Event
 from google.genai import types
-
-from aigise.features.aigise_in_memory_session_service import (
-    AigiseInMemorySessionService,
+from opensage.features.opensage_in_memory_session_service import (
+    OpenSageInMemorySessionService,
 )
-from aigise.plugins import load_plugins
-from aigise.session import get_aigise_session
-from aigise.toolbox.sandbox_requirements import collect_sandbox_dependencies
+from opensage.plugins import load_plugins
+from opensage.session import get_opensage_session
+from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +47,7 @@ class DynamicSubagentTestRunner:
 
     def __init__(self, agent):
         self.agent = agent
-        self.session_service = AigiseInMemorySessionService()
+        self.session_service = OpenSageInMemorySessionService()
         self.agent_client = None
         # Pin a fixed session id so AIgiSE env and ADK session align if needed
         self.current_session_id = str(uuid.uuid4())
@@ -68,37 +67,39 @@ class DynamicSubagentTestRunner:
             "sample_dynamic_subagent",
             "config.toml",
         )
-        aigise_session = get_aigise_session(
-            aigise_session_id=self.current_session_id, config_path=config_path
+        opensage_session = get_opensage_session(
+            opensage_session_id=self.current_session_id, config_path=config_path
         )
         # Force storage path via config to avoid env coupling
-        aigise_session.config.agent_storage_path = AGENT_STORAGE_PATH
+        opensage_session.config.agent_storage_path = AGENT_STORAGE_PATH
         try:
             deps = collect_sandbox_dependencies(self.agent)
             if (
-                aigise_session.config.sandbox
-                and aigise_session.config.sandbox.sandboxes
+                opensage_session.config.sandbox
+                and opensage_session.config.sandbox.sandboxes
                 and deps
             ):
                 # prune unused sandboxes
                 unused = [
                     s
-                    for s in list(aigise_session.config.sandbox.sandboxes.keys())
+                    for s in list(opensage_session.config.sandbox.sandboxes.keys())
                     if s not in deps
                 ]
                 for s in unused:
-                    del aigise_session.config.sandbox.sandboxes[s]
+                    del opensage_session.config.sandbox.sandboxes[s]
         except Exception:
             # If dependency collection fails, continue with config as-is
             pass
         # Initialize sandboxes
-        aigise_session.sandboxes.initialize_shared_volumes()
-        await aigise_session.sandboxes.launch_all_sandboxes()
-        await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
+        opensage_session.sandboxes.initialize_shared_volumes()
+        await opensage_session.sandboxes.launch_all_sandboxes()
+        await opensage_session.sandboxes.initialize_all_sandboxes(
+            continue_on_error=True
+        )
 
         # Create ADK session with the fixed id
         enabled_plugins = (
-            getattr(getattr(aigise_session.config, "plugins", None), "enabled", [])
+            getattr(getattr(opensage_session.config, "plugins", None), "enabled", [])
             or []
         )
         plugins = load_plugins(enabled_plugins)
@@ -116,7 +117,7 @@ class DynamicSubagentTestRunner:
             app_name=self.app_name,
             user_id=self.user_id,
             session_id=self.current_session_id,
-            state={"aigise_session_id": self.current_session_id},
+            state={"opensage_session_id": self.current_session_id},
         )
         return self
 
@@ -188,8 +189,7 @@ def agent():
     import uuid
 
     from google.adk.models.lite_llm import LiteLlm
-
-    from aigise.features.agent_history_tracker import disable_neo4j_logging
+    from opensage.features.agent_history_tracker import disable_neo4j_logging
 
     # Disable Neo4j logging for this non-Neo4j test
     try:
@@ -209,13 +209,13 @@ def agent():
     from sample_dynamic_subagent import agent as agent_module
 
     # Create agent with unique session ID
-    agent_instance = agent_module.mk_agent(aigise_session_id=str(uuid.uuid4()))
+    agent_instance = agent_module.mk_agent(opensage_session_id=str(uuid.uuid4()))
     yield agent_instance
 
     # Cleanup: Remove sessions and resources
-    from aigise.session.aigise_session import AigiseSessionRegistry
+    from opensage.session.opensage_session import OpenSageSessionRegistry
 
-    AigiseSessionRegistry.cleanup_all_sessions()
+    OpenSageSessionRegistry.cleanup_all_sessions()
 
 
 @pytest.fixture(scope="session", autouse=True)

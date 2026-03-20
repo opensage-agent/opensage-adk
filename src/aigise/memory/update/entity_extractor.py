@@ -13,9 +13,9 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 import litellm
 
 if TYPE_CHECKING:
-    from aigise.memory.config.domain_config import DomainConfig
+    from opensage.memory.config.domain_config import DomainConfig
 
-from aigise.memory.config.memory_settings import get_memory_settings
+from opensage.memory.config.memory_settings import get_memory_settings
 
 logger = logging.getLogger(__name__)
 

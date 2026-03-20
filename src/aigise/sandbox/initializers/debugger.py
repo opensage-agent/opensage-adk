@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from aigise.sandbox.base_sandbox import BaseSandbox
+from opensage.sandbox.base_sandbox import BaseSandbox
 
 from .base import SandboxInitializer
 
@@ -20,7 +20,7 @@ class DebuggerInitializer(SandboxInitializer):
 
         logger.info(
             "Async initializing debugger sandbox for session %s...",
-            self.aigise_session_id,
+            self.opensage_session_id,
         )
 
         msg, err = self.run_command_in_container(

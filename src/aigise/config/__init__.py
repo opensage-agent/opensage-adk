@@ -6,7 +6,6 @@ Provides centralized configuration management with per-session support.
 
 from .config_dataclass import (
     AgentEnsembleConfig,
-    AigiseConfig,
     BuildConfig,
     ContainerConfig,
     HistoryConfig,
@@ -15,6 +14,7 @@ from .config_dataclass import (
     MCPServiceConfig,
     ModelConfig,
     Neo4jConfig,
+    OpenSageConfig,
     OpenSandboxConfig,
     SandboxConfig,
     load_config_from_toml,
@@ -33,7 +33,7 @@ __all__ = [
     "BuildConfig",
     "MCPServiceConfig",
     "MCPConfig",
-    "AigiseConfig",
+    "OpenSageConfig",
     # Configuration loading
     "load_config_from_toml",
 ]

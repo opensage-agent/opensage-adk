@@ -45,7 +45,7 @@ timeout = 300
 
 [sandbox.sandboxes.main.extra]
 fs_backend = "btrfs"
-env_base_dir = "/data/aigise_ns"
+env_base_dir = "/data/opensage_ns"
 rootfs_cache_dir = "/data/rootfs_cache"
 
 # neo4j disabled for 64-worker scalability test (each instance uses ~1.2GB RAM)

@@ -18,10 +18,9 @@ from pathlib import Path
 from typing import Any, Awaitable, Dict, Optional
 
 import yaml
-
-from aigise.config import ContainerConfig
-from aigise.utils.bash_tools_staging import build_bash_tools_staging_dir
-from aigise.utils.parser import get_function_info
+from opensage.config import ContainerConfig
+from opensage.utils.bash_tools_staging import build_bash_tools_staging_dir
+from opensage.utils.parser import get_function_info
 
 from .base_sandbox import BaseSandbox, SandboxState
 
@@ -33,12 +32,12 @@ class K8sSandbox(BaseSandbox):
 
     backend_type = "k8s"
 
-    DEFAULT_NAMESPACE_ENV = "AIGISE_K8S_NAMESPACE"
-    DEFAULT_CONTEXT_ENV = "AIGISE_K8S_CONTEXT"
-    DEFAULT_KUBECONFIG_ENV = "AIGISE_K8S_KUBECONFIG"
-    INIT_CONTAINER_IMAGE_ENV = "AIGISE_K8S_INIT_IMAGE"
+    DEFAULT_NAMESPACE_ENV = "OPENSAGE_K8S_NAMESPACE"
+    DEFAULT_CONTEXT_ENV = "OPENSAGE_K8S_CONTEXT"
+    DEFAULT_KUBECONFIG_ENV = "OPENSAGE_K8S_KUBECONFIG"
+    INIT_CONTAINER_IMAGE_ENV = "OPENSAGE_K8S_INIT_IMAGE"
     DEFAULT_INIT_IMAGE = "alpine:3.19"
-    DEFAULT_PVC_STORAGE_REQUEST = os.getenv("AIGISE_K8S_PVC_SIZE", "1Gi")
+    DEFAULT_PVC_STORAGE_REQUEST = os.getenv("OPENSAGE_K8S_PVC_SIZE", "1Gi")
 
     def __init__(
         self,
@@ -224,11 +223,11 @@ class K8sSandbox(BaseSandbox):
                 session_id: str,
             ) -> Optional[list[dict]]:
                 try:
-                    from aigise.session.aigise_session import (
-                        get_aigise_session,  # lazy import
+                    from opensage.session.opensage_session import (
+                        get_opensage_session,  # lazy import
                     )
 
-                    sess = get_aigise_session(session_id)
+                    sess = get_opensage_session(session_id)
                     cfg = getattr(sess, "config", None)
                     sbx_cfg = getattr(cfg, "sandbox", None)
                     # 1) Prefer global sandbox-level tolerations if provided
@@ -410,7 +409,7 @@ class K8sSandbox(BaseSandbox):
     # ------------------------------------------------------------------
     def copy_file_from_container(self, src_path: str, dst_path: str):
         Path(dst_path).parent.mkdir(parents=True, exist_ok=True)
-        tmp_dir = Path(tempfile.mkdtemp(prefix="aigise-k8s-copy-"))
+        tmp_dir = Path(tempfile.mkdtemp(prefix="opensage-k8s-copy-"))
         tmp_target = tmp_dir / Path(src_path).name
         try:
             self._kubectl_cp(
@@ -487,7 +486,7 @@ class K8sSandbox(BaseSandbox):
         if dst.exists():
             shutil.rmtree(dst_path)
         dst.parent.mkdir(parents=True, exist_ok=True)
-        tmp_dir = Path(tempfile.mkdtemp(prefix="aigise-k8s-dir-"))
+        tmp_dir = Path(tempfile.mkdtemp(prefix="opensage-k8s-dir-"))
         try:
             self._kubectl_cp(
                 f"{self.pod_name}:{src_path}", str(tmp_dir), to_container=False
@@ -667,10 +666,10 @@ class K8sSandbox(BaseSandbox):
             return self._detected_shell
         for candidate in ("/bin/bash", "/bin/sh"):
             result = self._run_kubectl_exec(
-                [candidate, "-c", "echo __aigise_shell__"],
+                [candidate, "-c", "echo __opensage_shell__"],
                 text=True,
             )
-            if result.returncode == 0 and "__aigise_shell__" in result.stdout:
+            if result.returncode == 0 and "__opensage_shell__" in result.stdout:
                 self._detected_shell = candidate
                 return candidate
         self._detected_shell = "/bin/sh"
@@ -709,7 +708,7 @@ class K8sSandbox(BaseSandbox):
             "metadata": {
                 "name": init_pod_name,
                 "namespace": namespace,
-                "labels": {"app": "aigise-sandbox-init"},
+                "labels": {"app": "opensage-sandbox-init"},
             },
             "spec": {
                 "restartPolicy": "Never",
@@ -831,7 +830,7 @@ class K8sSandbox(BaseSandbox):
             "metadata": {
                 "name": pvc_name,
                 "namespace": namespace,
-                "labels": {"app": "aigise-sandbox"},
+                "labels": {"app": "opensage-sandbox"},
             },
             "spec": {
                 "accessModes": ["ReadWriteOnce"],
@@ -989,7 +988,7 @@ class K8sSandbox(BaseSandbox):
         Returns:
             Tuple of (scripts_pvc_name, data_pvc_name, tools_pvc_name)
         """
-        from aigise.utils.project_info import SRC_PATH
+        from opensage.utils.project_info import SRC_PATH
 
         namespace = cls._resolve_namespace_from_env()
         context = cls._resolve_context_from_env()
@@ -999,11 +998,11 @@ class K8sSandbox(BaseSandbox):
             # Resolve tolerations strictly from sandbox.tolerations (global-only)
             tolerations: Optional[list[dict]] = None
             try:
-                from aigise.session.aigise_session import (
-                    get_aigise_session,  # lazy import
+                from opensage.session.opensage_session import (
+                    get_opensage_session,  # lazy import
                 )
 
-                sess = get_aigise_session(volume_name_prefix)
+                sess = get_opensage_session(volume_name_prefix)
                 cfg = getattr(sess, "config", None)
                 sbx_cfg = getattr(cfg, "sandbox", None)
                 global_tol = getattr(sbx_cfg, "tolerations", None)
@@ -1513,8 +1512,8 @@ class K8sSandbox(BaseSandbox):
                 "name": pod_name,
                 "namespace": namespace,
                 "labels": {
-                    "app": "aigise-sandbox",
-                    "aigise-session": cls._sanitize_name(session_id),
+                    "app": "opensage-sandbox",
+                    "opensage-session": cls._sanitize_name(session_id),
                 },
             },
             "spec": {
@@ -1526,11 +1525,11 @@ class K8sSandbox(BaseSandbox):
         try:
             tol: Optional[list[dict]] = None
             try:
-                from aigise.session.aigise_session import (
-                    get_aigise_session,  # lazy import
+                from opensage.session.opensage_session import (
+                    get_opensage_session,  # lazy import
                 )
 
-                sess = get_aigise_session(session_id)
+                sess = get_opensage_session(session_id)
                 cfg = getattr(sess, "config", None)
                 sbx_cfg = getattr(cfg, "sandbox", None)
                 global_tol = getattr(sbx_cfg, "tolerations", None)
@@ -1576,7 +1575,7 @@ class K8sSandbox(BaseSandbox):
         )
 
         sandbox_instances: Dict[str, BaseSandbox] = {}
-        from aigise.sandbox.factory import create_sandbox_class, get_initializer_class
+        from opensage.sandbox.factory import create_sandbox_class, get_initializer_class
 
         for sandbox_type, config in sandbox_configs.items():
             initializer_class = get_initializer_class(sandbox_type)
@@ -1622,16 +1621,16 @@ class K8sSandbox(BaseSandbox):
         """Await initialization, update state, and emit logs."""
         final_state: Optional[SandboxState] = None
         sandboxes = None
-        aigise_session_id = getattr(sandbox_instance, "aigise_session_id", None)
-        if aigise_session_id:
+        opensage_session_id = getattr(sandbox_instance, "opensage_session_id", None)
+        if opensage_session_id:
             try:
-                from aigise.session.aigise_session import get_aigise_session
+                from opensage.session.opensage_session import get_opensage_session
 
-                sandboxes = get_aigise_session(aigise_session_id).sandboxes
+                sandboxes = get_opensage_session(opensage_session_id).sandboxes
             except Exception as exc:  # pylint: disable=broad-except
                 logger.warning(
                     "Failed to retrieve sandbox manager for session %s: %s",
-                    aigise_session_id,
+                    opensage_session_id,
                     exc,
                 )
         try:
@@ -1652,7 +1651,7 @@ class K8sSandbox(BaseSandbox):
             logger.error(
                 "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
                 sandbox_type,
-                aigise_session_id,
+                opensage_session_id,
                 final_state.value,
                 exc,
                 exc_info=exc,
@@ -1676,7 +1675,7 @@ class K8sSandbox(BaseSandbox):
             logger.info(
                 "sandbox '%s' (session %s) state=%s - Initialization finished",
                 sandbox_type,
-                aigise_session_id,
+                opensage_session_id,
                 state_value,
             )
 
@@ -1803,7 +1802,7 @@ class K8sSandbox(BaseSandbox):
 
         nerdctl_path = cls._resolve_nerdctl_path()
         containerd_socket = cls._resolve_containerd_socket()
-        containerd_namespace = os.getenv("AIGISE_K8S_CONTAINERD_NAMESPACE", "k8s.io")
+        containerd_namespace = os.getenv("OPENSAGE_K8S_CONTAINERD_NAMESPACE", "k8s.io")
 
         normalized_task_name = normalize_image_name(task_name)
         k8s_metadata: dict[str, dict] = {}
@@ -1986,9 +1985,9 @@ class K8sSandbox(BaseSandbox):
                 with manifest_path.open("w", encoding="utf-8") as manifest_file:
                     json.dump(manifest_data, manifest_file, indent=2)
                 cache_results["metadata_path"] = str(manifest_path)
-                os.environ["AIGISE_K8S_CACHE_DIR"] = str(cache_dir_path)
+                os.environ["OPENSAGE_K8S_CACHE_DIR"] = str(cache_dir_path)
 
-                global_manifest_dir = Path.home() / ".cache" / "aigise" / "k8s_cache"
+                global_manifest_dir = Path.home() / ".cache" / "opensage" / "k8s_cache"
                 global_manifest_dir.mkdir(parents=True, exist_ok=True)
                 global_manifest = (
                     global_manifest_dir / f"{normalize_image_name(task_name)}.json"
@@ -2002,7 +2001,7 @@ class K8sSandbox(BaseSandbox):
 
     @classmethod
     def _resolve_nerdctl_path(cls) -> Optional[str]:
-        env_path = os.getenv("AIGISE_K8S_NERDCTL")
+        env_path = os.getenv("OPENSAGE_K8S_NERDCTL")
         if env_path and Path(env_path).exists():
             return env_path
         candidates = [
@@ -2023,7 +2022,7 @@ class K8sSandbox(BaseSandbox):
 
     @classmethod
     def _resolve_containerd_socket(cls) -> str:
-        socket_env = os.getenv("AIGISE_K8S_CONTAINERD_SOCKET")
+        socket_env = os.getenv("OPENSAGE_K8S_CONTAINERD_SOCKET")
         if socket_env:
             return socket_env
         candidates = [
@@ -2086,7 +2085,7 @@ class K8sSandbox(BaseSandbox):
             "metadata": {
                 "name": backup_pod_name,
                 "namespace": namespace,
-                "labels": {"app": "aigise-sandbox-backup"},
+                "labels": {"app": "opensage-sandbox-backup"},
             },
             "spec": {
                 "restartPolicy": "Never",
@@ -2225,7 +2224,7 @@ class K8sSandbox(BaseSandbox):
         if not tar_path or not Path(tar_path).exists():
             logger.debug(f"Cached rootfs tar not found: {tar_path}")
             return
-        remote_tar = f"/tmp/aigise_cached_rootfs_{int(time.time())}.tar.gz"
+        remote_tar = f"/tmp/opensage_cached_rootfs_{int(time.time())}.tar.gz"
         try:
             self.copy_file_to_container(tar_path, remote_tar)
             extract_cmd = f"cd / && tar -xzf {shlex.quote(remote_tar)} && rm -f {shlex.quote(remote_tar)}"

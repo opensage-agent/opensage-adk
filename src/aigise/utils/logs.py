@@ -38,37 +38,37 @@ class ColoredFormatter(logging.Formatter):
         return result
 
 
-def setup_aigise_logging(level=None, use_colors=None):
+def setup_opensage_logging(level=None, use_colors=None):
     """Setup logging configuration for AIgiSE.
 
     This function can be called multiple times - it will reconfigure the logger
     each time. This allows users to override the default configuration.
 
     Args:
-        level: Log level (int or string). If None, uses AIGISE_LOG_LEVEL env var
+        level: Log level (int or string). If None, uses OPENSAGE_LOG_LEVEL env var
                (default: INFO)
         use_colors: Enable colored output. If None, auto-detects based on
                     NO_COLOR env var and stderr.isatty()
 
     Returns:
-        The configured aigise logger
+        The configured opensage logger
 
     Examples:
         # Use default configuration
-        import aigise
+        import opensage
 
         # Reconfigure after import
-        import aigise
-        aigise.setup_aigise_logging(level=logging.WARNING)
+        import opensage
+        opensage.setup_opensage_logging(level=logging.WARNING)
 
         # Change log level at runtime
-        aigise.setup_aigise_logging(level=logging.DEBUG, use_colors=True)
+        opensage.setup_opensage_logging(level=logging.DEBUG, use_colors=True)
     """
-    aigise_logger = logging.getLogger("aigise")
+    opensage_logger = logging.getLogger("opensage")
 
     # Determine log level
     if level is None:
-        log_level_name = os.getenv("AIGISE_LOG_LEVEL", "INFO").upper()
+        log_level_name = os.getenv("OPENSAGE_LOG_LEVEL", "INFO").upper()
         level = getattr(logging, log_level_name, logging.INFO)
     elif isinstance(level, str):
         level = getattr(logging, level.upper(), logging.INFO)
@@ -78,7 +78,7 @@ def setup_aigise_logging(level=None, use_colors=None):
         use_colors = os.getenv("NO_COLOR") is None and sys.stderr.isatty()
 
     # Clear existing handlers to allow reconfiguration
-    aigise_logger.handlers = []
+    opensage_logger.handlers = []
 
     # Create and configure handler
     handler = logging.StreamHandler(sys.stderr)
@@ -97,17 +97,17 @@ def setup_aigise_logging(level=None, use_colors=None):
         )
 
     handler.setFormatter(formatter)
-    aigise_logger.addHandler(handler)
-    aigise_logger.setLevel(level)
+    opensage_logger.addHandler(handler)
+    opensage_logger.setLevel(level)
 
-    return aigise_logger
+    return opensage_logger
 
 
 def log_to_tmp_folder(
     level=None,
     use_colors=False,
-    sub_folder: str = "aigise_logs",
-    log_file_prefix: str = "aigise",
+    sub_folder: str = "opensage_logs",
+    log_file_prefix: str = "opensage",
     log_file_timestamp: str | None = None,
 ) -> str:
     """Log to system temp folder instead of stderr.
@@ -116,7 +116,7 @@ def log_to_tmp_folder(
     keep logs in a file for later inspection.
 
     Args:
-        level: Log level (int or string). If None, uses AIGISE_LOG_LEVEL env var
+        level: Log level (int or string). If None, uses OPENSAGE_LOG_LEVEL env var
         use_colors: Enable colored output in log file (default: False)
         sub_folder: Subdirectory name under system temp folder
         log_file_prefix: Prefix for log filename
@@ -126,17 +126,17 @@ def log_to_tmp_folder(
         Full path to the log file
 
     Examples:
-        import aigise
-        log_path = aigise.log_to_tmp_folder()
-        # Logs now go to /tmp/aigise_logs/aigise.20251017_103045.log
+        import opensage
+        log_path = opensage.log_to_tmp_folder()
+        # Logs now go to /tmp/opensage_logs/opensage.20251017_103045.log
         print(f"Logs saved to: {log_path}")
 
         # Access latest log
-        # tail -F /tmp/aigise_logs/aigise.latest.log
+        # tail -F /tmp/opensage_logs/opensage.latest.log
     """
     # Determine log level
     if level is None:
-        log_level_name = os.getenv("AIGISE_LOG_LEVEL", "INFO").upper()
+        log_level_name = os.getenv("OPENSAGE_LOG_LEVEL", "INFO").upper()
         level = getattr(logging, log_level_name, logging.INFO)
     elif isinstance(level, str):
         level = getattr(logging, level.upper(), logging.INFO)

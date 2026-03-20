@@ -10,8 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from filelock import FileLock
-
-from aigise.utils.project_info import SRC_PATH
+from opensage.utils.project_info import SRC_PATH
 
 logger = logging.getLogger(__name__)
 

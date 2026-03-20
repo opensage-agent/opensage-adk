@@ -4,13 +4,13 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
-from aigise.config import (
-    AigiseConfig,
+from opensage.config import (
     ContainerConfig,
+    OpenSageConfig,
     OpenSandboxConfig,
     SandboxConfig,
 )
-from aigise.session.aigise_sandbox_manager import AigiseSandboxManager
+from opensage.session.opensage_sandbox_manager import OpenSageSandboxManager
 
 
 def _build_manager(
@@ -18,8 +18,8 @@ def _build_manager(
     backend: str,
     task_name: str = "cache-task",
     opensandbox_runtime_type: str = "docker",
-) -> AigiseSandboxManager:
-    config = AigiseConfig()
+) -> OpenSageSandboxManager:
+    config = OpenSageConfig()
     config.task_name = task_name
     config.sandbox = SandboxConfig(
         backend=backend,
@@ -32,8 +32,8 @@ def _build_manager(
         config.sandbox.opensandbox = OpenSandboxConfig(
             runtime_type=opensandbox_runtime_type
         )
-    session = SimpleNamespace(aigise_session_id=f"{task_name}-session", config=config)
-    return AigiseSandboxManager(session)
+    session = SimpleNamespace(opensage_session_id=f"{task_name}-session", config=config)
+    return OpenSageSandboxManager(session)
 
 
 def test_load_remote_docker_cache_manifest_updates_images_and_shared_backup(
@@ -55,7 +55,7 @@ def test_load_remote_docker_cache_manifest_updates_images_and_shared_backup(
     manifest_path = tmp_path / "remote_docker_cache_manifest.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
 
-    monkeypatch.setenv("AIGISE_REMOTE_DOCKER_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("OPENSAGE_REMOTE_DOCKER_CACHE_DIR", str(tmp_path))
 
     missing = manager.load_sandbox_caches_to_config()
 
@@ -103,7 +103,7 @@ def test_load_opensandbox_cache_manifest_updates_images_and_shared_backup(
     manifest_path = tmp_path / "opensandbox_cache_manifest.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
 
-    monkeypatch.setenv("AIGISE_OPENSANDBOX_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("OPENSAGE_OPENSANDBOX_CACHE_DIR", str(tmp_path))
 
     missing = manager.load_sandbox_caches_to_config()
 
@@ -151,7 +151,7 @@ def test_load_opensandbox_k8s_cache_manifest_uses_rootfs_tar_when_commit_failed(
     manifest_path = tmp_path / "opensandbox_cache_manifest.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
 
-    monkeypatch.setenv("AIGISE_OPENSANDBOX_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("OPENSAGE_OPENSANDBOX_CACHE_DIR", str(tmp_path))
 
     missing = manager.load_sandbox_caches_to_config()
 

@@ -3,10 +3,9 @@ from __future__ import annotations
 from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.session import get_aigise_session
-from aigise.session.message_board import get_current_message_board_id
-from aigise.utils.agent_utils import get_aigise_session_id_from_context
+from opensage.session import get_opensage_session
+from opensage.session.message_board import get_current_message_board_id
+from opensage.utils.agent_utils import get_opensage_session_id_from_context
 
 
 def _resolve_agent_instance_id(tool_context: ToolContext) -> str:
@@ -28,7 +27,7 @@ def _resolve_board_id(tool_context: ToolContext) -> str | None:
         return board_id
     state = getattr(tool_context, "state", None)
     if hasattr(state, "get"):
-        return state.get("aigise_message_board_id")
+        return state.get("opensage_message_board_id")
     return None
 
 
@@ -53,8 +52,8 @@ class MessageBoardDiffPlugin(BasePlugin):
         if not isinstance(result, dict):
             return None
 
-        session_id = get_aigise_session_id_from_context(tool_context)
-        session = get_aigise_session(session_id)
+        session_id = get_opensage_session_id_from_context(tool_context)
+        session = get_opensage_session(session_id)
         agent_id = _resolve_agent_instance_id(tool_context)
         board_id = _resolve_board_id(tool_context)
         if not board_id:

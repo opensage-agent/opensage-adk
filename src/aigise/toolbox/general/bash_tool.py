@@ -1,7 +1,6 @@
 from google.adk.tools import ToolContext
-
-from aigise.toolbox.sandbox_requirements import requires_sandbox
-from aigise.utils.agent_utils import get_sandbox_from_context
+from opensage.toolbox.sandbox_requirements import requires_sandbox
+from opensage.utils.agent_utils import get_sandbox_from_context
 
 
 @requires_sandbox("main")

@@ -6,37 +6,36 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
-
-from aigise.session import AigiseSession, get_aigise_session
-from aigise.toolbox.general.bash_tools_interface import run_terminal_command
-from aigise.utils.project_info import PROJECT_PATH
+from opensage.session import OpenSageSession, get_opensage_session
+from opensage.toolbox.general.bash_tools_interface import run_terminal_command
+from opensage.utils.project_info import PROJECT_PATH
 
 
 @pytest_asyncio.fixture(scope="module")
-async def aigise_session():
-    """Create aigise session for testing retrieval tools."""
-    aigise_session = None
+async def opensage_session():
+    """Create opensage session for testing retrieval tools."""
+    opensage_session = None
     try:
-        aigise_session = get_aigise_session(
+        opensage_session = get_opensage_session(
             "test-bash-tools-retrieval",
             str(PROJECT_PATH / "tests/unit/data/configs/test_main_only.toml"),
         )
 
-        aigise_session.sandboxes.initialize_shared_volumes()
-        await aigise_session.sandboxes.launch_all_sandboxes()
-        await aigise_session.sandboxes.initialize_all_sandboxes()
-        yield aigise_session
+        opensage_session.sandboxes.initialize_shared_volumes()
+        await opensage_session.sandboxes.launch_all_sandboxes()
+        await opensage_session.sandboxes.initialize_all_sandboxes()
+        yield opensage_session
     finally:
-        if aigise_session is not None:
-            aigise_session.cleanup()
+        if opensage_session is not None:
+            opensage_session.cleanup()
 
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_search_symbol_basic(aigise_session: AigiseSession):
+async def test_search_symbol_basic(opensage_session: OpenSageSession):
     """Test search-symbol tool with basic symbol search."""
     mock_context = MagicMock()
-    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
+    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test search-symbol with a known symbol
     result = run_terminal_command(
@@ -59,10 +58,10 @@ async def test_search_symbol_basic(aigise_session: AigiseSession):
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_search_symbol_nonexistent(aigise_session: AigiseSession):
+async def test_search_symbol_nonexistent(opensage_session: OpenSageSession):
     """Test search-symbol tool with non-existent symbol."""
     mock_context = MagicMock()
-    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
+    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test with non-existent symbol
     result = run_terminal_command(

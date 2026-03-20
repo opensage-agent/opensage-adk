@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from aigise.patches.neo4j_logging import (
+from opensage.patches.neo4j_logging import (
     disable as _neo4j_disable,
 )
 
 # Import functions directly to avoid any package attribute masking issues.
-from aigise.patches.neo4j_logging import (  # type: ignore
+from opensage.patches.neo4j_logging import (  # type: ignore
     enable as _neo4j_enable,
 )
-from aigise.patches.neo4j_logging import (
+from opensage.patches.neo4j_logging import (
     is_enabled as _neo4j_is_enabled,
 )
 

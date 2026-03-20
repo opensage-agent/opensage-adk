@@ -7,12 +7,12 @@
 #   - Sandbox: overlayfs (lowerdir=PD-SSD rootfs, upperdir=local SSD)
 #
 # Usage:
-#   ray up ray/aigise-eval-cluster.yaml -y        # Create cluster
-#   ray down ray/aigise-eval-cluster.yaml -y      # Tear down
+#   ray up ray/opensage-eval-cluster.yaml -y        # Create cluster
+#   ray down ray/opensage-eval-cluster.yaml -y      # Tear down
 #
 # Before using: replace all <PLACEHOLDERS> with your actual values.
 
-cluster_name: aigise-eval
+cluster_name: opensage-eval
 
 max_workers: 1
 
@@ -168,7 +168,7 @@ available_node_types:
                   mount $NVME_DEVS /local_ssd
                 fi
                 chmod 777 /local_ssd
-                mkdir -p /local_ssd/aigise_ns
+                mkdir -p /local_ssd/opensage_ns
               fi
               # Move Docker data-root to NVMe SSD
               systemctl stop docker 2>/dev/null || true
@@ -194,11 +194,11 @@ setup_commands:
       [ -f /tmp/startup-script-done ] && break
       sleep 2
     done
-  - ln -sfn /home/<VM_USER>/aigise ~/aigise
+  - ln -sfn /home/<VM_USER>/opensage ~/opensage
   - |
-    if [ -d ~/aigise ]; then
-      sudo git config --global --add safe.directory /home/<VM_USER>/aigise
-      sudo bash -c "cd /home/<VM_USER>/aigise && git checkout -- . 2>/dev/null; git clean -fd ray/ 2>/dev/null; git pull --ff-only"
+    if [ -d ~/opensage ]; then
+      sudo git config --global --add safe.directory /home/<VM_USER>/opensage
+      sudo bash -c "cd /home/<VM_USER>/opensage && git checkout -- . 2>/dev/null; git clean -fd ray/ 2>/dev/null; git pull --ff-only"
     fi
 
 head_setup_commands: []

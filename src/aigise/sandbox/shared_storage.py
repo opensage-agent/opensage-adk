@@ -5,9 +5,9 @@ import os
 from types import SimpleNamespace
 from typing import Iterator
 
-from aigise.config import AigiseConfig, OpenSandboxConfig
-from aigise.sandbox.k8s_sandbox import K8sSandbox
-from aigise.sandbox.remote_docker_sandbox import RemoteDockerSandbox
+from opensage.config import OpenSageConfig, OpenSandboxConfig
+from opensage.sandbox.k8s_sandbox import K8sSandbox
+from opensage.sandbox.remote_docker_sandbox import RemoteDockerSandbox
 
 
 @contextlib.contextmanager
@@ -48,7 +48,7 @@ class SharedStorage:
         session_id: str,
         init_data_path,
         tools_top_roots: set[str] | None,
-        config: AigiseConfig,
+        config: OpenSageConfig,
     ) -> tuple[str, str, str]:
         opensandbox_config = cls._require_opensandbox_config(config)
         if opensandbox_config.runtime_type == "docker":
@@ -79,7 +79,7 @@ class SharedStorage:
         scripts_volume_id: str | None,
         data_volume_id: str | None,
         tools_volume_id: str | None,
-        config: AigiseConfig,
+        config: OpenSageConfig,
     ) -> None:
         opensandbox_config = cls._require_opensandbox_config(config)
         if opensandbox_config.runtime_type == "docker":
@@ -111,7 +111,7 @@ class SharedStorage:
         )
 
     @staticmethod
-    def _require_opensandbox_config(config: AigiseConfig) -> OpenSandboxConfig:
+    def _require_opensandbox_config(config: OpenSageConfig) -> OpenSandboxConfig:
         if not config.sandbox or not config.sandbox.opensandbox:
             raise ValueError(
                 "sandbox.opensandbox configuration is required for opensandbox backend"

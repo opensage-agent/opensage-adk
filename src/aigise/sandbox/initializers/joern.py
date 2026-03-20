@@ -10,10 +10,9 @@ import tempfile
 import time
 
 import networkx as nx
-
-from aigise.sandbox.base_sandbox import BaseSandbox
-from aigise.session.joern_client import JoernClient
-from aigise.utils.merge_joern_codeql import (
+from opensage.sandbox.base_sandbox import BaseSandbox
+from opensage.session.joern_client import JoernClient
+from opensage.utils.merge_joern_codeql import (
     import_joern_callgraph,
     update_joern_cpg,
 )
@@ -45,15 +44,15 @@ class JoernInitializer(SandboxInitializer):
         self: BaseSandbox, all_sandboxes: dict[str, BaseSandbox]
     ) -> bool:
         """Initialize Joern environment (async version)."""
-        from aigise.session.aigise_session import get_aigise_session
+        from opensage.session.opensage_session import get_opensage_session
 
         assert isinstance(self, BaseSandbox)
 
         logger.info(
-            f"Async creating Joern environment for session {self.aigise_session_id}..."
+            f"Async creating Joern environment for session {self.opensage_session_id}..."
         )
 
-        aigise_session = get_aigise_session(self.aigise_session_id)
+        opensage_session = get_opensage_session(self.opensage_session_id)
         assert "main" in all_sandboxes
         if not await all_sandboxes["main"].wait_for_ready_or_error():
             logger.error(f"Joern initialization failed: Main sandbox error")
@@ -62,12 +61,12 @@ class JoernInitializer(SandboxInitializer):
         try:
             # Wrap Joern initialization with 10-minute timeout
             await asyncio.wait_for(
-                self._initialize_joern_with_timeout(aigise_session, all_sandboxes),
+                self._initialize_joern_with_timeout(opensage_session, all_sandboxes),
                 timeout=1200.0,  # 10 minutes
             )
         except asyncio.TimeoutError:
             logger.error(
-                f"Joern initialization failed; timed out after 10 minutes for session {self.aigise_session_id}"
+                f"Joern initialization failed; timed out after 10 minutes for session {self.opensage_session_id}"
             )
             return False
         except Exception as e:
@@ -75,11 +74,11 @@ class JoernInitializer(SandboxInitializer):
             return False
 
         # Write Joern server host to ~/.bashrc
-        self._write_joern_env_to_bashrc(aigise_session)
+        self._write_joern_env_to_bashrc(opensage_session)
         return True
 
     async def _initialize_joern_with_timeout(
-        self, aigise_session, all_sandboxes: dict[str, BaseSandbox]
+        self, opensage_session, all_sandboxes: dict[str, BaseSandbox]
     ) -> None:
         """Execute Joern initialization steps with timeout protection."""
 
@@ -99,7 +98,7 @@ class JoernInitializer(SandboxInitializer):
             [
                 "bash",
                 "/sandbox_scripts/callgraph/run_joern.sh",
-                aigise_session.config.src_dir_in_sandbox,
+                opensage_session.config.src_dir_in_sandbox,
             ],
             timeout=3600,
         )
@@ -113,18 +112,18 @@ class JoernInitializer(SandboxInitializer):
         if not await all_sandboxes["neo4j"].wait_for_ready_or_error():
             raise RuntimeError(f"Joern initialization failed: Neo4j sandbox error")
 
-        neo4j_client = await aigise_session.neo4j.get_async_client("analysis")
+        neo4j_client = await opensage_session.neo4j.get_async_client("analysis")
 
         await import_joern_callgraph(neo4j_client, "/")
         await update_joern_cpg(neo4j_client, fix_identical_methods=True)
 
         client = JoernClient(
-            server_endpoint=f"{aigise_session.config.default_host}:18087"
+            server_endpoint=f"{opensage_session.config.default_host}:18087"
         )
 
         await client.aexecute("importCpg('/cpg.bin')")
 
-    def _write_joern_env_to_bashrc(self, aigise_session) -> None:
+    def _write_joern_env_to_bashrc(self, opensage_session) -> None:
         """Write Joern server host environment variable to /shared/bashrc."""
         assert isinstance(self, BaseSandbox)
 

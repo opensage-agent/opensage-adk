@@ -12,10 +12,9 @@ from pathlib import Path
 
 import datasets
 import fire
-
-from aigise.evaluation.base import Evaluation, EvaluationTask
-from aigise.session import get_aigise_session
-from aigise.utils.project_info import PROJECT_PATH, SRC_PATH, find_path
+from opensage.evaluation.base import Evaluation, EvaluationTask
+from opensage.session import get_opensage_session
+from opensage.utils.project_info import PROJECT_PATH, SRC_PATH, find_path
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +103,7 @@ class CyberGym(Evaluation):
 
     def _get_initial_data_dir(self, sample: dict) -> str:
         init_data_dir = tempfile.mkdtemp(
-            prefix=f"aigise_cybergym_{self._get_task_id(sample)}"
+            prefix=f"opensage_cybergym_{self._get_task_id(sample)}"
         )
         return init_data_dir
 
@@ -146,13 +145,13 @@ class CyberGym(Evaluation):
         )
 
     async def _before_initialize_callback(self, task):
-        main_sandbox = task.aigise_session.sandboxes.get_sandbox("main")
+        main_sandbox = task.opensage_session.sandboxes.get_sandbox("main")
         main_sandbox.run_command_in_container(
             "apt-get update && apt-get install -y curl"
         )
 
         # Clean /tmp/poc in all sandboxes
-        all_sandboxes = task.aigise_session.sandboxes.list_sandboxes()
+        all_sandboxes = task.opensage_session.sandboxes.list_sandboxes()
         for sandbox_type, sandbox in all_sandboxes.items():
             sandbox.run_command_in_container("rm -rf /tmp/poc")
             logger.info(f"Cleaned /tmp/poc in sandbox: {sandbox_type}")
@@ -161,7 +160,7 @@ class CyberGym(Evaluation):
             shutil.rmtree(task.initial_data_dir)
 
     def _get_config_template_variables(self, task: EvaluationTask):
-        """Register AigiseSession with task-specific config.
+        """Register OpenSageSession with task-specific config.
 
         Args:
             task: EvaluationTask containing session_id and config_template_path

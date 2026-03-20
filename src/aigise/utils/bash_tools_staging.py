@@ -17,13 +17,13 @@ import tempfile
 from pathlib import Path
 from typing import Any, Iterator, Optional, Set, Union
 
-from aigise.utils.project_info import PROJECT_PATH
+from opensage.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
 
 # Built-in and plugin bash tools roots (host paths).
-BUILTIN_BASH_TOOLS_ROOT = Path(PROJECT_PATH) / "src" / "aigise" / "bash_tools"
-PLUGIN_BASH_TOOLS_ROOT = Path.home() / ".local" / "aigise" / "bash_tools"
+BUILTIN_BASH_TOOLS_ROOT = Path(PROJECT_PATH) / "src" / "opensage" / "bash_tools"
+PLUGIN_BASH_TOOLS_ROOT = Path.home() / ".local" / "opensage" / "bash_tools"
 
 
 EnabledSkills = Optional[Union[list[str], str]]
@@ -186,7 +186,7 @@ def build_bash_tools_staging_dir(
 
     Any path conflict causes an exception and refuses to overwrite.
     """
-    with tempfile.TemporaryDirectory(prefix="aigise-bash-tools-staging-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="opensage-bash-tools-staging-") as tmp:
         staging = Path(tmp)
         staging.mkdir(parents=True, exist_ok=True)
 

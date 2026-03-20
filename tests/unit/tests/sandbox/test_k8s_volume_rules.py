@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from aigise.config import ContainerConfig
-from aigise.sandbox.k8s_sandbox import K8sSandbox
+from opensage.config import ContainerConfig
+from opensage.sandbox.k8s_sandbox import K8sSandbox
 
 
 def test_materialize_volume_defs_uses_hostpath_for_absolute_source():

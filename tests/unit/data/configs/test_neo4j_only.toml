@@ -25,7 +25,7 @@ absolute_shared_data_path = "tests/unit/data/arvo_51603_vul_code.tar.gz"
 # Main sandbox configuration
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/main/Dockerfile"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/main/Dockerfile"
 timeout = 300
 [sandbox.sandboxes.main.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"

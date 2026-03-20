@@ -9,7 +9,7 @@ backend = "native"
 
 [sandbox.sandboxes.main]
 image = "ubuntu:20.04_main"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/main/Dockerfile"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/main/Dockerfile"
 timeout = 300
 
 [sandbox.sandboxes.main.build_args]

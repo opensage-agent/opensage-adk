@@ -6,13 +6,13 @@ Provides seamless integration between AIgiSE agents and RL framework rollout sys
 
 Architecture:
     - Client: Manages agent configuration and model setup
-    - RLSession: Wraps AigiseSession with framework-specific generate methods
+    - RLSession: Wraps OpenSageSession with framework-specific generate methods
     - Adapters: Framework-specific logic for sample handling
 
 Usage:
-    import aigise
+    import opensage
 
-    client = aigise.create(agent_name, benchmark_name)
+    client = opensage.create(agent_name, benchmark_name)
     with client.init_session() as session:
         # For slime
         sample = await session.slime_generate(args, sample, sampling_params)

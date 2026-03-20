@@ -5,9 +5,8 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from aigise.toolbox.general.bash_task_manager import Task, TaskStatus
-from aigise.toolbox.general.bash_tools_interface import (
+from opensage.toolbox.general.bash_task_manager import Task, TaskStatus
+from opensage.toolbox.general.bash_tools_interface import (
     BashToolMetadata,
     get_background_task_output,
     list_available_scripts,
@@ -102,14 +101,14 @@ class TestRunBashToolScript:
     ):
         """Test run_bash_tool_script with tool_context."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
 
         with (
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context"
+                "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context"
             ) as mock_get_sandbox,
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_aigise_session"
+                "opensage.toolbox.general.bash_tools_interface.get_opensage_session"
             ) as mock_get_session,
         ):
             mock_get_sandbox.return_value = mock_sandbox
@@ -300,7 +299,7 @@ class TestListAvailableScripts:
         )
 
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context",
+            "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context",
             return_value=mock_sandbox,
         ):
             result = list_available_scripts(tool_context=mock_context)
@@ -331,7 +330,7 @@ class TestListAvailableScripts:
             }
         )
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context",
+            "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context",
             return_value=mock_sandbox,
         ):
             result = list_available_scripts(
@@ -360,7 +359,7 @@ class TestListAvailableScripts:
             }
         )
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context",
+            "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context",
             return_value=mock_sandbox,
         ):
             result = list_available_scripts(
@@ -376,7 +375,7 @@ class TestListAvailableScripts:
         mock_sandbox = self._make_mock_sandbox({})
 
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context",
+            "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context",
             return_value=mock_sandbox,
         ):
             result = list_available_scripts(tool_context=mock_context)
@@ -407,14 +406,14 @@ class TestRunTerminalCommand:
     def test_run_terminal_command_foreground(self, mock_sandbox, mock_task_manager):
         """Test run_terminal_command in foreground."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
 
         with (
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context"
+                "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context"
             ) as mock_get_sandbox,
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_aigise_session"
+                "opensage.toolbox.general.bash_tools_interface.get_opensage_session"
             ) as mock_get_session,
         ):
             mock_get_sandbox.return_value = mock_sandbox
@@ -436,14 +435,14 @@ class TestRunTerminalCommand:
     def test_run_terminal_command_background(self, mock_sandbox, mock_task_manager):
         """Test run_terminal_command in background."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
 
         with (
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context"
+                "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context"
             ) as mock_get_sandbox,
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_aigise_session"
+                "opensage.toolbox.general.bash_tools_interface.get_opensage_session"
             ) as mock_get_session,
         ):
             mock_get_sandbox.return_value = mock_sandbox
@@ -467,15 +466,15 @@ class TestRunTerminalCommand:
     def test_run_terminal_command_timeout(self, mock_sandbox, mock_task_manager):
         """Test run_terminal_command with timeout."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
         mock_task_manager.wait_for_task.return_value = False  # Timeout
 
         with (
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context"
+                "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context"
             ) as mock_get_sandbox,
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_aigise_session"
+                "opensage.toolbox.general.bash_tools_interface.get_opensage_session"
             ) as mock_get_session,
         ):
             mock_get_sandbox.return_value = mock_sandbox
@@ -497,10 +496,10 @@ class TestRunTerminalCommand:
     def test_run_terminal_command_sandbox_error(self):
         """Test run_terminal_command when sandbox retrieval fails."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
 
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context"
+            "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context"
         ) as mock_get_sandbox:
             mock_get_sandbox.side_effect = Exception("Sandbox not found")
 
@@ -515,15 +514,15 @@ class TestRunTerminalCommand:
     def test_run_terminal_command_json_output(self, mock_sandbox, mock_task_manager):
         """Test run_terminal_command with JSON output."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
         mock_task_manager.get_task_output.return_value = '{"key": "value"}'
 
         with (
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context"
+                "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context"
             ) as mock_get_sandbox,
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_aigise_session"
+                "opensage.toolbox.general.bash_tools_interface.get_opensage_session"
             ) as mock_get_session,
         ):
             mock_get_sandbox.return_value = mock_sandbox
@@ -548,10 +547,10 @@ class TestListBackgroundTasks:
     def test_list_background_tasks_no_tasks(self):
         """Test list_background_tasks when no tasks exist."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
 
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.get_aigise_session"
+            "opensage.toolbox.general.bash_tools_interface.get_opensage_session"
         ) as mock_get_session:
             # Create a mock session without bash_tasks attribute
             # Use a regular object instead of MagicMock to avoid auto-attributes
@@ -570,7 +569,7 @@ class TestListBackgroundTasks:
     def test_list_background_tasks_with_tasks(self):
         """Test list_background_tasks with existing tasks."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
 
         mock_task_manager = MagicMock()
         task_1 = Task(
@@ -591,10 +590,10 @@ class TestListBackgroundTasks:
 
         with (
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_aigise_session"
+                "opensage.toolbox.general.bash_tools_interface.get_opensage_session"
             ) as mock_get_session,
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context"
+                "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context"
             ) as mock_get_sandbox,
         ):
             mock_session = MagicMock()
@@ -615,7 +614,7 @@ class TestGetBackgroundTaskOutput:
     def test_get_background_task_output_success(self):
         """Test get_background_task_output with successful task."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
 
         mock_task_manager = MagicMock()
         task_123 = Task(
@@ -641,10 +640,10 @@ class TestGetBackgroundTaskOutput:
 
         with (
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_aigise_session"
+                "opensage.toolbox.general.bash_tools_interface.get_opensage_session"
             ) as mock_get_session,
             patch(
-                "aigise.toolbox.general.bash_tools_interface.get_sandbox_from_context"
+                "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context"
             ) as mock_get_sandbox,
         ):
             mock_session = MagicMock()
@@ -665,13 +664,13 @@ class TestGetBackgroundTaskOutput:
     def test_get_background_task_output_not_found(self):
         """Test get_background_task_output when task doesn't exist."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
 
         mock_task_manager = MagicMock()
         mock_task_manager.tasks = {}
 
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.get_aigise_session"
+            "opensage.toolbox.general.bash_tools_interface.get_opensage_session"
         ) as mock_get_session:
             mock_session = MagicMock()
             mock_session.bash_tasks = mock_task_manager
@@ -688,10 +687,10 @@ class TestGetBackgroundTaskOutput:
     def test_get_background_task_output_no_manager(self):
         """Test get_background_task_output when no task manager exists."""
         mock_context = MagicMock()
-        mock_context.state = {"aigise_session_id": "test_session"}
+        mock_context.state = {"opensage_session_id": "test_session"}
 
         with patch(
-            "aigise.toolbox.general.bash_tools_interface.get_aigise_session"
+            "opensage.toolbox.general.bash_tools_interface.get_opensage_session"
         ) as mock_get_session:
             # Create a mock session without bash_tasks attribute
             # Use a regular object instead of MagicMock to avoid auto-attributes

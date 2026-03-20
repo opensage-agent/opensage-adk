@@ -65,7 +65,7 @@ cat /opt/sage/.env
 tar -xzf /tmp/agent.tar.gz -C /opt/sage
 cd /opt/sage
 uv sync
-SAGE_NO_DOCKER=1 uv run aigise --help
+SAGE_NO_DOCKER=1 uv run opensage --help
 
 echo "[*] Patch google adk"
 

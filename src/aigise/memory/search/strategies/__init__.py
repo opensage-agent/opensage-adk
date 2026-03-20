@@ -1,9 +1,9 @@
 """Search strategies for the memory system."""
 
-from aigise.memory.search.strategies.base_strategy import SearchStrategy
-from aigise.memory.search.strategies.embedding_search import EmbeddingSearchStrategy
-from aigise.memory.search.strategies.keyword_search import KeywordSearchStrategy
-from aigise.memory.search.strategies.title_browse import TitleBrowseStrategy
+from opensage.memory.search.strategies.base_strategy import SearchStrategy
+from opensage.memory.search.strategies.embedding_search import EmbeddingSearchStrategy
+from opensage.memory.search.strategies.keyword_search import KeywordSearchStrategy
+from opensage.memory.search.strategies.title_browse import TitleBrowseStrategy
 
 STRATEGY_REGISTRY = {
     "embedding_search": EmbeddingSearchStrategy,

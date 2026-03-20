@@ -6,14 +6,14 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from aigise.config.config_dataclass import MemoryConfig
+    from opensage.config.config_dataclass import MemoryConfig
 
 
 @dataclass
 class MemorySettings:
     """Configuration settings for the memory module.
 
-    These settings are loaded from the TOML configuration file via AigiseConfig.
+    These settings are loaded from the TOML configuration file via OpenSageConfig.
     The [memory] section in config controls these values.
     """
 
@@ -43,7 +43,7 @@ class MemorySettings:
         """Create MemorySettings from a MemoryConfig dataclass.
 
         Args:
-            memory_config: The MemoryConfig from AigiseConfig.
+            memory_config: The MemoryConfig from OpenSageConfig.
 
         Returns:
             MemorySettings instance with values from config.
@@ -79,10 +79,10 @@ def configure_memory_from_config(memory_config: "MemoryConfig") -> MemorySetting
     """Configure memory settings from a MemoryConfig dataclass.
 
     This is typically called during session initialization with the
-    memory config from AigiseConfig.
+    memory config from OpenSageConfig.
 
     Args:
-        memory_config: The MemoryConfig from AigiseConfig.
+        memory_config: The MemoryConfig from OpenSageConfig.
 
     Returns:
         MemorySettings: The configured settings instance.

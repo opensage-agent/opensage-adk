@@ -3,14 +3,13 @@ import os
 from typing import Optional
 
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.sandbox.base_sandbox import BaseSandbox
-from aigise.session.neo4j_client import AsyncNeo4jClient
-from aigise.toolbox.coverage.llvm_cov import parse_llvm_coverage_json
-from aigise.toolbox.sandbox_requirements import requires_sandbox
-from aigise.utils.agent_utils import (
-    get_aigise_config_from_context,
+from opensage.sandbox.base_sandbox import BaseSandbox
+from opensage.session.neo4j_client import AsyncNeo4jClient
+from opensage.toolbox.coverage.llvm_cov import parse_llvm_coverage_json
+from opensage.toolbox.sandbox_requirements import requires_sandbox
+from opensage.utils.agent_utils import (
     get_neo4j_client_from_context,
+    get_opensage_config_from_context,
     get_sandbox_from_context,
 )
 
@@ -27,7 +26,7 @@ def get_testcase_storage_dir(testcase_id: str) -> str:
         str: The storage path for the testcase.
     """
     return (
-        f"/shared/.aigise/coverage/{testcase_id[:2]}/{testcase_id[2:4]}/{testcase_id}"
+        f"/shared/.opensage/coverage/{testcase_id[:2]}/{testcase_id[2:4]}/{testcase_id}"
     )
 
 
@@ -121,7 +120,7 @@ async def run_coverage(testcase_path: str, *, tool_context: ToolContext) -> dict
     Returns:
         dict: A dictionary containing the id of the input file and the summarized coverage results.
     """
-    target_binary = get_aigise_config_from_context(tool_context).build.target_binary
+    target_binary = get_opensage_config_from_context(tool_context).build.target_binary
     cov_sandbox = get_sandbox_from_context(tool_context, "coverage")
     testcase_id, saved_testcase_dir = save_testcase(cov_sandbox, testcase_path)
     saved_testcase_path = os.path.join(saved_testcase_dir, "testcase")
@@ -175,7 +174,7 @@ async def show_coverage(
     profdata_path = os.path.join(
         get_testcase_storage_dir(testcase_id), "testcase.profdata"
     )
-    target_binary = get_aigise_config_from_context(tool_context).build.target_binary
+    target_binary = get_opensage_config_from_context(tool_context).build.target_binary
 
     if file_path:
         filename = os.path.basename(file_path)

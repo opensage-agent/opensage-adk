@@ -32,7 +32,7 @@ async def _record_agent_call(
     tool_context: ToolContext,
 ):
     # Lazy import to avoid circular imports during bootstrap
-    from aigise.utils.neo4j_history_management import (  # type: ignore
+    from opensage.utils.neo4j_history_management import (  # type: ignore
         create_agent_call_relation,
     )
 
@@ -81,7 +81,7 @@ async def _record_agent_call(
 async def _wrapped_base_agent_run(self, invocation_context):
     logging_enabled = _enabled
     if logging_enabled:
-        from aigise.utils.neo4j_history_management import (  # type: ignore
+        from opensage.utils.neo4j_history_management import (  # type: ignore
             find_agent_run_by_session_id,
             log_single_event_neo4j,
             record_agent_end,
@@ -201,8 +201,8 @@ def apply() -> None:
                 role="user",
                 parts=[types.Part.from_text(text=args["request"])],
             )
-        from aigise.features.aigise_in_memory_session_service import (
-            AigiseInMemorySessionService,
+        from opensage.features.opensage_in_memory_session_service import (
+            OpenSageInMemorySessionService,
         )
 
         parent_plugins = []
@@ -222,7 +222,7 @@ def apply() -> None:
         runner = Runner(
             app=agentic_app,
             artifact_service=ForwardingArtifactService(tool_context),
-            session_service=AigiseInMemorySessionService(),
+            session_service=OpenSageInMemorySessionService(),
             memory_service=InMemoryMemoryService(),
             credential_service=tool_context._invocation_context.credential_service,
         )

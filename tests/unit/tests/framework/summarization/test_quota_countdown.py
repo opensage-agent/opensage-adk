@@ -2,8 +2,7 @@ import types as _types
 
 import pytest
 from google.adk.agents.run_config import RunConfig
-
-from aigise.features.summarization import (
+from opensage.features.summarization import (
     quota_after_tool_callback,
     tool_response_summarizer_callback,
 )
@@ -93,15 +92,15 @@ async def test_tool_response_summarizer_callback_appends_quota_line(monkeypatch)
     class _Sess:
         config = _Cfg()
 
-    import aigise.features.summarization as summ
+    import opensage.features.summarization as summ
 
     monkeypatch.setattr(
-        summ, "get_aigise_session_id_from_context", lambda tc: "sid", raising=True
+        summ, "get_opensage_session_id_from_context", lambda tc: "sid", raising=True
     )
-    import aigise.session as sess_mod
+    import opensage.session as sess_mod
 
     monkeypatch.setattr(
-        sess_mod, "get_aigise_session", lambda sid: _Sess(), raising=True
+        sess_mod, "get_opensage_session", lambda sid: _Sess(), raising=True
     )
 
     async def _fake_get_summary_async(model, llm_request):

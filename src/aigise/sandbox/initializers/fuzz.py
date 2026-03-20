@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 import re
 
-from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
-from aigise.utils.project_info import PROJECT_PATH
+from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.utils.project_info import PROJECT_PATH
 
 from .base import SandboxInitializer
 
@@ -25,7 +25,7 @@ class FuzzInitializer(SandboxInitializer):
         assert "main" in all_sandboxes
 
         logger.info(
-            f"Async initializing fuzzing environment for session {self.aigise_session_id}..."
+            f"Async initializing fuzzing environment for session {self.opensage_session_id}..."
         )
 
         try:

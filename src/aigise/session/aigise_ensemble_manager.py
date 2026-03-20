@@ -1,5 +1,5 @@
 """
-AigiseEnsembleManager: Session-specific agent ensemble management
+OpenSageEnsembleManager: Session-specific agent ensemble management
 
 This module provides session-bound agent ensemble management, replacing the global
 AgentEnsembleManager with session-isolated ensemble handling.
@@ -21,11 +21,10 @@ from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.session.aigise_dynamic_agent_manager import DynamicAgentManager
-from aigise.session.message_board import message_board_context
-from aigise.utils.agent_utils import (
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.session.message_board import message_board_context
+from opensage.session.opensage_dynamic_agent_manager import DynamicAgentManager
+from opensage.utils.agent_utils import (
     INHERIT_MODEL,
     _copy_agent_with_updated_model_v2,
     extract_tools_from_agent,
@@ -47,28 +46,28 @@ class EnsembleAgentInfo:
     agent_instance: Optional[BaseAgent] = None
     source_path: Optional[str] = None  # For tracking where the agent was found
     enabled_skills: Optional[Union[List[str], str]] = (
-        None  # enabled_skills from AigiseAgent
+        None  # enabled_skills from OpenSageAgent
     )
 
 
-class AigiseEnsembleManager:
+class OpenSageEnsembleManager:
     """Session-specific manager for agent ensemble functionality.
 
-    Each AigiseSession gets its own AigiseEnsembleManager instance,
+    Each OpenSageSession gets its own OpenSageEnsembleManager instance,
     ensuring complete ensemble configuration isolation between sessions.
     """
 
     def __init__(self, session):
-        """Initialize AigiseEnsembleManager.
+        """Initialize OpenSageEnsembleManager.
 
         Args:
-            session: AigiseSession instance (stores reference, not copied)
+            session: OpenSageSession instance (stores reference, not copied)
         """
         self._session = session
-        self.aigise_session_id = session.aigise_session_id
+        self.opensage_session_id = session.opensage_session_id
 
         logger.info(
-            f"Created AigiseEnsembleManager for session: {session.aigise_session_id}"
+            f"Created OpenSageEnsembleManager for session: {session.opensage_session_id}"
         )
 
     @property
@@ -98,7 +97,7 @@ class AigiseEnsembleManager:
 
         config.agent_ensemble.thread_safe_tools.add(tool_name)
         logger.info(
-            f"Added thread-safe tool: {tool_name} to session {self.aigise_session_id}"
+            f"Added thread-safe tool: {tool_name} to session {self.opensage_session_id}"
         )
 
     def add_thread_safe_tools(self, tool_names: List[str]) -> None:
@@ -111,7 +110,7 @@ class AigiseEnsembleManager:
 
         config.agent_ensemble.thread_safe_tools.update(tool_names)
         logger.info(
-            f"Added {len(tool_names)} thread-safe tools to session {self.aigise_session_id}"
+            f"Added {len(tool_names)} thread-safe tools to session {self.opensage_session_id}"
         )
 
     def remove_thread_safe_tool(self, tool_name: str) -> bool:
@@ -123,7 +122,7 @@ class AigiseEnsembleManager:
         if tool_name in config.agent_ensemble.thread_safe_tools:
             config.agent_ensemble.thread_safe_tools.remove(tool_name)
             logger.info(
-                f"Removed thread-safe tool: {tool_name} from session {self.aigise_session_id}"
+                f"Removed thread-safe tool: {tool_name} from session {self.opensage_session_id}"
             )
             return True
         return False
@@ -167,22 +166,22 @@ class AigiseEnsembleManager:
 
             current_path = f"{path}.sub_agents[{i}]" if path else f"sub_agents[{i}]"
 
-            # Only include AigiseAgent subagents (ensemble only supports AigiseAgent)
-            if isinstance(sub_agent, AigiseAgent):
+            # Only include OpenSageAgent subagents (ensemble only supports OpenSageAgent)
+            if isinstance(sub_agent, OpenSageAgent):
                 tools = self._extract_tool_names_from_agent(sub_agent)
                 model = (
                     str(sub_agent.model)
                     if hasattr(sub_agent, "model") and sub_agent.model
                     else "default"
                 )
-                # Extract enabled_skills from AigiseAgent
+                # Extract enabled_skills from OpenSageAgent
                 enabled_skills = getattr(sub_agent, "_enabled_skills", None)
 
                 discovered.append(
                     EnsembleAgentInfo(
                         name=sub_agent.name,
                         description=sub_agent.description
-                        or f"AigiseAgent subagent: {sub_agent.name}",
+                        or f"OpenSageAgent subagent: {sub_agent.name}",
                         tools=tools,
                         model=model,
                         agent_type="adk_subagent",
@@ -219,22 +218,22 @@ class AigiseEnsembleManager:
                     f"{path}.tools[{i}].agent" if path else f"tools[{i}].agent"
                 )
 
-                # Only include AigiseAgent instances in AgentTools (ensemble only supports AigiseAgent)
-                if isinstance(tool_agent, AigiseAgent):
+                # Only include OpenSageAgent instances in AgentTools (ensemble only supports OpenSageAgent)
+                if isinstance(tool_agent, OpenSageAgent):
                     tools = self._extract_tool_names_from_agent(tool_agent)
                     model = (
                         str(tool_agent.model)
                         if hasattr(tool_agent, "model") and tool_agent.model
                         else "default"
                     )
-                    # Extract enabled_skills from AigiseAgent
+                    # Extract enabled_skills from OpenSageAgent
                     enabled_skills = getattr(tool_agent, "_enabled_skills", None)
 
                     discovered.append(
                         EnsembleAgentInfo(
                             name=tool_agent.name,
                             description=tool_agent.description
-                            or f"AgentTool AigiseAgent: {tool_agent.name}",
+                            or f"AgentTool OpenSageAgent: {tool_agent.name}",
                             tools=tools,
                             model=model,
                             agent_type="agent_tool",
@@ -267,7 +266,7 @@ class AigiseEnsembleManager:
 
         logger.info(
             f"Discovered {len(discovered)} static agents from root agent '{root_agent.name}' "
-            f"in session {self.aigise_session_id}"
+            f"in session {self.opensage_session_id}"
         )
         return discovered
 
@@ -330,7 +329,7 @@ class AigiseEnsembleManager:
         static_agents = self.discover_all_static_agents(current_agent)
         filtered_static = self.filter_thread_safe_agents(static_agents)
         logger.info(
-            f"Filtered static agents in session {self.aigise_session_id}: {len(filtered_static['safe_agents'])} safe, {len(filtered_static['unsafe_agents'])} unsafe"
+            f"Filtered static agents in session {self.opensage_session_id}: {len(filtered_static['safe_agents'])} safe, {len(filtered_static['unsafe_agents'])} unsafe"
         )
 
         result["static_agents"] = static_agents
@@ -351,15 +350,15 @@ class AigiseEnsembleManager:
                 dynamic_agents = []
                 for agent_metadata in all_dynamic:
                     agent_instance = self.agent_manager.get_agent(agent_metadata.id)
-                    # Only include AigiseAgent instances (ensemble only supports AigiseAgent)
-                    if agent_instance and isinstance(agent_instance, AigiseAgent):
+                    # Only include OpenSageAgent instances (ensemble only supports OpenSageAgent)
+                    if agent_instance and isinstance(agent_instance, OpenSageAgent):
                         tools = self._extract_tool_names_from_agent(agent_instance)
                         model = (
                             agent_metadata.config.get("model", "default")
                             if agent_metadata.config
                             else "default"
                         )
-                        # Extract enabled_skills from AigiseAgent
+                        # Extract enabled_skills from OpenSageAgent
                         enabled_skills = getattr(
                             agent_instance, "_enabled_skills", None
                         )
@@ -380,7 +379,7 @@ class AigiseEnsembleManager:
 
                 filtered_dynamic = self.filter_thread_safe_agents(dynamic_agents)
                 logger.info(
-                    f"Filtered dynamic agents in session {self.aigise_session_id}: {len(filtered_dynamic['safe_agents'])} safe, {len(filtered_dynamic['unsafe_agents'])} unsafe"
+                    f"Filtered dynamic agents in session {self.opensage_session_id}: {len(filtered_dynamic['safe_agents'])} safe, {len(filtered_dynamic['unsafe_agents'])} unsafe"
                 )
                 result["dynamic_agents"] = dynamic_agents
                 result["safe_agents"].extend(filtered_dynamic["safe_agents"])
@@ -388,12 +387,12 @@ class AigiseEnsembleManager:
 
             except Exception as e:
                 logger.warning(
-                    f"Failed to include dynamic agents in session {self.aigise_session_id}: {e}"
+                    f"Failed to include dynamic agents in session {self.opensage_session_id}: {e}"
                 )
 
         # Generate summary
         result["summary"] = {
-            "aigise_session_id": self.aigise_session_id,
+            "opensage_session_id": self.opensage_session_id,
             "total_static_agents": len(static_agents),
             "total_dynamic_agents": len(result["dynamic_agents"]),
             "total_safe_agents": len(result["safe_agents"]),
@@ -433,15 +432,15 @@ class AigiseEnsembleManager:
         Returns:
             Dictionary with success status and aggregated response or error details
         """
-        from aigise.agents.aigise_agent import AigiseAgent
+        from opensage.agents.opensage_agent import OpenSageAgent
 
-        # Validate that target agent is AigiseAgent
+        # Validate that target agent is OpenSageAgent
         if not target_agent_info.agent_instance or not isinstance(
-            target_agent_info.agent_instance, AigiseAgent
+            target_agent_info.agent_instance, OpenSageAgent
         ):
             return {
                 "success": False,
-                "error": f"Agent '{target_agent_info.name}' must be an AigiseAgent instance for ensemble. Got: {type(target_agent_info.agent_instance)}",
+                "error": f"Agent '{target_agent_info.name}' must be an OpenSageAgent instance for ensemble. Got: {type(target_agent_info.agent_instance)}",
             }
 
         board_id = f"ensemble_{uuid.uuid4().hex[:12]}"
@@ -504,10 +503,10 @@ Please provide your unique perspective and analysis. Consider that other agents 
                         setattr(agent_with_model, "_instance_id", instance_id)
 
                         # Ensure message board posting tool exists for all ensemble instances.
-                        from aigise.toolbox.general.message_board_tools import (
+                        from opensage.toolbox.general.message_board_tools import (
                             post_to_board,
                         )
-                        from aigise.toolbox.tool_normalization import (
+                        from opensage.toolbox.tool_normalization import (
                             make_tool_safe_dict,
                         )
 
@@ -561,7 +560,7 @@ Please provide your unique perspective and analysis. Consider that other agents 
                         print(
                             f"Warning: Failed to create agent with model {model_name}, using original agent: {e}"
                         )
-                        from aigise.toolbox.general.dynamic_subagent import (
+                        from opensage.toolbox.general.dynamic_subagent import (
                             call_subagent_as_tool,
                         )
 
@@ -702,6 +701,6 @@ Final aggregated response:
     def cleanup(self) -> None:
         """Cleanup ensemble manager resources for this session."""
         logger.info(
-            f"Cleaning up AigiseEnsembleManager for session {self.aigise_session_id}"
+            f"Cleaning up OpenSageEnsembleManager for session {self.opensage_session_id}"
         )
         # No specific cleanup needed for ensemble manager

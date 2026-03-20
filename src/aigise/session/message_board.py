@@ -36,13 +36,13 @@ class MessageBoardManager:
         if board_id:
             root = (
                 Path(base_dir)
-                / "aigise_message_board"
+                / "opensage_message_board"
                 / session_id
                 / "boards"
                 / board_id
             )
         else:
-            root = Path(base_dir) / "aigise_message_board" / session_id
+            root = Path(base_dir) / "opensage_message_board" / session_id
         self._paths = MessageBoardPaths(
             board_path=root / "board.jsonl",
             lock_path=root / "board.lock",
@@ -193,7 +193,7 @@ class MessageBoardManager:
 
 
 _MESSAGE_BOARD_ID: contextvars.ContextVar[str | None] = contextvars.ContextVar(
-    "aigise_message_board_id", default=None
+    "opensage_message_board_id", default=None
 )
 
 

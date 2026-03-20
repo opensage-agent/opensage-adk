@@ -44,9 +44,9 @@ from google.adk.models import BaseLlm
 from .base import BaseAdapter
 
 if TYPE_CHECKING:
-    from aigise.evaluation.base import Evaluation
-    from aigise.evaluation.rl_adapters.benchmark_interface import BenchmarkInterface
-    from aigise.session import AigiseSession
+    from opensage.evaluation.base import Evaluation
+    from opensage.evaluation.rl_adapters.benchmark_interface import BenchmarkInterface
+    from opensage.session import OpenSageSession
 
 logger = logging.getLogger(__name__)
 

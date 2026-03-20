@@ -3,8 +3,7 @@ from __future__ import annotations
 from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.features import summarization
+from opensage.features import summarization
 
 
 class HistorySummarizerPlugin(BasePlugin):

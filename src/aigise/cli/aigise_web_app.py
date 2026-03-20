@@ -47,7 +47,7 @@ from opentelemetry.sdk.trace import export as export_lib
 from pydantic import ValidationError
 from starlette.types import Lifespan
 
-logger = logging.getLogger("aigise." + __name__)
+logger = logging.getLogger("opensage." + __name__)
 
 
 class _InMemoryExporter(export_lib.SpanExporter):
@@ -83,7 +83,7 @@ class _InMemoryExporter(export_lib.SpanExporter):
         self._spans.clear()
 
 
-class AigiseWebServer:
+class OpenSageWebServer:
     """Single-agent FastAPI server reusing provided agent and services.
 
     - Binds to a single app_name and prebuilt `root_agent`

@@ -6,8 +6,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from aigise.memory.schema.node_types import NodeTypeConfig
-from aigise.memory.schema.relationship_types import RelationshipConfig
+from opensage.memory.schema.node_types import NodeTypeConfig
+from opensage.memory.schema.relationship_types import RelationshipConfig
 
 logger = logging.getLogger(__name__)
 

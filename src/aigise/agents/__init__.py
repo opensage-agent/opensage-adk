@@ -1,3 +1,3 @@
-from .aigise_agent import AigiseAgent
+from .opensage_agent import OpenSageAgent
 
-__all__ = ["AigiseAgent"]
+__all__ = ["OpenSageAgent"]

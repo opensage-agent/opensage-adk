@@ -6,8 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from aigise.config.config_dataclass import ContainerConfig
-from aigise.sandbox.base_sandbox import BaseSandbox
+from opensage.config.config_dataclass import ContainerConfig
+from opensage.sandbox.base_sandbox import BaseSandbox
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class LocalSandbox(BaseSandbox):
     def __init__(
         self,
         container_config: ContainerConfig,
-        aigise_session_id: str = None,
+        opensage_session_id: str = None,
         backend_type: str = None,
         sandbox_type: str = None,
     ):
@@ -26,7 +26,7 @@ class LocalSandbox(BaseSandbox):
             f"LocalSandbox must have backend_type 'local', got {backend_type}"
         )
         super().__init__(
-            container_config, aigise_session_id, backend_type, sandbox_type
+            container_config, opensage_session_id, backend_type, sandbox_type
         )
 
     def copy_file_from_container(self, src_path: str, dst_path: str):

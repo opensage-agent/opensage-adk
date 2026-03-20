@@ -13,11 +13,14 @@ from typing import Optional
 import docker
 import pytest
 from docker.errors import APIError, ImageNotFound, NotFound
-
-from aigise.config.config_dataclass import AigiseConfig, ContainerConfig, SandboxConfig
-from aigise.sandbox.base_sandbox import SandboxState
-from aigise.session import AigiseSessionRegistry, get_aigise_session
-from aigise.session.aigise_sandbox_manager import AigiseSandboxManager
+from opensage.config.config_dataclass import (
+    ContainerConfig,
+    OpenSageConfig,
+    SandboxConfig,
+)
+from opensage.sandbox.base_sandbox import SandboxState
+from opensage.session import OpenSageSessionRegistry, get_opensage_session
+from opensage.session.opensage_sandbox_manager import OpenSageSandboxManager
 
 
 @dataclass
@@ -29,8 +32,8 @@ class SandboxBackendScenario:
     def ensure_available(self) -> None:  # pragma: no cover - implemented by subclasses
         raise NotImplementedError
 
-    def build_config(self) -> AigiseConfig:
-        config = AigiseConfig()
+    def build_config(self) -> OpenSageConfig:
+        config = OpenSageConfig()
         config.task_name = f"{self.name}_test_task"
         # For tests that involve attaching to the "main" sandbox, we want the
         # main container to have python3 and the neo4j python package available
@@ -38,7 +41,7 @@ class SandboxBackendScenario:
         # main image from the project Dockerfile.
         main_config = ContainerConfig(
             image=f"{self.default_image}_main",
-            project_relative_dockerfile_path="src/aigise/templates/dockerfiles/main/Dockerfile",
+            project_relative_dockerfile_path="src/opensage/templates/dockerfiles/main/Dockerfile",
             build_args={"BASE_IMAGE": self.default_image},
             environment={"TEST_ENV": "main"},
             timeout=30,
@@ -62,7 +65,7 @@ class SandboxBackendScenario:
         self,
         scripts_volume_id: Optional[str],
         data_volume_id: Optional[str],
-        config: Optional[AigiseConfig],
+        config: Optional[OpenSageConfig],
     ) -> None:  # pragma: no cover - implemented by subclasses
         raise NotImplementedError
 
@@ -86,7 +89,7 @@ class NativeScenario(SandboxBackendScenario):
         self,
         scripts_volume_id: Optional[str],
         data_volume_id: Optional[str],
-        config: Optional[AigiseConfig],
+        config: Optional[OpenSageConfig],
     ) -> None:
         client = docker.from_env()
         for volume_id in [scripts_volume_id, data_volume_id]:
@@ -122,7 +125,7 @@ class K8sScenario(SandboxBackendScenario):
     def __init__(self) -> None:
         super().__init__(name="k8s", backend="k8s")
 
-    def build_config(self) -> AigiseConfig:
+    def build_config(self) -> OpenSageConfig:
         # Start from base config (backend=k8s, main/worker containers)
         config = super().build_config()
         # Inject global tolerations for tests to allow scheduling on tainted single-node clusters
@@ -163,7 +166,7 @@ class K8sScenario(SandboxBackendScenario):
             stderr = exc.stderr.decode("utf-8", errors="ignore") if exc.stderr else ""
             pytest.skip(f"Kubernetes cluster not reachable: {stderr.strip()}")
 
-    def _resolve_namespace(self, config: Optional[AigiseConfig]) -> str:
+    def _resolve_namespace(self, config: Optional[OpenSageConfig]) -> str:
         if config and config.sandbox and config.sandbox.sandboxes:
             values = set()
             for container in config.sandbox.sandboxes.values():
@@ -174,7 +177,7 @@ class K8sScenario(SandboxBackendScenario):
                         values.add(value)
             if len(values) == 1:
                 return values.pop()
-        env_value = os.getenv("AIGISE_K8S_NAMESPACE")
+        env_value = os.getenv("OPENSAGE_K8S_NAMESPACE")
         if env_value:
             return env_value
         return "default"
@@ -183,7 +186,7 @@ class K8sScenario(SandboxBackendScenario):
         self,
         scripts_volume_id: Optional[str],
         data_volume_id: Optional[str],
-        config: Optional[AigiseConfig],
+        config: Optional[OpenSageConfig],
     ) -> None:
         namespace = self._resolve_namespace(config)
         for volume_id in [scripts_volume_id, data_volume_id]:
@@ -256,7 +259,7 @@ async def test_shared_volume_initialization_and_launch(
     session_id = sandbox_scenario.generate_session_id()
     scripts_volume_id: Optional[str] = None
     shared_volume_id: Optional[str] = None
-    manager: Optional[AigiseSandboxManager] = None
+    manager: Optional[OpenSageSandboxManager] = None
 
     with tempfile.TemporaryDirectory() as temp_dir:
         test_file_path = Path(temp_dir) / "shared_test_file.txt"
@@ -266,10 +269,10 @@ async def test_shared_volume_initialization_and_launch(
         (nested_dir / "nested_file.txt").write_text("Nested shared data")
         config.sandbox.absolute_shared_data_path = temp_dir
 
-        # Use get_aigise_session to create session
-        aigise_session = get_aigise_session(session_id)
-        aigise_session.config = config
-        manager = aigise_session.sandboxes
+        # Use get_opensage_session to create session
+        opensage_session = get_opensage_session(session_id)
+        opensage_session.config = config
+        manager = opensage_session.sandboxes
         try:
             manager.initialize_shared_volumes()
             scripts_volume_id = manager._scripts_volume_id
@@ -343,9 +346,9 @@ async def test_attach_sandbox_native_docker(sandbox_scenario: SandboxBackendScen
     shared_volume_id: Optional[str] = None
 
     # Create source session and launch containers to attach to
-    aigise_session_src = get_aigise_session(session_id_src)
-    aigise_session_src.config = config_src
-    mgr_src: AigiseSandboxManager = aigise_session_src.sandboxes
+    opensage_session_src = get_opensage_session(session_id_src)
+    opensage_session_src.config = config_src
+    mgr_src: OpenSageSandboxManager = opensage_session_src.sandboxes
 
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -370,9 +373,9 @@ async def test_attach_sandbox_native_docker(sandbox_scenario: SandboxBackendScen
             # Create destination session and attach
             config_dst = sandbox_scenario.build_config()
             session_id_dst = sandbox_scenario.generate_session_id()
-            aigise_session_dst = get_aigise_session(session_id_dst)
-            aigise_session_dst.config = config_dst
-            mgr_dst: AigiseSandboxManager = aigise_session_dst.sandboxes
+            opensage_session_dst = get_opensage_session(session_id_dst)
+            opensage_session_dst.config = config_dst
+            mgr_dst: OpenSageSandboxManager = opensage_session_dst.sandboxes
 
             await mgr_dst.attach_sandbox("main", container_id=main_id)
             await mgr_dst.attach_sandbox("worker", container_id=worker_id)
@@ -388,7 +391,7 @@ async def test_attach_sandbox_native_docker(sandbox_scenario: SandboxBackendScen
             mgr_src.cleanup()
         except Exception:
             pass
-        AigiseSessionRegistry.remove_session(session_id_src)
+        OpenSageSessionRegistry.remove_session(session_id_src)
         # best-effort cleanup for created volumes
         try:
             client = docker.from_env()
@@ -412,9 +415,9 @@ async def test_attach_sandbox_k8s(sandbox_scenario: SandboxBackendScenario):
     session_id_src = sandbox_scenario.generate_session_id()
 
     # Create source session and launch pods to attach to
-    aigise_session_src = get_aigise_session(session_id_src)
-    aigise_session_src.config = config_src
-    mgr_src: AigiseSandboxManager = aigise_session_src.sandboxes
+    opensage_session_src = get_opensage_session(session_id_src)
+    opensage_session_src.config = config_src
+    mgr_src: OpenSageSandboxManager = opensage_session_src.sandboxes
 
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -436,9 +439,9 @@ async def test_attach_sandbox_k8s(sandbox_scenario: SandboxBackendScenario):
             # Create destination session and attach
             config_dst = sandbox_scenario.build_config()
             session_id_dst = sandbox_scenario.generate_session_id()
-            aigise_session_dst = get_aigise_session(session_id_dst)
-            aigise_session_dst.config = config_dst
-            mgr_dst: AigiseSandboxManager = aigise_session_dst.sandboxes
+            opensage_session_dst = get_opensage_session(session_id_dst)
+            opensage_session_dst.config = config_dst
+            mgr_dst: OpenSageSandboxManager = opensage_session_dst.sandboxes
 
             await mgr_dst.attach_sandbox(
                 "main", pod_name=pod_main, container_name=ctn_main
@@ -458,37 +461,37 @@ async def test_attach_sandbox_k8s(sandbox_scenario: SandboxBackendScenario):
             mgr_src.cleanup()
         except Exception:
             pass
-        AigiseSessionRegistry.remove_session(session_id_src)
+        OpenSageSessionRegistry.remove_session(session_id_src)
 
 
 # @pytest.mark.asyncio
 # async def test_cache_shared_volume_and_containers(
 #     sandbox_scenario: SandboxBackendScenario,
 # ):
-#     cache_dir_path = Path(tempfile.mkdtemp(prefix="aigise-cache-"))
-#     manager: Optional[AigiseSandboxManager] = None
-#     reloaded_manager: Optional[AigiseSandboxManager] = None
+#     cache_dir_path = Path(tempfile.mkdtemp(prefix="opensage-cache-"))
+#     manager: Optional[OpenSageSandboxManager] = None
+#     reloaded_manager: Optional[OpenSageSandboxManager] = None
 #     scripts_volume_id: Optional[str] = None
 #     shared_volume_id: Optional[str] = None
 #     reloaded_scripts_volume_id: Optional[str] = None
 #     reloaded_shared_volume_id: Optional[str] = None
 #     cache_result: Optional[dict] = None
 #     initial_config = sandbox_scenario.build_config()
-#     reloaded_config: Optional[AigiseConfig] = None
+#     reloaded_config: Optional[OpenSageConfig] = None
 #     reloaded_session_id: Optional[str] = None
 #     session_id: Optional[str] = None
 
 #     try:
-#         with tempfile.TemporaryDirectory(prefix="aigise-shared-") as temp_dir:
+#         with tempfile.TemporaryDirectory(prefix="opensage-shared-") as temp_dir:
 #             shared_path = Path(temp_dir)
 #             (shared_path / "initial_shared_data.txt").write_text("Initial shared data")
 #             initial_config.sandbox.absolute_shared_data_path = temp_dir
 #             session_id = sandbox_scenario.generate_session_id()
 
-#             # Use get_aigise_session to create session
-#             aigise_session = get_aigise_session(session_id)
-#             aigise_session.config = initial_config
-#             manager = aigise_session.sandboxes
+#             # Use get_opensage_session to create session
+#             opensage_session = get_opensage_session(session_id)
+#             opensage_session.config = initial_config
+#             manager = opensage_session.sandboxes
 #             manager.initialize_shared_volumes()
 #             scripts_volume_id = manager._scripts_volume_id
 #             shared_volume_id = manager.get_shared_volume()
@@ -526,7 +529,7 @@ async def test_attach_sandbox_k8s(sandbox_scenario: SandboxBackendScenario):
 
 #         # Prepare for reload using cached artefacts
 #         # Cleanup first session from registry
-#         AigiseSessionRegistry.remove_session(session_id)
+#         OpenSageSessionRegistry.remove_session(session_id)
 #         manager = None
 #         sandbox_scenario.cleanup_shared_volumes(
 #             scripts_volume_id, shared_volume_id, initial_config
@@ -538,10 +541,10 @@ async def test_attach_sandbox_k8s(sandbox_scenario: SandboxBackendScenario):
 #         reloaded_config.sandbox.absolute_shared_data_path = str(cache_dir_path)
 #         reloaded_session_id = sandbox_scenario.generate_session_id()
 
-#         # Use get_aigise_session to create reloaded session
-#         reloaded_aigise_session = get_aigise_session(reloaded_session_id)
-#         reloaded_aigise_session.config = reloaded_config
-#         reloaded_manager = reloaded_aigise_session.sandboxes
+#         # Use get_opensage_session to create reloaded session
+#         reloaded_opensage_session = get_opensage_session(reloaded_session_id)
+#         reloaded_opensage_session.config = reloaded_config
+#         reloaded_manager = reloaded_opensage_session.sandboxes
 #         reloaded_manager.load_sandbox_caches_to_config()
 #         reloaded_manager.initialize_shared_volumes()
 #         reloaded_scripts_volume_id = reloaded_manager._scripts_volume_id
@@ -578,10 +581,10 @@ async def test_attach_sandbox_k8s(sandbox_scenario: SandboxBackendScenario):
 #         assert "Data written by worker to shared volume" in output
 #     finally:
 #         # Cleanup sessions from registry (if they were created)
-#         if session_id in AigiseSessionRegistry._sessions:
-#             AigiseSessionRegistry.remove_session(session_id)
-#         if reloaded_session_id in AigiseSessionRegistry._sessions:
-#             AigiseSessionRegistry.remove_session(reloaded_session_id)
+#         if session_id in OpenSageSessionRegistry._sessions:
+#             OpenSageSessionRegistry.remove_session(session_id)
+#         if reloaded_session_id in OpenSageSessionRegistry._sessions:
+#             OpenSageSessionRegistry.remove_session(reloaded_session_id)
 #         sandbox_scenario.cleanup_shared_volumes(
 #             scripts_volume_id, shared_volume_id, initial_config
 #         )
@@ -596,29 +599,29 @@ async def test_attach_sandbox_k8s(sandbox_scenario: SandboxBackendScenario):
 async def test_cache_shared_volume_and_containers(
     sandbox_scenario: SandboxBackendScenario,
 ):
-    cache_dir_path = Path(tempfile.mkdtemp(prefix="aigise-cache-"))
-    manager: Optional[AigiseSandboxManager] = None
-    reloaded_manager: Optional[AigiseSandboxManager] = None
+    cache_dir_path = Path(tempfile.mkdtemp(prefix="opensage-cache-"))
+    manager: Optional[OpenSageSandboxManager] = None
+    reloaded_manager: Optional[OpenSageSandboxManager] = None
     scripts_volume_id: Optional[str] = None
     shared_volume_id: Optional[str] = None
     reloaded_scripts_volume_id: Optional[str] = None
     reloaded_shared_volume_id: Optional[str] = None
     cache_result: Optional[dict] = None
     initial_config = sandbox_scenario.build_config()
-    reloaded_config: Optional[AigiseConfig] = None
+    reloaded_config: Optional[OpenSageConfig] = None
     reloaded_session_id: Optional[str] = None
     session_id: Optional[str] = None
 
     try:
-        with tempfile.TemporaryDirectory(prefix="aigise-shared-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="opensage-shared-") as temp_dir:
             shared_path = Path(temp_dir)
             (shared_path / "initial_shared_data.txt").write_text("Initial shared data")
             initial_config.sandbox.absolute_shared_data_path = temp_dir
             session_id = sandbox_scenario.generate_session_id()
 
-            aigise_session = get_aigise_session(session_id)
-            aigise_session.config = initial_config
-            manager = aigise_session.sandboxes
+            opensage_session = get_opensage_session(session_id)
+            opensage_session.config = initial_config
+            manager = opensage_session.sandboxes
             manager.initialize_shared_volumes()
             scripts_volume_id = manager._scripts_volume_id
             shared_volume_id = manager.get_shared_volume()
@@ -655,7 +658,7 @@ async def test_cache_shared_volume_and_containers(
             assert "runtime_shared_file.txt" in tar_members
             assert "worker_runtime_file.txt" in tar_members
 
-        AigiseSessionRegistry.remove_session(session_id)
+        OpenSageSessionRegistry.remove_session(session_id)
         manager = None
         sandbox_scenario.cleanup_shared_volumes(
             scripts_volume_id, shared_volume_id, initial_config
@@ -667,9 +670,9 @@ async def test_cache_shared_volume_and_containers(
         reloaded_config.sandbox.absolute_shared_data_path = str(cache_dir_path)
         reloaded_session_id = sandbox_scenario.generate_session_id()
 
-        reloaded_aigise_session = get_aigise_session(reloaded_session_id)
-        reloaded_aigise_session.config = reloaded_config
-        reloaded_manager = reloaded_aigise_session.sandboxes
+        reloaded_opensage_session = get_opensage_session(reloaded_session_id)
+        reloaded_opensage_session.config = reloaded_config
+        reloaded_manager = reloaded_opensage_session.sandboxes
         reloaded_manager.load_sandbox_caches_to_config()
         reloaded_manager.initialize_shared_volumes()
         reloaded_scripts_volume_id = reloaded_manager._scripts_volume_id
@@ -706,10 +709,10 @@ async def test_cache_shared_volume_and_containers(
         assert exit_code == 0, output
         assert "Data written by worker to shared volume" in output
     finally:
-        if session_id in AigiseSessionRegistry._sessions:
-            AigiseSessionRegistry.remove_session(session_id)
-        if reloaded_session_id in AigiseSessionRegistry._sessions:
-            AigiseSessionRegistry.remove_session(reloaded_session_id)
+        if session_id in OpenSageSessionRegistry._sessions:
+            OpenSageSessionRegistry.remove_session(session_id)
+        if reloaded_session_id in OpenSageSessionRegistry._sessions:
+            OpenSageSessionRegistry.remove_session(reloaded_session_id)
         sandbox_scenario.cleanup_shared_volumes(
             scripts_volume_id, shared_volume_id, initial_config
         )

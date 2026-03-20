@@ -12,7 +12,7 @@ uv sync --extra cuda
 The SeCodePLT benchmark uses CodeQL for call graph analysis. Download and install the CodeQL bundle:
 
 ```bash
-cd AIgiSE/src/aigise/sandbox_scripts
+cd AIgiSE/src/opensage/sandbox_scripts
 wget https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.18.4/codeql-bundle-linux64.tar.gz
 tar -xzf codeql-bundle-linux64.tar.gz codeql
 rm -f codeql-bundle-linux64.tar.gz
@@ -22,14 +22,14 @@ After this, `sandbox_scripts/` should contain: `callgraph/`, `codeql/`, `ossfuzz
 
 ## 2. Running
 
-A launch script is provided at `examples/aigise/run_aigise_grpo.sh`:
+A launch script is provided at `examples/opensage/run_opensage_grpo.sh`:
 
 ```bash
 # Default 4-GPU training (SGLang TP=2 inference + FSDP DP=2 training)
-./examples/aigise/run_aigise_grpo.sh --trial my_experiment
+./examples/opensage/run_opensage_grpo.sh --trial my_experiment
 
 # 2-GPU mode
-GPUS=0,1 NGPU=2 ALLOCATION=sglang:d1p1t1+fsdp:d1p1t1 ./examples/aigise/run_aigise_grpo.sh
+GPUS=0,1 NGPU=2 ALLOCATION=sglang:d1p1t1+fsdp:d1p1t1 ./examples/opensage/run_opensage_grpo.sh
 
 # All options (CLI args or env vars):
 #   --trial NAME       Trial name (default: auto-generated timestamp)
@@ -44,7 +44,7 @@ The script automatically kills stale sglang/rpc processes before starting.
 
 ### Default Configuration
 
-The YAML config (`examples/aigise/aigise_grpo_mt.yaml`) includes sensible defaults:
+The YAML config (`examples/opensage/opensage_grpo_mt.yaml`) includes sensible defaults:
 
 | Parameter | Default | Description |
 |---|---|---|
@@ -62,8 +62,8 @@ The YAML config (`examples/aigise/aigise_grpo_mt.yaml`) includes sensible defaul
 ```bash
 pkill -9 -f sglang; pkill -9 -f rpc_server
 
-CUDA_VISIBLE_DEVICES=2,3,5,6 uv run examples/aigise/aigise_rl_mt.py \
-    --config examples/aigise/aigise_grpo_mt.yaml \
+CUDA_VISIBLE_DEVICES=2,3,5,6 uv run examples/opensage/opensage_rl_mt.py \
+    --config examples/opensage/opensage_grpo_mt.yaml \
     scheduler.type=local \
     trial_name=my_experiment \
     allocation_mode=sglang:d1p1t2+fsdp:d2p1t1 \
@@ -112,14 +112,14 @@ Summary of modifications made to AIgiSE for AReaL RL training integration.
 
 ### RL client: `model_name` passthrough (`rl_integration/client.py`)
 
-`Client.__init__` and `aigise.create()` accept an optional `model_name` parameter.
+`Client.__init__` and `opensage.create()` accept an optional `model_name` parameter.
 When provided, it is forwarded to the evaluation class constructor so that prompt
 formatting and model-specific logic (e.g. Gemini vs LiteLlm branches) use the correct
 model identity instead of the evaluation's default `"gemini-3-pro-preview"`.
 
 ```python
 # Example: override model for AReaL training
-client = aigise.create("vul_agent_static_tools", "secodeplt", model_name="qwen3-8b")
+client = opensage.create("vul_agent_static_tools", "secodeplt", model_name="qwen3-8b")
 ```
 
 The unused `os` import and the hard-coded `log_level` parameter were also cleaned up.
@@ -176,7 +176,7 @@ in recent versions, but may resurface:
 **Issue 1 — Neo4j connection failure:**
 
 ```
-2026-02-17 15:54:31 | ERROR | aigise.sandbox.initializers.codeql:64 -
+2026-02-17 15:54:31 | ERROR | opensage.sandbox.initializers.codeql:64 -
   CodeQL initialization failed: Failed to read from defunct connection
   IPv4Address(('127.0.0.134', 7687)) (ResolvedIPv4Address(('127.0.0.134', 7687)))
 ```
@@ -187,13 +187,13 @@ results. This appears to be a transient networking / container-startup timing is
 **Issue 2 — Pandas DataFrame column mismatch in `merge_joern_codeql.py`:**
 
 ```
-2026-02-19 12:42:48 | ERROR | aigise.sandbox.native_docker_sandbox:1163 -
+2026-02-19 12:42:48 | ERROR | opensage.sandbox.native_docker_sandbox:1163 -
   sandbox 'codeql' (session 82a36c4d-...) state=error -
   Initialization failed: Cannot set a DataFrame with multiple columns
   to the single column caller_id
 ```
 
-`insert_codeql_results_to_cpg` in `aigise/utils/merge_joern_codeql.py` (line 211)
+`insert_codeql_results_to_cpg` in `opensage/utils/merge_joern_codeql.py` (line 211)
 assigns the result of `df.apply(...)` to `df["caller_id"]`, but the apply returns
 multiple columns instead of one, causing a `ValueError`.
 
@@ -201,7 +201,7 @@ To reproduce:
 ```bash
 cd AIgiSE
 
-uv run --python ../.venv/bin/python -m src.aigise.evaluations.secodeplt.vul_detection run_debug \
+uv run --python ../.venv/bin/python -m src.opensage.evaluations.secodeplt.vul_detection run_debug \
     --agent-id reproduce_codeql \
     --task_ids "arvo:65380" \
     --model_name="gemini-3-pro-preview" \
@@ -239,7 +239,7 @@ RuntimeError: Values [29125 29067] is larger than capacity 10240
 `MicroBatchSpec`. The FFD allocator cannot pack a single sequence that is larger than the
 micro-batch capacity.
 
-**Fix:** Increase `max_tokens_per_mb` in `aigise_grpo_mt.yaml` to at least match the
+**Fix:** Increase `max_tokens_per_mb` in `opensage_grpo_mt.yaml` to at least match the
 maximum possible sequence length (`prompt_len + max_new_tokens`). For agent tasks where
 prompts can be ~27K tokens:
 
@@ -277,8 +277,8 @@ prompts can be ~27K tokens:
 **Fix — recommended parameters for next training run:**
 
 ```bash
-CUDA_VISIBLE_DEVICES=2,3,4,5 uv run examples/aigise/aigise_rl_mt.py \
-    --config examples/aigise/aigise_grpo_mt.yaml \
+CUDA_VISIBLE_DEVICES=2,3,4,5 uv run examples/opensage/opensage_rl_mt.py \
+    --config examples/opensage/opensage_grpo_mt.yaml \
     scheduler.type=local \
     trial_name=debug_v11 \
     allocation_mode=sglang:d1p1t2+d1p1t2 \
@@ -303,8 +303,8 @@ Key changes vs debug_v10:
 If only 2 GPUs available, use a minimal improvement config:
 
 ```bash
-CUDA_VISIBLE_DEVICES=2,3 uv run examples/aigise/aigise_rl_mt.py \
-    --config examples/aigise/aigise_grpo_mt.yaml \
+CUDA_VISIBLE_DEVICES=2,3 uv run examples/opensage/opensage_rl_mt.py \
+    --config examples/opensage/opensage_grpo_mt.yaml \
     scheduler.type=local \
     trial_name=debug_v11_2gpu \
     allocation_mode=sglang:d1p1t1+d1p1t1 \
@@ -327,7 +327,7 @@ fail because the raw agent response is not valid JSON.
 `part.function_call`. The tool call parsing chain actually works:
 
 1. Qwen3-Instruct outputs `<tool_call>` tags (same format as Qwen 2.5)
-2. ArealOpenAI (`tool_call_parser=qwen25`, configured in `aigise_grpo_mt.yaml`) uses
+2. ArealOpenAI (`tool_call_parser=qwen25`, configured in `opensage_grpo_mt.yaml`) uses
    sglang's `Qwen25Detector` to parse `<tool_call>` tags into structured tool calls
 3. ArealLlm converts OpenAI tool_calls to ADK `Part.from_function_call()`
 4. ADK processes `set_model_response` function call properly

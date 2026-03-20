@@ -8,7 +8,7 @@ tracking tokens and loss_mask for GRPO training.
 
 Architecture:
     slime rollout loop
-        └── generate_with_aigise.generate(args, sample, sampling_params)
+        └── generate_with_opensage.generate(args, sample, sampling_params)
                 └── SlimeAdapter.generate(args, sample, sampling_params)
                         │
                         ├── Create SlimeLlm (BaseLlm → sglang)
@@ -84,7 +84,7 @@ class SlimeAdapter(BaseAdapter):
     - SlimeAdapter *creates* the SlimeLlm itself from rollout args
 
     Usage:
-        adapter = SlimeAdapter(aigise_session, evaluation, benchmark)
+        adapter = SlimeAdapter(opensage_session, evaluation, benchmark)
         sample = await adapter.generate(args, sample, sampling_params)
     """
 
@@ -102,7 +102,7 @@ class SlimeAdapter(BaseAdapter):
             Dict in format expected by Evaluation._create_task()
         """
         # The sample.metadata should contain the full dataset row
-        # (set by generate_with_aigise.py when building the Sample)
+        # (set by generate_with_opensage.py when building the Sample)
         if hasattr(sample, "metadata") and sample.metadata:
             sample_dict = dict(sample.metadata)
         else:
@@ -201,7 +201,7 @@ class SlimeAdapter(BaseAdapter):
         """
         import importlib
 
-        from aigise.evaluation.rl_adapters.slime_llm import SlimeLlm
+        from opensage.evaluation.rl_adapters.slime_llm import SlimeLlm
 
         sglang_rollout = importlib.import_module("slime.rollout.sglang_rollout")
         GenerateState = getattr(sglang_rollout, "GenerateState")
@@ -248,7 +248,7 @@ class SlimeAdapter(BaseAdapter):
             from google.adk.tools.function_tool import FunctionTool
 
             agent = self.evaluation._mk_agent_original(
-                aigise_session_id="tools_inspection_dummy"
+                opensage_session_id="tools_inspection_dummy"
             )
             if not isinstance(agent, LlmAgent) or not agent.tools:
                 return []
@@ -426,7 +426,7 @@ class SlimeAdapter(BaseAdapter):
             sample.metadata = {}
         sample.metadata.update(
             {
-                "aigise_session_id": task.session_id,
+                "opensage_session_id": task.session_id,
                 "task_name": task.id,
             }
         )
@@ -478,7 +478,7 @@ class SlimeAdapter(BaseAdapter):
 
         if sample.metadata is None:
             sample.metadata = {}
-        sample.metadata["aigise_error"] = str(error)
+        sample.metadata["opensage_error"] = str(error)
 
         return sample
 

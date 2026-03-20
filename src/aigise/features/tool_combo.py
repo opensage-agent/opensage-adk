@@ -102,7 +102,7 @@ class ToolCombo:
         idx: int,
         total_tools: int,
     ) -> LlmAgent:
-        """Wrap a tool config as an AigiseAgent for use in the SequentialAgent.
+        """Wrap a tool config as an OpenSageAgent for use in the SequentialAgent.
 
         Args:
             tool_config: Either:
@@ -114,7 +114,7 @@ class ToolCombo:
             total_tools: Total number of tools in the sequence
 
         Returns:
-            AigiseAgent: The wrapped agent (or LlmAgent if tool is already an agent)
+            OpenSageAgent: The wrapped agent (or LlmAgent if tool is already an agent)
         """
         # Handle both dict format and direct tool format
         if isinstance(tool_config, dict):
@@ -170,10 +170,10 @@ class ToolCombo:
         elif not is_last:
             instruction += f"\n\nYour result will be passed to the next step: '{self._get_tool_name(idx + 1)}'"
 
-        # Create AigiseAgent with tool and enabled_skills restrictions
-        from aigise.agents.aigise_agent import AigiseAgent
+        # Create OpenSageAgent with tool and enabled_skills restrictions
+        from opensage.agents.opensage_agent import OpenSageAgent
 
-        return AigiseAgent(
+        return OpenSageAgent(
             name=f"{self.name}_step_{idx}",
             model=self.model,
             tools=[tool],

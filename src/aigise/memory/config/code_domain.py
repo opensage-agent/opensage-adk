@@ -5,13 +5,13 @@ This defines node types and relationships for code understanding:
 - Relationships like CONTAINS, CALLS, MENTIONS
 """
 
-from aigise.memory.config.domain_config import DomainConfig, register_domain
-from aigise.memory.schema.node_types import (
+from opensage.memory.config.domain_config import DomainConfig, register_domain
+from opensage.memory.schema.node_types import (
     CLASS_NODE,
     FILE_NODE,
     FUNCTION_NODE,
 )
-from aigise.memory.schema.relationship_types import (
+from opensage.memory.schema.relationship_types import (
     CALLS_RELATIONSHIP,
     CONTAINS_RELATIONSHIP,
     MENTIONS_RELATIONSHIP,

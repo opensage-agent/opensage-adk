@@ -9,8 +9,8 @@ from .agent_history_tracker import (
 from .tool_combo import ToolCombo
 
 __all__ = [
-    # AigiseAgent
-    "AigiseAgent",
+    # OpenSageAgent
+    "OpenSageAgent",
     # Tool Combo
     "ToolCombo",
     # Neo4j Monkey Patch

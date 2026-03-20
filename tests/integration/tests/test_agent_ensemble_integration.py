@@ -26,13 +26,12 @@ import pytest
 from google.adk import Runner
 from google.adk.apps.app import App
 from google.genai import types
-
-from aigise.features.aigise_in_memory_session_service import (
-    AigiseInMemorySessionService,
+from opensage.features.opensage_in_memory_session_service import (
+    OpenSageInMemorySessionService,
 )
-from aigise.plugins import load_plugins
-from aigise.session import get_aigise_session
-from aigise.toolbox.sandbox_requirements import collect_sandbox_dependencies
+from opensage.plugins import load_plugins
+from opensage.session import get_opensage_session
+from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +56,7 @@ class TestAgentEnsembleIntegration:
     def setup_test_environment(self):
         """Set up test environment with temporary directories and database cleanup."""
         # Generate unique shared session ID
-        aigise_session_id = str(uuid.uuid4())
+        opensage_session_id = str(uuid.uuid4())
 
         # Create temporary directory for agent storage
         test_storage_dir = "/tmp/agent_ensemble_test/agent_storage"
@@ -67,27 +66,29 @@ class TestAgentEnsembleIntegration:
         database_name = f"agent-history"
 
         yield {
-            "aigise_session_id": aigise_session_id,
+            "opensage_session_id": opensage_session_id,
             "test_storage_dir": test_storage_dir,
             "database_name": database_name,
         }
 
         # Cleanup: Remove sessions and resources
-        from aigise.session.aigise_session import AigiseSessionRegistry
+        from opensage.session.opensage_session import OpenSageSessionRegistry
 
-        AigiseSessionRegistry.cleanup_all_sessions()
+        OpenSageSessionRegistry.cleanup_all_sessions()
 
-    async def _cleanup_test_database(self, aigise_session_id: str, database_name: str):
+    async def _cleanup_test_database(
+        self, opensage_session_id: str, database_name: str
+    ):
         """Clean up the test database."""
         try:
             # Import here to avoid circular import
-            from aigise.session import get_aigise_session
+            from opensage.session import get_opensage_session
 
-            # Get aigise session to access Neo4j client
-            aigise_session = get_aigise_session(aigise_session_id)
+            # Get opensage session to access Neo4j client
+            opensage_session = get_opensage_session(opensage_session_id)
 
             # Get the default Neo4j client (connected to 'neo4j' database)
-            default_client = await aigise_session.neo4j.get_async_client(
+            default_client = await opensage_session.neo4j.get_async_client(
                 "default", "neo4j"
             )
 
@@ -102,7 +103,7 @@ class TestAgentEnsembleIntegration:
     async def _manual_cleanup(self, test_env):
         """Manual cleanup after test completion."""
         try:
-            aigise_session_id = test_env["aigise_session_id"]
+            opensage_session_id = test_env["opensage_session_id"]
             database_name = test_env["database_name"]
             test_storage_dir = test_env["test_storage_dir"]
 
@@ -111,7 +112,7 @@ class TestAgentEnsembleIntegration:
                 shutil.rmtree(test_storage_dir)
 
             # Drop the test database
-            await self._cleanup_test_database(aigise_session_id, database_name)
+            await self._cleanup_test_database(opensage_session_id, database_name)
 
         except Exception as e:
             print(f"Warning: Manual cleanup failed: {e}")
@@ -121,12 +122,12 @@ class TestAgentEnsembleIntegration:
     async def test_agent_ensemble_with_calculation(self, setup_test_environment):
         """Test complete agent ensemble flow with mathematical calculation."""
         test_env = setup_test_environment
-        aigise_session_id = test_env["aigise_session_id"]
+        opensage_session_id = test_env["opensage_session_id"]
 
         # Load the sample_agent_ensemble agent
         import sys
 
-        from aigise.features.agent_history_tracker import disable_neo4j_logging
+        from opensage.features.agent_history_tracker import disable_neo4j_logging
 
         # Disable Neo4j logging for this non-Neo4j test
         try:
@@ -136,15 +137,15 @@ class TestAgentEnsembleIntegration:
 
         # Get the AIgiSE root directory and construct path to examples
         current_dir = os.path.dirname(__file__)  # tests/integration/tests/
-        aigise_root = os.path.dirname(
+        opensage_root = os.path.dirname(
             os.path.dirname(os.path.dirname(current_dir))
         )  # AIgiSE root
-        examples_dir = os.path.join(aigise_root, "examples", "agents_with_features")
+        examples_dir = os.path.join(opensage_root, "examples", "agents_with_features")
         sys.path.insert(0, examples_dir)
 
         from sample_agent_ensemble import agent as agent_module
 
-        root_agent = agent_module.mk_agent(aigise_session_id=aigise_session_id)
+        root_agent = agent_module.mk_agent(opensage_session_id=opensage_session_id)
 
         # Prepare AIgiSE environment
         # Load per-example config
@@ -153,35 +154,37 @@ class TestAgentEnsembleIntegration:
             "sample_agent_ensemble",
             "config.toml",
         )
-        aigise_session = get_aigise_session(
-            aigise_session_id=aigise_session_id, config_path=config_path
+        opensage_session = get_opensage_session(
+            opensage_session_id=opensage_session_id, config_path=config_path
         )
         # Force storage path via config to avoid env coupling
-        aigise_session.config.agent_storage_path = test_env["test_storage_dir"]
+        opensage_session.config.agent_storage_path = test_env["test_storage_dir"]
         try:
             deps = collect_sandbox_dependencies(root_agent)
             if (
-                aigise_session.config.sandbox
-                and aigise_session.config.sandbox.sandboxes
+                opensage_session.config.sandbox
+                and opensage_session.config.sandbox.sandboxes
                 and deps
             ):
                 unused = [
                     s
-                    for s in list(aigise_session.config.sandbox.sandboxes.keys())
+                    for s in list(opensage_session.config.sandbox.sandboxes.keys())
                     if s not in deps
                 ]
                 for s in unused:
-                    del aigise_session.config.sandbox.sandboxes[s]
+                    del opensage_session.config.sandbox.sandboxes[s]
         except Exception:
             pass
-        aigise_session.sandboxes.initialize_shared_volumes()
-        await aigise_session.sandboxes.launch_all_sandboxes()
-        await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
+        opensage_session.sandboxes.initialize_shared_volumes()
+        await opensage_session.sandboxes.launch_all_sandboxes()
+        await opensage_session.sandboxes.initialize_all_sandboxes(
+            continue_on_error=True
+        )
 
         # Create session service and runner
-        session_service = AigiseInMemorySessionService()
+        session_service = OpenSageInMemorySessionService()
         enabled_plugins = (
-            getattr(getattr(aigise_session.config, "plugins", None), "enabled", [])
+            getattr(getattr(opensage_session.config, "plugins", None), "enabled", [])
             or []
         )
         plugins = load_plugins(enabled_plugins)
@@ -195,11 +198,11 @@ class TestAgentEnsembleIntegration:
             session_service=session_service,
         )
 
-        # Create session with aigise_session_id in state
+        # Create session with opensage_session_id in state
         session = await session_service.create_session(
             app_name="agent_ensemble_test",
             user_id="test_user",
-            state={"aigise_session_id": aigise_session_id},
+            state={"opensage_session_id": opensage_session_id},
         )
 
         # Test with the required input
@@ -242,24 +245,24 @@ class TestAgentEnsembleIntegration:
         )
 
         # Verify ensemble functionality was triggered (simplified approach)
-        await self._verify_ensemble_functionality(session.id, aigise_session_id)
+        await self._verify_ensemble_functionality(session.id, opensage_session_id)
 
         # Manual cleanup
         await self._manual_cleanup(test_env)
 
     async def _verify_ensemble_functionality(
-        self, session_id: str, aigise_session_id: str
+        self, session_id: str, opensage_session_id: str
     ):
         """Verify ensemble functionality was triggered (simplified approach)."""
         # Import here to avoid circular import
-        from aigise.session import get_aigise_session
-        from aigise.toolbox.general.history_management import (
+        from opensage.session import get_opensage_session
+        from opensage.toolbox.general.history_management import (
             get_all_agent_runs,
             list_all_events_for_session,
         )
 
-        # Get aigise session
-        aigise_session = get_aigise_session(aigise_session_id)
+        # Get opensage session
+        opensage_session = get_opensage_session(opensage_session_id)
 
         # Create mock tool context for history management functions
         class MockInvocationContext:
@@ -271,11 +274,11 @@ class TestAgentEnsembleIntegration:
                 self._invocation_context = MockInvocationContext(session_obj)
 
         class MockSession:
-            def __init__(self, session_id, aigise_session_id):
+            def __init__(self, session_id, opensage_session_id):
                 self.id = session_id
-                self.state = {"aigise_session_id": aigise_session_id}
+                self.state = {"opensage_session_id": opensage_session_id}
 
-        mock_session = MockSession(session_id, aigise_session_id)
+        mock_session = MockSession(session_id, opensage_session_id)
         tool_context = MockToolContext(mock_session)
 
         print(f"\n🔍 Verifying ensemble functionality...")
@@ -368,7 +371,7 @@ if __name__ == "__main__":
         test_instance = TestAgentEnsembleIntegration()
 
         # Create mock fixture
-        aigise_session_id = str(uuid.uuid4())
+        opensage_session_id = str(uuid.uuid4())
         test_storage_dir = "/tmp/agent_ensemble_test/agent_storage"
         os.makedirs(test_storage_dir, exist_ok=True)
         os.environ["AGENT_STORAGE_PATH"] = test_storage_dir
@@ -383,7 +386,7 @@ if __name__ == "__main__":
 
         test_env = MockFixture(
             {
-                "aigise_session_id": aigise_session_id,
+                "opensage_session_id": opensage_session_id,
                 "test_storage_dir": test_storage_dir,
                 "database_name": f"agent-history",
                 "original_agent_storage_path": None,
@@ -398,7 +401,7 @@ if __name__ == "__main__":
             if os.path.exists(test_storage_dir):
                 shutil.rmtree(test_storage_dir)
             await test_instance._cleanup_test_database(
-                aigise_session_id, test_env["database_name"]
+                opensage_session_id, test_env["database_name"]
             )
 
     asyncio.run(run_manual_test())

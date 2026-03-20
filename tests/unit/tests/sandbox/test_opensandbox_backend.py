@@ -9,20 +9,19 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
-
-from aigise.config import (
-    AigiseConfig,
+from opensage.config import (
     ContainerConfig,
+    OpenSageConfig,
     OpenSandboxConfig,
     SandboxConfig,
 )
-from aigise.sandbox.opensandbox_sandbox import OpenSandboxSandbox
-from aigise.sandbox.shared_storage import SharedStorage
-from aigise.session.aigise_sandbox_manager import AigiseSandboxManager
+from opensage.sandbox.opensandbox_sandbox import OpenSandboxSandbox
+from opensage.sandbox.shared_storage import SharedStorage
+from opensage.session.opensage_sandbox_manager import OpenSageSandboxManager
 
 
-def _set_backend_config(runtime_type: str = "docker") -> AigiseConfig:
-    config = AigiseConfig()
+def _set_backend_config(runtime_type: str = "docker") -> OpenSageConfig:
+    config = OpenSageConfig()
     config.task_name = "opensandbox-test-task"
     config.sandbox = SandboxConfig(
         backend="opensandbox",
@@ -151,7 +150,7 @@ def test_shared_storage_dispatches_to_remote_docker(monkeypatch, tmp_path: Path)
         return ("scripts-vol", "shared-vol", "tools-vol")
 
     monkeypatch.setattr(
-        "aigise.sandbox.shared_storage.RemoteDockerSandbox.create_shared_volume",
+        "opensage.sandbox.shared_storage.RemoteDockerSandbox.create_shared_volume",
         _fake_create_shared_volume,
     )
 
@@ -176,7 +175,7 @@ def test_shared_storage_dispatches_to_k8s(monkeypatch, tmp_path: Path):
         return ("scripts-pvc", "shared-pvc", "tools-pvc")
 
     monkeypatch.setattr(
-        "aigise.sandbox.shared_storage.K8sSandbox.create_shared_volume",
+        "opensage.sandbox.shared_storage.K8sSandbox.create_shared_volume",
         _fake_create_shared_volume,
     )
 
@@ -195,7 +194,7 @@ def test_shared_storage_dispatches_to_k8s(monkeypatch, tmp_path: Path):
 def test_remote_docker_cache_sandboxes_writes_shared_backup_and_manifest(
     monkeypatch, tmp_path: Path
 ):
-    from aigise.sandbox.remote_docker_sandbox import RemoteDockerSandbox
+    from opensage.sandbox.remote_docker_sandbox import RemoteDockerSandbox
 
     fake_client = mock.MagicMock()
     fake_container = mock.MagicMock()
@@ -229,7 +228,7 @@ def test_remote_docker_cache_sandboxes_writes_shared_backup_and_manifest(
 
 
 def test_backup_remote_volume_to_tarball_extracts_archive(monkeypatch, tmp_path: Path):
-    from aigise.sandbox.remote_docker_sandbox import RemoteDockerSandbox
+    from opensage.sandbox.remote_docker_sandbox import RemoteDockerSandbox
 
     archive_bytes = _build_archive_bytes(
         "shared_volume.tar.gz", b"compressed-volume-content"
@@ -285,7 +284,7 @@ def test_opensandbox_cache_docker_runtime_delegates_to_remote_backend(
         }
 
     monkeypatch.setattr(
-        "aigise.sandbox.opensandbox_sandbox.RemoteDockerSandbox.cache_sandboxes",
+        "opensage.sandbox.opensandbox_sandbox.RemoteDockerSandbox.cache_sandboxes",
         _fake_remote_cache,
     )
 
@@ -346,7 +345,7 @@ def test_opensandbox_cache_k8s_runtime_delegates_to_k8s_backend(
         }
 
     monkeypatch.setattr(
-        "aigise.sandbox.opensandbox_sandbox.K8sSandbox.cache_sandboxes",
+        "opensage.sandbox.opensandbox_sandbox.K8sSandbox.cache_sandboxes",
         _fake_k8s_cache,
     )
 
@@ -376,11 +375,11 @@ def test_manager_initialize_shared_volumes_uses_opensandbox_backend(monkeypatch)
         "/tmp/host-data:/workspace/host-data:ro",
         "/tmp/rw-data:/workspace/rw-data:rw",
     ]
-    session = SimpleNamespace(aigise_session_id="session-1", config=config)
-    manager = AigiseSandboxManager(session)
+    session = SimpleNamespace(opensage_session_id="session-1", config=config)
+    manager = OpenSageSandboxManager(session)
 
     monkeypatch.setattr(
-        "aigise.sandbox.shared_storage.SharedStorage.create_for_opensandbox",
+        "opensage.sandbox.shared_storage.SharedStorage.create_for_opensandbox",
         lambda session_id, init_data_path, tools_top_roots, config: (
             "scripts-vol",
             "shared-vol",
@@ -413,13 +412,13 @@ def test_manager_initialize_shared_volumes_uses_opensandbox_backend(monkeypatch)
 
 
 def test_manager_mount_host_paths_validator():
-    assert AigiseSandboxManager._normalize_mount_host_path_spec("/a:/b") == "/a:/b:rw"
+    assert OpenSageSandboxManager._normalize_mount_host_path_spec("/a:/b") == "/a:/b:rw"
     assert (
-        AigiseSandboxManager._normalize_mount_host_path_spec("/a:/b:ro") == "/a:/b:ro"
+        OpenSageSandboxManager._normalize_mount_host_path_spec("/a:/b:ro") == "/a:/b:ro"
     )
     with pytest.raises(ValueError, match="host path must be absolute"):
-        AigiseSandboxManager._normalize_mount_host_path_spec("rel:/b:rw")
+        OpenSageSandboxManager._normalize_mount_host_path_spec("rel:/b:rw")
     with pytest.raises(ValueError, match="container path must be absolute"):
-        AigiseSandboxManager._normalize_mount_host_path_spec("/a:rel:rw")
+        OpenSageSandboxManager._normalize_mount_host_path_spec("/a:rel:rw")
     with pytest.raises(ValueError, match="mode must be 'ro' or 'rw'"):
-        AigiseSandboxManager._normalize_mount_host_path_spec("/a:/b:rwx")
+        OpenSageSandboxManager._normalize_mount_host_path_spec("/a:/b:rwx")

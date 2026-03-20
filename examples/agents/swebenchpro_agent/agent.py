@@ -4,34 +4,33 @@ from typing import Optional
 from google.adk.models import BaseLlm
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.planners import BasePlanner
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.memory.search_tool import search_memory
-from aigise.session import get_aigise_session
-from aigise.toolbox.finish_task.finish_task import finish_task
-from aigise.toolbox.general.agent_tools import (
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.memory.search_tool import search_memory
+from opensage.session import get_opensage_session
+from opensage.toolbox.finish_task.finish_task import finish_task
+from opensage.toolbox.general.agent_tools import (
     agent_ensemble,
     agent_ensemble_pairwise,
     complain,
     get_available_agents_for_ensemble,
     get_available_models,
 )
-from aigise.toolbox.general.bash_tools_interface import (
+from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
     list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
-from aigise.toolbox.general.dynamic_subagent import (
+from opensage.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
     list_active_agents,
 )
-from aigise.toolbox.general.fileop import str_replace_edit, view_file
+from opensage.toolbox.general.fileop import str_replace_edit, view_file
 
 
 def mk_agent(
-    aigise_session_id: str,
+    opensage_session_id: str,
     model: Optional[BaseLlm] = None,
     planner: Optional[BasePlanner] = None,
 ):
@@ -54,10 +53,10 @@ def mk_agent(
     # You can submit a poc by calling generate_poc_and_submit. You can also submit a poc file by calling /shared/submit.sh /path/to/poc, if you get a crash from other tools like fuzzing tool or debugger tool, you should manually submit the poc file by calling /shared/submit.sh /path/to/poc.
     # After each submission, if it didn't trigger the vulnerability, you should try fuzzing. Then, if still no crash is triggered, you can try debugging the poc with the debugger tool, see whether it executes the part of code that you assume it would execute, verify your assumptions. You should tell debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.
 
-    aigise_session = get_aigise_session(aigise_session_id)
-    run_poc_command = aigise_session.config.build.run_command
+    opensage_session = get_opensage_session(opensage_session_id)
+    run_poc_command = opensage_session.config.build.run_command
 
-    root_agent = AigiseAgent(
+    root_agent = OpenSageAgent(
         name="benchmark_agent",
         model=model,
         planner=planner,
@@ -148,7 +147,7 @@ def mk_agent(
 
 
 def mk_explore_agent(
-    aigise_session_id: str,
+    opensage_session_id: str,
     model: Optional[BaseLlm] = None,
     planner: Optional[BasePlanner] = None,
 ):
@@ -173,7 +172,7 @@ def mk_explore_agent(
             ],
         )
 
-    explore_agent = AigiseAgent(
+    explore_agent = OpenSageAgent(
         name="explore_agent",
         model=model,
         planner=planner,

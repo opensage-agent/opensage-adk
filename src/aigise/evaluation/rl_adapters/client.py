@@ -18,14 +18,14 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from aigise.session import cleanup_aigise_session, get_aigise_session
+from opensage.session import cleanup_opensage_session, get_opensage_session
 
 from .adapters import ArealAdapter, BaseAdapter, SlimeAdapter
 from .benchmark_interface import BenchmarkInterface
 
 if TYPE_CHECKING:
-    from aigise.evaluation.base import Evaluation
-    from aigise.session import AigiseSession
+    from opensage.evaluation.base import Evaluation
+    from opensage.session import OpenSageSession
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class Client:
     Manages agent configuration and session creation for RL framework rollout systems.
 
     Usage:
-        client = aigise.create("vul_agent", "secodeplt")
+        client = opensage.create("vul_agent", "secodeplt")
         with client.init_session() as session:
             sample = await session.slime_generate(args, sample, sampling_params)
     """
@@ -50,8 +50,8 @@ class Client:
         """Initialize client.
 
         Args:
-            agent_name: Name of the agent (defined in aigise/agents/ or examples/agents/)
-            benchmark_name: Name of the benchmark (defined in aigise/evaluations/)
+            agent_name: Name of the agent (defined in opensage/agents/ or examples/agents/)
+            benchmark_name: Name of the benchmark (defined in opensage/evaluations/)
             model_name: Optional model name to override the evaluation's default.
                 When provided, this is passed to the evaluation class constructor
                 so that prompt formatting and model-specific logic use the correct
@@ -78,7 +78,7 @@ class Client:
         Raises:
             ValueError: If agent directory not found
         """
-        from aigise.utils.project_info import find_path
+        from opensage.utils.project_info import find_path
 
         resolved = find_path("examples", "agents", self.agent_name)
         if resolved.exists() and (resolved / "agent.py").exists():
@@ -147,7 +147,7 @@ class Client:
 class RLSession:
     """Session for RL framework integration.
 
-    Wraps AigiseSession and provides framework-specific generate methods
+    Wraps OpenSageSession and provides framework-specific generate methods
     through adapters.
 
     Supports context manager protocol for automatic resource cleanup.
@@ -166,13 +166,13 @@ class RLSession:
         """
         self.client = client
         self.session_id = session_id or str(uuid.uuid4())
-        self._aigise_session: AigiseSession | None = None
+        self._opensage_session: OpenSageSession | None = None
         self._adapters: dict[str, BaseAdapter] = {}
         self._closed = False
 
     def __enter__(self) -> "RLSession":
         """Enter context manager."""
-        # Session will be created by Evaluation._register_aigise_session()
+        # Session will be created by Evaluation._register_opensage_session()
         # when adapter.generate() is called
         return self
 
@@ -183,7 +183,7 @@ class RLSession:
     def _cleanup(self) -> None:
         """Clean up session resources."""
         if not self._closed:
-            cleanup_aigise_session(self.session_id)
+            cleanup_opensage_session(self.session_id)
             self._adapters.clear()
             self._closed = True
 
@@ -202,16 +202,16 @@ class RLSession:
         if framework not in self._adapters:
             # Create a temporary dummy session for adapter initialization
             # The actual session with proper config will be created by
-            # Evaluation._register_aigise_session() when needed
-            from aigise.session import AigiseSession
+            # Evaluation._register_opensage_session() when needed
+            from opensage.session import OpenSageSession
 
             dummy_session = type(
-                "DummySession", (), {"aigise_session_id": self.session_id}
+                "DummySession", (), {"opensage_session_id": self.session_id}
             )()
 
             if framework == "slime":
                 self._adapters[framework] = SlimeAdapter(
-                    aigise_session=dummy_session,
+                    opensage_session=dummy_session,
                     evaluation=self.client._evaluation,
                     benchmark=self.client._benchmark,
                 )
@@ -220,7 +220,7 @@ class RLSession:
                 raise NotImplementedError("verl adapter not yet implemented")
             elif framework == "areal":
                 self._adapters[framework] = ArealAdapter(
-                    aigise_session=dummy_session,
+                    opensage_session=dummy_session,
                     evaluation=self.client._evaluation,
                     benchmark=self.client._benchmark,
                 )
@@ -308,7 +308,7 @@ class RLSession:
             model = ArealLlm(openai_client=client)
 
             # Run agent
-            with aigise_client.init_session() as session:
+            with opensage_client.init_session() as session:
                 result = await session.areal_generate(data=data, model=model)
 
             # Set reward and export (on AReaL side)
@@ -338,8 +338,8 @@ def create(
     This is the main entry point for RL framework integration.
 
     Args:
-        agent_name: Name of the agent defined in aigise/agents/ directory
-        benchmark_name: Name of the benchmark defined in aigise/evaluations/ directory
+        agent_name: Name of the agent defined in opensage/agents/ directory
+        benchmark_name: Name of the benchmark defined in opensage/evaluations/ directory
         model_name: Optional model name to override the evaluation's default.
             When using RL integration (e.g., AReaL), the actual inference model
             may differ from the evaluation's default. Passing model_name ensures
@@ -350,17 +350,17 @@ def create(
 
     Example:
         ```python
-        import aigise
+        import opensage
 
         # Create client
-        client = aigise.create("vul_agent_static_tools", "secodeplt")
+        client = opensage.create("vul_agent_static_tools", "secodeplt")
 
         # For slime
         with client.init_session() as session:
             sample = await session.slime_generate(args, sample, sampling_params)
 
         # For AReaL (with model_name override)
-        client = aigise.create("vul_agent_static_tools", "secodeplt", model_name="qwen3-8b")
+        client = opensage.create("vul_agent_static_tools", "secodeplt", model_name="qwen3-8b")
         with client.init_session() as session:
             result = await session.areal_generate(data, model)
         ```

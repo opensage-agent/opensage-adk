@@ -15,26 +15,25 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.session import get_aigise_session
-from aigise.toolbox.general.bash_task_manager import BashTaskManager, TaskStatus
-from aigise.utils.agent_utils import (
-    get_aigise_session_id_from_context,
+from opensage.session import get_opensage_session
+from opensage.toolbox.general.bash_task_manager import BashTaskManager, TaskStatus
+from opensage.utils.agent_utils import (
+    get_opensage_session_id_from_context,
     get_sandbox_from_context,
 )
-from aigise.utils.project_info import PROJECT_PATH
+from opensage.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
 
 # Bash tools script directory
-BASH_TOOLS_DIR = Path(PROJECT_PATH) / "src" / "aigise" / "bash_tools"
+BASH_TOOLS_DIR = Path(PROJECT_PATH) / "src" / "opensage" / "bash_tools"
 CONTAINER_BASH_TOOLS_DIR = "/bash_tools"
 
 
 def _get_session(tool_context: ToolContext):
-    """Return the active Aigise session for the provided tool context."""
-    session_id = get_aigise_session_id_from_context(tool_context)
-    return get_aigise_session(session_id)
+    """Return the active OpenSage session for the provided tool context."""
+    session_id = get_opensage_session_id_from_context(tool_context)
+    return get_opensage_session(session_id)
 
 
 def _ensure_task_manager(host: Any) -> BashTaskManager:

@@ -1,28 +1,28 @@
 """Session package public API.
 
 This package intentionally keeps imports *minimal* to avoid import-time cycles
-between `aigise.session`, `aigise.sandbox`, and `aigise.sandbox.initializers`.
+between `opensage.session`, `opensage.sandbox`, and `opensage.sandbox.initializers`.
 
 If you need manager classes or other session types, import them from their
 modules directly, e.g.:
 
-- `from aigise.session.aigise_sandbox_manager import AigiseSandboxManager`
-- `from aigise.session.aigise_dynamic_agent_manager import AgentStatus`
+- `from opensage.session.opensage_sandbox_manager import OpenSageSandboxManager`
+- `from opensage.session.opensage_dynamic_agent_manager import AgentStatus`
 """
 
 from __future__ import annotations
 
-from .aigise_session import (
-    AigiseSession,
-    AigiseSessionRegistry,
-    cleanup_aigise_session,
-    get_aigise_session,
+from .opensage_session import (
+    OpenSageSession,
+    OpenSageSessionRegistry,
+    cleanup_opensage_session,
+    get_opensage_session,
 )
 
 __all__ = [
     # Main session management
-    "AigiseSession",
-    "AigiseSessionRegistry",
-    "get_aigise_session",
-    "cleanup_aigise_session",
+    "OpenSageSession",
+    "OpenSageSessionRegistry",
+    "get_opensage_session",
+    "cleanup_opensage_session",
 ]

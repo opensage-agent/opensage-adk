@@ -5,9 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from aigise.memory.config.memory_settings import get_memory_settings
-from aigise.memory.update.entity_extractor import ExtractedEntity
-from aigise.memory.update.graph_operations import OperationType
+from opensage.memory.config.memory_settings import get_memory_settings
+from opensage.memory.update.entity_extractor import ExtractedEntity
+from opensage.memory.update.graph_operations import OperationType
 
 logger = logging.getLogger(__name__)
 

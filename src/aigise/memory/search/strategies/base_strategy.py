@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
-    from aigise.memory.config.domain_config import DomainConfig
+    from opensage.memory.config.domain_config import DomainConfig
 
 logger = logging.getLogger(__name__)
 

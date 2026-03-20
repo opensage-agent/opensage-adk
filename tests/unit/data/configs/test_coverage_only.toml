@@ -18,7 +18,7 @@ absolute_shared_data_path = "tests/unit/data/arvo_51603_vul_code.tar.gz"
 # Main sandbox configuration
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/main/Dockerfile"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/main/Dockerfile"
 timeout = 300
 [sandbox.sandboxes.main.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"
@@ -28,7 +28,7 @@ initializer_timeout_sec = 1800
 # Coverage sandbox configuration
 [sandbox.sandboxes.coverage]
 image = "${TASK_NAME}_coverage"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/coverage/Dockerfile"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/coverage/Dockerfile"
 command = "tail -f /dev/null"
 timeout = 300
 [sandbox.sandboxes.coverage.build_args]

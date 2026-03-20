@@ -71,7 +71,7 @@ class BashTaskManager:
     @staticmethod
     def _heredoc_delimiter(task_id: str, *, purpose: str) -> str:
         """Return a heredoc delimiter unlikely to appear in user content."""
-        return f"__AIGISE_TASK_{task_id}_{purpose}__"
+        return f"__OPENSAGE_TASK_{task_id}_{purpose}__"
 
     def start_bg_task(
         self,

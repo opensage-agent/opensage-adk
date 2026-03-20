@@ -1,7 +1,6 @@
 import docker
 import pytest
-
-from aigise.utils.project_info import SRC_PATH
+from opensage.utils.project_info import SRC_PATH
 
 from ....utils import copy_to_container, extract_infos_from_arvo_script
 

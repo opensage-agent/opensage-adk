@@ -19,20 +19,18 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.sessions import Session
 from google.adk.tools import ToolContext
 from google.genai import types
-from pydantic_core import to_json
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.features.agent_history_tracker import enable_neo4j_logging
-from aigise.features.aigise_in_memory_session_service import (
-    AigiseInMemorySessionService,
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.features.agent_history_tracker import enable_neo4j_logging
+from opensage.features.opensage_in_memory_session_service import (
+    OpenSageInMemorySessionService,
 )
-from aigise.plugins import load_plugins
-from aigise.plugins.builtins.adk_plugins.parts_from_tool import (
+from opensage.plugins import load_plugins
+from opensage.plugins.builtins.adk_plugins.parts_from_tool import (
     PARTS_FROM_TOOLS_ID,
     ImageInjectionPlugin,
 )
-from aigise.session.aigise_session import get_aigise_session
-from aigise.toolbox.general.agent_tools import (
+from opensage.session.opensage_session import get_opensage_session
+from opensage.toolbox.general.agent_tools import (
     agent_ensemble,
     agent_ensemble_pairwise,
     complain,
@@ -42,24 +40,25 @@ from aigise.toolbox.general.agent_tools import (
     plan,
     think,
 )
-from aigise.toolbox.general.bash_tools_interface import (
+from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
     list_background_tasks,
     run_terminal_command,
     wait_for_background,
 )
-from aigise.toolbox.general.dynamic_subagent import (
+from opensage.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
     list_active_agents,
 )
+from pydantic_core import to_json
 
 logger = logging.getLogger(__name__)
 
 # enable_neo4j_logging()
 
 session_id = str(uuid4())
-app_name = "aigise_local"
+app_name = "opensage_local"
 user_id = "user_" + session_id
 run_until_explicit_finish = True
 
@@ -163,8 +162,8 @@ async def run_agent(
     trace_save_path: Path,
     use_subagent: bool,
 ):
-    aigise_session = get_aigise_session(session_id, config_path=config_path)
-    await aigise_session.sandboxes.launch_all_sandboxes()
+    opensage_session = get_opensage_session(session_id, config_path=config_path)
+    await opensage_session.sandboxes.launch_all_sandboxes()
 
     model = LiteLlm(
         model=model_name,
@@ -198,7 +197,7 @@ async def run_agent(
             agent_ensemble_pairwise,
         ]
 
-    local_agent = AigiseAgent(
+    local_agent = OpenSageAgent(
         name="terminal_agent",
         model=model,
         description=description,
@@ -208,19 +207,19 @@ async def run_agent(
     )
 
     enabled_plugins = []
-    if aigise_session and getattr(aigise_session, "config", None):
+    if opensage_session and getattr(opensage_session, "config", None):
         enabled_plugins = (
-            getattr(getattr(aigise_session.config, "plugins", None), "enabled", [])
+            getattr(getattr(opensage_session.config, "plugins", None), "enabled", [])
             or []
         )
 
     plugins = load_plugins(enabled_plugins)
 
-    session_service = AigiseInMemorySessionService()
+    session_service = OpenSageInMemorySessionService()
     enabled_plugins = []
-    if aigise_session and getattr(aigise_session, "config", None):
+    if opensage_session and getattr(opensage_session, "config", None):
         enabled_plugins = (
-            getattr(getattr(aigise_session.config, "plugins", None), "enabled", [])
+            getattr(getattr(opensage_session.config, "plugins", None), "enabled", [])
             or []
         )
     plugins = load_plugins(enabled_plugins)
@@ -240,12 +239,12 @@ async def run_agent(
         session_service=session_service,
     )
 
-    # 3. Create session with aigise_session_id in state
+    # 3. Create session with opensage_session_id in state
     await session_service.create_session(
         app_name=app_name,
         user_id=user_id,
         session_id=session_id,
-        state={"aigise_session_id": session_id, "work_dir": str(work_dir.absolute())},
+        state={"opensage_session_id": session_id, "work_dir": str(work_dir.absolute())},
     )
 
     # Helper to track remaining LLM-call budget across multiple runner invocations.

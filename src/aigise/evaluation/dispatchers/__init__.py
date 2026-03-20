@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from aigise.evaluation.dispatchers.base import BaseDispatcher
+    from opensage.evaluation.dispatchers.base import BaseDispatcher
 
 
 def get_dispatcher(dispatcher_type: str, **kwargs) -> BaseDispatcher:
@@ -21,11 +21,11 @@ def get_dispatcher(dispatcher_type: str, **kwargs) -> BaseDispatcher:
         **kwargs: Forwarded to the dispatcher constructor.
     """
     if dispatcher_type == "native":
-        from aigise.evaluation.dispatchers.native import NativeDispatcher
+        from opensage.evaluation.dispatchers.native import NativeDispatcher
 
         return NativeDispatcher(**kwargs)
     elif dispatcher_type == "ray":
-        from aigise.evaluation.dispatchers.ray import RayDispatcher
+        from opensage.evaluation.dispatchers.ray import RayDispatcher
 
         return RayDispatcher(**kwargs)
     else:

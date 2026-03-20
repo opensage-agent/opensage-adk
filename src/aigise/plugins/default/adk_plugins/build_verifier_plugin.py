@@ -12,8 +12,7 @@ from typing import Any, Dict, Optional
 from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.utils.agent_utils import get_sandbox_from_context
+from opensage.utils.agent_utils import get_sandbox_from_context
 
 logger = logging.getLogger(__name__)
 

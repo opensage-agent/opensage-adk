@@ -15,10 +15,10 @@ from google.adk.sessions.base_session_service import (
 from google.adk.sessions.in_memory_session_service import AlreadyExistsError
 from google.adk.sessions.session import Session
 
-logger = logging.getLogger("aigise." + __name__)
+logger = logging.getLogger("opensage." + __name__)
 
 
-class AigiseInMemorySessionService(BaseSessionService):
+class OpenSageInMemorySessionService(BaseSessionService):
     """In-memory SessionService without deepcopy and without app/user state.
 
     Differences vs google.adk.sessions.in_memory_session_service.InMemorySessionService:

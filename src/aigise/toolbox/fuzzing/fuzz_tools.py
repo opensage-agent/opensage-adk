@@ -7,10 +7,9 @@ import tempfile
 from typing import Any, Dict, List, Optional
 
 from google.adk.tools import ToolContext
-
-from aigise.toolbox.sandbox_requirements import requires_sandbox
-from aigise.utils.agent_utils import (
-    get_aigise_config_from_context,
+from opensage.toolbox.sandbox_requirements import requires_sandbox
+from opensage.utils.agent_utils import (
+    get_opensage_config_from_context,
     get_sandbox_from_context,
 )
 
@@ -129,7 +128,7 @@ async def run_fuzzing_campaign(
     duration_minutes = 3
 
     fuzz_sandbox = get_sandbox_from_context(tool_context, "fuzz")
-    config = get_aigise_config_from_context(tool_context)
+    config = get_opensage_config_from_context(tool_context)
     fuzz_target = config.build.target_binary
 
     # Set up fuzzing directory

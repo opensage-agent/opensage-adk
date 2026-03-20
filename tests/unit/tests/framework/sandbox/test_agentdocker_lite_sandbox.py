@@ -18,8 +18,7 @@ import uuid
 from pathlib import Path
 
 import pytest
-
-from aigise.config.config_dataclass import ContainerConfig
+from opensage.config.config_dataclass import ContainerConfig
 
 needs_root = pytest.mark.skipif(
     os.geteuid() != 0, reason="AgentDockerLiteSandbox requires root"
@@ -126,7 +125,7 @@ def _make_btrfs_rootfs() -> str:
 @needs_root
 class TestAgentDockerLiteSandboxOverlayfs:
     def _make_sandbox(self, rootfs_path: str, session_suffix: str = ""):
-        from aigise.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+        from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
         cfg = ContainerConfig(
             image=rootfs_path,
@@ -137,7 +136,7 @@ class TestAgentDockerLiteSandboxOverlayfs:
         sid = f"test_ovl_{uuid.uuid4().hex[:6]}{session_suffix}"
         return AgentDockerLiteSandbox(
             container_config=cfg,
-            aigise_session_id=sid,
+            opensage_session_id=sid,
             backend_type="agentdocker-lite",
             sandbox_type="main",
         )
@@ -263,7 +262,7 @@ class TestAgentDockerLiteSandboxBtrfs:
             )
 
     def _make_sandbox(self, session_suffix: str = ""):
-        from aigise.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+        from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
         cfg = ContainerConfig(
             image=self._base_rootfs,
@@ -271,14 +270,14 @@ class TestAgentDockerLiteSandboxBtrfs:
             timeout=30,
             extra={
                 "fs_backend": "btrfs",
-                "env_base_dir": "/data/aigise_ns",
+                "env_base_dir": "/data/opensage_ns",
                 "rootfs_cache_dir": "/data/rootfs_cache",
             },
         )
         sid = f"test_btrfs_{uuid.uuid4().hex[:6]}{session_suffix}"
         return AgentDockerLiteSandbox(
             container_config=cfg,
-            aigise_session_id=sid,
+            opensage_session_id=sid,
             backend_type="agentdocker-lite",
             sandbox_type="main",
         )
@@ -378,7 +377,7 @@ class TestAgentDockerLiteSandboxErrors:
     def test_non_root_uses_rootless(self):
         if os.geteuid() == 0:
             pytest.skip("Already root — cannot test rootless fallback")
-        from aigise.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+        from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
         # With agentdocker-lite, non-root auto-selects LandlockSandbox (rootless)
         # This should not raise PermissionError; it will fail for missing image instead
@@ -386,14 +385,14 @@ class TestAgentDockerLiteSandboxErrors:
         with pytest.raises((RuntimeError, FileNotFoundError, ValueError, OSError)):
             AgentDockerLiteSandbox(
                 container_config=cfg,
-                aigise_session_id="test",
+                opensage_session_id="test",
                 backend_type="agentdocker-lite",
                 sandbox_type="main",
             )
 
     @needs_root
     def test_missing_image_raises(self):
-        from aigise.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+        from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
         cfg = ContainerConfig(
             image="/nonexistent_path_" + uuid.uuid4().hex[:8],
@@ -403,13 +402,13 @@ class TestAgentDockerLiteSandboxErrors:
         with pytest.raises((RuntimeError, FileNotFoundError, ValueError)):
             AgentDockerLiteSandbox(
                 container_config=cfg,
-                aigise_session_id="test_err",
+                opensage_session_id="test_err",
                 backend_type="agentdocker-lite",
                 sandbox_type="main",
             )
 
     def test_wrong_backend_type_raises(self):
-        from aigise.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+        from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
         cfg = ContainerConfig(image="/tmp", working_dir="/workspace")
         with pytest.raises(
@@ -417,7 +416,7 @@ class TestAgentDockerLiteSandboxErrors:
         ):
             AgentDockerLiteSandbox(
                 container_config=cfg,
-                aigise_session_id="test",
+                opensage_session_id="test",
                 backend_type="native",
                 sandbox_type="main",
             )

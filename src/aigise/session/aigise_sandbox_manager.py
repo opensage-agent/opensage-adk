@@ -1,5 +1,5 @@
 """
-AigiseSandboxManager: Session-specific sandbox management
+OpenSageSandboxManager: Session-specific sandbox management
 
 This module provides session-bound sandbox management, replacing the global
 SandboxManager with session-isolated sandbox handling.
@@ -15,42 +15,42 @@ import re
 from pathlib import Path
 from typing import Any, Dict, Optional, Set
 
-from aigise.config.config_dataclass import AigiseConfig
-from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
-from aigise.sandbox.factory import (
+from opensage.config.config_dataclass import OpenSageConfig
+from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.factory import (
     create_sandbox_class,
     get_backend_class,
     get_initializer_class,
 )
-from aigise.sandbox.utils import can_pull_image, image_exists_locally
-from aigise.utils.project_info import PROJECT_PATH
+from opensage.sandbox.utils import can_pull_image, image_exists_locally
+from opensage.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
 
 
-class AigiseSandboxManager:
+class OpenSageSandboxManager:
     """Session-specific sandbox manager.
 
-    Each AigiseSession gets its own AigiseSandboxManager instance,
+    Each OpenSageSession gets its own OpenSageSandboxManager instance,
     ensuring complete sandbox isolation between sessions.
     """
 
     def __init__(self, session):
-        """Initialize AigiseSandboxManager.
+        """Initialize OpenSageSandboxManager.
 
         Args:
-            session: AigiseSession instance (stores reference, not copied)
+            session: OpenSageSession instance (stores reference, not copied)
         """
         self._session = session
-        self.aigise_session_id = session.aigise_session_id
+        self.opensage_session_id = session.opensage_session_id
 
         if getattr(session.config, "sandbox", None) is not None:
             logger.debug(
-                f"Sandbox backend for session {session.aigise_session_id}: '{session.config.sandbox.backend}'"
+                f"Sandbox backend for session {session.opensage_session_id}: '{session.config.sandbox.backend}'"
             )
         else:
             logger.debug(
-                f"Sandbox backend for session {session.aigise_session_id}: <none configured>"
+                f"Sandbox backend for session {session.opensage_session_id}: <none configured>"
             )
 
         # Sandbox storage for this session
@@ -64,7 +64,7 @@ class AigiseSandboxManager:
         self.enabled_skills: Any = None
 
     @property
-    def config(self) -> AigiseConfig:
+    def config(self) -> OpenSageConfig:
         """Get latest config from session dynamically."""
         return self._session.config
 
@@ -107,13 +107,13 @@ class AigiseSandboxManager:
             del self._sandboxes[sandbox_type]
 
             logger.info(
-                f"Removed sandbox {sandbox_type} from session {self.aigise_session_id}"
+                f"Removed sandbox {sandbox_type} from session {self.opensage_session_id}"
             )
             return True
 
         except Exception as e:
             logger.warning(
-                f"Error removing sandbox {sandbox_type} from session {self.aigise_session_id}: {e}"
+                f"Error removing sandbox {sandbox_type} from session {self.opensage_session_id}: {e}"
             )
             return False
 
@@ -124,7 +124,7 @@ class AigiseSandboxManager:
             Dictionary with session statistics
         """
         return {
-            "aigise_session_id": self.aigise_session_id,
+            "opensage_session_id": self.opensage_session_id,
             "total_sandboxes": len(self._sandboxes),
             "sandbox_types": list(self._sandboxes.keys()),
             "sandbox_states": {k: v.value for k, v in self._sandboxes.state.items()},
@@ -178,7 +178,7 @@ class AigiseSandboxManager:
                 # Call class method to create three shared volumes
                 scripts_volume_id, data_volume_id, tools_volume_id = (
                     backend_class.create_shared_volume(
-                        self.aigise_session_id,
+                        self.opensage_session_id,
                         shared_data_path,
                         tools_top_roots,
                     )
@@ -195,13 +195,13 @@ class AigiseSandboxManager:
                 )
 
                 logger.info(
-                    f"Initialized shared volumes for session {self.aigise_session_id}: "
+                    f"Initialized shared volumes for session {self.opensage_session_id}: "
                     f"scripts={scripts_volume_id}, data={data_volume_id}, tools={tools_volume_id}"
                 )
 
             except Exception as e:
                 logger.error(
-                    f"Failed to initialize shared volume for session {self.aigise_session_id}: {e}"
+                    f"Failed to initialize shared volume for session {self.opensage_session_id}: {e}"
                 )
 
         except Exception as e:
@@ -342,7 +342,7 @@ class AigiseSandboxManager:
         Example::
 
             # Launch only required sandboxes
-            from aigise.toolbox.sandbox_requirements import collect_sandbox_dependencies
+            from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
 
             deps = collect_sandbox_dependencies(root_agent)  # {'main', 'gdb_mcp'}
             await session.sandboxes.launch_all_sandboxes(sandbox_types=deps)
@@ -353,7 +353,7 @@ class AigiseSandboxManager:
         # Defensive check: if any sandboxes already exist, skip launch
         if self._sandboxes:
             logger.warning(
-                f"Sandboxes already exist for session {self.aigise_session_id}: "
+                f"Sandboxes already exist for session {self.opensage_session_id}: "
                 f"{list(self._sandboxes.keys())}. Skipping launch_all_sandboxes "
                 f"to avoid conflicts with existing sandboxes."
             )
@@ -387,13 +387,13 @@ class AigiseSandboxManager:
                 return
 
             logger.info(
-                f"Launching sandboxes for session {self.aigise_session_id} "
+                f"Launching sandboxes for session {self.opensage_session_id} "
                 f"using {backend_type} backend: {list(sandbox_configs.keys())}"
             )
 
             # Call backend-specific launch method (creates containers, not initialized yet)
             sandbox_instances = await backend_class.launch_all_sandboxes(
-                session_id=self.aigise_session_id,
+                session_id=self.opensage_session_id,
                 sandbox_configs=sandbox_configs,
                 shared_volume_id=self._shared_volume_id,
                 scripts_volume_id=self._scripts_volume_id,
@@ -405,13 +405,13 @@ class AigiseSandboxManager:
                 self._sandboxes[sandbox_type] = sandbox_instance
 
             logger.info(
-                f"Successfully launched {len(sandbox_instances)} sandboxes for session {self.aigise_session_id}, "
+                f"Successfully launched {len(sandbox_instances)} sandboxes for session {self.opensage_session_id}, "
                 f"sandbox types: {list(sandbox_instances.keys())} (not yet initialized)"
             )
 
         except Exception as e:
             logger.error(
-                f"Failed to launch sandboxes for session {self.aigise_session_id}: {e}"
+                f"Failed to launch sandboxes for session {self.opensage_session_id}: {e}"
             )
             raise
 
@@ -425,14 +425,14 @@ class AigiseSandboxManager:
 
         Example:
             # Create sandboxes
-            await aigise_session.sandboxes.launch_all_sandboxes()
+            await opensage_session.sandboxes.launch_all_sandboxes()
 
             # Initialize
-            await aigise_session.sandboxes.initialize_all_sandboxes()
+            await opensage_session.sandboxes.initialize_all_sandboxes()
         """
         if not self._sandboxes:
             logger.warning(
-                f"No sandboxes to initialize for session {self.aigise_session_id}"
+                f"No sandboxes to initialize for session {self.opensage_session_id}"
             )
             return
 
@@ -441,7 +441,7 @@ class AigiseSandboxManager:
         backend_class = get_backend_class(backend_type, self.config)
 
         logger.info(
-            f"Initializing {len(self._sandboxes)} sandboxes for session {self.aigise_session_id}: "
+            f"Initializing {len(self._sandboxes)} sandboxes for session {self.opensage_session_id}: "
             f"{list(self._sandboxes.keys())}"
         )
 
@@ -462,7 +462,7 @@ class AigiseSandboxManager:
         # This is orchestration-level logic and intentionally lives outside
         # sandbox initializers.
         if succeeded and self.enabled_skills is not None:
-            from aigise.sandbox.skill_deps import prepare_skill_deps
+            from opensage.sandbox.skill_deps import prepare_skill_deps
 
             async def _prep_one(sandbox_type: str) -> None:
                 sandbox = self._sandboxes.get(sandbox_type)
@@ -508,7 +508,7 @@ class AigiseSandboxManager:
         # Build or create a ContainerConfig entry for this sandbox based on current config
         container_config = self.config.get_sandbox_config(sandbox_type)
         if not container_config:
-            from aigise.config.config_dataclass import ContainerConfig
+            from opensage.config.config_dataclass import ContainerConfig
 
             container_config = ContainerConfig()
             if getattr(self.config, "sandbox", None):
@@ -534,7 +534,7 @@ class AigiseSandboxManager:
 
         sandbox_instance: BaseSandbox = sandbox_class(
             container_config,
-            session_id=self.aigise_session_id,
+            session_id=self.opensage_session_id,
             backend_type=backend_type,
             sandbox_type=sandbox_type,
         )
@@ -544,11 +544,11 @@ class AigiseSandboxManager:
         # Ensure ready
         await sandbox_instance.ensure_ready()
         if self.enabled_skills is not None:
-            from aigise.sandbox.skill_deps import prepare_skill_deps
+            from opensage.sandbox.skill_deps import prepare_skill_deps
 
             await prepare_skill_deps(sandbox_instance, self.enabled_skills)
         logger.info(
-            f"Attached sandbox '{sandbox_type}' (backend={backend_type}) for session {self.aigise_session_id}"
+            f"Attached sandbox '{sandbox_type}' (backend={backend_type}) for session {self.opensage_session_id}"
         )
 
     def _cleanup_sandbox(self, sandbox: BaseSandbox) -> None:
@@ -567,7 +567,7 @@ class AigiseSandboxManager:
 
     def cleanup(self) -> None:
         """Cleanup all sandboxes for this session."""
-        logger.info("Cleaning up AigiseSandboxManager")
+        logger.info("Cleaning up OpenSageSandboxManager")
 
         # Make a copy to avoid modifying while iterating
         sandbox_types = list(self._sandboxes.keys())
@@ -630,7 +630,7 @@ class AigiseSandboxManager:
             backend_class = get_backend_class(backend_type, self.config)
 
             logger.info(
-                f"Caching sandboxes for session {self.aigise_session_id} using {backend_type} backend"
+                f"Caching sandboxes for session {self.opensage_session_id} using {backend_type} backend"
             )
 
             # Call backend-specific cache method
@@ -642,13 +642,13 @@ class AigiseSandboxManager:
             )
 
             logger.info(
-                f"Successfully cached {len(self._sandboxes)} sandboxes for session {self.aigise_session_id}"
+                f"Successfully cached {len(self._sandboxes)} sandboxes for session {self.opensage_session_id}"
             )
             return cache_result
 
         except Exception as e:
             logger.error(
-                f"Failed to cache sandboxes for session {self.aigise_session_id}: {e}"
+                f"Failed to cache sandboxes for session {self.opensage_session_id}: {e}"
             )
             raise
 
@@ -730,7 +730,7 @@ class AigiseSandboxManager:
                     self._load_named_cache_manifest(
                         task_name,
                         normalize_image_name,
-                        cache_dir_env="AIGISE_REMOTE_DOCKER_CACHE_DIR",
+                        cache_dir_env="OPENSAGE_REMOTE_DOCKER_CACHE_DIR",
                         global_subdir="remote_docker_cache",
                         manifest_filename="remote_docker_cache_manifest.json",
                     )
@@ -740,7 +740,7 @@ class AigiseSandboxManager:
                     self._load_named_cache_manifest(
                         task_name,
                         normalize_image_name,
-                        cache_dir_env="AIGISE_OPENSANDBOX_CACHE_DIR",
+                        cache_dir_env="OPENSAGE_OPENSANDBOX_CACHE_DIR",
                         global_subdir="opensandbox_cache",
                         manifest_filename="opensandbox_cache_manifest.json",
                     )
@@ -857,7 +857,7 @@ class AigiseSandboxManager:
 
         except Exception as e:
             logger.error(
-                f"Failed to load sandbox caches for session {self.aigise_session_id}: {e}"
+                f"Failed to load sandbox caches for session {self.opensage_session_id}: {e}"
             )
             raise
 
@@ -867,7 +867,7 @@ class AigiseSandboxManager:
         return self._load_named_cache_manifest(
             task_name,
             normalizer,
-            cache_dir_env="AIGISE_K8S_CACHE_DIR",
+            cache_dir_env="OPENSAGE_K8S_CACHE_DIR",
             global_subdir="k8s_cache",
             manifest_filename="k8s_cache_manifest.json",
         )
@@ -889,7 +889,7 @@ class AigiseSandboxManager:
         global_manifest = (
             Path.home()
             / ".cache"
-            / "aigise"
+            / "opensage"
             / global_subdir
             / f"{normalizer(task_name)}.json"
         )

@@ -31,7 +31,7 @@ _REGEX_METACHARACTERS = set(".*+?[](){}|^$\\")
 
 
 def __getattr__(name: str):
-    """Lazy import: ``from aigise.plugins import SomePlugin`` auto-resolves."""
+    """Lazy import: ``from opensage.plugins import SomePlugin`` auto-resolves."""
     from .adk_plugin_loader import load_adk_plugin_class
 
     for py_file in _ADK_PLUGIN_DIR.glob("*.py"):
@@ -53,7 +53,7 @@ def _has_regex_metacharacters(s: str) -> bool:
 
 def _get_local_plugin_dir() -> Path:
     """Return user-local plugin directory."""
-    return Path.home() / ".local" / "aigise" / "plugins"
+    return Path.home() / ".local" / "opensage" / "plugins"
 
 
 def _discover_all_plugins(
@@ -98,7 +98,7 @@ def load_plugins(
 
     1. Default ADK plugins (``default/adk_plugins/``)
     2. Default Claude Code hooks (``default/claude_code_hooks/``)
-    3. User-local defaults: ``~/.local/aigise/plugins/``
+    3. User-local defaults: ``~/.local/opensage/plugins/``
     4. Custom directories from *extra_plugin_dirs*
     5. Agent-local ``{agent_dir}/plugins/``
 

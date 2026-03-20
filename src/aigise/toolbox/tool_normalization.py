@@ -1,4 +1,4 @@
-"""Normalize tools when adding them to AigiseAgent.
+"""Normalize tools when adding them to OpenSageAgent.
 
 Public API:
 - make_toollike_safe_dict
@@ -125,18 +125,18 @@ def _make_base_tool_safe_dict(tool: BaseTool) -> BaseTool:
     if _is_mcp_tool(tool):
         return tool
 
-    if getattr(tool, "_aigise_safe_dictified", False):
+    if getattr(tool, "_opensage_safe_dictified", False):
         return tool
 
     bound = tool.run_async
     orig_func = getattr(bound, "__func__", bound)
-    setattr(tool, "_aigise_orig_run_async_func", orig_func)
+    setattr(tool, "_opensage_orig_run_async_func", orig_func)
 
     async def wrapped_run_async(
         self, *, args: dict[str, Any], tool_context: ToolContext
     ) -> Any:
         try:
-            raw = await self._aigise_orig_run_async_func(
+            raw = await self._opensage_orig_run_async_func(
                 self, args=args, tool_context=tool_context
             )
         except Exception as exc:  # pylint: disable=broad-exception-caught
@@ -153,26 +153,26 @@ def _make_base_tool_safe_dict(tool: BaseTool) -> BaseTool:
         return _dictify_tool_result(raw)
 
     tool.run_async = MethodType(wrapped_run_async, tool)  # type: ignore[assignment]
-    setattr(tool, "_aigise_safe_dictified", True)
+    setattr(tool, "_opensage_safe_dictified", True)
     return tool
 
 
 def _make_toolset_safe_dict(toolset: BaseToolset) -> BaseToolset:
     if _is_mcp_toolset(toolset):
         return toolset
-    if getattr(toolset, "_aigise_safe_toolset_dictified", False):
+    if getattr(toolset, "_opensage_safe_toolset_dictified", False):
         return toolset
 
     bound = toolset.get_tools
     orig_func = getattr(bound, "__func__", bound)
-    setattr(toolset, "_aigise_orig_get_tools_func", orig_func)
+    setattr(toolset, "_opensage_orig_get_tools_func", orig_func)
 
     async def wrapped_get_tools(self, readonly_context=None):
-        tools = await self._aigise_orig_get_tools_func(self, readonly_context)
+        tools = await self._opensage_orig_get_tools_func(self, readonly_context)
         return [make_toollike_safe_dict(t) for t in (tools or [])]
 
     toolset.get_tools = MethodType(wrapped_get_tools, toolset)  # type: ignore[assignment]
-    setattr(toolset, "_aigise_safe_toolset_dictified", True)
+    setattr(toolset, "_opensage_safe_toolset_dictified", True)
     return toolset
 
 

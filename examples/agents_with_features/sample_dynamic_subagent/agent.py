@@ -1,9 +1,8 @@
 from typing import Any, Dict
 
 from google.adk.models.lite_llm import LiteLlm
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.toolbox.general.dynamic_subagent import (
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
     list_active_agents,
@@ -110,8 +109,8 @@ def divide_numbers(a: float, b: float) -> Dict[str, Any]:
     }
 
 
-def mk_agent(aigise_session_id: str):
-    root_agent = AigiseAgent(
+def mk_agent(opensage_session_id: str):
+    root_agent = OpenSageAgent(
         model=LiteLlm(model="openai/gpt-5"),
         name="math_root_agent",
         instruction="""

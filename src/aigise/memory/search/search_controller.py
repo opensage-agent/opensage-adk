@@ -7,17 +7,16 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import litellm
-
-from aigise.memory.config.memory_settings import get_memory_settings
-from aigise.memory.search.strategies import STRATEGY_REGISTRY
-from aigise.memory.search.strategies.base_strategy import (
+from opensage.memory.config.memory_settings import get_memory_settings
+from opensage.memory.search.strategies import STRATEGY_REGISTRY
+from opensage.memory.search.strategies.base_strategy import (
     SearchContext,
     SearchResultItem,
     SearchStrategy,
 )
 
 if TYPE_CHECKING:
-    from aigise.memory.config.domain_config import DomainConfig
+    from opensage.memory.config.domain_config import DomainConfig
 
 logger = logging.getLogger(__name__)
 

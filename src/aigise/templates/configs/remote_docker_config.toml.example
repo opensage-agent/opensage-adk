@@ -6,7 +6,7 @@
 # Setup:
 # 1. Configure docker_host and docker_remote_host below
 # 2. Run AIgiSE:
-#    python -m aigise.evaluations run_single_task --config remote_docker_config.toml
+#    python -m opensage.evaluations run_single_task --config remote_docker_config.toml
 #
 # Note: Environment variables (DOCKER_HOST, DOCKER_REMOTE_HOST) can still be used
 #       as fallback if not specified in config.
@@ -44,7 +44,7 @@ environment = { NEO4J_AUTH = "neo4j/callgraphn4j!" }
 
 [sandbox.sandboxes.pdb_mcp]
 image = "pdb_mcp:latest"
-project_relative_dockerfile_path = "src/aigise/templates/dockerfiles/pdb_mcp/Dockerfile"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/pdb_mcp/Dockerfile"
 
 # Neo4j configuration
 [neo4j]

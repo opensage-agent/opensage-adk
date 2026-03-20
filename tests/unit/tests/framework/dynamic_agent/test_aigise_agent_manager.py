@@ -12,9 +12,8 @@ from unittest import mock
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from aigise.config.config_dataclass import AigiseConfig
-from aigise.session.aigise_dynamic_agent_manager import (
+from opensage.config.config_dataclass import OpenSageConfig
+from opensage.session.opensage_dynamic_agent_manager import (
     AgentMetadata,
     AgentStatus,
     DynamicAgentManager,
@@ -43,7 +42,7 @@ class TestAgentMetadata:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.CREATED,
             created_at=now,
             updated_at=now,
@@ -51,7 +50,7 @@ class TestAgentMetadata:
 
         assert metadata.id == "test-id"
         assert metadata.name == "test-agent"
-        assert metadata.type == "aigise_agent"
+        assert metadata.type == "opensage_agent"
         assert metadata.status == AgentStatus.CREATED
         assert metadata.created_at == now
         assert metadata.updated_at == now
@@ -69,7 +68,7 @@ class TestAgentMetadata:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=now,
             updated_at=now,
@@ -92,7 +91,7 @@ class TestAgentMetadata:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.CREATED,
             created_at=now,
             updated_at=now,
@@ -107,20 +106,20 @@ class TestDynamicAgentManager:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.aigise_session_id = "test-session-123"
+        self.opensage_session_id = "test-session-123"
         self.temp_dir = tempfile.mkdtemp()
 
         # Create test configuration
-        self.config = AigiseConfig()
+        self.config = OpenSageConfig()
         self.config.agent_storage_path = self.temp_dir
 
         # Create mock session
         class MockSession:
             def __init__(self, session_id, config):
-                self.aigise_session_id = session_id
+                self.opensage_session_id = session_id
                 self.config = config
 
-        self.session = MockSession(self.aigise_session_id, self.config)
+        self.session = MockSession(self.opensage_session_id, self.config)
         self.manager = DynamicAgentManager(self.session)
 
     def teardown_method(self):
@@ -132,46 +131,46 @@ class TestDynamicAgentManager:
 
     def test_init_with_storage_path(self):
         """Test manager initialization with custom storage path."""
-        assert self.manager.aigise_session_id == self.aigise_session_id
+        assert self.manager.opensage_session_id == self.opensage_session_id
         assert self.manager.config == self.config
         assert self.manager.storage_path == Path(self.temp_dir)
         assert self.manager.storage_path.exists()
 
     def test_init_with_default_storage_path(self):
         """Test manager initialization with default storage path."""
-        config = AigiseConfig()
+        config = OpenSageConfig()
         config.agent_storage_path = None  # No storage path specified
 
         class MockSession:
             def __init__(self, session_id, config):
-                self.aigise_session_id = session_id
+                self.opensage_session_id = session_id
                 self.config = config
 
         session = MockSession("test-session", config)
         manager = DynamicAgentManager(session)
 
-        assert manager.storage_path == Path("/tmp/aigise_agent_storage")
+        assert manager.storage_path == Path("/tmp/opensage_agent_storage")
 
     def test_init_with_empty_storage_path(self):
         """Test manager initialization with empty storage path."""
-        config = AigiseConfig()
+        config = OpenSageConfig()
         config.agent_storage_path = ""  # Empty string
 
         class MockSession:
             def __init__(self, session_id, config):
-                self.aigise_session_id = session_id
+                self.opensage_session_id = session_id
                 self.config = config
 
         session = MockSession("test-session", config)
         manager = DynamicAgentManager(session)
 
-        assert manager.storage_path == Path("/tmp/aigise_agent_storage")
+        assert manager.storage_path == Path("/tmp/opensage_agent_storage")
 
-    @patch("aigise.session.aigise_dynamic_agent_manager.AigiseAgent")
-    def test_create_agent_instance(self, mock_aigise_agent):
+    @patch("opensage.session.opensage_dynamic_agent_manager.OpenSageAgent")
+    def test_create_agent_instance(self, mock_opensage_agent):
         """Test _create_agent_instance method."""
         mock_agent = MagicMock()
-        mock_aigise_agent.return_value = mock_agent
+        mock_opensage_agent.return_value = mock_agent
 
         # Test with string model (should be wrapped)
         config = {
@@ -181,7 +180,7 @@ class TestDynamicAgentManager:
         }
 
         with patch(
-            "aigise.session.aigise_dynamic_agent_manager.LiteLlm"
+            "opensage.session.opensage_dynamic_agent_manager.LiteLlm"
         ) as mock_lite_llm:
             mock_model = MagicMock()
             mock_lite_llm.return_value = mock_model
@@ -191,10 +190,10 @@ class TestDynamicAgentManager:
             # Verify LiteLlm was called with the model string
             mock_lite_llm.assert_called_once_with(model="test-model-string")
 
-            # Verify AigiseAgent was called with wrapped model
+            # Verify OpenSageAgent was called with wrapped model
             expected_config = config.copy()
             expected_config["model"] = mock_model
-            mock_aigise_agent.assert_called_once_with(**expected_config)
+            mock_opensage_agent.assert_called_once_with(**expected_config)
 
             assert result == mock_agent
 
@@ -242,7 +241,7 @@ class TestDynamicAgentManager:
                 # Verify metadata
                 metadata = self.manager._metadata[agent_id]
                 assert metadata.name == "test-agent"
-                assert metadata.type == "aigise_agent"
+                assert metadata.type == "opensage_agent"
                 assert metadata.status == AgentStatus.CREATED
                 assert metadata.creator == "test-creator"
                 assert "tools" not in metadata.config  # Should be filtered out
@@ -308,7 +307,7 @@ class TestDynamicAgentManager:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.CREATED,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -330,7 +329,7 @@ class TestDynamicAgentManager:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.CREATED,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -362,7 +361,7 @@ class TestDynamicAgentManager:
         metadata1 = AgentMetadata(
             id="agent1",
             name="agent1",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -371,7 +370,7 @@ class TestDynamicAgentManager:
         metadata2 = AgentMetadata(
             id="agent2",
             name="agent2",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.PAUSED,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -392,7 +391,7 @@ class TestDynamicAgentManager:
         metadata1 = AgentMetadata(
             id="agent1",
             name="agent1",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -400,7 +399,7 @@ class TestDynamicAgentManager:
         metadata2 = AgentMetadata(
             id="agent2",
             name="agent2",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.PAUSED,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -419,7 +418,7 @@ class TestDynamicAgentManager:
         metadata1 = AgentMetadata(
             id="agent1",
             name="agent1",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -428,7 +427,7 @@ class TestDynamicAgentManager:
         metadata2 = AgentMetadata(
             id="agent2",
             name="agent2",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -450,7 +449,7 @@ class TestDynamicAgentManager:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -483,7 +482,7 @@ class TestDynamicAgentManager:
         parent_metadata = AgentMetadata(
             id="parent-id",
             name="parent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -493,7 +492,7 @@ class TestDynamicAgentManager:
         child1_metadata = AgentMetadata(
             id="child1-id",
             name="child1",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -503,7 +502,7 @@ class TestDynamicAgentManager:
         child2_metadata = AgentMetadata(
             id="child2-id",
             name="child2",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -533,7 +532,7 @@ class TestDynamicAgentManager:
         parent_metadata = AgentMetadata(
             id="parent-id",
             name="parent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -543,7 +542,7 @@ class TestDynamicAgentManager:
         child_metadata = AgentMetadata(
             id="child-id",
             name="child",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -573,7 +572,7 @@ class TestDynamicAgentManager:
         metadata1 = AgentMetadata(
             id="agent1",
             name="agent1",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -581,7 +580,7 @@ class TestDynamicAgentManager:
         metadata2 = AgentMetadata(
             id="agent2",
             name="agent2",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -589,7 +588,7 @@ class TestDynamicAgentManager:
         metadata3 = AgentMetadata(
             id="agent3",
             name="agent3",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.PAUSED,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -605,7 +604,7 @@ class TestDynamicAgentManager:
 
         stats = self.manager.get_session_statistics()
 
-        assert stats["aigise_session_id"] == self.aigise_session_id
+        assert stats["opensage_session_id"] == self.opensage_session_id
         assert stats["total_agents"] == 3
         assert stats["status_counts"]["active"] == 2
         assert stats["status_counts"]["paused"] == 1
@@ -617,7 +616,7 @@ class TestDynamicAgentManager:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=now,
             updated_at=now,
@@ -658,7 +657,7 @@ class TestDynamicAgentManager:
         metadata = AgentMetadata(
             id=agent_id,
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.ACTIVE,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -674,7 +673,7 @@ class TestDynamicAgentManager:
                 {
                     "id": agent_id,
                     "name": "test-agent",
-                    "type": "aigise_agent",
+                    "type": "opensage_agent",
                     "status": "active",
                     "created_at": datetime.now().isoformat(),
                     "updated_at": datetime.now().isoformat(),
@@ -694,7 +693,7 @@ class TestDynamicAgentManager:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.PENDING_TOOLS,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -726,7 +725,7 @@ class TestDynamicAgentManager:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.CREATED,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -751,7 +750,7 @@ class TestDynamicAgentManager:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.PENDING_TOOLS,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -788,7 +787,7 @@ class TestDynamicAgentManager:
         metadata = AgentMetadata(
             id="test-id",
             name="test-agent",
-            type="aigise_agent",
+            type="opensage_agent",
             status=AgentStatus.PENDING_TOOLS,
             created_at=datetime.now(),
             updated_at=datetime.now(),

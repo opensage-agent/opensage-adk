@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any, List, Optional
 
-from aigise.memory.search.strategies.base_strategy import (
+from opensage.memory.search.strategies.base_strategy import (
     SearchContext,
     SearchResultItem,
     SearchStrategy,

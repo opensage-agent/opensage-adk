@@ -63,9 +63,9 @@ done
 if [[ -z "$AREAL_DIR" ]]; then
     # Try sibling directory
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    AIGISE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-    CANDIDATE="$(cd "$AIGISE_ROOT/.." && pwd)/AReaL"
-    if [[ -d "$CANDIDATE/examples/aigise" ]]; then
+    OPENSAGE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+    CANDIDATE="$(cd "$OPENSAGE_ROOT/.." && pwd)/AReaL"
+    if [[ -d "$CANDIDATE/examples/opensage" ]]; then
         AREAL_DIR="$CANDIDATE"
     else
         echo "ERROR: Cannot find AReaL directory."
@@ -74,8 +74,8 @@ if [[ -z "$AREAL_DIR" ]]; then
     fi
 fi
 
-[[ -f "$AREAL_DIR/examples/aigise/run_aigise_grpo.sh" ]] || {
-    echo "ERROR: $AREAL_DIR/examples/aigise/run_aigise_grpo.sh not found"
+[[ -f "$AREAL_DIR/examples/opensage/run_opensage_grpo.sh" ]] || {
+    echo "ERROR: $AREAL_DIR/examples/opensage/run_opensage_grpo.sh not found"
     exit 1
 }
 
@@ -103,4 +103,4 @@ echo "============================================"
 echo ""
 
 cd "$AREAL_DIR"
-exec bash examples/aigise/run_aigise_grpo.sh "${ARGS[@]}"
+exec bash examples/opensage/run_opensage_grpo.sh "${ARGS[@]}"

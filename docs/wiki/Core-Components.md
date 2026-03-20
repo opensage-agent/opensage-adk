@@ -108,8 +108,8 @@ Plugins hook into the tool execution lifecycle, running logic before or after an
 
 **Key Files:**
 
-`aigise.plugins`, `aigise.plugins.adk_plugin_loader`,
-`aigise.plugins.claude_code_hook_loader`
+`opensage.plugins`, `opensage.plugins.adk_plugin_loader`,
+`opensage.plugins.claude_code_hook_loader`
 
 **Docs:**
 

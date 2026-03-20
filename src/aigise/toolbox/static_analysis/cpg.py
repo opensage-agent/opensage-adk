@@ -3,10 +3,9 @@ import os
 from typing import Optional
 
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.session.neo4j_client import AsyncNeo4jClient
-from aigise.toolbox.sandbox_requirements import requires_sandbox
-from aigise.utils.agent_utils import (
+from opensage.session.neo4j_client import AsyncNeo4jClient
+from opensage.toolbox.sandbox_requirements import requires_sandbox
+from opensage.utils.agent_utils import (
     get_joern_client_from_context,
     get_neo4j_client_from_context,
     get_sandbox_from_context,

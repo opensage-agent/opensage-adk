@@ -5,7 +5,7 @@
 ```bash
 # Sync code + create worker VMs
 gcloud compute ssh <HEAD_VM> --project=<GCP_PROJECT> --zone=<ZONE> \
-  --command="cd ~/aigise && git pull --ff-only && ~/venv/bin/ray up ~/aigise/ray/aigise-eval-cluster.yaml -y --no-config-cache"
+  --command="cd ~/opensage && git pull --ff-only && ~/venv/bin/ray up ~/opensage/ray/opensage-eval-cluster.yaml -y --no-config-cache"
 ```
 
 ## 2. Run Evaluation
@@ -28,7 +28,7 @@ sudo GOOGLE_API_KEY=<YOUR_API_KEY> \
 # Docker baseline (pre-pull images first — see below)
 sudo GOOGLE_API_KEY=<YOUR_API_KEY> \
   ~/venv/bin/python -u -m benchmarks.swe_bench_pro.swe_bench_pro generate \
-  --config_template_path src/aigise/evaluations/configs/swe_bench_pro_docker_no_neo4j_config.toml \
+  --config_template_path src/opensage/evaluations/configs/swe_bench_pro_docker_no_neo4j_config.toml \
   --agent_dir examples/agents/swebenchpro_agent \
   --start_idx 0 --end_idx 150 \
   --max_workers 8 --use_ray \
@@ -51,7 +51,7 @@ sudo GOOGLE_API_KEY=<YOUR_API_KEY> \
 
 ```bash
 gcloud compute ssh <HEAD_VM> --project=<GCP_PROJECT> --zone=<ZONE> \
-  --command="~/venv/bin/ray down ~/aigise/ray/aigise-eval-cluster.yaml -y"
+  --command="~/venv/bin/ray down ~/opensage/ray/opensage-eval-cluster.yaml -y"
 ```
 
 ## Prewarm Rootfs
@@ -67,7 +67,7 @@ gcloud compute instances attach-disk <HEAD_VM> \
 gcloud compute ssh <HEAD_VM> --project=<GCP_PROJECT> --zone=<ZONE> --command="
   sudo mkdir -p /mnt/rootfs_shared && \
   sudo mount /dev/disk/by-id/google-rootfs-shared /mnt/rootfs_shared && \
-  cd ~/aigise && sudo ~/venv/bin/python ray/prewarm_rootfs.py \
+  cd ~/opensage && sudo ~/venv/bin/python ray/prewarm_rootfs.py \
     --workers 4 --backend overlayfs --cache-dir /mnt/rootfs_shared"
 
 gcloud compute ssh <HEAD_VM> --project=<GCP_PROJECT> --zone=<ZONE> \
@@ -80,9 +80,9 @@ gcloud compute instances detach-disk <HEAD_VM> \
 
 ```bash
 gcloud compute instances stop <HEAD_VM> --project=<GCP_PROJECT> --zone=<ZONE>
-gcloud compute images create aigise-worker-vN \
+gcloud compute images create opensage-worker-vN \
   --project=<GCP_PROJECT> --source-disk=<HEAD_VM> \
-  --source-disk-zone=<ZONE> --family=aigise-worker
+  --source-disk-zone=<ZONE> --family=opensage-worker
 gcloud compute instances start <HEAD_VM> --project=<GCP_PROJECT> --zone=<ZONE>
 ```
 

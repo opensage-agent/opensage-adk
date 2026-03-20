@@ -1,7 +1,7 @@
 """Domain configuration for the memory system."""
 
-from aigise.memory.config.code_domain import CODE_DOMAIN_CONFIG
-from aigise.memory.config.domain_config import (
+from opensage.memory.config.code_domain import CODE_DOMAIN_CONFIG
+from opensage.memory.config.domain_config import (
     DomainConfig,
     get_all_domains,
     get_domain_config,
@@ -9,14 +9,14 @@ from aigise.memory.config.domain_config import (
     register_domain,
     validate_all_domains,
 )
-from aigise.memory.config.memory_settings import (
+from opensage.memory.config.memory_settings import (
     MemorySettings,
     configure_memory_from_config,
     get_memory_settings,
     is_memory_enabled,
     reset_memory_settings,
 )
-from aigise.memory.config.qa_domain import QA_DOMAIN_CONFIG
+from opensage.memory.config.qa_domain import QA_DOMAIN_CONFIG
 
 # All domains registered — validate cross-domain relationships now.
 validate_all_domains()

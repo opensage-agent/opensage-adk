@@ -12,11 +12,10 @@ from google.adk.events.event_actions import EventActions, EventCompaction
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.genai import types
-
-from aigise.features.agent_history_tracker import is_neo4j_logging_enabled
-from aigise.utils.agent_utils import (
+from opensage.features.agent_history_tracker import is_neo4j_logging_enabled
+from opensage.utils.agent_utils import (
     discover_all_agents,
-    get_aigise_session_id_from_context,
+    get_opensage_session_id_from_context,
     register_callback_to_all_agents,
     resolve_model_spec,
     save_content_to_sandbox_file,
@@ -117,13 +116,13 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
     Mutates dict tool responses in-place and returns None to avoid short-circuiting
     other plugins/callbacks.
     """
-    from aigise.session import get_aigise_session
+    from opensage.session import get_opensage_session
 
-    aigise_session_id = get_aigise_session_id_from_context(tool_context)
-    aigise_session = get_aigise_session(aigise_session_id)
+    opensage_session_id = get_opensage_session_id_from_context(tool_context)
+    opensage_session = get_opensage_session(opensage_session_id)
 
     max_len = getattr(
-        getattr(aigise_session.config, "history", None),
+        getattr(opensage_session.config, "history", None),
         "max_tool_response_length",
         10000,
     )
@@ -144,7 +143,7 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         f"[ToolResponseSummarizer] Processing tool '{tool_name}':\n"
         f"  response_length: {len(raw)} chars\n"
         f"  max_len: {max_len}\n"
-        f"  session_id: {aigise_session_id}"
+        f"  session_id: {opensage_session_id}"
     )
 
     # Save full output to file in sandbox using shared utility
@@ -181,7 +180,7 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         logger.info(f"Created truncated preview: {len(truncated_preview)} chars")
 
         if file_saved and output_file:
-            truncated_msg = f"""<Summary by aigise>
+            truncated_msg = f"""<Summary by opensage>
 The tool response is too long ({len(raw):,} characters) to include here.
 Here is a brief preview:
 
@@ -190,22 +189,22 @@ Here is a brief preview:
 [Full Output Saved]
 The complete output has been saved to: {output_file}
 You MAY use `grep`, `cat`, `head`, `tail` or other commands to search or view the full content.
-</Summary by aigise>"""
+</Summary by opensage>"""
         else:
-            truncated_msg = f"""<Summary by aigise>
+            truncated_msg = f"""<Summary by opensage>
 The tool response is too long ({len(raw):,} characters) to include here.
 Here is a brief preview:
 
 {truncated_preview}
 
 [Warning] Failed to save full output to file. You may need to find other ways to access the full content.
-</Summary by aigise>"""
+</Summary by opensage>"""
 
         # Add quota info
         try:
             enable_quota = bool(
                 getattr(
-                    getattr(aigise_session.config, "history", None),
+                    getattr(opensage_session.config, "history", None),
                     "enable_quota_countdown",
                     True,
                 )
@@ -249,7 +248,7 @@ Here is a brief preview:
         tool_response["result"] = truncated_msg
         return None
 
-    model_name = getattr(aigise_session.config.llm, "summarize_model", None)
+    model_name = getattr(opensage_session.config.llm, "summarize_model", None)
     agent = tool_context._invocation_context.agent
     if model_name:
         model = resolve_model_spec(model_name, tool_context=tool_context)
@@ -345,13 +344,13 @@ You can use `grep`, `cat`, or other commands to search or view the full content 
 
     summary = summary_header + summary + file_info
 
-    tagged_summary = f"<Summary by aigise>{summary}</Summary by aigise>"
+    tagged_summary = f"<Summary by opensage>{summary}</Summary by opensage>"
 
     # Append quota countdown line if enabled
     try:
         enable_quota = bool(
             getattr(
-                getattr(aigise_session.config, "history", None),
+                getattr(opensage_session.config, "history", None),
                 "enable_quota_countdown",
                 True,
             )
@@ -384,7 +383,9 @@ You can use `grep`, `cat`, or other commands to search or view the full content 
             tagged_summary += "\n[Quota] LLM calls: unlimited"
 
     if is_neo4j_logging_enabled():
-        from aigise.utils.neo4j_history_management import create_raw_tool_response_node
+        from opensage.utils.neo4j_history_management import (
+            create_raw_tool_response_node,
+        )
 
         await create_raw_tool_response_node(
             tool, args, tool_context, tool_response, tagged_summary
@@ -397,7 +398,7 @@ You can use `grep`, `cat`, or other commands to search or view the full content 
     return None
 
 
-class AigiseFullEventSummarizer:
+class OpenSageFullEventSummarizer:
     """Summarizer including text, tool calls/responses, and previous compaction text."""
 
     def __init__(self, model: LiteLlm):
@@ -538,7 +539,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     - Neo4j: record summary node and link to the original window
     """
     # Import here to avoid circular import
-    from aigise.session import get_aigise_session
+    from opensage.session import get_opensage_session
 
     session = tool_context._invocation_context.session
     agent = tool_context._invocation_context.agent
@@ -551,9 +552,9 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     if len(events) < 2:
         return None
 
-    aigise_session_id = get_aigise_session_id_from_context(tool_context)
-    aigise_session = get_aigise_session(aigise_session_id)
-    comp_cfg = getattr(aigise_session.config.history, "events_compaction", None)
+    opensage_session_id = get_opensage_session_id_from_context(tool_context)
+    opensage_session = get_opensage_session(opensage_session_id)
+    comp_cfg = getattr(opensage_session.config.history, "events_compaction", None)
 
     budget_chars = (
         getattr(comp_cfg, "max_history_summary_length", None) if comp_cfg else None
@@ -610,7 +611,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         # Mirror legacy behavior: subtract tool response threshold to reserve headroom
         try:
             tool_resp_budget = int(
-                getattr(aigise_session.config.history, "max_tool_response_length", 0)
+                getattr(opensage_session.config.history, "max_tool_response_length", 0)
             )
         except Exception:
             tool_resp_budget = 0
@@ -743,13 +744,13 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         return None
 
     # Choose summarization model
-    model_name = getattr(aigise_session.config.llm, "summarize_model", None)
+    model_name = getattr(opensage_session.config.llm, "summarize_model", None)
     if model_name:
         summarizer_model = resolve_model_spec(model_name, tool_context=tool_context)
     else:
         summarizer_model = agent.canonical_model
 
-    summarizer = AigiseFullEventSummarizer(model=summarizer_model)
+    summarizer = OpenSageFullEventSummarizer(model=summarizer_model)
     # Build folded full-history context text for the summarizer (current branch)
     folded_context_text: Optional[str] = None
     if _adk_get_contents is not None:
@@ -825,7 +826,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
 
     # Neo4j persistence aligned with previous summarization semantics
     if is_neo4j_logging_enabled():
-        from aigise.utils.neo4j_history_management import create_history_summary_node
+        from opensage.utils.neo4j_history_management import create_history_summary_node
 
         await create_history_summary_node(tool_context, compaction_event, window_events)
 
@@ -844,20 +845,20 @@ async def quota_after_tool_callback(tool, args, tool_context, tool_response):
     - Otherwise: no-op.
     """
     # Import here to avoid circular import
-    from aigise.session import get_aigise_session
+    from opensage.session import get_opensage_session
 
     try:
-        aigise_session_id = get_aigise_session_id_from_context(tool_context)
-        aigise_session = get_aigise_session(aigise_session_id)
+        opensage_session_id = get_opensage_session_id_from_context(tool_context)
+        opensage_session = get_opensage_session(opensage_session_id)
     except Exception:
-        aigise_session = None
+        opensage_session = None
 
     enable_quota = True
-    if aigise_session and getattr(aigise_session, "config", None):
+    if opensage_session and getattr(opensage_session, "config", None):
         try:
             enable_quota = bool(
                 getattr(
-                    getattr(aigise_session.config, "history", None),
+                    getattr(opensage_session.config, "history", None),
                     "enable_quota_countdown",
                     True,
                 )
@@ -1053,7 +1054,7 @@ async def generate_final_compaction(
         logger.warning("No non-compaction events to summarize")
         return None
 
-    summarizer = AigiseFullEventSummarizer(model=model)
+    summarizer = OpenSageFullEventSummarizer(model=model)
 
     # Generate summary
     compacted_content = await summarizer.maybe_summarize_events(

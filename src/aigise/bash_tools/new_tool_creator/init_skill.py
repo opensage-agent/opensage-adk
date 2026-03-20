@@ -19,7 +19,7 @@ from pathlib import Path
 
 # Get bash_tools directory from script location
 # In container: /bash_tools/new_tool_creator/init_skill.py -> /bash_tools/
-# In local dev: src/aigise/bash_tools/new_tool_creator/init_skill.py -> src/aigise/bash_tools/
+# In local dev: src/opensage/bash_tools/new_tool_creator/init_skill.py -> src/opensage/bash_tools/
 SCRIPT_DIR = Path(__file__).parent.resolve()
 BASH_TOOLS_DIR = (
     SCRIPT_DIR.parent

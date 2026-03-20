@@ -9,19 +9,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from google.adk.events.event import Event
 from google.genai import types
-
-from aigise.features.summarization import (
+from opensage.features.summarization import (
     _get_summary_async,
     history_summarizer_callback,
     tool_response_summarizer_callback,
 )
-from aigise.plugins.default.adk_plugins.history_summarizer_plugin import (
+from opensage.plugins.default.adk_plugins.history_summarizer_plugin import (
     HistorySummarizerPlugin,
 )
-from aigise.plugins.default.adk_plugins.quota_after_tool_plugin import (
+from opensage.plugins.default.adk_plugins.quota_after_tool_plugin import (
     QuotaAfterToolPlugin,
 )
-from aigise.plugins.default.adk_plugins.tool_response_summarizer_plugin import (
+from opensage.plugins.default.adk_plugins.tool_response_summarizer_plugin import (
     ToolResponseSummarizerPlugin,
 )
 
@@ -135,23 +134,23 @@ class TestToolResponseSummarizer:
         self.mock_session_id = "shared-session-123"
 
         self.mock_get_session_id_patcher = patch(
-            "aigise.features.summarization.get_aigise_session_id_from_context"
+            "opensage.features.summarization.get_opensage_session_id_from_context"
         )
         self.mock_get_session_id = self.mock_get_session_id_patcher.start()
         self.mock_get_session_id.return_value = self.mock_session_id
 
-        self.mock_get_aigise_session_patcher = patch(
-            "aigise.session.get_aigise_session"
+        self.mock_get_opensage_session_patcher = patch(
+            "opensage.session.get_opensage_session"
         )
-        self.mock_get_aigise_session = self.mock_get_aigise_session_patcher.start()
+        self.mock_get_opensage_session = self.mock_get_opensage_session_patcher.start()
 
-        self.mock_aigise_session = MagicMock()
+        self.mock_opensage_session = MagicMock()
         self.mock_config = MagicMock()
         self.mock_history_config = MagicMock()
         self.mock_llm_config = MagicMock()
 
-        self.mock_get_aigise_session.return_value = self.mock_aigise_session
-        self.mock_aigise_session.config = self.mock_config
+        self.mock_get_opensage_session.return_value = self.mock_opensage_session
+        self.mock_opensage_session.config = self.mock_config
         self.mock_config.history = self.mock_history_config
         self.mock_config.llm = self.mock_llm_config
         # Default compaction config: do not trigger unless overridden in test
@@ -161,7 +160,7 @@ class TestToolResponseSummarizer:
 
         # Mock neo4j logging
         self.mock_neo4j_logging_patcher = patch(
-            "aigise.features.summarization.is_neo4j_logging_enabled"
+            "opensage.features.summarization.is_neo4j_logging_enabled"
         )
         self.mock_neo4j_logging = self.mock_neo4j_logging_patcher.start()
         self.mock_neo4j_logging.return_value = False  # Default to disabled
@@ -169,7 +168,7 @@ class TestToolResponseSummarizer:
     def teardown_method(self):
         """Clean up patches."""
         self.mock_get_session_id_patcher.stop()
-        self.mock_get_aigise_session_patcher.stop()
+        self.mock_get_opensage_session_patcher.stop()
         self.mock_neo4j_logging_patcher.stop()
 
     @pytest.mark.asyncio
@@ -200,7 +199,7 @@ class TestToolResponseSummarizer:
         tool_response = "x" * 200
 
         with patch(
-            "aigise.features.summarization.resolve_model_spec"
+            "opensage.features.summarization.resolve_model_spec"
         ) as mock_resolve_model_spec:
             mock_model = MagicMock()
             mock_resolve_model_spec.return_value = mock_model
@@ -225,8 +224,8 @@ class TestToolResponseSummarizer:
             )
             mock_model.generate_content_async.assert_called_once()
 
-            assert result.startswith("<Summary by aigise>")
-            assert "</Summary by aigise>" in result
+            assert result.startswith("<Summary by opensage>")
+            assert "</Summary by opensage>" in result
             # Should contain the mocked summary text
             assert "Generated summary" in result
 
@@ -285,7 +284,7 @@ class TestToolResponseSummarizer:
 
         mock_model.generate_content_async.return_value = mock_async_gen()
 
-        with patch("aigise.utils.agent_utils.LiteLlm") as mock_lite_llm:
+        with patch("opensage.utils.agent_utils.LiteLlm") as mock_lite_llm:
             result = await tool_response_summarizer_callback(
                 self.mock_tool,
                 self.mock_args,
@@ -333,7 +332,7 @@ class TestToolResponseSummarizer:
         tool_response = "x" * 50  # Long response
 
         with patch(
-            "aigise.features.summarization.resolve_model_spec"
+            "opensage.features.summarization.resolve_model_spec"
         ) as mock_resolve_model_spec:
             mock_model = MagicMock()
             mock_resolve_model_spec.return_value = mock_model
@@ -349,8 +348,8 @@ class TestToolResponseSummarizer:
             mock_model.generate_content_async.assert_called_once()
 
             # Should fallback to truncation when model fails
-            assert result.startswith("<Summary by aigise>")
-            assert "</Summary by aigise>" in result
+            assert result.startswith("<Summary by opensage>")
+            assert "</Summary by opensage>" in result
             # Should contain the truncated original response (all 50 x's since < 1000)
             assert "x" * 50 in result
             # Should NOT contain LLM-generated content since model failed
@@ -373,10 +372,10 @@ class TestToolResponseSummarizer:
 
         with (
             patch(
-                "aigise.features.summarization.resolve_model_spec"
+                "opensage.features.summarization.resolve_model_spec"
             ) as mock_resolve_model_spec,
             patch(
-                "aigise.utils.neo4j_history_management.create_raw_tool_response_node"
+                "opensage.utils.neo4j_history_management.create_raw_tool_response_node"
             ) as mock_create_node,
         ):
             mock_model = MagicMock()
@@ -405,8 +404,8 @@ class TestToolResponseSummarizer:
             mock_create_node.assert_called_once()
 
             # Verify result format and content
-            assert result.startswith("<Summary by aigise>")
-            assert "</Summary by aigise>" in result
+            assert result.startswith("<Summary by opensage>")
+            assert "</Summary by opensage>" in result
             assert "Summary" in result
 
 
@@ -452,23 +451,23 @@ class TestHistorySummarizer:
         self.mock_session_id = "shared-session-123"
 
         self.mock_get_session_id_patcher = patch(
-            "aigise.features.summarization.get_aigise_session_id_from_context"
+            "opensage.features.summarization.get_opensage_session_id_from_context"
         )
         self.mock_get_session_id = self.mock_get_session_id_patcher.start()
         self.mock_get_session_id.return_value = self.mock_session_id
 
-        self.mock_get_aigise_session_patcher = patch(
-            "aigise.session.get_aigise_session"
+        self.mock_get_opensage_session_patcher = patch(
+            "opensage.session.get_opensage_session"
         )
-        self.mock_get_aigise_session = self.mock_get_aigise_session_patcher.start()
+        self.mock_get_opensage_session = self.mock_get_opensage_session_patcher.start()
 
-        self.mock_aigise_session = MagicMock()
+        self.mock_opensage_session = MagicMock()
         self.mock_config = MagicMock()
         self.mock_history_config = MagicMock()
         self.mock_llm_config = MagicMock()
 
-        self.mock_get_aigise_session.return_value = self.mock_aigise_session
-        self.mock_aigise_session.config = self.mock_config
+        self.mock_get_opensage_session.return_value = self.mock_opensage_session
+        self.mock_opensage_session.config = self.mock_config
         self.mock_config.history = self.mock_history_config
         self.mock_config.llm = self.mock_llm_config
 
@@ -483,7 +482,7 @@ class TestHistorySummarizer:
 
         # Mock neo4j logging
         self.mock_neo4j_logging_patcher = patch(
-            "aigise.features.summarization.is_neo4j_logging_enabled"
+            "opensage.features.summarization.is_neo4j_logging_enabled"
         )
         self.mock_neo4j_logging = self.mock_neo4j_logging_patcher.start()
         self.mock_neo4j_logging.return_value = False
@@ -491,7 +490,7 @@ class TestHistorySummarizer:
     def teardown_method(self):
         """Clean up patches."""
         self.mock_get_session_id_patcher.stop()
-        self.mock_get_aigise_session_patcher.stop()
+        self.mock_get_opensage_session_patcher.stop()
         self.mock_neo4j_logging_patcher.stop()
 
     @pytest.mark.asyncio
@@ -646,7 +645,7 @@ class TestHistorySummarizer:
         from unittest.mock import AsyncMock as _AsyncMock
 
         with patch(
-            "aigise.features.summarization.AigiseFullEventSummarizer.maybe_summarize_events",
+            "opensage.features.summarization.OpenSageFullEventSummarizer.maybe_summarize_events",
             new=_AsyncMock(
                 return_value=types.Content(
                     role="model", parts=[types.Part.from_text(text="History summary")]
@@ -816,14 +815,14 @@ class TestHistorySummarizer:
         )
 
         with patch(
-            "aigise.utils.neo4j_history_management.create_history_summary_node"
+            "opensage.utils.neo4j_history_management.create_history_summary_node"
         ) as mock_create_node:
             mock_create_node.return_value = None
             from unittest.mock import AsyncMock as _AsyncMock
 
             # Force summarizer to return content so compaction continues
             with patch(
-                "aigise.features.summarization.AigiseFullEventSummarizer.maybe_summarize_events",
+                "opensage.features.summarization.OpenSageFullEventSummarizer.maybe_summarize_events",
                 new=_AsyncMock(
                     return_value=types.Content(
                         role="model", parts=[types.Part.from_text(text="Summary")]
@@ -956,7 +955,7 @@ class TestHistorySummarizer:
         ]
 
         with patch(
-            "aigise.features.summarization.resolve_model_spec"
+            "opensage.features.summarization.resolve_model_spec"
         ) as mock_resolve_model_spec:
             mock_model = MagicMock()
             mock_resolve_model_spec.return_value = mock_model
@@ -965,7 +964,7 @@ class TestHistorySummarizer:
 
             # Force summarizer to return content so flow proceeds, still verifying LiteLlm used
             with patch(
-                "aigise.features.summarization.AigiseFullEventSummarizer.maybe_summarize_events",
+                "opensage.features.summarization.OpenSageFullEventSummarizer.maybe_summarize_events",
                 new=_AsyncMock(
                     return_value=types.Content(
                         role="model",
@@ -1003,7 +1002,7 @@ class TestSummarizationPlugins:
             return "history-summary"
 
         with patch(
-            "aigise.plugins.default.adk_plugins.history_summarizer_plugin.summarization.history_summarizer_callback",
+            "opensage.plugins.default.adk_plugins.history_summarizer_plugin.summarization.history_summarizer_callback",
             new=AsyncMock(side_effect=_mock_callback),
         ) as mock_cb:
             response = await plugin.after_tool_callback(
@@ -1026,7 +1025,7 @@ class TestSummarizationPlugins:
         mock_result = {"value": 42}
 
         with patch(
-            "aigise.plugins.default.adk_plugins.tool_response_summarizer_plugin.summarization.tool_response_summarizer_callback",
+            "opensage.plugins.default.adk_plugins.tool_response_summarizer_plugin.summarization.tool_response_summarizer_callback",
             new=AsyncMock(return_value="<summary>"),
         ) as mock_cb:
             response = await plugin.after_tool_callback(
@@ -1051,7 +1050,7 @@ class TestSummarizationPlugins:
         mock_result = {"value": 42}
 
         with patch(
-            "aigise.plugins.default.adk_plugins.quota_after_tool_plugin.summarization.quota_after_tool_callback",
+            "opensage.plugins.default.adk_plugins.quota_after_tool_plugin.summarization.quota_after_tool_callback",
             new=AsyncMock(return_value={"_quota_info": {"remaining": 3}}),
         ) as mock_cb:
             response = await plugin.after_tool_callback(

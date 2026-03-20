@@ -1,10 +1,9 @@
-"""Unit tests for AigiseAgent prompt helpers."""
+"""Unit tests for OpenSageAgent prompt helpers."""
 
 from __future__ import annotations
 
 import pytest
-
-from aigise.agents.aigise_agent import ToolLoader
+from opensage.agents.opensage_agent import ToolLoader
 
 
 def test_generate_sandbox_structure_description_neo4j_without_memory_management() -> (

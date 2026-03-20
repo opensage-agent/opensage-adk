@@ -2,9 +2,8 @@ import tarfile
 from pathlib import Path
 
 import pytest
-
-from aigise.toolbox.coverage.llvm_cov import parse_llvm_coverage_json
-from aigise.utils.project_info import PROJECT_PATH
+from opensage.toolbox.coverage.llvm_cov import parse_llvm_coverage_json
+from opensage.utils.project_info import PROJECT_PATH
 
 
 @pytest.fixture

@@ -6,7 +6,7 @@ import asyncio
 import logging
 from abc import ABC
 
-from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ class SandboxInitializer(ABC):
 
         Args:
             mcp_services: List of MCP service names. Each name must exist in
-                `AigiseConfig.mcp.services` for the session.
+                `OpenSageConfig.mcp.services` for the session.
 
         Raises:
             RuntimeError: If MCP URL resolution fails (e.g. missing config).
@@ -64,10 +64,10 @@ class SandboxInitializer(ABC):
         if not mcp_services:
             return
 
-        from aigise.utils.agent_utils import get_mcp_url_from_session_id
+        from opensage.utils.agent_utils import get_mcp_url_from_session_id
 
         for mcp_name in mcp_services:
-            url = get_mcp_url_from_session_id(mcp_name, self.aigise_session_id)
+            url = get_mcp_url_from_session_id(mcp_name, self.opensage_session_id)
             retry_num = 0
             logger.info("Waiting for MCP server %s at %s...", mcp_name, url)
             while not await _verify_mcp_sse_ready(url):
@@ -96,5 +96,5 @@ class SandboxInitializer(ABC):
         logger.info(
             "Sandbox '%s' is READY for session %s",
             getattr(self, "sandbox_type", "<unknown>"),
-            getattr(self, "aigise_session_id", "<unknown>"),
+            getattr(self, "opensage_session_id", "<unknown>"),
         )

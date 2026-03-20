@@ -5,46 +5,46 @@ pytestmark = pytest.mark.skip(reason="Skipping all fuzz tests for now")
 from unittest.mock import MagicMock
 
 import pytest_asyncio
+from opensage.sandbox.base_sandbox import SandboxState
+from opensage.session import OpenSageSession, get_opensage_session
+from opensage.utils.project_info import PROJECT_PATH
 
-from aigise.sandbox.base_sandbox import SandboxState
-from aigise.session import AigiseSession, get_aigise_session
-from aigise.utils.project_info import PROJECT_PATH
 from tests.unit.utils.utils import extract_infos_from_arvo_script
 
 
 @pytest_asyncio.fixture(scope="module")
-async def aigise_session():
+async def opensage_session():
     import time
 
     session_id = f"test-fuzz-session-{int(time.time())}"
-    aigise_session = None
+    opensage_session = None
     try:
-        aigise_session = get_aigise_session(
+        opensage_session = get_opensage_session(
             session_id, str(PROJECT_PATH / "tests/unit/data/configs/test_fuzz.toml")
         )
 
-        aigise_session.sandboxes.initialize_shared_volumes()
-        await aigise_session.sandboxes.launch_all_sandboxes()
-        await aigise_session.sandboxes.initialize_all_sandboxes()
-        yield aigise_session
+        opensage_session.sandboxes.initialize_shared_volumes()
+        await opensage_session.sandboxes.launch_all_sandboxes()
+        await opensage_session.sandboxes.initialize_all_sandboxes()
+        yield opensage_session
     finally:
-        if aigise_session is not None:
-            aigise_session.cleanup()
+        if opensage_session is not None:
+            opensage_session.cleanup()
 
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_fuzz_initialization(aigise_session: AigiseSession):
+async def test_fuzz_initialization(opensage_session: OpenSageSession):
     """Test that fuzzing sandbox initializes correctly."""
-    fuzz_sandbox = aigise_session.sandboxes.get_sandbox("fuzz")
+    fuzz_sandbox = opensage_session.sandboxes.get_sandbox("fuzz")
     assert fuzz_sandbox.state == SandboxState.READY
 
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_fuzz_environment_setup(aigise_session: AigiseSession):
+async def test_fuzz_environment_setup(opensage_session: OpenSageSession):
     """Test that fuzzing environment is properly set up."""
-    fuzz_sandbox = aigise_session.sandboxes.get_sandbox("fuzz")
+    fuzz_sandbox = opensage_session.sandboxes.get_sandbox("fuzz")
 
     # Check that arvo script exists and extract info
     res, exit_code = fuzz_sandbox.run_command_in_container("cat /bin/arvo")
@@ -58,9 +58,9 @@ async def test_fuzz_environment_setup(aigise_session: AigiseSession):
 
     @pytest.mark.slow
     @pytest.mark.asyncio
-    async def test_fuzz_compile_aflpp(aigise_session: AigiseSession):
+    async def test_fuzz_compile_aflpp(opensage_session: OpenSageSession):
         """Test AFL++ compilation (may fail in test environment due to permissions)."""
-        fuzz_sandbox = aigise_session.sandboxes.get_sandbox("fuzz")
+        fuzz_sandbox = opensage_session.sandboxes.get_sandbox("fuzz")
 
         # Extract environment info
         res, exit_code = fuzz_sandbox.run_command_in_container("cat /bin/arvo")
@@ -87,9 +87,9 @@ async def test_fuzz_environment_setup(aigise_session: AigiseSession):
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_fuzz_run_aflpp(aigise_session: AigiseSession):
+async def test_fuzz_run_aflpp(opensage_session: OpenSageSession):
     """Test AFL++ fuzzing execution."""
-    fuzz_sandbox = aigise_session.sandboxes.get_sandbox("fuzz")
+    fuzz_sandbox = opensage_session.sandboxes.get_sandbox("fuzz")
 
     # Extract environment info
     res, exit_code = fuzz_sandbox.run_command_in_container("cat /bin/arvo")
@@ -106,9 +106,9 @@ async def test_fuzz_run_aflpp(aigise_session: AigiseSession):
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_fuzz_ground_truth_poc(aigise_session: AigiseSession):
+async def test_fuzz_ground_truth_poc(opensage_session: OpenSageSession):
     """Test ground truth PoC execution."""
-    fuzz_sandbox = aigise_session.sandboxes.get_sandbox("fuzz")
+    fuzz_sandbox = opensage_session.sandboxes.get_sandbox("fuzz")
 
     # Extract environment info
     res, exit_code = fuzz_sandbox.run_command_in_container("cat /bin/arvo")
@@ -125,13 +125,13 @@ async def test_fuzz_ground_truth_poc(aigise_session: AigiseSession):
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_fuzz_tool_functions(aigise_session: AigiseSession):
+async def test_fuzz_tool_functions(opensage_session: OpenSageSession):
     """Test fuzzing tool functions."""
     mock_context = MagicMock()
-    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
+    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Import fuzzing tools
-    from aigise.toolbox.fuzzing.fuzz_tools import (
+    from opensage.toolbox.fuzzing.fuzz_tools import (
         analyze_crash,
         check_fuzzing_coverage,
         generate_poc,

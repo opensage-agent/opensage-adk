@@ -8,10 +8,14 @@ This module provides a rich graph-based memory system with:
 - Observer Module: Async tool result monitoring and storage
 """
 
-from aigise.memory.config.domain_config import DomainConfig
-from aigise.memory.schema.node_types import MatchingRule, NodeTypeConfig, PropertyConfig
-from aigise.memory.schema.relationship_types import RelationshipConfig
-from aigise.memory.storage_decider import StorageDecider, StorageDecision
+from opensage.memory.config.domain_config import DomainConfig
+from opensage.memory.schema.node_types import (
+    MatchingRule,
+    NodeTypeConfig,
+    PropertyConfig,
+)
+from opensage.memory.schema.relationship_types import RelationshipConfig
+from opensage.memory.storage_decider import StorageDecider, StorageDecision
 
 __all__ = [
     "DomainConfig",

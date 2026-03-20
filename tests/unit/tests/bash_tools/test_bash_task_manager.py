@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from aigise.toolbox.general.bash_task_manager import BashTaskManager
+from opensage.toolbox.general.bash_task_manager import BashTaskManager
 
 
 def test_start_bg_task_execution_timeout_wraps_bash_not_user_command():

@@ -6,7 +6,7 @@ import abc
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from aigise.evaluation.base import Evaluation
+    from opensage.evaluation.base import Evaluation
 
 
 class BaseDispatcher(abc.ABC):

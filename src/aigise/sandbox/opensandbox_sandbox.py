@@ -16,13 +16,12 @@ from types import SimpleNamespace
 from typing import Any, Optional
 
 import docker
-
-from aigise.config import AigiseConfig, ContainerConfig, OpenSandboxConfig
-from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
-from aigise.sandbox.k8s_sandbox import K8sSandbox
-from aigise.sandbox.remote_docker_sandbox import RemoteDockerSandbox
-from aigise.sandbox.shared_storage import SharedStorage, _temporary_env
-from aigise.utils.parser import get_function_info
+from opensage.config import ContainerConfig, OpenSageConfig, OpenSandboxConfig
+from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.k8s_sandbox import K8sSandbox
+from opensage.sandbox.remote_docker_sandbox import RemoteDockerSandbox
+from opensage.sandbox.shared_storage import SharedStorage, _temporary_env
+from opensage.utils.parser import get_function_info
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +30,8 @@ class OpenSandboxSandbox(BaseSandbox):
     """AIgiSE sandbox backend powered by OpenSandbox."""
 
     backend_type = "opensandbox"
-    _injected_config: Optional[AigiseConfig] = None
-    _CACHE_DIR_ENV = "AIGISE_OPENSANDBOX_CACHE_DIR"
+    _injected_config: Optional[OpenSageConfig] = None
+    _CACHE_DIR_ENV = "OPENSAGE_OPENSANDBOX_CACHE_DIR"
     _HELPER_IMAGE = "alpine:latest"
     _OPENSANDBOX_ID_LABEL = "opensandbox.io/id"
 
@@ -72,11 +71,11 @@ class OpenSandboxSandbox(BaseSandbox):
         self.sandbox_service = self._adapter_factory.create_sandbox_service()
 
     @classmethod
-    def set_config(cls, config: AigiseConfig) -> None:
+    def set_config(cls, config: OpenSageConfig) -> None:
         cls._injected_config = config
 
     @classmethod
-    def _get_global_config(cls) -> AigiseConfig:
+    def _get_global_config(cls) -> OpenSageConfig:
         if cls._injected_config is None:
             raise ValueError(
                 "OpenSandboxSandbox config has not been injected. "
@@ -212,8 +211,8 @@ class OpenSandboxSandbox(BaseSandbox):
                 if value is not None
             },
             metadata={
-                "aigise.session_id": self.aigise_session_id or "",
-                "aigise.sandbox_type": self.sandbox_type or "",
+                "opensage.session_id": self.opensage_session_id or "",
+                "opensage.sandbox_type": self.sandbox_type or "",
             },
             timeout=timedelta(seconds=self._get_timeout_seconds()),
             resource=self._build_resource_limits(),
@@ -259,7 +258,7 @@ class OpenSandboxSandbox(BaseSandbox):
             time.sleep(1)
         raise RuntimeError(
             f"OpenSandbox execd endpoint did not become ready for "
-            f"{self.sandbox_type} in session {self.aigise_session_id}"
+            f"{self.sandbox_type} in session {self.opensage_session_id}"
         )
 
     def copy_file_from_container(self, src_path: str, dst_path: str):
@@ -278,7 +277,7 @@ class OpenSandboxSandbox(BaseSandbox):
             self.filesystem_service.write_file(container_path, in_file)
 
     def copy_directory_from_container(self, src_path: str, dst_path: str):
-        archive_path = f"/tmp/aigise_copy_{self.sandbox_type}.tar.gz"
+        archive_path = f"/tmp/opensage_copy_{self.sandbox_type}.tar.gz"
         self.run_command_in_container(
             [
                 "/bin/sh",
@@ -303,7 +302,7 @@ class OpenSandboxSandbox(BaseSandbox):
             self.run_command_in_container(["rm", "-f", archive_path])
 
     def copy_directory_to_container(self, src_path: str, dst_path: str):
-        archive_path = f"/tmp/aigise_upload_{self.sandbox_type}.tar.gz"
+        archive_path = f"/tmp/opensage_upload_{self.sandbox_type}.tar.gz"
         with tempfile.NamedTemporaryFile(delete=False, suffix=".tar.gz") as temp_tar:
             temp_tar_path = temp_tar.name
         try:
@@ -523,7 +522,7 @@ class OpenSandboxSandbox(BaseSandbox):
     async def create_single_sandbox(
         cls, session_id: str, sandbox_type: str, container_config
     ):
-        from aigise.sandbox.factory import create_sandbox_class, get_initializer_class
+        from opensage.sandbox.factory import create_sandbox_class, get_initializer_class
 
         initializer_class = get_initializer_class(sandbox_type)
         sandbox_class = create_sandbox_class(cls, initializer_class)
@@ -545,16 +544,16 @@ class OpenSandboxSandbox(BaseSandbox):
     ) -> None:
         final_state: Optional[SandboxState] = None
         sandboxes = None
-        aigise_session_id = getattr(sandbox_instance, "aigise_session_id", None)
-        if aigise_session_id:
+        opensage_session_id = getattr(sandbox_instance, "opensage_session_id", None)
+        if opensage_session_id:
             try:
-                from aigise.session.aigise_session import get_aigise_session
+                from opensage.session.opensage_session import get_opensage_session
 
-                sandboxes = get_aigise_session(aigise_session_id).sandboxes
+                sandboxes = get_opensage_session(opensage_session_id).sandboxes
             except Exception as exc:
                 logger.warning(
                     "Failed to retrieve sandbox manager for session %s: %s",
-                    aigise_session_id,
+                    opensage_session_id,
                     exc,
                 )
         try:
@@ -570,7 +569,7 @@ class OpenSandboxSandbox(BaseSandbox):
             logger.error(
                 "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
                 sandbox_type,
-                aigise_session_id,
+                opensage_session_id,
                 final_state.value,
                 exc,
                 exc_info=exc,
@@ -589,7 +588,7 @@ class OpenSandboxSandbox(BaseSandbox):
             logger.info(
                 "sandbox '%s' (session %s) state=%s - Initialization finished",
                 sandbox_type,
-                aigise_session_id,
+                opensage_session_id,
                 state_value,
             )
 
@@ -610,9 +609,9 @@ class OpenSandboxSandbox(BaseSandbox):
             return dict(await asyncio.gather(*tasks))
 
         sandbox_instances = await launch_concurrent()
-        from aigise.session.aigise_session import get_aigise_session
+        from opensage.session.opensage_session import get_opensage_session
 
-        config = get_aigise_session(session_id).config
+        config = get_opensage_session(session_id).config
         cls._update_service_ports(config, sandbox_instances)
         return sandbox_instances
 
@@ -710,7 +709,7 @@ class OpenSandboxSandbox(BaseSandbox):
         }
         os.environ[cls._CACHE_DIR_ENV] = str(cache_dir_path)
 
-        global_manifest_dir = Path.home() / ".cache" / "aigise" / "opensandbox_cache"
+        global_manifest_dir = Path.home() / ".cache" / "opensage" / "opensandbox_cache"
         global_manifest_dir.mkdir(parents=True, exist_ok=True)
         global_manifest = (
             global_manifest_dir / f"{cls._normalize_cache_name(task_name)}.json"
@@ -897,7 +896,7 @@ class OpenSandboxSandbox(BaseSandbox):
 
     @classmethod
     def _update_service_ports(
-        cls, config: AigiseConfig, sandbox_instances: dict[str, "OpenSandboxSandbox"]
+        cls, config: OpenSageConfig, sandbox_instances: dict[str, "OpenSandboxSandbox"]
     ) -> None:
         if not sandbox_instances:
             return

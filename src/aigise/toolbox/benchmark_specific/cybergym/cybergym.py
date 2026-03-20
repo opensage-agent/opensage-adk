@@ -11,14 +11,13 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.tools import ToolContext
 from google.genai import types
-
-from aigise.session import get_aigise_session
-from aigise.toolbox.sandbox_requirements import requires_sandbox
-from aigise.utils.agent_utils import (
+from opensage.session import get_opensage_session
+from opensage.toolbox.sandbox_requirements import requires_sandbox
+from opensage.utils.agent_utils import (
     INHERIT_MODEL,
-    get_aigise_config_from_context,
-    get_aigise_session_id_from_context,
     get_model_from_agent,
+    get_opensage_config_from_context,
+    get_opensage_session_id_from_context,
     get_sandbox_from_context,
 )
 
@@ -105,7 +104,7 @@ def generate_poc_and_submit(
         return "[ERROR] No Python code block found within <poc> tags."
     poc_code = code_match.group(1).strip()
 
-    # 2. Get sandbox using new AigiseSession architecture
+    # 2. Get sandbox using new OpenSageSession architecture
     sandbox = get_sandbox_from_context(tool_context, "main")
 
     # 3. Write, execute and capture the PoC generation script
@@ -160,8 +159,8 @@ async def critique(tool_context: ToolContext):
         dict with 'idea' containing the other model's suggestion
     """
     try:
-        aigise_session_id = get_aigise_session_id_from_context(tool_context)
-        session = get_aigise_session(aigise_session_id)
+        opensage_session_id = get_opensage_session_id_from_context(tool_context)
+        session = get_opensage_session(opensage_session_id)
         FLAG_UNJUSTIFIED_CLAIMS_MODEL = session.config.llm.flag_claims_model
         if not FLAG_UNJUSTIFIED_CLAIMS_MODEL:
             print("FLAG_UNJUSTIFIED_CLAIMS_MODEL not configured in LLM settings")
@@ -375,7 +374,7 @@ def run_poc_from_script(
         return "[ERROR] No Python code block found within <poc> tags."
     poc_code = code_match.group(1).strip()
 
-    # 2. Get sandbox using new AigiseSession architecture
+    # 2. Get sandbox using new OpenSageSession architecture
     sandbox = get_sandbox_from_context(tool_context, "main")
 
     # 3. Write, execute and capture the PoC generation script
@@ -399,7 +398,7 @@ def run_poc_from_script(
             return "[ERROR] No PoC file named 'poc' was generated. Do you generate the poc file under the current working directory? (e.g. `./poc`)"
 
         # 5. Copy the PoC into the container using session-specific config
-        config = get_aigise_config_from_context(tool_context)
+        config = get_opensage_config_from_context(tool_context)
         container_poc_path = config.build.poc_dir
 
         try:
@@ -450,7 +449,7 @@ def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     """
     # Use main sandbox for compilation
     sandbox = get_sandbox_from_context(tool_context, "main")
-    config = get_aigise_config_from_context(tool_context)
+    config = get_opensage_config_from_context(tool_context)
     build_command = config.build.compile_command
     return sandbox.run_command_in_container(build_command)
 
@@ -462,9 +461,9 @@ def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     Returns:
         Tuple[str, int]: The output and exit code of the command.
     """
-    # Get PoC command using new AigiseSession architecture
+    # Get PoC command using new OpenSageSession architecture
     sandbox = get_sandbox_from_context(tool_context, "main")
-    config = get_aigise_config_from_context(tool_context)
+    config = get_opensage_config_from_context(tool_context)
     poc_command = config.build.run_command
     output = sandbox.run_command_in_container(poc_command)
     return output

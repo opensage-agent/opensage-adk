@@ -10,9 +10,8 @@ from google.adk.models.base_llm import BaseLlm
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.config.config_dataclass import AigiseConfig
-from aigise.session.joern_client import JoernClient
+from opensage.config.config_dataclass import OpenSageConfig
+from opensage.session.joern_client import JoernClient
 
 INHERIT_MODEL = "inherit"
 
@@ -50,36 +49,36 @@ def resolve_model_spec(
     return LiteLlm(model=model_name)
 
 
-def get_aigise_session_from_context(
+def get_opensage_session_from_context(
     context: InvocationContext | ToolContext,
 ):
-    """Get AIgiSE session from context using new AigiseSession architecture."""
+    """Get AIgiSE session from context using new OpenSageSession architecture."""
     # Lazy import to avoid circular dependency
-    from aigise.session import get_aigise_session
+    from opensage.session import get_opensage_session
 
-    aigise_session_id = get_aigise_session_id_from_context(context)
-    aigise_session = get_aigise_session(aigise_session_id)
-    return aigise_session
+    opensage_session_id = get_opensage_session_id_from_context(context)
+    opensage_session = get_opensage_session(opensage_session_id)
+    return opensage_session
 
 
-def get_aigise_config_from_context(
+def get_opensage_config_from_context(
     context: InvocationContext | ToolContext,
-) -> AigiseConfig:
-    """Get AIgiSE config from context using new AigiseSession architecture."""
+) -> OpenSageConfig:
+    """Get AIgiSE config from context using new OpenSageSession architecture."""
     # Lazy import to avoid circular dependency
-    from aigise.session import get_aigise_session
+    from opensage.session import get_opensage_session
 
-    aigise_session_id = get_aigise_session_id_from_context(context)
-    aigise_session = get_aigise_session(aigise_session_id)
-    return aigise_session.config
+    opensage_session_id = get_opensage_session_id_from_context(context)
+    opensage_session = get_opensage_session(opensage_session_id)
+    return opensage_session.config
 
 
-def get_mcp_url_from_session_id(mcp_name: str, aigise_session_id: str) -> str:
+def get_mcp_url_from_session_id(mcp_name: str, opensage_session_id: str) -> str:
     """Get MCP service URL from AIgiSE session configuration.
 
     Args:
         mcp_name: Name of the MCP service (e.g., "gdb_mcp", "pdb_mcp")
-        aigise_session_id: AIgiSE session ID to retrieve configuration
+        opensage_session_id: AIgiSE session ID to retrieve configuration
 
     Returns:
         MCP SSE URL (e.g., "http://localhost:8000/sse")
@@ -93,13 +92,13 @@ def get_mcp_url_from_session_id(mcp_name: str, aigise_session_id: str) -> str:
         # Returns: "http://localhost:8000/sse"
     """
     # Lazy import to avoid circular dependency
-    from aigise.session import get_aigise_session
+    from opensage.session import get_opensage_session
 
     # Get session and configuration
-    aigise_session = get_aigise_session(aigise_session_id)
+    opensage_session = get_opensage_session(opensage_session_id)
 
     # Get MCP configuration
-    mcp_config = aigise_session.config.mcp.services.get(mcp_name)
+    mcp_config = opensage_session.config.mcp.services.get(mcp_name)
     if not mcp_config:
         raise RuntimeError(f"{mcp_name} not configured in mcp.services")
 
@@ -111,20 +110,20 @@ def get_mcp_url_from_session_id(mcp_name: str, aigise_session_id: str) -> str:
 
 
 def get_mcp_host_and_port_from_session_id(
-    mcp_name: str, aigise_session_id: str
+    mcp_name: str, opensage_session_id: str
 ) -> tuple[str, int]:
     """Get MCP host and port from AIgiSE session configuration."""
     # Lazy import to avoid circular dependency
-    from aigise.session import get_aigise_session
+    from opensage.session import get_opensage_session
 
-    aigise_session = get_aigise_session(aigise_session_id)
+    opensage_session = get_opensage_session(opensage_session_id)
 
     # Get MCP configuration
-    mcp_config = aigise_session.config.mcp.services.get(mcp_name)
+    mcp_config = opensage_session.config.mcp.services.get(mcp_name)
     if not mcp_config:
         raise RuntimeError(f"{mcp_name} not configured in mcp.services")
 
-    host = aigise_session.config.default_host
+    host = opensage_session.config.default_host
     port = mcp_config.sse_port
     return host, port
 
@@ -132,7 +131,7 @@ def get_mcp_host_and_port_from_session_id(
 def get_sandbox_from_context(
     context: InvocationContext | ToolContext, sandbox_type: str = "main"
 ):
-    """Get sandbox from context using AigiseSession architecture.
+    """Get sandbox from context using OpenSageSession architecture.
 
     This is a convenience helper for tools that need to access sandboxes.
     It extracts the session ID from context and retrieves the appropriate sandbox.
@@ -146,8 +145,8 @@ def get_sandbox_from_context(
 
     Example::
 
-        from aigise.toolbox.sandbox_requirements import requires_sandbox
-        from aigise.utils.agent_utils import get_sandbox_from_context
+        from opensage.toolbox.sandbox_requirements import requires_sandbox
+        from opensage.utils.agent_utils import get_sandbox_from_context
 
         @requires_sandbox("main")
         async def bash_tool(command: str, context: ToolContext) -> str:
@@ -155,11 +154,11 @@ def get_sandbox_from_context(
             return await sandbox.run_command_in_container(command)
     """
     # Lazy import to avoid circular dependency
-    from aigise.session import get_aigise_session
+    from opensage.session import get_opensage_session
 
-    aigise_session_id = get_aigise_session_id_from_context(context)
-    aigise_session = get_aigise_session(aigise_session_id)
-    return aigise_session.sandboxes.get_sandbox(sandbox_type)
+    opensage_session_id = get_opensage_session_id_from_context(context)
+    opensage_session = get_opensage_session(opensage_session_id)
+    return opensage_session.sandboxes.get_sandbox(sandbox_type)
 
 
 def save_content_to_sandbox_file(
@@ -212,7 +211,7 @@ def save_content_to_sandbox_file(
 
         # Use heredoc to write content safely
         write_result = sandbox.run_command_in_container(
-            f"cat > {output_file} << 'AIGISE_SAVE_EOF'\n{content}\nAIGISE_SAVE_EOF",
+            f"cat > {output_file} << 'OPENSAGE_SAVE_EOF'\n{content}\nOPENSAGE_SAVE_EOF",
             timeout=30,
         )
         logger.warning(f"[save_content_to_sandbox_file] write result: {write_result}")
@@ -242,7 +241,7 @@ def save_content_to_sandbox_file(
 async def get_neo4j_client_from_context(
     context: InvocationContext | ToolContext, client_type: str = "history"
 ):
-    """Get Neo4j client from context using new AigiseSession architecture.
+    """Get Neo4j client from context using new OpenSageSession architecture.
 
     Args:
         context: Tool or invocation context
@@ -252,17 +251,17 @@ async def get_neo4j_client_from_context(
         Neo4j client for the specified type
     """
     # Lazy import to avoid circular dependency
-    from aigise.session import get_aigise_session
+    from opensage.session import get_opensage_session
 
-    aigise_session_id = get_aigise_session_id_from_context(context)
-    aigise_session = get_aigise_session(aigise_session_id)
-    return await aigise_session.neo4j.get_async_client(client_type)
+    opensage_session_id = get_opensage_session_id_from_context(context)
+    opensage_session = get_opensage_session(opensage_session_id)
+    return await opensage_session.neo4j.get_async_client(client_type)
 
 
 async def get_joern_client_from_context(
     context: InvocationContext | ToolContext,
 ) -> JoernClient:
-    """Get Joern client from context using new AigiseSession architecture.
+    """Get Joern client from context using new OpenSageSession architecture.
 
     Args:
         context: Tool or invocation context
@@ -270,34 +269,34 @@ async def get_joern_client_from_context(
         JoernClient instance
     """
     # Lazy import to avoid circular dependency
-    from aigise.session import get_aigise_session
+    from opensage.session import get_opensage_session
 
-    aigise_session_id = get_aigise_session_id_from_context(context)
-    aigise_session = get_aigise_session(aigise_session_id)
+    opensage_session_id = get_opensage_session_id_from_context(context)
+    opensage_session = get_opensage_session(opensage_session_id)
     joern_port = 18087
     return JoernClient(
-        server_endpoint=f"{aigise_session.config.default_host}:{joern_port}"
+        server_endpoint=f"{opensage_session.config.default_host}:{joern_port}"
     )
 
 
-def get_aigise_session_id_from_context(context) -> str:
+def get_opensage_session_id_from_context(context) -> str:
     """
-    Extract aigise_session_id from context (ToolContext, InvocationContext, or similar).
+    Extract opensage_session_id from context (ToolContext, InvocationContext, or similar).
 
     This is a unified utility function used across the AIgiSE Framework to consistently
-    extract and manage aigise_session_id for session isolation.
+    extract and manage opensage_session_id for session isolation.
 
     Args:
         context: Any context object that might contain session information
 
     Returns:
-        str: The aigise_session_id for session isolation
+        str: The opensage_session_id for session isolation
     """
     # Try to get from context.state first (immediate access)
     if hasattr(context, "state") and hasattr(context.state, "get"):
-        aigise_session_id = context.state.get("aigise_session_id")
-        if aigise_session_id:
-            return aigise_session_id
+        opensage_session_id = context.state.get("opensage_session_id")
+        if opensage_session_id:
+            return opensage_session_id
 
     # Get session from different context types
     session = None
@@ -309,15 +308,15 @@ def get_aigise_session_id_from_context(context) -> str:
         session = context.session
 
     if session is not None:
-        # Ensure aigise_session_id is set in session.state
-        if "aigise_session_id" not in session.state:
-            session.state["aigise_session_id"] = session.id
+        # Ensure opensage_session_id is set in session.state
+        if "opensage_session_id" not in session.state:
+            session.state["opensage_session_id"] = session.id
 
         # Also set it in context.state if possible for immediate access
         if hasattr(context, "state"):
-            context.state["aigise_session_id"] = session.state["aigise_session_id"]
+            context.state["opensage_session_id"] = session.state["opensage_session_id"]
 
-        return session.state["aigise_session_id"]
+        return session.state["opensage_session_id"]
 
     # Ultimate fallback
     return "default"
@@ -482,32 +481,32 @@ def extract_tools_from_agent(agent) -> Dict[str, Any]:
 
 def _copy_agent_with_updated_model(base_agent_info, model_name: str):
     """
-    Create a new AigiseAgent instance with a specific model, based on an existing AigiseAgent.
+    Create a new OpenSageAgent instance with a specific model, based on an existing OpenSageAgent.
 
     Args:
-        base_agent_info: EnsembleAgentInfo object containing the base agent (must be AigiseAgent)
+        base_agent_info: EnsembleAgentInfo object containing the base agent (must be OpenSageAgent)
         model_name: The model name to use (e.g., "anthropic/claude-sonnet-4") or
           INHERIT_MODEL ("inherit") to reuse inherit_model.
         inherit_model: Model instance used when model_name==INHERIT_MODEL.
 
     Returns:
-        New AigiseAgent instance with the specified model and same enabled_skills
+        New OpenSageAgent instance with the specified model and same enabled_skills
     """
     # NOTE: This is intentionally a private helper, but used by ensemble manager.
 
     # pylint: disable=protected-access
-    from aigise.agents.aigise_agent import AigiseAgent
+    from opensage.agents.opensage_agent import OpenSageAgent
 
     if not base_agent_info.agent_instance or not isinstance(
-        base_agent_info.agent_instance, AigiseAgent
+        base_agent_info.agent_instance, OpenSageAgent
     ):
         raise ValueError(
-            f"Base agent must be an AigiseAgent instance, got {type(base_agent_info.agent_instance)}"
+            f"Base agent must be an OpenSageAgent instance, got {type(base_agent_info.agent_instance)}"
         )
 
     base_agent = base_agent_info.agent_instance
 
-    # Get enabled_skills from the AigiseAgent instance
+    # Get enabled_skills from the OpenSageAgent instance
     enabled_skills = getattr(base_agent, "_enabled_skills", None)
 
     if model_name == INHERIT_MODEL:
@@ -544,8 +543,8 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
 
         new_model = LiteLlm(model=model_name)
 
-        # Create new AigiseAgent with the same configuration but different model
-        new_agent = AigiseAgent(
+        # Create new OpenSageAgent with the same configuration but different model
+        new_agent = OpenSageAgent(
             model=new_model,
             name=f"{base_agent.name}_{model_name.replace('/', '_').replace('-', '_')}",
             instruction=base_agent.instruction,
@@ -603,13 +602,13 @@ def _copy_agent_with_updated_model_v2(
     base_agent_info, model_name: str, *, inherit_model: Optional[BaseLlm] = None
 ):
     """Like _copy_agent_with_updated_model but supports model inheritance."""
-    from aigise.agents.aigise_agent import AigiseAgent
+    from opensage.agents.opensage_agent import OpenSageAgent
 
     if not base_agent_info.agent_instance or not isinstance(
-        base_agent_info.agent_instance, AigiseAgent
+        base_agent_info.agent_instance, OpenSageAgent
     ):
         raise ValueError(
-            f"Base agent must be an AigiseAgent instance, got {type(base_agent_info.agent_instance)}"
+            f"Base agent must be an OpenSageAgent instance, got {type(base_agent_info.agent_instance)}"
         )
 
     base_agent = base_agent_info.agent_instance
@@ -637,7 +636,7 @@ def _copy_agent_with_updated_model_v2(
         print(
             f"Warning: agent.copy() failed ({copy_error}), falling back to manual creation"
         )
-        new_agent = AigiseAgent(
+        new_agent = OpenSageAgent(
             model=resolved_model,
             name=f"{base_agent.name}_{suffix}",
             instruction=base_agent.instruction,

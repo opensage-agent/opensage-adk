@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from aigise.memory.schema.node_types import PropertyConfig, PropertyType
+from opensage.memory.schema.node_types import PropertyConfig, PropertyType
 
 
 @dataclass

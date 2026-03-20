@@ -7,7 +7,7 @@ On the GPU machine:
 ```bash
 git clone https://github.com/rucnyz/slime
 cd slime
-git checkout aigise
+git checkout opensage
 cd for_ssh
 
 # Copy your SSH public key
@@ -39,8 +39,8 @@ Base image: `slimerl/slime:latest` (includes Megatron-LM, sglang, ray, slime).
 ```bash
 # inside the container
 cd /root
-git clone https://github.com/AIgiSE/AIgiSE aigise
-cd aigise
+git clone https://github.com/AIgiSE/AIgiSE opensage
+cd opensage
 pip install -e .
 ```
 
@@ -49,7 +49,7 @@ pip install -e .
 The SeCodePLT benchmark uses CodeQL for call graph analysis. Download and install the CodeQL bundle inside the container:
 
 ```bash
-cd /root/aigise/src/aigise/sandbox_scripts
+cd /root/opensage/src/opensage/sandbox_scripts
 wget https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.18.4/codeql-bundle-linux64.tar.gz
 tar -xzf codeql-bundle-linux64.tar.gz codeql
 rm -f codeql-bundle-linux64.tar.gz
@@ -89,20 +89,20 @@ PYTHONPATH=/root/Megatron-LM python tools/convert_hf_to_torch_dist.py \
 ## 6. Generate Training Data
 
 ```bash
-cd /root/slime/examples/aigise
+cd /root/slime/examples/opensage
 
 # Mock benchmark (no Docker/sandbox dependencies, for testing)
-python aigise_mock.py \
-    --local_dir /root/aigise_data \
-    --dataset_path /root/aigise/src/aigise/evaluations/mock_debug/mock_test_dataset.json \
+python opensage_mock.py \
+    --local_dir /root/opensage_data \
+    --dataset_path /root/opensage/src/opensage/evaluations/mock_debug/mock_test_dataset.json \
     --output_filename mock_tasks.jsonl
 
 # SeCodePLT (vulnerability detection benchmark)
-python aigise_mock.py \
-    --local_dir /root/aigise_data \
-    --dataset_path aigise/secodeplt \
+python opensage_mock.py \
+    --local_dir /root/opensage_data \
+    --dataset_path opensage/secodeplt \
     --dataset_split train \
-    --task_subset_file /root/aigise/src/aigise/evaluations/secodeplt/metadata/successful_task_list.txt \
+    --task_subset_file /root/opensage/src/opensage/evaluations/secodeplt/metadata/successful_task_list.txt \
     --output_filename secodeplt_tasks.jsonl
 ```
 
@@ -112,34 +112,34 @@ Use the AIgiSE launcher script (`rl/slime/train.sh`), which handles Docker clean
 
 ```bash
 # Mock benchmark (default):
-bash /root/aigise/rl/slime/train.sh
+bash /root/opensage/rl/slime/train.sh
 
 # SeCodePLT benchmark:
-bash /root/aigise/rl/slime/train.sh --benchmark secodeplt
+bash /root/opensage/rl/slime/train.sh --benchmark secodeplt
 
 # Debug mode (verbose logging, smaller batch):
-bash /root/aigise/rl/slime/train.sh --debug
+bash /root/opensage/rl/slime/train.sh --debug
 
 # With SLIME training config:
-bash /root/aigise/rl/slime/train.sh \
+bash /root/opensage/rl/slime/train.sh \
     --benchmark secodeplt \
     --gpus 2,3 \
     --slime-config rl/slime/configs/secodeplt.yaml \
     --debug
 ```
 
-Run `bash /root/aigise/rl/slime/train.sh --help` for all options.
+Run `bash /root/opensage/rl/slime/train.sh --help` for all options.
 
 <details>
 <summary>Alternative: launch directly from SLIME side</summary>
 
 ```bash
 cd /root/slime
-bash examples/aigise/run_qwen3_4B.sh
+bash examples/opensage/run_qwen3_4B.sh
 
 # SeCodePLT:
-AIGISE_AGENT_NAME=vul_agent_static_tools AIGISE_BENCHMARK_NAME=secodeplt \
-    bash examples/aigise/run_qwen3_4B.sh
+OPENSAGE_AGENT_NAME=vul_agent_static_tools OPENSAGE_BENCHMARK_NAME=secodeplt \
+    bash examples/opensage/run_qwen3_4B.sh
 ```
 
 </details>
@@ -151,9 +151,9 @@ Environment variables (set before running, or use `train_slime.sh` flags):
 | Variable                | Default            | Description                                          |
 |-------------------------|--------------------|------------------------------------------------------|
 | `CUDA_VISIBLE_DEVICES`  | ``                 | GPUs to use (`--gpus`)                               |
-| `AIGISE_AGENT_NAME`     | `mock_rl_agent`    | Agent directory name (`--agent`)                     |
-| `AIGISE_BENCHMARK_NAME` | `mock_debug`       | Benchmark name (`--benchmark`)                       |
-| `AIGISE_MAX_CONCURRENT` | `4`                | Max concurrent evaluations (`--max-concurrent`)      |
+| `OPENSAGE_AGENT_NAME`     | `mock_rl_agent`    | Agent directory name (`--agent`)                     |
+| `OPENSAGE_BENCHMARK_NAME` | `mock_debug`       | Benchmark name (`--benchmark`)                       |
+| `OPENSAGE_MAX_CONCURRENT` | `4`                | Max concurrent evaluations (`--max-concurrent`)      |
 
 ### SLIME Training Hyperparameters
 
@@ -183,7 +183,7 @@ The config values are appended as `EXTRA_TRAIN_ARGS` after the launch script's d
 
 ```bash
 # In another terminal
-tail -f /root/aigise_train.log
+tail -f /root/opensage_train.log
 ```
 ## 8. Run Training (Remote Container)
 
@@ -193,12 +193,12 @@ TBD
 
 | Side | File | Role |
 |------|------|------|
-| SLIME | `examples/aigise/generate_with_aigise.py` | Rollout entry point called by `train.py` |
-| SLIME | `examples/aigise/aigise_mock.py` | Dataset → SLIME JSONL converter |
-| SLIME | `examples/aigise/run_qwen3_4B{_debug}.sh` | Launch scripts (ray job submit) |
+| SLIME | `examples/opensage/generate_with_opensage.py` | Rollout entry point called by `train.py` |
+| SLIME | `examples/opensage/opensage_mock.py` | Dataset → SLIME JSONL converter |
+| SLIME | `examples/opensage/run_qwen3_4B{_debug}.sh` | Launch scripts (ray job submit) |
 | AIgiSE | `rl/slime/train.sh` | **Launcher** — env setup, Docker cleanup, delegates to SLIME |
 | AIgiSE | `rl/slime/configs/*.yaml` | Training hyperparameter configs (`--slime-config`) |
-| AIgiSE | `src/aigise/rl_integration/` | `SlimeLlm`, `SlimeAdapter`, `Client`, `BenchmarkInterface` |
+| AIgiSE | `src/opensage/rl_integration/` | `SlimeLlm`, `SlimeAdapter`, `Client`, `BenchmarkInterface` |
 
 For architecture and data flow details, see [RL-Integration](RL-Integration.md).
 

@@ -10,13 +10,12 @@ from typing import Any, Optional, Set
 from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.memory.storage_decider import StorageDecider, StorageDecision
-from aigise.memory.update.update_controller import MemoryUpdateController
-from aigise.utils.agent_utils import (
-    get_aigise_config_from_context,
-    get_aigise_session_id_from_context,
+from opensage.memory.storage_decider import StorageDecider, StorageDecision
+from opensage.memory.update.update_controller import MemoryUpdateController
+from opensage.utils.agent_utils import (
     get_neo4j_client_from_context,
+    get_opensage_config_from_context,
+    get_opensage_session_id_from_context,
     save_content_to_sandbox_file,
 )
 
@@ -104,7 +103,7 @@ class MemoryObserverPlugin(BasePlugin):
         if model_name is None:
             # Try to get from config
             try:
-                config = get_aigise_config_from_context(tool_context)
+                config = get_opensage_config_from_context(tool_context)
                 if config.memory and config.memory.llm_model:
                     model_name = config.memory.llm_model
                     logger.info(
@@ -161,7 +160,7 @@ class MemoryObserverPlugin(BasePlugin):
 
         # Check if memory is enabled in config
         try:
-            config = get_aigise_config_from_context(tool_context)
+            config = get_opensage_config_from_context(tool_context)
             if not (config.memory and config.memory.enabled):
                 logger.debug(
                     f"[MemoryObserver] Memory disabled in config, skipping {tool_name}"
@@ -288,9 +287,9 @@ class MemoryObserverPlugin(BasePlugin):
             # Get Neo4j client and session ID
             try:
                 client = await get_neo4j_client_from_context(tool_context, "memory")
-                aigise_session_id = get_aigise_session_id_from_context(tool_context)
+                opensage_session_id = get_opensage_session_id_from_context(tool_context)
                 logger.info(
-                    f"[MemoryObserver] Got Neo4j client for session: {aigise_session_id}"
+                    f"[MemoryObserver] Got Neo4j client for session: {opensage_session_id}"
                 )
             except Exception as e:
                 logger.error(f"[MemoryObserver] Failed to get Neo4j client: {e}")
@@ -311,7 +310,7 @@ class MemoryObserverPlugin(BasePlugin):
                 content=content_to_store,
                 content_type=decision.content_type,
                 client=client,
-                aigise_session_id=aigise_session_id,
+                opensage_session_id=opensage_session_id,
                 metadata={
                     "source": "memory_observer",
                     "tool_name": tool_name,

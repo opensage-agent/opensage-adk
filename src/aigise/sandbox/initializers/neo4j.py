@@ -6,8 +6,8 @@ import asyncio
 import logging
 import shlex
 
-from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
-from aigise.sandbox.initializers.base import SandboxInitializer
+from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.initializers.base import SandboxInitializer
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class Neo4jInitializer(SandboxInitializer):
     """Initializer that initializes Neo4j code analysis capabilities to sandboxes."""
 
     async def _ensure_ready_impl(self: BaseSandbox) -> bool:
-        from aigise.session.aigise_session import get_aigise_session
+        from opensage.session.opensage_session import get_opensage_session
 
         assert isinstance(self, BaseSandbox)
 
@@ -30,29 +30,29 @@ class Neo4jInitializer(SandboxInitializer):
             return False
 
         logger.info(
-            f"Async creating Neo4j environment for session {self.aigise_session_id}..."
+            f"Async creating Neo4j environment for session {self.opensage_session_id}..."
         )
-        aigise_session = get_aigise_session(self.aigise_session_id)
-        self.neo4j_client = aigise_session.neo4j.get_async_client_without_connection(
+        opensage_session = get_opensage_session(self.opensage_session_id)
+        self.neo4j_client = opensage_session.neo4j.get_async_client_without_connection(
             "default"
         )
         while not await self.neo4j_client.verify_connection():
             await asyncio.sleep(10)
 
         # Write Neo4j connection info to /shared/bashrc for other containers to use
-        self._write_neo4j_env_to_bashrc(aigise_session)
+        self._write_neo4j_env_to_bashrc(opensage_session)
 
         logger.info(
-            f"Neo4j environment successfully initialized for session {self.aigise_session_id}"
+            f"Neo4j environment successfully initialized for session {self.opensage_session_id}"
         )
         return True
 
-    def _write_neo4j_env_to_bashrc(self, aigise_session) -> None:
+    def _write_neo4j_env_to_bashrc(self, opensage_session) -> None:
         """Write Neo4j connection environment variables to /shared/bashrc."""
         assert isinstance(self, BaseSandbox)
 
         # Check if Neo4j is configured
-        if not aigise_session.config.neo4j:
+        if not opensage_session.config.neo4j:
             logger.info("Neo4j not configured, skipping environment variable setup")
             return
 
@@ -65,9 +65,9 @@ class Neo4jInitializer(SandboxInitializer):
             # hostname -I returns space-separated IPs, take the first one
             neo4j_host = msg.strip().split()[0]
 
-        neo4j_port = aigise_session.config.neo4j.bolt_port
-        neo4j_user = aigise_session.config.neo4j.user or "neo4j"
-        neo4j_password = aigise_session.config.neo4j.password or "callgraphn4j!"
+        neo4j_port = opensage_session.config.neo4j.bolt_port
+        neo4j_user = opensage_session.config.neo4j.user or "neo4j"
+        neo4j_password = opensage_session.config.neo4j.password or "callgraphn4j!"
 
         # Escape values for safe use in bash script
         neo4j_host_escaped = shlex.quote(neo4j_host)

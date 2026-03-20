@@ -6,8 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import pandas as pd
-
-from aigise.session.neo4j_client import AsyncNeo4jClient
+from opensage.session.neo4j_client import AsyncNeo4jClient
 
 logger = logging.getLogger(__name__)
 

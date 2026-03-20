@@ -8,12 +8,11 @@ import traceback
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING
 
+from opensage.evaluation.dispatchers.base import BaseDispatcher
 from tqdm import tqdm
 
-from aigise.evaluation.dispatchers.base import BaseDispatcher
-
 if TYPE_CHECKING:
-    from aigise.evaluation.base import Evaluation
+    from opensage.evaluation.base import Evaluation
 
 logger = logging.getLogger(__name__)
 
@@ -21,25 +20,20 @@ logger = logging.getLogger(__name__)
 class NativeDispatcher(BaseDispatcher):
     """Runs evaluation samples on the local machine.
 
-    Selects between single-thread, threading, or multiprocessing based on
-    ``max_workers`` and ``use_multiprocessing``.
+    Selects between single-thread or multiprocessing based on ``max_workers``.
     """
 
     def __init__(
         self,
         max_workers: int = 6,
-        use_multiprocessing: bool = True,
     ):
         self.max_workers = max_workers
-        self.use_multiprocessing = use_multiprocessing
 
     def run(self, evaluation: Evaluation) -> None:
         if self.max_workers == 1:
             self._run_single_thread(evaluation)
-        elif self.use_multiprocessing:
-            self._run_multiprocess(evaluation)
         else:
-            self._run_threaded(evaluation)
+            self._run_multiprocess(evaluation)
 
     # ------------------------------------------------------------------ #
 
@@ -83,7 +77,7 @@ class NativeDispatcher(BaseDispatcher):
         """Generate samples using multiprocessing for true parallelism."""
         from pathlib import Path
 
-        from aigise.evaluation.base import _run_sample_in_process
+        from opensage.evaluation.base import _run_sample_in_process
 
         evaluation.dataset = evaluation._get_dataset()
 
@@ -122,56 +116,6 @@ class NativeDispatcher(BaseDispatcher):
             results=results,
             failed_samples=failed_samples,
             mode="multiprocess",
-        )
-        logger.warning(
-            f"Generated {len(results)}/{len(evaluation.dataset)} samples successfully"
-        )
-        if failed_samples:
-            logger.warning(
-                f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
-            )
-
-    # ------------------------------------------------------------------ #
-
-    def _run_threaded(self, evaluation: Evaluation) -> None:
-        """Generate samples using multithreading."""
-        evaluation.dataset = evaluation._get_dataset()
-
-        def run_sample_in_thread(sample: dict) -> dict:
-            task = evaluation._create_task(sample)
-            return asyncio.run(evaluation._generate_one(task))
-
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            futures = {
-                executor.submit(run_sample_in_thread, sample): sample
-                for sample in evaluation.dataset
-            }
-
-            results = []
-            failed_samples = []
-
-            for future in tqdm(
-                as_completed(futures),
-                total=len(evaluation.dataset),
-                desc="Generating samples (threaded)",
-            ):
-                sample = futures[future]
-                task_name = evaluation._get_task_id(sample)
-
-                try:
-                    result = future.result()
-                    results.append(result)
-                    logger.info(f"✓ Task {task_name} completed successfully")
-                except Exception as e:
-                    failed_samples.append(task_name)
-                    logger.error(f"✗ Task {task_name} FAILED")
-                    logger.error(f"  Error: {e}")
-                    logger.error(f"  Traceback:\n{traceback.format_exc()}")
-
-        evaluation.customized_modify_and_save_results(
-            results=results,
-            failed_samples=failed_samples,
-            mode="threaded",
         )
         logger.warning(
             f"Generated {len(results)}/{len(evaluation.dataset)} samples successfully"

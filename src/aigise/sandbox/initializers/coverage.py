@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
 
 from .base import SandboxInitializer
 
@@ -19,7 +19,7 @@ class CoverageInitializer(SandboxInitializer):
         assert isinstance(self, BaseSandbox)
 
         logger.info(
-            f"Async initializing Coverage environment for session {self.aigise_session_id}..."
+            f"Async initializing Coverage environment for session {self.opensage_session_id}..."
         )
 
         msg, err = self.run_command_in_container(
@@ -46,7 +46,7 @@ class CoverageInitializer(SandboxInitializer):
 
         logger.info(
             "Verifying Python environment in coverage sandbox for session %s...",
-            self.aigise_session_id,
+            self.opensage_session_id,
         )
 
         msg, err = self.run_command_in_container(["python3", "--version"])

@@ -6,10 +6,10 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
+from opensage.session import OpenSageSession, get_opensage_session
+from opensage.toolbox.general.bash_tools_interface import run_terminal_command
+from opensage.utils.project_info import PROJECT_PATH
 
-from aigise.session import AigiseSession, get_aigise_session
-from aigise.toolbox.general.bash_tools_interface import run_terminal_command
-from aigise.utils.project_info import PROJECT_PATH
 from tests.unit.utils.utils import fix_neo4j_client
 
 # Increase timeout for slow static analysis tests
@@ -17,31 +17,31 @@ pytestmark = pytest.mark.timeout(1200)
 
 
 @pytest_asyncio.fixture(scope="module")
-async def aigise_session():
-    """Create aigise session for testing static analysis tools."""
-    aigise_session = None
+async def opensage_session():
+    """Create opensage session for testing static analysis tools."""
+    opensage_session = None
     try:
-        aigise_session = get_aigise_session(
+        opensage_session = get_opensage_session(
             "test-bash-tools-static-analysis-get-callee",
             str(PROJECT_PATH / "tests/unit/data/configs/test_cpg.toml"),
         )
 
-        aigise_session.sandboxes.initialize_shared_volumes()
-        await aigise_session.sandboxes.launch_all_sandboxes()
-        await aigise_session.sandboxes.initialize_all_sandboxes()
-        yield aigise_session
+        opensage_session.sandboxes.initialize_shared_volumes()
+        await opensage_session.sandboxes.launch_all_sandboxes()
+        await opensage_session.sandboxes.initialize_all_sandboxes()
+        yield opensage_session
     finally:
-        if aigise_session is not None:
-            aigise_session.cleanup()
+        if opensage_session is not None:
+            opensage_session.cleanup()
 
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_get_callee_basic(aigise_session: AigiseSession):
+async def test_get_callee_basic(opensage_session: OpenSageSession):
     """Test get-callee tool with basic parameters."""
     mock_context = MagicMock()
-    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
-    fix_neo4j_client(aigise_session, "analysis")
+    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
+    fix_neo4j_client(opensage_session, "analysis")
 
     # Test get-callee for a known function
     result = run_terminal_command(
@@ -68,11 +68,11 @@ async def test_get_callee_basic(aigise_session: AigiseSession):
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_get_callee_with_file_path(aigise_session: AigiseSession):
+async def test_get_callee_with_file_path(opensage_session: OpenSageSession):
     """Test get-callee tool with file path parameter."""
     mock_context = MagicMock()
-    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
-    fix_neo4j_client(aigise_session, "analysis")
+    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
+    fix_neo4j_client(opensage_session, "analysis")
 
     # Test get-callee with file path
     result = run_terminal_command(
@@ -97,11 +97,11 @@ async def test_get_callee_with_file_path(aigise_session: AigiseSession):
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_get_callee_nonexistent_function(aigise_session: AigiseSession):
+async def test_get_callee_nonexistent_function(opensage_session: OpenSageSession):
     """Test get-callee tool with non-existent function."""
     mock_context = MagicMock()
-    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
-    fix_neo4j_client(aigise_session, "analysis")
+    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
+    fix_neo4j_client(opensage_session, "analysis")
 
     # Test with non-existent function
     result = run_terminal_command(
@@ -128,11 +128,11 @@ async def test_get_callee_nonexistent_function(aigise_session: AigiseSession):
 
 @pytest.mark.slow
 @pytest.mark.asyncio
-async def test_get_callee_uses_env_vars(aigise_session: AigiseSession):
+async def test_get_callee_uses_env_vars(opensage_session: OpenSageSession):
     """Test that get-callee uses environment variables for Neo4j connection."""
     mock_context = MagicMock()
-    mock_context.state = {"aigise_session_id": aigise_session.aigise_session_id}
-    fix_neo4j_client(aigise_session, "analysis")
+    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
+    fix_neo4j_client(opensage_session, "analysis")
 
     # Test without explicit Neo4j parameters (should use env vars from ~/.bashrc)
     result = run_terminal_command(

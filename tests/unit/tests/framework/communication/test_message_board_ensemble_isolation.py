@@ -7,23 +7,23 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monkeypatch):
-    import aigise.agents.aigise_agent as agent_mod
-    import aigise.session.aigise_ensemble_manager as emod
-    import aigise.toolbox.tool_normalization as safe_mod
-    from aigise.session.aigise_ensemble_manager import (
-        AigiseEnsembleManager,
+    import opensage.agents.opensage_agent as agent_mod
+    import opensage.session.opensage_ensemble_manager as emod
+    import opensage.toolbox.tool_normalization as safe_mod
+    from opensage.session.message_board import MessageBoardManager
+    from opensage.session.opensage_ensemble_manager import (
         EnsembleAgentInfo,
+        OpenSageEnsembleManager,
     )
-    from aigise.session.message_board import MessageBoardManager
 
-    class DummyAigiseAgent:
+    class DummyOpenSageAgent:
         pass
 
-    monkeypatch.setattr(agent_mod, "AigiseAgent", DummyAigiseAgent)
+    monkeypatch.setattr(agent_mod, "OpenSageAgent", DummyOpenSageAgent)
 
     class DummySession:
         def __init__(self, sid: str):
-            self.aigise_session_id = sid
+            self.opensage_session_id = sid
             self.config = SimpleNamespace(
                 llm=SimpleNamespace(summarize_model="fake_summarizer_model")
             )
@@ -34,7 +34,7 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
                 board = self._boards.get("default")
                 if board is None:
                     board = MessageBoardManager(
-                        base_dir=tmp_path, session_id=self.aigise_session_id
+                        base_dir=tmp_path, session_id=self.opensage_session_id
                     )
                     self._boards["default"] = board
                 return board
@@ -42,7 +42,7 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
             if board is None:
                 board = MessageBoardManager(
                     base_dir=tmp_path,
-                    session_id=self.aigise_session_id,
+                    session_id=self.opensage_session_id,
                     board_id=board_id,
                 )
                 self._boards[board_id] = board
@@ -54,10 +54,10 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
                 board.cleanup()
 
     session = DummySession("sid_test")
-    manager = AigiseEnsembleManager(session)
+    manager = OpenSageEnsembleManager(session)
 
     # Make sure the isinstance check uses our dummy class.
-    monkeypatch.setattr(emod, "AigiseAgent", DummyAigiseAgent)
+    monkeypatch.setattr(emod, "OpenSageAgent", DummyOpenSageAgent)
 
     def _fake_copy_agent_with_updated_model_v2(
         base_agent_info, model_name: str, *, inherit_model=None
@@ -92,7 +92,7 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
 
         async def run_async(self, *, args, tool_context):
             del args
-            from aigise.session.message_board import get_current_message_board_id
+            from opensage.session.message_board import get_current_message_board_id
 
             board_id = get_current_message_board_id()
             seen_board_ids.append(board_id)
@@ -141,7 +141,7 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
     inv_ctx = SimpleNamespace(
         agent=SimpleNamespace(name="root_agent"),
         session=SimpleNamespace(
-            events=[], state={"aigise_session_id": session.aigise_session_id}
+            events=[], state={"opensage_session_id": session.opensage_session_id}
         ),
     )
     tool_context = SimpleNamespace(_invocation_context=inv_ctx, state={})
@@ -152,7 +152,7 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
         tools=[],
         model="",
         agent_type="dummy",
-        agent_instance=DummyAigiseAgent(),
+        agent_instance=DummyOpenSageAgent(),
     )
 
     await manager.execute_agent_ensemble(
@@ -168,8 +168,8 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
     first_id = next(iter(first_ids))
     assert not (
         tmp_path
-        / "aigise_message_board"
-        / session.aigise_session_id
+        / "opensage_message_board"
+        / session.opensage_session_id
         / "boards"
         / first_id
     ).exists()
@@ -189,8 +189,8 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
     assert second_id != first_id
     assert not (
         tmp_path
-        / "aigise_message_board"
-        / session.aigise_session_id
+        / "opensage_message_board"
+        / session.opensage_session_id
         / "boards"
         / second_id
     ).exists()

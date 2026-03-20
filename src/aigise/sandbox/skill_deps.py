@@ -29,7 +29,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
         should_run_in_sandbox: <sandbox_type>
 
     Markers are written under:
-      /shared/.aigise/skill_deps/<sandbox_type>/<skill>.done
+      /shared/.opensage/skill_deps/<sandbox_type>/<skill>.done
 
     Args:
       sandbox: Sandbox instance with `/bash_tools` and `/shared` mounted.
@@ -47,7 +47,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
 
     def _marker_path(rel_skill_dir: str) -> str:
         safe = re.sub(r"[^a-zA-Z0-9_.-]+", "_", rel_skill_dir.strip("/"))
-        return f"/shared/.aigise/skill_deps/{sandbox_type}/{safe}.done"
+        return f"/shared/.opensage/skill_deps/{sandbox_type}/{safe}.done"
 
     def _parse_should_run_in_sandbox(skill_md: str) -> str | None:
         if not skill_md.startswith("---"):
@@ -145,7 +145,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
         [
             "bash",
             "-lc",
-            f"mkdir -p {shlex.quote(f'/shared/.aigise/skill_deps/{sandbox_type}')}",
+            f"mkdir -p {shlex.quote(f'/shared/.opensage/skill_deps/{sandbox_type}')}",
         ],
         timeout=30,
     )

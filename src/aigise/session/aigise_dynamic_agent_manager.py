@@ -19,9 +19,8 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.models.lite_llm import LiteLlm
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.utils.agent_utils import INHERIT_MODEL
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.utils.agent_utils import INHERIT_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +62,7 @@ class AgentMetadata:
 class DynamicAgentManager:
     """Session-specific manager for dynamic agent creation, lifecycle, and persistence.
 
-    Each AigiseSession gets its own DynamicAgentManager instance,
+    Each OpenSageSession gets its own DynamicAgentManager instance,
     ensuring complete agent isolation between sessions.
     """
 
@@ -71,15 +70,15 @@ class DynamicAgentManager:
         """Initialize DynamicAgentManager.
 
         Args:
-            session: AigiseSession instance (stores reference, not copied)
+            session: OpenSageSession instance (stores reference, not copied)
         """
         self._session = session
-        self.aigise_session_id = session.aigise_session_id
+        self.opensage_session_id = session.opensage_session_id
 
         # Get storage path from config, use default if not specified or empty
         storage_path = session.config.agent_storage_path
         if not storage_path:  # None or empty string
-            storage_path = "/tmp/aigise_agent_storage"
+            storage_path = "/tmp/opensage_agent_storage"
 
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
@@ -91,14 +90,14 @@ class DynamicAgentManager:
         """Get latest config from session dynamically."""
         return self._session.config
 
-    def _create_agent_instance(self, **kwargs) -> AigiseAgent:
-        """Create an AigiseAgent instance.
+    def _create_agent_instance(self, **kwargs) -> OpenSageAgent:
+        """Create an OpenSageAgent instance.
 
         Args:
             **kwargs: Agent configuration parameters
 
         Returns:
-            Created AigiseAgent instance
+            Created OpenSageAgent instance
 
         Raises:
             ValueError: If required parameters are missing
@@ -131,8 +130,8 @@ class DynamicAgentManager:
         if missing:
             raise ValueError(f"Missing required parameters: {missing}")
 
-        # Create AigiseAgent
-        agent = AigiseAgent(**kwargs)
+        # Create OpenSageAgent
+        agent = OpenSageAgent(**kwargs)
 
         return agent
 
@@ -141,7 +140,7 @@ class DynamicAgentManager:
         config: Dict[str, Any],
         creator: Optional[str] = None,
         persist: bool = True,
-    ) -> tuple[str, AigiseAgent]:
+    ) -> tuple[str, OpenSageAgent]:
         """Create a new agent dynamically for this session.
 
         Args:
@@ -184,7 +183,7 @@ class DynamicAgentManager:
             metadata = AgentMetadata(
                 id=agent_id,
                 name=agent_name,
-                type="aigise_agent",
+                type="opensage_agent",
                 status=AgentStatus.CREATED,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
@@ -201,8 +200,8 @@ class DynamicAgentManager:
                 self._persist_agent_metadata(agent_id, metadata)
 
             logger.info(
-                f"Created AigiseAgent {agent_id} ({agent_name}) "
-                f"for session {self.aigise_session_id}"
+                f"Created OpenSageAgent {agent_id} ({agent_name}) "
+                f"for session {self.opensage_session_id}"
             )
 
             return agent_id, agent
@@ -308,7 +307,7 @@ class DynamicAgentManager:
         if metadata_file.exists():
             metadata_file.unlink()
 
-        logger.info(f"Removed agent {agent_id} from session {self.aigise_session_id}")
+        logger.info(f"Removed agent {agent_id} from session {self.opensage_session_id}")
         return True
 
     def get_session_statistics(self) -> Dict:
@@ -323,7 +322,7 @@ class DynamicAgentManager:
             status_counts[status] = status_counts.get(status, 0) + 1
 
         return {
-            "aigise_session_id": self.aigise_session_id,
+            "opensage_session_id": self.opensage_session_id,
             "total_agents": len(self._agents),
             "status_counts": status_counts,
         }
@@ -560,7 +559,7 @@ class DynamicAgentManager:
     def cleanup(self) -> None:
         """Cleanup all agents and resources for this session."""
         logger.info(
-            f"Cleaning up DynamicAgentManager for session {self.aigise_session_id}"
+            f"Cleaning up DynamicAgentManager for session {self.opensage_session_id}"
         )
 
         # Clear all agents and metadata

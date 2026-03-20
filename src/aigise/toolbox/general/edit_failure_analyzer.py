@@ -14,11 +14,10 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-
-from aigise.session import get_aigise_session
-from aigise.utils.agent_utils import (
+from opensage.session import get_opensage_session
+from opensage.utils.agent_utils import (
     INHERIT_MODEL,
-    get_aigise_session_id_from_context,
+    get_opensage_session_id_from_context,
 )
 
 logger = logging.getLogger(__name__)
@@ -123,8 +122,8 @@ async def analyze_edit_failure(
 
     try:
         # Get session and model configuration
-        aigise_session_id = get_aigise_session_id_from_context(tool_context)
-        session = get_aigise_session(aigise_session_id)
+        opensage_session_id = get_opensage_session_id_from_context(tool_context)
+        session = get_opensage_session(opensage_session_id)
 
         # Use flag_claims_model for analysis (or could add dedicated config later)
         model_name = session.config.llm.flag_claims_model

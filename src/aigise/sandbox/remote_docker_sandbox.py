@@ -19,8 +19,7 @@ from typing import Optional
 
 import docker
 from docker.errors import ImageNotFound
-
-from aigise.sandbox.native_docker_sandbox import (
+from opensage.sandbox.native_docker_sandbox import (
     DockerBuildResult,
     NativeDockerSandbox,
 )
@@ -60,7 +59,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
     # Class variable to hold injected config
     _injected_config = None
-    _CACHE_DIR_ENV = "AIGISE_REMOTE_DOCKER_CACHE_DIR"
+    _CACHE_DIR_ENV = "OPENSAGE_REMOTE_DOCKER_CACHE_DIR"
 
     def __init__(
         self,
@@ -73,7 +72,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
         Overrides parent to use remote Docker client instead of docker.from_env().
         """
-        from aigise.sandbox.base_sandbox import BaseSandbox
+        from opensage.sandbox.base_sandbox import BaseSandbox
 
         if container_config is None or not isinstance(
             container_config, type(container_config)
@@ -321,10 +320,10 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         tools_volume_id: str = None,
     ) -> dict:
         """Launch all sandbox instances on remote Docker daemon."""
-        from aigise.session.aigise_session import get_aigise_session
+        from opensage.session.opensage_session import get_opensage_session
 
-        aigise_session = get_aigise_session(session_id)
-        config = aigise_session.config
+        opensage_session = get_opensage_session(session_id)
+        config = opensage_session.config
 
         remote_host = cls._get_remote_host()
         config.default_host = remote_host
@@ -338,7 +337,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
                 container_config.ports = updated_ports
 
         async def launch_concurrent():
-            from aigise.sandbox.factory import (
+            from opensage.sandbox.factory import (
                 create_sandbox_class,
                 get_initializer_class,
             )
@@ -489,7 +488,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
     @classmethod
     def build_image_from_dockerfile(cls, config) -> Optional[DockerBuildResult]:
         """Build image using Docker SDK (remote-compatible)."""
-        from aigise.utils.project_info import PROJECT_PATH
+        from opensage.utils.project_info import PROJECT_PATH
 
         has_dockerfile = (
             config.project_relative_dockerfile_path or config.absolute_dockerfile_path
@@ -661,7 +660,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
             os.environ[cls._CACHE_DIR_ENV] = str(cache_dir_path)
 
             global_manifest_dir = (
-                Path.home() / ".cache" / "aigise" / "remote_docker_cache"
+                Path.home() / ".cache" / "opensage" / "remote_docker_cache"
             )
             global_manifest_dir.mkdir(parents=True, exist_ok=True)
             global_manifest = global_manifest_dir / f"{normalized_task}.json"

@@ -7,17 +7,16 @@ from google.adk.agents.llm_agent import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.base_toolset import BaseToolset
 from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
+from opensage.features.tool_combo import ToolCombo
+from opensage.utils.project_info import PROJECT_PATH
 from pydantic import Field
-
-from aigise.features.tool_combo import ToolCombo
-from aigise.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
 
-_TOOLSET_SUMMARY_MARKER = "[[AIGISE_TOOLSET_SUMMARY]]"
+_TOOLSET_SUMMARY_MARKER = "[[OPENSAGE_TOOLSET_SUMMARY]]"
 
 
-class AigiseMCPToolset(McpToolset):
+class OpenSageMCPToolset(McpToolset):
     """An ADK McpToolset that also carries a stable `name` for AIgiSE.
 
     Why this exists:
@@ -45,12 +44,12 @@ class AigiseMCPToolset(McpToolset):
         **kwargs,
     ):
         if not isinstance(name, str) or not name.strip():
-            raise ValueError("AigiseMCPToolset requires a non-empty name")
+            raise ValueError("OpenSageMCPToolset requires a non-empty name")
 
         resolved_prefix = tool_name_prefix if tool_name_prefix is not None else name
         if resolved_prefix != name:
             raise ValueError(
-                "AigiseMCPToolset requires tool_name_prefix == name "
+                "OpenSageMCPToolset requires tool_name_prefix == name "
                 f"(got name={name!r}, tool_name_prefix={resolved_prefix!r})"
             )
         super().__init__(tool_name_prefix=resolved_prefix, **kwargs)
@@ -92,8 +91,8 @@ class ToolLoader:
             self.search_paths = search_paths
         else:
             self.search_paths = [
-                PROJECT_PATH / "src/aigise/bash_tools",
-                Path.home() / ".local/aigise/bash_tools",
+                PROJECT_PATH / "src/opensage/bash_tools",
+                Path.home() / ".local/opensage/bash_tools",
             ]
 
     def load_tools(self) -> List[Dict[str, Any]]:
@@ -528,7 +527,7 @@ class ToolLoader:
         return "\n".join(lines)
 
 
-class AigiseAgent(LlmAgent):
+class OpenSageAgent(LlmAgent):
     tool_combos: Optional[List[ToolCombo]] = Field(default=None)
 
     def __init__(
@@ -552,7 +551,7 @@ class AigiseAgent(LlmAgent):
 
         if enable_memory_management:
             # Lazy import to avoid circular dependencies at module import time.
-            from aigise.util_agents.memory_management_agent.agent import (
+            from opensage.util_agents.memory_management_agent.agent import (
                 create_memory_management_agent_tool,
             )
 
@@ -564,7 +563,7 @@ class AigiseAgent(LlmAgent):
         # Ensure all tools are safe and dict-shaped (including MCP-expanded tools).
         # We intentionally do this before calling the ADK LlmAgent constructor so the
         # runner always sees wrapped tools.
-        from aigise.toolbox.tool_normalization import make_toollikes_safe_dict
+        from opensage.toolbox.tool_normalization import make_toollikes_safe_dict
 
         tools = make_toollikes_safe_dict(tools)
 

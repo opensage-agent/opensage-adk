@@ -45,7 +45,7 @@ timeout = 300
 
 [sandbox.sandboxes.main.extra]
 fs_backend = "overlayfs"
-env_base_dir = "/local_ssd/aigise_ns"
+env_base_dir = "/local_ssd/opensage_ns"
 rootfs_cache_dir = "/data/rootfs_cache"
 
 # neo4j disabled for scalability (each instance uses ~1.2GB RAM)

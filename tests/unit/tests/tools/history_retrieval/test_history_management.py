@@ -8,8 +8,7 @@ from unittest import mock
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from aigise.toolbox.general.history_management import (
+from opensage.toolbox.general.history_management import (
     drop_or_summarize_events,
     get_all_agent_runs,
     get_all_events_for_summarization,
@@ -30,7 +29,7 @@ class TestHistoryManagementFunctions:
 
         # Mock get_neo4j_client_from_context to return our mock client
         self.mock_get_client_patcher = patch(
-            "aigise.toolbox.general.history_management.get_neo4j_client_from_context"
+            "opensage.toolbox.general.history_management.get_neo4j_client_from_context"
         )
         self.mock_get_client = self.mock_get_client_patcher.start()
         self.mock_get_client.return_value = self.mock_neo4j_client
@@ -75,7 +74,7 @@ class TestHistoryManagementFunctions:
             {
                 "session_id": "session-123",
                 "agent_name": "test-agent",
-                "aigise_session_id": "shared-456",
+                "opensage_session_id": "shared-456",
                 "start_time": "2024-01-01T10:00:00",
                 "end_time": "2024-01-01T10:05:00",
                 "status": "completed",
@@ -336,38 +335,38 @@ class TestDropOrSummarizeEvents:
         self.mock_invocation_context.agent = self.mock_agent
         self.mock_invocation_context.session = self.mock_session
 
-        # Mock get_aigise_session_id_from_context
+        # Mock get_opensage_session_id_from_context
         self.mock_get_session_id_patcher = patch(
-            "aigise.toolbox.general.history_management.get_aigise_session_id_from_context"
+            "opensage.toolbox.general.history_management.get_opensage_session_id_from_context"
         )
         self.mock_get_session_id = self.mock_get_session_id_patcher.start()
         self.mock_get_session_id.return_value = self.mock_session_id
 
-        # Mock get_aigise_session
-        self.mock_get_aigise_session_patcher = patch(
-            "aigise.toolbox.general.history_management.get_aigise_session"
+        # Mock get_opensage_session
+        self.mock_get_opensage_session_patcher = patch(
+            "opensage.toolbox.general.history_management.get_opensage_session"
         )
-        self.mock_get_aigise_session = self.mock_get_aigise_session_patcher.start()
+        self.mock_get_opensage_session = self.mock_get_opensage_session_patcher.start()
 
         # Mock session and config
-        self.mock_aigise_session = MagicMock()
+        self.mock_opensage_session = MagicMock()
         self.mock_config = MagicMock()
         self.mock_llm_config = MagicMock()
 
-        self.mock_get_aigise_session.return_value = self.mock_aigise_session
-        self.mock_aigise_session.config = self.mock_config
+        self.mock_get_opensage_session.return_value = self.mock_opensage_session
+        self.mock_opensage_session.config = self.mock_config
         self.mock_config.llm = self.mock_llm_config
         self.mock_llm_config.summarize_model = "openai/o4-mini"
 
     def teardown_method(self):
         """Clean up patches."""
         self.mock_get_session_id_patcher.stop()
-        self.mock_get_aigise_session_patcher.stop()
+        self.mock_get_opensage_session_patcher.stop()
 
     @pytest.mark.asyncio
     async def test_drop_or_summarize_events_no_llm_config(self):
         """Test when no LLM configuration is available."""
-        self.mock_aigise_session.config = None
+        self.mock_opensage_session.config = None
 
         result = await drop_or_summarize_events(self.mock_context)
 
@@ -405,7 +404,7 @@ class TestDropOrSummarizeEvents:
         mock_response = MagicMock()
         mock_response.content.parts = []  # No function calls
 
-        with patch("aigise.toolbox.general.history_management.LiteLlm"):
+        with patch("opensage.toolbox.general.history_management.LiteLlm"):
             # Properly mock the async generator without AsyncMock
             async def mock_async_gen():
                 yield mock_response
@@ -468,7 +467,7 @@ class TestDropOrSummarizeEvents:
         events = [call_event, response_event, unmatched_event]
 
         # Create drop_or_summarize_events function to access internal helper
-        from aigise.toolbox.general.history_management import drop_or_summarize_events
+        from opensage.toolbox.general.history_management import drop_or_summarize_events
 
         # We need to test the internal function directly since it's nested
         # This is a bit tricky, but we can test the logic indirectly through the main function
@@ -514,7 +513,7 @@ class TestDropOrSummarizeEvents:
         mock_response.content.parts = [func_call_part]
 
         with patch(
-            "aigise.toolbox.general.history_management.LiteLlm"
+            "opensage.toolbox.general.history_management.LiteLlm"
         ) as mock_lite_llm:
             mock_model = MagicMock()
             mock_lite_llm.return_value = mock_model
@@ -542,7 +541,7 @@ class TestDropOrSummarizeEvents:
         self.mock_llm_config.summarize_model = "test-model"
 
         with patch(
-            "aigise.toolbox.general.history_management.LiteLlm"
+            "opensage.toolbox.general.history_management.LiteLlm"
         ) as mock_lite_llm:
             mock_model = MagicMock()
             mock_lite_llm.return_value = mock_model

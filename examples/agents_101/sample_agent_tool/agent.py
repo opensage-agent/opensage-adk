@@ -59,11 +59,11 @@ root_agent = Agent(
 )
 
 
-def mk_agent(aigise_session_id: str = None):
+def mk_agent(opensage_session_id: str = None):
     """Create and return the root agent.
 
     Args:
-        aigise_session_id: Optional session ID (not used in this simple agent)
+        opensage_session_id: Optional session ID (not used in this simple agent)
 
     Returns:
         The configured root agent

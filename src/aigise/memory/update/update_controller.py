@@ -6,24 +6,24 @@ import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from aigise.memory.update.entity_extractor import (
+from opensage.memory.update.entity_extractor import (
     EntityExtractor,
     ExtractedEntity,
     ExtractionResult,
 )
-from aigise.memory.update.graph_operations import (
+from opensage.memory.update.graph_operations import (
     GraphOperations,
     OperationResult,
     OperationType,
 )
-from aigise.memory.update.operation_decider import LLMOperationDecider
-from aigise.memory.update.relationship_discoverer import (
+from opensage.memory.update.operation_decider import LLMOperationDecider
+from opensage.memory.update.relationship_discoverer import (
     DiscoveredRelationship,
     RelationshipDiscoverer,
 )
 
 if TYPE_CHECKING:
-    from aigise.memory.config.domain_config import DomainConfig
+    from opensage.memory.config.domain_config import DomainConfig
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +118,7 @@ class MemoryUpdateController:
         answering_agent: str,
         answering_model: str,
         client: Any,
-        aigise_session_id: Optional[str] = None,
+        opensage_session_id: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> UpdateResult:
         """Store a question-answer pair in the memory graph.
@@ -132,7 +132,7 @@ class MemoryUpdateController:
             answering_agent: Name of the agent that generated the answer.
             answering_model: Model used to generate the answer.
             client: Neo4j client.
-            aigise_session_id: Optional session ID for tracking.
+            opensage_session_id: Optional session ID for tracking.
             metadata: Additional metadata to store.
 
         Returns:
@@ -173,7 +173,7 @@ class MemoryUpdateController:
             entity_results = await self.graph_operations.add_entities_batch(
                 entities=extraction_result.entities,
                 client=client,
-                aigise_session_id=aigise_session_id,
+                opensage_session_id=opensage_session_id,
             )
 
             # 4. Add relationships to graph
@@ -224,7 +224,7 @@ class MemoryUpdateController:
         content: str,
         content_type: str = "text",
         client: Any = None,
-        aigise_session_id: Optional[str] = None,
+        opensage_session_id: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> UpdateResult:
         """Store knowledge in the memory graph.
@@ -235,7 +235,7 @@ class MemoryUpdateController:
             content: Content to store.
             content_type: Type of content ('text', 'code', 'question', 'answer').
             client: Neo4j client.
-            aigise_session_id: Optional session ID.
+            opensage_session_id: Optional session ID.
             metadata: Additional metadata.
 
         Returns:
@@ -270,7 +270,7 @@ class MemoryUpdateController:
             entity_results = await self.graph_operations.add_entities_batch(
                 entities=extraction_result.entities,
                 client=client,
-                aigise_session_id=aigise_session_id,
+                opensage_session_id=opensage_session_id,
             )
 
             # Add relationships
@@ -384,7 +384,7 @@ class MemoryUpdateController:
         content: str,
         content_type: str = "text",
         client: Any = None,
-        aigise_session_id: Optional[str] = None,
+        opensage_session_id: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> UpdateResult:
         """Store knowledge using LLM to decide operation type for each entity.
@@ -397,7 +397,7 @@ class MemoryUpdateController:
             content: Content to store.
             content_type: Type of content.
             client: Neo4j client.
-            aigise_session_id: Optional session ID.
+            opensage_session_id: Optional session ID.
             metadata: Additional metadata.
 
         Returns:
@@ -409,7 +409,7 @@ class MemoryUpdateController:
         if self.operation_decider is None:
             # Fall back to regular store_knowledge if no decider configured
             return await self.store_knowledge(
-                content, content_type, client, aigise_session_id, metadata
+                content, content_type, client, opensage_session_id, metadata
             )
 
         await self._ensure_indexes(client)
@@ -449,7 +449,7 @@ class MemoryUpdateController:
                 # Execute based on decision
                 if operation == OperationType.ADD:
                     result = await self.graph_operations.add_entity(
-                        entity, client, aigise_session_id
+                        entity, client, opensage_session_id
                     )
                     if result.success:
                         entities_added += 1
@@ -458,7 +458,7 @@ class MemoryUpdateController:
                 elif operation == OperationType.UPDATE:
                     # Update is handled by add_entity with MERGE
                     result = await self.graph_operations.add_entity(
-                        entity, client, aigise_session_id
+                        entity, client, opensage_session_id
                     )
                     if result.success:
                         entities_updated += 1

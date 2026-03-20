@@ -606,7 +606,7 @@ class ClaudeCodeHookPlugin(BasePlugin):
         self, action: PluginAction, tool_context: ToolContext, *, event: str
     ) -> Optional[str]:
         try:
-            from aigise.utils.agent_utils import get_sandbox_from_context
+            from opensage.utils.agent_utils import get_sandbox_from_context
 
             sandbox = get_sandbox_from_context(tool_context, "main")
         except Exception as e:

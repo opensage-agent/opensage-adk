@@ -13,8 +13,7 @@ import logging
 import cxxfilt
 import msgspec
 from neo4j import GraphDatabase
-
-from aigise.toolbox.coverage.llvm_cov import (
+from opensage.toolbox.coverage.llvm_cov import (
     Branch,
     CountedRegion,
     CoverageSegment,

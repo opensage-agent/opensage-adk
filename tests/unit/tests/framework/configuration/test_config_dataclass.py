@@ -10,10 +10,8 @@ from unittest import mock
 
 import pytest
 import toml
-
-from aigise.config.config_dataclass import (
+from opensage.config.config_dataclass import (
     AgentEnsembleConfig,
-    AigiseConfig,
     BuildConfig,
     ContainerConfig,
     HistoryConfig,
@@ -22,6 +20,7 @@ from aigise.config.config_dataclass import (
     MCPServiceConfig,
     ModelConfig,
     Neo4jConfig,
+    OpenSageConfig,
     SandboxConfig,
     _expand_template_variables,
     load_config_from_toml,
@@ -280,7 +279,7 @@ class TestDataclassCreation:
         assert config.get_sandbox_config("worker") == worker_container
 
 
-class TestAigiseConfigTOMLLoading:
+class TestOpenSageConfigTOMLLoading:
     """Test TOML configuration loading and parsing."""
 
     def setup_method(self):
@@ -320,7 +319,7 @@ timeout = 300
         with open(self.test_config_path, "w") as f:
             f.write(toml_content)
 
-        config = AigiseConfig.from_toml(str(self.test_config_path))
+        config = OpenSageConfig.from_toml(str(self.test_config_path))
 
         assert config.task_name == "test_task"
         assert config.neo4j.user == "neo4j"
@@ -354,7 +353,7 @@ max_tokens = 2048
         with open(self.test_config_path, "w") as f:
             f.write(toml_content)
 
-        config = AigiseConfig.from_toml(str(self.test_config_path))
+        config = OpenSageConfig.from_toml(str(self.test_config_path))
 
         assert config.llm is not None
         assert config.llm.model_name == "test/model"
@@ -381,7 +380,7 @@ available_models_for_ensemble = "model1,model2,model3"
         with open(self.test_config_path, "w") as f:
             f.write(toml_content)
 
-        config = AigiseConfig.from_toml(str(self.test_config_path))
+        config = OpenSageConfig.from_toml(str(self.test_config_path))
 
         assert config.agent_ensemble is not None
         assert config.agent_ensemble.thread_safe_tools == {"tool1", "tool2"}
@@ -404,7 +403,7 @@ target_type = "default"
         with open(self.test_config_path, "w") as f:
             f.write(toml_content)
 
-        config = AigiseConfig.from_toml(str(self.test_config_path))
+        config = OpenSageConfig.from_toml(str(self.test_config_path))
 
         assert config.build is not None
         assert config.build.poc_dir == "/tmp/poc"
@@ -427,7 +426,7 @@ sse_port = 1112
         with open(self.test_config_path, "w") as f:
             f.write(toml_content)
 
-        config = AigiseConfig.from_toml(str(self.test_config_path))
+        config = OpenSageConfig.from_toml(str(self.test_config_path))
 
         assert config.mcp is not None
 
@@ -440,7 +439,7 @@ sse_port = 1112
     def test_file_not_found_error(self):
         """Test that FileNotFoundError is raised for non-existent config file."""
         with pytest.raises(FileNotFoundError, match="Configuration file not found"):
-            AigiseConfig.from_toml("/non/existent/path.toml")
+            OpenSageConfig.from_toml("/non/existent/path.toml")
 
 
 #     def test_environment_variable_override_in_toml(self):
@@ -459,12 +458,12 @@ sse_port = 1112
 #             assert expanded["result"] == "env_override"
 
 
-class TestAigiseConfigMethods:
-    """Test AigiseConfig methods and functionality."""
+class TestOpenSageConfigMethods:
+    """Test OpenSageConfig methods and functionality."""
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.config = AigiseConfig()
+        self.config = OpenSageConfig()
 
         # Set up sandbox configuration
         main_container = ContainerConfig(image="ubuntu:20.04", timeout=300)
@@ -490,7 +489,7 @@ class TestAigiseConfigMethods:
 
     def test_get_sandbox_config_no_sandbox(self):
         """Test get_sandbox_config when no sandbox configuration exists."""
-        config = AigiseConfig()
+        config = OpenSageConfig()
         assert config.get_sandbox_config("main") is None
 
     def test_get_llm_config(self):
@@ -505,7 +504,7 @@ class TestAigiseConfigMethods:
 
     def test_get_llm_config_no_llm(self):
         """Test get_llm_config when no LLM configuration exists."""
-        config = AigiseConfig()
+        config = OpenSageConfig()
         assert config.get_llm_config("main") is None
 
     def test_save_to_toml(self):
@@ -541,10 +540,10 @@ class TestAigiseConfigMethods:
     def test_create_default(self):
         """Test create_default class method."""
         # This test might fail if default config file doesn't exist
-        # We'll just verify the method exists and returns an AigiseConfig instance
+        # We'll just verify the method exists and returns an OpenSageConfig instance
         try:
-            config = AigiseConfig.create_default()
-            assert isinstance(config, AigiseConfig)
+            config = OpenSageConfig.create_default()
+            assert isinstance(config, OpenSageConfig)
         except FileNotFoundError:
             # Expected if default config file doesn't exist in test environment
             pytest.skip("Default config file not found in test environment")
@@ -570,6 +569,6 @@ user = "test_user"
 
             config = load_config_from_toml(str(config_path))
 
-            assert isinstance(config, AigiseConfig)
+            assert isinstance(config, OpenSageConfig)
             assert config.task_name == "convenience_test"
             assert config.neo4j.user == "test_user"

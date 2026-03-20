@@ -5,10 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
-from aigise.config.config_dataclass import ContainerConfig
-from aigise.sandbox.base_sandbox import BaseSandbox
-from aigise.sandbox.skill_deps import prepare_skill_deps
+from opensage.config.config_dataclass import ContainerConfig
+from opensage.sandbox.base_sandbox import BaseSandbox
+from opensage.sandbox.skill_deps import prepare_skill_deps
 
 
 class _FakeSandbox(BaseSandbox):
@@ -17,7 +16,7 @@ class _FakeSandbox(BaseSandbox):
     def __init__(self, *, enabled_skills: Any, sandbox_type: str = "main"):
         super().__init__(
             ContainerConfig(),
-            aigise_session_id="sess-1",
+            opensage_session_id="sess-1",
             backend_type="native",
             sandbox_type=sandbox_type,
         )
@@ -178,7 +177,7 @@ returns_json: false
 ---
 """
     fake._existing_files.add("/bash_tools/fuzz/my-skill/deps/install.sh")
-    fake._existing_files.add("/shared/.aigise/skill_deps/main/fuzz_my-skill.done")
+    fake._existing_files.add("/shared/.opensage/skill_deps/main/fuzz_my-skill.done")
 
     await prepare_skill_deps(fake, enabled_skills=["fuzz/my-skill"])
     assert fake.ran_installers == []

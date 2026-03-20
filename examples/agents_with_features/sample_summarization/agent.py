@@ -20,15 +20,14 @@ from typing import Dict
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.features import enable_neo4j_logging
-from aigise.toolbox.general.dynamic_subagent import (
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.features import enable_neo4j_logging
+from opensage.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
     list_active_agents,
 )
-from aigise.utils.agent_utils import (
+from opensage.utils.agent_utils import (
     discover_all_agents,
     register_callback_to_all_agents,
 )
@@ -93,13 +92,13 @@ def calculate_area_and_perimeter(
     }
 
 
-def mk_agent(aigise_session_id: str):
+def mk_agent(opensage_session_id: str):
     enable_neo4j_logging()
     os.environ["MAX_HISTORY_SUMMARY_LENGTH"] = "300"
     os.environ["MAX_TOOL_RESPONSE_LENGTH"] = "100"
 
     # Create agents inside mk_agent to avoid reusing instances across multiple calls
-    geometry_calculator = AigiseAgent(
+    geometry_calculator = OpenSageAgent(
         name="geometry_calculator",
         description="Calculates geometric properties like area and perimeter of shapes",
         model=LiteLlm(model="openai/gpt-5"),
@@ -115,7 +114,7 @@ Formulate the final answer as a single number inside <final_answer>...</final_an
     # Note: AgentTool automatically uses the agent's name and description
     geometry_tool = AgentTool(agent=geometry_calculator)
 
-    math_calculator = AigiseAgent(
+    math_calculator = OpenSageAgent(
         name="math_calculator",
         description="Calculates multiplication",
         model=LiteLlm(model="openai/gpt-5"),
@@ -126,7 +125,7 @@ Formulate the final answer as a single number inside <final_answer>...</final_an
         tools=[multiply_numbers],
     )
 
-    root_agent = AigiseAgent(
+    root_agent = OpenSageAgent(
         name="calculation_orchestrator",
         description="Main agent that coordinates mathematical and geometric calculations with Neo4j history logging",
         model=LiteLlm(model="openai/gpt-5"),

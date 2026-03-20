@@ -5,8 +5,7 @@ from __future__ import annotations
 import types as _types
 
 import pytest
-
-from aigise.toolbox.general import dynamic_subagent as dyn
+from opensage.toolbox.general import dynamic_subagent as dyn
 
 
 class _DummyAgent:
@@ -72,8 +71,8 @@ async def test_search_agent_sorts_name_match_before_description_match(monkeypatc
     session = _DummySession(metas)
     tool_context = _DummyToolContext(agent=_DummyAgent(name="caller"))
 
-    monkeypatch.setattr(dyn, "get_aigise_session_id_from_context", lambda tc: "sid")
-    monkeypatch.setattr(dyn, "get_aigise_session", lambda sid: session)
+    monkeypatch.setattr(dyn, "get_opensage_session_id_from_context", lambda tc: "sid")
+    monkeypatch.setattr(dyn, "get_opensage_session", lambda sid: session)
     monkeypatch.setattr(dyn, "extract_tools_from_agent", lambda agent: {})
 
     res = await dyn.search_agent("calc", tool_context=tool_context, limit=10)
@@ -96,8 +95,8 @@ async def test_search_agent_match_all_requires_all_keywords(monkeypatch):
     session = _DummySession(metas)
     tool_context = _DummyToolContext(agent=_DummyAgent(name="caller"))
 
-    monkeypatch.setattr(dyn, "get_aigise_session_id_from_context", lambda tc: "sid")
-    monkeypatch.setattr(dyn, "get_aigise_session", lambda sid: session)
+    monkeypatch.setattr(dyn, "get_opensage_session_id_from_context", lambda tc: "sid")
+    monkeypatch.setattr(dyn, "get_opensage_session", lambda sid: session)
     monkeypatch.setattr(dyn, "extract_tools_from_agent", lambda agent: {})
 
     res = await dyn.search_agent(
@@ -119,8 +118,8 @@ async def test_search_agent_includes_adk_subagents(monkeypatch):
     caller = _DummyAgent(name="caller", sub_agents=[sub_agent])
     tool_context = _DummyToolContext(agent=caller)
 
-    monkeypatch.setattr(dyn, "get_aigise_session_id_from_context", lambda tc: "sid")
-    monkeypatch.setattr(dyn, "get_aigise_session", lambda sid: session)
+    monkeypatch.setattr(dyn, "get_opensage_session_id_from_context", lambda tc: "sid")
+    monkeypatch.setattr(dyn, "get_opensage_session", lambda sid: session)
     monkeypatch.setattr(dyn, "extract_tools_from_agent", lambda agent: {})
 
     res = await dyn.search_agent("read", tool_context=tool_context)

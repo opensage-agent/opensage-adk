@@ -6,9 +6,8 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import litellm
-
-from aigise.memory.config.memory_settings import get_memory_settings
-from aigise.memory.search.strategies.base_strategy import (
+from opensage.memory.config.memory_settings import get_memory_settings
+from opensage.memory.search.strategies.base_strategy import (
     SearchContext,
     SearchResultItem,
     SearchStrategy,

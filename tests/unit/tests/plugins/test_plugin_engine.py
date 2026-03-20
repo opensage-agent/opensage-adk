@@ -7,8 +7,7 @@ import json
 from pathlib import Path
 
 import pytest
-
-from aigise.plugins.claude_code_hook_loader import (
+from opensage.plugins.claude_code_hook_loader import (
     _CC_ONLY_ACTION_FIELDS,
     _UNBRIDGEABLE_EVENTS,
     SUPPORTED_EVENTS,
@@ -293,7 +292,7 @@ class TestJsonParsing:
 class TestBuiltinClaudeCodeHookPlugins:
     _HOOKS_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
     _HOOKS_DIR = (
-        _HOOKS_DIR / "src" / "aigise" / "plugins" / "default" / "claude_code_hooks"
+        _HOOKS_DIR / "src" / "opensage" / "plugins" / "default" / "claude_code_hooks"
     )
 
     def test_load_careful_edit(self):
@@ -426,7 +425,7 @@ class TestResultInjection:
 
 class TestLoadPluginsUnified:
     def test_json_creates_named_hook_plugin(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(enabled_plugins=["careful_edit"])
         assert len(plugins) == 1
@@ -435,7 +434,7 @@ class TestLoadPluginsUnified:
         assert len(plugins[0].config["PostToolUse"]) >= 1
 
     def test_multiple_json_each_becomes_plugin(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(enabled_plugins=["careful_edit", "test_output_review"])
         assert len(plugins) == 2
@@ -443,7 +442,7 @@ class TestLoadPluginsUnified:
         assert plugins[1].name == "test_output_review"
 
     def test_mixed_python_and_json_preserves_order(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(
             enabled_plugins=["quota_after_tool_plugin", "careful_edit"]
@@ -453,26 +452,26 @@ class TestLoadPluginsUnified:
         assert plugins[1].name == "careful_edit"
 
     def test_python_only_no_hook_plugin(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(enabled_plugins=["quota_after_tool_plugin"])
         assert len(plugins) == 1
         assert plugins[0].name == "quota_after_tool"
 
     def test_unknown_plugin_raises(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         with pytest.raises(ValueError, match="Unknown plugin"):
             load_plugins(enabled_plugins=["nonexistent_thing"])
 
     def test_empty_enabled(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         assert load_plugins(enabled_plugins=[]) == []
         assert load_plugins(enabled_plugins=None) == []
 
     def test_user_plugin_dir_json(self, tmp_path):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         user_plugins = tmp_path / "plugins"
         user_plugins.mkdir()
@@ -496,7 +495,7 @@ class TestLoadPluginsUnified:
         assert plugins[0].config["PostToolUse"][0].actions[0].prompt == "user plugin"
 
     def test_user_plugin_dir_not_exists(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(
             enabled_plugins=["careful_edit"], agent_dir="/nonexistent/agent"
@@ -505,9 +504,9 @@ class TestLoadPluginsUnified:
         assert plugins[0].name == "careful_edit"
 
     def test_local_plugin_dir_defaults_to_home_local(self, tmp_path, monkeypatch):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
-        local_plugins = tmp_path / ".local" / "aigise" / "plugins"
+        local_plugins = tmp_path / ".local" / "opensage" / "plugins"
         local_plugins.mkdir(parents=True)
         (local_plugins / "local_only.json").write_text(
             json.dumps(
@@ -537,7 +536,7 @@ class TestLoadPluginsUnified:
 class TestDoomLoopDetectorPlugin:
     @pytest.fixture()
     def plugin(self):
-        from aigise.plugins.default.adk_plugins.doom_loop_detector_plugin import (
+        from opensage.plugins.default.adk_plugins.doom_loop_detector_plugin import (
             DoomLoopDetectorPlugin,
         )
 
@@ -645,7 +644,7 @@ class TestDoomLoopDetectorPlugin:
 class TestReadBeforeEditPlugin:
     @pytest.fixture()
     def plugin(self):
-        from aigise.plugins.default.adk_plugins.read_before_edit_plugin import (
+        from opensage.plugins.default.adk_plugins.read_before_edit_plugin import (
             ReadBeforeEditPlugin,
         )
 
@@ -750,7 +749,7 @@ class TestReadBeforeEditPlugin:
 
 class TestRegexPatterns:
     def test_wildcard_enables_all(self):
-        from aigise.plugins import _CLAUDE_CODE_HOOK_DIR, load_plugins
+        from opensage.plugins import _CLAUDE_CODE_HOOK_DIR, load_plugins
 
         plugins = load_plugins(enabled_plugins=[".*"])
         assert len(plugins) >= 1
@@ -765,7 +764,7 @@ class TestRegexPatterns:
             assert stem in names
 
     def test_regex_suffix_pattern(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(enabled_plugins=[".*_plugin"])
         assert len(plugins) >= 1
@@ -774,14 +773,14 @@ class TestRegexPatterns:
         assert len(plugins) >= 1
 
     def test_regex_prefix_pattern(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(enabled_plugins=["doom_.*"])
         assert len(plugins) == 1
         assert plugins[0].name == "doom_loop_detector"
 
     def test_regex_mixed_with_literal(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(enabled_plugins=["doom_.*", "careful_edit"])
         names = [p.name for p in plugins]
@@ -789,7 +788,7 @@ class TestRegexPatterns:
         assert "careful_edit" in names
 
     def test_regex_dedup(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         # "doom_loop_detector_plugin" matches both literally and via regex
         plugins = load_plugins(enabled_plugins=["doom_loop_detector_plugin", "doom_.*"])
@@ -797,13 +796,13 @@ class TestRegexPatterns:
         assert doom_count == 1
 
     def test_regex_no_match_warns(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(enabled_plugins=["zzz_nonexistent_pattern_.*"])
         assert plugins == []
 
     def test_regex_user_dir(self, tmp_path):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         user_plugins = tmp_path / "plugins"
         user_plugins.mkdir()
@@ -834,7 +833,7 @@ class TestRegexPatterns:
 
 class TestPluginParams:
     def test_params_passed_to_constructor(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(
             enabled_plugins=["doom_loop_detector_plugin"],
@@ -844,7 +843,7 @@ class TestPluginParams:
         assert plugins[0].threshold == 7
 
     def test_params_default_when_missing(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(
             enabled_plugins=["doom_loop_detector_plugin"],
@@ -855,7 +854,7 @@ class TestPluginParams:
         assert plugins[0].threshold == 3
 
     def test_params_with_regex(self):
-        from aigise.plugins import load_plugins
+        from opensage.plugins import load_plugins
 
         plugins = load_plugins(
             enabled_plugins=["doom_.*"],
@@ -865,7 +864,7 @@ class TestPluginParams:
         assert plugins[0].threshold == 10
 
     def test_params_config_dataclass(self):
-        from aigise.config.config_dataclass import PluginsConfig
+        from opensage.config.config_dataclass import PluginsConfig
 
         cfg = PluginsConfig(
             enabled=["doom_loop_detector_plugin"],
@@ -914,7 +913,7 @@ class TestNewHookEvents:
         import logging
 
         with caplog.at_level(
-            logging.WARNING, logger="aigise.plugins.claude_code_hook_loader"
+            logging.WARNING, logger="opensage.plugins.claude_code_hook_loader"
         ):
             result = _parse_json_sources(["plugin.json"], tmp_path)
         # Should not be parsed into config (field no longer exists)
@@ -969,7 +968,7 @@ class TestNewHookEvents:
         import logging
 
         with caplog.at_level(
-            logging.WARNING, logger="aigise.plugins.claude_code_hook_loader"
+            logging.WARNING, logger="opensage.plugins.claude_code_hook_loader"
         ):
             result = _parse_json_sources(["plugin.json"], tmp_path)
         assert len(result["PreToolUse"]) == 1
@@ -1050,7 +1049,7 @@ class TestCCOnlyFieldWarnings:
         import logging
 
         with caplog.at_level(
-            logging.WARNING, logger="aigise.plugins.claude_code_hook_loader"
+            logging.WARNING, logger="opensage.plugins.claude_code_hook_loader"
         ):
             result = _parse_json_sources(["plugin.json"], tmp_path)
         assert "decision" in caplog.text
@@ -1077,7 +1076,7 @@ class TestCCOnlyFieldWarnings:
         import logging
 
         with caplog.at_level(
-            logging.WARNING, logger="aigise.plugins.claude_code_hook_loader"
+            logging.WARNING, logger="opensage.plugins.claude_code_hook_loader"
         ):
             _parse_json_sources(["plugin.json"], tmp_path)
         assert "updatedInput" in caplog.text
@@ -1102,7 +1101,7 @@ class TestCCOnlyFieldWarnings:
         import logging
 
         with caplog.at_level(
-            logging.WARNING, logger="aigise.plugins.claude_code_hook_loader"
+            logging.WARNING, logger="opensage.plugins.claude_code_hook_loader"
         ):
             _parse_json_sources(["plugin.json"], tmp_path)
         assert "permissionDecision" in caplog.text
@@ -1120,7 +1119,7 @@ class TestCCOnlyFieldWarnings:
         import logging
 
         with caplog.at_level(
-            logging.WARNING, logger="aigise.plugins.claude_code_hook_loader"
+            logging.WARNING, logger="opensage.plugins.claude_code_hook_loader"
         ):
             _parse_json_sources(["plugin.json"], tmp_path)
         for field in _CC_ONLY_ACTION_FIELDS:
@@ -1344,7 +1343,7 @@ class TestBridgeSemantics:
         import logging
 
         with caplog.at_level(
-            logging.WARNING, logger="aigise.plugins.claude_code_hook_loader"
+            logging.WARNING, logger="opensage.plugins.claude_code_hook_loader"
         ):
             plugin = ClaudeCodeHookPlugin(
                 sources=["plugin.json"], base_dir=str(tmp_path)

@@ -2,18 +2,17 @@ import logging
 
 import docker
 import pytest
-
-from aigise.utils.project_info import PROJECT_PATH
+from opensage.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.INFO)
 
 EXAMPLE_IMAGE = "n132/arvo:51603-vul"  # https://github.com/file/file.git
-OSSFUZZ_SCRIPTS_DIR = PROJECT_PATH / "src/aigise/toolbox/build_utils/ossfuzz/scripts"
+OSSFUZZ_SCRIPTS_DIR = PROJECT_PATH / "src/opensage/toolbox/build_utils/ossfuzz/scripts"
 TARGET_FUNCTION_LINE = "fun: mkdbname"
 SELECTIVE_FUNC_FILE = (
-    PROJECT_PATH / "src/aigise/toolbox/build_utils/ossfuzz/targets.txt"
+    PROJECT_PATH / "src/opensage/toolbox/build_utils/ossfuzz/targets.txt"
 )
 
 

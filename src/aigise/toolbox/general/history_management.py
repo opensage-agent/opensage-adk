@@ -14,12 +14,11 @@ from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.function_tool import FunctionTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-
-from aigise.session import get_aigise_session
-from aigise.toolbox.sandbox_requirements import requires_sandbox
-from aigise.utils.agent_utils import (
-    get_aigise_session_id_from_context,
+from opensage.session import get_opensage_session
+from opensage.toolbox.sandbox_requirements import requires_sandbox
+from opensage.utils.agent_utils import (
     get_neo4j_client_from_context,
+    get_opensage_session_id_from_context,
 )
 
 logger = logging.getLogger(__name__)
@@ -61,7 +60,7 @@ async def get_all_agent_runs(tool_context: ToolContext):
     MATCH (a:AgentRun)
     RETURN a.session_id as session_id,
            a.agent_name as agent_name,
-           a.aigise_session_id as aigise_session_id,
+           a.opensage_session_id as opensage_session_id,
            a.start_time as start_time,
            a.end_time as end_time,
            a.status as status,
@@ -355,15 +354,15 @@ async def drop_or_summarize_events(tool_context: ToolContext):
     Drop or summarize some of the historical messages that may not be useful in the future, this is done by another model
     """
     # Get model name from configuration
-    aigise_session_id = get_aigise_session_id_from_context(tool_context)
-    aigise_session = get_aigise_session(aigise_session_id)
+    opensage_session_id = get_opensage_session_id_from_context(tool_context)
+    opensage_session = get_opensage_session(opensage_session_id)
 
     # Check if LLM configuration exists
-    if not aigise_session.config or not aigise_session.config.llm:
+    if not opensage_session.config or not opensage_session.config.llm:
         logger.warning("LLM configuration not available")
         return
 
-    model_name = aigise_session.config.llm.summarize_model
+    model_name = opensage_session.config.llm.summarize_model
     if not model_name:
         logger.warning(
             "summarize model not configured in LLM settings, trying to use agent model"

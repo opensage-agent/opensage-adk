@@ -18,15 +18,14 @@ from typing import Any, Awaitable, Dict, Optional, Union
 
 import docker
 from docker.errors import APIError, NotFound
-
-from aigise.config import ContainerConfig
+from opensage.config import ContainerConfig
 
 logger = logging.getLogger(__name__)
-from aigise.sandbox.base_sandbox import BaseSandbox, SandboxState
-from aigise.sandbox.utils import can_pull_image, image_exists_locally
-from aigise.utils.bash_tools_staging import build_bash_tools_staging_dir
-from aigise.utils.parser import get_function_info
-from aigise.utils.project_info import PROJECT_PATH
+from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.utils import can_pull_image, image_exists_locally
+from opensage.utils.bash_tools_staging import build_bash_tools_staging_dir
+from opensage.utils.parser import get_function_info
+from opensage.utils.project_info import PROJECT_PATH
 
 
 @dataclass
@@ -326,7 +325,7 @@ class NativeDockerSandbox(BaseSandbox):
 
         if self.container_config_obj.container_name is None:
             self.container_config_obj.container_name = (
-                f"aigise_{self.sandbox_type}_{self.aigise_session_id}"
+                f"opensage_{self.sandbox_type}_{self.opensage_session_id}"
             )
 
         # Set command from config
@@ -964,7 +963,7 @@ class NativeDockerSandbox(BaseSandbox):
         Returns:
             Tuple of (scripts_volume_id, data_volume_id, tools_volume_id)
         """
-        from aigise.utils.project_info import SRC_PATH
+        from opensage.utils.project_info import SRC_PATH
 
         try:
             helper_image = cls._get_helper_image()
@@ -1126,7 +1125,7 @@ class NativeDockerSandbox(BaseSandbox):
         logger.info(f"Launching {sandbox_type} sandbox for session {session_id}")
 
         # Lazy import to avoid circular dependency
-        from aigise.sandbox.factory import (
+        from opensage.sandbox.factory import (
             create_sandbox_class,
             get_initializer_class,
         )
@@ -1161,16 +1160,16 @@ class NativeDockerSandbox(BaseSandbox):
         """Await initialization, set state, and emit logs."""
         final_state: Optional[SandboxState] = None
         sandboxes = None
-        aigise_session_id = getattr(sandbox_instance, "aigise_session_id", None)
-        if aigise_session_id:
+        opensage_session_id = getattr(sandbox_instance, "opensage_session_id", None)
+        if opensage_session_id:
             try:
-                from aigise.session.aigise_session import get_aigise_session
+                from opensage.session.opensage_session import get_opensage_session
 
-                sandboxes = get_aigise_session(aigise_session_id).sandboxes
+                sandboxes = get_opensage_session(opensage_session_id).sandboxes
             except Exception as exc:  # pylint: disable=broad-except
                 logger.warning(
                     "Failed to retrieve sandbox manager for session %s: %s",
-                    aigise_session_id,
+                    opensage_session_id,
                     exc,
                 )
         try:
@@ -1191,7 +1190,7 @@ class NativeDockerSandbox(BaseSandbox):
             logger.error(
                 "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
                 sandbox_type,
-                aigise_session_id,
+                opensage_session_id,
                 final_state.value,
                 exc,
                 exc_info=exc,
@@ -1215,7 +1214,7 @@ class NativeDockerSandbox(BaseSandbox):
             logger.info(
                 "sandbox '%s' (session %s) state=%s - Initialization finished",
                 sandbox_type,
-                aigise_session_id,
+                opensage_session_id,
                 state_value,
             )
 
@@ -1307,7 +1306,7 @@ class NativeDockerSandbox(BaseSandbox):
         - All MCP service sse_port values
 
         Args:
-            config: AigiseConfig object to extract port information
+            config: OpenSageConfig object to extract port information
 
         Returns:
             str: An available IP address (e.g., '127.0.0.2')
@@ -1379,7 +1378,7 @@ class NativeDockerSandbox(BaseSandbox):
                         helper_image,
                         command=["sh", "-c", "sleep infinity"],
                         detach=True,
-                        name=f"aigise_placeholder_{str(uuid.uuid4())}",
+                        name=f"opensage_placeholder_{str(uuid.uuid4())}",
                         ports={"7777/tcp": (test_ip, 7777)},
                         remove=True,
                     )
@@ -1436,10 +1435,10 @@ class NativeDockerSandbox(BaseSandbox):
         sandbox_instances = {}
 
         try:
-            from aigise.session.aigise_session import get_aigise_session
+            from opensage.session.opensage_session import get_opensage_session
 
-            aigise_session = get_aigise_session(session_id)
-            config = aigise_session.config
+            opensage_session = get_opensage_session(session_id)
+            config = opensage_session.config
 
             # 1. Find available loopback IP that works for all required ports
             loopback_ip, placeholder_container_id = cls._find_available_loopback_ip(

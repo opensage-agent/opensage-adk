@@ -16,8 +16,7 @@ from typing import Callable, List, Optional, Set, TypeVar, Union
 
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.tools.agent_tool import AgentTool
-
-from aigise.utils.project_info import SRC_PATH
+from opensage.utils.project_info import SRC_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +93,7 @@ def collect_sandbox_dependencies(agent) -> set[str]:
     dependencies.update(skill_deps)
 
     dependencies.add("main")
-    from aigise.features import is_neo4j_logging_enabled
+    from opensage.features import is_neo4j_logging_enabled
 
     if is_neo4j_logging_enabled():
         dependencies.add("neo4j")
@@ -120,7 +119,7 @@ def _collect_dynamic_skill_dependencies(
 
     search_paths = [
         SRC_PATH / "bash_tools",
-        Path.home() / ".local/aigise/bash_tools",
+        Path.home() / ".local/opensage/bash_tools",
     ]
 
     def parse_skill_md(file_path: Path) -> set[str]:

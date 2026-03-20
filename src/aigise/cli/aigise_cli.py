@@ -19,20 +19,19 @@ from google.adk.evaluation.local_eval_set_results_manager import (
 )
 from google.adk.evaluation.local_eval_sets_manager import LocalEvalSetsManager
 from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
-
-from aigise.cli.aigise_web_app import AigiseWebServer
-from aigise.cli.dependency_check import (
+from opensage.cli.dependency_check import (
     verify_codeql,
     verify_docker,
     verify_kubectl,
 )
-from aigise.features.aigise_in_memory_session_service import (
-    AigiseInMemorySessionService,
+from opensage.cli.opensage_web_app import OpenSageWebServer
+from opensage.features.opensage_in_memory_session_service import (
+    OpenSageInMemorySessionService,
 )
-from aigise.plugins import load_plugins
-from aigise.session import get_aigise_session
-from aigise.toolbox.sandbox_requirements import collect_sandbox_dependencies
-from aigise.utils.bash_tools_staging import compute_bash_tools_top_roots
+from opensage.plugins import load_plugins
+from opensage.session import get_opensage_session
+from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
+from opensage.utils.bash_tools_staging import compute_bash_tools_top_roots
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +98,7 @@ def _load_mk_agent_from_dir(agent_dir: str):
     if not callable(mk_agent):
         raise click.ClickException(
             f"`mk_agent` not found in {agent_file}. "
-            "Please define mk_agent(aigise_session_id: str, ...) -> Agent"
+            "Please define mk_agent(opensage_session_id: str, ...) -> Agent"
         )
     return mk_agent
 
@@ -116,19 +115,22 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
     logger.info(f"Initializing OpenSage session: {session_id}")
 
     # 1) Create session from config
-    aigise_session = get_aigise_session(
-        aigise_session_id=session_id, config_path=config_path
+    opensage_session = get_opensage_session(
+        opensage_session_id=session_id, config_path=config_path
     )
 
     # 1.5) Collect sandbox dependencies from the specified agent, and prune config
     tools_top_roots = None
     try:
         mk_agent = _load_mk_agent_from_dir(agent_dir)
-        dummy_agent = mk_agent(aigise_session_id=session_id)
+        dummy_agent = mk_agent(opensage_session_id=session_id)
         sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
         tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
-        if aigise_session.config.sandbox and aigise_session.config.sandbox.sandboxes:
-            configured_sandboxes = set(aigise_session.config.sandbox.sandboxes.keys())
+        if (
+            opensage_session.config.sandbox
+            and opensage_session.config.sandbox.sandboxes
+        ):
+            configured_sandboxes = set(opensage_session.config.sandbox.sandboxes.keys())
 
             missing_in_config = sorted(
                 sb for sb in sandbox_dependencies if sb not in configured_sandboxes
@@ -146,11 +148,11 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
 
             sandboxes_to_remove = [
                 s_type
-                for s_type in list(aigise_session.config.sandbox.sandboxes.keys())
+                for s_type in list(opensage_session.config.sandbox.sandboxes.keys())
                 if s_type not in sandbox_dependencies
             ]
             for s_type in sandboxes_to_remove:
-                del aigise_session.config.sandbox.sandboxes[s_type]
+                del opensage_session.config.sandbox.sandboxes[s_type]
                 logger.warning(
                     "Removed unused sandbox '%s' from config (not in agent dependencies: %s)",
                     s_type,
@@ -160,16 +162,16 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
         logger.warning("Sandbox dependency pruning skipped due to error: %s", e)
 
     # 2) Initialize shared volumes
-    aigise_session.sandboxes.initialize_shared_volumes(
+    opensage_session.sandboxes.initialize_shared_volumes(
         tools_top_roots=tools_top_roots,
         enabled_skills=getattr(dummy_agent, "_enabled_skills", None),
     )
 
     # 3) Launch sandboxes (create containers)
-    await aigise_session.sandboxes.launch_all_sandboxes()
+    await opensage_session.sandboxes.launch_all_sandboxes()
 
     # 4) Initialize sandboxes (tools ready)
-    await aigise_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
+    await opensage_session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
 
     logger.info(f"OpenSage environment is ready for session: {session_id}")
     return session_id
@@ -282,7 +284,7 @@ def cli_web(
     # Optionally enable Neo4j logging (monkey patches BaseAgent/AgentTool)
     if neo4j_logging:
         try:
-            from aigise.features.agent_history_tracker import enable_neo4j_logging
+            from opensage.features.agent_history_tracker import enable_neo4j_logging
 
             enable_neo4j_logging()
             logger.info("Neo4j logging enabled.")
@@ -297,22 +299,22 @@ def cli_web(
 
     # 2) Load the agent and bind to the prepared session (no reload/auto-discovery)
     mk_agent = _load_mk_agent_from_dir(agent_dir)
-    root_agent = mk_agent(aigise_session_id=session_id)
-    aigise_session = get_aigise_session(session_id)
+    root_agent = mk_agent(opensage_session_id=session_id)
+    opensage_session = get_opensage_session(session_id)
     enabled_plugins = []
-    if aigise_session and getattr(aigise_session, "config", None):
-        plugins_cfg = getattr(aigise_session.config, "plugins", None)
+    if opensage_session and getattr(opensage_session, "config", None):
+        plugins_cfg = getattr(opensage_session.config, "plugins", None)
         enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
         extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
     plugins = load_plugins(
         enabled_plugins, agent_dir=agent_dir, extra_plugin_dirs=extra_plugin_dirs
     )
 
-    # 3) Build services (use AigiseInMemorySessionService and pre-create the ADK session)
+    # 3) Build services (use OpenSageInMemorySessionService and pre-create the ADK session)
     # Infer app name as the parent folder of the agent directory.
     # Example: /.../examples/agents/debuger_agent -> app_name = "agents"
     app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
-    session_service = AigiseInMemorySessionService()
+    session_service = OpenSageInMemorySessionService()
 
     artifact_service = InMemoryArtifactService()
     memory_service = InMemoryMemoryService()
@@ -323,7 +325,7 @@ def cli_web(
     eval_set_results_manager = LocalEvalSetResultsManager(agents_dir=agents_dir_parent)
 
     # 4) Create our single-agent web server (rich endpoints, no agent reload)
-    web_server = AigiseWebServer(
+    web_server = OpenSageWebServer(
         app_name=app_name,
         root_agent=root_agent,
         fixed_session_id=session_id,
@@ -341,7 +343,7 @@ def cli_web(
         session_service.create_session(
             app_name=web_server.app_name,
             user_id="user",
-            state={"aigise_session_id": session_id},
+            state={"opensage_session_id": session_id},
             session_id=session_id,
         )
     )

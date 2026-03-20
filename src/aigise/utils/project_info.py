@@ -1,6 +1,6 @@
 from pathlib import Path
 
-# SRC_PATH points to src/aigise/ directory
+# SRC_PATH points to src/opensage/ directory
 # Works in both development and installed package environments
 SRC_PATH = Path(__file__).parent.parent.resolve()
 

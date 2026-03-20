@@ -42,7 +42,7 @@ uv run pre-commit install
 #### CodeQL (for joern/codeql sandbox)
 
 ```bash
-cd src/aigise/sandbox_scripts
+cd src/opensage/sandbox_scripts
 wget https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.18.4/codeql-bundle-linux64.tar.gz
 tar -xzf codeql-bundle-linux64.tar.gz codeql
 rm -f codeql-bundle-linux64.tar.gz
@@ -59,14 +59,14 @@ Per-sandbox requirements:
 
 | Sandbox | Python Packages | Dockerfile |
 |---------|----------------|------------|
-| **main** | `neo4j` | `src/aigise/templates/dockerfiles/main/Dockerfile` |
-| **joern** | `httpx`, `websockets` | `src/aigise/templates/dockerfiles/joern/Dockerfile` |
+| **main** | `neo4j` | `src/opensage/templates/dockerfiles/main/Dockerfile` |
+| **joern** | `httpx`, `websockets` | `src/opensage/templates/dockerfiles/joern/Dockerfile` |
 
 ## Project Structure
 
 ```
 OpenSage/
-├── src/aigise/            # Core library
+├── src/opensage/            # Core library
 │   ├── agents/            # Agent definitions and creation
 │   ├── bash_tools/        # Bash tool scripts
 │   ├── cli/               # CLI entry point (opensage)
@@ -111,11 +111,11 @@ Here's a minimal agent example:
 ```python
 # my_agent/agent.py
 from google.adk.models.lite_llm import LiteLlm
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.toolbox.general.bash_tool import bash_tool_main
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.toolbox.general.bash_tool import bash_tool_main
 
-def mk_agent(aigise_session_id: str):
-    return AigiseAgent(
+def mk_agent(opensage_session_id: str):
+    return OpenSageAgent(
         name="my_agent",
         model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
         description="A simple agent with shell access.",
@@ -257,7 +257,7 @@ Short-term memory records agent execution traces into Neo4j, capturing inputs, o
 
 ### 1. Agent Lifecycle Logging (Patched `run_async`)
 
-Before starting an agent, the monkey-patch in `src/aigise/patches/neo4j_logging.py` must be applied via `neo4j_logging.apply()` and enabled via `neo4j_logging.enable()`. This wraps `BaseAgent.run_async` and `AgentTool.run_async` to automatically:
+Before starting an agent, the monkey-patch in `src/opensage/patches/neo4j_logging.py` must be applied via `neo4j_logging.apply()` and enabled via `neo4j_logging.enable()`. This wraps `BaseAgent.run_async` and `AgentTool.run_async` to automatically:
 
 - **Record agent start/end** — creates `AgentRun` nodes in Neo4j with start time, end time, status (`completed` or `error`), and final output text.
 - **Record agent input** — the initial user message is captured when the agent run begins (`record_agent_start`).
@@ -268,7 +268,7 @@ Before starting an agent, the monkey-patch in `src/aigise/patches/neo4j_logging.
 
 ### 2. Intermediate Steps Recording
 
-All intermediate event recording is handled by the patched `run_async` itself — `log_single_event_neo4j` ([neo4j_logging.py:100](src/aigise/patches/neo4j_logging.py#L100)) writes every streamed event (tool calls, model responses, etc.) as `Event` nodes linked to the `AgentRun` via `HAS_EVENT` relationships. No plugin is responsible for this recording.
+All intermediate event recording is handled by the patched `run_async` itself — `log_single_event_neo4j` ([neo4j_logging.py:100](src/opensage/patches/neo4j_logging.py#L100)) writes every streamed event (tool calls, model responses, etc.) as `Event` nodes linked to the `AgentRun` via `HAS_EVENT` relationships. No plugin is responsible for this recording.
 
 ### 3. Summarization Plugins
 
@@ -276,8 +276,8 @@ Two plugins handle compaction when recorded data grows too large:
 
 | Plugin | File | What It Does |
 |--------|------|--------------|
-| **ToolResponseSummarizerPlugin** | `src/aigise/plugins/tool_response_summarizer_plugin.py` | When a tool response exceeds `max_tool_response_length` (default 10000 chars), saves the full raw response as a `RawToolResponse` node and replaces the in-context response with an LLM-generated summary. Linked to `AgentRun` via `AGENT_RUN_HAS_RAW_TOOL_RESPONSE`. |
-| **HistorySummarizerPlugin** | `src/aigise/plugins/history_summarizer_plugin.py` | When event history exceeds the context budget, compacts old events into summary `Event` nodes (type `history_summary`). Creates `SUMMARIZES_EVENTS` relationships to the original events for lineage. |
+| **ToolResponseSummarizerPlugin** | `src/opensage/plugins/tool_response_summarizer_plugin.py` | When a tool response exceeds `max_tool_response_length` (default 10000 chars), saves the full raw response as a `RawToolResponse` node and replaces the in-context response with an LLM-generated summary. Linked to `AgentRun` via `AGENT_RUN_HAS_RAW_TOOL_RESPONSE`. |
+| **HistorySummarizerPlugin** | `src/opensage/plugins/history_summarizer_plugin.py` | When event history exceeds the context budget, compacts old events into summary `Event` nodes (type `history_summary`). Creates `SUMMARIZES_EVENTS` relationships to the original events for lineage. |
 
 ## Development
 

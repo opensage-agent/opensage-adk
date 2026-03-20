@@ -10,21 +10,20 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.base_toolset import BaseToolset
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-
-from aigise.session.aigise_dynamic_agent_manager import AgentStatus
-from aigise.session.aigise_session import get_aigise_session
-from aigise.toolbox.general.agent_tools import complain
-from aigise.toolbox.general.bash_tools_interface import (
+from opensage.session.opensage_dynamic_agent_manager import AgentStatus
+from opensage.session.opensage_session import get_opensage_session
+from opensage.toolbox.general.agent_tools import complain
+from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
     list_background_tasks,
     run_terminal_command,
     wait_for_background,
 )
-from aigise.utils.agent_utils import (
+from opensage.utils.agent_utils import (
     INHERIT_MODEL,
     extract_tools_from_agent,
-    get_aigise_session_id_from_context,
     get_model_from_agent,
+    get_opensage_session_id_from_context,
 )
 
 _DEFAULT_SEARCH_LIMIT = 10
@@ -78,8 +77,8 @@ async def create_subagent(
         Dictionary with creation result and agent details
     """
     try:
-        session_id = get_aigise_session_id_from_context(tool_context)
-        session = get_aigise_session(session_id)
+        session_id = get_opensage_session_id_from_context(tool_context)
+        session = get_opensage_session(session_id)
         manager = session.agents
         ensemble_manager = session.ensemble
         available_models = ensemble_manager.get_available_models()
@@ -279,8 +278,8 @@ async def list_active_agents(tool_context: ToolContext) -> Dict[str, Any]:
     2. Returns information about all dynamically created agents (both in-memory and restored)
     """
     try:
-        session_id = get_aigise_session_id_from_context(tool_context)
-        session = get_aigise_session(session_id)
+        session_id = get_opensage_session_id_from_context(tool_context)
+        session = get_opensage_session(session_id)
         manager = session.agents
         caller_agent = tool_context._invocation_context.agent
 
@@ -428,8 +427,8 @@ async def search_agent(
     if not isinstance(limit, int) or limit <= 0:
         return {"success": False, "error": "limit must be a positive integer"}
 
-    session_id = get_aigise_session_id_from_context(tool_context)
-    session = get_aigise_session(session_id)
+    session_id = get_opensage_session_id_from_context(tool_context)
+    session = get_opensage_session(session_id)
     manager = session.agents
     caller_agent = tool_context._invocation_context.agent
 
@@ -553,8 +552,8 @@ async def call_subagent_as_tool(
         Result from the sub-agent execution
     """
     try:
-        session_id = get_aigise_session_id_from_context(tool_context)
-        session = get_aigise_session(session_id)
+        session_id = get_opensage_session_id_from_context(tool_context)
+        session = get_opensage_session(session_id)
         manager = session.agents
         caller_agent = tool_context._invocation_context.agent
 

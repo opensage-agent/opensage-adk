@@ -6,7 +6,7 @@ reusing the Evaluation instance across samples.
 
 Usage::
 
-    from aigise.evaluation.dispatchers import get_dispatcher
+    from opensage.evaluation.dispatchers import get_dispatcher
 
     dispatcher = get_dispatcher("ray", ray_address="auto", max_workers=16)
     dispatcher.run(evaluation)
@@ -21,11 +21,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import ray
-
-from aigise.evaluation.dispatchers.base import BaseDispatcher
+from opensage.evaluation.dispatchers.base import BaseDispatcher
 
 if TYPE_CHECKING:
-    from aigise.evaluation.base import Evaluation
+    from opensage.evaluation.base import Evaluation
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +45,7 @@ class EvalWorker:
             if agent_parent_dir not in sys.path:
                 sys.path.insert(0, agent_parent_dir)
         else:
-            from aigise.utils.project_info import PROJECT_PATH
+            from opensage.utils.project_info import PROJECT_PATH
 
             default_agents_dir = str(PROJECT_PATH / "examples" / "agents")
             if os.path.isdir(default_agents_dir) and default_agents_dir not in sys.path:
@@ -65,7 +64,7 @@ class EvalWorker:
         litellm.request_timeout = self._evaluation.llm_retry_timeout
 
     def run_sample(self, sample: dict) -> dict:
-        from aigise.evaluation.base import _run_sample_in_process
+        from opensage.evaluation.base import _run_sample_in_process
 
         result = _run_sample_in_process(self._evaluation, sample)
 

@@ -189,7 +189,7 @@ overridden by an agent-local plugin with the same name.
 ### Directory Structure
 
 ```
-src/aigise/plugins/
+src/opensage/plugins/
 ├── __init__.py                    # load_plugins() entry point
 ├── adk_plugin_loader.py           # Loads .py plugin classes
 ├── claude_code_hook_loader.py     # Loads .json hook declarations

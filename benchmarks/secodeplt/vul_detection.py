@@ -21,27 +21,26 @@ from google.adk.planners import BasePlanner, BuiltInPlanner
 from google.adk.plugins import ReflectAndRetryToolPlugin
 from google.adk.sessions import InMemorySessionService, Session
 from google.genai import types
-from pydantic import BaseModel, ConfigDict, Field
-
-from aigise import AigiseSession
-from aigise.evaluation.base import Evaluation, EvaluationTask
-from aigise.session import get_aigise_session
-from aigise.toolbox.benchmark_specific.cybergym.cybergym import run_poc_from_script
-from aigise.toolbox.general.bash_tool import bash_tool_main
-from aigise.toolbox.retrieval.search_tools import (
+from opensage import OpenSageSession
+from opensage.evaluation.base import Evaluation, EvaluationTask
+from opensage.session import get_opensage_session
+from opensage.toolbox.benchmark_specific.cybergym.cybergym import run_poc_from_script
+from opensage.toolbox.general.bash_tool import bash_tool_main
+from opensage.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
     grep_tool,
     list_functions_in_file,
     search_symbol_definition,
 )
-from aigise.toolbox.static_analysis.cpg import (
+from opensage.toolbox.static_analysis.cpg import (
     get_call_paths_to_function,
     get_callee,
     get_caller,
     neo4j_query,
     search_function,
 )
-from aigise.utils.project_info import PROJECT_PATH, SRC_PATH, find_path
+from opensage.utils.project_info import PROJECT_PATH, SRC_PATH, find_path
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +57,7 @@ try:
     GoogleADKInstrumentor().instrument()
 except ImportError:
     logger.info(
-        "Langfuse not available. To enable tracing, install with: pip install aigise[langfuse]"
+        "Langfuse not available. To enable tracing, install with: pip install opensage[langfuse]"
     )
 
 vul_system_prompt = """
@@ -339,7 +338,7 @@ Finally, just report nothing if you cannot find any vulnerability in this functi
             # call_subagent_as_tool,
         ],
         output_schema=output_schema,
-        # aigise_session_id=aigise_session_id,
+        # opensage_session_id=opensage_session_id,
     )
     # poc_agent = mk_poc_agent(function_name)
     return vul_detect_agent
@@ -387,7 +386,7 @@ Focus on whether the core vulnerability type/class and the related code was iden
 
     try:
         # Temporarily disable neo4j logging patch for this simple comparison
-        from aigise.patches import neo4j_logging
+        from opensage.patches import neo4j_logging
 
         was_enabled = neo4j_logging.is_enabled()
         if was_enabled:
@@ -448,7 +447,7 @@ Focus on whether the core vulnerability type/class and the related code was iden
 
 @dataclass
 class SeCodePLT(Evaluation):
-    dataset_path: str = "aigise/secodeplt"
+    dataset_path: str = "opensage/secodeplt"
     dataset_hf_split: str = "train"
     export_dir_in_sandbox: str = "/tmp/"
     agent_dir: str = str(find_path("examples", "agents", "vul_agent_static_tools"))
@@ -514,7 +513,7 @@ class SeCodePLT(Evaluation):
 
     @staticmethod
     async def _get_modified_functions_last_6_months(
-        aigise_session, months: int = 6, project_name: str = ""
+        opensage_session, months: int = 6, project_name: str = ""
     ) -> dict[str, list[dict[str, Any]]]:
         """Get functions modified in the last N months by analyzing git history.
 
@@ -525,7 +524,7 @@ class SeCodePLT(Evaluation):
         3. Queries Neo4j to find functions in those line ranges
 
         Args:
-            aigise_session: AigiseSession instance
+            opensage_session: OpenSageSession instance
             months: Number of months to look back (default: 6)
             project_name: Project name to help locate git repository (default: "")
 
@@ -543,7 +542,7 @@ class SeCodePLT(Evaluation):
                 ]
             }
         """
-        main_sandbox = aigise_session.sandboxes.get_sandbox("main")
+        main_sandbox = opensage_session.sandboxes.get_sandbox("main")
         if not main_sandbox:
             logger.warning("Main sandbox not found")
             return {}
@@ -615,7 +614,7 @@ class SeCodePLT(Evaluation):
         )
 
         # Get Neo4j client for querying functions
-        client = await aigise_session.neo4j.get_async_client("analysis")
+        client = await opensage_session.neo4j.get_async_client("analysis")
 
         modified_functions = {}
 
@@ -685,12 +684,12 @@ class SeCodePLT(Evaluation):
         return modified_functions
 
     def _before_initialize_hooks(
-        self, aigise_session: AigiseSession, task: EvaluationTask
+        self, opensage_session: OpenSageSession, task: EvaluationTask
     ) -> None:
         """Run before initialize hooks.
 
         Args:
-            aigise_session: AigiseSession instance
+            opensage_session: OpenSageSession instance
             task: EvaluationTask instance with all task data
         """
         print("Test before initialize hooks")
@@ -750,15 +749,15 @@ class SeCodePLT(Evaluation):
 
     async def _prepare_environment(self, task: EvaluationTask):
         """Prepare environment for the task."""
-        task.aigise_session.config.src_dir_in_sandbox = task.sample["basedir"]
+        task.opensage_session.config.src_dir_in_sandbox = task.sample["basedir"]
         if (
-            task.aigise_session.config.sandbox.absolute_shared_data_path
-            or task.aigise_session.config.sandbox.project_relative_shared_data_path
+            task.opensage_session.config.sandbox.absolute_shared_data_path
+            or task.opensage_session.config.sandbox.project_relative_shared_data_path
         ):
             raise ValueError(
                 f"absolute_shared_data_path is not useful for secodeplt since tasks are generated on the fly, but you provided {task.initial_data_dir}"
             )
-        tmp_workdir = tempfile.mkdtemp(prefix=f"aigise_{task.session_id}_")
+        tmp_workdir = tempfile.mkdtemp(prefix=f"opensage_{task.session_id}_")
         # self._init_workdir(task.sample, tmp_workdir)
         # untar the report.tar.gz to the {tmp_workdir}/code directory
         # subprocess.run(
@@ -766,11 +765,11 @@ class SeCodePLT(Evaluation):
         #     shell=True,
         #     check=True,
         # )
-        task.aigise_session.config.sandbox.absolute_shared_data_path = str(
+        task.opensage_session.config.sandbox.absolute_shared_data_path = str(
             Path(tmp_workdir).resolve().as_posix()
         )
         await super()._prepare_environment(task)
-        main_sandbox = task.aigise_session.sandboxes.get_sandbox("main")
+        main_sandbox = task.opensage_session.sandboxes.get_sandbox("main")
         main_sandbox.run_command_in_container(
             "apt-get update && apt-get install -y curl"
         )
@@ -883,9 +882,9 @@ class SeCodePLT(Evaluation):
         Returns:
             ADK Session object with execution history
         """
-        from aigise.session import get_aigise_session
+        from opensage.session import get_opensage_session
 
-        aigise_session = get_aigise_session(task.session_id)
+        opensage_session = get_opensage_session(task.session_id)
 
         # Use task-specific model if present (for RL integration).
         # Avoid mutating self.model which is shared across concurrent episodes.
@@ -933,7 +932,7 @@ class SeCodePLT(Evaluation):
                     f"Loaded {len(vul_findings)} vulnerability findings from {vul_findings_path}"
                 )
 
-        client = await aigise_session.neo4j.get_async_client("analysis")
+        client = await opensage_session.neo4j.get_async_client("analysis")
 
         # Create session_service at function level to persist across agent calls
         app_name = self.__class__.__name__.lower()
@@ -947,7 +946,7 @@ class SeCodePLT(Evaluation):
                 user_id=user_id,
                 session_id=task.session_id,
                 state={
-                    "aigise_session_id": task.session_id,
+                    "opensage_session_id": task.session_id,
                     "alias": meta_data.replace("_poc_finding", "").replace(
                         "_vul_finding", ""
                     ),
@@ -1057,11 +1056,11 @@ class SeCodePLT(Evaluation):
                 vul_findings.append(vul_finding)
             return vul_findings
 
-        async def _run_poc_agent(vul_findings, aigise_session):
+        async def _run_poc_agent(vul_findings, opensage_session):
             # start poc
             final_results = []
             for vul_finding in vul_findings:
-                aigise_session.config.current_function = vul_finding.function_name
+                opensage_session.config.current_function = vul_finding.function_name
                 if vul_finding and vul_finding.vulnerabilities:
                     try:
                         poc_finding = await self._generate_poc_with_retry(
@@ -1105,7 +1104,7 @@ class SeCodePLT(Evaluation):
 
         # start poc
         if not self.skip_poc:
-            poc_results = await _run_poc_agent(vul_findings, aigise_session)
+            poc_results = await _run_poc_agent(vul_findings, opensage_session)
             ## save poc findings
             poc_save_path = Path(task.output_dir) / f"poc_findings_{task.id}.json"
             with open(poc_save_path, "w") as f:
@@ -1118,7 +1117,7 @@ class SeCodePLT(Evaluation):
 
         # for return
         session_service = InMemorySessionService()
-        ## Get and return the ADK session instead of aigise_session
+        ## Get and return the ADK session instead of opensage_session
         session = await session_service.create_session(
             app_name="mock",
             user_id=self.user_id,

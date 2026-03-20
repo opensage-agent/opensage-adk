@@ -5,20 +5,20 @@ AIgiSE: AI Agent Framework
 
 A comprehensive framework for security-focused AI agents with unified session management.
 
-The framework provides session-isolated resource management through the AigiseSession
+The framework provides session-isolated resource management through the OpenSageSession
 architecture, eliminating global singletons and providing clear separation of
 concerns between different agent sessions.
 
 Primary Interface:
-    from aigise import get_aigise_session
+    from opensage import get_opensage_session
 
-    session = get_aigise_session("my_session_id")
+    session = get_opensage_session("my_session_id")
     # All configuration, agent, and sandbox management through session
 """
 
 import logging
 
-from aigise.utils.logs import log_to_tmp_folder, setup_aigise_logging
+from opensage.utils.logs import log_to_tmp_folder, setup_opensage_logging
 
 # Configure logging for AIgiSE module
 # This will be executed once when the module is first imported
@@ -29,9 +29,9 @@ def _setup_logging():
 
     Only runs if no logging configuration exists yet (respects user's manual setup)
     """
-    aigise_logger = logging.getLogger("aigise")
-    if not aigise_logger.hasHandlers():
-        setup_aigise_logging()
+    opensage_logger = logging.getLogger("opensage")
+    if not opensage_logger.hasHandlers():
+        setup_opensage_logging()
 
 
 import litellm
@@ -53,28 +53,28 @@ __version__ = "1.0.0"
 # For backward compatibility and advanced usage
 # RL Framework integration (slime, verl, areal, etc.)
 from .evaluation.rl_adapters import Client, RLSession, create
-from .session.aigise_dynamic_agent_manager import DynamicAgentManager
-from .session.aigise_sandbox_manager import AigiseSandboxManager
-from .session.aigise_session import (
-    AigiseSession,
-    AigiseSessionRegistry,
-    cleanup_aigise_session,
-    get_aigise_session,
+from .session.opensage_dynamic_agent_manager import DynamicAgentManager
+from .session.opensage_sandbox_manager import OpenSageSandboxManager
+from .session.opensage_session import (
+    OpenSageSession,
+    OpenSageSessionRegistry,
+    cleanup_opensage_session,
+    get_opensage_session,
 )
 
 __all__ = [
     # Primary interface
-    "get_aigise_session",
-    "cleanup_aigise_session",
-    "setup_aigise_logging",
+    "get_opensage_session",
+    "cleanup_opensage_session",
+    "setup_opensage_logging",
     "log_to_tmp_folder",
     # RL Framework integration
     "create",
     "Client",
     "RLSession",
     # Advanced/internal usage
-    "AigiseSession",
-    "AigiseSessionRegistry",
+    "OpenSageSession",
+    "OpenSageSessionRegistry",
     "DynamicAgentManager",
-    "AigiseSandboxManager",
+    "OpenSageSandboxManager",
 ]

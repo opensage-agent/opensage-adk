@@ -80,8 +80,8 @@ class BenchmarkInterface:
         """
         import sys
 
-        from aigise.evaluation.base import _EVALUATION_REGISTRY, get_evaluation_class
-        from aigise.utils.project_info import PROJECT_PATH
+        from opensage.evaluation.base import _EVALUATION_REGISTRY, get_evaluation_class
+        from opensage.utils.project_info import PROJECT_PATH
 
         # Ensure benchmarks/ (at project root) is importable.
         project_root = str(PROJECT_PATH)

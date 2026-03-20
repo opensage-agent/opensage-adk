@@ -6,10 +6,10 @@ import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from aigise.memory.update.entity_extractor import ExtractedEntity
+from opensage.memory.update.entity_extractor import ExtractedEntity
 
 if TYPE_CHECKING:
-    from aigise.memory.config.domain_config import DomainConfig
+    from opensage.memory.config.domain_config import DomainConfig
 
 logger = logging.getLogger(__name__)
 

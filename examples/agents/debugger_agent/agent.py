@@ -8,28 +8,27 @@ from dotenv import load_dotenv
 from google.adk.agents.llm_agent import ToolUnion
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
-
-from aigise.agents.aigise_agent import AigiseAgent
-from aigise.session import get_aigise_session
-from aigise.toolbox.benchmark_specific.cybergym.cybergym import (
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.session import get_opensage_session
+from opensage.toolbox.benchmark_specific.cybergym.cybergym import (
     critique,
     generate_poc_and_submit,
     run_poc_from_script,
 )
-from aigise.toolbox.coverage.tools import (
+from opensage.toolbox.coverage.tools import (
     find_testcases_covering_function,
     run_coverage,
     show_coverage,
 )
-from aigise.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
-from aigise.toolbox.finish_task.finish_task import finish_task
-from aigise.toolbox.fuzzing.fuzz_tools import (
+from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
+from opensage.toolbox.finish_task.finish_task import finish_task
+from opensage.toolbox.fuzzing.fuzz_tools import (
     check_fuzzing_stats,
     extract_crashes,
     run_fuzzing_campaign,
     simplified_python_fuzzer,
 )
-from aigise.toolbox.general.agent_tools import (
+from opensage.toolbox.general.agent_tools import (
     agent_ensemble,
     complain,
     get_available_agents_for_ensemble,
@@ -37,24 +36,24 @@ from aigise.toolbox.general.agent_tools import (
     note_suspicious_things,
     think,
 )
-from aigise.toolbox.general.bash_tool import bash_tool_main
-from aigise.toolbox.general.bash_tools_interface import (
+from opensage.toolbox.general.bash_tool import bash_tool_main
+from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
     list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
-from aigise.toolbox.general.dynamic_subagent import (
+from opensage.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
     list_active_agents,
 )
-from aigise.toolbox.retrieval.search_tools import (
+from opensage.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
     list_functions_in_file,
     search_symbol_definition,
 )
-from aigise.toolbox.static_analysis.cpg import (
+from opensage.toolbox.static_analysis.cpg import (
     get_call_paths_to_function,
     get_callee,
     get_caller,
@@ -65,7 +64,7 @@ from aigise.toolbox.static_analysis.cpg import (
 )
 
 
-def mk_agent(aigise_session_id: str):
+def mk_agent(opensage_session_id: str):
     model = LiteLlm(
         # model="litellm_proxy/vertex_ai/claude-sonnet-4-5@20250929",
         model="litellm_proxy/sage-gpt-5",
@@ -79,9 +78,9 @@ def mk_agent(aigise_session_id: str):
             {"location": "message", "index": -1},  # Cache last message
         ],
     )
-    gdb_toolset = get_gdb_toolset(aigise_session_id)
+    gdb_toolset = get_gdb_toolset(opensage_session_id)
 
-    debugger_agent = AigiseAgent(
+    debugger_agent = OpenSageAgent(
         name="debugger_agent",
         model=model,
         description="A debugger agent that can debug the vulnerable program. When calling this tool, you should tell the debugger what is the vulnerable program and what is the poc, and what is the expected behavior, you should have concrete expectations to check.",

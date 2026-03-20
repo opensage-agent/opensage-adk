@@ -18,10 +18,9 @@ from google.adk.agents.callback_context import CallbackContext
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.events.event import Event
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.utils.agent_utils import (
-    get_aigise_session_id_from_context,
+from opensage.utils.agent_utils import (
     get_neo4j_client_from_context,
+    get_opensage_session_id_from_context,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,7 +30,7 @@ async def record_agent_start(agent: BaseAgent, context: InvocationContext) -> st
     """Record the start of an agent run in Neo4j."""
     # Use history client for agent history operations (database creation handled automatically)
     client = await get_neo4j_client_from_context(context, "history")
-    aigise_session_id = get_aigise_session_id_from_context(context)
+    opensage_session_id = get_opensage_session_id_from_context(context)
 
     session_id = context.session.id
     try:
@@ -46,7 +45,7 @@ async def record_agent_start(agent: BaseAgent, context: InvocationContext) -> st
     query = """
     MERGE (a:AgentRun {session_id: $session_id})
     ON CREATE SET a.agent_name = $agent_name,
-                  a.aigise_session_id = $aigise_session_id,
+                  a.opensage_session_id = $opensage_session_id,
                   a.start_time = $start_time,
                   a.agent_model = $agent_model,
                   a.input_contents = CASE WHEN $input_content = '' THEN [] ELSE [$input_content] END
@@ -61,7 +60,7 @@ async def record_agent_start(agent: BaseAgent, context: InvocationContext) -> st
             {
                 "session_id": session_id,
                 "agent_name": agent.name,
-                "aigise_session_id": aigise_session_id,
+                "opensage_session_id": opensage_session_id,
                 "start_time": datetime.now().isoformat(),
                 "agent_model": agent.model
                 if hasattr(agent, "model") and isinstance(agent.model, str)
@@ -384,7 +383,7 @@ async def create_raw_tool_response_node(
     try:
         import re as _re
 
-        _pattern = r"<Summary by aigise>(.*?)</Summary by aigise>"
+        _pattern = r"<Summary by opensage>(.*?)</Summary by opensage>"
         if isinstance(summary, str):
             _m = _re.search(_pattern, summary, _re.DOTALL)
             summary_to_store = _m.group(0) if _m else summary
@@ -486,14 +485,14 @@ async def _maybe_create_summarize_relation(
     if not (event.content and event.content.parts):
         return False
 
-    pattern = r"<Summary by aigise>(.*?)</Summary by aigise>"
+    pattern = r"<Summary by opensage>(.*?)</Summary by opensage>"
 
     for part in event.content.parts:
         # Check part.text
         if hasattr(part, "text") and part.text:
             if (
-                "<Summary by aigise>" in part.text
-                and "</Summary by aigise>" in part.text
+                "<Summary by opensage>" in part.text
+                and "</Summary by opensage>" in part.text
             ):
                 # Extract the complete content including tags
                 match = re.search(pattern, part.text, re.DOTALL)
@@ -519,8 +518,8 @@ async def _maybe_create_summarize_relation(
                 # Convert value to string
                 value_str = str(value) if value is not None else ""
                 if (
-                    "<Summary by aigise>" in value_str
-                    and "</Summary by aigise>" in value_str
+                    "<Summary by opensage>" in value_str
+                    and "</Summary by opensage>" in value_str
                 ):
                     match = re.search(pattern, value_str, re.DOTALL)
                     if match:

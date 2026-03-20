@@ -9,11 +9,11 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from aigise.memory.update.entity_extractor import ExtractedEntity
-from aigise.memory.update.relationship_discoverer import DiscoveredRelationship
+from opensage.memory.update.entity_extractor import ExtractedEntity
+from opensage.memory.update.relationship_discoverer import DiscoveredRelationship
 
 if TYPE_CHECKING:
-    from aigise.memory.config.domain_config import DomainConfig
+    from opensage.memory.config.domain_config import DomainConfig
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ class GraphOperations:
         self,
         entity: ExtractedEntity,
         client: Any,
-        aigise_session_id: Optional[str] = None,
+        opensage_session_id: Optional[str] = None,
     ) -> OperationResult:
         """Add an entity to the graph.
 
@@ -91,7 +91,7 @@ class GraphOperations:
         Args:
             entity: Entity to add.
             client: Neo4j client.
-            aigise_session_id: Optional session ID for tracking.
+            opensage_session_id: Optional session ID for tracking.
 
         Returns:
             OperationResult with operation details.
@@ -100,8 +100,8 @@ class GraphOperations:
         props = dict(entity.properties)
 
         # Add session tracking if provided
-        if aigise_session_id:
-            props["aigise_session_id"] = aigise_session_id
+        if opensage_session_id:
+            props["opensage_session_id"] = opensage_session_id
 
         # Get merge key(s) based on entity type
         merge_key = self._get_merge_key(label, props)
@@ -187,21 +187,21 @@ class GraphOperations:
         self,
         entities: List[ExtractedEntity],
         client: Any,
-        aigise_session_id: Optional[str] = None,
+        opensage_session_id: Optional[str] = None,
     ) -> List[OperationResult]:
         """Add multiple entities to the graph.
 
         Args:
             entities: Entities to add.
             client: Neo4j client.
-            aigise_session_id: Optional session ID.
+            opensage_session_id: Optional session ID.
 
         Returns:
             List of operation results.
         """
         results = []
         for entity in entities:
-            result = await self.add_entity(entity, client, aigise_session_id)
+            result = await self.add_entity(entity, client, opensage_session_id)
             results.append(result)
         return results
 

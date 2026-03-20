@@ -6,9 +6,8 @@ import logging
 from typing import Any, Dict, Optional
 
 from google.adk.tools.tool_context import ToolContext
-
-from aigise.toolbox.sandbox_requirements import requires_sandbox
-from aigise.utils.agent_utils import get_neo4j_client_from_context
+from opensage.toolbox.sandbox_requirements import requires_sandbox
+from opensage.utils.agent_utils import get_neo4j_client_from_context
 
 logger = logging.getLogger(__name__)
 

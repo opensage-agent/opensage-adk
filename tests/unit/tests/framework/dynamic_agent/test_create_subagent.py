@@ -5,8 +5,7 @@ from __future__ import annotations
 import types as _types
 
 import pytest
-
-from aigise.toolbox.general import dynamic_subagent as dyn
+from opensage.toolbox.general import dynamic_subagent as dyn
 
 
 class _DummyAgent:
@@ -58,8 +57,8 @@ async def test_create_subagent_rejects_empty_tools_list(monkeypatch):
     tool_context = _DummyToolContext()
     session = _DummySession(models=["openai/gpt-5"])
 
-    monkeypatch.setattr(dyn, "get_aigise_session_id_from_context", lambda tc: "sid")
-    monkeypatch.setattr(dyn, "get_aigise_session", lambda sid: session)
+    monkeypatch.setattr(dyn, "get_opensage_session_id_from_context", lambda tc: "sid")
+    monkeypatch.setattr(dyn, "get_opensage_session", lambda sid: session)
     monkeypatch.setattr(dyn, "extract_tools_from_agent", lambda agent: {"x": object()})
 
     res = await dyn.create_subagent(
@@ -82,8 +81,8 @@ async def test_create_subagent_injects_default_tools_and_adds_skills_guardrail(
     tool_context = _DummyToolContext()
     session = _DummySession(models=["openai/gpt-5"])
 
-    monkeypatch.setattr(dyn, "get_aigise_session_id_from_context", lambda tc: "sid")
-    monkeypatch.setattr(dyn, "get_aigise_session", lambda sid: session)
+    monkeypatch.setattr(dyn, "get_opensage_session_id_from_context", lambda tc: "sid")
+    monkeypatch.setattr(dyn, "get_opensage_session", lambda sid: session)
 
     extra_tool_obj = object()
     monkeypatch.setattr(
@@ -131,8 +130,8 @@ async def test_create_subagent_inherit_model_passes_resolved_model(monkeypatch):
     # sentinel model name "inherit". create_subagent should still allow it.
     session = _DummySession(models=["openai/gpt-5"])
 
-    monkeypatch.setattr(dyn, "get_aigise_session_id_from_context", lambda tc: "sid")
-    monkeypatch.setattr(dyn, "get_aigise_session", lambda sid: session)
+    monkeypatch.setattr(dyn, "get_opensage_session_id_from_context", lambda tc: "sid")
+    monkeypatch.setattr(dyn, "get_opensage_session", lambda sid: session)
     monkeypatch.setattr(dyn, "extract_tools_from_agent", lambda agent: {"t": object()})
     monkeypatch.setattr(dyn, "get_model_from_agent", lambda agent: "MODEL_OBJ")
 

@@ -7,7 +7,7 @@ def apply() -> None:
     from google.adk.flows.llm_flows import contents as _c
 
     # idempotent
-    if getattr(_c, "_aigise_compaction_patched", False):
+    if getattr(_c, "_opensage_compaction_patched", False):
         return
 
     # backup original (optional; useful if later we want incremental behavior)
@@ -131,4 +131,4 @@ def apply() -> None:
         return results
 
     _c._process_compaction_events = _replacement
-    _c._aigise_compaction_patched = True
+    _c._opensage_compaction_patched = True

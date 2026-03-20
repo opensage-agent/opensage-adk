@@ -11,9 +11,9 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from aigise.evaluation.base import Evaluation
-    from aigise.evaluation.rl_adapters.benchmark_interface import BenchmarkInterface
-    from aigise.session import AigiseSession
+    from opensage.evaluation.base import Evaluation
+    from opensage.evaluation.rl_adapters.benchmark_interface import BenchmarkInterface
+    from opensage.session import OpenSageSession
 
 
 class BaseAdapter(ABC):
@@ -30,25 +30,25 @@ class BaseAdapter(ABC):
 
     def __init__(
         self,
-        aigise_session: "AigiseSession",
+        opensage_session: "OpenSageSession",
         evaluation: "Evaluation",
         benchmark: "BenchmarkInterface",
     ):
         """Initialize adapter.
 
         Args:
-            aigise_session: The AIgiSE session managing resources
+            opensage_session: The AIgiSE session managing resources
             evaluation: The Evaluation instance to run samples
             benchmark: BenchmarkInterface for benchmark-specific logic
         """
-        self.aigise_session = aigise_session
+        self.opensage_session = opensage_session
         self.evaluation = evaluation
         self.benchmark = benchmark
 
     @property
     def session_id(self) -> str:
         """Get the session ID."""
-        return self.aigise_session.aigise_session_id
+        return self.opensage_session.opensage_session_id
 
     @abstractmethod
     def convert_to_sample_dict(self, sample: Any) -> dict:

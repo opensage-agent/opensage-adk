@@ -88,10 +88,9 @@ class StorageDecider:
         """Initialize the storage decider.
 
         Args:
-            model_name: LiteLLM model identifier for decision making.
-            temperature: LLM temperature for decisions (lower = more consistent).
-            max_result_preview: Maximum characters of tool result to include in prompt.
-        """
+            model_name (str): LiteLLM model identifier for decision making.
+            temperature (float): LLM temperature for decisions (lower = more consistent).
+            max_result_preview (int): Maximum characters of tool result to include in prompt."""
         self.model_name = model_name
         self.temperature = temperature
         self.max_result_preview = max_result_preview
@@ -110,13 +109,12 @@ class StorageDecider:
         """Decide whether a tool result should be stored in memory.
 
         Args:
-            tool_name: Name of the tool that produced the result.
-            tool_args: Arguments passed to the tool.
-            tool_result: The result returned by the tool.
-            full_output_file: Path to file containing full output if truncated.
-
+            tool_name (str): Name of the tool that produced the result.
+            tool_args (dict): Arguments passed to the tool.
+            tool_result (Any): The result returned by the tool.
+            full_output_file (Optional[str]): Path to file containing full output if truncated.
         Returns:
-            StorageDecision indicating whether and how to store the content.
+            StorageDecision: StorageDecision indicating whether and how to store the content.
         """
         # Convert result to string for analysis
         result_str = self._stringify_result(tool_result)

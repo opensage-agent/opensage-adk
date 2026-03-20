@@ -20,9 +20,11 @@ _DEFAULT_PACKAGE = f"{__package__}.default.adk_plugins"
 def load_adk_plugin_class(name: str, py_path: Path) -> Type[BasePlugin]:
     """Load a plugin class from an ADK plugin written in Python.
 
-    If the file is inside the default plugins package it is imported by
-    module name; otherwise it is loaded from the filesystem path directly.
-    """
+        If the file is inside the default plugins package it is imported by
+        module name; otherwise it is loaded from the filesystem path directly.
+
+    Raises:
+      ValueError: Raised when this operation fails."""
     if py_path.parent == _DEFAULT_DIR:
         module_name = f"{_DEFAULT_PACKAGE}.{name}"
         try:

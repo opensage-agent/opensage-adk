@@ -108,12 +108,11 @@ def _update_previous_errors(
     so they are removed from the previous errors list.
 
     Args:
-        previous_errors: list of errors with old line numbers
-        replacement_window: the window of the edit/lines that will be replaced
-        replacement_n_lines: the number of lines that will be used to replace the text
-
+        previous_errors (List[Flake8Error]): list of errors with old line numbers
+        replacement_window (Tuple[int, int]): the window of the edit/lines that will be replaced
+        replacement_n_lines (int): the number of lines that will be used to replace the text
     Returns:
-        list of errors with updated line numbers
+        List[Flake8Error]: list of errors with updated line numbers
     """
     updated = []
     lines_added = replacement_n_lines - (
@@ -151,14 +150,13 @@ def format_flake8_output(
     """Filter flake8 output for previous errors and print it for a given file.
 
     Args:
-        input_string: The flake8 output as a string
-        show_line_numbers: Whether to show line numbers in the output
-        previous_errors_string: The previous errors as a string
-        replacement_window: The window of the edit (lines that will be replaced)
-        replacement_n_lines: The number of lines used to replace the text
-
+        input_string (str): The flake8 output as a string
+        show_line_numbers (bool): Whether to show line numbers in the output
+        previous_errors_string (str): The previous errors as a string
+        replacement_window (Optional[Tuple[int, int]]): The window of the edit (lines that will be replaced)
+        replacement_n_lines (Optional[int]): The number of lines used to replace the text
     Returns:
-        The filtered flake8 output as a string
+        str: The filtered flake8 output as a string
     """
     # print(f"Replacement window: {replacement_window}")
     # print("Replacement n lines:", replacement_n_lines)
@@ -274,8 +272,7 @@ class WindowExpander:
         using fixed line windows.
 
         Args:
-            suffix: Filename suffix
-        """
+            suffix (str): Filename suffix"""
         self.suffix = suffix
         if self.suffix:
             assert self.suffix.startswith(".")
@@ -289,14 +286,16 @@ class WindowExpander:
     ) -> int:
         """Returns 1-based line number of breakpoint. This line is meant to still be included in the viewport.
 
-        Args:
-            lines: List of lines of the file
-            current_line: 1-based line number of the current viewport
-            direction: 1 for down, -1 for up
-            max_added_lines: Maximum number of lines to extend
+                Args:
+                    lines (List[str]): List of lines of the file
+                    current_line (int): 1-based line number of the current viewport
+                    direction: 1 for down, -1 for up
+                    max_added_lines (int): Maximum number of lines to extend
 
-        Returns:
-            1-based line number of breakpoint. This line is meant to still be included in the viewport.
+        Raises:
+          ValueError: Raised when this operation fails.
+                Returns:
+                    int: 1-based line number of breakpoint. This line is meant to still be included in the viewport.
         """
         assert 1 <= current_line <= len(lines)
         assert 0 <= max_added_lines
@@ -375,13 +374,12 @@ class WindowExpander:
         """
 
         Args:
-            lines: All lines of the file
-            start: 1-based line number of the start of the viewport
-            stop: 1-based line number of the end of the viewport
-            max_added_lines: Maximum number of lines to extend (separately for each side)
-
+            lines (List[str]): All lines of the file
+            start (int): 1-based line number of the start of the viewport
+            stop (int): 1-based line number of the end of the viewport
+            max_added_lines (int): Maximum number of lines to extend (separately for each side)
         Returns:
-            Tuple of 1-based line numbers of the start and end of the viewport.
+            Tuple[int, int]: Tuple of 1-based line numbers of the start and end of the viewport.
             Both inclusive.
         """
         # print("Input:", start, stop)

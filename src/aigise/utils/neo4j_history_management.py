@@ -127,16 +127,15 @@ async def create_agent_call_relation(
     """Create a call relationship between caller and callee agents in Neo4j.
 
     Args:
-        caller_agent_name: Name of the calling agent
-        callee_agent_name: Name of the called agent
-        caller_session_id: Session ID of the caller
-        callee_session_id: Session ID of the callee
-        caller_agent_model: Model of the calling agent
-        callee_agent_model: Model of the called agent
-        input_content: Input context/parameters for the call (stored as list in Neo4j)
-        output_content: Output context/result (stored as list in Neo4j)
-        context: Session context for database name resolution
-    """
+        caller_agent_name (str): Name of the calling agent
+        callee_agent_name (str): Name of the called agent
+        caller_session_id (str): Session ID of the caller
+        callee_session_id (str): Session ID of the callee
+        caller_agent_model (str): Model of the calling agent
+        callee_agent_model (str): Model of the called agent
+        input_content (str): Input context/parameters for the call (stored as list in Neo4j)
+        output_content (str): Output context/result (stored as list in Neo4j)
+        context (ToolContext): Session context for database name resolution"""
     # Use history client for agent history operations
     client = await get_neo4j_client_from_context(context, "history")
 

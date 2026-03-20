@@ -34,9 +34,11 @@ def resolve_model_spec(
 ) -> BaseLlm:
     """Resolve a model spec into a model instance.
 
-    Supports a special sentinel value INHERIT_MODEL which reuses the current
-    agent's model in the provided tool_context.
-    """
+        Supports a special sentinel value INHERIT_MODEL which reuses the current
+        agent's model in the provided tool_context.
+
+    Raises:
+      ValueError: Raised when this operation fails."""
     if model_name == INHERIT_MODEL:
         if tool_context is None:
             raise ValueError("tool_context is required when model_name='inherit'")
@@ -77,11 +79,10 @@ def get_mcp_url_from_session_id(mcp_name: str, opensage_session_id: str) -> str:
     """Get MCP service URL from AIgiSE session configuration.
 
     Args:
-        mcp_name: Name of the MCP service (e.g., "gdb_mcp", "pdb_mcp")
-        opensage_session_id: AIgiSE session ID to retrieve configuration
-
+        mcp_name (str): Name of the MCP service (e.g., "gdb_mcp", "pdb_mcp")
+        opensage_session_id (str): AIgiSE session ID to retrieve configuration
     Returns:
-        MCP SSE URL (e.g., "http://localhost:8000/sse")
+        str: MCP SSE URL (e.g., "http://localhost:8000/sse")
 
     Raises:
         RuntimeError: If MCP service is not configured in the session
@@ -112,7 +113,10 @@ def get_mcp_url_from_session_id(mcp_name: str, opensage_session_id: str) -> str:
 def get_mcp_host_and_port_from_session_id(
     mcp_name: str, opensage_session_id: str
 ) -> tuple[str, int]:
-    """Get MCP host and port from AIgiSE session configuration."""
+    """Get MCP host and port from AIgiSE session configuration.
+
+    Raises:
+      RuntimeError: Raised when this operation fails."""
     # Lazy import to avoid circular dependency
     from opensage.session import get_opensage_session
 
@@ -137,9 +141,8 @@ def get_sandbox_from_context(
     It extracts the session ID from context and retrieves the appropriate sandbox.
 
     Args:
-        context: Tool or invocation context
-        sandbox_type: Type of sandbox to retrieve (e.g., "main", "gdb_mcp", "neo4j")
-
+        context (InvocationContext | ToolContext): Tool or invocation context
+        sandbox_type (str): Type of sandbox to retrieve (e.g., "main", "gdb_mcp", "neo4j")
     Returns:
         The requested sandbox instance
 
@@ -174,14 +177,13 @@ def save_content_to_sandbox_file(
     allowing agents to reference the file path later if needed.
 
     Args:
-        context: Tool or invocation context for sandbox access.
-        content: The content to save.
-        tool_name: Name of the tool (used in filename).
-        output_dir: Directory in sandbox to save files.
-        sandbox_type: Type of sandbox to use.
-
+        context ('InvocationContext | ToolContext'): Tool or invocation context for sandbox access.
+        content (str): The content to save.
+        tool_name (str): Name of the tool (used in filename).
+        output_dir (str): Directory in sandbox to save files.
+        sandbox_type (str): Type of sandbox to use.
     Returns:
-        File path if saved successfully, None otherwise.
+        Optional[str]: File path if saved successfully, None otherwise.
     """
     import logging
     import uuid
@@ -244,9 +246,8 @@ async def get_neo4j_client_from_context(
     """Get Neo4j client from context using new OpenSageSession architecture.
 
     Args:
-        context: Tool or invocation context
-        client_type: Type of client ("history", "analysis", etc.)
-
+        context (InvocationContext | ToolContext): Tool or invocation context
+        client_type (str): Type of client ("history", "analysis", etc.)
     Returns:
         Neo4j client for the specified type
     """
@@ -264,9 +265,9 @@ async def get_joern_client_from_context(
     """Get Joern client from context using new OpenSageSession architecture.
 
     Args:
-        context: Tool or invocation context
+        context (InvocationContext | ToolContext): Tool or invocation context
     Returns:
-        JoernClient instance
+        JoernClient: JoernClient instance
     """
     # Lazy import to avoid circular dependency
     from opensage.session import get_opensage_session
@@ -288,7 +289,6 @@ def get_opensage_session_id_from_context(context) -> str:
 
     Args:
         context: Any context object that might contain session information
-
     Returns:
         str: The opensage_session_id for session isolation
     """
@@ -354,11 +354,10 @@ def register_callback_to_all_agents(
     """Register multiple after_tool_callbacks to all agents.
 
     Args:
-        agents: List of agents to register callbacks to
-        callbacks: List of callback functions to register
-
+        agents (List[BaseAgent]): List of agents to register callbacks to
+        callbacks (List[_SingleAfterToolCallback]): List of callback functions to register
     Returns:
-        Dict mapping agent names to registration success status
+        Dict[str, bool]: Dict mapping agent names to registration success status
     """
     results = {}
 
@@ -428,11 +427,10 @@ def discover_all_agents(
     are intentionally skipped to avoid event loop conflicts.
 
     Args:
-        root_agent: The root agent to start discovery from
-        context: Optional context (unused, kept for API compatibility)
-
+        root_agent (BaseAgent): The root agent to start discovery from
+        context (Optional[ReadonlyContext]): Optional context (unused, kept for API compatibility)
     Returns:
-        List of all discovered agents including root, sub-agents, and agents in AgentTools
+        List[BaseAgent]: List of all discovered agents including root, sub-agents, and agents in AgentTools
 
     Note:
         This is a lightweight synchronous operation that doesn't trigger network I/O.
@@ -449,9 +447,8 @@ def extract_tools_from_agent(agent) -> Dict[str, Any]:
 
     Args:
         agent: Agent instance to extract tools from
-
     Returns:
-        Dictionary mapping tool names to tool objects
+        Dict[str, Any]: Dictionary mapping tool names to tool objects
     """
     available_tools = {}
 
@@ -481,16 +478,18 @@ def extract_tools_from_agent(agent) -> Dict[str, Any]:
 
 def _copy_agent_with_updated_model(base_agent_info, model_name: str):
     """
-    Create a new OpenSageAgent instance with a specific model, based on an existing OpenSageAgent.
+        Create a new OpenSageAgent instance with a specific model, based on an existing OpenSageAgent.
 
-    Args:
-        base_agent_info: EnsembleAgentInfo object containing the base agent (must be OpenSageAgent)
-        model_name: The model name to use (e.g., "anthropic/claude-sonnet-4") or
-          INHERIT_MODEL ("inherit") to reuse inherit_model.
-        inherit_model: Model instance used when model_name==INHERIT_MODEL.
+        Args:
+            base_agent_info: EnsembleAgentInfo object containing the base agent (must be OpenSageAgent)
+            model_name (str): The model name to use (e.g., "anthropic/claude-sonnet-4") or
+              INHERIT_MODEL ("inherit") to reuse inherit_model.
+            inherit_model: Model instance used when model_name==INHERIT_MODEL.
 
-    Returns:
-        New OpenSageAgent instance with the specified model and same enabled_skills
+    Raises:
+      ValueError: Raised when this operation fails.
+        Returns:
+            New OpenSageAgent instance with the specified model and same enabled_skills
     """
     # NOTE: This is intentionally a private helper, but used by ensemble manager.
 
@@ -601,7 +600,10 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
 def _copy_agent_with_updated_model_v2(
     base_agent_info, model_name: str, *, inherit_model: Optional[BaseLlm] = None
 ):
-    """Like _copy_agent_with_updated_model but supports model inheritance."""
+    """Like _copy_agent_with_updated_model but supports model inheritance.
+
+    Raises:
+      ValueError: Raised when this operation fails."""
     from opensage.agents.opensage_agent import OpenSageAgent
 
     if not base_agent_info.agent_instance or not isinstance(

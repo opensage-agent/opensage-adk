@@ -130,12 +130,14 @@ def loop(
 ) -> LoopSpec:
     """Run steps in sequence. If check is falsy, retry from first step.
 
-    check: Expression with step results by id. Truthy -> break.
-    Examples:
-        loop(a, b, c, check="review.approved")
-        loop(a, b, c, check="review.result == True")
-        loop(a, b, check="lint.passed")
-    """
+        check: Expression with step results by id. Truthy -> break.
+        Examples:
+            loop(a, b, c, check="review.approved")
+            loop(a, b, c, check="review.result == True")
+            loop(a, b, check="lint.passed")
+
+    Raises:
+      ValueError: Raised when this operation fails."""
     if not steps:
         raise ValueError("loop requires at least one step")
     return LoopSpec(steps=steps, check=check, max_retries=max_retries)

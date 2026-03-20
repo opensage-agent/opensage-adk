@@ -33,11 +33,10 @@ def create_memory_management_agent(
     Create a Memory Management Agent that manages the memory of the system.
 
     Args:
-        model: Model to use for the agent.
-        name: Name for the agent.
-
+        model (BaseLlm): Model to use for the agent.
+        name (str): Name for the agent.
     Returns:
-        OpenSageAgent configured as a Memory Management Agent.
+        OpenSageAgent: OpenSageAgent configured as a Memory Management Agent.
     """
     logger.info(f"Creating Memory Management Agent with name {name}")
 

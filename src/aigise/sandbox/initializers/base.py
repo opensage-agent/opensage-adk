@@ -39,7 +39,10 @@ class SandboxInitializer(ABC):
     async def async_initialize(
         self: BaseSandbox, all_sandboxes: dict[str, BaseSandbox]
     ) -> None:
-        """Initialize sandbox initializer (async version)."""
+        """Initialize sandbox initializer (async version).
+
+        Raises:
+          RuntimeError: Raised when this operation fails."""
         initialized = await self._async_initialize_impl(all_sandboxes)
         if not initialized:
             self.state = SandboxState.ERROR
@@ -55,9 +58,8 @@ class SandboxInitializer(ABC):
         `_ensure_ready_impl()` but still want the standard MCP readiness checks.
 
         Args:
-            mcp_services: List of MCP service names. Each name must exist in
+            mcp_services (list[str]): List of MCP service names. Each name must exist in
                 `OpenSageConfig.mcp.services` for the session.
-
         Raises:
             RuntimeError: If MCP URL resolution fails (e.g. missing config).
         """

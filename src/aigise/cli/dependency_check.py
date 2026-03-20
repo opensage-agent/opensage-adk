@@ -30,7 +30,7 @@ def verify_codeql() -> VerificationResult:
     """Verify CodeQL installation.
 
     Returns:
-        VerificationResult indicating if CodeQL is ready.
+        VerificationResult: VerificationResult indicating if CodeQL is ready.
     """
     codeql_dir = SRC_PATH / "sandbox_scripts" / "codeql"
     codeql_bin = codeql_dir / "codeql"
@@ -78,7 +78,7 @@ def ensure_codeql_ready() -> Path:
     Multiple concurrent calls will wait for the first one to complete.
 
     Returns:
-        Path to the CodeQL binary
+        Path: Path to the CodeQL binary
 
     Raises:
         FileNotFoundError: If CodeQL bundle is not found
@@ -134,7 +134,7 @@ def verify_docker() -> VerificationResult:
     """Verify Docker installation and daemon availability.
 
     Returns:
-        VerificationResult indicating if Docker is available.
+        VerificationResult: VerificationResult indicating if Docker is available.
     """
     try:
         import docker
@@ -170,7 +170,7 @@ def verify_kubectl() -> VerificationResult:
     """Verify kubectl installation and Kubernetes cluster connectivity.
 
     Returns:
-        VerificationResult indicating if kubectl is available.
+        VerificationResult: VerificationResult indicating if kubectl is available.
     """
     import shutil
 

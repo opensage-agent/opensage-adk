@@ -30,7 +30,6 @@ def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
 
     Args:
         expression (str): A regex pattern to search for.
-
     Returns:
         dict: A dictionary with key "result" pointing to a list of grep matches.
     """

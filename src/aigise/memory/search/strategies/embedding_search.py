@@ -23,10 +23,9 @@ async def _generate_embedding(text: str) -> List[float]:
     """Generate embedding for text using configured embedding model.
 
     Args:
-        text: Text to generate embedding for.
-
+        text (str): Text to generate embedding for.
     Returns:
-        List of floats representing the embedding vector.
+        List[float]: List of floats representing the embedding vector.
     """
 
     settings = get_memory_settings()
@@ -52,9 +51,8 @@ class EmbeddingSearchStrategy(SearchStrategy):
         """Initialize embedding search strategy.
 
         Args:
-            similarity_threshold: Minimum similarity score to include results.
-            index_suffix: Suffix for vector index names (e.g., 'question_embedding_index').
-        """
+            similarity_threshold (float): Minimum similarity score to include results.
+            index_suffix (str): Suffix for vector index names (e.g., 'question_embedding_index')."""
         self.similarity_threshold = similarity_threshold
         self.index_suffix = index_suffix
         self._embedding_cache: Dict[str, List[float]] = {}

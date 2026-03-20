@@ -48,7 +48,10 @@ class K8sSandbox(BaseSandbox):
         pod_name: str = None,
         container_name: str = None,
     ):
-        """Initialize K8sSandbox."""
+        """Initialize K8sSandbox.
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         super().__init__(container_config, session_id, self.backend_type, sandbox_type)
 
         self.extra: Dict[str, Any] = container_config.extra or {}
@@ -812,15 +815,17 @@ class K8sSandbox(BaseSandbox):
     ) -> str:
         """Helper method to create a single PVC and populate it with data.
 
-        Args:
-            pvc_name: Name of the PVC to create
-            source_path: Local path containing data to copy into the PVC
-            namespace: Kubernetes namespace
-            context: Kubernetes context
-            kubeconfig: Path to kubeconfig file
+                Args:
+                    pvc_name (str): Name of the PVC to create
+                    source_path (Path): Local path containing data to copy into the PVC
+                    namespace (str): Kubernetes namespace
+                    context (str): Kubernetes context
+                    kubeconfig (str): Path to kubeconfig file
 
-        Returns:
-            The PVC name that was created
+        Raises:
+          wait_error: Raised when this operation fails.
+                Returns:
+                    str: The PVC name that was created
         """
         import tarfile
 
@@ -974,19 +979,21 @@ class K8sSandbox(BaseSandbox):
     ) -> tuple[str, str, str]:
         """Create and initialize three shared PVCs.
 
-        Creates three PVCs:
-        1. Read-only PVC with sandbox scripts (mapped to /sandbox_scripts)
-        2. Read-write PVC with user data (mapped to /shared)
-        3. Read-write PVC with bash tools (mapped to /bash_tools)
+                Creates three PVCs:
+                1. Read-only PVC with sandbox scripts (mapped to /sandbox_scripts)
+                2. Read-write PVC with user data (mapped to /shared)
+                3. Read-write PVC with bash tools (mapped to /bash_tools)
 
-        Args:
-            volume_name_prefix: Prefix for PVC names (e.g., session_id)
-            init_data_path: Path to initial data to copy into the rw PVC (optional)
-            tools_top_roots: Optional set of top-level bash_tools roots to stage.
-                If None, stage all bash tools (built-in + plugins).
+                Args:
+                    volume_name_prefix (str): Prefix for PVC names (e.g., session_id)
+                    init_data_path (Path): Path to initial data to copy into the rw PVC (optional)
+                    tools_top_roots (set[str] | None): Optional set of top-level bash_tools roots to stage.
+                        If None, stage all bash tools (built-in + plugins).
 
-        Returns:
-            Tuple of (scripts_pvc_name, data_pvc_name, tools_pvc_name)
+        Raises:
+          Exception: Raised when this operation fails.
+                Returns:
+                    tuple[str, str, str]: Tuple of (scripts_pvc_name, data_pvc_name, tools_pvc_name)
         """
         from opensage.utils.project_info import SRC_PATH
 
@@ -1279,10 +1286,9 @@ class K8sSandbox(BaseSandbox):
         """Delete shared PVCs.
 
         Args:
-            scripts_volume_id: ID of the scripts PVC to delete
-            data_volume_id: ID of the data PVC to delete
-            tools_volume_id: ID of the tools PVC to delete
-        """
+            scripts_volume_id (str): ID of the scripts PVC to delete
+            data_volume_id (str): ID of the data PVC to delete
+            tools_volume_id (str): ID of the tools PVC to delete"""
         namespace = cls._resolve_namespace_from_env()
         context = cls._resolve_context_from_env()
         kubeconfig = cls._resolve_kubeconfig_from_env()
@@ -1618,7 +1624,10 @@ class K8sSandbox(BaseSandbox):
         sandbox_instance: "K8sSandbox",
         init_coro: Awaitable[None],
     ) -> None:
-        """Await initialization, update state, and emit logs."""
+        """Await initialization, update state, and emit logs.
+
+        Raises:
+          Exception: Raised when this operation fails."""
         final_state: Optional[SandboxState] = None
         sandboxes = None
         opensage_session_id = getattr(sandbox_instance, "opensage_session_id", None)
@@ -1689,10 +1698,9 @@ class K8sSandbox(BaseSandbox):
         registering any hooks.
 
         Args:
-            sandbox_instances: Dict of sandbox_type -> K8sSandbox instance
-            continue_on_error: If True, continue on failures and return a map
-                of sandbox_type -> Exception | None. If False, propagate errors.
-        """
+            sandbox_instances (dict): Dict of sandbox_type -> K8sSandbox instance
+            continue_on_error (bool): If True, continue on failures and return a map
+                of sandbox_type -> Exception | None. If False, propagate errors."""
         if not sandbox_instances:
             logger.warning("No sandbox instances to initialize")
             return {}

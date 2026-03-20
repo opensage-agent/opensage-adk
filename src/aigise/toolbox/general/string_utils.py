@@ -34,10 +34,9 @@ def unescape_llm_output(text: str) -> str:
     This normalizes common patterns.
 
     Args:
-        text: String potentially containing double-escaped sequences.
-
+        text (str): String potentially containing double-escaped sequences.
     Returns:
-        String with escape sequences normalized.
+        str: String with escape sequences normalized.
     """
 
     def replacer(match: re.Match[str]) -> str:
@@ -62,11 +61,10 @@ def levenshtein_distance(s1: str, s2: str) -> int:
     """Calculate Levenshtein edit distance between two strings.
 
     Args:
-        s1: First string.
-        s2: Second string.
-
+        s1 (str): First string.
+        s2 (str): Second string.
     Returns:
-        Minimum number of single-character edits required to change s1 into s2.
+        int: Minimum number of single-character edits required to change s1 into s2.
     """
     if s1 == "" or s2 == "":
         return max(len(s1), len(s2))
@@ -91,11 +89,10 @@ def levenshtein_similarity(a: str, b: str) -> float:
     """Calculate similarity ratio using Levenshtein distance.
 
     Args:
-        a: First string.
-        b: Second string.
-
+        a (str): First string.
+        b (str): Second string.
     Returns:
-        Similarity ratio between 0.0 (completely different) and 1.0 (identical).
+        float: Similarity ratio between 0.0 (completely different) and 1.0 (identical).
     """
     if not a and not b:
         return 1.0
@@ -503,13 +500,12 @@ def replace(
     OpenCode's replace function architecture.
 
     Args:
-        content: The file content to modify.
-        old_string: The string to search for.
-        new_string: The replacement string.
-        replace_all: If True, replace all occurrences. Default False.
-
+        content (str): The file content to modify.
+        old_string (str): The string to search for.
+        new_string (str): The replacement string.
+        replace_all (bool): If True, replace all occurrences. Default False.
     Returns:
-        The modified content string.
+        str: The modified content string.
 
     Raises:
         ValueError: If old_string equals new_string.
@@ -557,8 +553,10 @@ def replace_with_info(
 ) -> Tuple[str, str]:
     """Replace with strategy info - wrapper for debugging.
 
-    Returns:
-        Tuple of (modified_content, strategy_name)
+    Raises:
+      ValueError: Raised when this operation fails.
+        Returns:
+            Tuple[str, str]: Tuple of (modified_content, strategy_name)
     """
     if old_string == new_string:
         raise ValueError("oldString and newString must be different")
@@ -615,11 +613,10 @@ def get_multiple_match_info(content: str, old_string: str) -> List[Tuple[int, st
     Useful for error messages when multiple matches found.
 
     Args:
-        content: File content to search.
-        old_string: String to find.
-
+        content (str): File content to search.
+        old_string (str): String to find.
     Returns:
-        List of (line_number, context_snippet) tuples.
+        List[Tuple[int, str]]: List of (line_number, context_snippet) tuples.
     """
     lines = content.split("\n")
     matches = []

@@ -186,7 +186,6 @@ def init_skill(
     Args:
         skill_name: Name of the skill
         path: Path where the skill directory should be created
-
     Returns:
         Path to created skill directory, or None if error
     """

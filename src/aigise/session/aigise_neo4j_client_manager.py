@@ -32,8 +32,7 @@ class OpenSageNeo4jClientManager:
         """Initialize OpenSageNeo4jClientManager.
 
         Args:
-            session: OpenSageSession instance (stores reference, not copied)
-        """
+            session: OpenSageSession instance (stores reference, not copied)"""
         self._session = session
         self.opensage_session_id = session.opensage_session_id
 
@@ -57,10 +56,9 @@ class OpenSageNeo4jClientManager:
         """Get database name for a specific client type.
 
         Args:
-            client_type: Type of client
-
+            client_type (str): Type of client
         Returns:
-            Database name for the type
+            str: Database name for the type
         """
         database_mapping = {
             "history": f"agent-history",
@@ -78,9 +76,8 @@ class OpenSageNeo4jClientManager:
         """Get async Neo4j client for a specific type without connection verification.
 
         Args:
-            client_type: Type of client ("history", "analysis", etc.)
-            database_name: Optional specific database name (defaults based on type)
-        """
+            client_type (str): Type of client ("history", "analysis", etc.)
+            database_name (Optional[str]): Optional specific database name (defaults based on type)"""
         if client_type not in self._clients:
             # Determine database name based on type
             if database_name is None:
@@ -103,12 +100,14 @@ class OpenSageNeo4jClientManager:
     ):
         """Get async Neo4j client for a specific type.
 
-        Args:
-            client_type: Type of client ("history", "analysis", etc.)
-            database_name: Optional specific database name (defaults based on type)
+                Args:
+                    client_type (Literal['history', 'analysis', 'memory', 'default']): Type of client ("history", "analysis", etc.)
+                    database_name (Optional[str]): Optional specific database name (defaults based on type)
 
-        Returns:
-            AsyncNeo4jClient instance ready for use
+        Raises:
+          Exception: Raised when this operation fails.
+                Returns:
+                    AsyncNeo4jClient instance ready for use
         """
         if client_type not in self._clients:
             # Determine database name based on type
@@ -137,7 +136,7 @@ class OpenSageNeo4jClientManager:
         """List all active Neo4j clients for this session.
 
         Returns:
-            Dictionary mapping client types to their database names
+            Dict[str, str]: Dictionary mapping client types to their database names
         """
         result = {}
         for client_type, client in self._clients.items():

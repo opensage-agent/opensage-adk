@@ -465,12 +465,10 @@ def _build_full_instruction(
     """Build complete instruction with optional conversation history.
 
     Args:
-        instruction: The base instruction
-        include_history: Whether to include conversation history
-        tool_context: Tool context containing session events
-
+        instruction (str): The base instruction
+        include_history (bool): Whether to include conversation history
     Returns:
-        Complete instruction string with optional history context
+        str: Complete instruction string with optional history context
     """
     task_parts = [f"=== INSTRUCTION ===\n{instruction}\n"]
 
@@ -512,12 +510,10 @@ async def agent_ensemble(
           using the same model object as the current/root agent.
 
         Args:
-            instruction: The specific instruction/task you want all agents to execute
-            agent_name: The name of the agent to launch (must be in safe agents list)
-            model_name_to_count: A dictionary of model names and the number of agents to launch with that model, where the key is the model name and the value is the number of agents to launch with that model, the total number of agents to launch is the sum of the values in the dictionary, it should be at least 2.
-            history_passed_in: Whether to pass conversation history to agents for additional context
-            tool_context: The tool context
-
+            instruction (str): The specific instruction/task you want all agents to execute
+            agent_name (str): The name of the agent to launch (must be in safe agents list)
+            model_name_to_count (dict[str, int]): A dictionary of model names and the number of agents to launch with that model, where the key is the model name and the value is the number of agents to launch with that model, the total number of agents to launch is the sum of the values in the dictionary, it should be at least 2.
+            history_passed_in (bool): Whether to pass conversation history to agents for additional context
         Returns:
             The aggregated final result from all agents
     """

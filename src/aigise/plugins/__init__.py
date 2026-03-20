@@ -31,7 +31,10 @@ _REGEX_METACHARACTERS = set(".*+?[](){}|^$\\")
 
 
 def __getattr__(name: str):
-    """Lazy import: ``from opensage.plugins import SomePlugin`` auto-resolves."""
+    """Lazy import: ``from opensage.plugins import SomePlugin`` auto-resolves.
+
+    Raises:
+      AttributeError: Raised when this operation fails."""
     from .adk_plugin_loader import load_adk_plugin_class
 
     for py_file in _ADK_PLUGIN_DIR.glob("*.py"):
@@ -85,29 +88,31 @@ def load_plugins(
 ) -> List[BasePlugin]:
     """Instantiate plugins in the order provided by *enabled_plugins*.
 
-    Each entry in *enabled_plugins* is resolved as follows:
+        Each entry in *enabled_plugins* is resolved as follows:
 
-    1. **Literal plugin name** — looked up in the discovered available plugins.
-       ``.json`` files are loaded as Claude Code hooks; ``.py`` files as
-       ADK plugins.
-    2. **Regex pattern** — if literal lookup fails and the
-       entry contains regex metacharacters (e.g. ``.*_plugin``), it is
-       matched via ``re.fullmatch`` against all discovered plugin names.
+        1. **Literal plugin name** — looked up in the discovered available plugins.
+           ``.json`` files are loaded as Claude Code hooks; ``.py`` files as
+           ADK plugins.
+        2. **Regex pattern** — if literal lookup fails and the
+           entry contains regex metacharacters (e.g. ``.*_plugin``), it is
+           matched via ``re.fullmatch`` against all discovered plugin names.
 
-    Search order (later entries shadow earlier ones):
+        Search order (later entries shadow earlier ones):
 
-    1. Default ADK plugins (``default/adk_plugins/``)
-    2. Default Claude Code hooks (``default/claude_code_hooks/``)
-    3. User-local defaults: ``~/.local/opensage/plugins/``
-    4. Custom directories from *extra_plugin_dirs*
-    5. Agent-local ``{agent_dir}/plugins/``
+        1. Default ADK plugins (``default/adk_plugins/``)
+        2. Default Claude Code hooks (``default/claude_code_hooks/``)
+        3. User-local defaults: ``~/.local/opensage/plugins/``
+        4. Custom directories from *extra_plugin_dirs*
+        5. Agent-local ``{agent_dir}/plugins/``
 
-    Each CC hook JSON becomes its own ``ClaudeCodeHookPlugin`` instance,
-    so plugin execution order matches the ``enabled`` list exactly.
+        Each CC hook JSON becomes its own ``ClaudeCodeHookPlugin`` instance,
+        so plugin execution order matches the ``enabled`` list exactly.
 
-    Per-ADK-plugin constructor kwargs can be supplied via *adk_plugin_params*,
-    keyed by plugin name. CC hooks do not accept constructor kwargs.
-    """
+        Per-ADK-plugin constructor kwargs can be supplied via *adk_plugin_params*,
+        keyed by plugin name. CC hooks do not accept constructor kwargs.
+
+    Raises:
+      ValueError: Raised when this operation fails."""
     from .adk_plugin_loader import load_adk_plugin_class
     from .claude_code_hook_loader import load_claude_code_hook_plugin
 

@@ -70,8 +70,12 @@ class RemoteDockerSandbox(NativeDockerSandbox):
     ):
         """Initialize remote Docker sandbox.
 
-        Overrides parent to use remote Docker client instead of docker.from_env().
-        """
+                Overrides parent to use remote Docker client instead of docker.from_env().
+
+        Raises:
+          TypeError: Raised when this operation fails.
+          ValueError: Raised when this operation fails.
+          RuntimeError: Raised when this operation fails."""
         from opensage.sandbox.base_sandbox import BaseSandbox
 
         if container_config is None or not isinstance(
@@ -133,7 +137,10 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
     @classmethod
     def _get_docker_host(cls) -> str:
-        """Get docker_host from injected config or environment."""
+        """Get docker_host from injected config or environment.
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         # Priority 1: Injected config
         if cls._injected_config and hasattr(cls._injected_config, "sandbox"):
             docker_host = getattr(cls._injected_config.sandbox, "docker_host", None)
@@ -180,8 +187,10 @@ class RemoteDockerSandbox(NativeDockerSandbox):
     def _get_remote_host(cls) -> str:
         """Get docker_remote_host from injected config or environment.
 
-        Required for service connections (Neo4j, MCP).
-        """
+                Required for service connections (Neo4j, MCP).
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         # Priority 1: Injected config
         if cls._injected_config and hasattr(cls._injected_config, "sandbox"):
             remote_host = getattr(
@@ -202,7 +211,10 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
     @classmethod
     def _make_tar_from_path(cls, source_path: Path) -> bytes:
-        """Pack local directory/file into uncompressed tar archive."""
+        """Pack local directory/file into uncompressed tar archive.
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         tar_stream = io.BytesIO()
 
         with tarfile.open(fileobj=tar_stream, mode="w") as tar:
@@ -247,7 +259,11 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         volume_name: str,
         source_path: Path = None,
     ) -> str:
-        """Create volume and populate using put_archive (remote-compatible)."""
+        """Create volume and populate using put_archive (remote-compatible).
+
+        Raises:
+          Exception: Raised when this operation fails.
+          RuntimeError: Raised when this operation fails."""
         client = cls._get_docker_client()
 
         try:
@@ -319,7 +335,10 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         scripts_volume_id: str = None,
         tools_volume_id: str = None,
     ) -> dict:
-        """Launch all sandbox instances on remote Docker daemon."""
+        """Launch all sandbox instances on remote Docker daemon.
+
+        Raises:
+          Exception: Raised when this operation fails."""
         from opensage.session.opensage_session import get_opensage_session
 
         opensage_session = get_opensage_session(session_id)
@@ -682,7 +701,10 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         volume_name: str,
         backup_tar_path: Path,
     ) -> str:
-        """Backup a remote Docker volume to a local ``tar.gz`` file."""
+        """Backup a remote Docker volume to a local ``tar.gz`` file.
+
+        Raises:
+          RuntimeError: Raised when this operation fails."""
         client = cls._get_docker_client()
         helper_container = None
         temp_tar_path = None

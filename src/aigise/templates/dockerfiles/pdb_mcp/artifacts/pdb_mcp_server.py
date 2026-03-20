@@ -98,8 +98,7 @@ def send_to_pdb(session_state: SessionState, command, timeout_multiplier=1.0):
 
     Args:
         command: The PDB command to send
-        timeout_multiplier: Multiplier to adjust timeout for complex commands
-    """
+        timeout_multiplier: Multiplier to adjust timeout for complex commands"""
 
     pdb_process = session_state.pdb_process
     pdb_running = session_state.pdb_running
@@ -268,7 +267,10 @@ def find_venv_details(project_root):
 
 
 def sanitize_arguments(args_str):
-    """Validate and sanitize command line arguments to prevent injection."""
+    """Validate and sanitize command line arguments to prevent injection.
+
+    Raises:
+      ValueError: Raised when this operation fails."""
     dangerous_patterns = [";", "&&", "||", "`", "$(", "|", ">", "<"]
     for pattern in dangerous_patterns:
         if pattern in args_str:
@@ -291,10 +293,9 @@ def start_debug(
     """Start a debugging session on a Python file within its project context.
 
     Args:
-        file_path: Path to the Python file or test module to debug.
-        use_pytest: If True, run using pytest with --pdb.
-        args: Additional arguments to pass to the Python script or pytest (space-separated).
-    """
+        file_path (str): Path to the Python file or test module to debug.
+        use_pytest (bool): If True, run using pytest with --pdb.
+        args (str): Additional arguments to pass to the Python script or pytest (space-separated)."""
     session = context.session
     if session not in session_dict:
         session_dict[session] = SessionState()
@@ -645,8 +646,7 @@ def send_pdb_command(command: str, context: Context = None) -> str:
         q (quit)
 
     Args:
-        command: The PDB command string.
-    """
+        command (str): The PDB command string."""
     session = context.session
     if session not in session_dict:
         return "No debugging session found for this context."
@@ -726,9 +726,8 @@ def set_breakpoint(file_path: str, line_number: int, context: Context = None) ->
     """Set a breakpoint at a specific line in a file. Uses relative path if possible.
 
     Args:
-        file_path: Path to the file (can be relative to project root or absolute).
-        line_number: Line number for the breakpoint.
-    """
+        file_path (str): Path to the file (can be relative to project root or absolute).
+        line_number (int): Line number for the breakpoint."""
     session = context.session
     if session not in session_dict:
         return "No debugging session found for this context."
@@ -801,9 +800,8 @@ def clear_breakpoint(file_path: str, line_number: int, context: Context = None) 
     """Clear a breakpoint at a specific line in a file. Uses relative path if possible.
 
     Args:
-        file_path: Path to the file where the breakpoint exists.
-        line_number: Line number of the breakpoint to clear.
-    """
+        file_path (str): Path to the file where the breakpoint exists.
+        line_number (int): Line number of the breakpoint to clear."""
     session = context.session
     if session not in session_dict:
         return "No debugging session found for this context."
@@ -1001,8 +999,7 @@ def examine_variable(variable_name: str, context: Context = None) -> str:
     """Examine a variable's type, value (print), and attributes (dir) using PDB.
 
     Args:
-        variable_name: Name of the variable to examine (e.g., 'my_var', 'self.data').
-    """
+        variable_name (str): Name of the variable to examine (e.g., 'my_var', 'self.data')."""
     session = context.session
     if session not in session_dict:
         return "No debugging session found for this context."

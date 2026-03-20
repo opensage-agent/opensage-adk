@@ -50,13 +50,12 @@ class Client:
         """Initialize client.
 
         Args:
-            agent_name: Name of the agent (defined in opensage/agents/ or examples/agents/)
-            benchmark_name: Name of the benchmark (defined in opensage/evaluations/)
-            model_name: Optional model name to override the evaluation's default.
+            agent_name (str): Name of the agent (defined in opensage/agents/ or examples/agents/)
+            benchmark_name (str): Name of the benchmark (defined in opensage/evaluations/)
+            model_name (str | None): Optional model name to override the evaluation's default.
                 When provided, this is passed to the evaluation class constructor
                 so that prompt formatting and model-specific logic use the correct
-                model identity (e.g., "qwen3-8b" instead of default "gemini-3-pro-preview").
-        """
+                model identity (e.g., "qwen3-8b" instead of default "gemini-3-pro-preview")."""
         self.agent_name = agent_name
         self.benchmark_name = benchmark_name
         self.model_name = model_name
@@ -73,7 +72,7 @@ class Client:
         Searches for agent in the installed package's examples/agents/ directory.
 
         Returns:
-            Absolute path to agent directory
+            str: Absolute path to agent directory
 
         Raises:
             ValueError: If agent directory not found
@@ -93,7 +92,7 @@ class Client:
         """Load benchmark interface and create Evaluation instance.
 
         Returns:
-            Tuple of (BenchmarkInterface, Evaluation instance)
+            tuple[BenchmarkInterface, 'Evaluation']: Tuple of (BenchmarkInterface, Evaluation instance)
         """
         try:
             benchmark = BenchmarkInterface.load(self.benchmark_name)
@@ -136,10 +135,9 @@ class Client:
         """Initialize a new session.
 
         Args:
-            session_id: Optional session ID
-
+            session_id (str | None): Optional session ID
         Returns:
-            RLSession instance (usable as context manager)
+            'RLSession': RLSession instance (usable as context manager)
         """
         return RLSession(client=self, session_id=session_id)
 
@@ -161,9 +159,8 @@ class RLSession:
         """Initialize session.
 
         Args:
-            client: Parent Client instance
-            session_id: Optional session ID (auto-generated if not provided)
-        """
+            client (Client): Parent Client instance
+            session_id (str | None): Optional session ID (auto-generated if not provided)"""
         self.client = client
         self.session_id = session_id or str(uuid.uuid4())
         self._opensage_session: OpenSageSession | None = None
@@ -191,10 +188,9 @@ class RLSession:
         """Get or create adapter for specified framework.
 
         Args:
-            framework: Framework name ("slime", "verl", "areal", etc.)
-
+            framework (str): Framework name ("slime", "verl", "areal", etc.)
         Returns:
-            Framework-specific adapter
+            BaseAdapter: Framework-specific adapter
 
         Raises:
             ValueError: If framework is not supported
@@ -237,13 +233,15 @@ class RLSession:
     ) -> Any:
         """Generate using AIgiSE agent for slime rollout.
 
-        Args:
-            args: Rollout arguments from slime
-            sample: Sample object with prompt and metadata
-            sampling_params: Sampling parameters
+                Args:
+                    args (Any): Rollout arguments from slime
+                    sample (Any): Sample object with prompt and metadata
+                    sampling_params (dict[str, Any]): Sampling parameters
 
-        Returns:
-            Updated Sample object with response and status
+        Raises:
+          RuntimeError: Raised when this operation fails.
+                Returns:
+                    Any: Updated Sample object with response and status
         """
         if self._closed:
             raise RuntimeError("Session has been closed")
@@ -260,13 +258,15 @@ class RLSession:
     ) -> Any:
         """Generate using AIgiSE agent for verl rollout.
 
-        Args:
-            args: Rollout arguments from verl
-            sample: Sample object
-            sampling_params: Sampling parameters
+                Args:
+                    args (Any): Rollout arguments from verl
+                    sample (Any): Sample object
+                    sampling_params (dict[str, Any]): Sampling parameters
 
-        Returns:
-            Updated sample object
+        Raises:
+          RuntimeError: Raised when this operation fails.
+                Returns:
+                    Any: Updated sample object
         """
         if self._closed:
             raise RuntimeError("Session has been closed")
@@ -282,40 +282,42 @@ class RLSession:
     ) -> dict[str, Any]:
         """Generate using AIgiSE agent for AReaL rollout.
 
-        This method accepts an ADK-compatible model (ArealLlm) from AReaL.
-        ArealLlm wraps ArealOpenAI, which automatically tracks token log
-        probabilities and supports reward assignment for RL training.
+                This method accepts an ADK-compatible model (ArealLlm) from AReaL.
+                ArealLlm wraps ArealOpenAI, which automatically tracks token log
+                probabilities and supports reward assignment for RL training.
 
-        This design is similar to how CAMEL integrates with AReaL.
+                This design is similar to how CAMEL integrates with AReaL.
 
-        Args:
-            data: Dataset sample (dict format)
-            model: ADK-compatible model (ArealLlm instance)
-                Created by AReaL: ArealLlm(openai_client=ArealOpenAI(...))
-                The model automatically tracks log probs for RL training.
-            **kwargs: Additional arguments passed to Evaluation
+                Args:
+                    data (dict[str, Any]): Dataset sample (dict format)
+                    model (Any): ADK-compatible model (ArealLlm instance)
+                        Created by AReaL: ArealLlm(openai_client=ArealOpenAI(...))
+                        The model automatically tracks log probs for RL training.
+                    **kwargs: Additional arguments passed to Evaluation
 
-        Returns:
-            Result dict from Evaluation._generate_sample
+        Raises:
+          RuntimeError: Raised when this operation fails.
+                Returns:
+                    dict[str, Any]: Result dict from Evaluation._generate_sample
 
-        Example (from AReaL side):
-            ```python
-            from areal.experimental.adk import ArealLlm
-            from areal.experimental.openai import ArealOpenAI
+                Example (from AReaL side):
+                    ```python
+                    from areal.experimental.adk import ArealLlm
+                    from areal.experimental.openai import ArealOpenAI
 
-            # Create client and model
-            client = ArealOpenAI(engine=engine, tokenizer=tokenizer, ...)
-            model = ArealLlm(openai_client=client)
+                    # Create client and model
+                    client = ArealOpenAI(engine=engine, tokenizer=tokenizer, ...)
+                    model = ArealLlm(openai_client=client)
 
-            # Run agent
-            with opensage_client.init_session() as session:
-                result = await session.areal_generate(data=data, model=model)
+                    # Run agent
+                    with opensage_client.init_session() as session:
+                        result = await session.areal_generate(data=data, model=model)
 
-            # Set reward and export (on AReaL side)
-            client.set_last_reward(result.get("reward", 0.0))
-            client.apply_reward_discount(turn_discount=0.9)
-            interactions = client.export_interactions(style="individual")
-            ```
+                    # Set reward and export (on AReaL side)
+                    client.set_last_reward(result.get("reward", 0.0))
+                    client.apply_reward_discount(turn_discount=0.9)
+                    interactions = client.export_interactions(style="individual")
+                    ```
         """
         if self._closed:
             raise RuntimeError("Session has been closed")
@@ -338,15 +340,14 @@ def create(
     This is the main entry point for RL framework integration.
 
     Args:
-        agent_name: Name of the agent defined in opensage/agents/ directory
-        benchmark_name: Name of the benchmark defined in opensage/evaluations/ directory
-        model_name: Optional model name to override the evaluation's default.
+        agent_name (str): Name of the agent defined in opensage/agents/ directory
+        benchmark_name (str): Name of the benchmark defined in opensage/evaluations/ directory
+        model_name (str | None): Optional model name to override the evaluation's default.
             When using RL integration (e.g., AReaL), the actual inference model
             may differ from the evaluation's default. Passing model_name ensures
             prompt formatting and model-specific logic use the correct identity.
-
     Returns:
-        Client instance
+        Client: Client instance
 
     Example:
         ```python

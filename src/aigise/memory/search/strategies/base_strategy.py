@@ -84,11 +84,10 @@ class SearchStrategy(ABC):
         """Execute the search strategy.
 
         Args:
-            context: Search context with query and parameters.
-            client: Neo4j client for executing queries.
-
+            context (SearchContext): Search context with query and parameters.
+            client (Any): Neo4j client for executing queries.
         Returns:
-            List of search result items, ordered by relevance.
+            List[SearchResultItem]: List of search result items, ordered by relevance.
         """
         pass
 
@@ -108,10 +107,9 @@ class SearchStrategy(ABC):
         Override in subclasses to restrict to specific node types.
 
         Args:
-            node_type: Node label to check.
-
+            node_type (str): Node label to check.
         Returns:
-            True if this strategy can search this node type.
+            bool: True if this strategy can search this node type.
         """
         return True
 
@@ -119,7 +117,7 @@ class SearchStrategy(ABC):
         """Get the list of node types this strategy supports.
 
         Returns:
-            List of supported node types, or None for all types.
+            Optional[List[str]]: List of supported node types, or None for all types.
         """
         return None
 
@@ -130,10 +128,9 @@ class SearchStrategy(ABC):
         Override to provide better estimates based on query characteristics.
 
         Args:
-            query: The search query.
-            context: Search context.
-
+            query (str): The search query.
+            context (SearchContext): Search context.
         Returns:
-            Confidence score from 0.0 (cannot handle) to 1.0 (ideal match).
+            float: Confidence score from 0.0 (cannot handle) to 1.0 (ideal match).
         """
         return 0.5  # Default: moderate confidence

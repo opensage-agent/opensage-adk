@@ -16,10 +16,12 @@ if TYPE_CHECKING:
 def get_dispatcher(dispatcher_type: str, **kwargs) -> BaseDispatcher:
     """Create a dispatcher by type.
 
-    Args:
-        dispatcher_type: ``"native"`` or ``"ray"``.
-        **kwargs: Forwarded to the dispatcher constructor.
-    """
+        Args:
+            dispatcher_type (str): ``"native"`` or ``"ray"``.
+            **kwargs: Forwarded to the dispatcher constructor.
+
+    Raises:
+      ValueError: Raised when this operation fails."""
     if dispatcher_type == "native":
         from opensage.evaluation.dispatchers.native import NativeDispatcher
 

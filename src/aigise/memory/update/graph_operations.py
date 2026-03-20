@@ -74,8 +74,7 @@ class GraphOperations:
         """Initialize graph operations.
 
         Args:
-            domain_config: Domain configuration for node/relationship schemas.
-        """
+            domain_config (Optional['DomainConfig']): Domain configuration for node/relationship schemas."""
         self.domain_config = domain_config
 
     async def add_entity(
@@ -89,12 +88,11 @@ class GraphOperations:
         Uses MERGE to avoid duplicates based on unique keys.
 
         Args:
-            entity: Entity to add.
-            client: Neo4j client.
-            opensage_session_id: Optional session ID for tracking.
-
+            entity (ExtractedEntity): Entity to add.
+            client (Any): Neo4j client.
+            opensage_session_id (Optional[str]): Optional session ID for tracking.
         Returns:
-            OperationResult with operation details.
+            OperationResult: OperationResult with operation details.
         """
         label = entity.label
         props = dict(entity.properties)
@@ -151,11 +149,10 @@ class GraphOperations:
         """Add a relationship to the graph.
 
         Args:
-            relationship: Relationship to add.
-            client: Neo4j client.
-
+            relationship (DiscoveredRelationship): Relationship to add.
+            client (Any): Neo4j client.
         Returns:
-            OperationResult with operation details.
+            OperationResult: OperationResult with operation details.
         """
         query, params = self._build_relationship_query(relationship)
 
@@ -192,12 +189,11 @@ class GraphOperations:
         """Add multiple entities to the graph.
 
         Args:
-            entities: Entities to add.
-            client: Neo4j client.
-            opensage_session_id: Optional session ID.
-
+            entities (List[ExtractedEntity]): Entities to add.
+            client (Any): Neo4j client.
+            opensage_session_id (Optional[str]): Optional session ID.
         Returns:
-            List of operation results.
+            List[OperationResult]: List of operation results.
         """
         results = []
         for entity in entities:
@@ -213,11 +209,10 @@ class GraphOperations:
         """Add multiple relationships to the graph.
 
         Args:
-            relationships: Relationships to add.
-            client: Neo4j client.
-
+            relationships (List[DiscoveredRelationship]): Relationships to add.
+            client (Any): Neo4j client.
         Returns:
-            List of operation results.
+            List[OperationResult]: List of operation results.
         """
         results = []
         for rel in relationships:
@@ -231,10 +226,9 @@ class GraphOperations:
         Creates both regular and vector indexes for memory nodes.
 
         Args:
-            client: Neo4j client.
-
+            client (Any): Neo4j client.
         Returns:
-            True if indexes were created/verified successfully.
+            bool: True if indexes were created/verified successfully.
         """
         try:
             # Regular indexes for exact match
@@ -470,12 +464,11 @@ class GraphOperations:
         Uses DETACH DELETE to remove the node and all its relationships.
 
         Args:
-            label: Node label (e.g., "Question", "Topic").
-            match_key: Properties to identify the node to delete.
-            client: Neo4j client.
-
+            label (str): Node label (e.g., "Question", "Topic").
+            match_key (Dict[str, Any]): Properties to identify the node to delete.
+            client (Any): Neo4j client.
         Returns:
-            OperationResult with operation details.
+            OperationResult: OperationResult with operation details.
         """
         if not match_key:
             return OperationResult(
@@ -532,15 +525,14 @@ class GraphOperations:
         """Delete a relationship from the graph.
 
         Args:
-            rel_type: Type of relationship to delete.
-            source_label: Label of source node.
-            source_key: Properties to identify source node.
-            target_label: Label of target node.
-            target_key: Properties to identify target node.
-            client: Neo4j client.
-
+            rel_type (str): Type of relationship to delete.
+            source_label (str): Label of source node.
+            source_key (Dict[str, Any]): Properties to identify source node.
+            target_label (str): Label of target node.
+            target_key (Dict[str, Any]): Properties to identify target node.
+            client (Any): Neo4j client.
         Returns:
-            OperationResult with operation details.
+            OperationResult: OperationResult with operation details.
         """
         params = {}
 

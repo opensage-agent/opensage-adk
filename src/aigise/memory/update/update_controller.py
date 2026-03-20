@@ -90,12 +90,11 @@ class MemoryUpdateController:
         """Initialize the update controller.
 
         Args:
-            domain_config: Domain configuration defining entity types.
-            use_llm_extraction: Whether to use LLM for semantic extraction.
-            generate_embeddings: Whether to generate embeddings for entities.
-            similarity_threshold: Threshold for similarity-based relationships.
-            use_llm_decision: Whether to use LLM for operation type decisions.
-        """
+            domain_config (Optional['DomainConfig']): Domain configuration defining entity types.
+            use_llm_extraction (bool): Whether to use LLM for semantic extraction.
+            generate_embeddings (bool): Whether to generate embeddings for entities.
+            similarity_threshold (float): Threshold for similarity-based relationships.
+            use_llm_decision (bool): Whether to use LLM for operation type decisions."""
         self.domain_config = domain_config
         self.use_llm_decision = use_llm_decision
         self.entity_extractor = EntityExtractor(
@@ -127,16 +126,15 @@ class MemoryUpdateController:
         It extracts entities, discovers relationships, and persists to Neo4j.
 
         Args:
-            question: The question text.
-            answer: The answer text.
-            answering_agent: Name of the agent that generated the answer.
-            answering_model: Model used to generate the answer.
-            client: Neo4j client.
-            opensage_session_id: Optional session ID for tracking.
-            metadata: Additional metadata to store.
-
+            question (str): The question text.
+            answer (str): The answer text.
+            answering_agent (str): Name of the agent that generated the answer.
+            answering_model (str): Model used to generate the answer.
+            client (Any): Neo4j client.
+            opensage_session_id (Optional[str]): Optional session ID for tracking.
+            metadata (Optional[Dict[str, Any]]): Additional metadata to store.
         Returns:
-            UpdateResult with operation details.
+            UpdateResult: UpdateResult with operation details.
         """
         # Ensure indexes exist
         await self._ensure_indexes(client)
@@ -229,17 +227,19 @@ class MemoryUpdateController:
     ) -> UpdateResult:
         """Store knowledge in the memory graph.
 
-        Generic method for storing any type of content.
+                Generic method for storing any type of content.
 
-        Args:
-            content: Content to store.
-            content_type: Type of content ('text', 'code', 'question', 'answer').
-            client: Neo4j client.
-            opensage_session_id: Optional session ID.
-            metadata: Additional metadata.
+                Args:
+                    content (str): Content to store.
+                    content_type (str): Type of content ('text', 'code', 'question', 'answer').
+                    client (Any): Neo4j client.
+                    opensage_session_id (Optional[str]): Optional session ID.
+                    metadata (Optional[Dict[str, Any]]): Additional metadata.
 
-        Returns:
-            UpdateResult with operation details.
+        Raises:
+          ValueError: Raised when this operation fails.
+                Returns:
+                    UpdateResult: UpdateResult with operation details.
         """
         if client is None:
             raise ValueError("Neo4j client is required")
@@ -313,16 +313,15 @@ class MemoryUpdateController:
         """Create a relationship between two existing entities.
 
         Args:
-            source_label: Label of source node.
-            source_key: Properties to identify source node.
-            target_label: Label of target node.
-            target_key: Properties to identify target node.
-            relationship_type: Type of relationship to create.
-            client: Neo4j client.
-            properties: Optional relationship properties.
-
+            source_label (str): Label of source node.
+            source_key (Dict[str, Any]): Properties to identify source node.
+            target_label (str): Label of target node.
+            target_key (Dict[str, Any]): Properties to identify target node.
+            relationship_type (str): Type of relationship to create.
+            client (Any): Neo4j client.
+            properties (Optional[Dict[str, Any]]): Optional relationship properties.
         Returns:
-            OperationResult for the relationship creation.
+            OperationResult: OperationResult for the relationship creation.
         """
         relationship = DiscoveredRelationship(
             type_name=relationship_type,
@@ -344,12 +343,11 @@ class MemoryUpdateController:
         """Delete an entity from the memory graph.
 
         Args:
-            label: Node label (e.g., "Question", "Topic").
-            match_key: Properties to identify the node.
-            client: Neo4j client.
-
+            label (str): Node label (e.g., "Question", "Topic").
+            match_key (Dict[str, Any]): Properties to identify the node.
+            client (Any): Neo4j client.
         Returns:
-            OperationResult with operation details.
+            OperationResult: OperationResult with operation details.
         """
         return await self.graph_operations.delete_entity(label, match_key, client)
 
@@ -365,15 +363,14 @@ class MemoryUpdateController:
         """Delete a relationship from the memory graph.
 
         Args:
-            rel_type: Relationship type.
-            source_label: Label of source node.
-            source_key: Properties to identify source node.
-            target_label: Label of target node.
-            target_key: Properties to identify target node.
-            client: Neo4j client.
-
+            rel_type (str): Relationship type.
+            source_label (str): Label of source node.
+            source_key (Dict[str, Any]): Properties to identify source node.
+            target_label (str): Label of target node.
+            target_key (Dict[str, Any]): Properties to identify target node.
+            client (Any): Neo4j client.
         Returns:
-            OperationResult with operation details.
+            OperationResult: OperationResult with operation details.
         """
         return await self.graph_operations.delete_relationship(
             rel_type, source_label, source_key, target_label, target_key, client
@@ -389,19 +386,21 @@ class MemoryUpdateController:
     ) -> UpdateResult:
         """Store knowledge using LLM to decide operation type for each entity.
 
-        This method uses the LLMOperationDecider to intelligently decide whether
-        to ADD, UPDATE, DELETE, or skip each extracted entity based on what
-        already exists in the graph.
+                This method uses the LLMOperationDecider to intelligently decide whether
+                to ADD, UPDATE, DELETE, or skip each extracted entity based on what
+                already exists in the graph.
 
-        Args:
-            content: Content to store.
-            content_type: Type of content.
-            client: Neo4j client.
-            opensage_session_id: Optional session ID.
-            metadata: Additional metadata.
+                Args:
+                    content (str): Content to store.
+                    content_type (str): Type of content.
+                    client (Any): Neo4j client.
+                    opensage_session_id (Optional[str]): Optional session ID.
+                    metadata (Optional[Dict[str, Any]]): Additional metadata.
 
-        Returns:
-            UpdateResult with operation details.
+        Raises:
+          ValueError: Raised when this operation fails.
+                Returns:
+                    UpdateResult: UpdateResult with operation details.
         """
         if client is None:
             raise ValueError("Neo4j client is required")
@@ -530,11 +529,10 @@ class MemoryUpdateController:
         """Find existing nodes similar to the given entity.
 
         Args:
-            entity: The entity to find similar nodes for.
-            client: Neo4j client.
-
+            entity (ExtractedEntity): The entity to find similar nodes for.
+            client (Any): Neo4j client.
         Returns:
-            List of similar node dictionaries.
+            List[Dict[str, Any]]: List of similar node dictionaries.
         """
         label = entity.label
         props = entity.properties
@@ -609,11 +607,10 @@ class MemoryUpdateController:
         """Extract match key properties from a node dictionary.
 
         Args:
-            label: Node label.
-            node: Node properties dictionary.
-
+            label (str): Node label.
+            node (Dict[str, Any]): Node properties dictionary.
         Returns:
-            Dictionary of match key properties.
+            Dict[str, Any]: Dictionary of match key properties.
         """
         key_fields = {
             "Question": ["question_hash"],

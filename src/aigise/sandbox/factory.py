@@ -53,11 +53,10 @@ def create_sandbox_class(
     Create a sandbox class by combining a backend with a initializer.
 
     Args:
-        backend_class: The backend sandbox class (e.g., NativeDockerSandbox)
-        initializer_class: Initializer class to add functionality
-
+        backend_class (Type[BaseSandbox]): The backend sandbox class (e.g., NativeDockerSandbox)
+        initializer_class (Type): Initializer class to add functionality
     Returns:
-        A new class that combines the backend and initializer
+        Type[BaseSandbox]: A new class that combines the backend and initializer
     """
 
     # Create a dynamic class that combines backend + initializer
@@ -90,11 +89,10 @@ def get_backend_class(backend_type: str, config=None) -> Type[BaseSandbox]:
     Get the backend class for a given backend type.
 
     Args:
-      backend_type: The type of backend needed (e.g., 'native', 'k8s')
+      backend_type (str): The type of backend needed (e.g., 'native', 'k8s')
       config: Optional config to inject into backend (for remotedocker)
-
     Returns:
-      The backend class
+      Type[BaseSandbox]: The backend class
 
     Raises:
       ValueError: If backend type is not supported
@@ -119,9 +117,8 @@ def get_initializer_class(sandbox_type: str) -> Type:
     Get the initializer class for a given sandbox type.
 
     Args:
-        sandbox_type: The type of sandbox functionality needed
-
+        sandbox_type (str): The type of sandbox functionality needed
     Returns:
-        The initializer class, or the base SandboxInitializer if not found
+        Type: The initializer class, or the base SandboxInitializer if not found
     """
     return SANDBOX_INITIALIZERS.get(sandbox_type, SandboxInitializer)

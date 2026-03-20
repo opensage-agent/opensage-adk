@@ -84,11 +84,10 @@ class BashTaskManager:
 
         Args:
             sandbox: The sandbox instance to run the command in.
-            command: The bash command to execute.
-            sandbox_name: The name of the sandbox (e.g., "main", "fuzz").
-
+            command (str): The bash command to execute.
+            sandbox_name (str): The name of the sandbox (e.g., "main", "fuzz").
         Returns:
-            Tuple of (task_id, message). If task_id is None, message is error.
+            tuple[Optional[str], str]: Tuple of (task_id, message). If task_id is None, message is error.
         """
         task_id = str(uuid.uuid4())[:8]
         exit_code_file = f"/tmp/task_{task_id}.exit"
@@ -202,8 +201,7 @@ fi
         """List all tasks and update their status.
 
         Args:
-            sandbox_getter: A function that takes a sandbox_name (str) and returns a sandbox instance.
-        """
+            sandbox_getter: A function that takes a sandbox_name (str) and returns a sandbox instance."""
         active_tasks = []
         for task_id, task in self.tasks.items():
             if task.status == TaskStatus.RUNNING:
@@ -264,11 +262,10 @@ fi
 
         Args:
             sandbox: The sandbox instance.
-            task_id: The ID of the task to wait for.
-            timeout: Maximum time to wait in seconds.
-
+            task_id (str): The ID of the task to wait for.
+            timeout (int): Maximum time to wait in seconds.
         Returns:
-            True if task completed, False if timed out.
+            bool: True if task completed, False if timed out.
         """
         import time
 
@@ -306,10 +303,9 @@ fi
 
         Args:
             sandbox: The sandbox instance.
-            task_id: The ID of the task to clean up.
-
+            task_id (str): The ID of the task to clean up.
         Returns:
-            True if cleanup was successful, False otherwise.
+            bool: True if cleanup was successful, False otherwise.
         """
         if task_id not in self.tasks:
             logger.warning(f"Cannot cleanup task {task_id}: task not found")
@@ -348,10 +344,9 @@ fi
 
         Args:
             sandbox: The sandbox instance.
-            task_id: The ID of the task to kill.
-
+            task_id (str): The ID of the task to kill.
         Returns:
-            True if kill signal was sent successfully, False otherwise.
+            bool: True if kill signal was sent successfully, False otherwise.
         """
         if task_id not in self.tasks:
             logger.warning(f"Cannot kill task {task_id}: task not found")

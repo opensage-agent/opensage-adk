@@ -48,9 +48,8 @@ def build_image_from_dockerfile(
         image_name: Name and tag for the built image (e.g., 'myapp:latest')
         build_context: Directory to use as build context. If None, uses dockerfile directory
         build_args: Build-time variables for Docker build (--build-arg)
-
     Returns:
-        DockerBuildResult with build status and details
+        DockerBuildResult: DockerBuildResult with build status and details
     """
     if not config.project_relative_dockerfile_path or not config.image:
         return None
@@ -133,10 +132,9 @@ def ensure_docker_image(config: ContainerConfig) -> tuple[bool, Optional[str]]:
     """Ensure Docker image is available, using dockerfile fallback if needed.
 
     Args:
-        config: ContainerConfig with image name and optional dockerfile config
-
+        config (ContainerConfig): ContainerConfig with image name and optional dockerfile config
     Returns:
-        Tuple of (success, error_message). If success is False, error_message explains why.
+        tuple[bool, Optional[str]]: Tuple of (success, error_message). If success is False, error_message explains why.
     """
     if not config.image:
         return False, "No image specified in ContainerConfig"
@@ -195,11 +193,15 @@ class NativeDockerSandbox(BaseSandbox):
         sandbox_type: str = None,
     ):
         """
-        Initialize NativeDockerSandbox.
+                Initialize NativeDockerSandbox.
 
-        Args:
-            container_config: ContainerConfig options controlling container launch (must include image or container_id)
-        """
+                Args:
+                    container_config (ContainerConfig): ContainerConfig options controlling container launch (must include image or container_id)
+
+        Raises:
+          TypeError: Raised when this operation fails.
+          ValueError: Raised when this operation fails.
+          RuntimeError: Raised when this operation fails."""
         if container_config is None or not isinstance(
             container_config, ContainerConfig
         ):
@@ -255,10 +257,12 @@ class NativeDockerSandbox(BaseSandbox):
     def _get_helper_image(cls) -> str:
         """Return an available helper image, pulling if necessary.
 
-        Several sandbox operations (volume init, chmod) require a tiny helper
-        container. The Docker SDK does not auto-pull images, so we do a best
-        effort pull when the image is missing locally.
-        """
+                Several sandbox operations (volume init, chmod) require a tiny helper
+                container. The Docker SDK does not auto-pull images, so we do a best
+                effort pull when the image is missing locally.
+
+        Raises:
+          RuntimeError: Raised when this operation fails."""
         if cls._cached_helper_image is not None:
             return cls._cached_helper_image
 
@@ -277,8 +281,7 @@ class NativeDockerSandbox(BaseSandbox):
         """Connect to an existing container if it's running.
 
         Args:
-            container_id: The ID or name of the existing container
-
+            container_id (str): The ID or name of the existing container
         Returns:
             str: The container ID
 
@@ -427,7 +430,10 @@ class NativeDockerSandbox(BaseSandbox):
         return container.id
 
     def copy_directory_from_container(self, src_path: str, dst_path: str):
-        """Copy a directory from the container to local filesystem."""
+        """Copy a directory from the container to local filesystem.
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         container = self.client.containers.get(self.container_id)
         exec_result = container.exec_run(["ls", "-la", src_path])
         if exec_result.exit_code != 0:
@@ -449,7 +455,11 @@ class NativeDockerSandbox(BaseSandbox):
         os.remove(temp_tar_path)
 
     def copy_file_from_container(self, src_path: str, dst_path: str):
-        """Copy a file from the container to local filesystem."""
+        """Copy a file from the container to local filesystem.
+
+        Raises:
+          FileNotFoundError: Raised when this operation fails.
+          RuntimeError: Raised when this operation fails."""
         container = self.client.containers.get(self.container_id)
 
         # Check if the file exists inside the container
@@ -492,7 +502,10 @@ class NativeDockerSandbox(BaseSandbox):
         container.put_archive(container_dir, data.getvalue())
 
     def copy_directory_to_container(self, src_path: str, dst_path: str):
-        """Copy a directory from the host to the container."""
+        """Copy a directory from the host to the container.
+
+        Raises:
+          RuntimeError: Raised when this operation fails."""
         container = self.client.containers.get(self.container_id)
 
         mkdir_cmd = ["mkdir", "-p", dst_path]
@@ -805,10 +818,12 @@ class NativeDockerSandbox(BaseSandbox):
     ) -> None:
         """Copy a local directory into a Docker volume via ``put_archive``.
 
-        Uses the Docker SDK to stream a tar archive through the API, making it
-        compatible with Docker-in-Docker (the local path doesn't need to exist
-        on the host).
-        """
+                Uses the Docker SDK to stream a tar archive through the API, making it
+                compatible with Docker-in-Docker (the local path doesn't need to exist
+                on the host).
+
+        Raises:
+          RuntimeError: Raised when this operation fails."""
         import io
         import tarfile as _tarfile
 
@@ -845,12 +860,15 @@ class NativeDockerSandbox(BaseSandbox):
     ) -> str:
         """Helper method to create a single volume and populate it with data.
 
-        Args:
-            volume_name: Name of the Docker volume to create
-            source_path: Local path containing data to copy into the volume (optional)
+                Args:
+                    volume_name (str): Name of the Docker volume to create
+                    source_path (Path): Local path containing data to copy into the volume (optional)
 
-        Returns:
-            The volume name that was created
+        Raises:
+          RuntimeError: Raised when this operation fails.
+          Exception: Raised when this operation fails.
+                Returns:
+                    str: The volume name that was created
         """
         import tarfile
         import tempfile
@@ -949,19 +967,21 @@ class NativeDockerSandbox(BaseSandbox):
     ) -> tuple[str, str, str]:
         """Create and initialize three shared volumes.
 
-        Creates three volumes:
-        1. Read-only volume with sandbox scripts (mapped to /sandbox_scripts)
-        2. Read-write volume with user data (mapped to /shared)
-        3. Read-write volume with bash tools (mapped to /bash_tools)
+                Creates three volumes:
+                1. Read-only volume with sandbox scripts (mapped to /sandbox_scripts)
+                2. Read-write volume with user data (mapped to /shared)
+                3. Read-write volume with bash tools (mapped to /bash_tools)
 
-        Args:
-            volume_name_prefix: Prefix for volume names (e.g., session_id)
-            init_data_path: Path to initial data to copy into the rw volume (optional)
-            tools_top_roots: Optional set of top-level bash_tools roots to stage.
-                If None, stage all bash tools (built-in + plugins).
+                Args:
+                    volume_name_prefix (str): Prefix for volume names (e.g., session_id)
+                    init_data_path (Path): Path to initial data to copy into the rw volume (optional)
+                    tools_top_roots (set[str] | None): Optional set of top-level bash_tools roots to stage.
+                        If None, stage all bash tools (built-in + plugins).
 
-        Returns:
-            Tuple of (scripts_volume_id, data_volume_id, tools_volume_id)
+        Raises:
+          Exception: Raised when this operation fails.
+                Returns:
+                    tuple[str, str, str]: Tuple of (scripts_volume_id, data_volume_id, tools_volume_id)
         """
         from opensage.utils.project_info import SRC_PATH
 
@@ -1090,10 +1110,9 @@ class NativeDockerSandbox(BaseSandbox):
         """Delete shared volumes.
 
         Args:
-            scripts_volume_id: ID of the scripts volume to delete
-            data_volume_id: ID of the data volume to delete
-            tools_volume_id: ID of the tools volume to delete
-        """
+            scripts_volume_id (str): ID of the scripts volume to delete
+            data_volume_id (str): ID of the data volume to delete
+            tools_volume_id (str): ID of the tools volume to delete"""
         for volume_id in [scripts_volume_id, data_volume_id, tools_volume_id]:
             if volume_id:
                 try:
@@ -1157,7 +1176,10 @@ class NativeDockerSandbox(BaseSandbox):
         sandbox_instance: "NativeDockerSandbox",
         init_coro: Awaitable[None],
     ) -> None:
-        """Await initialization, set state, and emit logs."""
+        """Await initialization, set state, and emit logs.
+
+        Raises:
+          Exception: Raised when this operation fails."""
         final_state: Optional[SandboxState] = None
         sandboxes = None
         opensage_session_id = getattr(sandbox_instance, "opensage_session_id", None)
@@ -1231,11 +1253,10 @@ class NativeDockerSandbox(BaseSandbox):
         registering any hooks.
 
         Args:
-            sandbox_instances: Dict of sandbox_type -> NativeDockerSandbox instance
-            continue_on_error: If True, continue initializing other sandboxes when
+            sandbox_instances (dict[str, BaseSandbox]): Dict of sandbox_type -> NativeDockerSandbox instance
+            continue_on_error (bool): If True, continue initializing other sandboxes when
                 one fails, and return a map of sandbox_type -> Exception | None
-                instead of raising. If False, propagate errors.
-        """
+                instead of raising. If False, propagate errors."""
         if not sandbox_instances:
             logger.warning("No sandbox instances to initialize")
             return {}
@@ -1307,7 +1328,6 @@ class NativeDockerSandbox(BaseSandbox):
 
         Args:
             config: OpenSageConfig object to extract port information
-
         Returns:
             str: An available IP address (e.g., '127.0.0.2')
         """
@@ -1407,15 +1427,17 @@ class NativeDockerSandbox(BaseSandbox):
     ) -> dict:
         """Launch all sandbox instances as separate Docker containers.
 
-        Args:
-            session_id: Session identifier
-            sandbox_configs: Dictionary of sandbox_type -> ContainerConfig
-            shared_volume_id: Optional shared volume to mount to all sandboxes (unused, configs already updated)
-            scripts_volume_id: Optional scripts volume to mount to all sandboxes (unused, configs already updated)
-            tools_volume_id: Optional tools volume to mount to all sandboxes (unused, configs already updated)
+                Args:
+                    session_id (str): Session identifier
+                    sandbox_configs (dict): Dictionary of sandbox_type -> ContainerConfig
+                    shared_volume_id (str): Optional shared volume to mount to all sandboxes (unused, configs already updated)
+                    scripts_volume_id (str): Optional scripts volume to mount to all sandboxes (unused, configs already updated)
+                    tools_volume_id (str): Optional tools volume to mount to all sandboxes (unused, configs already updated)
 
-        Returns:
-            Dictionary mapping sandbox_type to NativeDockerSandbox instance
+        Raises:
+          Exception: Raised when this operation fails.
+                Returns:
+                    dict: Dictionary mapping sandbox_type to NativeDockerSandbox instance
         """
 
         async def launch_concurrent():
@@ -1539,13 +1561,12 @@ class NativeDockerSandbox(BaseSandbox):
 
         Args:
             session_id: Session identifier
-            sandbox_instances: Dictionary mapping sandbox types to NativeDockerSandbox instances
-            shared_volume_id: Docker volume name to backup
-            cache_dir: Directory to store cache files
-            task_name: Task name for naming cached resources
-
+            sandbox_instances (dict): Dictionary mapping sandbox types to NativeDockerSandbox instances
+            shared_volume_id (str): Docker volume name to backup
+            cache_dir (str): Directory to store cache files
+            task_name (str): Task name for naming cached resources
         Returns:
-            Dictionary with cache results
+            dict: Dictionary with cache results
         """
 
         def normalize_image_name(name: str) -> str:

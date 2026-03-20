@@ -20,24 +20,26 @@ logger = logging.getLogger(__name__)
 async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
     """Run enabled per-skill dependency installers for a sandbox (best-effort).
 
-    Convention:
-    - A skill directory may include:
-      - `deps/<sandbox_type>/install.sh` (sandbox-specific), and/or
-      - `deps/install.sh` (generic)
-    - A skill declares which sandbox should execute its deps installer via YAML
-      frontmatter in `SKILL.md`:
-        should_run_in_sandbox: <sandbox_type>
+        Convention:
+        - A skill directory may include:
+          - `deps/<sandbox_type>/install.sh` (sandbox-specific), and/or
+          - `deps/install.sh` (generic)
+        - A skill declares which sandbox should execute its deps installer via YAML
+          frontmatter in `SKILL.md`:
+            should_run_in_sandbox: <sandbox_type>
 
-    Markers are written under:
-      /shared/.opensage/skill_deps/<sandbox_type>/<skill>.done
+        Markers are written under:
+          /shared/.opensage/skill_deps/<sandbox_type>/<skill>.done
 
-    Args:
-      sandbox: Sandbox instance with `/bash_tools` and `/shared` mounted.
-      enabled_skills: ToolLoader-style enabled_skills setting:
-        - None: no skills enabled (skip)
-        - list[str]: only scan those prefixes under /bash_tools
-        - other: scan all skills under /bash_tools
-    """
+        Args:
+          sandbox (BaseSandbox): Sandbox instance with `/bash_tools` and `/shared` mounted.
+          enabled_skills (Any): ToolLoader-style enabled_skills setting:
+            - None: no skills enabled (skip)
+            - list[str]: only scan those prefixes under /bash_tools
+            - other: scan all skills under /bash_tools
+
+    Raises:
+      RuntimeError: Raised when this operation fails."""
     if enabled_skills is None:
         return
 

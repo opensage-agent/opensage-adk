@@ -20,12 +20,14 @@ from opensage.utils.project_info import PROJECT_PATH, SRC_PATH
 def _expand_template_variables(config_data: dict) -> dict:
     """Unified template variable expansion system.
 
-    Rules:
-    1. Top-level UPPERCASE variables automatically become template variables
-    2. ${VAR_NAME} lookup order: environment variables → top-level variables → error
-    3. Environment variables have highest priority and can override config defaults
-    4. Undefined variables cause immediate error
-    """
+        Rules:
+        1. Top-level UPPERCASE variables automatically become template variables
+        2. ${VAR_NAME} lookup order: environment variables → top-level variables → error
+        3. Environment variables have highest priority and can override config defaults
+        4. Undefined variables cause immediate error
+
+    Raises:
+      KeyError: Raised when this operation fails."""
 
     # Deep copy to avoid modifying original data
     expanded_data = copy.deepcopy(config_data)
@@ -420,10 +422,9 @@ class MCPServiceConfig:
         """Initialize MCP service config.
 
         Args:
-            sse_port: SSE server port
-            sse_host: Explicit SSE host. If None, will dynamically use parent config's default_host
-            _parent_config: Reference to parent OpenSageConfig for dynamic default_host
-        """
+            sse_port (int): SSE server port
+            sse_host (Optional[str]): Explicit SSE host. If None, will dynamically use parent config's default_host
+            _parent_config ('OpenSageConfig'): Reference to parent OpenSageConfig for dynamic default_host"""
         self._sse_port = sse_port
         self._sse_host = sse_host  # None means "use default_host dynamically"
         self._parent_config = _parent_config
@@ -510,7 +511,10 @@ class OpenSageConfig:
 
     @classmethod
     def from_toml(cls, config_path: Optional[str] = None) -> "OpenSageConfig":
-        """Create configuration from TOML file with template variable expansion."""
+        """Create configuration from TOML file with template variable expansion.
+
+        Raises:
+          FileNotFoundError: Raised when this operation fails."""
         if config_path is None:
             config_path = SRC_PATH / "templates/configs/default_config.toml"
 
@@ -626,8 +630,7 @@ class OpenSageConfig:
         """Get sandbox configuration for a specific type.
 
         Args:
-            sandbox_type: Type of sandbox configuration to get
-
+            sandbox_type (str): Type of sandbox configuration to get
         Returns:
             ContainerConfig for the specified sandbox type, or None if not found
         """
@@ -639,8 +642,7 @@ class OpenSageConfig:
         """Get LLM configuration for a specific model.
 
         Args:
-            model_name: Name of the model configuration to get
-
+            model_name (str): Name of the model configuration to get
         Returns:
             ModelConfig for the specified model, or None if not found
         """
@@ -652,8 +654,7 @@ class OpenSageConfig:
         """Save configuration to TOML file.
 
         Args:
-            toml_path: Path to save TOML file
-        """
+            toml_path (str): Path to save TOML file"""
         import inspect
         from dataclasses import fields, is_dataclass
 

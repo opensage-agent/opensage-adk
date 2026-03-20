@@ -86,10 +86,9 @@ class DomainConfig:
         The other domain's configurations take precedence on conflicts.
 
         Args:
-            other: Another domain configuration to merge with.
-
+            other ('DomainConfig'): Another domain configuration to merge with.
         Returns:
-            New merged DomainConfig.
+            'DomainConfig': New merged DomainConfig.
         """
         merged_nodes = {**self.node_types, **other.node_types}
         merged_rels = {**self.relationships, **other.relationships}
@@ -111,12 +110,11 @@ class DomainConfig:
         """Validate the domain configuration.
 
         Args:
-            known_node_types: Node types from other registered domains.
+            known_node_types (set[str] | None): Node types from other registered domains.
                 Cross-domain relationships (e.g. MENTIONS linking qa→code)
                 are valid as long as all referenced types exist somewhere.
-
         Returns:
-            List of validation error messages (empty if valid).
+            List[str]: List of validation error messages (empty if valid).
         """
         errors = []
         all_types = set(self.node_types) | (known_node_types or set())
@@ -153,8 +151,7 @@ def register_domain(config: DomainConfig) -> None:
     (e.g. MENTIONS linking qa→code nodes) can be checked correctly.
 
     Args:
-        config: Domain configuration to register.
-    """
+        config (DomainConfig): Domain configuration to register."""
     _DOMAIN_REGISTRY[config.name] = config
     logger.info(f"Registered domain: {config.name}")
 
@@ -163,7 +160,7 @@ def validate_all_domains() -> Dict[str, List[str]]:
     """Validate all registered domains, aware of cross-domain node types.
 
     Returns:
-        Dict mapping domain name → list of validation errors (empty if valid).
+        Dict[str, List[str]]: Dict mapping domain name → list of validation errors (empty if valid).
     """
     # Collect all known node types across every domain
     all_types: set[str] = set()
@@ -183,10 +180,9 @@ def get_domain_config(name: str) -> Optional[DomainConfig]:
     """Get a registered domain configuration by name.
 
     Args:
-        name: Domain name to look up.
-
+        name (str): Domain name to look up.
     Returns:
-        Domain configuration if found, None otherwise.
+        Optional[DomainConfig]: Domain configuration if found, None otherwise.
     """
     return _DOMAIN_REGISTRY.get(name)
 
@@ -200,10 +196,9 @@ def get_merged_domain(*domain_names: str) -> DomainConfig:
     """Get a merged domain from multiple registered domains.
 
     Args:
-        *domain_names: Names of domains to merge.
-
+        *domain_names (str): Names of domains to merge.
     Returns:
-        Merged domain configuration.
+        DomainConfig: Merged domain configuration.
 
     Raises:
         ValueError: If any domain name is not found.

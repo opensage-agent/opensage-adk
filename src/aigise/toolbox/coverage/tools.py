@@ -37,7 +37,6 @@ def save_testcase(sandbox: BaseSandbox, testcase_path: str) -> tuple[str, str]:
     Args:
         sandbox (BaseSandbox): The sandbox environment where the testcase will be saved.
         testcase_path (str): The path to the testcase file.
-
     Returns:
         str: The path to the saved testcase within the sandbox.
     """
@@ -67,8 +66,7 @@ async def upload_testcase_to_database(
     Args:
         sandbox (BaseSandbox): The sandbox environment where the testcase is stored.
         testcase_id (str): The ID of the testcase.
-        neo4j_client (AsyncNeo4jClient): The Neo4j client to interact with the database.
-    """
+        neo4j_client (AsyncNeo4jClient): The Neo4j client to interact with the database."""
     testcase_cov_json = os.path.join(
         get_testcase_storage_dir(testcase_id), "testcase.json"
     )
@@ -116,7 +114,6 @@ async def run_coverage(testcase_path: str, *, tool_context: ToolContext) -> dict
 
     Args:
         file_path (str): The absoluate path to the file for which to run coverage analysis.
-
     Returns:
         dict: A dictionary containing the id of the input file and the summarized coverage results.
     """
@@ -166,7 +163,6 @@ async def show_coverage(
         function_name (str): The name of the function for which to show coverage results.
         file_path (Optional[str]): The absolute path to the file of the function. This can be empty,
             in which case it will match all functions with the same name.
-
     Returns:
         dict: A dictionary containing the coverage results for the specified file and testcase.
     """
@@ -209,7 +205,6 @@ async def find_testcases_covering_function(
         function_name (str): The name of the function to search for.
         file_path (Optional[str]): The absolute path to the file of the function. This can be empty,
             in which case it will match all functions with the same name.
-
     Returns:
         dict: A dictionary containing a list of testcase IDs that cover the specified function.
     """

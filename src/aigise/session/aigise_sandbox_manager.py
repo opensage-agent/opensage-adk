@@ -39,8 +39,7 @@ class OpenSageSandboxManager:
         """Initialize OpenSageSandboxManager.
 
         Args:
-            session: OpenSageSession instance (stores reference, not copied)
-        """
+            session: OpenSageSession instance (stores reference, not copied)"""
         self._session = session
         self.opensage_session_id = session.opensage_session_id
 
@@ -72,10 +71,9 @@ class OpenSageSandboxManager:
         """Get the sandbox instance for the given sandbox type.
 
         Args:
-            sandbox_type: Type of sandbox to get or create
-
+            sandbox_type (str): Type of sandbox to get or create
         Returns:
-            BaseSandbox instance for the session and type
+            BaseSandbox: BaseSandbox instance for the session and type
         """
         return self._sandboxes[sandbox_type]
 
@@ -83,7 +81,7 @@ class OpenSageSandboxManager:
         """List all sandboxes for this session.
 
         Returns:
-            Dictionary mapping sandbox types to sandbox instances
+            Dict[str, BaseSandbox]: Dictionary mapping sandbox types to sandbox instances
         """
         return self._sandboxes.copy()
 
@@ -91,10 +89,9 @@ class OpenSageSandboxManager:
         """Remove and cleanup a specific sandbox.
 
         Args:
-            sandbox_type: Type of sandbox to remove
-
+            sandbox_type (str): Type of sandbox to remove
         Returns:
-            True if removed, False if not found
+            bool: True if removed, False if not found
         """
         if sandbox_type not in self._sandboxes:
             return False
@@ -121,7 +118,7 @@ class OpenSageSandboxManager:
         """Get statistics for this session's sandboxes.
 
         Returns:
-            Dictionary with session statistics
+            Dict: Dictionary with session statistics
         """
         return {
             "opensage_session_id": self.opensage_session_id,
@@ -139,12 +136,11 @@ class OpenSageSandboxManager:
         """Initialize shared volumes (scripts/shared-data/tools).
 
         Args:
-            tools_top_roots: Optional set of top-level bash_tools roots to stage
+            tools_top_roots (set[str] | None): Optional set of top-level bash_tools roots to stage
                 into the tools volume/PVC. If None, stage all tools.
-            enabled_skills: enabled_skills setting from the root agent (None, "all",
+            enabled_skills (Any): enabled_skills setting from the root agent (None, "all",
                 or List[str]). Stored for sandbox initializers to conditionally run
-                skill dependency installers.
-        """
+                skill dependency installers."""
         try:
             self.enabled_skills = enabled_skills
             config = self.config
@@ -211,9 +207,12 @@ class OpenSageSandboxManager:
     def _normalize_mount_host_path_spec(spec: str) -> str:
         """Validate and normalize a mount_host_paths spec.
 
-        Expected format:
-          <absolute_host_path>:<absolute_container_path>[:ro|rw]
-        """
+                Expected format:
+                  <absolute_host_path>:<absolute_container_path>[:ro|rw]
+
+        Raises:
+          TypeError: Raised when this operation fails.
+          ValueError: Raised when this operation fails."""
         if not isinstance(spec, str):
             raise TypeError(
                 f"mount_host_paths entries must be strings, got: {type(spec)}"
@@ -268,7 +267,7 @@ class OpenSageSandboxManager:
         """Get the shared volume ID for this session.
 
         Returns:
-            Volume ID or None if no shared volume exists
+            Optional[str]: Volume ID or None if no shared volume exists
         """
         return self._shared_volume_id
 
@@ -278,10 +277,9 @@ class OpenSageSandboxManager:
         """Add shared volume mounts to all sandbox configurations.
 
         Args:
-            scripts_volume_id: The scripts volume identifier (read-only)
-            data_volume_id: The data volume identifier (read-write)
-            tools_volume_id: The tools volume identifier (read-write)
-        """
+            scripts_volume_id (str): The scripts volume identifier (read-only)
+            data_volume_id (str): The data volume identifier (read-write)
+            tools_volume_id (str): The tools volume identifier (read-write)"""
         try:
             config = self.config
             if not config.sandbox or not config.sandbox.sandboxes:
@@ -330,26 +328,28 @@ class OpenSageSandboxManager:
     ) -> None:
         """Launch configured sandbox instances based on backend type.
 
-        This method should be called during session initialization.
-        If sandboxes already exist, this method will skip to avoid conflicts.
+                This method should be called during session initialization.
+                If sandboxes already exist, this method will skip to avoid conflicts.
 
-        Args:
-            sandbox_types: Optional set of sandbox types to launch.
-                If None, launches all configured sandboxes.
-                If provided, only launches sandboxes of the specified types.
-                Use collect_sandbox_dependencies() to get this from an agent.
+                Args:
+                    sandbox_types (Optional[Set[str]]): Optional set of sandbox types to launch.
+                        If None, launches all configured sandboxes.
+                        If provided, only launches sandboxes of the specified types.
+                        Use collect_sandbox_dependencies() to get this from an agent.
 
-        Example::
+                Example::
 
-            # Launch only required sandboxes
-            from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
+                    # Launch only required sandboxes
+                    from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
 
-            deps = collect_sandbox_dependencies(root_agent)  # {'main', 'gdb_mcp'}
-            await session.sandboxes.launch_all_sandboxes(sandbox_types=deps)
+                    deps = collect_sandbox_dependencies(root_agent)  # {'main', 'gdb_mcp'}
+                    await session.sandboxes.launch_all_sandboxes(sandbox_types=deps)
 
-            # Or launch all configured sandboxes
-            await session.sandboxes.launch_all_sandboxes()
-        """
+                    # Or launch all configured sandboxes
+                    await session.sandboxes.launch_all_sandboxes()
+
+        Raises:
+          Exception: Raised when this operation fails."""
         # Defensive check: if any sandboxes already exist, skip launch
         if self._sandboxes:
             logger.warning(
@@ -420,16 +420,18 @@ class OpenSageSandboxManager:
     ) -> None:
         """Initialize all created sandboxes.
 
-        This should be called after launch_all_sandboxes() and after
-        registering any hooks.
+                This should be called after launch_all_sandboxes() and after
+                registering any hooks.
 
-        Example:
-            # Create sandboxes
-            await opensage_session.sandboxes.launch_all_sandboxes()
+                Example:
+                    # Create sandboxes
+                    await opensage_session.sandboxes.launch_all_sandboxes()
 
-            # Initialize
-            await opensage_session.sandboxes.initialize_all_sandboxes()
-        """
+                    # Initialize
+                    await opensage_session.sandboxes.initialize_all_sandboxes()
+
+        Raises:
+          res: Raised when this operation fails."""
         if not self._sandboxes:
             logger.warning(
                 f"No sandboxes to initialize for session {self.opensage_session_id}"
@@ -497,11 +499,13 @@ class OpenSageSandboxManager:
         container_name: Optional[str] = None,
     ) -> None:
         """Attach to an existing container/Pod and register it to this session,
-        then call ensure_ready.
+                then call ensure_ready.
 
-        - native (Docker): requires container_id
-        - k8s: requires pod_name + container_name
-        """
+                - native (Docker): requires container_id
+                - k8s: requires pod_name + container_name
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         backend_type = getattr(self.config.sandbox, "backend", "native")
         backend_class = get_backend_class(backend_type, self.config)
 
@@ -555,8 +559,7 @@ class OpenSageSandboxManager:
         """Cleanup a specific sandbox instance.
 
         Args:
-            sandbox: The sandbox instance to cleanup
-        """
+            sandbox (BaseSandbox): The sandbox instance to cleanup"""
         try:
             # Delete container for Native Docker
             if hasattr(sandbox, "delete_container"):
@@ -604,11 +607,13 @@ class OpenSageSandboxManager:
     ) -> Dict[str, Any]:
         """Cache current sandbox states and shared volume content.
 
-        Args:
-            cache_dir: Directory to store cache files (default: ./sandbox_cache/{task_name})
+                Args:
+                    cache_dir (Optional[str]): Directory to store cache files (default: ./sandbox_cache/{task_name})
 
-        Returns:
-            Dictionary with cache results including backup paths and cached images
+        Raises:
+          Exception: Raised when this operation fails.
+                Returns:
+                    Dict[str, Any]: Dictionary with cache results including backup paths and cached images
         """
         try:
             config = self.config
@@ -655,14 +660,16 @@ class OpenSageSandboxManager:
     def load_sandbox_caches_to_config(self) -> list[str]:
         """Load cached sandbox images and update sandbox configurations.
 
-        This method looks for cached images with the naming pattern:
-        {normalized_task_name}_sandbox_{normalized_sandbox_type}:cached
+                This method looks for cached images with the naming pattern:
+                {normalized_task_name}_sandbox_{normalized_sandbox_type}:cached
 
-        For each found cached image, it updates the corresponding sandbox
-        configuration to use the cached image instead of the original.
+                For each found cached image, it updates the corresponding sandbox
+                configuration to use the cached image instead of the original.
 
-        Returns:
-            List of sandbox types that don't have cached images available
+        Raises:
+          Exception: Raised when this operation fails.
+                Returns:
+                    list[str]: List of sandbox types that don't have cached images available
         """
 
         def normalize_image_name(name: str) -> str:

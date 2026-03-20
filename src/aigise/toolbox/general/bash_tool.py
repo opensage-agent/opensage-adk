@@ -9,10 +9,9 @@ def bash_tool_main(command: str, tool_context: ToolContext) -> str:
     Call this tool only if other tools cannot handle your current needs.
 
     Args:
-        command: The bash command to execute
-
+        command (str): The bash command to execute
     Returns:
-        The output of the bash command
+        str: The output of the bash command
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
     return sandbox.run_command_in_container(command, timeout=60)

@@ -98,7 +98,10 @@ class FuzzInitializer(SandboxInitializer):
     #     pass
 
     async def _compile_with_aflpp(self, infos: dict[str, str]) -> None:
-        """Compile the project with AFL++."""
+        """Compile the project with AFL++.
+
+        Raises:
+          RuntimeError: Raised when this operation fails."""
         logger.info("Compiling with AFL++...")
 
         # Set environment variables and run compilation

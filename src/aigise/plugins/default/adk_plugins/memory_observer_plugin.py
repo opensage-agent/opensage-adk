@@ -69,13 +69,12 @@ class MemoryObserverPlugin(BasePlugin):
         """Initialize the memory observer plugin.
 
         Args:
-            enable_llm_decision: Whether to use LLM for storage decisions.
+            enable_llm_decision (bool): Whether to use LLM for storage decisions.
                 If False, stores all non-excluded tool results above MIN_RESULT_LENGTH.
-            fire_and_forget: Whether to run storage in background without waiting.
+            fire_and_forget (bool): Whether to run storage in background without waiting.
                 If True, tool execution is not blocked by storage operations.
-            decider_model: LiteLLM model identifier for the storage decider.
-                If None, reads from [memory].llm_model in config.
-        """
+            decider_model (Optional[str]): LiteLLM model identifier for the storage decider.
+                If None, reads from [memory].llm_model in config."""
         super().__init__(name="memory_observer")
         self.enable_llm_decision = enable_llm_decision
         self.fire_and_forget = fire_and_forget
@@ -151,11 +150,9 @@ class MemoryObserverPlugin(BasePlugin):
         result and, if deemed valuable, stores it in the memory graph.
 
         Args:
-            tool: The tool that was executed.
-            tool_args: Arguments passed to the tool.
-            tool_context: Tool execution context.
-            result: The tool's result dictionary.
-        """
+            tool (BaseTool): The tool that was executed.
+            tool_args (dict): Arguments passed to the tool.
+            result (dict): The tool's result dictionary."""
         tool_name = self._get_tool_name(tool)
 
         # Check if memory is enabled in config
@@ -219,11 +216,9 @@ class MemoryObserverPlugin(BasePlugin):
         """Process tool result and store if valuable.
 
         Args:
-            tool_name: Name of the tool that produced the result.
-            tool_args: Arguments passed to the tool.
-            result: The tool's result dictionary.
-            tool_context: Tool execution context.
-        """
+            tool_name (str): Name of the tool that produced the result.
+            tool_args (dict): Arguments passed to the tool.
+            result (dict): The tool's result dictionary."""
         try:
             result_content = self._extract_result_content(result)
             content_len = len(result_content)
@@ -348,12 +343,10 @@ class MemoryObserverPlugin(BasePlugin):
         """Save full tool output to a file in the sandbox.
 
         Args:
-            tool_name: Name of the tool.
-            content: Full content to save.
-            tool_context: Tool execution context for sandbox access.
-
+            tool_name (str): Name of the tool.
+            content (str): Full content to save.
         Returns:
-            File path if saved successfully, None otherwise.
+            Optional[str]: File path if saved successfully, None otherwise.
         """
         return save_content_to_sandbox_file(
             context=tool_context,

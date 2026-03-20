@@ -30,8 +30,7 @@ async def get_all_invocations_for_agent(agent_name: str, tool_context: ToolConte
     Get all invocations for an agent
 
     Args:
-        agent_name: The name of the agent
-
+        agent_name (str): The name of the agent
     Returns:
         A list of invocations
     """
@@ -101,9 +100,8 @@ async def get_full_tool_res_and_grep(
     Get the RawToolResponse that this event summarizes and grep its raw_content
 
     Args:
-        event_id: The id of the event that contains the summary
-        grep_pattern: The pattern to grep the result
-
+        event_id (str): The id of the event that contains the summary
+        grep_pattern (str): The pattern to grep the result
     Returns:
         The grepped result from the original tool response
     """
@@ -155,8 +153,7 @@ async def list_all_events_for_session(session_id: str, tool_context: ToolContext
     List all events for the given session id, for tool responses, only show the ids, no contents will be shown
 
     Args:
-        session_id: The id of the session
-
+        session_id (str): The id of the session
     Returns:
         A list of events with basic information
     """
@@ -209,8 +206,7 @@ async def get_full_tool_res(event_id: str, tool_context: ToolContext):
     Get the RawToolResponse that this event summarizes via SUMMARIZES_TOOL_RESPONSE relationship
 
     Args:
-        event_id: The id of the event that contains the summary
-
+        event_id (str): The id of the event that contains the summary
     Returns:
         The original tool response that was summarized by this event
     """
@@ -256,8 +252,7 @@ async def get_all_events_for_summarization(
     Get all events for the given summarization id, for tool responses, only show the ids, no contents will be shown
 
     Args:
-        summarization_id: The id of the summarization (event_id of the summary event)
-
+        summarization_id (str): The id of the summarization (event_id of the summary event)
     Returns:
         A list of events that were summarized
     """
@@ -470,10 +465,9 @@ async def drop_or_summarize_events(tool_context: ToolContext):
         """Summarize a range of events into a single summary
 
         Args:
-            start_index: Starting index of events to summarize (inclusive)
-            end_index: Ending index of events to summarize (inclusive)
-            summarization: The summary text that will replace the events
-        """
+            start_index (int): Starting index of events to summarize (inclusive)
+            end_index (int): Ending index of events to summarize (inclusive)
+            summarization (str): The summary text that will replace the events"""
         try:
             # Validate indices
             if start_index < 0 or end_index >= len(events) or start_index > end_index:
@@ -572,8 +566,7 @@ async def drop_or_summarize_events(tool_context: ToolContext):
         """Drop specific events that are not useful
 
         Args:
-            indices: List of event indices to drop
-        """
+            indices (List[int]): List of event indices to drop"""
         try:
             # Validate indices
             invalid_indices = [i for i in indices if i < 0 or i >= len(events)]

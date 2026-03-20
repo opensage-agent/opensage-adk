@@ -99,7 +99,10 @@ class NodeTypeConfig:
     """Human-readable description of this node type."""
 
     def __post_init__(self):
-        """Validate configuration after initialization."""
+        """Validate configuration after initialization.
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         # Ensure embedding_property exists in properties if specified
         if self.embedding_property and self.embedding_property not in self.properties:
             self.properties[self.embedding_property] = PropertyConfig(

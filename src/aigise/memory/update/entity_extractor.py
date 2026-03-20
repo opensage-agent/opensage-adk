@@ -93,10 +93,9 @@ class EntityExtractor:
         """Initialize entity extractor.
 
         Args:
-            domain_config: Domain configuration for entity types.
-            use_llm_extraction: Whether to use LLM for semantic extraction.
-            generate_embeddings: Whether to generate embeddings.
-        """
+            domain_config (Optional['DomainConfig']): Domain configuration for entity types.
+            use_llm_extraction (bool): Whether to use LLM for semantic extraction.
+            generate_embeddings (bool): Whether to generate embeddings."""
         self.domain_config = domain_config
         self.use_llm_extraction = use_llm_extraction
         self.generate_embeddings = generate_embeddings
@@ -110,12 +109,11 @@ class EntityExtractor:
         """Extract entities from content.
 
         Args:
-            content: Content to extract entities from.
-            content_type: Type of content ('question', 'answer', 'code', 'text').
-            metadata: Additional context for extraction.
-
+            content (str): Content to extract entities from.
+            content_type (str): Type of content ('question', 'answer', 'code', 'text').
+            metadata (Optional[Dict[str, Any]]): Additional context for extraction.
         Returns:
-            ExtractionResult with extracted entities.
+            ExtractionResult: ExtractionResult with extracted entities.
         """
         # TODO: can we merge some of these extractions to reduce LLM calls? Let them extract together in one call; or constrain and only extract from long context
         try:

@@ -50,13 +50,12 @@ async def search_memory(
     that are semantically similar to your query.
 
     Args:
-        query: The search query - describe what you're looking for.
-        node_types: Optional list of node types to search. Defaults to
+        query (str): The search query - describe what you're looking for.
+        node_types (Optional[List[str]]): Optional list of node types to search. Defaults to
                    ["Question", "Topic"]. Other options: "Answer", "Function",
                    "Class", "File".
-        max_results: Maximum number of results to return. Default is 5.
-        min_score: Minimum similarity score (0-1). Default is 0.5.
-
+        max_results (int): Maximum number of results to return. Default is 5.
+        min_score (float): Minimum similarity score (0-1). Default is 0.5.
     Returns:
         Dictionary with:
         - success: True if search completed

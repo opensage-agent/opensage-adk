@@ -77,8 +77,7 @@ class GdbController:
         Initialize GDB controller
 
         Args:
-            gdb_path: Path to GDB executable (default: "pwndbg")
-        """
+            gdb_path: Path to GDB executable (default: "pwndbg")"""
         self.controller = gdbcontroller.GdbController(
             command=[
                 pwndbg,
@@ -96,11 +95,10 @@ class GdbController:
         Execute a classic GDB command (non-MI) and return raw responses.
 
         Args:
-            command: GDB command to execute
-            timeout_sec: Timeout for command execution
-
+            command (str): GDB command to execute
+            timeout_sec (float): Timeout for command execution
         Returns:
-            Dictionary with raw responses, success flag, and current state.
+            Dict[str, Any]: Dictionary with raw responses, success flag, and current state.
         """
         logger.debug(f"Executing command: {command}")
         # pygdbmi
@@ -279,8 +277,7 @@ class PwndbgTools:
         Initialize pwndbg tools
 
         Args:
-            gdb_controller: GDB controller instance
-        """
+            gdb_controller: GDB controller instance"""
         self.gdb = GdbController()
         self.session = SessionState()
 

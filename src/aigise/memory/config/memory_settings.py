@@ -43,10 +43,9 @@ class MemorySettings:
         """Create MemorySettings from a MemoryConfig dataclass.
 
         Args:
-            memory_config: The MemoryConfig from OpenSageConfig.
-
+            memory_config ('MemoryConfig'): The MemoryConfig from OpenSageConfig.
         Returns:
-            MemorySettings instance with values from config.
+            'MemorySettings': MemorySettings instance with values from config.
         """
         return cls(
             enabled=memory_config.enabled,
@@ -82,8 +81,7 @@ def configure_memory_from_config(memory_config: "MemoryConfig") -> MemorySetting
     memory config from OpenSageConfig.
 
     Args:
-        memory_config: The MemoryConfig from OpenSageConfig.
-
+        memory_config ('MemoryConfig'): The MemoryConfig from OpenSageConfig.
     Returns:
         MemorySettings: The configured settings instance.
     """
@@ -105,6 +103,6 @@ def is_memory_enabled() -> bool:
     """Check if memory module is enabled.
 
     Returns:
-        True if memory is enabled, False otherwise.
+        bool: True if memory is enabled, False otherwise.
     """
     return get_memory_settings().enabled

@@ -103,15 +103,14 @@ async def run_fuzzing_campaign(
 
 
     Args:
-        seeds: Optional list of path to seed input files or directories.
+        seeds (Optional[List[str]]): Optional list of path to seed input files or directories.
             If None, will continue with previous fuzzing campaign state, or use a default seed ("1234"). You should normally create a seed file and indicate its path.
-        custom_mutator: Optional path to a custom mutator python script, or the function itself. If not provided, use default mutators.
+        custom_mutator (Optional[str]): Optional path to a custom mutator python script, or the function itself. If not provided, use default mutators.
             It should define a function::
 
                 def fuzz(buf: bytearray, add_buf: bytearray, max_size: int) -> bytearray:
                     \"\"\"
                     Called per fuzzing iteration.
-
                     Args:
                         buf (bytearray): The buffer that should be mutated.
                         add_buf (bytearray): A second buffer that can be used as mutation source.
@@ -196,8 +195,8 @@ async def extract_crashes(
     Extract crash inputs from fuzzing output.
 
     Args:
-        crash_names: List of crash file names to extract. If None, extract all crashes.
-        target_dir: Directory in the container to copy crashes to.
+        crash_names (Optional[List[str]]): List of crash file names to extract. If None, extract all crashes.
+        target_dir (str): Directory in the container to copy crashes to.
     Returns:
         Dictionary indicating success or failure.
     """
@@ -230,7 +229,7 @@ async def check_fuzzing_stats(*, tool_context: ToolContext) -> Dict[str, Any]:
     Check fuzzing coverage and statistics.
 
     Returns:
-        Dictionary containing coverage information
+        Dict[str, Any]: Dictionary containing coverage information
     """
     fuzz_sandbox = get_sandbox_from_context(tool_context, "fuzz")
 

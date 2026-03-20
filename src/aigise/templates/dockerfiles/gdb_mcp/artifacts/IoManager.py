@@ -81,11 +81,10 @@ class IoManager:
         by timeout_sec, an exception is raised.
 
         Args:
-            timeout_sec: Maximum time to wait for reponse. Must be >= 0. Will return after
-            raise_error_on_timeout: Whether an exception should be raised if no response was found after timeout_sec
-
+            timeout_sec (float): Maximum time to wait for reponse. Must be >= 0. Will return after
+            raise_error_on_timeout (bool): Whether an exception should be raised if no response was found after timeout_sec
         Returns:
-            List of parsed GDB responses, returned from gdbmiparser.parse_response, with the
+            List[Dict]: List of parsed GDB responses, returned from gdbmiparser.parse_response, with the
             additional key 'stream' which is either 'stdout' or 'stderr'
 
         Raises:
@@ -145,7 +144,10 @@ class IoManager:
         return responses
 
     def _get_responses_unix(self, timeout_sec: float) -> List[Dict]:
-        """Get responses on unix-like system. Use select to wait for output."""
+        """Get responses on unix-like system. Use select to wait for output.
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         timeout_time_sec = time.time() + timeout_sec
         responses = []
         while True:
@@ -194,9 +196,8 @@ class IoManager:
     ) -> List[Dict[Any, Any]]:
         """Get parsed response list from string output
         Args:
-            raw_output (unicode): gdb output to parse
-            stream (str): either stdout or stderr
-        """
+            raw_output (bytes): gdb output to parse
+            stream (str): either stdout or stderr"""
         responses: List[Dict[Any, Any]] = []
 
         (
@@ -237,12 +238,12 @@ class IoManager:
         """Write to gdb process. Block while parsing responses from gdb for a maximum of timeout_sec.
 
         Args:
-            mi_cmd_to_write: String to write to gdb. If list, it is joined by newlines.
-            timeout_sec: Maximum number of seconds to wait for response before exiting. Must be >= 0.
-            raise_error_on_timeout: If read_response is True, raise error if no response is received
-            read_response: Block and read response. If there is a separate thread running, this can be false, and the reading thread read the output.
+            mi_cmd_to_write (Union[str, List[str]]): String to write to gdb. If list, it is joined by newlines.
+            timeout_sec (float): Maximum number of seconds to wait for response before exiting. Must be >= 0.
+            raise_error_on_timeout (bool): If read_response is True, raise error if no response is received
+            read_response (bool): Block and read response. If there is a separate thread running, this can be false, and the reading thread read the output.
         Returns:
-            List of parsed gdb responses if read_response is True, otherwise []
+            List[Dict]: List of parsed gdb responses if read_response is True, otherwise []
         Raises:
             TypeError: if mi_cmd_to_write is not valid
         """
@@ -303,12 +304,11 @@ def _buffer_incomplete_responses(
     output if the output did not end in a newline.
 
     Args:
-        raw_output: Contents of the gdb mi output
-        buf (str): Buffered gdb response from the past. This is incomplete and needs to be prepended to
+        raw_output (Optional[bytes]): Contents of the gdb mi output
+        buf (Optional[bytes]): Buffered gdb response from the past. This is incomplete and needs to be prepended to
         gdb's next output.
-
     Returns:
-        (raw_output, buf)
+        Tuple[Optional[bytes], Optional[bytes]]: (raw_output, buf)
     """
 
     if raw_output:
@@ -334,9 +334,12 @@ def _buffer_incomplete_responses(
 
 def _make_non_blocking(file_obj: IO) -> None:
     """make file object non-blocking
-    Windows doesn't have the fcntl module, but someone on
-    stack overflow supplied this code as an answer, and it works
-    http://stackoverflow.com/a/34504971/2893090"""
+        Windows doesn't have the fcntl module, but someone on
+        stack overflow supplied this code as an answer, and it works
+        http://stackoverflow.com/a/34504971/2893090
+
+    Raises:
+      ValueError: Raised when this operation fails."""
 
     if USING_WINDOWS:
         LPDWORD = POINTER(DWORD)

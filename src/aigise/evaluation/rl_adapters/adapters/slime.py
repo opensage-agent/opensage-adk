@@ -96,10 +96,9 @@ class SlimeAdapter(BaseAdapter):
         holds the full dataset row.
 
         Args:
-            sample: Slime Sample object
-
+            sample (Any): Slime Sample object
         Returns:
-            Dict in format expected by Evaluation._create_task()
+            dict: Dict in format expected by Evaluation._create_task()
         """
         # The sample.metadata should contain the full dataset row
         # (set by generate_with_opensage.py when building the Sample)
@@ -138,12 +137,11 @@ class SlimeAdapter(BaseAdapter):
         into the slime Sample.
 
         Args:
-            args: Rollout arguments from slime (has sglang_router_ip, etc.)
-            sample: Sample object with prompt (task index) and metadata
-            sampling_params: Sampling parameters for sglang
-
+            args (Any): Rollout arguments from slime (has sglang_router_ip, etc.)
+            sample (Any): Sample object with prompt (task index) and metadata
+            sampling_params (dict[str, Any]): Sampling parameters for sglang
         Returns:
-            Updated Sample object with tokens, loss_mask, response, reward, status
+            Any: Updated Sample object with tokens, loss_mask, response, reward, status
         """
         slime_llm = None
         sample_id = getattr(sample, "id", None) or getattr(sample, "task_id", "unknown")
@@ -193,11 +191,10 @@ class SlimeAdapter(BaseAdapter):
         """Create and configure a SlimeLlm instance.
 
         Args:
-            args: Rollout args from slime (must have sglang_router_ip, sglang_router_port)
-            sampling_params: Sampling parameters for sglang
-
+            args (Any): Rollout args from slime (must have sglang_router_ip, sglang_router_port)
+            sampling_params (dict[str, Any]): Sampling parameters for sglang
         Returns:
-            Configured SlimeLlm instance
+            Any: Configured SlimeLlm instance
         """
         import importlib
 
@@ -317,11 +314,10 @@ class SlimeAdapter(BaseAdapter):
         Falls back to 0.0 if no reward function is available.
 
         Args:
-            args: Rollout arguments from slime
-            sample: Sample object with response already populated
-
+            args (Any): Rollout arguments from slime
+            sample (Any): Sample object with response already populated
         Returns:
-            Scalar reward value (float)
+            float: Scalar reward value (float)
         """
         try:
             logger.debug(f"has_reward_func={self.benchmark.has_reward_func}")
@@ -347,13 +343,12 @@ class SlimeAdapter(BaseAdapter):
         """Build the final slime Sample with training data from SlimeLlm tracker.
 
         Args:
-            sample: Original slime Sample
-            slime_llm: SlimeLlm instance with populated token tracker
-            result: Result dict from Evaluation._generate_one
-            task: EvaluationTask
-
+            sample (Any): Original slime Sample
+            slime_llm (Any): SlimeLlm instance with populated token tracker
+            result (dict): Result dict from Evaluation._generate_one
+            task (Any): EvaluationTask
         Returns:
-            Updated Sample with tokens, loss_mask, response, status, reward
+            Any: Updated Sample with tokens, loss_mask, response, status, reward
         """
         tracker = slime_llm.tracker
 

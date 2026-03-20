@@ -74,19 +74,18 @@ class BashToolMetadata:
     ):
         """
         Args:
-            name: Tool name (used to generate Python function name)
-            script_path: Script path in container (relative to /sandbox_scripts/bash_tools)
-            description: Tool description (for agent understanding)
-            parameters: Parameter list, each parameter is a dict containing:
+            name (str): Tool name (used to generate Python function name)
+            script_path (str): Script path in container (relative to /sandbox_scripts/bash_tools)
+            description (str): Tool description (for agent understanding)
+            parameters (List[Dict[str, Any]]): Parameter list, each parameter is a dict containing:
                 - name: Parameter name
                 - type: Parameter type (str, int, bool, etc.)
                 - description: Parameter description
                 - required: Whether required
                 - default: Default value (optional)
-            sandbox_types: List of required sandbox types, default ["main"]
-            timeout: Timeout in seconds
-            returns_json: Whether script returns JSON format
-        """
+            sandbox_types (List[str]): List of required sandbox types, default ["main"]
+            timeout (int): Timeout in seconds
+            returns_json (bool): Whether script returns JSON format"""
         self.name = name
         self.script_path = script_path
         self.description = description
@@ -129,20 +128,18 @@ def run_bash_tool_script(
     for completion.
 
     Args:
-        script_name: Logical script identifier without extension ("find_git_repo").
-        args: Mapping of parameter names to values used to build CLI arguments.
-        sandbox_type: Sandbox to load from `tool_context` when `sandbox` is not
+        script_name (str): Logical script identifier without extension ("find_git_repo").
+        args (Dict[str, Any]): Mapping of parameter names to values used to build CLI arguments.
+        sandbox_type (str): Sandbox to load from `tool_context` when `sandbox` is not
             provided explicitly.
-        tool_context: Agent runtime context used to resolve sessions/sandboxes.
         sandbox: Pre-resolved sandbox instance (typically in evaluation flows).
-        timeout: Seconds to wait for foreground completion before returning.
-        execution_timeout: Hard timeout enforced on the command itself.
-        returns_json: Whether to parse stdout as JSON when the exit code is 0.
-        background: If True, return immediately after starting the task.
-        param_definitions: Rich metadata describing positional/named arguments.
-
+        timeout (int): Seconds to wait for foreground completion before returning.
+        execution_timeout (Optional[int]): Hard timeout enforced on the command itself.
+        returns_json (bool): Whether to parse stdout as JSON when the exit code is 0.
+        background (bool): If True, return immediately after starting the task.
+        param_definitions (Optional[List[Dict[str, Any]]]): Rich metadata describing positional/named arguments.
     Returns:
-        Tuple[output, exit_code] where *output* is either raw stdout or parsed
+        Tuple[Any, int]: Tuple[output, exit_code] where *output* is either raw stdout or parsed
         JSON when `returns_json` is True and parsing succeeds.
 
     Notes:
@@ -272,34 +269,38 @@ def list_available_scripts(
 ) -> str:
     """List available bash tools by printing full SKILL.md contents.
 
-    Use this tool to discover what bash tools are available under `/bash_tools`
-    and read their full documentation. For each discovered *executable* Skill
-    (a directory containing `SKILL.md` and a `scripts/` subdirectory with at
-    least one `.sh` or `.py` file), this returns the complete `SKILL.md`
-    content.
+        Use this tool to discover what bash tools are available under `/bash_tools`
+        and read their full documentation. For each discovered *executable* Skill
+        (a directory containing `SKILL.md` and a `scripts/` subdirectory with at
+        least one `.sh` or `.py` file), this returns the complete `SKILL.md`
+        content.
 
-    IMPORTANT (MUST FOLLOW):
-    - Do NOT call this tool with the `/bash_tools` root directory (i.e.
-      `start_dir="/bash_tools"`). That produces too much output.
+        IMPORTANT (MUST FOLLOW):
+        - Do NOT call this tool with the `/bash_tools` root directory (i.e.
+          `start_dir="/bash_tools"`). That produces too much output.
 
-    Args:
-        start_dir: Optional subdirectory under bash_tools to start discovery from,
-            e.g. "fuzz" or "static_analysis". If omitted, scans all bash_tools.
-            DO NOT pass the `/bash_tools` root directory.
+        Args:
+            start_dir (Optional[str]): Optional subdirectory under bash_tools to start discovery from,
+                e.g. "fuzz" or "static_analysis". If omitted, scans all bash_tools.
+                DO NOT pass the `/bash_tools` root directory.
 
-    Returns:
-        str: Formatted list of available Skills with full SKILL.md content
+    Raises:
+      ValueError: Raised when this operation fails.
+        Returns:
+            str: Formatted list of available Skills with full SKILL.md content
     """
 
     def _normalize_start_dir(value: str) -> str:
         """Normalize start_dir into a relative path under BASH_TOOLS_DIR.
 
-        Accepts both:
-        - "retrieval"
-        - "retrieval/search-symbol"
-        - "/bash_tools/retrieval"
-        - "/bash_tools/retrieval/search-symbol"
-        """
+                Accepts both:
+                - "retrieval"
+                - "retrieval/search-symbol"
+                - "/bash_tools/retrieval"
+                - "/bash_tools/retrieval/search-symbol"
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         value = value.strip()
         # Treat "/bash_tools" (and "/bash_tools/" + extra trailing slashes) as root.
         if value.rstrip("/") == CONTAINER_BASH_TOOLS_DIR:
@@ -386,13 +387,11 @@ def wait_for_background(
     """Block until a background task finishes or the wait times out.
 
     Args:
-        task_id: Identifier returned by `run_bash_tool_script` or
+        task_id (str): Identifier returned by `run_bash_tool_script` or
             `run_terminal_command` when the task was launched.
-        timeout: Seconds to wait before returning with a timeout status.
-        tool_context: Execution context used to locate session state.
-
+        timeout (int): Seconds to wait before returning with a timeout status.
     Returns:
-        Dict with keys such as `success`, `output`, `exit_code`, and
+        Dict[str, Any]: Dict with keys such as `success`, `output`, `exit_code`, and
         `status`. If the wait hits the timeout, `timeout=True` is included.
     """
     # Get TaskManager from session
@@ -484,19 +483,17 @@ def run_terminal_command(
         can retrieve them later via `get_background_task_output`).
 
     Args:
-        command: The full command line to execute
+        command (str): The full command line to execute
             (e.g., "python3 -c 'print(123)' | cat").
-        background: Whether to run the command in the background (default: False)
-        timeout: Timeout in seconds for foreground commands, after which they will be moved to background
+        background (bool): Whether to run the command in the background (default: False)
+        timeout (int): Timeout in seconds for foreground commands, after which they will be moved to background
             (default: 60)
-        execution_timeout: Timeout in seconds for the command itself, after which it will be terminated
+        execution_timeout (Optional[int]): Timeout in seconds for the command itself, after which it will be terminated
             (default: None, meaning no timeout)
-        sandbox_name: The name of the sandbox to run the command in
+        sandbox_name (str): The name of the sandbox to run the command in
             (default: "main").
-        tool_context: The tool context from the agent execution
-
     Returns:
-        Dict describing execution status. When `background` is False the
+        Dict[str, Any]: Dict describing execution status. When `background` is False the
         response contains `output` and `exit_code`. Otherwise, it returns the
         `task_id` needed to resume/inspect the background run.
     """
@@ -590,8 +587,6 @@ def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
     - Verifying any task started with background=True parameter
 
     Args:
-        tool_context: Tool context from the agent
-
     Returns:
         dict: Dictionary containing:
             - tasks: List of task information dictionaries, each with:
@@ -647,9 +642,7 @@ def get_background_task_output(
     running process.
 
     Args:
-        task_id: The ID of the task (from list_background_tasks)
-        tool_context: Tool context from the agent
-
+        task_id (str): The ID of the task (from list_background_tasks)
     Returns:
         dict: Dictionary containing:
             - task_id: The task ID
@@ -732,9 +725,7 @@ def kill_background_task(task_id: str, *, tool_context: ToolContext) -> Dict[str
     """Kill a running background task.
 
     Args:
-        task_id: The ID of the task to kill
-        tool_context: Tool context from the agent
-
+        task_id (str): The ID of the task to kill
     Returns:
         dict: Result with 'success', 'message'
     """

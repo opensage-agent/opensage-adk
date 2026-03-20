@@ -5,10 +5,8 @@ def finish_task(tool_context: ToolContext) -> str:
     """Indicate that the task has been finished.
 
     Args:
-        tool_context: The tool context
-
     Returns:
-        "Task finished"
+        str: "Task finished"
     """
     tool_context.state["task_finished"] = True
     return "Task finished"

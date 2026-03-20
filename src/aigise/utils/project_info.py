@@ -17,8 +17,7 @@ def find_path(*path_parts: str) -> Path:
     2. PROJECT_PATH / path_parts (development project root)
 
     Args:
-        *path_parts: Path components (e.g., "examples", "agents", "my_agent")
-
+        *path_parts (str): Path components (e.g., "examples", "agents", "my_agent")
     Returns:
         Path: First existing path, or SRC_PATH-based path if none exist
 

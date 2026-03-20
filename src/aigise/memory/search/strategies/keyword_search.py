@@ -26,9 +26,8 @@ class KeywordSearchStrategy(SearchStrategy):
         """Initialize keyword search strategy.
 
         Args:
-            fuzzy: Whether to enable fuzzy matching for typos.
-            boost_exact: Score multiplier for exact matches.
-        """
+            fuzzy (bool): Whether to enable fuzzy matching for typos.
+            boost_exact (float): Score multiplier for exact matches."""
         self.fuzzy = fuzzy
         self.boost_exact = boost_exact
 

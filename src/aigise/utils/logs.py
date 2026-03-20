@@ -49,7 +49,6 @@ def setup_opensage_logging(level=None, use_colors=None):
                (default: INFO)
         use_colors: Enable colored output. If None, auto-detects based on
                     NO_COLOR env var and stderr.isatty()
-
     Returns:
         The configured opensage logger
 
@@ -118,12 +117,11 @@ def log_to_tmp_folder(
     Args:
         level: Log level (int or string). If None, uses OPENSAGE_LOG_LEVEL env var
         use_colors: Enable colored output in log file (default: False)
-        sub_folder: Subdirectory name under system temp folder
-        log_file_prefix: Prefix for log filename
-        log_file_timestamp: Timestamp for log filename. If None, uses current time
-
+        sub_folder (str): Subdirectory name under system temp folder
+        log_file_prefix (str): Prefix for log filename
+        log_file_timestamp (str | None): Timestamp for log filename. If None, uses current time
     Returns:
-        Full path to the log file
+        str: Full path to the log file
 
     Examples:
         import opensage

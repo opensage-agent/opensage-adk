@@ -47,12 +47,11 @@ class BenchmarkInterface:
         """Initialize benchmark interface.
 
         Args:
-            get_prompt_fn: Function to extract prompt from sample
-            reward_fn: Function to calculate reward
-            preprocess_fn: Optional function to preprocess sample
-            postprocess_fn: Optional function to postprocess response
-            evaluation_class: The registered Evaluation subclass
-        """
+            get_prompt_fn (Optional[Callable[[Any], str]]): Function to extract prompt from sample
+            reward_fn (Optional[Callable[..., Any]]): Function to calculate reward
+            preprocess_fn (Optional[Callable[[Any], Any]]): Optional function to preprocess sample
+            postprocess_fn (Optional[Callable[[Any, str], Any]]): Optional function to postprocess response
+            evaluation_class (Optional[type]): The registered Evaluation subclass"""
         self._get_prompt_fn = get_prompt_fn
         self._reward_fn = reward_fn
         self._preprocess_fn = preprocess_fn
@@ -70,10 +69,9 @@ class BenchmarkInterface:
         directly on the Evaluation class.
 
         Args:
-            benchmark_name: Name of the benchmark (case-insensitive, e.g., "secodeplt")
-
+            benchmark_name (str): Name of the benchmark (case-insensitive, e.g., "secodeplt")
         Returns:
-            BenchmarkInterface instance
+            'BenchmarkInterface': BenchmarkInterface instance
 
         Raises:
             ImportError: If benchmark not found in registry
@@ -150,10 +148,9 @@ class BenchmarkInterface:
         Delegates to the Evaluation class's get_prompt method.
 
         Args:
-            sample: Sample object from RL framework
-
+            sample (Any): Sample object from RL framework
         Returns:
-            Prompt string
+            str: Prompt string
         """
         if self._get_prompt_fn:
             return self._get_prompt_fn(sample)
@@ -165,12 +162,11 @@ class BenchmarkInterface:
         Delegates to the Evaluation class's reward_func method.
 
         Args:
-            args: Rollout arguments from RL framework
-            sample: Sample with response
+            args (Any): Rollout arguments from RL framework
+            sample (Any): Sample with response
             **kwargs: Additional arguments
-
         Returns:
-            Reward dict with 'score' and metadata
+            dict: Reward dict with 'score' and metadata
         """
         if self._reward_fn:
             import asyncio
@@ -185,10 +181,9 @@ class BenchmarkInterface:
         """Preprocess sample before agent execution.
 
         Args:
-            sample: Sample object
-
+            sample (Any): Sample object
         Returns:
-            Preprocessed sample (may be same object)
+            Any: Preprocessed sample (may be same object)
         """
         if self._preprocess_fn:
             return self._preprocess_fn(sample)
@@ -198,11 +193,10 @@ class BenchmarkInterface:
         """Postprocess agent response.
 
         Args:
-            sample: Sample object
-            response: Agent response text
-
+            sample (Any): Sample object
+            response (str): Agent response text
         Returns:
-            Updated sample
+            Any: Updated sample
         """
         if self._postprocess_fn:
             return self._postprocess_fn(sample, response)

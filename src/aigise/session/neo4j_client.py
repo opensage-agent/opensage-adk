@@ -12,11 +12,10 @@ def _safe_str_fallback(value: Any, type_name: str = "") -> str:
     """Safely convert a value to string with fallback.
 
     Args:
-        value: The value to convert.
-        type_name: Optional type name for error messages.
-
+        value (Any): The value to convert.
+        type_name (str): Optional type name for error messages.
     Returns:
-        String representation of the value, or a safe placeholder if conversion fails.
+        str: String representation of the value, or a safe placeholder if conversion fails.
     """
     try:
         return str(value)
@@ -37,10 +36,9 @@ def _convert_neo4j_types_to_native(value: Any) -> Any:
     3. Final fallback to safe placeholder string
 
     Args:
-        value: The value to convert (can be dict, list, or any Neo4j type).
-
+        value (Any): The value to convert (can be dict, list, or any Neo4j type).
     Returns:
-        Converted value with Neo4j types replaced by Python native types.
+        Any: Converted value with Neo4j types replaced by Python native types.
         Always returns a JSON-serializable type.
     """
     # Handle dict recursively
@@ -180,8 +178,7 @@ class AsyncNeo4jClient:
             uri: Neo4j connection URI
             user: Username
             password: Password
-            database: Optional database name
-        """
+            database: Optional database name"""
         self.uri = uri
         self.user = user
         self.password = password
@@ -195,7 +192,7 @@ class AsyncNeo4jClient:
         """Wait for Neo4j readiness (used in __init__).
 
         Returns:
-            True if ready, False if timeout
+            bool: True if ready, False if timeout
         """
         logger.info(f"Waiting for Neo4j at {self.uri} to be ready (async client)...")
 
@@ -221,8 +218,7 @@ class AsyncNeo4jClient:
 
         Args:
             driver: Async Neo4j driver connected to default database
-            database_name: Name of database to check/create
-        """
+            database_name (str): Name of database to check/create"""
         try:
             async with driver.session(database="neo4j") as session:
                 # Check if database exists
@@ -253,9 +249,8 @@ class AsyncNeo4jClient:
 
         Args:
             driver: Async Neo4j driver connected to default database
-            database_name: Name of database to wait for
-            timeout: Maximum wait time in seconds
-        """
+            database_name (str): Name of database to wait for
+            timeout (int): Maximum wait time in seconds"""
         logger.info(f"Waiting for database {database_name} to come online...")
 
         for attempt in range(timeout):

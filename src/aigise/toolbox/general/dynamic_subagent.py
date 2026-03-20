@@ -58,23 +58,22 @@ async def create_subagent(
       `complain`.
 
     Args:
-        agent_name: Custom name for the agent
-        instruction: Custom instruction for the agent, this will be the system prompt for the agent, it should be a comprehensive instruction for the agent to follow and not task-specific.
-        model_name: Model to use for the agent (e.g., "anthropic/claude-sonnet-4",
+        agent_name (str): Custom name for the agent
+        instruction (str): Custom instruction for the agent, this will be the system prompt for the agent, it should be a comprehensive instruction for the agent to follow and not task-specific.
+        model_name (str): Model to use for the agent (e.g., "anthropic/claude-sonnet-4",
           "openai/gpt-5", or "inherit" to reuse the current agent's model)
-        tools_list: List of Python tool names to assign to the agent.
+        tools_list (List[str]): List of Python tool names to assign to the agent.
             This may also include **toolset names** (e.g. "gdb_mcp", "pdb_mcp")
             if the caller agent exposes a toolset instance with a stable `name`.
             Passing a toolset name injects the entire toolset into the subagent.
-        enabled_skills: Controls which bash tools are loaded.
+        enabled_skills (Optional[List[str]]): Controls which bash tools are loaded.
                       - None: Load NO bash tools.
                       - ["all"]: Load ONLY top-level skills: `<root>/*/SKILL.md`.
                       - List[str]: Load skills by relative path/prefix under the
                         skill root (e.g. ["fuzz"] or ["fuzz/simplified-python-fuzzer"]).
-        description: Optional description for the agent
-
+        description (Optional[str]): Optional description for the agent
     Returns:
-        Dictionary with creation result and agent details
+        Dict[str, Any]: Dictionary with creation result and agent details
     """
     try:
         session_id = get_opensage_session_id_from_context(tool_context)
@@ -410,12 +409,11 @@ async def search_agent(
     - ADK subagents attached to the current caller agent via `sub_agents`
 
     Args:
-        keywords: Search keywords. Accepts a whitespace-separated string or a list of strings.
-        limit: Max number of results to return (sorted by relevance).
-        match_all: If True, require *all* keywords to match in (name or description).
-
+        keywords (Union[List[str], str]): Search keywords. Accepts a whitespace-separated string or a list of strings.
+        limit (int): Max number of results to return (sorted by relevance).
+        match_all (bool): If True, require *all* keywords to match in (name or description).
     Returns:
-        dict with `matches` listing matching agents and their metadata.
+        Dict[str, Any]: dict with `matches` listing matching agents and their metadata.
     """
     normalized_keywords = _normalize_keywords(keywords)
     if not normalized_keywords:
@@ -545,11 +543,10 @@ async def call_subagent_as_tool(
     natural language requests and return structured results.
 
     Args:
-        agent_name: Name of the sub-agent to call
-        task_message: Natural language task description
-
+        agent_name (str): Name of the sub-agent to call
+        task_message (str): Natural language task description
     Returns:
-        Result from the sub-agent execution
+        Dict[str, Any]: Result from the sub-agent execution
     """
     try:
         session_id = get_opensage_session_id_from_context(tool_context)

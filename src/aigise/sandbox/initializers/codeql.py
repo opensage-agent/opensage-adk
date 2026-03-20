@@ -20,7 +20,10 @@ class CodeQLInitializer(SandboxInitializer):
     async def _async_initialize_impl(
         self: BaseSandbox, all_sandboxes: dict[str, BaseSandbox]
     ) -> bool:
-        """Initialize CodeQL environment (async version)."""
+        """Initialize CodeQL environment (async version).
+
+        Raises:
+          RuntimeError: Raised when this operation fails."""
         from opensage.session.opensage_session import get_opensage_session
 
         assert isinstance(self, BaseSandbox)

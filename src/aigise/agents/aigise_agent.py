@@ -67,16 +67,15 @@ class ToolLoader:
         """Initialize ToolLoader.
 
         Args:
-            search_paths: List of paths to search for tools.
-            enabled_skills: Controls which skills are loaded.
+            search_paths (Optional[List[Path]]): List of paths to search for tools.
+            enabled_skills (Optional[Union[List[str], str]]): Controls which skills are loaded.
                           - None (default): Load NO skills.
                           - "all": Load ONLY top-level skills: `<root>/*/SKILL.md`.
                           - List[str]: Load skills by exact path to the skill directory
                             under the root (e.g. "fuzz" or "fuzz/run-fuzzing-campaign").
                             When a list entry refers to a directory, all skills under
                             that prefix are loaded recursively (i.e. entry is treated
-                            as a prefix allowlist).
-        """
+                            as a prefix allowlist)."""
         self._filter_skills: Optional[Set[str]] = None
         self._enabled_skills = enabled_skills
 
@@ -105,7 +104,7 @@ class ToolLoader:
         - root/group_name/tool_name/SKILL.md
 
         Returns:
-            List of tool metadata extracted from SKILL.md for all found tools.
+            List[Dict[str, Any]]: List of tool metadata extracted from SKILL.md for all found tools.
         """
         discovered_tools = set()
         loaded_tools_metadata = []
@@ -327,7 +326,10 @@ class ToolLoader:
     def _parse_skill_metadata(
         self, tool_path: Path, tool_name: str
     ) -> Optional[Dict[str, Any]]:
-        """Parse SKILL.md metadata."""
+        """Parse SKILL.md metadata.
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         skill_file = tool_path / "SKILL.md"
         if not skill_file.exists():
             logger.warning(f"SKILL.md not found for tool {tool_name} at {tool_path}")
@@ -402,7 +404,7 @@ class ToolLoader:
         """Generate system prompt from tool metadata.
 
         Returns:
-            Tuple of (prompt_text, required_sandboxes)
+            tuple[str, Set[str]]: Tuple of (prompt_text, required_sandboxes)
             - prompt_text: The generated prompt text
             - required_sandboxes: Set of sandbox types required by the tools
         """
@@ -444,11 +446,10 @@ class ToolLoader:
         """Generate description of sandbox structure for required sandboxes.
 
         Args:
-            required_sandboxes: Set of sandbox type names that are actually required
-            enable_memory_management: Whether long-term memory tools are enabled.
-
+            required_sandboxes (Set[str]): Set of sandbox type names that are actually required
+            enable_memory_management (bool): Whether long-term memory tools are enabled.
         Returns:
-            Description text about sandbox structure and mount points
+            str: Description text about sandbox structure and mount points
         """
         if not required_sandboxes:
             return ""
@@ -710,8 +711,7 @@ class OpenSageAgent(LlmAgent):
         4. Appends the new tool prompt to instruction
 
         Args:
-            enabled_skills: New enabled_skills value (None, "all", or List[str])
-        """
+            enabled_skills (Optional[Union[List[str], str]]): New enabled_skills value (None, "all", or List[str])"""
         import re
 
         # Update enabled_skills

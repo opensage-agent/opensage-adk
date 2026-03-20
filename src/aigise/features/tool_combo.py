@@ -49,16 +49,15 @@ class ToolCombo:
         Initialize ToolCombo.
 
         Args:
-            name: Name of the ToolCombo
-            tool_sequences: List of tools or tool configs. Each item can be:
+            name (str): Name of the ToolCombo
+            tool_sequences (List[Union[Dict[str, Any], BaseTool, LlmAgent, callable]]): List of tools or tool configs. Each item can be:
                 - A dict containing:
                     - "tool": The tool to use (BaseTool, LlmAgent, or callable)
                     - "enabled_skills": Allowed bash tools (None, "all", or List[str])
                 - Or directly a tool (BaseTool, LlmAgent, or callable function)
-            description: Description of the ToolCombo
-            model: Model to use for agents
-            return_history: Whether to return history
-        """
+            description (str): Description of the ToolCombo
+            model (Union[str, BaseLlm]): Model to use for agents
+            return_history (bool): Whether to return history"""
         self.name = name
         self.tool_sequences = tool_sequences
         self.description = description
@@ -104,17 +103,19 @@ class ToolCombo:
     ) -> LlmAgent:
         """Wrap a tool config as an OpenSageAgent for use in the SequentialAgent.
 
-        Args:
-            tool_config: Either:
-                - Dict containing:
-                    - "tool": The tool to wrap (BaseTool, LlmAgent, or callable)
-                    - "enabled_skills": Allowed bash tools (None, "all", or List[str])
-                - Or directly a tool (BaseTool, LlmAgent, or callable function)
-            idx: Index of the tool in the sequence
-            total_tools: Total number of tools in the sequence
+                Args:
+                    tool_config (Union[Dict[str, Any], BaseTool, LlmAgent, callable]): Either:
+                        - Dict containing:
+                            - "tool": The tool to wrap (BaseTool, LlmAgent, or callable)
+                            - "enabled_skills": Allowed bash tools (None, "all", or List[str])
+                        - Or directly a tool (BaseTool, LlmAgent, or callable function)
+                    idx (int): Index of the tool in the sequence
+                    total_tools (int): Total number of tools in the sequence
 
-        Returns:
-            OpenSageAgent: The wrapped agent (or LlmAgent if tool is already an agent)
+        Raises:
+          ValueError: Raised when this operation fails.
+                Returns:
+                    OpenSageAgent: The wrapped agent (or LlmAgent if tool is already an agent)
         """
         # Handle both dict format and direct tool format
         if isinstance(tool_config, dict):

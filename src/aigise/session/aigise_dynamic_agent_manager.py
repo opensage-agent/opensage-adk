@@ -70,8 +70,7 @@ class DynamicAgentManager:
         """Initialize DynamicAgentManager.
 
         Args:
-            session: OpenSageSession instance (stores reference, not copied)
-        """
+            session: OpenSageSession instance (stores reference, not copied)"""
         self._session = session
         self.opensage_session_id = session.opensage_session_id
 
@@ -95,9 +94,8 @@ class DynamicAgentManager:
 
         Args:
             **kwargs: Agent configuration parameters
-
         Returns:
-            Created OpenSageAgent instance
+            OpenSageAgent: Created OpenSageAgent instance
 
         Raises:
             ValueError: If required parameters are missing
@@ -143,13 +141,15 @@ class DynamicAgentManager:
     ) -> tuple[str, OpenSageAgent]:
         """Create a new agent dynamically for this session.
 
-        Args:
-            config: Agent configuration dictionary
-            creator: Optional creator identifier
-            persist: Whether to persist agent metadata
+                Args:
+                    config (Dict[str, Any]): Agent configuration dictionary
+                    creator (Optional[str]): Optional creator identifier
+                    persist (bool): Whether to persist agent metadata
 
-        Returns:
-            Tuple of (agent_id, agent_instance)
+        Raises:
+          Exception: Raised when this operation fails.
+                Returns:
+                    tuple[str, OpenSageAgent]: Tuple of (agent_id, agent_instance)
         """
         agent_id = str(uuid.uuid4())
 
@@ -222,11 +222,10 @@ class DynamicAgentManager:
         """Update agent status and trigger lifecycle hooks.
 
         Args:
-            agent_id: ID of the agent to update
-            status: New status to set
-
+            agent_id (str): ID of the agent to update
+            status (AgentStatus): New status to set
         Returns:
-            True if updated successfully, False if agent not found
+            bool: True if updated successfully, False if agent not found
         """
         if agent_id not in self._metadata:
             return False
@@ -249,11 +248,10 @@ class DynamicAgentManager:
         """List agents with optional filtering for this session.
 
         Args:
-            status: Optional status filter
-            creator: Optional creator filter
-
+            status (Optional[AgentStatus]): Optional status filter
+            creator (Optional[str]): Optional creator filter
         Returns:
-            List of agent metadata matching the filters
+            List[AgentMetadata]: List of agent metadata matching the filters
         """
         agents = list(self._metadata.values())
 
@@ -273,11 +271,10 @@ class DynamicAgentManager:
         """Remove an agent from this session.
 
         Args:
-            agent_id: ID of the agent to remove
-            cascade: Whether to remove child agents as well
-
+            agent_id (str): ID of the agent to remove
+            cascade (bool): Whether to remove child agents as well
         Returns:
-            True if removed successfully, False if not found
+            bool: True if removed successfully, False if not found
         """
         if agent_id not in self._agents:
             return False
@@ -314,7 +311,7 @@ class DynamicAgentManager:
         """Get statistics for this session's agents.
 
         Returns:
-            Dictionary with session statistics
+            Dict: Dictionary with session statistics
         """
         status_counts = {}
         for metadata in self._metadata.values():
@@ -331,9 +328,8 @@ class DynamicAgentManager:
         """Persist agent metadata to storage.
 
         Args:
-            agent_id: ID of the agent
-            metadata: Metadata to persist
-        """
+            agent_id (str): ID of the agent
+            metadata (AgentMetadata): Metadata to persist"""
         metadata_dict = asdict(metadata)
 
         # Convert datetime objects to ISO strings
@@ -351,9 +347,8 @@ class DynamicAgentManager:
         """Load persisted agents on demand, rebuilding with caller tools if possible.
 
         Args:
-            caller_tools: Dictionary mapping tool names to tool instances from caller agent
-            caller_agent: Optional caller agent instance (for enabled_skills check)
-        """
+            caller_tools (Dict[str, Any]): Dictionary mapping tool names to tool instances from caller agent
+            caller_agent (Optional[BaseAgent]): Optional caller agent instance (for enabled_skills check)"""
         if not getattr(self.config, "load_dynamic_agents", False):
             return
 
@@ -408,11 +403,10 @@ class DynamicAgentManager:
         "fuzz/simplified-python-fuzzer".
 
         Args:
-            agent_required_skills: Agent's required enabled_skills (None, "all", or List[str])
-            caller_skills: Caller's enabled_skills (None, "all", or List[str])
-
+            agent_required_skills (Optional[Union[List[str], str]]): Agent's required enabled_skills (None, "all", or List[str])
+            caller_skills (Optional[Union[List[str], str]]): Caller's enabled_skills (None, "all", or List[str])
         Returns:
-            True if caller covers agent's requirements, False otherwise
+            bool: True if caller covers agent's requirements, False otherwise
         """
         # Case 1: Agent requires no tools
         if agent_required_skills is None:
@@ -472,10 +466,9 @@ class DynamicAgentManager:
         """Try to rebuild an agent with tools from caller if all required tools are available.
 
         Args:
-            metadata: Agent metadata containing config and tool requirements
-            caller_tools: Available tools from caller agent
-            caller_agent: Optional caller agent instance (for enabled_skills check)
-        """
+            metadata (AgentMetadata): Agent metadata containing config and tool requirements
+            caller_tools (Dict[str, Any]): Available tools from caller agent
+            caller_agent (Optional[BaseAgent]): Optional caller agent instance (for enabled_skills check)"""
         required_tool_names = metadata.config.get("tool_names", [])
         agent_required_skills = (
             metadata.config.get("enabled_skills") if metadata.config else None

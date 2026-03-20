@@ -110,13 +110,12 @@ class BaseSandbox(ABC):
         3. Read-write volume with bash tools (mapped to /bash_tools)
 
         Args:
-            volume_name_prefix: Prefix for volume names (e.g., session_id)
-            init_data_path: Path to initial data to copy into the rw volume (optional)
-            tools_top_roots: Optional set of top-level bash_tools roots to stage.
+            volume_name_prefix (str): Prefix for volume names (e.g., session_id)
+            init_data_path (Path): Path to initial data to copy into the rw volume (optional)
+            tools_top_roots (set[str] | None): Optional set of top-level bash_tools roots to stage.
                 If None, stage all bash tools.
-
         Returns:
-            Tuple of (scripts_volume_id, data_volume_id, tools_volume_id)
+            tuple[str, str, str]: Tuple of (scripts_volume_id, data_volume_id, tools_volume_id)
         """
         pass
 
@@ -141,13 +140,13 @@ class BaseSandbox(ABC):
         """Launch all sandbox instances for a session.
 
         Args:
-            session_id: Session identifier
-            sandbox_configs: Dictionary of sandbox_type -> ContainerConfig
-            shared_volume_id: Optional shared volume to mount to all sandboxes
-            scripts_volume_id: Optional scripts volume to mount to all sandboxes
-            tools_volume_id: Optional tools volume to mount to all sandboxes
+            session_id (str): Session identifier
+            sandbox_configs (dict): Dictionary of sandbox_type -> ContainerConfig
+            shared_volume_id (str): Optional shared volume to mount to all sandboxes
+            scripts_volume_id (str): Optional scripts volume to mount to all sandboxes
+            tools_volume_id (str): Optional tools volume to mount to all sandboxes
         Returns:
-            Dictionary mapping sandbox_type to sandbox instance or connection info
+            dict: Dictionary mapping sandbox_type to sandbox instance or connection info
         """
         pass
 
@@ -163,13 +162,12 @@ class BaseSandbox(ABC):
         """Cache sandbox states and shared volume content.
 
         Args:
-            sandbox_instances: Dictionary mapping sandbox types to sandbox instances
-            shared_volume_id: Shared volume identifier to backup
-            cache_dir: Directory to store cache files
-            task_name: Task name for cache naming
-
+            sandbox_instances (dict): Dictionary mapping sandbox types to sandbox instances
+            shared_volume_id (str): Shared volume identifier to backup
+            cache_dir (str): Directory to store cache files
+            task_name (str): Task name for cache naming
         Returns:
-            Dictionary with cache results including backup paths and cached images
+            dict: Dictionary with cache results including backup paths and cached images
         """
         pass
 

@@ -45,10 +45,12 @@ def main():
 def _resolve_config_path(config_path: Optional[str], agent_dir: str) -> str:
     """Resolve the OpenSage TOML config path.
 
-    Precedence:
-    - If user specified --config, use it.
-    - Otherwise, default to <agent_dir>/config.toml if it exists.
-    """
+        Precedence:
+        - If user specified --config, use it.
+        - Otherwise, default to <agent_dir>/config.toml if it exists.
+
+    Raises:
+      ClickException: Raised when this operation fails."""
     if config_path:
         resolved = Path(config_path).expanduser().resolve()
         if not resolved.exists():
@@ -71,7 +73,10 @@ def _resolve_config_path(config_path: Optional[str], agent_dir: str) -> str:
 
 
 def _load_mk_agent_from_dir(agent_dir: str):
-    """Load mk_agent callable from an agent folder."""
+    """Load mk_agent callable from an agent folder.
+
+    Raises:
+      ClickException: Raised when this operation fails."""
     agent_path = Path(agent_dir).resolve()
     if not agent_path.exists() or not agent_path.is_dir():
         raise click.ClickException(f"Invalid agent directory: {agent_dir}")
@@ -107,7 +112,7 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
     """Prepare OpenSage environment: create session and initialize sandboxes.
 
     Returns:
-      The created OpenSage session_id (used to bind agent state).
+      str: The created OpenSage session_id (used to bind agent state).
     """
     import uuid
 
@@ -180,8 +185,10 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
 def _verify_agent_module(agent_dir: str) -> None:
     """Best-effort precheck to load agent module early.
 
-    This surfaces import errors before starting the server.
-    """
+        This surfaces import errors before starting the server.
+
+    Raises:
+      ClickException: Raised when this operation fails."""
     agent_path = Path(agent_dir).resolve()
     if not agent_path.exists() or not agent_path.is_dir():
         raise click.ClickException(f"Invalid agent directory: {agent_dir}")

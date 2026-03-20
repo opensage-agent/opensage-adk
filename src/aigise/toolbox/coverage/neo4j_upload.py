@@ -79,11 +79,10 @@ class Neo4jCoverageUploader:
         """Upload a complete coverage dataset for a test case.
 
         Args:
-            coverage_root: The LLVM coverage data
-            test_case_name: Unique identifier for the test case
-            test_case_name: Display name for the test case (optional)
-            **metadata: Additional metadata to store with the test case
-        """
+            coverage_root (LLVMCoverageRoot): The LLVM coverage data
+            test_case_name (str): Unique identifier for the test case
+            test_case_name (str): Display name for the test case (optional)
+            **metadata: Additional metadata to store with the test case"""
         with self.driver.session() as session:
             # Create test case node
             metadata_props = {
@@ -184,7 +183,10 @@ class Neo4jCoverageUploader:
         include_segments: bool = False,
         include_branches: bool = False,
     ):
-        """Upload file coverage data."""
+        """Upload file coverage data.
+
+        Raises:
+          NotImplementedError: Raised when this operation fails."""
         # Create file node and relationship to test case
         session.run(
             """

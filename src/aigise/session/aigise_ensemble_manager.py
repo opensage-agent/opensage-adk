@@ -61,8 +61,7 @@ class OpenSageEnsembleManager:
         """Initialize OpenSageEnsembleManager.
 
         Args:
-            session: OpenSageSession instance (stores reference, not copied)
-        """
+            session: OpenSageSession instance (stores reference, not copied)"""
         self._session = session
         self.opensage_session_id = session.opensage_session_id
 
@@ -422,15 +421,16 @@ class OpenSageEnsembleManager:
     ) -> dict:
         """Execute agent ensemble with multiple models and aggregate results.
 
-        Args:
-            full_instruction: Complete instruction including optional history
-            target_agent_info: Validated EnsembleAgentInfo for the target agent
-            model_name_to_count: Dictionary of model names and count of agents per model
-            current_agent: Current agent from tool context
-            tool_context: Tool context for sub-agent execution
+                Args:
+                    full_instruction (str): Complete instruction including optional history
+                    target_agent_info (EnsembleAgentInfo): Validated EnsembleAgentInfo for the target agent
+                    model_name_to_count (dict[str, int]): Dictionary of model names and count of agents per model
+                    current_agent (BaseAgent): Current agent from tool context
 
-        Returns:
-            Dictionary with success status and aggregated response or error details
+        Raises:
+          ValueError: Raised when this operation fails.
+                Returns:
+                    dict: Dictionary with success status and aggregated response or error details
         """
         from opensage.agents.opensage_agent import OpenSageAgent
 

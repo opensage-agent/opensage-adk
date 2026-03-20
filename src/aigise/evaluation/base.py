@@ -57,10 +57,9 @@ def get_evaluation_class(name: str) -> type[Evaluation] | None:
     """Get registered Evaluation class by name (case-insensitive).
 
     Args:
-        name: Benchmark name (e.g., "secodeplt", "cybergym")
-
+        name (str): Benchmark name (e.g., "secodeplt", "cybergym")
     Returns:
-        Evaluation subclass or None if not found
+        type[Evaluation] | None: Evaluation subclass or None if not found
     """
     return _EVALUATION_REGISTRY.get(name.lower())
 
@@ -73,14 +72,16 @@ def list_evaluations() -> list[str]:
 def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dict:
     """Wrapper function to run a sample in a separate process.
 
-    This function must be defined at module level for pickling.
+        This function must be defined at module level for pickling.
 
-    Args:
-        evaluation_instance: The Evaluation instance
-        sample: Sample dict from dataset
+        Args:
+            evaluation_instance (Evaluation): The Evaluation instance
+            sample (dict): Sample dict from dataset
 
-    Returns:
-        Result dictionary from _generate_one
+    Raises:
+      RuntimeError: Raised when this operation fails.
+        Returns:
+            dict: Result dictionary from _generate_one
     """
     # Create task from sample
     task = evaluation_instance._create_task(sample)
@@ -428,9 +429,8 @@ class Evaluation(abc.ABC):
         """Calculate and save cost information for the task.
 
         Args:
-            task: EvaluationTask instance
-            session: ADK Session with events
-        """
+            task (EvaluationTask): EvaluationTask instance
+            session (Session): ADK Session with events"""
         total_input_tokens = 0
         total_output_tokens = 0
         total_cached_tokens = 0
@@ -501,9 +501,8 @@ class Evaluation(abc.ABC):
         Args:
             agent_dir: Directory containing agent.py with mk_agent function.
                       Can be relative (resolved from cwd) or absolute path.
-
         Returns:
-            mk_agent function
+            callable: mk_agent function
 
         Raises:
             ValueError: If agent.py or mk_agent not found
@@ -561,10 +560,9 @@ class Evaluation(abc.ABC):
         and replaces the model of all LlmAgent instances.
 
         Args:
-            agent: Root agent to start replacement
-            model: BaseLlm instance to replace with (LiteLlm, ArealLlm, etc.)
-            visited: Set of visited agent names to avoid infinite loops
-        """
+            agent (BaseAgent): Root agent to start replacement
+            model (BaseLlm): BaseLlm instance to replace with (LiteLlm, ArealLlm, etc.)
+            visited (set[str] | None): Set of visited agent names to avoid infinite loops"""
         if visited is None:
             visited = set()
 
@@ -624,10 +622,9 @@ class Evaluation(abc.ABC):
         additional fields.
 
         Args:
-            sample: Sample dict from dataset
-
+            sample (dict): Sample dict from dataset
         Returns:
-            EvaluationTask instance (or subclass)
+            EvaluationTask: EvaluationTask instance (or subclass)
 
         Example::
             @dataclass
@@ -662,10 +659,9 @@ class Evaluation(abc.ABC):
         Override if you need custom logic.
 
         Args:
-            sample: Sample dict from dataset
-
+            sample (dict): Sample dict from dataset
         Returns:
-            Path to cache directory, or empty string if caching is disabled
+            str: Path to cache directory, or empty string if caching is disabled
         """
         if not self.use_sandbox_cache:
             return ""  # Return empty string to indicate no caching
@@ -753,11 +749,13 @@ class Evaluation(abc.ABC):
     async def _generate_one(self, task: EvaluationTask) -> dict:
         """Generate result for a single task with automatic sandbox and Neo4j management.
 
-        Args:
-            task: EvaluationTask instance with all task data
+                Args:
+                    task (EvaluationTask): EvaluationTask instance with all task data
 
-        Returns:
-            Dictionary with sample results and metadata
+        Raises:
+          Exception: Raised when this operation fails.
+                Returns:
+                    dict: Dictionary with sample results and metadata
         """
         # Ensure output directory exists immediately (for logging)
         output_path = Path(task.output_dir)
@@ -850,18 +848,17 @@ class Evaluation(abc.ABC):
         """Hook for subclasses to post-process and persist aggregated results.
 
         Args:
-            results: Successful sample outputs collected during generation.
-            failed_samples: Task identifiers that failed to complete.
-            mode: Execution mode that produced the results (multiprocess, threaded,
-                or single_thread).
-        """
+            results (list | None): Successful sample outputs collected during generation.
+            failed_samples (list[str] | None): Task identifiers that failed to complete.
+            mode (str): Execution mode that produced the results (multiprocess, threaded,
+                or single_thread)."""
         _ = (results, failed_samples, mode)
 
     def _register_opensage_session(self, task: EvaluationTask):
         """Register OpenSageSession with task-specific config.
 
         Args:
-            task: EvaluationTask containing session_id and config_template_path
+            task (EvaluationTask): EvaluationTask containing session_id and config_template_path
         Returns:
             None
         """
@@ -882,8 +879,7 @@ class Evaluation(abc.ABC):
         """Prepare environment: session, config, volumes, sandboxes.
 
         Args:
-            task: EvaluationTask instance with all task data
-        """
+            task (EvaluationTask): EvaluationTask instance with all task data"""
         opensage_session = task.opensage_session
 
         # 1. Configure Neo4j logging
@@ -977,11 +973,10 @@ class Evaluation(abc.ABC):
         """Run agent with the given prompt.
 
         Args:
-            task: EvaluationTask instance with all task data
-            agent: Pre-configured agent instance
-
+            task (EvaluationTask): EvaluationTask instance with all task data
+            agent (adk.Agent): Pre-configured agent instance
         Returns:
-            ADK Session object with execution history
+            Session: ADK Session object with execution history
         """
         # 2. Create runner and session service
         user_id = self.output_dir.replace("/", "_")
@@ -1142,11 +1137,10 @@ class Evaluation(abc.ABC):
         """Collect outputs: sandbox files, Neo4j database, session trace.
 
         Args:
-            task: EvaluationTask instance with all task data
-            session: ADK Session object
-
+            task (EvaluationTask): EvaluationTask instance with all task data
+            session (Session): ADK Session object
         Returns:
-            Dictionary with output information
+            dict: Dictionary with output information
         """
         # Get opensage_session
         opensage_session = get_opensage_session(task.session_id)
@@ -1222,9 +1216,8 @@ class Evaluation(abc.ABC):
         """Export Neo4j history database files.
 
         Args:
-            opensage_session: AIgiSE session instance
-            output_path: Local path to save database files
-        """
+            opensage_session (OpenSageSession): AIgiSE session instance
+            output_path (Path): Local path to save database files"""
         output_path.mkdir(parents=True, exist_ok=True)
 
         try:
@@ -1261,9 +1254,8 @@ class Evaluation(abc.ABC):
         """Export session event trace to JSON and text formats.
 
         Args:
-            session: ADK Session object
-            output_path: Path to save trace file
-        """
+            session (Session): ADK Session object
+            output_path (Path): Path to save trace file"""
         if not session or not session.events:
             logger.warning(
                 "Session or session events are not available. Skipping session trace export."
@@ -1282,8 +1274,7 @@ class Evaluation(abc.ABC):
         """Hook to run before running one task.
 
         Args:
-            task: EvaluationTask instance
-        """
+            task (EvaluationTask): EvaluationTask instance"""
         pass
 
     @abc.abstractmethod
@@ -1294,10 +1285,9 @@ class Evaluation(abc.ABC):
         Each sample should have a unique task id.
 
         Args:
-            sample: Sample dict from dataset
-
+            sample (dict): Sample dict from dataset
         Returns:
-            Unique task id for this sample
+            str: Unique task id for this sample
         """
         pass
 
@@ -1306,10 +1296,9 @@ class Evaluation(abc.ABC):
         """Get the initial prompt/message to send to the agent.
 
         Args:
-            sample: Sample dict from dataset
-
+            sample (dict): Sample dict from dataset
         Returns:
-            Prompt string to send to agent
+            str: Prompt string to send to agent
 
         Example::
             def _get_user_msg_first(self, sample: dict) -> str:
@@ -1324,10 +1313,9 @@ class Evaluation(abc.ABC):
         Override if you need custom logic.
 
         Args:
-            sample: Sample dict from dataset
-
+            sample (dict): Sample dict from dataset
         Returns:
-            Path to input data directory
+            str: Path to input data directory
         """
         return None
 
@@ -1339,10 +1327,9 @@ class Evaluation(abc.ABC):
         Override if you need sample-specific logic.
 
         Args:
-            sample: Sample dict from dataset
-
+            sample (dict): Sample dict from dataset
         Returns:
-            Path(s) to sandbox output directory/directories, or None
+            str | tuple | None: Path(s) to sandbox output directory/directories, or None
             Can be a single string or a tuple of strings
         """
         pass
@@ -1354,9 +1341,9 @@ class Evaluation(abc.ABC):
         Override if you need custom variables.
 
         Args:
-            task: EvaluationTask instance with all task data
+            task (EvaluationTask): EvaluationTask instance with all task data
         Returns:
-            Dict of template variable names and values
+            dict: Dict of template variable names and values
         """
         template = {"TASK_NAME": task.id}
 
@@ -1371,16 +1358,14 @@ class Evaluation(abc.ABC):
         """Run before initialize hooks.
 
         Args:
-            task: EvaluationTask instance with all task data
-        """
+            task (EvaluationTask): EvaluationTask instance with all task data"""
         pass
 
     async def _after_initialize_callback(self, task: EvaluationTask) -> None:
         """Run after initialize hooks.
 
         Args:
-            task: EvaluationTask instance with all task data
-        """
+            task (EvaluationTask): EvaluationTask instance with all task data"""
         pass
 
     @abc.abstractmethod

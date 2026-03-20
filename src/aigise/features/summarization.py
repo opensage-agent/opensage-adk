@@ -914,9 +914,8 @@ def _extract_last_command_info(
     This helps the next round understand what was attempted at the end.
 
     Args:
-        events: List of session events
-        output_dir: Optional directory to write full output if truncated
-    """
+        events (List[Event]): List of session events
+        output_dir (Optional[str]): Optional directory to write full output if truncated"""
     import json as _json
     from pathlib import Path
 
@@ -1026,14 +1025,13 @@ async def generate_final_compaction(
     to create a summary of everything the agent explored/learned.
 
     Args:
-        events: List of session events to summarize
-        model: LLM model to use for summarization
-        branch: Optional branch to filter events
-        output_dir: Optional directory to write full output files if truncated
-        quota_info: Optional dict with keys: used, limit, remaining
-
+        events (List[Event]): List of session events to summarize
+        model (LiteLlm): LLM model to use for summarization
+        branch (Optional[str]): Optional branch to filter events
+        output_dir (Optional[str]): Optional directory to write full output files if truncated
+        quota_info (Optional[dict]): Optional dict with keys: used, limit, remaining
     Returns:
-        Summary text or None if summarization fails
+        Optional[str]: Summary text or None if summarization fails
     """
     if not events:
         logger.warning("No events to summarize for final compaction")

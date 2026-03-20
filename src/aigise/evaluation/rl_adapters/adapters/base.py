@@ -37,10 +37,9 @@ class BaseAdapter(ABC):
         """Initialize adapter.
 
         Args:
-            opensage_session: The AIgiSE session managing resources
-            evaluation: The Evaluation instance to run samples
-            benchmark: BenchmarkInterface for benchmark-specific logic
-        """
+            opensage_session ('OpenSageSession'): The AIgiSE session managing resources
+            evaluation ('Evaluation'): The Evaluation instance to run samples
+            benchmark ('BenchmarkInterface'): BenchmarkInterface for benchmark-specific logic"""
         self.opensage_session = opensage_session
         self.evaluation = evaluation
         self.benchmark = benchmark
@@ -58,10 +57,9 @@ class BaseAdapter(ABC):
         to the dict format expected by Evaluation._create_task().
 
         Args:
-            sample: Framework-specific sample object
-
+            sample (Any): Framework-specific sample object
         Returns:
-            Dict in format expected by Evaluation._create_task()
+            dict: Dict in format expected by Evaluation._create_task()
         """
         pass
 
@@ -81,12 +79,11 @@ class BaseAdapter(ABC):
         4. Update sample with results using update_sample_success/error()
 
         Args:
-            args: Framework-specific arguments
-            sample: Framework-specific sample object
-            sampling_params: Sampling parameters
-
+            args (Any): Framework-specific arguments
+            sample (Any): Framework-specific sample object
+            sampling_params (dict[str, Any]): Sampling parameters
         Returns:
-            Updated sample object in framework-expected format
+            Any: Updated sample object in framework-expected format
         """
         pass
 
@@ -100,12 +97,11 @@ class BaseAdapter(ABC):
         """Update sample with successful result.
 
         Args:
-            sample: Framework-specific sample object
-            result: Result dict from Evaluation._generate_one()
-            metadata: Additional metadata
-
+            sample (Any): Framework-specific sample object
+            result (dict): Result dict from Evaluation._generate_one()
+            metadata (dict[str, Any]): Additional metadata
         Returns:
-            Updated sample object
+            Any: Updated sample object
         """
         pass
 
@@ -119,11 +115,10 @@ class BaseAdapter(ABC):
         """Update sample with error information.
 
         Args:
-            sample: Framework-specific sample object
-            error: Exception that occurred
-            metadata: Additional metadata
-
+            sample (Any): Framework-specific sample object
+            error (Exception): Exception that occurred
+            metadata (dict[str, Any]): Additional metadata
         Returns:
-            Updated sample object
+            Any: Updated sample object
         """
         pass

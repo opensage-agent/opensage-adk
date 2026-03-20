@@ -82,9 +82,8 @@ class RelationshipDiscoverer:
         """Initialize relationship discoverer.
 
         Args:
-            domain_config: Domain configuration for relationship types.
-            similarity_threshold: Threshold for similarity-based relationships.
-        """
+            domain_config (Optional['DomainConfig']): Domain configuration for relationship types.
+            similarity_threshold (float): Threshold for similarity-based relationships."""
         self.domain_config = domain_config
         self.similarity_threshold = similarity_threshold
 
@@ -96,11 +95,10 @@ class RelationshipDiscoverer:
         """Discover relationships between extracted entities.
 
         Args:
-            entities: List of extracted entities.
-            client: Neo4j client for queries.
-
+            entities (List[ExtractedEntity]): List of extracted entities.
+            client (Any): Neo4j client for queries.
         Returns:
-            List of discovered relationships.
+            List[DiscoveredRelationship]: List of discovered relationships.
         """
         relationships = []
 

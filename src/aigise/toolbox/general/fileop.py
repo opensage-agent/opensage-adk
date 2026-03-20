@@ -69,13 +69,11 @@ def view_file(
     Lines are numbered.
 
     Args:
-        path: Path to the file.
-        start_line: Starting line number (1-indexed, default 1).
-        end_line: Ending line number (inclusive, default -1 for end of file).
-        tool_context: Tool context.
-
+        path (str): Path to the file.
+        start_line (int): Starting line number (1-indexed, default 1).
+        end_line (int): Ending line number (inclusive, default -1 for end of file).
     Returns:
-        The content of the file within the range, prefixed with line numbers.
+        str: The content of the file within the range, prefixed with line numbers.
         Includes indentation hint at the top for editing guidance.
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
@@ -129,14 +127,12 @@ def edit_file(
     To delete, provide empty content.
 
     Args:
-        path: Path to the file.
-        content: New content to insert/replace.
-        start_line: Start line number (1-indexed).
-        end_line: End line number (1-indexed, inclusive).
-        tool_context: Tool context.
-
+        path (str): Path to the file.
+        content (str): New content to insert/replace.
+        start_line (int): Start line number (1-indexed).
+        end_line (int): End line number (1-indexed, inclusive).
     Returns:
-        Success message or error.
+        str: Success message or error.
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
 
@@ -209,12 +205,10 @@ def search_file(path: str, regex: str, *, tool_context: ToolContext) -> str:
     Search for a regular expression in a file.
 
     Args:
-        path: Path to the file.
-        regex: valid python/grep regex pattern.
-        tool_context: Tool context.
-
+        path (str): Path to the file.
+        regex (str): valid python/grep regex pattern.
     Returns:
-        Matching lines with line numbers.
+        str: Matching lines with line numbers.
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
 
@@ -239,13 +233,11 @@ def replace_in_file(
     Performs exact string replacement (not regex).
 
     Args:
-        path: Path to the file.
-        old_text: The exact string to find.
-        new_text: The string to replace it with.
-        tool_context: Tool context.
-
+        path (str): Path to the file.
+        old_text (str): The exact string to find.
+        new_text (str): The string to replace it with.
     Returns:
-        Success message or error.
+        str: Success message or error.
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
 
@@ -309,15 +301,13 @@ async def str_replace_edit(
     9. multi_occurrence - Find all exact matches (for replace_all)
 
     Args:
-        path: Path to the file.
-        old_string: The string to find.
-        new_string: The string to replace it with.
-        replace_all: If True, replace all occurrences. Default False.
-        analyze_failure: If True, use LLM to analyze why edit failed. Default True.
-        tool_context: Tool context.
-
+        path (str): Path to the file.
+        old_string (str): The string to find.
+        new_string (str): The string to replace it with.
+        replace_all (bool): If True, replace all occurrences. Default False.
+        analyze_failure (bool): If True, use LLM to analyze why edit failed. Default True.
     Returns:
-        Success message or error with context. If analyze_failure is True and
+        str: Success message or error with context. If analyze_failure is True and
         the edit fails, includes LLM analysis of why the edit failed.
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
@@ -817,11 +807,9 @@ def list_dir(path: str = ".", *, tool_context: ToolContext) -> str:
     List contents of a directory.
 
     Args:
-        path: Directory path (default current dir).
-        tool_context: Tool context.
-
+        path (str): Directory path (default current dir).
     Returns:
-        Directory listing.
+        str: Directory listing.
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
 

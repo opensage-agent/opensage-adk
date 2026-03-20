@@ -23,11 +23,9 @@ async def run_neo4j_query(
     """Execute an arbitrary Cypher query against Neo4j.
 
     Args:
-      tool_context: ADK tool context.
-      query: Cypher query string.
-      params: Optional parameters dict.
-      database: Neo4j database type ("memory", "history", "analysis", ...).
-    """
+      query (str): Cypher query string.
+      params (Optional[Dict[str, Any]]): Optional parameters dict.
+      database (str): Neo4j database type ("memory", "history", "analysis", ...)."""
     client = await get_neo4j_client_from_context(tool_context, database)
     records = await client.run_query(query, params or {})
     return {"success": True, "count": len(records or []), "records": records or []}
@@ -45,8 +43,7 @@ async def list_node_types(
     Use this to discover what node types exist in the database.
 
     Args:
-        database: Neo4j database type ("memory", "history", "analysis", etc.). Default is "memory".
-
+        database (str): Neo4j database type ("memory", "history", "analysis", etc.). Default is "memory".
     Returns:
         Dictionary with:
         - success: True if query succeeded
@@ -90,8 +87,7 @@ async def list_relations(
     Use this to discover what relationship types exist in the database.
 
     Args:
-        database: Neo4j database type ("memory", "history", "analysis", etc.). Default is "memory".
-
+        database (str): Neo4j database type ("memory", "history", "analysis", etc.). Default is "memory".
     Returns:
         Dictionary with:
         - success: True if query succeeded

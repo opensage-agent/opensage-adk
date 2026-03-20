@@ -80,7 +80,10 @@ class JoernInitializer(SandboxInitializer):
     async def _initialize_joern_with_timeout(
         self, opensage_session, all_sandboxes: dict[str, BaseSandbox]
     ) -> None:
-        """Execute Joern initialization steps with timeout protection."""
+        """Execute Joern initialization steps with timeout protection.
+
+        Raises:
+          RuntimeError: Raised when this operation fails."""
 
         t0 = time.monotonic()
         msg, err = self.run_command_in_container(

@@ -47,9 +47,8 @@ class OpenSageSession:
         """Initialize OpenSageSession for a specific session.
 
         Args:
-            opensage_session_id: Unique identifier for this session
-            config_path: Optional path to TOML configuration file
-        """
+            opensage_session_id (str): Unique identifier for this session
+            config_path (Optional[str]): Optional path to TOML configuration file"""
         self.opensage_session_id = opensage_session_id
 
         # Initialize session-specific configuration
@@ -83,8 +82,10 @@ class OpenSageSession:
     def get_message_board(self, *, board_id: str | None = None):
         """Get a message board for the current session.
 
-        Message boards are created on-demand and are intended for ensemble runs.
-        """
+                Message boards are created on-demand and are intended for ensemble runs.
+
+        Raises:
+          ValueError: Raised when this operation fails."""
         if not board_id:
             raise ValueError("board_id is required for message boards")
 
@@ -118,8 +119,7 @@ class OpenSageSession:
         Load configuration from TOML file for this session.
 
         Args:
-            toml_path: Path to TOML configuration file
-        """
+            toml_path (str): Path to TOML configuration file"""
         self.config = OpenSageConfig.from_toml(toml_path)
 
     def save_config_to_toml(self, toml_path: str) -> None:
@@ -127,8 +127,7 @@ class OpenSageSession:
         Save current configuration to TOML file.
 
         Args:
-            toml_path: Path to save TOML file
-        """
+            toml_path (str): Path to save TOML file"""
         self.config.save_to_toml(toml_path)
 
     def update_config_from_env(self) -> None:
@@ -140,7 +139,7 @@ class OpenSageSession:
         Get comprehensive information about this session.
 
         Returns:
-            Dictionary containing session information
+            Dict: Dictionary containing session information
         """
         agent_stats = self.agents.get_session_statistics()
         sandbox_stats = self.sandboxes.get_session_statistics()
@@ -221,10 +220,9 @@ class OpenSageSessionRegistry:
         Get or create a session manager for the given session ID.
 
         Args:
-            opensage_session_id: Unique session identifier
-
+            opensage_session_id (str): Unique session identifier
         Returns:
-            OpenSageSession instance for the session
+            OpenSageSession: OpenSageSession instance for the session
         """
         if opensage_session_id not in cls._sessions:
             if not create_if_missing:
@@ -242,7 +240,7 @@ class OpenSageSessionRegistry:
         Get list of all active session IDs.
 
         Returns:
-            List of active session IDs
+            list[str]: List of active session IDs
         """
         return list(cls._sessions.keys())
 
@@ -252,10 +250,9 @@ class OpenSageSessionRegistry:
         Remove and cleanup a session.
 
         Args:
-            opensage_session_id: Session ID to remove
-
+            opensage_session_id (str): Session ID to remove
         Returns:
-            True if removed, False if not found
+            bool: True if removed, False if not found
         """
         if opensage_session_id not in cls._sessions:
             return False
@@ -305,10 +302,9 @@ def cleanup_opensage_session(opensage_session_id: str) -> bool:
     Cleanup and remove an OpenSageSession.
 
     Args:
-        opensage_session_id: Session ID to cleanup
-
+        opensage_session_id (str): Session ID to cleanup
     Returns:
-        True if cleaned up, False if not found
+        bool: True if cleaned up, False if not found
 
     Example:
         cleanup_opensage_session("user_123_task_456")

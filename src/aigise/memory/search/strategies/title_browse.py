@@ -27,8 +27,7 @@ class TitleBrowseStrategy(SearchStrategy):
         """Initialize title browse strategy.
 
         Args:
-            default_limit: Default number of items to return.
-        """
+            default_limit (int): Default number of items to return."""
         self.default_limit = default_limit
 
     async def search(

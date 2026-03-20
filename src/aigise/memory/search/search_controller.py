@@ -75,11 +75,10 @@ class MemorySearchController:
         """Initialize the search controller.
 
         Args:
-            domain_config: Domain configuration defining available strategies.
-            max_iterations: Maximum number of refinement iterations.
-            sufficiency_threshold: Minimum results needed to consider sufficient.
-            use_llm_selection: Whether to use LLM for strategy selection.
-        """
+            domain_config (Optional['DomainConfig']): Domain configuration defining available strategies.
+            max_iterations (int): Maximum number of refinement iterations.
+            sufficiency_threshold (int): Minimum results needed to consider sufficient.
+            use_llm_selection (bool): Whether to use LLM for strategy selection."""
         self.domain_config = domain_config
         self.max_iterations = max_iterations
         self.sufficiency_threshold = sufficiency_threshold
@@ -112,16 +111,18 @@ class MemorySearchController:
     ) -> SearchResult:
         """Execute a memory search.
 
-        Args:
-            query: The search query.
-            node_types: Optional list of node types to search.
-            client: Neo4j client for executing queries.
-            max_results: Maximum results to return.
-            min_score: Minimum score threshold.
-            metadata: Additional search context.
+                Args:
+                    query (str): The search query.
+                    node_types (Optional[List[str]]): Optional list of node types to search.
+                    client (Any): Neo4j client for executing queries.
+                    max_results (int): Maximum results to return.
+                    min_score (float): Minimum score threshold.
+                    metadata (Optional[Dict[str, Any]]): Additional search context.
 
-        Returns:
-            SearchResult with found items and metadata.
+        Raises:
+          ValueError: Raised when this operation fails.
+                Returns:
+                    SearchResult: SearchResult with found items and metadata.
         """
         if client is None:
             raise ValueError("Neo4j client is required")

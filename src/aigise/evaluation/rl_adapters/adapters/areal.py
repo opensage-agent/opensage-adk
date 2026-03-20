@@ -82,10 +82,9 @@ class ArealAdapter(BaseAdapter):
         with any necessary transformations.
 
         Args:
-            sample: Dict from AReaL dataset
-
+            sample (Any): Dict from AReaL dataset
         Returns:
-            Dict in format expected by Evaluation._create_task()
+            dict: Dict in format expected by Evaluation._create_task()
         """
         # AReaL data is already a dict
         if isinstance(sample, dict):
@@ -125,13 +124,12 @@ class ArealAdapter(BaseAdapter):
         - Response IDs for reward assignment
 
         Args:
-            data: Dataset sample (dict format)
-            model: ADK-compatible model (ArealLlm instance)
+            data (dict[str, Any]): Dataset sample (dict format)
+            model (BaseLlm): ADK-compatible model (ArealLlm instance)
                 This model wraps ArealOpenAI for automatic tracking.
             **kwargs: Additional arguments passed to Evaluation
-
         Returns:
-            Result dict from Evaluation._generate_one, augmented with "reward"
+            dict[str, Any]: Result dict from Evaluation._generate_one, augmented with "reward"
         """
         data_id = data.get("id", "unknown")
         logger.debug(f"=== generate() START for data_id={data_id} ===")
@@ -186,12 +184,11 @@ class ArealAdapter(BaseAdapter):
         conversation history to pass to the benchmark reward function.
 
         Args:
-            data: Original dataset sample
-            result: Result dict from _generate_one
-            model: ArealLlm model (has _client with conversation history)
-
+            data (dict[str, Any]): Original dataset sample
+            result (dict[str, Any]): Result dict from _generate_one
+            model (BaseLlm): ArealLlm model (has _client with conversation history)
         Returns:
-            Scalar reward value (float)
+            float: Scalar reward value (float)
         """
         try:
             if not self.benchmark.has_reward_func:
@@ -299,12 +296,11 @@ class ArealAdapter(BaseAdapter):
         Kept for interface compatibility.
 
         Args:
-            sample: Not used for AReaL
-            result: Result dict
-            metadata: Additional metadata
-
+            sample (Any): Not used for AReaL
+            result (dict): Result dict
+            metadata (dict[str, Any]): Additional metadata
         Returns:
-            Result dict with metadata
+            Any: Result dict with metadata
         """
         if isinstance(result, dict):
             result["metadata"] = metadata
@@ -321,12 +317,11 @@ class ArealAdapter(BaseAdapter):
         For AReaL, we return an error dict.
 
         Args:
-            sample: Not used for AReaL
-            error: Exception that occurred
-            metadata: Additional metadata
-
+            sample (Any): Not used for AReaL
+            error (Exception): Exception that occurred
+            metadata (dict[str, Any]): Additional metadata
         Returns:
-            Error dict
+            Any: Error dict
         """
         logger.error(f"ArealAdapter error: {error}, metadata: {metadata}")
         return {

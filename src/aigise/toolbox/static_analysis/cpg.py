@@ -58,11 +58,10 @@ async def _get_caller_helper(
     Helper function to get callers of a function, with optional file_path filtering.
 
     Args:
-        client: The Neo4j client instance.
+        client (AsyncNeo4jClient): The Neo4j client instance.
         function_name (str): The name of the function to search for.
         file_path (Optional[str]): Optional file path to filter results. If provided,
             only callers to functions in the specified file are returned.
-
     Returns:
         dict: A dictionary with key "result" pointing to a list of caller information.
     """
@@ -129,11 +128,10 @@ async def _get_callee_helper(
     Helper function to get callees of a function, with optional file_path filtering.
 
     Args:
-        client: The Neo4j client instance.
+        client (AsyncNeo4jClient): The Neo4j client instance.
         function_name (str): The name of the function to search for.
         file_path (Optional[str]): Optional file path to filter results. If provided,
             only callees from functions in the specified file are returned.
-
     Returns:
         dict: A dictionary with key "result" pointing to a list of callee information.
     """
@@ -264,7 +262,6 @@ async def get_call_paths_to_function(
             It can be empty, in which case it will match "LLVMFuzzerTestOneInput" by default.
         src_file_path (Optional[str]): The file path where the source function is defined.
             It can be empty, in which case it will match all functions with the same name. This should be a relative path, relative to the root of the codebase.
-
     Returns:
         dict: A dictionary with key "result" pointing to a list of path information.
     """
@@ -373,7 +370,6 @@ async def neo4j_query(
     Args:
         query (str): The Cypher query string to execute.
         params (Optional[dict]): Optional dictionary of parameters for the query.
-
     Returns:
         list[dict]: A list of dictionaries representing the query results.
     """
@@ -394,7 +390,6 @@ async def joern_slice(
     Args:
         function_name (str): The name of the function to slice.
         file_path (Optional[str]): The file path where the function is defined.
-
     Returns:
         The response from the Joern client.
     """
@@ -437,7 +432,6 @@ async def joern_query(query: str, *, tool_context: ToolContext):
 
     Args:
         query (str): The Joern query string to execute.
-
     Returns:
         The response from the Joern client.
     """

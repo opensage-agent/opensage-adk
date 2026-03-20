@@ -26,8 +26,7 @@ class LLMOperationDecider:
         """Initialize the operation decider.
 
         Args:
-            model: The LLM model to use for decisions. If None, uses settings.
-        """
+            model (Optional[str]): The LLM model to use for decisions. If None, uses settings."""
         self.model = model or get_memory_settings().llm_model
 
     async def decide_operation(
@@ -39,12 +38,11 @@ class LLMOperationDecider:
         """Decide whether to ADD, UPDATE, DELETE, or do NONE.
 
         Args:
-            entity: The extracted entity to consider storing.
-            existing_nodes: Similar/matching nodes already in the graph.
-            context: Additional context with required 'intent' key.
-
+            entity (ExtractedEntity): The extracted entity to consider storing.
+            existing_nodes (List[Dict[str, Any]]): Similar/matching nodes already in the graph.
+            context (Dict[str, Any]): Additional context with required 'intent' key.
         Returns:
-            OperationType indicating what action to take.
+            OperationType: OperationType indicating what action to take.
 
         Raises:
             ValueError: If context is None or missing 'intent'.
@@ -146,12 +144,11 @@ Respond with only the operation name (ADD, UPDATE, DELETE, or NONE)."""
         """Decide operations for multiple entities.
 
         Args:
-            entities: List of extracted entities.
-            existing_nodes_map: Map from entity identifier to existing similar nodes.
-            context: Additional context.
-
+            entities (List[ExtractedEntity]): List of extracted entities.
+            existing_nodes_map (Dict[str, List[Dict[str, Any]]]): Map from entity identifier to existing similar nodes.
+            context (Optional[Dict[str, Any]]): Additional context.
         Returns:
-            Dictionary mapping entity identifier to operation type.
+            Dict[str, OperationType]: Dictionary mapping entity identifier to operation type.
         """
         results = {}
         for entity in entities:

@@ -209,10 +209,9 @@ def parse_llvm_coverage_json(json_bytes: bytes) -> LLVMCoverageRoot:
     Parse LLVM coverage JSON data into structured msgspec models.
 
     Args:
-        json_bytes: Bytes containing the JSON data from llvm-cov export
-
+        json_bytes (bytes): Bytes containing the JSON data from llvm-cov export
     Returns:
-        LLVMCoverageRoot object with parsed coverage data
+        LLVMCoverageRoot: LLVMCoverageRoot object with parsed coverage data
 
     Example:
         ```python
@@ -229,10 +228,9 @@ def parse_llvm_coverage_json_str(json_str: str) -> LLVMCoverageRoot:
     Parse LLVM coverage JSON string data into structured msgspec models.
 
     Args:
-        json_str: String containing the JSON data from llvm-cov export
-
+        json_str (str): String containing the JSON data from llvm-cov export
     Returns:
-        LLVMCoverageRoot object with parsed coverage data
+        LLVMCoverageRoot: LLVMCoverageRoot object with parsed coverage data
 
     Example:
         ```python
@@ -253,9 +251,8 @@ def encode_llvm_coverage_json(coverage: LLVMCoverageRoot) -> bytes:
     Encode LLVMCoverageRoot back to JSON bytes.
 
     Args:
-        coverage: LLVMCoverageRoot object to encode
-
+        coverage (LLVMCoverageRoot): LLVMCoverageRoot object to encode
     Returns:
-        JSON bytes representation
+        bytes: JSON bytes representation
     """
     return encoder.encode(coverage)

@@ -102,15 +102,13 @@ async def analyze_edit_failure(
     Analyze why a str_replace_edit operation failed using an LLM.
 
     Args:
-        file_path: Path to the file being edited
-        old_string: The search string that failed to match
-        new_string: The replacement string that wasn't applied
-        error_message: The error message from the failed edit
-        file_content: Current content of the file
-        tool_context: Tool context for accessing session and model
-
+        file_path (str): Path to the file being edited
+        old_string (str): The search string that failed to match
+        new_string (str): The replacement string that wasn't applied
+        error_message (str): The error message from the failed edit
+        file_content (str): Current content of the file
     Returns:
-        Analysis explanation string, or None if analysis fails
+        Optional[str]: Analysis explanation string, or None if analysis fails
     """
     # Check cache first
     cache_key = _get_cache_key(

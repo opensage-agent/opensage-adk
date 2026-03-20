@@ -13,7 +13,6 @@ import sys
 import tempfile
 import traceback
 import uuid
-from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Any
@@ -247,7 +246,10 @@ class Evaluation(abc.ABC):
     run_until_explicit_finish: bool = False
 
     use_multiprocessing: bool = True
-    """Use multiprocessing (True) or threading (False) for parallel sample execution"""
+    """Use multiprocessing (True) or threading (False) for local parallel execution"""
+
+    runner_type: str = "native"
+    """Execution backend: "native" (threading/multiprocessing) or "ray" (distributed)"""
 
     log_level: str = "INFO"
     """Console log level: DEBUG, INFO, WARNING, ERROR, CRITICAL"""
@@ -654,167 +656,6 @@ class Evaluation(abc.ABC):
             model=model,
         )
         return task
-
-    def _generate_multiprocess(self) -> None:
-        """Generate samples using multiprocessing for true parallelism.
-
-        Each sample runs in its own process to bypass Python's GIL
-        and enable true concurrent execution of multiple tasks.
-
-        Note: Uses ProcessPoolExecutor by default. For threading mode,
-        use generate_threaded() instead.
-        """
-
-        self.dataset = self._get_dataset()
-
-        # Execute samples in parallel using process pool
-        with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
-            # Submit all tasks
-            futures = {
-                executor.submit(_run_sample_in_process, self, sample): sample
-                for sample in self.dataset
-            }
-
-            # Wait for completion with progress bar
-            results = []
-            failed_samples = []
-
-            for future in tqdm(
-                as_completed(futures),
-                total=len(self.dataset),
-                desc="Generating samples (multiprocess)",
-            ):
-                sample = futures[future]
-                task_name = self._get_task_id(sample)
-
-                try:
-                    result = future.result()
-                    results.append(result)
-                    logger.info(f"✓ Task {task_name} completed successfully")
-                except Exception as e:
-                    failed_samples.append(task_name)
-                    logger.error(f"✗ Task {task_name} FAILED")
-                    logger.error(f"  Error: {e}")
-                    logger.error(f"  Traceback:\n{traceback.format_exc()}")
-
-                    # Check if subprocess created error.json
-                    error_file = Path(self.output_dir) / task_name / "error.json"
-                    if error_file.exists():
-                        logger.error(f"  Detailed error saved to: {error_file}")
-
-        self.customized_modify_and_save_results(
-            results=results,
-            failed_samples=failed_samples,
-            mode="multiprocess",
-        )
-        logger.warning(
-            f"Generated {len(results)}/{len(self.dataset)} samples successfully"
-        )
-        if failed_samples:
-            logger.warning(
-                f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
-            )
-
-    def _generate_threaded(self) -> None:
-        """Generate samples using multithreading (fallback option).
-
-        Each sample runs in its own thread. Use this if multiprocessing
-        has issues with serialization or you need shared memory.
-        """
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-
-        self.dataset = self._get_dataset()
-
-        # Wrapper to run async _generate_sample in a thread
-        def run_sample_in_thread(sample: dict) -> dict:
-            # Create task from sample
-            task = self._create_task(sample)
-            # Run async code in this thread's event loop
-            return asyncio.run(self._generate_one(task))
-
-        # Execute samples in parallel using thread pool
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            # Submit all tasks
-            futures = {
-                executor.submit(run_sample_in_thread, sample): sample
-                for sample in self.dataset
-            }
-
-            # Wait for completion with progress bar
-            results = []
-            failed_samples = []
-
-            for future in tqdm(
-                as_completed(futures),
-                total=len(self.dataset),
-                desc="Generating samples (threaded)",
-            ):
-                sample = futures[future]
-                task_name = self._get_task_id(sample)
-
-                try:
-                    result = future.result()
-                    results.append(result)
-                    logger.info(f"✓ Task {task_name} completed successfully")
-                except Exception as e:
-                    failed_samples.append(task_name)
-                    logger.error(f"✗ Task {task_name} FAILED")
-                    logger.error(f"  Error: {e}")
-                    logger.error(f"  Traceback:\n{traceback.format_exc()}")
-
-        self.customized_modify_and_save_results(
-            results=results,
-            failed_samples=failed_samples,
-            mode="threaded",
-        )
-        logger.warning(
-            f"Generated {len(results)}/{len(self.dataset)} samples successfully"
-        )
-        if failed_samples:
-            logger.warning(
-                f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
-            )
-
-    def _generate_single_thread(self) -> None:
-        """Generate samples sequentially in a single thread for debugging."""
-
-        self.dataset = self._get_dataset()
-        results = []
-        failed_samples = []
-
-        # Keep from 50 sample for debugging
-        # num_samples = len(dataset)
-        # dataset = dataset.select(range(50, num_samples))
-        # dataset = dataset.select(range(50))
-        for sample in tqdm(self.dataset, desc="Generating samples (single-threaded)"):
-            task_name = self._get_task_id(sample)
-            try:
-                # Create task from sample
-                task = self._create_task(sample)
-                # Run async code in new event loop for each sample
-                result = asyncio.run(self._generate_one(task))
-                results.append(result)
-                logger.info(f"✓ Task {task_name} completed")
-            except Exception as e:
-                failed_samples.append(task_name)
-                logger.error(f"✗ Task {task_name} FAILED")
-                logger.error(f"  Error: {e}")
-                logger.error(f"  Traceback:\n{traceback.format_exc()}")
-                # Re-raise for easier debugging
-                # raise
-
-        self.customized_modify_and_save_results(
-            results=results,
-            failed_samples=failed_samples,
-            mode="single_thread",
-        )
-        logger.warning(
-            f"Generated {len(results)}/{len(self.dataset)} samples successfully"
-        )
-        if failed_samples:
-            logger.warning(
-                f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
-            )
 
     def _get_sandbox_cache_dir(self, sample: dict) -> str:
         """Get sandbox cache directory for this sample.
@@ -1538,12 +1379,13 @@ class Evaluation(abc.ABC):
         pass
 
     def generate(self) -> None:
-        if self.max_workers == 1:
-            self._generate_single_thread()
-        elif self.use_multiprocessing:
-            self._generate_multiprocess()  # Uses ProcessPoolExecutor
-        else:
-            self._generate_threaded()  # Uses ThreadPoolExecutor
+        from aigise.evaluation.dispatchers import get_dispatcher
+
+        dispatcher_kwargs = {"max_workers": self.max_workers}
+        if self.runner_type == "native":
+            dispatcher_kwargs["use_multiprocessing"] = self.use_multiprocessing
+        dispatcher = get_dispatcher(self.runner_type, **dispatcher_kwargs)
+        dispatcher.run(self)
 
     def run(self) -> dict:
         """Run evaluation with configured parallelism mode."""
@@ -1552,7 +1394,9 @@ class Evaluation(abc.ABC):
 
     def run_debug(self) -> dict:
         """Run evaluation in single-threaded mode for debugging."""
-        self._generate_single_thread()
+        from aigise.evaluation.dispatchers.native import NativeDispatcher
+
+        NativeDispatcher(max_workers=1).run(self)
         self.evaluate()
 
 

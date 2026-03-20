@@ -201,7 +201,7 @@ class SlimeAdapter(BaseAdapter):
         """
         import importlib
 
-        from aigise.rl_integration.slime_llm import SlimeLlm
+        from aigise.evaluation.rl_adapters.slime_llm import SlimeLlm
 
         sglang_rollout = importlib.import_module("slime.rollout.sglang_rollout")
         GenerateState = getattr(sglang_rollout, "GenerateState")

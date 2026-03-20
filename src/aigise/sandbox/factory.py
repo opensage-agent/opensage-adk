@@ -15,6 +15,7 @@ from aigise.sandbox.initializers import (
     SandboxInitializer,
 )
 
+from .agentdocker_lite_sandbox import AgentDockerLiteSandbox
 from .base_sandbox import BaseSandbox
 from .k8s_sandbox import K8sSandbox
 from .local_sandbox import LocalSandbox
@@ -28,8 +29,9 @@ SANDBOX_BACKENDS = {
     "k8s": K8sSandbox,
     "remotedocker": RemoteDockerSandbox,
     "opensandbox": OpenSandboxSandbox,
-    # Future backends can be added here:
+    "agentdocker-lite": AgentDockerLiteSandbox,
     "local": LocalSandbox,
+    # Future backends can be added here:
 }
 
 # Registry of available initializers

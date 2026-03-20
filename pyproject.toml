@@ -33,6 +33,7 @@ dependencies = [
     "uvicorn>=0.34.0,<1.0.0",
     "python-magic>=0.4.27",
     "opensandbox>=0.1.5",
+    "agentdocker-lite @ git+https://github.com/rucnyz/agentdocker-lite.git@main",
 ]
 
 [project.optional-dependencies]

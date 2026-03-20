@@ -21,10 +21,10 @@ class MemorySettings:
     enabled: bool = False
 
     # LLM model for internal operations (strategy selection, entity extraction, etc.)
-    llm_model: str = "gemini-2.5-flash-lite"
+    llm_model: str = "gemini/gemini-2.5-flash-lite"
 
     # Embedding model for vector search
-    embedding_model: str = "text-embedding-004"
+    embedding_model: str = "gemini/gemini-embedding-001"
 
     # Whether to use LLM for search strategy selection
     use_llm_selection: bool = True

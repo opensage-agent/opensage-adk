@@ -40,4 +40,4 @@ uv sync --extra cuda
 
 ## Docs
 
-See [AReaL-Training](../../docs/wiki/AReaL-Training.md) for full configuration and known issues.
+See [AReaL-Training](../../docs/wiki/rl_integration/AReaL-Training.md) for full configuration and known issues.

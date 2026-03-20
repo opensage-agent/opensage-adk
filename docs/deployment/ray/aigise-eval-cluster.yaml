@@ -1,0 +1,216 @@
+# Ray cluster config for AIgiSE agentdocker-lite evaluation on GCP.
+#
+# Architecture:
+#   - Head node: manages cluster, dispatches tasks, no sandbox execution
+#   - Worker nodes: large on-demand VMs, run agentdocker-lite sandboxes as root
+#   - Rootfs cache: PD-SSD (read-only, multi-attach to all workers, up to 10)
+#   - Sandbox: overlayfs (lowerdir=PD-SSD rootfs, upperdir=local SSD)
+#
+# Usage:
+#   ray up ray/aigise-eval-cluster.yaml -y        # Create cluster
+#   ray down ray/aigise-eval-cluster.yaml -y      # Tear down
+#
+# Before using: replace all <PLACEHOLDERS> with your actual values.
+
+cluster_name: aigise-eval
+
+max_workers: 1
+
+upscaling_speed: 1.0
+
+idle_timeout_minutes: 15
+
+docker: {}
+
+provider:
+  type: gcp
+  region: <GCP_REGION>               # e.g. us-central1
+  availability_zone: <GCP_ZONE>      # e.g. us-central1-a
+  project_id: <GCP_PROJECT>
+  use_internal_ips: true
+
+auth:
+  ssh_user: ubuntu
+
+available_node_types:
+  head_node:
+    min_workers: 0
+    max_workers: 0
+    resources: {}
+    node_config:
+      machineType: n2d-standard-16
+      disks:
+        - boot: true
+          autoDelete: true
+          type: PERSISTENT
+          initializeParams:
+            diskSizeGb: 100
+            sourceImage: projects/<GCP_PROJECT>/global/images/family/<WORKER_IMAGE_FAMILY>
+      tags:
+        items:
+          - ray-head
+      metadata:
+        items:
+          - key: startup-script
+            value: |
+              #!/bin/bash
+              VENV=/home/<VM_USER>/venv
+              if [ -d "$VENV/bin" ]; then
+                ln -sf "$VENV/bin/ray" /usr/local/bin/ray
+                ln -sf "$VENV/bin/python3" /usr/local/bin/python3-venv
+              fi
+              groupadd -f google-sudoers
+              usermod -aG google-sudoers ubuntu 2>/dev/null || true
+              echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/99-ubuntu-nopasswd
+              chmod 440 /etc/sudoers.d/99-ubuntu-nopasswd
+              systemctl start docker 2>/dev/null || true
+              touch /tmp/startup-script-done
+      serviceAccounts:
+        - email: <SERVICE_ACCOUNT>@<GCP_PROJECT>.iam.gserviceaccount.com
+          scopes:
+            - https://www.googleapis.com/auth/cloud-platform
+      scheduling:
+        onHostMaintenance: MIGRATE
+
+  worker_node:
+    min_workers: 0
+    max_workers: 1
+    resources:
+      CPU: 224
+    node_config:
+      machineType: n2d-standard-224
+      disks:
+        - boot: true
+          autoDelete: true
+          type: PERSISTENT
+          initializeParams:
+            diskSizeGb: 100
+            sourceImage: projects/<GCP_PROJECT>/global/images/family/<WORKER_IMAGE_FAMILY>
+        # Shared PD-SSD: rootfs cache (read-only, multi-attach, up to 10 workers)
+        - boot: false
+          autoDelete: false
+          source: projects/<GCP_PROJECT>/zones/<GCP_ZONE>/disks/<ROOTFS_DISK>
+          mode: READ_ONLY
+          deviceName: rootfs-shared
+        # Local SSDs for overlayfs upperdir (8x375GB = 3TB, ephemeral).
+        - type: SCRATCH
+          autoDelete: true
+          initializeParams:
+            diskType: zones/<GCP_ZONE>/diskTypes/local-ssd
+          interface: NVME
+        - type: SCRATCH
+          autoDelete: true
+          initializeParams:
+            diskType: zones/<GCP_ZONE>/diskTypes/local-ssd
+          interface: NVME
+        - type: SCRATCH
+          autoDelete: true
+          initializeParams:
+            diskType: zones/<GCP_ZONE>/diskTypes/local-ssd
+          interface: NVME
+        - type: SCRATCH
+          autoDelete: true
+          initializeParams:
+            diskType: zones/<GCP_ZONE>/diskTypes/local-ssd
+          interface: NVME
+        - type: SCRATCH
+          autoDelete: true
+          initializeParams:
+            diskType: zones/<GCP_ZONE>/diskTypes/local-ssd
+          interface: NVME
+        - type: SCRATCH
+          autoDelete: true
+          initializeParams:
+            diskType: zones/<GCP_ZONE>/diskTypes/local-ssd
+          interface: NVME
+        - type: SCRATCH
+          autoDelete: true
+          initializeParams:
+            diskType: zones/<GCP_ZONE>/diskTypes/local-ssd
+          interface: NVME
+        - type: SCRATCH
+          autoDelete: true
+          initializeParams:
+            diskType: zones/<GCP_ZONE>/diskTypes/local-ssd
+          interface: NVME
+      metadata:
+        items:
+          - key: startup-script
+            value: |
+              #!/bin/bash
+              VENV=/home/<VM_USER>/venv
+              if [ -d "$VENV/bin" ]; then
+                ln -sf "$VENV/bin/ray" /usr/local/bin/ray
+                ln -sf "$VENV/bin/python3" /usr/local/bin/python3-venv
+              fi
+              groupadd -f google-sudoers
+              usermod -aG google-sudoers ubuntu 2>/dev/null || true
+              echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/99-ubuntu-nopasswd
+              chmod 440 /etc/sudoers.d/99-ubuntu-nopasswd
+              # Mount shared rootfs PD-SSD (read-only)
+              DISK=/dev/disk/by-id/google-rootfs-shared
+              if [ -b "$DISK" ] && ! mountpoint -q /data/rootfs_cache; then
+                mkdir -p /data/rootfs_cache
+                mount -o ro,noload "$DISK" /data/rootfs_cache
+              fi
+              # RAID0 all local NVMe SSDs and mount at /local_ssd
+              if ! mountpoint -q /local_ssd; then
+                NVME_DEVS=$(ls /dev/nvme0n* 2>/dev/null | grep -v p)
+                N=$(echo $NVME_DEVS | wc -w)
+                if [ "$N" -gt 1 ]; then
+                  mdadm --create /dev/md0 --level=0 --raid-devices=$N $NVME_DEVS --force --run
+                  mkfs.ext4 -F /dev/md0
+                  mkdir -p /local_ssd
+                  mount /dev/md0 /local_ssd
+                elif [ "$N" -eq 1 ]; then
+                  mkfs.ext4 -F $NVME_DEVS
+                  mkdir -p /local_ssd
+                  mount $NVME_DEVS /local_ssd
+                fi
+                chmod 777 /local_ssd
+                mkdir -p /local_ssd/aigise_ns
+              fi
+              # Move Docker data-root to NVMe SSD
+              systemctl stop docker 2>/dev/null || true
+              if [ -d /local_ssd ]; then
+                mkdir -p /local_ssd/docker
+                echo '{"data-root": "/local_ssd/docker"}' > /etc/docker/daemon.json
+              fi
+              systemctl start docker 2>/dev/null || true
+              touch /tmp/startup-script-done
+      serviceAccounts:
+        - email: <SERVICE_ACCOUNT>@<GCP_PROJECT>.iam.gserviceaccount.com
+          scopes:
+            - https://www.googleapis.com/auth/cloud-platform
+      scheduling:
+        onHostMaintenance: TERMINATE
+        automaticRestart: true
+
+head_node_type: head_node
+
+setup_commands:
+  - |
+    for i in $(seq 1 60); do
+      [ -f /tmp/startup-script-done ] && break
+      sleep 2
+    done
+  - ln -sfn /home/<VM_USER>/aigise ~/aigise
+  - |
+    if [ -d ~/aigise ]; then
+      sudo git config --global --add safe.directory /home/<VM_USER>/aigise
+      sudo bash -c "cd /home/<VM_USER>/aigise && git checkout -- . 2>/dev/null; git clean -fd ray/ 2>/dev/null; git pull --ff-only"
+    fi
+
+head_setup_commands: []
+
+worker_setup_commands: []
+
+head_start_ray_commands:
+  - ray stop --force 2>/dev/null || true
+  - ray start --head --port=6379 --dashboard-host=0.0.0.0 --num-cpus=0 --autoscaling-config=~/ray_bootstrap_config.yaml
+
+worker_start_ray_commands:
+  - sudo ray stop --force 2>/dev/null || true
+  - sudo mkdir -p /local_ssd/ray_tmp && sudo RAY_TMPDIR=/local_ssd/ray_tmp ray start --address=$RAY_HEAD_IP:6379 --temp-dir=/local_ssd/ray_tmp
+
+file_mounts: {}

@@ -4,8 +4,8 @@ AIgiSE currently supports RL training through two frameworks:
 
 | Framework                  | Status | Docs                                             |
 |----------------------------|--------|--------------------------------------------------|
-| **AReaL** (ADK-based)      | Active | [AReaL-Training](../docs/wiki/AReaL-Training.md) |
-| **SLIME** (Megatron-based) | Active | [slime-Training](../docs/wiki/slime-Training.md) |
+| **AReaL** (ADK-based)      | Active | [AReaL-Training](../docs/wiki/rl_integration/AReaL-Training.md) |
+| **SLIME** (Megatron-based) | Active | [slime-Training](../docs/wiki/rl_integration/slime-Training.md) |
 
 ## AReaL
 
@@ -40,4 +40,4 @@ rl/slime/
 └── mock_agent/         # Mock agent for testing
 ```
 
-See [`rl/slime/` README](../docs/wiki/slime-Training.md) for setup and usage.
+See [`rl/slime/` README](../docs/wiki/rl_integration/slime-Training.md) for setup and usage.

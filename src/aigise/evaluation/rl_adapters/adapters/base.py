@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from aigise.evaluation.base import Evaluation
-    from aigise.rl_integration.benchmark_interface import BenchmarkInterface
+    from aigise.evaluation.rl_adapters.benchmark_interface import BenchmarkInterface
     from aigise.session import AigiseSession
 
 

@@ -1,0 +1,112 @@
+# Ray cluster config for namespace sandbox scaling benchmark.
+#
+# Creates a single n2d-standard-224 VM (as "head") for benchmarking.
+# No workers — all benchmarking runs locally on this one VM.
+#
+# Usage (from head node with ray configured):
+#   ray up ray/benchmark-cluster.yaml -y --no-config-cache
+#   ray exec ray/benchmark-cluster.yaml \
+#       "sudo python3 ~/aigise/ray/benchmark_scaling.py --output /data/evals/benchmark_results.json"
+#   ray rsync_down ray/benchmark-cluster.yaml /data/evals/benchmark_results.json ./benchmark_results.json
+#   ray down ray/benchmark-cluster.yaml -y
+#
+# Cost: n2d-standard-224 on-demand ≈ $11.41/hr (224 vCPU, 896GB RAM)
+# Estimated benchmark duration: 1-2 hours
+
+cluster_name: ns-benchmark
+
+max_workers: 0
+
+provider:
+  type: gcp
+  region: us-central1
+  availability_zone: us-central1-a
+  project_id: <GCP_PROJECT>
+  use_internal_ips: true
+
+auth:
+  ssh_user: ubuntu
+
+available_node_types:
+  head_node:
+    min_workers: 0
+    max_workers: 0
+    resources: {}
+    node_config:
+      machineType: n2d-standard-224
+      disks:
+        - boot: true
+          autoDelete: true
+          type: PERSISTENT
+          initializeParams:
+            diskSizeGb: 100
+            sourceImage: projects/<GCP_PROJECT>/global/images/family/<WORKER_IMAGE_FAMILY>
+        - boot: false
+          autoDelete: true
+          type: PERSISTENT
+          initializeParams:
+            diskSizeGb: 500
+            diskType: zones/us-central1-a/diskTypes/pd-ssd
+          deviceName: benchmark-data
+      metadata:
+        items:
+          - key: startup-script
+            value: |
+              #!/bin/bash
+              set -e
+              # 1. Make venv binaries available system-wide
+              # (venv lives under image creator's home; symlink to /usr/local/bin)
+              VENV=/home/<VM_USER>/venv
+              if [ -d "$VENV/bin" ]; then
+                ln -sf "$VENV/bin/ray" /usr/local/bin/ray
+                ln -sf "$VENV/bin/python3" /usr/local/bin/python3-venv
+              fi
+              # 2. Passwordless sudo for ubuntu
+              groupadd -f google-sudoers
+              usermod -aG google-sudoers ubuntu 2>/dev/null || true
+              echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/99-ubuntu-nopasswd
+              chmod 440 /etc/sudoers.d/99-ubuntu-nopasswd
+              # 3. Mount data disk as btrfs
+              DISK=/dev/disk/by-id/google-benchmark-data
+              if [ -b "$DISK" ] && ! mountpoint -q /data; then
+                mkfs.btrfs -f "$DISK"
+                mkdir -p /data
+                mount "$DISK" /data
+                chmod 777 /data
+                mkdir -p /data/rootfs_cache /data/benchmark_ns /data/evals
+              fi
+              # 4. Start Docker
+              systemctl start docker 2>/dev/null || true
+              # 5. Signal completion
+              touch /tmp/startup-script-done
+      serviceAccounts:
+        - email: <SERVICE_ACCOUNT>@<GCP_PROJECT>.iam.gserviceaccount.com
+          scopes:
+            - https://www.googleapis.com/auth/cloud-platform
+      scheduling:
+        onHostMaintenance: TERMINATE
+
+head_node_type: head_node
+
+setup_commands:
+  # Wait for startup-script to finish (it does root ops: btrfs, docker, sudoers, symlinks)
+  - |
+    for i in $(seq 1 60); do
+      [ -f /tmp/startup-script-done ] && break
+      sleep 2
+    done
+  # Symlink aigise repo for ubuntu user
+  - ln -sf /home/<VM_USER>/aigise ~/aigise
+  # Sync AIgiSE code
+  - |
+    if [ -d ~/aigise ]; then
+      cd ~/aigise && git pull --ff-only 2>/dev/null || true
+    fi
+
+head_setup_commands: []
+
+head_start_ray_commands:
+  - ray stop --force 2>/dev/null || true
+  - ray start --head --port=6379 --dashboard-host=0.0.0.0
+
+file_mounts: {}

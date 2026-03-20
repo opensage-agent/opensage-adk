@@ -8,7 +8,6 @@ edit failed.
 
 import hashlib
 import logging
-from functools import lru_cache
 from typing import Optional
 
 from google.adk.models.lite_llm import LiteLlm
@@ -20,7 +19,6 @@ from aigise.session import get_aigise_session
 from aigise.utils.agent_utils import (
     INHERIT_MODEL,
     get_aigise_session_id_from_context,
-    get_model_from_agent,
 )
 
 logger = logging.getLogger(__name__)
@@ -179,13 +177,16 @@ async def analyze_edit_failure(
             types.Content(role="user", parts=[types.Part.from_text(text=user_prompt)])
         ]
 
-        # Get or create model
+        # Resolve model for standalone LLM call.
+        # When "inherit", use the session's main model name via LiteLlm rather
+        # than reusing the agent's model instance (which may have thinking mode
+        # or other config that causes 404 on a bare single-turn call).
         if model_name == INHERIT_MODEL:
-            current_agent = tool_context._invocation_context.agent
-            model = get_model_from_agent(current_agent)
-            if model is None:
-                logger.warning("Cannot inherit model - no model on current agent")
+            resolved_name = session.config.llm.model_name
+            if not resolved_name:
+                logger.debug("Cannot resolve model name for edit failure analysis")
                 return None
+            model = LiteLlm(model=resolved_name)
         else:
             model = LiteLlm(model=model_name)
 
@@ -208,7 +209,7 @@ async def analyze_edit_failure(
             return None
 
     except Exception as e:
-        logger.error(f"Failed to analyze edit failure: {e}")
+        logger.debug("Failed to analyze edit failure: %s", e)
         return None
 
 

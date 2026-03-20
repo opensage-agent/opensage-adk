@@ -8,10 +8,16 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "agentdocker-lite"
+version = "0.0.1"
+source = { git = "https://github.com/rucnyz/agentdocker-lite.git?rev=main#2578a853688ff5e7f0bbc623eae41855d03487db" }
+
+[[package]]
 name = "aigise"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "agentdocker-lite" },
     { name = "click" },
     { name = "cxxfilt" },
     { name = "dacite" },
@@ -80,6 +86,7 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "agentdocker-lite", git = "https://github.com/rucnyz/agentdocker-lite.git?rev=main" },
     { name = "aigise", extras = ["langfuse", "cybergym"], marker = "extra == 'full'" },
     { name = "click", specifier = ">=8.1.8,<9.0.0" },
     { name = "cxxfilt", specifier = ">=0.3.0" },

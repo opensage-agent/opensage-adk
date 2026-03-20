@@ -83,12 +83,11 @@ allow-direct-references = true
 [tool.hatch.build.targets.sdist]
 include = [
     "src/opensage",
-    "src/opensage",
     "examples",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/opensage", "src/opensage"]
+packages = ["src/opensage"]
 
 [tool.ruff]
 extend-exclude = ["third_party"]

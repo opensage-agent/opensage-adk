@@ -395,7 +395,7 @@ class NativeDockerSandbox(BaseSandbox):
             if binds:
                 run_kwargs["volumes"] = binds
 
-        # Ports: dict[str, Union[int, None, tuple[str, int], List[int]]]
+        # Ports: dict[str, int | None | {"host": str, "port": int}]
         if self.container_config_obj.ports:
             port_bindings: dict[str, Any] = {}
             for container_port, host_binding in self.container_config_obj.ports.items():
@@ -410,15 +410,23 @@ class NativeDockerSandbox(BaseSandbox):
                 elif host_binding is None:
                     # Random host port
                     port_bindings[container_port] = None
-                elif isinstance(host_binding, tuple):
-                    # (host_ip, host_port) tuple
+                elif isinstance(host_binding, dict):
+                    # {"host": str, "port": int}
+                    if "host" not in host_binding or "port" not in host_binding:
+                        raise ValueError(
+                            f"Invalid ports binding for {container_port}: "
+                            "dict must contain 'host' and 'port'"
+                        )
                     port_bindings[container_port] = {
-                        "HostIp": host_binding[0],
-                        "HostPort": str(host_binding[1]),
+                        "HostIp": str(host_binding["host"]),
+                        "HostPort": str(int(host_binding["port"])),
                     }
-                elif isinstance(host_binding, list):
-                    # List of host ports
-                    port_bindings[container_port] = [str(port) for port in host_binding]
+                else:
+                    raise ValueError(
+                        f"Invalid ports binding type for {container_port}: "
+                        f"{type(host_binding)}. "
+                        "Expected int, None, or {'host', 'port'} dict."
+                    )
             if port_bindings:
                 run_kwargs["ports"] = port_bindings
 
@@ -1485,24 +1493,26 @@ class NativeDockerSandbox(BaseSandbox):
                             updated_ports[container_port] = host_binding
                         elif isinstance(host_binding, int):
                             # Just a port number, bind to loopback_ip
-                            updated_ports[container_port] = (loopback_ip, host_binding)
-                        elif isinstance(host_binding, tuple) and len(host_binding) == 2:
-                            # (host, port) tuple, replace host with loopback_ip
-                            _, port = host_binding
-                            updated_ports[container_port] = (loopback_ip, port)
-                        elif isinstance(host_binding, list):
-                            # List of ports, bind first one to loopback_ip
-                            # Docker typically uses first port in list
-                            if host_binding:
-                                updated_ports[container_port] = (
-                                    loopback_ip,
-                                    host_binding[0],
+                            updated_ports[container_port] = {
+                                "host": loopback_ip,
+                                "port": host_binding,
+                            }
+                        elif isinstance(host_binding, dict):
+                            if "host" not in host_binding or "port" not in host_binding:
+                                raise ValueError(
+                                    f"Invalid ports binding for {sandbox_type}:{container_port}: "
+                                    "dict must contain 'host' and 'port'"
                                 )
-                            else:
-                                updated_ports[container_port] = host_binding
+                            updated_ports[container_port] = {
+                                "host": loopback_ip,
+                                "port": int(host_binding["port"]),
+                            }
                         else:
-                            # Unknown format, keep as-is
-                            updated_ports[container_port] = host_binding
+                            raise ValueError(
+                                f"Invalid ports binding for {sandbox_type}:{container_port}: "
+                                f"{type(host_binding)}. "
+                                "Expected int, None, or {'host', 'port'} dict."
+                            )
 
                     container_config.ports = updated_ports
                     logger.info(

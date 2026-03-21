@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import time
 from pathlib import Path
 from typing import Optional
@@ -190,6 +191,17 @@ def _session_store_dir(session_id: str) -> Path:
     return _SESSION_STORE_ROOT / session_id
 
 
+def _sanitize_agent_name(agent_name: str) -> str:
+    """Sanitize agent name for filesystem-safe session directory naming."""
+    sanitized = re.sub(r"[^A-Za-z0-9_.-]+", "_", (agent_name or "").strip())
+    return sanitized.strip("._-") or "agent"
+
+
+def _session_store_dir_for_agent(*, session_id: str, agent_name: str) -> Path:
+    """Return canonical session store dir: <agent_name>_<session_id>."""
+    return _SESSION_STORE_ROOT / f"{_sanitize_agent_name(agent_name)}_{session_id}"
+
+
 def _collect_sandbox_runtime_metadata(opensage_session) -> dict:
     """Collect attachable runtime metadata for current sandboxes."""
     backend = (
@@ -217,11 +229,15 @@ async def _persist_web_session_snapshot_async(
     session_id: str,
     app_name: str,
     user_id: str,
+    agent_dir: str,
     session_service: OpenSageInMemorySessionService,
     opensage_session,
 ) -> Path:
     """Persist ADK session + sandbox runtime metadata to local disk."""
-    store_dir = _session_store_dir(session_id)
+    agent_name = Path(agent_dir).resolve().name
+    store_dir = _session_store_dir_for_agent(
+        session_id=session_id, agent_name=agent_name
+    )
     store_dir.mkdir(parents=True, exist_ok=True)
 
     adk_session = await session_service.get_session(
@@ -238,11 +254,18 @@ async def _persist_web_session_snapshot_async(
         encoding="utf-8",
     )
 
+    # Persist the fully resolved runtime config used by this session.
+    resolved_config_path = store_dir / "resolved_config.toml"
+    opensage_session.config.save_to_toml(str(resolved_config_path))
+
     metadata = {
         "session_id": session_id,
+        "agent_name": agent_name,
+        "agent_dir": str(Path(agent_dir).expanduser().resolve()),
         "app_name": app_name,
         "user_id": user_id,
         "saved_at_unix": int(time.time()),
+        "resolved_config_file": resolved_config_path.name,
         "runtime": _collect_sandbox_runtime_metadata(opensage_session),
     }
     metadata_path = store_dir / "metadata.json"
@@ -309,32 +332,53 @@ async def _load_adk_session_into_service_async(
 
 async def _resume_environment_async(
     *,
-    resume_from: str,
+    resume_dir: Path,
     config_path: str,
-) -> tuple[str, dict]:
+) -> tuple[str, dict, str]:
     """Restore an OpenSage session by re-attaching to existing sandboxes."""
-    store_dir = _session_store_dir(resume_from)
+    store_dir = resume_dir
     metadata_path = store_dir / "metadata.json"
     if not metadata_path.exists():
         raise click.ClickException(
-            f"Resume metadata not found for session '{resume_from}': {metadata_path}"
+            f"Resume metadata not found in {store_dir}: {metadata_path}"
         )
 
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-    session_id = metadata.get("session_id") or resume_from
+    session_id = metadata.get("session_id") or store_dir.name
+    resolved_config_file = (
+        metadata.get("resolved_config_file") or "resolved_config.toml"
+    )
+    resolved_config_path = store_dir / resolved_config_file
+    resume_config_path = (
+        str(resolved_config_path) if resolved_config_path.exists() else config_path
+    )
+    if resolved_config_path.exists():
+        logger.info("Resuming with resolved config snapshot: %s", resolved_config_path)
+    elif resume_config_path:
+        logger.warning(
+            "Resolved config snapshot missing in %s; fallback to CLI config: %s",
+            store_dir,
+            config_path,
+        )
+    else:
+        raise click.ClickException(
+            "Resolved config snapshot missing in saved session and no --config provided. "
+            "Please pass --config PATH for this legacy snapshot."
+        )
     opensage_session = get_opensage_session(
-        opensage_session_id=session_id, config_path=config_path
+        opensage_session_id=session_id, config_path=resume_config_path
     )
     await _attach_sandboxes_from_snapshot_async(
         opensage_session=opensage_session,
         snapshot_metadata=metadata,
     )
     logger.info("Resumed OpenSage environment for session: %s", session_id)
-    return session_id, metadata
+    agent_dir = metadata.get("agent_dir", "")
+    return session_id, metadata, agent_dir
 
 
-def _resolve_latest_saved_session_id() -> str:
-    """Return the most recently saved session id from local store."""
+def _resolve_latest_saved_session_dir() -> Path:
+    """Return the most recently saved session directory from local store."""
     if not _SESSION_STORE_ROOT.exists():
         raise click.ClickException(
             f"No saved sessions found under {_SESSION_STORE_ROOT}."
@@ -346,8 +390,7 @@ def _resolve_latest_saved_session_id() -> str:
             f"No saved sessions found under {_SESSION_STORE_ROOT}."
         )
 
-    latest = max(session_dirs, key=lambda p: p.stat().st_mtime)
-    return latest.name
+    return max(session_dirs, key=lambda p: p.stat().st_mtime)
 
 
 def _verify_agent_module(agent_dir: str) -> None:
@@ -403,7 +446,7 @@ def _verify_agent_module(agent_dir: str) -> None:
     "--agent",
     "agent_dir",
     type=click.Path(exists=True, dir_okay=True, file_okay=False, resolve_path=True),
-    required=True,
+    required=False,
     help="Path to the agent folder (must contain agent files).",
 )
 @click.option(
@@ -444,7 +487,7 @@ def _verify_agent_module(agent_dir: str) -> None:
 @click.option(
     "--auto_cleanup",
     type=bool,
-    default=True,
+    default=False,
     show_default=True,
     help=(
         "Whether to cleanup sandboxes on process exit. "
@@ -473,8 +516,10 @@ def cli_web(
     """Starts an OpenSage-flavored Web UI: prepare environment then serve agents."""
     # Normalize logging
     logging.basicConfig(level=getattr(logging, log_level.upper()))
-
-    config_path = _resolve_config_path(config_path, agent_dir)
+    if not resume and not agent_dir:
+        raise click.ClickException("Missing required option '--agent'.")
+    if not resume:
+        config_path = _resolve_config_path(config_path, agent_dir)
 
     # Optionally enable Neo4j logging (monkey patches BaseAgent/AgentTool)
     if neo4j_logging:
@@ -488,16 +533,33 @@ def cli_web(
 
     # 1) Prepare environment (fresh) or resume environment (attach existing)
     resume_metadata = None
+    resume_store_dir: Path | None = None
     if resume:
-        resume_session_id = _resolve_latest_saved_session_id()
+        resume_store_dir = _resolve_latest_saved_session_dir()
+        resume_session_id = resume_store_dir.name
         click.secho(
             f"Resuming from latest saved session: {resume_session_id}", fg="cyan"
         )
-        session_id, resume_metadata = asyncio.run(
+        session_id, resume_metadata, resumed_agent_dir = asyncio.run(
             _resume_environment_async(
-                resume_from=resume_session_id, config_path=config_path
+                resume_dir=resume_store_dir, config_path=config_path or ""
             )
         )
+        if resumed_agent_dir:
+            if (
+                agent_dir
+                and Path(agent_dir).resolve() != Path(resumed_agent_dir).resolve()
+            ):
+                logger.warning(
+                    "CLI --agent (%s) differs from resumed agent_dir (%s); using resumed agent_dir.",
+                    agent_dir,
+                    resumed_agent_dir,
+                )
+            agent_dir = resumed_agent_dir
+        elif not agent_dir:
+            raise click.ClickException(
+                "Resume metadata does not contain agent_dir; please pass --agent."
+            )
     else:
         session_id = asyncio.run(
             _prepare_environment_async(config_path=config_path, agent_dir=agent_dir)
@@ -548,7 +610,9 @@ def cli_web(
     )
     # Pre-create or restore the ADK session using fixed session id.
     if resume_metadata:
-        snapshot_path = _session_store_dir(session_id) / "adk_session.json"
+        snapshot_path = (
+            resume_store_dir or _session_store_dir(session_id)
+        ) / "adk_session.json"
         restored_app_name, restored_user_id = asyncio.run(
             _load_adk_session_into_service_async(
                 session_service=session_service,
@@ -592,6 +656,7 @@ def cli_web(
                     session_id=session_id,
                     app_name=web_server.app_name,
                     user_id=session_user_id,
+                    agent_dir=agent_dir,
                     session_service=session_service,
                     opensage_session=opensage_session,
                 )

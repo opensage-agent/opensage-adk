@@ -9,7 +9,7 @@ import os
 import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Union
 
 import toml
 from dacite import Config as DaciteConfig
@@ -181,9 +181,7 @@ class ContainerConfig:
     mounts: List[str] = field(
         default_factory=list
     )  # ["type=bind,source=...,target=..."]
-    ports: Dict[str, Union[int, None, Tuple[str, int], List[int]]] = field(
-        default_factory=dict
-    )
+    ports: Dict[str, Union[int, None, Dict[str, Any]]] = field(default_factory=dict)
 
     # Raw args passthrough for docker CLI (where applicable)
     docker_args: List[str] = field(default_factory=list)
@@ -615,6 +613,35 @@ class OpenSageConfig:
             ]:
                 if opensandbox_data.get(field) == "":
                     opensandbox_data[field] = None
+
+            # Sandbox ports: only allow int/None or {host, port}.
+            sandboxes_data = sandbox_data.get("sandboxes") or {}
+            for sandbox_name, sandbox_cfg in sandboxes_data.items():
+                ports_data = sandbox_cfg.get("ports")
+                if not isinstance(ports_data, dict):
+                    continue
+                normalized_ports: Dict[str, Union[int, None, Dict[str, Any]]] = {}
+                for container_port, host_binding in ports_data.items():
+                    if isinstance(host_binding, int) or host_binding is None:
+                        normalized_ports[container_port] = host_binding
+                    elif isinstance(host_binding, dict):
+                        if "host" not in host_binding or "port" not in host_binding:
+                            raise ValueError(
+                                f"Invalid ports[{container_port}] for sandbox "
+                                f"'{sandbox_name}': dict binding must contain "
+                                "'host' and 'port'."
+                            )
+                        normalized_ports[container_port] = {
+                            "host": str(host_binding["host"]),
+                            "port": int(host_binding["port"]),
+                        }
+                    else:
+                        raise ValueError(
+                            f"Invalid ports[{container_port}] for sandbox "
+                            f"'{sandbox_name}': expected int, null, or "
+                            "{{host, port}} dict."
+                        )
+                sandbox_cfg["ports"] = normalized_ports
 
         # MCP: Manually create MCPServiceConfig instances (can't be auto-converted)
         if "mcp" in data and "services" in data["mcp"]:

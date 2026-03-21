@@ -169,6 +169,7 @@ Configures sandbox environments (Docker containers or Kubernetes pods).
 | `backend` | `string` | Sandbox backend type: `"native"` (Docker) or `"k8s"` (Kubernetes; under development) | `"native"` |
 | `project_relative_shared_data_path` | `string` | Path relative to project root for shared data (will be mounted as `/shared` in containers) | `None` |
 | `absolute_shared_data_path` | `string` | Absolute path for shared data | `None` |
+| `host_shared_mem_dir` | `string` | Absolute host path mounted into all sandboxes as `/mem/shared` (for file-based shared knowledge) | `None` |
 | `mount_host_paths` | `list[string]` | Global host bind mounts injected into all sandboxes. Format: `"/abs/host:/abs/container[:ro|rw]"` | `[]` |
 | `tolerations` | `list[dict]` | Kubernetes tolerations applied to all pods (k8s; under development) | `None` |
 
@@ -243,6 +244,7 @@ Each sandbox type is configured under `[sandbox.sandboxes.<sandbox_type>]`:
 [sandbox]
 backend = "native"
 project_relative_shared_data_path = "data/my_project.tar.gz"
+host_shared_mem_dir = "/home/you/.local/opensage/shared-memory"
 mount_host_paths = [
   "/data/datasets:/workspace/datasets:ro",
   "/tmp/run-cache:/workspace/run-cache:rw",
@@ -280,6 +282,10 @@ JAVA_OPTS = "-Xmx16G -Xms4G"
 `mount_host_paths` is appended to every sandbox's `volumes`. Semantics:
 - absolute source path (`/abs/path`) is treated as host mount source
 - mode defaults to `rw` when omitted
+
+`host_shared_mem_dir` is also injected into every sandbox volume as:
+- `"<host_shared_mem_dir>:/mem/shared:rw"`
+- the host directory is created automatically if it does not exist
 
 ### LLM Configuration
 

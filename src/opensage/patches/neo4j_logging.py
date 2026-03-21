@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
@@ -7,6 +8,7 @@ import shlex
 import sys
 import tempfile
 import traceback
+from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
 from google.adk.agents.base_agent import BaseAgent
@@ -24,10 +26,10 @@ logger = logging.getLogger(__name__)
 
 _enabled: bool = False
 _patched: bool = False
-_orig_agent_tool_run: Optional[Callable] = None
 _orig_base_agent_run: Optional[Callable] = None
 _MEM_ROOT_DIR = "/mem"
 _MEM_AGENT_DIR_KEY = "_mem_agent_dir"
+_MEM_TOPOLOGY_PATH = os.path.join(_MEM_ROOT_DIR, "topology.json")
 
 
 def _sanitize_name(name: str) -> str:
@@ -83,6 +85,8 @@ def _ensure_agent_mem_layout(invocation_context, agent_mem_dir: str) -> None:
     """Create agent memory folder and default planning.md in main sandbox."""
     sandbox = _get_main_sandbox(invocation_context)
     sandbox.run_command_in_container(f"mkdir -p {shlex.quote(agent_mem_dir)}")
+    # Always ensure shared memory directory exists for agents.
+    sandbox.run_command_in_container("mkdir -p /mem/shared")
     planning_path = os.path.join(agent_mem_dir, "planning.md")
     _, exit_code = sandbox.run_command_in_container(
         f"test -f {shlex.quote(planning_path)}"
@@ -109,6 +113,203 @@ def _persist_session_json(invocation_context, agent_mem_dir: str) -> None:
     _write_text_to_main_sandbox(invocation_context, session_json_path, session_json)
 
 
+def _now_iso_utc() -> str:
+    """Return current UTC timestamp in ISO-8601 format."""
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _extract_query_from_invocation_context(invocation_context) -> str:
+    """Best-effort query extraction from current invocation."""
+    try:
+        user_content = getattr(invocation_context, "user_content", None)
+        if user_content and getattr(user_content, "parts", None):
+            for part in reversed(user_content.parts):
+                text = getattr(part, "text", "")
+                if isinstance(text, str) and text:
+                    return text
+    except Exception:
+        logger.debug("Failed to extract query from invocation_context.user_content")
+    return ""
+
+
+def _load_topology_data(invocation_context) -> dict[str, Any]:
+    """Load /mem/topology.json from main sandbox."""
+    sandbox = _get_main_sandbox(invocation_context)
+    try:
+        raw = (sandbox.extract_file_from_container(_MEM_TOPOLOGY_PATH) or "").strip()
+    except Exception:
+        raw = ""
+    if not raw:
+        return {"agents": [], "calls": []}
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        logger.warning("Invalid topology.json, resetting topology data")
+        return {"agents": [], "calls": []}
+    if not isinstance(data, dict):
+        return {"agents": [], "calls": []}
+    agents = data.get("agents", [])
+    calls = data.get("calls", [])
+    if not isinstance(agents, list):
+        agents = []
+    if not isinstance(calls, list):
+        calls = []
+    return {"agents": agents, "calls": calls}
+
+
+def _save_topology_data(invocation_context, topology_data: dict[str, Any]) -> None:
+    """Persist /mem/topology.json into main sandbox."""
+    topology_data["updated_at"] = _now_iso_utc()
+    payload = json.dumps(topology_data, indent=2, ensure_ascii=False)
+    _write_text_to_main_sandbox(invocation_context, _MEM_TOPOLOGY_PATH, payload)
+
+
+def _upsert_agent_record(topology_data: dict[str, Any], record: dict[str, Any]) -> None:
+    """Upsert an agent record by session_id."""
+    session_id = record.get("session_id")
+    if not session_id:
+        return
+    agents = topology_data.setdefault("agents", [])
+    for existing in agents:
+        if existing.get("session_id") == session_id:
+            # Avoid clobbering useful values with empty placeholders.
+            for key, value in record.items():
+                if value is None:
+                    continue
+                if isinstance(value, str) and value == "":
+                    continue
+                existing[key] = value
+            return
+    agents.append(record)
+
+
+def _infer_parent_links_from_calls(topology_data: dict[str, Any]) -> None:
+    """Infer parent fields from call relationships."""
+    agents = topology_data.get("agents", [])
+    calls = topology_data.get("calls", [])
+    if not isinstance(agents, list) or not isinstance(calls, list):
+        return
+    by_session_id = {
+        agent.get("session_id"): agent
+        for agent in agents
+        if isinstance(agent, dict) and agent.get("session_id")
+    }
+    for call in calls:
+        if not isinstance(call, dict):
+            continue
+        caller_session_id = call.get("caller_session_id")
+        caller_agent_name = call.get("caller_agent_name")
+        callee_session_id = call.get("callee_session_id")
+        if not (
+            isinstance(caller_session_id, str)
+            and caller_session_id
+            and isinstance(callee_session_id, str)
+            and callee_session_id
+        ):
+            continue
+        callee = by_session_id.get(callee_session_id)
+        if not isinstance(callee, dict):
+            continue
+        if not callee.get("parent_session_id"):
+            callee["parent_session_id"] = caller_session_id
+        if (
+            not callee.get("parent_agent_name")
+            and isinstance(caller_agent_name, str)
+            and caller_agent_name
+        ):
+            callee["parent_agent_name"] = caller_agent_name
+
+
+def _sync_parent_links(topology_data: dict[str, Any]) -> None:
+    """Sync parent fields from inferred call relationships."""
+    _infer_parent_links_from_calls(topology_data)
+
+
+def _record_topology_agent_start(
+    invocation_context, *, session_id: str, agent_name: str, query: str
+) -> None:
+    """Upsert topology agent start info."""
+    topology_data = _load_topology_data(invocation_context)
+    _upsert_agent_record(
+        topology_data,
+        {
+            "session_id": session_id,
+            "agent_name": agent_name,
+            "query": query or "",
+            "response": "",
+            "status": "running",
+            "updated_at": _now_iso_utc(),
+        },
+    )
+    _sync_parent_links(topology_data)
+    _save_topology_data(invocation_context, topology_data)
+
+
+def _record_topology_agent_end(
+    invocation_context, *, session_id: str, response: str, status: str
+) -> None:
+    """Update topology agent completion info."""
+    topology_data = _load_topology_data(invocation_context)
+    _upsert_agent_record(
+        topology_data,
+        {
+            "session_id": session_id,
+            "response": response or "",
+            "status": status,
+            "updated_at": _now_iso_utc(),
+        },
+    )
+    _sync_parent_links(topology_data)
+    _save_topology_data(invocation_context, topology_data)
+
+
+def _record_topology_call(
+    invocation_context,
+    *,
+    caller_session_id: str,
+    caller_agent_name: str,
+    callee_session_id: str,
+    callee_agent_name: str,
+    query: str,
+) -> None:
+    """Append topology call relationship and keep parent links synchronized."""
+    topology_data = _load_topology_data(invocation_context)
+    calls = topology_data.setdefault("calls", [])
+    if not isinstance(calls, list):
+        calls = []
+        topology_data["calls"] = calls
+    _upsert_agent_record(
+        topology_data,
+        {
+            "session_id": caller_session_id,
+            "agent_name": caller_agent_name,
+            "updated_at": _now_iso_utc(),
+        },
+    )
+    _upsert_agent_record(
+        topology_data,
+        {
+            "session_id": callee_session_id,
+            "agent_name": callee_agent_name,
+            "parent_session_id": caller_session_id,
+            "parent_agent_name": caller_agent_name,
+            "updated_at": _now_iso_utc(),
+        },
+    )
+    calls.append(
+        {
+            "caller_session_id": caller_session_id,
+            "caller_agent_name": caller_agent_name,
+            "callee_session_id": callee_session_id,
+            "callee_agent_name": callee_agent_name,
+            "query": query or "",
+            "updated_at": _now_iso_utc(),
+        }
+    )
+    _sync_parent_links(topology_data)
+    _save_topology_data(invocation_context, topology_data)
+
+
 async def _record_agent_call(
     agent_tool: AgentTool,
     *,
@@ -116,62 +317,81 @@ async def _record_agent_call(
     args,
     tool_context: ToolContext,
 ):
-    # Lazy import to avoid circular imports during bootstrap
-    from opensage.utils.neo4j_history_management import (  # type: ignore
-        create_agent_call_relation,
-    )
-
     """Create the agent call relationship before executing."""
     caller_agent_name = tool_context._invocation_context.agent.name
     callee_agent_name = agent_tool.agent.name
     caller_session_id = tool_context._invocation_context.session.id
     callee_session_id = agent_tool_session_id
-    caller_agent_model = (
-        tool_context._invocation_context.agent.model
-        if hasattr(tool_context._invocation_context.agent, "model")
-        and isinstance(tool_context._invocation_context.agent.model, str)
-        else tool_context._invocation_context.agent.model.model
-        if hasattr(tool_context._invocation_context.agent, "model")
-        else "No model"
-    )
-    callee_agent_model = (
-        agent_tool.agent.model
-        if hasattr(agent_tool.agent, "model")
-        and isinstance(agent_tool.agent.model, str)
-        else agent_tool.agent.model.model
-        if hasattr(agent_tool.agent, "model")
-        else "No model"
-    )
-
     # Convert args to string for input_context
     input_content = args.get("request", "")
-    output_content = "dummy"
-
-    try:
-        await create_agent_call_relation(
-            caller_agent_name=caller_agent_name,
-            callee_agent_name=callee_agent_name,
-            caller_session_id=caller_session_id,
-            callee_session_id=callee_session_id,
-            input_content=input_content,
-            output_content=output_content,
-            caller_agent_model=caller_agent_model,
-            callee_agent_model=callee_agent_model,
-            context=tool_context,
+    if _enabled:
+        # Lazy import to avoid circular imports during bootstrap
+        from opensage.utils.neo4j_history_management import (  # type: ignore
+            create_agent_call_relation,
         )
-    except Exception as e:
-        logger.error(f"Failed to create agent call relation: {e}")
+
+        caller_agent_model = (
+            tool_context._invocation_context.agent.model
+            if hasattr(tool_context._invocation_context.agent, "model")
+            and isinstance(tool_context._invocation_context.agent.model, str)
+            else tool_context._invocation_context.agent.model.model
+            if hasattr(tool_context._invocation_context.agent, "model")
+            else "No model"
+        )
+        callee_agent_model = (
+            agent_tool.agent.model
+            if hasattr(agent_tool.agent, "model")
+            and isinstance(agent_tool.agent.model, str)
+            else agent_tool.agent.model.model
+            if hasattr(agent_tool.agent, "model")
+            else "No model"
+        )
+        try:
+            await create_agent_call_relation(
+                caller_agent_name=caller_agent_name,
+                callee_agent_name=callee_agent_name,
+                caller_session_id=caller_session_id,
+                callee_session_id=callee_session_id,
+                input_content=input_content,
+                output_content="",
+                caller_agent_model=caller_agent_model,
+                callee_agent_model=callee_agent_model,
+                context=tool_context,
+            )
+        except Exception as e:
+            logger.error(f"Failed to create agent call relation: {e}")
+    try:
+        _record_topology_call(
+            tool_context._invocation_context,
+            caller_session_id=caller_session_id,
+            caller_agent_name=caller_agent_name,
+            callee_session_id=callee_session_id,
+            callee_agent_name=callee_agent_name,
+            query=input_content,
+        )
+    except Exception as topology_error:
+        logger.warning("Failed to record topology call: %s", topology_error)
 
 
 async def _wrapped_base_agent_run(self, invocation_context):
     logging_enabled = _enabled
     session_id = invocation_context.session.id
+    query = _extract_query_from_invocation_context(invocation_context)
     agent_mem_dir = _compute_agent_mem_dir(invocation_context)
     invocation_context.session.state[_MEM_AGENT_DIR_KEY] = agent_mem_dir
     try:
         _ensure_agent_mem_layout(invocation_context, agent_mem_dir)
     except Exception as mem_error:
         logger.warning("Failed to initialize agent memory dir: %s", mem_error)
+    try:
+        _record_topology_agent_start(
+            invocation_context,
+            session_id=session_id,
+            agent_name=getattr(invocation_context.agent, "name", "agent"),
+            query=query,
+        )
+    except Exception as topology_error:
+        logger.warning("Failed to record topology agent start: %s", topology_error)
 
     if logging_enabled:
         from opensage.utils.neo4j_history_management import (  # type: ignore
@@ -185,6 +405,7 @@ async def _wrapped_base_agent_run(self, invocation_context):
         await record_agent_start(self, invocation_context)
 
     last_event = None
+    run_failed = False
     try:
         async for event in _orig_base_agent_run(self, invocation_context):
             if logging_enabled:
@@ -201,6 +422,7 @@ async def _wrapped_base_agent_run(self, invocation_context):
             yield event
 
     except Exception as e:
+        run_failed = True
         if logging_enabled:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             if exc_traceback:
@@ -239,13 +461,35 @@ async def _wrapped_base_agent_run(self, invocation_context):
                         for p in last_event.content.parts
                         if hasattr(p, "text") and p.text
                     )
-                await record_agent_end(invocation_context, output_content, "completed")
+                if not run_failed:
+                    await record_agent_end(
+                        invocation_context, output_content, "completed"
+                    )
             except Exception as e:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 if exc_traceback:
                     traceback.print_tb(exc_traceback)
                 logger.error(f"Failed to record agent end: {e}")
                 await record_agent_end(invocation_context, "", "error")
+
+        # File topology is independent from Neo4j logging toggle.
+        output_content = ""
+        if last_event and last_event.content and last_event.content.parts:
+            output_content = "\n".join(
+                p.text
+                for p in last_event.content.parts
+                if hasattr(p, "text") and p.text
+            )
+        topology_status = "error" if run_failed else "completed"
+        try:
+            _record_topology_agent_end(
+                invocation_context,
+                session_id=session_id,
+                response=output_content,
+                status=topology_status,
+            )
+        except Exception as topology_error:
+            logger.warning("Failed to record topology agent end: %s", topology_error)
 
         # Write child's used llm calls into its session.state for parent to read
         try:
@@ -265,19 +509,16 @@ async def _wrapped_base_agent_run(self, invocation_context):
 
 def apply() -> None:
     """Monkey-patch BaseAgent.run_async and AgentTool.run_async with toggle."""
-    global _patched, _orig_agent_tool_run, _orig_base_agent_run
+    global _patched, _orig_base_agent_run
     if _patched:
         return
 
-    _orig_agent_tool_run = AgentTool.run_async
     _orig_base_agent_run = BaseAgent.run_async
 
     async def _run_child_agent(
         agent_tool: AgentTool,
         args: dict[str, Any],
         tool_context: ToolContext,
-        *,
-        log_call: bool,
     ) -> tuple[Any, Any]:
         """Execute the wrapped agent and return (last_event, child_session)."""
         if agent_tool.skip_summarization:
@@ -329,13 +570,12 @@ def apply() -> None:
             state=tool_context.state.to_dict(),
         )
 
-        if log_call:
-            await _record_agent_call(
-                agent_tool=agent_tool,
-                agent_tool_session_id=session.id,
-                args=args,
-                tool_context=tool_context,
-            )
+        await _record_agent_call(
+            agent_tool=agent_tool,
+            agent_tool_session_id=session.id,
+            args=args,
+            tool_context=tool_context,
+        )
 
         parent_ctx = tool_context._invocation_context
         limit = int(
@@ -414,9 +654,7 @@ def apply() -> None:
             getattr(self.agent, "name", "unknown"),
             _enabled,
         )
-        last_event, child_session = await _run_child_agent(
-            self, args, tool_context, log_call=_enabled
-        )
+        last_event, child_session = await _run_child_agent(self, args, tool_context)
 
         # Merge child's actually used llm calls back to parent for accurate countdown
         try:

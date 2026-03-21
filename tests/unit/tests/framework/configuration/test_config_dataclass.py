@@ -412,6 +412,23 @@ target_type = "default"
         assert config.build.run_command == "arvo"
         assert config.build.target_type == "default"
 
+    def test_load_sandbox_host_shared_mem_dir_empty_string(self):
+        """Test sandbox.host_shared_mem_dir empty string is normalized to None."""
+        toml_content = """
+[sandbox]
+backend = "native"
+host_shared_mem_dir = ""
+
+[sandbox.sandboxes.main]
+image = "ubuntu:20.04"
+"""
+        with open(self.test_config_path, "w") as f:
+            f.write(toml_content)
+
+        config = OpenSageConfig.from_toml(str(self.test_config_path))
+        assert config.sandbox is not None
+        assert config.sandbox.host_shared_mem_dir is None
+
     def test_load_mcp_config_from_toml(self):
         """Test loading MCP configuration from TOML."""
         toml_content = """

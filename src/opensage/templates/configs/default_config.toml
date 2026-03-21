@@ -23,6 +23,7 @@ PDB_PORT = 1112
 GDB_PORT = 1111
 JOERN_PORT = 18087
 ABSOLUTE_SHARED_DATA_PATH = ""
+HOST_SHARED_MEM_DIR = ""
 
 
 task_name = "${TASK_NAME}"
@@ -40,6 +41,7 @@ neo4j_http_port = "${NEO4J_HTTP_PORT}"
 [sandbox]
 backend = "native"
 absolute_shared_data_path = "${ABSOLUTE_SHARED_DATA_PATH}"
+host_shared_mem_dir = "${HOST_SHARED_MEM_DIR}"
 
 # OpenSandbox backend configuration (used when sandbox.backend = "opensandbox")
 [sandbox.opensandbox]

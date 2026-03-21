@@ -423,3 +423,28 @@ def test_manager_mount_host_paths_validator():
         OpenSageSandboxManager._normalize_mount_host_path_spec("/a:rel:rw")
     with pytest.raises(ValueError, match="mode must be 'ro' or 'rw'"):
         OpenSageSandboxManager._normalize_mount_host_path_spec("/a:/b:rwx")
+
+
+def test_manager_host_shared_mem_dir_mount_injected(monkeypatch, tmp_path: Path):
+    config = _set_backend_config(runtime_type="docker")
+    config.sandbox.sandboxes["worker"] = ContainerConfig(image="worker:latest")
+    host_mem_dir = tmp_path / "shared_mem"
+    config.sandbox.host_shared_mem_dir = str(host_mem_dir)
+    session = SimpleNamespace(opensage_session_id="session-1", config=config)
+    manager = OpenSageSandboxManager(session)
+
+    monkeypatch.setattr(
+        "opensage.sandbox.shared_storage.SharedStorage.create_for_opensandbox",
+        lambda session_id, init_data_path, tools_top_roots, config: (
+            "scripts-vol",
+            "shared-vol",
+            "tools-vol",
+        ),
+    )
+
+    manager.initialize_shared_volumes()
+
+    expected = f"{host_mem_dir}:/mem/shared:rw"
+    assert expected in config.sandbox.sandboxes["main"].volumes
+    assert expected in config.sandbox.sandboxes["worker"].volumes
+    assert host_mem_dir.exists()

@@ -221,6 +221,8 @@ class SandboxConfig:
     sandboxes: Dict[str, ContainerConfig] = field(default_factory=dict)
     project_relative_shared_data_path: Optional[str] = None
     absolute_shared_data_path: Optional[str] = None
+    # Optional absolute host directory mounted to /mem/shared in all sandboxes.
+    host_shared_mem_dir: Optional[str] = None
     # Global host bind mounts injected into every sandbox config as
     # "<abs_host_path>:<abs_container_path>:<ro|rw>" entries.
     mount_host_paths: List[str] = field(default_factory=list)
@@ -597,6 +599,7 @@ class OpenSageConfig:
             for field in [
                 "project_relative_shared_data_path",
                 "absolute_shared_data_path",
+                "host_shared_mem_dir",
             ]:
                 if sandbox_data.get(field) == "":
                     sandbox_data[field] = None

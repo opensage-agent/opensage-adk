@@ -37,48 +37,6 @@ uv run pre-commit install
 
 > **Note**: Use `uv run <command>` to run commands with project dependencies. Use `uv add` / `uv remove` instead of `pip` for dependency management. See [uv docs](https://docs.astral.sh/uv/concepts/projects/run) for details.
 
-### API Keys for `LiteLlm` Models
-
-When using `LiteLlm`, pass the API key from environment variables that match
-your provider setup.
-If `api_key=...` is omitted, LiteLlm follows LiteLLM's default behavior and
-reads provider credentials from environment variables (for example,
-`OPENAI_API_KEY` for `openai/...` models).
-
-```python
-# OpenAI-style model
-import os
-from google.adk.models.lite_llm import LiteLlm
-
-model = LiteLlm(
-    model="openai/gpt-5",
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
-```
-
-```python
-# Anthropic-style model
-import os
-from google.adk.models.lite_llm import LiteLlm
-
-model = LiteLlm(
-    model="anthropic/claude-sonnet-4-5-20250929",
-    api_key=os.environ.get("ANTHROPIC_API_KEY"),
-)
-```
-
-```python
-# LiteLLM proxy model
-import os
-from google.adk.models.lite_llm import LiteLlm
-
-model = LiteLlm(
-    model="litellm_proxy/sage-gpt-5.3-codex",
-    api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
-    base_url="https://litellm-991596698159.us-west1.run.app/",
-)
-```
-
 ### Sandbox Setup
 
 #### CodeQL (for joern/codeql sandbox)
@@ -165,6 +123,22 @@ def mk_agent(opensage_session_id: str):
         tools=[bash_tool_main],
         # enabled_skills=["retrieval", "static_analysis"],  # optional: load bash tool skills
     )
+```
+
+**API Keys for `LiteLlm` models (under this step):**
+
+When using `LiteLlm`, pass the API key from environment variables that match
+your provider setup.
+If `api_key=...` is omitted, LiteLlm follows LiteLLM's default behavior and
+reads provider credentials from environment variables (for example,
+`OPENAI_API_KEY` for `openai/...` models). The api_key and base_url can also be manually specified
+
+```python
+model = LiteLlm(
+    model="litellm_proxy/sage-gpt-5.3-codex",
+    api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
+    base_url="https://xxxx/",
+)
 ```
 
 See `examples/agents/` for more complete examples (debugger, PoC generation, vulnerability detection, etc.).

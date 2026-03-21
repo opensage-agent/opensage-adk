@@ -2246,3 +2246,13 @@ class K8sSandbox(BaseSandbox):
             logger.warning(
                 f"Error restoring cached filesystem {tar_path} into container {self.container_name}: {exc}"
             )
+
+    @classmethod
+    def checkpoint(cls) -> str:
+        """Checkpoint the sandbox."""
+        raise NotImplementedError("Checkpoint is not implemented for K8s sandbox")
+
+    @classmethod
+    def restore(cls) -> str:
+        """Restore the sandbox."""
+        raise NotImplementedError("Restore is not implemented for K8s sandbox")

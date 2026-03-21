@@ -125,3 +125,13 @@ class LocalSandbox(BaseSandbox):
         cls, scripts_volume_id=None, data_volume_id=None, tools_volume_id=None
     ):
         pass
+
+    @classmethod
+    def checkpoint(cls) -> str:
+        """Checkpoint the sandbox."""
+        raise NotImplementedError("Checkpoint is not implemented for LocalSandbox")
+
+    @classmethod
+    def restore(cls) -> str:
+        """Restore the sandbox."""
+        raise NotImplementedError("Restore is not implemented for LocalSandbox")

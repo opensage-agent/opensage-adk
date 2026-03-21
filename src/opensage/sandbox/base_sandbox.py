@@ -181,3 +181,15 @@ class BaseSandbox(ABC):
     ) -> None:
         """Delete shared volumes."""
         pass
+
+    @classmethod
+    @abstractmethod
+    def checkpoint(cls) -> str:
+        """Checkpoint the sandbox."""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def restore(cls) -> str:
+        """Restore the sandbox."""
+        pass

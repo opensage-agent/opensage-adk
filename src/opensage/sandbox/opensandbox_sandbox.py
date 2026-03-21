@@ -946,3 +946,13 @@ class OpenSandboxSandbox(BaseSandbox):
                 service_config = config.mcp.services[sandbox_type]
                 service_config._sse_host = first_endpoint[0]
                 service_config._sse_port = first_endpoint[1]
+
+    @classmethod
+    def checkpoint(cls) -> str:
+        """Checkpoint the sandbox."""
+        raise NotImplementedError("Checkpoint is not implemented for LocalSandbox")
+
+    @classmethod
+    def restore(cls) -> str:
+        """Restore the sandbox."""
+        raise NotImplementedError("Restore is not implemented for LocalSandbox")

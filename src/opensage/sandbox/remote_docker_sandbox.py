@@ -787,3 +787,13 @@ class RemoteDockerSandbox(NativeDockerSandbox):
                     logger.info(f"Deleted remote volume: {volume_id}")
                 except Exception as e:
                     logger.warning(f"Error deleting volume {volume_id}: {e}")
+
+    @classmethod
+    def checkpoint(cls) -> str:
+        """Checkpoint the sandbox."""
+        raise NotImplementedError("Checkpoint is not implemented for LocalSandbox")
+
+    @classmethod
+    def restore(cls) -> str:
+        """Restore the sandbox."""
+        raise NotImplementedError("Restore is not implemented for LocalSandbox")

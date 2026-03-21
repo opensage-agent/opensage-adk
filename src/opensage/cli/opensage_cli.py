@@ -333,6 +333,23 @@ async def _resume_environment_async(
     return session_id, metadata
 
 
+def _resolve_latest_saved_session_id() -> str:
+    """Return the most recently saved session id from local store."""
+    if not _SESSION_STORE_ROOT.exists():
+        raise click.ClickException(
+            f"No saved sessions found under {_SESSION_STORE_ROOT}."
+        )
+
+    session_dirs = [p for p in _SESSION_STORE_ROOT.iterdir() if p.is_dir()]
+    if not session_dirs:
+        raise click.ClickException(
+            f"No saved sessions found under {_SESSION_STORE_ROOT}."
+        )
+
+    latest = max(session_dirs, key=lambda p: p.stat().st_mtime)
+    return latest.name
+
+
 def _verify_agent_module(agent_dir: str) -> None:
     """Best-effort precheck to load agent module early.
 
@@ -435,12 +452,11 @@ def _verify_agent_module(agent_dir: str) -> None:
     ),
 )
 @click.option(
-    "--resume_from",
-    type=str,
-    default=None,
+    "--resume",
+    is_flag=True,
+    default=False,
     help=(
-        "Resume from an existing session id previously saved under "
-        "~/.local/opensage/sessions/<session_id>."
+        "Resume from the most recently saved session under ~/.local/opensage/sessions."
     ),
 )
 def cli_web(
@@ -452,7 +468,7 @@ def cli_web(
     log_level: str,
     neo4j_logging: bool,
     auto_cleanup: bool,
-    resume_from: Optional[str],
+    resume: bool,
 ):
     """Starts an OpenSage-flavored Web UI: prepare environment then serve agents."""
     # Normalize logging
@@ -472,9 +488,15 @@ def cli_web(
 
     # 1) Prepare environment (fresh) or resume environment (attach existing)
     resume_metadata = None
-    if resume_from:
+    if resume:
+        resume_session_id = _resolve_latest_saved_session_id()
+        click.secho(
+            f"Resuming from latest saved session: {resume_session_id}", fg="cyan"
+        )
         session_id, resume_metadata = asyncio.run(
-            _resume_environment_async(resume_from=resume_from, config_path=config_path)
+            _resume_environment_async(
+                resume_from=resume_session_id, config_path=config_path
+            )
         )
     else:
         session_id = asyncio.run(

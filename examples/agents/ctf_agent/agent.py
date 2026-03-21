@@ -44,10 +44,8 @@ from opensage.toolbox.general.dynamic_subagent import (
 
 def mk_agent(opensage_session_id: str):
     model = LiteLlm(
-        model="litellm_proxy/sage-gpt-5.3-codex",
-        api_key=os.environ.get("LITELLM_PROXY_API_KEY"),
-        base_url="https://litellm-991596698159.us-west1.run.app/",
-        # Auto-inject cache_control for system messages and last 2 messages
+        model="claude-opus-4-6",
+        base_url="http://localhost:8082",
         cache_control_injection_points=[
             {"location": "message", "role": "system"},  # Cache all system messages
             {"location": "message", "index": -2},  # Cache second-to-last message

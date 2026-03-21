@@ -442,13 +442,15 @@ class ToolLoader:
 
     @staticmethod
     def generate_sandbox_structure_description(
-        required_sandboxes: Set[str], *, enable_memory_management: bool = False
+        required_sandboxes: Set[str],
+        *,
+        memory_management: MemoryManagement = MemoryManagement.FILE,
     ) -> str:
         """Generate description of sandbox structure for required sandboxes.
 
         Args:
             required_sandboxes (Set[str]): Set of sandbox type names that are actually required
-            enable_memory_management (bool): Whether long-term memory tools are enabled.
+            memory_management (MemoryManagement): Memory management type.
         Returns:
             str: Description text about sandbox structure and mount points
         """
@@ -501,6 +503,28 @@ class ToolLoader:
                 "",
             ]
         )
+        if memory_management == MemoryManagement.FILE:
+            lines.extend(
+                [
+                    "### File Memory Layout (`/mem`)",
+                    "",
+                    "File memory is organized by agent name (shared across sessions for the same agent name):",
+                    "",
+                    "```",
+                    "/mem/<agent_name>/",
+                    "  planning.md",
+                    "  session_<session_id>.json",
+                    "  session_<session_id>.json",
+                    "  ...",
+                    "```",
+                    "",
+                    f"- Your agent folder is `/mem/{self.name}/`.",
+                    "- `planning.md`: your living plan/todo file. Read it before work and update it after major steps.",
+                    "- `session_<session_id>.json`: one full trajectory dump per session.",
+                    "- Use bash tools to maintain `planning.md` and inspect/search `session_<session_id>.json` files under `/mem` when you need prior context.",
+                    "",
+                ]
+            )
 
         if "neo4j" in required_sandboxes:
             idx = lines.index("### Python Environment")
@@ -516,7 +540,7 @@ class ToolLoader:
                 "- Note: Some databases may not be available depending on sandbox configuration.",
                 "",
             ]
-            if enable_memory_management:
+            if memory_management == MemoryManagement.DATABASE:
                 neo4j_lines.extend(
                     [
                         "Querying long-term memory and short-term memory(agent execution history of sub-agents):",
@@ -529,6 +553,11 @@ class ToolLoader:
         return "\n".join(lines)
 
 
+class MemoryManagement(str, Enum):
+    FILE = "file"
+    DATABASE = "database"
+
+
 class OpenSageAgent(LlmAgent):
     tool_combos: Optional[List[ToolCombo]] = Field(default=None)
 
@@ -538,11 +567,9 @@ class OpenSageAgent(LlmAgent):
         tools: Optional[List] = None,  # TODO: this should be the initial tool list?
         tool_combos: Optional[List[ToolCombo]] = None,
         enabled_skills: Optional[Union[List[str], str]] = None,
-        enable_memory_management: bool = False,
-        **kwargs,
+        memory_management: MemoryManagement = MemoryManagement.FILE**kwargs,
     ):
         tools = list(tools) if tools else []
-
         sub_agents = kwargs.get("sub_agents", [])
         for combo in tool_combos or []:  # TODO: why tool combos for sub-agents?
             if combo.return_history:
@@ -551,7 +578,7 @@ class OpenSageAgent(LlmAgent):
                 if combo.agent_tool not in tools:
                     tools.append(combo.agent_tool)
 
-        if enable_memory_management:
+        if memory_management == MemoryManagement.DATABASE:
             # Lazy import to avoid circular dependencies at module import time.
             from opensage.util_agents.memory_management_agent.agent import (
                 create_memory_management_agent_tool,
@@ -574,7 +601,7 @@ class OpenSageAgent(LlmAgent):
 
         # Initialize the parent class first
         super().__init__(*args, **kwargs)
-        self._enable_memory_management = enable_memory_management
+        self._memory_management = memory_management
 
         # Store enabled_skills for dependency collection
         self._enabled_skills = enabled_skills
@@ -620,7 +647,7 @@ class OpenSageAgent(LlmAgent):
             # Generate sandbox structure description based on required sandboxes
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
                 required_sandboxes,
-                enable_memory_management=self._enable_memory_management,
+                memory_management=self._memory_management,
             )
 
             # logger.info(
@@ -754,7 +781,7 @@ class OpenSageAgent(LlmAgent):
             # Generate sandbox structure description based on required sandboxes
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
                 required_sandboxes,
-                enable_memory_management=self._enable_memory_management,
+                memory_management=self._memory_management,
             )
 
             # Append new tool prompt to instruction

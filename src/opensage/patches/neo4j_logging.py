@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import logging
+import os
+import re
+import shlex
 import sys
+import tempfile
 import traceback
 from typing import Any, Callable, Optional
 
@@ -22,6 +26,87 @@ _enabled: bool = False
 _patched: bool = False
 _orig_agent_tool_run: Optional[Callable] = None
 _orig_base_agent_run: Optional[Callable] = None
+_MEM_ROOT_DIR = "/mem"
+_MEM_AGENT_DIR_KEY = "_mem_agent_dir"
+
+
+def _sanitize_name(name: str) -> str:
+    """Return a filesystem-safe agent name component."""
+    if not name:
+        return "agent"
+    safe_name = re.sub(r"[^a-zA-Z0-9._-]+", "_", name).strip("._-")
+    return safe_name or "agent"
+
+
+def _compute_agent_mem_dir(invocation_context) -> str:
+    """Compute flat agent memory directory under /mem/<agent_name>."""
+    session = invocation_context.session
+    state = session.state
+    existing = state.get(_MEM_AGENT_DIR_KEY)
+    if isinstance(existing, str) and existing:
+        return existing
+
+    agent_name = _sanitize_name(getattr(invocation_context.agent, "name", "agent"))
+    return os.path.join(_MEM_ROOT_DIR, agent_name)
+
+
+def _get_main_sandbox(invocation_context):
+    """Return main sandbox instance for current OpenSage session."""
+    from opensage.session import get_opensage_session
+    from opensage.utils.agent_utils import get_opensage_session_id_from_context
+
+    opensage_session_id = get_opensage_session_id_from_context(invocation_context)
+    opensage_session = get_opensage_session(opensage_session_id)
+    return opensage_session.sandboxes.get_sandbox("main")
+
+
+def _write_text_to_main_sandbox(
+    invocation_context, container_path: str, text: str
+) -> None:
+    """Write text into main sandbox via temporary host file."""
+    sandbox = _get_main_sandbox(invocation_context)
+    parent_dir = os.path.dirname(container_path)
+    sandbox.run_command_in_container(f"mkdir -p {shlex.quote(parent_dir)}")
+    with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as temp_file:
+        temp_file.write(text)
+        local_path = temp_file.name
+    try:
+        sandbox.copy_file_to_container(local_path, container_path)
+    finally:
+        try:
+            os.unlink(local_path)
+        except OSError:
+            logger.debug("Failed to cleanup temp file: %s", local_path)
+
+
+def _ensure_agent_mem_layout(invocation_context, agent_mem_dir: str) -> None:
+    """Create agent memory folder and default planning.md in main sandbox."""
+    sandbox = _get_main_sandbox(invocation_context)
+    sandbox.run_command_in_container(f"mkdir -p {shlex.quote(agent_mem_dir)}")
+    planning_path = os.path.join(agent_mem_dir, "planning.md")
+    _, exit_code = sandbox.run_command_in_container(
+        f"test -f {shlex.quote(planning_path)}"
+    )
+    if exit_code == 0:
+        return
+    planning_seed = (
+        f"# Planning for {getattr(invocation_context.agent, 'name', 'agent')}\n\n"
+        "## Current Goal\n\n"
+        "- TODO\n\n"
+        "## Next Steps\n\n"
+        "- TODO\n"
+    )
+    _write_text_to_main_sandbox(invocation_context, planning_path, planning_seed)
+
+
+def _persist_session_json(invocation_context, agent_mem_dir: str) -> None:
+    """Persist full ADK session JSON into session_<session_id>.json."""
+    session_json = invocation_context.session.model_dump_json(
+        indent=2, exclude_none=True
+    )
+    session_id = invocation_context.session.id
+    session_json_path = os.path.join(agent_mem_dir, f"session_{session_id}.json")
+    _write_text_to_main_sandbox(invocation_context, session_json_path, session_json)
 
 
 async def _record_agent_call(
@@ -80,6 +165,14 @@ async def _record_agent_call(
 
 async def _wrapped_base_agent_run(self, invocation_context):
     logging_enabled = _enabled
+    session_id = invocation_context.session.id
+    agent_mem_dir = _compute_agent_mem_dir(invocation_context)
+    invocation_context.session.state[_MEM_AGENT_DIR_KEY] = agent_mem_dir
+    try:
+        _ensure_agent_mem_layout(invocation_context, agent_mem_dir)
+    except Exception as mem_error:
+        logger.warning("Failed to initialize agent memory dir: %s", mem_error)
+
     if logging_enabled:
         from opensage.utils.neo4j_history_management import (  # type: ignore
             find_agent_run_by_session_id,
@@ -91,7 +184,6 @@ async def _wrapped_base_agent_run(self, invocation_context):
 
         await record_agent_start(self, invocation_context)
 
-    session_id = invocation_context.session.id
     last_event = None
     try:
         async for event in _orig_base_agent_run(self, invocation_context):
@@ -118,6 +210,11 @@ async def _wrapped_base_agent_run(self, invocation_context):
         raise
 
     finally:
+        try:
+            _persist_session_json(invocation_context, agent_mem_dir)
+        except Exception as mem_error:
+            logger.warning("Failed to persist session.json: %s", mem_error)
+
         if logging_enabled:
             try:
                 final_session_state = invocation_context.session.state

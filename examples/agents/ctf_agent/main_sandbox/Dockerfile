@@ -67,6 +67,7 @@ RUN uv pip install --python /app/.venv/bin/python \
       z3-solver \
       pyghidra-mcp \
       ghidramcp \
+      playwright \
       "git+https://github.com/mrexodia/ida-pro-mcp.git"
 RUN if [ -x /usr/share/ghidra/support/analyzeHeadless ]; then \
       ln -sf /usr/share/ghidra/support/analyzeHeadless /usr/local/bin/analyzeHeadless; \
@@ -80,8 +81,7 @@ RUN if ! command -v r2 >/dev/null 2>&1; then \
       rm -rf /tmp/radare2; \
     fi
 # --- Playwright ---
-RUN npm install -g playwright && \
-    npx playwright install chromium
+RUN /app/.venv/bin/python -m playwright install chromium
 
 ENTRYPOINT []
 WORKDIR /workspace

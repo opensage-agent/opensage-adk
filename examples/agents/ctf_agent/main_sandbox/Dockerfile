@@ -73,6 +73,13 @@ RUN if [ -x /usr/share/ghidra/support/analyzeHeadless ]; then \
       ln -sf /usr/share/ghidra/support/analyzeHeadless /usr/local/bin/analyzeHeadless; \
     fi
 
+# --- ida-pro ---
+COPY --from=ghcr.io/opensage-agent/ida-pro:latest /opt/ida /opt/ida
+COPY --from=ghcr.io/opensage-agent/ida-pro:latest /opt/lumina /opt/lumina
+RUN cd /opt/ida && python idakeygen.py
+COPY --from=ghcr.io/opensage-agent/ida-pro:latest /root/ida.reg /root/.idapro/
+ENV PATH="/opt/ida:/opt/lumina:$PATH"
+
 # Best-effort radare2 source install fallback when apt package is unavailable.
 RUN if ! command -v r2 >/dev/null 2>&1; then \
       git clone --depth 1 https://github.com/radareorg/radare2.git /tmp/radare2 && \

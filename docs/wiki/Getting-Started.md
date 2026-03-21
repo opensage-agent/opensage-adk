@@ -136,6 +136,11 @@ def mk_agent(
     return root_agent
 ```
 
+If you omit `api_key=...` in `LiteLlm(...)`, LiteLLM will use its default
+credential resolution from environment variables (for example,
+`OPENAI_API_KEY` for `openai/...` models and `ANTHROPIC_API_KEY` for
+`anthropic/...` models).
+
 ### 3) Base agent attributes / flags (what you typically customize)
 
 The OpenSage base agent extends ADK’s `LlmAgent` and adds OpenSage-specific

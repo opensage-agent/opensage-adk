@@ -289,6 +289,11 @@ Configures language models used by agents.
 
 Models are configured under `[llm.model_configs.<model_name>]`:
 
+When using provider-backed models (for example `openai/...` or
+`anthropic/...`), make sure provider credentials are available in environment
+variables before runtime (for example `OPENAI_API_KEY` or
+`ANTHROPIC_API_KEY`).
+
 **Common Model Names:**
 - `main`: Primary model for agent reasoning
 - `summarize`: Model for summarization and context compression

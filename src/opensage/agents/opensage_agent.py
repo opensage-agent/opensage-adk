@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
 
@@ -15,6 +16,11 @@ from opensage.utils.project_info import PROJECT_PATH
 logger = logging.getLogger(__name__)
 
 _TOOLSET_SUMMARY_MARKER = "[[OPENSAGE_TOOLSET_SUMMARY]]"
+
+
+class MemoryManagement(str, Enum):
+    FILE = "file"
+    DATABASE = "database"
 
 
 class OpenSageMCPToolset(McpToolset):
@@ -445,6 +451,7 @@ class ToolLoader:
         required_sandboxes: Set[str],
         *,
         memory_management: MemoryManagement = MemoryManagement.FILE,
+        agent_name: Optional[str] = None,
     ) -> str:
         """Generate description of sandbox structure for required sandboxes.
 
@@ -518,7 +525,7 @@ class ToolLoader:
                     "  ...",
                     "```",
                     "",
-                    f"- Your agent folder is `/mem/{self.name}/`.",
+                    f"- Your agent folder is `/mem/{agent_name or '<agent_name>'}/`.",
                     "- `planning.md`: your living plan/todo file. Read it before work and update it after major steps.",
                     "- `session_<session_id>.json`: one full trajectory dump per session.",
                     "- Use bash tools to maintain `planning.md` and inspect/search `session_<session_id>.json` files under `/mem` when you need prior context.",
@@ -553,11 +560,6 @@ class ToolLoader:
         return "\n".join(lines)
 
 
-class MemoryManagement(str, Enum):
-    FILE = "file"
-    DATABASE = "database"
-
-
 class OpenSageAgent(LlmAgent):
     tool_combos: Optional[List[ToolCombo]] = Field(default=None)
 
@@ -567,7 +569,8 @@ class OpenSageAgent(LlmAgent):
         tools: Optional[List] = None,  # TODO: this should be the initial tool list?
         tool_combos: Optional[List[ToolCombo]] = None,
         enabled_skills: Optional[Union[List[str], str]] = None,
-        memory_management: MemoryManagement = MemoryManagement.FILE**kwargs,
+        memory_management: MemoryManagement = MemoryManagement.FILE,
+        **kwargs,
     ):
         tools = list(tools) if tools else []
         sub_agents = kwargs.get("sub_agents", [])
@@ -648,6 +651,7 @@ class OpenSageAgent(LlmAgent):
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
                 required_sandboxes,
                 memory_management=self._memory_management,
+                agent_name=self.name,
             )
 
             # logger.info(
@@ -782,6 +786,7 @@ class OpenSageAgent(LlmAgent):
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
                 required_sandboxes,
                 memory_management=self._memory_management,
+                agent_name=self.name,
             )
 
             # Append new tool prompt to instruction

@@ -19,6 +19,7 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
+    HTMLResponse,
     PlainTextResponse,
     RedirectResponse,
     StreamingResponse,
@@ -189,6 +190,24 @@ class OpenSageWebServer:
             )
 
         app = FastAPI(lifespan=lifespan)
+        active_turn_task_by_session: dict[str, asyncio.Task] = {}
+
+        def _register_active_turn(session_id: str, task: asyncio.Task) -> None:
+            active = active_turn_task_by_session.get(session_id)
+            if active and not active.done():
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "A turn is already running for this session. Stop it first."
+                    ),
+                )
+            active_turn_task_by_session[session_id] = task
+
+        def _clear_active_turn(session_id: str, task: asyncio.Task) -> None:
+            active = active_turn_task_by_session.get(session_id)
+            if active is task:
+                active_turn_task_by_session.pop(session_id, None)
+
         if allow_origins:
             app.add_middleware(
                 CORSMiddleware,
@@ -213,6 +232,27 @@ class OpenSageWebServer:
         @app.get("/list-apps")
         async def list_apps() -> list[str]:
             return [self.app_name]
+
+        @app.get("/control/turn_state")
+        async def get_turn_state(
+            session_id: str = Query(default=None),
+        ) -> dict[str, Any]:
+            sid = session_id or self.fixed_session_id
+            active = active_turn_task_by_session.get(sid)
+            running = bool(active and not active.done())
+            return {"running": running, "session_id": sid}
+
+        @app.post("/control/stop_turn")
+        async def stop_current_turn(
+            session_id: str = Query(default=None),
+        ) -> dict[str, Any]:
+            sid = session_id or self.fixed_session_id
+            active = active_turn_task_by_session.get(sid)
+            if not active or active.done():
+                return {"stopped": False, "running": False, "session_id": sid}
+            active.cancel("Stopped from Dev UI")
+            logger.warning("Requested stop for active turn: session_id=%s", sid)
+            return {"stopped": True, "running": True, "session_id": sid}
 
         @app.get("/debug/trace/session/{session_id}")
         async def get_session_trace(session_id: str) -> Any:
@@ -318,15 +358,26 @@ class OpenSageWebServer:
             if not session:
                 raise HTTPException(status_code=404, detail="Session not found")
             runner = await self.get_runner_async()
-            async with Aclosing(
-                runner.run_async(
-                    user_id=user_id,
-                    session_id=session_id,
-                    new_message=new_message,
-                    state_delta=state_delta,
-                )
-            ) as agen:
-                return [event async for event in agen]
+            current_task = asyncio.current_task()
+            if current_task is None:
+                raise HTTPException(status_code=500, detail="No active task context")
+            _register_active_turn(session_id, current_task)
+            try:
+                async with Aclosing(
+                    runner.run_async(
+                        user_id=user_id,
+                        session_id=session_id,
+                        new_message=new_message,
+                        state_delta=state_delta,
+                    )
+                ) as agen:
+                    return [event async for event in agen]
+            except asyncio.CancelledError as cancelled:
+                raise HTTPException(
+                    status_code=409, detail=f"Turn stopped: {cancelled}"
+                ) from cancelled
+            finally:
+                _clear_active_turn(session_id, current_task)
 
         @app.post("/run_sse")
         async def run_agent_sse(req: RunAgentRequest) -> StreamingResponse:
@@ -347,7 +398,12 @@ class OpenSageWebServer:
                 raise HTTPException(status_code=404, detail="Session not found")
 
             async def event_generator():
+                current_task = asyncio.current_task()
+                if current_task is None:
+                    yield 'data: {"error": "No active task context"}\n\n'
+                    return
                 try:
+                    _register_active_turn(session_id, current_task)
                     mode = StreamingMode.SSE if streaming else StreamingMode.NONE
                     runner = await self.get_runner_async()
                     async with Aclosing(
@@ -368,9 +424,14 @@ class OpenSageWebServer:
                                 )
                                 + "\n\n"
                             )
+                except asyncio.CancelledError:
+                    yield 'data: {"stopped": true, "message": "Turn stopped by UI"}\n\n'
+                    return
                 except Exception as e:
                     logger.exception("Error in SSE generator: %s", e)
                     yield f'data: {{"error": "{str(e)}"}}\n\n'
+                finally:
+                    _clear_active_turn(session_id, current_task)
 
             return StreamingResponse(event_generator(), media_type="text/event-stream")
 
@@ -421,19 +482,27 @@ class OpenSageWebServer:
                 asyncio.create_task(forward_events()),
                 asyncio.create_task(process_messages()),
             ]
-            done, pending = await asyncio.wait(
-                tasks, return_when=asyncio.FIRST_EXCEPTION
-            )
+            current_task = asyncio.current_task()
+            if current_task is None:
+                await websocket.close(code=1011, reason="No active task context")
+                return
+            _register_active_turn(session_id, current_task)
             try:
+                done, pending = await asyncio.wait(
+                    tasks, return_when=asyncio.FIRST_EXCEPTION
+                )
                 for t in done:
                     t.result()
+            except asyncio.CancelledError:
+                await websocket.close(code=1013, reason="Turn stopped by UI")
             except WebSocketDisconnect:
                 logger.info("Client disconnected")
             except Exception as e:
                 logger.exception("Live error: %s", e)
                 await websocket.close(code=1011, reason=str(e)[:123])
             finally:
-                for t in pending:
+                _clear_active_turn(session_id, current_task)
+                for t in tasks:
                     t.cancel()
 
         # Artifacts
@@ -560,6 +629,53 @@ class OpenSageWebServer:
                     "logo_image_url": "assets/opensage.svg",
                 }
 
+            @app.get("/dev-ui/opensage-stop-turn.js")
+            async def get_stop_turn_js():
+                js = """
+(() => {
+  const style = document.createElement('style');
+  style.textContent = `
+    #opensage-stop-btn {
+      position: fixed; right: 16px; bottom: 16px; z-index: 99999;
+      border: none; border-radius: 8px; padding: 10px 14px;
+      color: #fff; font-weight: 600; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    #opensage-stop-btn.running { background: #d93025; }
+    #opensage-stop-btn.idle { background: #9aa0a6; cursor: not-allowed; }
+  `;
+  document.head.appendChild(style);
+
+  const btn = document.createElement('button');
+  btn.id = 'opensage-stop-btn';
+  btn.className = 'idle';
+  btn.textContent = 'Stop Turn';
+  btn.disabled = true;
+  document.body.appendChild(btn);
+
+  async function refresh() {
+    try {
+      const res = await fetch('/control/turn_state', { cache: 'no-store' });
+      const data = await res.json();
+      const running = !!data.running;
+      btn.className = running ? 'running' : 'idle';
+      btn.disabled = !running;
+    } catch (_) {}
+  }
+
+  btn.addEventListener('click', async () => {
+    try {
+      await fetch('/control/stop_turn', { method: 'POST' });
+      await refresh();
+    } catch (_) {}
+  });
+
+  refresh();
+  setInterval(refresh, 3000);
+})();
+                """.strip()
+                return PlainTextResponse(js, media_type="application/javascript")
+
             @app.get("/")
             async def redirect_root_to_dev_ui():
                 return RedirectResponse(redirect_dev_ui_url)
@@ -567,6 +683,15 @@ class OpenSageWebServer:
             @app.get("/dev-ui")
             async def redirect_dev_ui_add_slash():
                 return RedirectResponse(redirect_dev_ui_url)
+
+            @app.get("/dev-ui/")
+            async def dev_ui_index_with_pause_button():
+                index_html = (web_assets_dir / "index.html").read_text(encoding="utf-8")
+                script_tag = (
+                    '<script src="./opensage-stop-turn.js" type="module"></script>'
+                )
+                injected = index_html.replace("</body>", f"{script_tag}</body>")
+                return HTMLResponse(content=injected)
 
             app.mount(
                 "/dev-ui/",

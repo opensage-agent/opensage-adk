@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -35,6 +37,7 @@ from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
 from opensage.utils.bash_tools_staging import compute_bash_tools_top_roots
 
 logger = logging.getLogger(__name__)
+_SESSION_STORE_ROOT = Path.home() / ".local" / "opensage" / "sessions"
 
 
 @click.group(context_settings={"max_content_width": 240})
@@ -183,6 +186,153 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
     return session_id
 
 
+def _session_store_dir(session_id: str) -> Path:
+    return _SESSION_STORE_ROOT / session_id
+
+
+def _collect_sandbox_runtime_metadata(opensage_session) -> dict:
+    """Collect attachable runtime metadata for current sandboxes."""
+    backend = (
+        getattr(getattr(opensage_session, "config", None), "sandbox", None)
+        and opensage_session.config.sandbox.backend
+    ) or "native"
+    sandboxes = {}
+    for sandbox_type, sandbox in opensage_session.sandboxes.list_sandboxes().items():
+        entry = {"backend": backend}
+        container_id = getattr(sandbox, "container_id", None)
+        pod_name = getattr(sandbox, "pod_name", None)
+        container_name = getattr(sandbox, "container_name", None)
+        if container_id:
+            entry["container_id"] = container_id
+        if pod_name:
+            entry["pod_name"] = pod_name
+        if container_name:
+            entry["container_name"] = container_name
+        sandboxes[sandbox_type] = entry
+    return {"backend": backend, "sandboxes": sandboxes}
+
+
+async def _persist_web_session_snapshot_async(
+    *,
+    session_id: str,
+    app_name: str,
+    user_id: str,
+    session_service: OpenSageInMemorySessionService,
+    opensage_session,
+) -> Path:
+    """Persist ADK session + sandbox runtime metadata to local disk."""
+    store_dir = _session_store_dir(session_id)
+    store_dir.mkdir(parents=True, exist_ok=True)
+
+    adk_session = await session_service.get_session(
+        app_name=app_name, user_id=user_id, session_id=session_id
+    )
+    if adk_session is None:
+        raise click.ClickException(
+            f"Cannot persist session: ADK session not found ({session_id})"
+        )
+
+    session_snapshot_path = store_dir / "adk_session.json"
+    session_snapshot_path.write_text(
+        adk_session.model_dump_json(indent=2, exclude_none=True),
+        encoding="utf-8",
+    )
+
+    metadata = {
+        "session_id": session_id,
+        "app_name": app_name,
+        "user_id": user_id,
+        "saved_at_unix": int(time.time()),
+        "runtime": _collect_sandbox_runtime_metadata(opensage_session),
+    }
+    metadata_path = store_dir / "metadata.json"
+    metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+    logger.info("Persisted OpenSage web session snapshot to %s", store_dir)
+    return store_dir
+
+
+async def _attach_sandboxes_from_snapshot_async(
+    *,
+    opensage_session,
+    snapshot_metadata: dict,
+) -> None:
+    """Attach current OpenSage session to previously running sandboxes."""
+    runtime = snapshot_metadata.get("runtime", {})
+    sandbox_map = runtime.get("sandboxes", {})
+    if not sandbox_map:
+        logger.warning("No sandbox runtime metadata found for resume.")
+        return
+
+    for sandbox_type, entry in sandbox_map.items():
+        await opensage_session.sandboxes.attach_sandbox(
+            sandbox_type=sandbox_type,
+            container_id=entry.get("container_id"),
+            pod_name=entry.get("pod_name"),
+            container_name=entry.get("container_name"),
+        )
+
+
+async def _load_adk_session_into_service_async(
+    *,
+    session_service: OpenSageInMemorySessionService,
+    snapshot_path: Path,
+    session_id: str,
+    target_app_name: str,
+    target_user_id: str,
+) -> tuple[str, str]:
+    """Load persisted ADK session object into the in-memory session service."""
+    from google.adk.sessions.session import Session
+
+    if not snapshot_path.exists():
+        raise click.ClickException(f"Session snapshot file not found: {snapshot_path}")
+
+    persisted = Session.model_validate_json(snapshot_path.read_text(encoding="utf-8"))
+    # Force requested session id as source of truth.
+    persisted.id = session_id
+    persisted.app_name = target_app_name
+    persisted.user_id = target_user_id
+    app_name = target_app_name
+    user_id = target_user_id
+
+    await session_service.create_session(
+        app_name=app_name,
+        user_id=user_id,
+        state=persisted.state,
+        session_id=session_id,
+    )
+    session_service.sessions.setdefault(app_name, {}).setdefault(user_id, {})[
+        session_id
+    ] = persisted
+    return app_name, user_id
+
+
+async def _resume_environment_async(
+    *,
+    resume_from: str,
+    config_path: str,
+) -> tuple[str, dict]:
+    """Restore an OpenSage session by re-attaching to existing sandboxes."""
+    store_dir = _session_store_dir(resume_from)
+    metadata_path = store_dir / "metadata.json"
+    if not metadata_path.exists():
+        raise click.ClickException(
+            f"Resume metadata not found for session '{resume_from}': {metadata_path}"
+        )
+
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    session_id = metadata.get("session_id") or resume_from
+    opensage_session = get_opensage_session(
+        opensage_session_id=session_id, config_path=config_path
+    )
+    await _attach_sandboxes_from_snapshot_async(
+        opensage_session=opensage_session,
+        snapshot_metadata=metadata,
+    )
+    logger.info("Resumed OpenSage environment for session: %s", session_id)
+    return session_id, metadata
+
+
 def _verify_agent_module(agent_dir: str) -> None:
     """Best-effort precheck to load agent module early.
 
@@ -274,6 +424,25 @@ def _verify_agent_module(agent_dir: str) -> None:
     show_default=True,
     help="Enable Neo4j event logging via monkey patches.",
 )
+@click.option(
+    "--auto_cleanup",
+    type=bool,
+    default=True,
+    show_default=True,
+    help=(
+        "Whether to cleanup sandboxes on process exit. "
+        "When false, session snapshots are saved to ~/.local/opensage/sessions/<session_id>."
+    ),
+)
+@click.option(
+    "--resume_from",
+    type=str,
+    default=None,
+    help=(
+        "Resume from an existing session id previously saved under "
+        "~/.local/opensage/sessions/<session_id>."
+    ),
+)
 def cli_web(
     config_path: Optional[str],
     agent_dir: str,
@@ -282,6 +451,8 @@ def cli_web(
     reload: bool,
     log_level: str,
     neo4j_logging: bool,
+    auto_cleanup: bool,
+    resume_from: Optional[str],
 ):
     """Starts an OpenSage-flavored Web UI: prepare environment then serve agents."""
     # Normalize logging
@@ -299,16 +470,23 @@ def cli_web(
         except Exception as e:
             logger.error("Failed to enable Neo4j logging: %s", e)
 
-    # 1) Prepare environment (create session and initialize sandboxes)
-    session_id = asyncio.run(
-        _prepare_environment_async(config_path=config_path, agent_dir=agent_dir)
-    )
+    # 1) Prepare environment (fresh) or resume environment (attach existing)
+    resume_metadata = None
+    if resume_from:
+        session_id, resume_metadata = asyncio.run(
+            _resume_environment_async(resume_from=resume_from, config_path=config_path)
+        )
+    else:
+        session_id = asyncio.run(
+            _prepare_environment_async(config_path=config_path, agent_dir=agent_dir)
+        )
     click.secho(f"OpenSage session prepared: {session_id}", fg="green")
+    opensage_session = get_opensage_session(session_id)
+    opensage_session.config.auto_cleanup = auto_cleanup
 
     # 2) Load the agent and bind to the prepared session (no reload/auto-discovery)
     mk_agent = _load_mk_agent_from_dir(agent_dir)
     root_agent = mk_agent(opensage_session_id=session_id)
-    opensage_session = get_opensage_session(session_id)
     enabled_plugins = []
     if opensage_session and getattr(opensage_session, "config", None):
         plugins_cfg = getattr(opensage_session.config, "plugins", None)
@@ -346,15 +524,29 @@ def cli_web(
         url_prefix=None,
         plugins=plugins,
     )
-    # Pre-create the session using the server's inferred app_name to avoid mismatch
-    asyncio.run(
-        session_service.create_session(
-            app_name=web_server.app_name,
-            user_id="user",
-            state={"opensage_session_id": session_id},
-            session_id=session_id,
+    # Pre-create or restore the ADK session using fixed session id.
+    if resume_metadata:
+        snapshot_path = _session_store_dir(session_id) / "adk_session.json"
+        restored_app_name, restored_user_id = asyncio.run(
+            _load_adk_session_into_service_async(
+                session_service=session_service,
+                snapshot_path=snapshot_path,
+                session_id=session_id,
+                target_app_name=web_server.app_name,
+                target_user_id="user",
+            )
         )
-    )
+        session_user_id = restored_user_id
+    else:
+        asyncio.run(
+            session_service.create_session(
+                app_name=web_server.app_name,
+                user_id="user",
+                state={"opensage_session_id": session_id},
+                session_id=session_id,
+            )
+        )
+        session_user_id = "user"
     app = web_server.get_fast_api_app(allow_origins=None, enable_dev_ui=True)
 
     config = uvicorn.Config(
@@ -369,7 +561,23 @@ def cli_web(
         fg="green",
     )
     server = uvicorn.Server(config)
-    server.run()
+    try:
+        server.run()
+    finally:
+        if not auto_cleanup:
+            store_dir = asyncio.run(
+                _persist_web_session_snapshot_async(
+                    session_id=session_id,
+                    app_name=web_server.app_name,
+                    user_id=session_user_id,
+                    session_service=session_service,
+                    opensage_session=opensage_session,
+                )
+            )
+            click.secho(
+                f"Session snapshot saved to {store_dir}",
+                fg="yellow",
+            )
 
 
 @main.command("dependency-check")

@@ -19,11 +19,18 @@ RUN apt-get update && \
       ripgrep \
       build-essential \
       pkg-config \
-      default-jre \
+      file \
+      libssl-dev \
+      libmagic-dev \
+      libuv1-dev \
+      libzip-dev \
+      openjdk-21-jdk-headless \
       python3 \
+      python3.11 \
       python3-pip \
       python3-venv \
       python3-dev \
+      qemu-system \
       qemu-system-x86 \
       qemu-user \
       qemu-user-static \
@@ -51,15 +58,27 @@ ENV PATH="/opt/micromamba/envs/sage/bin:/root/.local/bin:$PATH"
 RUN uv venv --python python3 /app/.venv
 ENV PATH="/app/.venv/bin:/opt/micromamba/envs/sage/bin:/root/.local/bin:$PATH"
 RUN uv pip install --python /app/.venv/bin/python \
+      "numpy<1.24" \
       neo4j \
       setuptools \
       angr \
       capstone \
       ROPGadget \
       lief \
-      z3-solver
+      z3-solver \
+      pyghidra-mcp \
+      ghidramcp \
+      "git+https://github.com/mrexodia/ida-pro-mcp.git"
 RUN if [ -x /usr/share/ghidra/support/analyzeHeadless ]; then \
       ln -sf /usr/share/ghidra/support/analyzeHeadless /usr/local/bin/analyzeHeadless; \
+    fi
+
+# Best-effort radare2 source install fallback when apt package is unavailable.
+RUN if ! command -v r2 >/dev/null 2>&1; then \
+      git clone --depth 1 https://github.com/radareorg/radare2.git /tmp/radare2 && \
+      cd /tmp/radare2 && \
+      ./sys/install.sh --without-pull --install && \
+      rm -rf /tmp/radare2; \
     fi
 # --- Playwright ---
 RUN npm install -g playwright && \

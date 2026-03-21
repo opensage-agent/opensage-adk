@@ -14,6 +14,7 @@ import atexit
 import logging
 import os
 import signal
+import sys
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Optional
@@ -186,7 +187,9 @@ class OpenSageSessionRegistry:
             OpenSageSessionRegistry.cleanup_all_sessions()
         except Exception:
             pass  # Ignore errors during signal handler cleanup
-        os._exit(0)
+        # Use a graceful process exit so outer layers (e.g., CLI finally blocks)
+        # can persist session snapshots before termination.
+        sys.exit(0)
 
     def _cleanup_at_exit():
         """Cleanup all sessions at exit, ignoring closed stream errors."""

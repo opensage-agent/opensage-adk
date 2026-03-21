@@ -41,7 +41,6 @@ initializer_timeout_sec = 1800
 [llm.model_configs.main]
 model_name = "${MAIN_MODEL}"
 temperature = 0.7
-max_tokens = 8192
 rpm = 60
 tpm = 60000
 

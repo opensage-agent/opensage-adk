@@ -131,6 +131,14 @@ class _FakeSandbox(BaseSandbox):
     ) -> None:
         raise NotImplementedError()
 
+    @classmethod
+    def checkpoint(cls) -> str:
+        raise NotImplementedError()
+
+    @classmethod
+    def restore(cls) -> str:
+        raise NotImplementedError()
+
 
 @pytest.mark.asyncio
 async def test_prepare_skill_deps_runs_matching_skill_installer():

@@ -469,3 +469,17 @@ class AgentDockerLiteSandbox(BaseSandbox):
             if vol_path and Path(vol_path).exists():
                 shutil.rmtree(vol_path, ignore_errors=True)
                 logger.info("Deleted shared volume: %s", vol_path)
+
+    @classmethod
+    def checkpoint(cls) -> str:
+        """Checkpoint is not supported for agentdocker-lite backend."""
+        raise NotImplementedError(
+            "Checkpoint is not implemented for AgentDockerLiteSandbox"
+        )
+
+    @classmethod
+    def restore(cls) -> str:
+        """Restore is not supported for agentdocker-lite backend."""
+        raise NotImplementedError(
+            "Restore is not implemented for AgentDockerLiteSandbox"
+        )

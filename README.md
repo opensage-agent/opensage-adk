@@ -125,7 +125,7 @@ def mk_agent(opensage_session_id: str):
     )
 ```
 
-**API Keys for `LiteLlm` models (under this step):**
+**API Keys for `LiteLlm` models**
 
 When using `LiteLlm`, pass the API key from environment variables that match
 your provider setup.

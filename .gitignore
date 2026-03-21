@@ -14,7 +14,8 @@
 **.tar.lrz
 **.tar.lzo
 **tmp**/
-*scripts/
+# Ignore sandbox_scripts output, but NOT bash_tools/*/scripts/
+sandbox_scripts/output/
 
 .run
 .DS_Store

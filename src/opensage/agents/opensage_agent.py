@@ -647,12 +647,30 @@ class OpenSageAgent(LlmAgent):
             ):
                 tool_usage_policy += f"\n\n{toolset_summary}"
 
-            # Generate sandbox structure description based on required sandboxes
-            sandbox_description = ToolLoader.generate_sandbox_structure_description(
-                required_sandboxes,
-                memory_management=self._memory_management,
-                agent_name=self.name,
-            )
+            # Backward-compat for tests/callers that still set only legacy flags.
+            memory_management = getattr(self, "_memory_management", None)
+            if memory_management is None:
+                memory_management = (
+                    MemoryManagement.DATABASE
+                    if getattr(self, "_enable_memory_management", False)
+                    else MemoryManagement.FILE
+                )
+
+            # Generate sandbox structure description based on required sandboxes.
+            # Keep compatibility with older ToolLoader signatures used in tests.
+            try:
+                sandbox_description = ToolLoader.generate_sandbox_structure_description(
+                    required_sandboxes,
+                    memory_management=memory_management,
+                    agent_name=self.name,
+                )
+            except TypeError:
+                sandbox_description = ToolLoader.generate_sandbox_structure_description(
+                    required_sandboxes,
+                    enable_memory_management=(
+                        memory_management == MemoryManagement.DATABASE
+                    ),
+                )
 
             # logger.info(
             #     "Injecting dynamically loaded tool descriptions into agent instruction:\n\n"
@@ -782,12 +800,30 @@ class OpenSageAgent(LlmAgent):
                 "`/bash_tools/new_tool_creator` to scaffold the initial directory structure.\n"
             )
 
-            # Generate sandbox structure description based on required sandboxes
-            sandbox_description = ToolLoader.generate_sandbox_structure_description(
-                required_sandboxes,
-                memory_management=self._memory_management,
-                agent_name=self.name,
-            )
+            # Backward-compat for tests/callers that still set only legacy flags.
+            memory_management = getattr(self, "_memory_management", None)
+            if memory_management is None:
+                memory_management = (
+                    MemoryManagement.DATABASE
+                    if getattr(self, "_enable_memory_management", False)
+                    else MemoryManagement.FILE
+                )
+
+            # Generate sandbox structure description based on required sandboxes.
+            # Keep compatibility with older ToolLoader signatures used in tests.
+            try:
+                sandbox_description = ToolLoader.generate_sandbox_structure_description(
+                    required_sandboxes,
+                    memory_management=memory_management,
+                    agent_name=self.name,
+                )
+            except TypeError:
+                sandbox_description = ToolLoader.generate_sandbox_structure_description(
+                    required_sandboxes,
+                    enable_memory_management=(
+                        memory_management == MemoryManagement.DATABASE
+                    ),
+                )
 
             # Append new tool prompt to instruction
             self.instruction += (

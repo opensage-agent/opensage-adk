@@ -56,7 +56,7 @@ class OpenSageSandboxManager:
         self._sandboxes: Dict[str, BaseSandbox] = {}
         # Shared volume IDs for this session
         self._scripts_volume_id: Optional[str] = None  # Read-only scripts volume
-        self._tools_volume_id: Optional[str] = None  # Read-only tools volume
+        self._tools_volume_id: Optional[str] = None  # Read-write tools volume
         self._shared_volume_id: Optional[str] = None  # Read-write data volume
         # Track which bash_tools Skills were enabled when preparing this session.
         # Sandbox initializers can use this to run per-skill dependency installers.

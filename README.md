@@ -156,6 +156,22 @@ uv run opensage web \
 uv run opensage dependency-check
 ```
 
+`opensage web` supports session persistence and resume:
+
+```bash
+# default behavior: auto_cleanup=false for web
+# on shutdown, saves snapshot under ~/.local/opensage/sessions/<agent_name>_<session_id>/
+uv run opensage web --agent /path/to/my_agent --config /path/to/config.toml
+
+# resume latest saved web session
+uv run opensage web --resume
+```
+
+Notes:
+- `--resume` restores the latest saved session snapshot (ADK session + sandbox metadata + resolved runtime config).
+- `--resume` can reuse `agent_dir` from saved metadata. If missing in old snapshots, pass `--agent`.
+- For legacy snapshots without `resolved_config.toml`, pass `--config` explicitly.
+
 ## Evaluation
 
 Each benchmark script supports the following sub-commands:

@@ -171,6 +171,24 @@ When running the web UI, pass your config path:
 uv run opensage web --config "/path/to/config.toml" --agent "/path/to/my_agent"
 ```
 
+`opensage web` also supports persistent sessions and resume:
+
+```bash
+# Start a new web session (default web behavior keeps snapshots on exit)
+uv run opensage web --config "/path/to/config.toml" --agent "/path/to/my_agent"
+
+# Resume the latest saved web session
+uv run opensage web --resume
+```
+
+Saved web snapshots are stored at:
+`~/.local/opensage/sessions/<agent_name>_<session_id>/`
+
+Each snapshot folder includes:
+- `adk_session.json`: persisted ADK session object
+- `metadata.json`: session metadata + sandbox runtime mapping + agent_dir
+- `resolved_config.toml`: resolved runtime config used for resume
+
 Minimal workable config (example `opensage.toml`) that can start the web UI and
 launch the default `main` sandbox:
 

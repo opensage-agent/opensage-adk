@@ -26,7 +26,6 @@ RUN apt-get update && \
       libzip-dev \
       openjdk-21-jdk-headless \
       python3 \
-      python3.11 \
       python3-pip \
       python3-venv \
       python3-dev \
@@ -58,7 +57,7 @@ ENV PATH="/opt/micromamba/envs/sage/bin:/root/.local/bin:$PATH"
 RUN uv venv --python python3 /app/.venv
 ENV PATH="/app/.venv/bin:/opt/micromamba/envs/sage/bin:/root/.local/bin:$PATH"
 RUN uv pip install --python /app/.venv/bin/python \
-      "numpy<1.24" \
+      "numpy>=1.26,<2" \
       neo4j \
       setuptools \
       angr \

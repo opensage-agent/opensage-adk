@@ -16,6 +16,22 @@ uv run opensage web \
   --neo4j_logging  # optional
 ```
 
+Session persistence and resume:
+
+```bash
+# Start normally (web default keeps snapshots on exit)
+uv run opensage web --config /path/to/config.toml --agent /path/to/agent_dir
+
+# Explicitly control cleanup behavior
+uv run opensage web --config /path/to/config.toml --agent /path/to/agent_dir --auto_cleanup true
+
+# Resume latest snapshot
+uv run opensage web --resume
+```
+
+Snapshots are stored under:
+`~/.local/opensage/sessions/<agent_name>_<session_id>/`
+
 ### opensage dependency-check
 
 Checks if external dependencies are properly installed.

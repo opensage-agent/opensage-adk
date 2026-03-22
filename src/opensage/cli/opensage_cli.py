@@ -393,6 +393,54 @@ def _resolve_latest_saved_session_dir() -> Path:
     return max(session_dirs, key=lambda p: p.stat().st_mtime)
 
 
+def _resolve_saved_session_dir(resume_from: Optional[str]) -> Path:
+    """Resolve a saved session directory by latest, name, suffix, or path."""
+    if not resume_from:
+        return _resolve_latest_saved_session_dir()
+
+    candidate = Path(resume_from).expanduser()
+    if candidate.is_absolute():
+        resolved = candidate.resolve()
+        if not resolved.exists():
+            raise click.ClickException(f"Saved session directory not found: {resolved}")
+        if not resolved.is_dir():
+            raise click.ClickException(
+                f"Saved session path must be a directory: {resolved}"
+            )
+        return resolved
+
+    if not _SESSION_STORE_ROOT.exists():
+        raise click.ClickException(
+            f"No saved sessions found under {_SESSION_STORE_ROOT}."
+        )
+
+    exact_match = (_SESSION_STORE_ROOT / resume_from).resolve()
+    if exact_match.exists():
+        if not exact_match.is_dir():
+            raise click.ClickException(
+                f"Saved session path must be a directory: {exact_match}"
+            )
+        return exact_match
+
+    session_dirs = [p for p in _SESSION_STORE_ROOT.iterdir() if p.is_dir()]
+    suffix_matches = sorted(
+        [p for p in session_dirs if p.name.endswith(f"_{resume_from}")]
+    )
+    if len(suffix_matches) == 1:
+        return suffix_matches[0]
+    if len(suffix_matches) > 1:
+        raise click.ClickException(
+            "Multiple saved sessions match "
+            f"'{resume_from}': {', '.join(p.name for p in suffix_matches)}"
+        )
+
+    raise click.ClickException(
+        "Saved session not found. Pass a saved session directory name, "
+        f"a bare session id suffix, or an absolute path under {_SESSION_STORE_ROOT}: "
+        f"{resume_from}"
+    )
+
+
 def _verify_agent_module(agent_dir: str) -> None:
     """Best-effort precheck to load agent module early.
 
@@ -491,7 +539,8 @@ def _verify_agent_module(agent_dir: str) -> None:
     show_default=True,
     help=(
         "Whether to cleanup sandboxes on process exit. "
-        "When false, session snapshots are saved to ~/.local/opensage/sessions/<session_id>."
+        "When false, session snapshots are saved to "
+        "~/.local/opensage/sessions/<agent_name>_<session_id>."
     ),
 )
 @click.option(
@@ -500,6 +549,17 @@ def _verify_agent_module(agent_dir: str) -> None:
     default=False,
     help=(
         "Resume from the most recently saved session under ~/.local/opensage/sessions."
+    ),
+)
+@click.option(
+    "--resume-from",
+    "resume_from",
+    type=str,
+    default=None,
+    help=(
+        "Resume from a specific saved session. Accepts a saved session directory "
+        "name, a bare session id suffix, or an absolute path to a saved session "
+        "directory. Implies --resume."
     ),
 )
 def cli_web(
@@ -512,13 +572,15 @@ def cli_web(
     neo4j_logging: bool,
     auto_cleanup: bool,
     resume: bool,
+    resume_from: Optional[str],
 ):
     """Starts an OpenSage-flavored Web UI: prepare environment then serve agents."""
+    resume_requested = resume or bool(resume_from)
     # Normalize logging
     logging.basicConfig(level=getattr(logging, log_level.upper()))
-    if not resume and not agent_dir:
+    if not resume_requested and not agent_dir:
         raise click.ClickException("Missing required option '--agent'.")
-    if not resume:
+    if not resume_requested:
         config_path = _resolve_config_path(config_path, agent_dir)
 
     # Optionally enable Neo4j logging (monkey patches BaseAgent/AgentTool)
@@ -534,12 +596,15 @@ def cli_web(
     # 1) Prepare environment (fresh) or resume environment (attach existing)
     resume_metadata = None
     resume_store_dir: Path | None = None
-    if resume:
-        resume_store_dir = _resolve_latest_saved_session_dir()
+    if resume_requested:
+        resume_store_dir = _resolve_saved_session_dir(resume_from)
         resume_session_id = resume_store_dir.name
-        click.secho(
-            f"Resuming from latest saved session: {resume_session_id}", fg="cyan"
+        resume_label = (
+            f"saved session: {resume_session_id}"
+            if resume_from
+            else f"latest saved session: {resume_session_id}"
         )
+        click.secho(f"Resuming from {resume_label}", fg="cyan")
         session_id, resume_metadata, resumed_agent_dir = asyncio.run(
             _resume_environment_async(
                 resume_dir=resume_store_dir, config_path=config_path or ""

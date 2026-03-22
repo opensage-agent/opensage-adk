@@ -17,9 +17,9 @@ default_host = ""
 backend = "native"
 absolute_shared_data_path = "${ABSOLUTE_SHARED_DATA_PATH}"
 host_shared_mem_dir = "${HOST_LONG_TERM_MEM_DIR}"
-mount_host_paths = [
-    "${HOST_SHORT_TERM_MEM_DIR}:/mem:rw",
-]
+# mount_host_paths = [
+#     "${HOST_SHORT_TERM_MEM_DIR}:/mem:rw",
+# ]
 
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"
@@ -54,7 +54,7 @@ tpm = 60000
 max_tool_response_length = 20000
 
 [history.events_compaction]
-max_history_summary_length = 150000
+max_history_summary_length = 300000
 
 [mcp]
 # GDB MCP service configuration

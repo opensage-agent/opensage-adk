@@ -28,5 +28,9 @@ Options:
                                   [default: False]
   --resume                        Resume from the most recently saved session
                                   under ~/.local/opensage/sessions.
+  --resume-from TEXT              Resume from a specific saved session. Accepts
+                                  a saved session directory name, a bare
+                                  session id suffix, or an absolute path to a
+                                  saved session directory. Implies --resume.
   --help                          Show this message and exit.
 ```

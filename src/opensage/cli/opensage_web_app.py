@@ -193,14 +193,15 @@ class OpenSageWebServer:
         active_turn_task_by_session: dict[str, asyncio.Task] = {}
 
         def _register_active_turn(session_id: str, task: asyncio.Task) -> None:
-            active = active_turn_task_by_session.get(session_id)
-            if active and not active.done():
-                raise HTTPException(
-                    status_code=409,
-                    detail=(
-                        "A turn is already running for this session. Stop it first."
-                    ),
-                )
+            # active = active_turn_task_by_session.get(session_id)
+            # if active and not active.done():
+            #     raise HTTPException(
+            #         status_code=409,
+            #         detail=(
+            #             "A turn is already running for this session. Stop it first."
+            #         ),
+            #     )
+
             active_turn_task_by_session[session_id] = task
 
         def _clear_active_turn(session_id: str, task: asyncio.Task) -> None:

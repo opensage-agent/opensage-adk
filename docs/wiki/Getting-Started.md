@@ -179,6 +179,7 @@ uv run opensage web --config "/path/to/config.toml" --agent "/path/to/my_agent"
 
 # Resume the latest saved web session
 uv run opensage web --resume
+uv run opensage web --resume-from ctf_agent_c0606edc-2fff-496d-8964-48bdd7f0bd23
 ```
 
 Saved web snapshots are stored at:

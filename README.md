@@ -165,10 +165,14 @@ uv run opensage web --agent /path/to/my_agent --config /path/to/config.toml
 
 # resume latest saved web session
 uv run opensage web --resume
+
+# resume a specific saved web session
+uv run opensage web --resume-from ctf_agent_c0606edc-2fff-496d-8964-48bdd7f0bd23
 ```
 
 Notes:
 - `--resume` restores the latest saved session snapshot (ADK session + sandbox metadata + resolved runtime config).
+- `--resume-from` restores a specific saved snapshot by directory name, bare session id suffix, or absolute path.
 - `--resume` can reuse `agent_dir` from saved metadata. If missing in old snapshots, pass `--agent`.
 - For legacy snapshots without `resolved_config.toml`, pass `--config` explicitly.
 

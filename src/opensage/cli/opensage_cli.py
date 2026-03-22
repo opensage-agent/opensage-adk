@@ -248,9 +248,12 @@ async def _persist_web_session_snapshot_async(
             f"Cannot persist session: ADK session not found ({session_id})"
         )
 
+    persisted_snapshot = _sanitize_adk_session_for_persistence(
+        adk_session, copy_before_mutating=True
+    )
     session_snapshot_path = store_dir / "adk_session.json"
     session_snapshot_path.write_text(
-        adk_session.model_dump_json(indent=2, exclude_none=True),
+        persisted_snapshot.model_dump_json(indent=2, exclude_none=True),
         encoding="utf-8",
     )
 
@@ -311,6 +314,9 @@ async def _load_adk_session_into_service_async(
         raise click.ClickException(f"Session snapshot file not found: {snapshot_path}")
 
     persisted = Session.model_validate_json(snapshot_path.read_text(encoding="utf-8"))
+    persisted = _sanitize_adk_session_for_persistence(
+        persisted, copy_before_mutating=False
+    )
     # Force requested session id as source of truth.
     persisted.id = session_id
     persisted.app_name = target_app_name
@@ -439,6 +445,62 @@ def _resolve_saved_session_dir(resume_from: Optional[str]) -> Path:
         f"a bare session id suffix, or an absolute path under {_SESSION_STORE_ROOT}: "
         f"{resume_from}"
     )
+
+
+def _drop_unmatched_function_call_events_for_resume(events):
+    """Drop unresolved function_call-only events from a persisted session."""
+    matched_response_ids: set[str] = set()
+    for event in events:
+        content = getattr(event, "content", None)
+        parts = getattr(content, "parts", None) or []
+        for part in parts:
+            function_response = getattr(part, "function_response", None)
+            if function_response and getattr(function_response, "id", None):
+                matched_response_ids.add(function_response.id)
+
+    sanitized_events = []
+    for event in events:
+        content = getattr(event, "content", None)
+        parts = getattr(content, "parts", None) or []
+        if not parts:
+            sanitized_events.append(event)
+            continue
+
+        kept_parts = []
+        removed_any = False
+        for part in parts:
+            function_call = getattr(part, "function_call", None)
+            if (
+                function_call
+                and getattr(function_call, "id", None)
+                and function_call.id not in matched_response_ids
+            ):
+                removed_any = True
+                continue
+            kept_parts.append(part)
+
+        if not removed_any:
+            sanitized_events.append(event)
+            continue
+        if not kept_parts:
+            continue
+
+        sanitized_event = event.model_copy(deep=True)
+        sanitized_event.content.parts = kept_parts
+        sanitized_events.append(sanitized_event)
+
+    return sanitized_events
+
+
+def _sanitize_adk_session_for_persistence(session, *, copy_before_mutating: bool):
+    """Trim unresolved function_call events from an ADK session."""
+    target = session.model_copy(deep=True) if copy_before_mutating else session
+    target.events = _drop_unmatched_function_call_events_for_resume(target.events or [])
+    if target.events:
+        last_event_ts = getattr(target.events[-1], "timestamp", None)
+        if last_event_ts is not None:
+            target.last_update_time = last_event_ts
+    return target
 
 
 def _verify_agent_module(agent_dir: str) -> None:

@@ -242,6 +242,7 @@ Here is a brief preview:
             f"Returning truncated message (skipped summarization): "
             f"original_len={len(raw)}, truncated_msg_len={len(truncated_msg)}"
         )
+        tool_response.clear()
         tool_response["_tool_response_summarized"] = True
         tool_response["_tool_response_summary"] = truncated_msg
         if file_saved and output_file:
@@ -391,6 +392,7 @@ You can use `grep`, `cat`, or other commands to search or view the full content 
         await create_raw_tool_response_node(
             tool, args, tool_context, tool_response, tagged_summary
         )
+    tool_response.clear()
     tool_response["_tool_response_summarized"] = True
     tool_response["_tool_response_summary"] = tagged_summary
     if file_saved and output_file:

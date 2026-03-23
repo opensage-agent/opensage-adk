@@ -4,15 +4,19 @@ import asyncio
 import json
 import logging
 import os
+import tempfile
 from pathlib import Path
 from typing import Any, Callable, List, Literal, Optional
 
 import graphviz
 from fastapi import (
     FastAPI,
+    File,
+    Form,
     HTTPException,
     Query,
     Request,
+    UploadFile,
     WebSocket,
     WebSocketDisconnect,
 )
@@ -630,6 +634,88 @@ class OpenSageWebServer:
                     "logo_image_url": "assets/opensage.svg",
                 }
 
+            @app.post("/control/upload_to_sandbox")
+            async def upload_file_to_sandbox(
+                file: UploadFile = File(...),
+                sandbox_type: str = Form("main"),
+                target_path: str | None = Form(None),
+            ) -> dict[str, Any]:
+                if not file.filename:
+                    raise HTTPException(status_code=400, detail="File is required")
+
+                from opensage.session import get_opensage_session
+
+                opensage_session = get_opensage_session(self.fixed_session_id)
+                available_sandboxes = opensage_session.sandboxes.list_sandboxes()
+                sandbox = available_sandboxes.get(sandbox_type)
+                if sandbox is None:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=(
+                            f"Sandbox '{sandbox_type}' not found. Available: "
+                            f"{', '.join(sorted(available_sandboxes))}"
+                        ),
+                    )
+
+                filename = Path(file.filename).name
+                resolved_target_path = (
+                    target_path.strip()
+                    if target_path and target_path.strip()
+                    else f"/shared/uploads/{filename}"
+                )
+                if resolved_target_path.endswith("/"):
+                    resolved_target_path = f"{resolved_target_path}{filename}"
+                if not resolved_target_path.startswith("/"):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="target_path must be an absolute sandbox path",
+                    )
+
+                parent_dir = str(Path(resolved_target_path).parent)
+                temp_path = None
+                try:
+                    suffix = Path(filename).suffix
+                    with tempfile.NamedTemporaryFile(
+                        delete=False, suffix=suffix
+                    ) as temp_file:
+                        while chunk := await file.read(1024 * 1024):
+                            temp_file.write(chunk)
+                        temp_path = temp_file.name
+
+                    _, mkdir_exit_code = sandbox.run_command_in_container(
+                        ["mkdir", "-p", parent_dir]
+                    )
+                    if mkdir_exit_code != 0:
+                        raise HTTPException(
+                            status_code=500,
+                            detail=f"Failed to create sandbox directory: {parent_dir}",
+                        )
+
+                    sandbox.copy_file_to_container(temp_path, resolved_target_path)
+                except HTTPException:
+                    raise
+                except Exception as exc:
+                    logger.exception(
+                        "Failed to upload file to sandbox %s:%s",
+                        sandbox_type,
+                        resolved_target_path,
+                    )
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Upload failed: {exc}",
+                    ) from exc
+                finally:
+                    await file.close()
+                    if temp_path and os.path.exists(temp_path):
+                        os.unlink(temp_path)
+
+                return {
+                    "ok": True,
+                    "sandbox_type": sandbox_type,
+                    "target_path": resolved_target_path,
+                    "filename": filename,
+                }
+
             @app.get("/dev-ui/opensage-stop-turn.js")
             async def get_stop_turn_js():
                 js = """
@@ -677,6 +763,130 @@ class OpenSageWebServer:
                 """.strip()
                 return PlainTextResponse(js, media_type="application/javascript")
 
+            @app.get("/dev-ui/opensage-upload-sandbox.js")
+            async def get_upload_sandbox_js():
+                js = """
+(() => {
+  const style = document.createElement('style');
+  style.textContent = `
+    #opensage-upload-btn {
+      position: fixed; right: 16px; bottom: 68px; z-index: 99999;
+      border: none; border-radius: 8px; padding: 10px 14px;
+      color: #fff; font-weight: 600; cursor: pointer;
+      background: #1a73e8; box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    #opensage-upload-btn:disabled {
+      background: #9aa0a6; cursor: progress;
+    }
+  `;
+  document.head.appendChild(style);
+
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.style.display = 'none';
+  document.body.appendChild(input);
+
+  const btn = document.createElement('button');
+  btn.id = 'opensage-upload-btn';
+  btn.textContent = 'Upload to Sandbox';
+  btn.title = 'Upload a local file into the current sandbox';
+  document.body.appendChild(btn);
+
+  async function uploadFile(file) {
+    const sandboxType = window.prompt('Upload to which sandbox?', 'main');
+    if (sandboxType === null) return;
+
+    const defaultPath = `/shared/uploads/${file.name}`;
+    const targetPath = window.prompt(
+      'Upload to which sandbox path?',
+      defaultPath
+    );
+    if (targetPath === null) return;
+
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Uploading...';
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('sandbox_type', sandboxType.trim() || 'main');
+      formData.append('target_path', targetPath.trim() || defaultPath);
+
+      const response = await fetch('/control/upload_to_sandbox', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'Upload failed');
+      }
+      alert(`Uploaded to ${data.target_path}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      alert(`Upload failed: ${message}`);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+      input.value = '';
+    }
+  }
+
+  btn.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => {
+    const [file] = input.files || [];
+    if (file) {
+      uploadFile(file);
+    }
+  });
+})();
+                """.strip()
+                return PlainTextResponse(js, media_type="application/javascript")
+
+            @app.get("/dev-ui/opensage-upload-tooltip.js")
+            async def get_upload_tooltip_js():
+                js = """
+(() => {
+  const tooltipText = 'Upload local file (only document and image)';
+
+  function updateUploadControls() {
+    const candidates = document.querySelectorAll('button, [role="button"], mat-icon');
+    for (const element of candidates) {
+      const attrs = [
+        element.getAttribute('aria-label') || '',
+        element.getAttribute('title') || '',
+        element.getAttribute('mattooltip') || '',
+        element.getAttribute('ng-reflect-message') || '',
+        element.textContent || '',
+      ];
+      if (!attrs.some((value) => /upload local file/i.test(value))) {
+        continue;
+      }
+      element.setAttribute('aria-label', tooltipText);
+      element.setAttribute('title', tooltipText);
+      element.setAttribute('mattooltip', tooltipText);
+      element.setAttribute('ng-reflect-message', tooltipText);
+    }
+
+    document.querySelectorAll('.mat-mdc-tooltip, .mdc-tooltip__surface').forEach((node) => {
+      if (/upload local file/i.test(node.textContent || '')) {
+        node.textContent = tooltipText;
+      }
+    });
+  }
+
+  updateUploadControls();
+  new MutationObserver(updateUploadControls).observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['aria-label', 'title', 'mattooltip', 'ng-reflect-message'],
+  });
+  setInterval(updateUploadControls, 1000);
+})();
+                """.strip()
+                return PlainTextResponse(js, media_type="application/javascript")
+
             @app.get("/")
             async def redirect_root_to_dev_ui():
                 return RedirectResponse(redirect_dev_ui_url)
@@ -690,6 +900,8 @@ class OpenSageWebServer:
                 index_html = (web_assets_dir / "index.html").read_text(encoding="utf-8")
                 script_tag = (
                     '<script src="./opensage-stop-turn.js" type="module"></script>'
+                    '<script src="./opensage-upload-sandbox.js" type="module"></script>'
+                    '<script src="./opensage-upload-tooltip.js" type="module"></script>'
                 )
                 injected = index_html.replace("</body>", f"{script_tag}</body>")
                 return HTMLResponse(content=injected)

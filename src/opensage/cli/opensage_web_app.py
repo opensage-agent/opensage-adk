@@ -843,50 +843,6 @@ class OpenSageWebServer:
                 """.strip()
                 return PlainTextResponse(js, media_type="application/javascript")
 
-            @app.get("/dev-ui/opensage-upload-tooltip.js")
-            async def get_upload_tooltip_js():
-                js = """
-(() => {
-  const tooltipText = 'Upload local file (only document and image)';
-
-  function updateUploadControls() {
-    const candidates = document.querySelectorAll('button, [role="button"], mat-icon');
-    for (const element of candidates) {
-      const attrs = [
-        element.getAttribute('aria-label') || '',
-        element.getAttribute('title') || '',
-        element.getAttribute('mattooltip') || '',
-        element.getAttribute('ng-reflect-message') || '',
-        element.textContent || '',
-      ];
-      if (!attrs.some((value) => /upload local file/i.test(value))) {
-        continue;
-      }
-      element.setAttribute('aria-label', tooltipText);
-      element.setAttribute('title', tooltipText);
-      element.setAttribute('mattooltip', tooltipText);
-      element.setAttribute('ng-reflect-message', tooltipText);
-    }
-
-    document.querySelectorAll('.mat-mdc-tooltip, .mdc-tooltip__surface').forEach((node) => {
-      if (/upload local file/i.test(node.textContent || '')) {
-        node.textContent = tooltipText;
-      }
-    });
-  }
-
-  updateUploadControls();
-  new MutationObserver(updateUploadControls).observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['aria-label', 'title', 'mattooltip', 'ng-reflect-message'],
-  });
-  setInterval(updateUploadControls, 1000);
-})();
-                """.strip()
-                return PlainTextResponse(js, media_type="application/javascript")
-
             @app.get("/")
             async def redirect_root_to_dev_ui():
                 return RedirectResponse(redirect_dev_ui_url)
@@ -898,12 +854,25 @@ class OpenSageWebServer:
             @app.get("/dev-ui/")
             async def dev_ui_index_with_pause_button():
                 index_html = (web_assets_dir / "index.html").read_text(encoding="utf-8")
+                tooltip_style_tag = """
+<style>
+  .mat-mdc-tooltip,
+  .mdc-tooltip__surface {
+    max-width: 420px !important;
+  }
+
+  .mdc-tooltip__surface {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+</style>
+                """.strip()
                 script_tag = (
                     '<script src="./opensage-stop-turn.js" type="module"></script>'
                     '<script src="./opensage-upload-sandbox.js" type="module"></script>'
-                    '<script src="./opensage-upload-tooltip.js" type="module"></script>'
                 )
-                injected = index_html.replace("</body>", f"{script_tag}</body>")
+                injected = index_html.replace("</head>", f"{tooltip_style_tag}</head>")
+                injected = injected.replace("</body>", f"{script_tag}</body>")
                 return HTMLResponse(content=injected)
 
             app.mount(

@@ -2,7 +2,7 @@
 
 An agent framework that enables AI to create their own agent and tools, as well as providing hierarchical memory structure, and domain-specific tools for software engineering.
 
-> 📖 **Full Documentation**: See [https://www.opensage-agent.ai/documentation/](https://www.opensage-agent.ai/documentation/)
+> 📖 **Full Documentation**: See [https://docs.opensage-agent.ai](https://docs.opensage-agent.ai)
 
 > 📄 **License**: Apache License 2.0. See [`LICENSE`](LICENSE).
 

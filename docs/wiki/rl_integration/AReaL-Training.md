@@ -1,4 +1,4 @@
-# AReaL Training with AIgiSE
+# AReaL Training with OpenSage
 
 ## 1. Setup
 
@@ -12,7 +12,7 @@ uv sync --extra cuda
 The SeCodePLT benchmark uses CodeQL for call graph analysis. Download and install the CodeQL bundle:
 
 ```bash
-cd AIgiSE/src/opensage/sandbox_scripts
+cd OpenSage/src/opensage/sandbox_scripts
 wget https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.18.4/codeql-bundle-linux64.tar.gz
 tar -xzf codeql-bundle-linux64.tar.gz codeql
 rm -f codeql-bundle-linux64.tar.gz
@@ -86,7 +86,7 @@ output/experiments/logs/<user>/<experiment_name>/<trial_name>/
 ├── stats/                           # Training metrics
 └── ...
 
-AIgiSE/evals/secodeplt/<timestamp>/  # Per-task evaluation outputs
+OpenSage/evals/secodeplt/<timestamp>/  # Per-task evaluation outputs
 └── <task_id>/
     ├── vulnerability_findings_*.json
     ├── poc_findings_*.json
@@ -108,7 +108,7 @@ Use turn files to debug tokenizer/parser issues; use trajectory_full to analyze 
 
 ## 3. Changes for AReaL Integration
 
-Summary of modifications made to AIgiSE for AReaL RL training integration.
+Summary of modifications made to OpenSage for AReaL RL training integration.
 
 ### RL client: `model_name` passthrough (`rl_integration/client.py`)
 
@@ -199,7 +199,7 @@ multiple columns instead of one, causing a `ValueError`.
 
 To reproduce:
 ```bash
-cd AIgiSE
+cd OpenSage
 
 uv run --python ../.venv/bin/python -m src.opensage.evaluations.secodeplt.vul_detection run_debug \
     --agent-id reproduce_codeql \

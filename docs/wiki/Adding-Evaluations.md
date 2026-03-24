@@ -227,7 +227,7 @@ temperature = 0.7
 [sandbox]
 [sandbox.main]
 type = "docker"
-image = "python:3.11"
+image = "python:3.12"
 working_dir = "/workspace"
 
 # Template variables can be used:

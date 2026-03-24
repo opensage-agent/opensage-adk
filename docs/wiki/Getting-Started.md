@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.11+ (recommended)
+- Python 3.12+ (recommended)
 - `uv` package manager (required)
 - Docker (for sandbox execution)
 - CodeQL (optional, for CodeQL analysis)
@@ -19,11 +19,11 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ```bash
 # Clone the repository
-git clone https://github.com/OpenSage-ADK/OpenSage.git
+git clone https://github.com/opensage-agent/OpenSage.git
 cd OpenSage
 
 # Create virtual environment
-uv venv --python "python3.11" ".venv"
+uv venv --python "python3.12" ".venv"
 source .venv/bin/activate
 
 # Install dependencies
@@ -104,6 +104,7 @@ from google.adk.models import BaseLlm
 from google.adk.models.lite_llm import LiteLlm
 
 import opensage
+from opensage.agents import MemoryManagement
 from opensage.agents import OpenSageAgent
 
 
@@ -127,7 +128,7 @@ def mk_agent(
         instruction="You are a helpful assistant.",
         # Flags / features:
         enabled_skills="all",
-        enable_memory_management=False,
+        memory_management=MemoryManagement.FILE,
         # ADK tools you want the agent to call:
         tools=[],
         # Optional: static sub-agents (if you have them)
@@ -155,9 +156,12 @@ capabilities. The most commonly used fields are:
 `None`: enable no Skills
 `"all"` / `["all"]`: enable only top-level Skills
 `List[str]`: prefix allowlist (e.g. `"retrieval"` or `"static_analysis/search-function"`)
-**`enable_memory_management`**: enables a dedicated **memory management sub-agent**
-(often exposed as a `memory_management_agent` tool) that mediates interactions
-with short-term (session history/trace) and long-term (Neo4j graph memory).
+**`memory_management`**: selects the memory backend. Use
+`MemoryManagement.FILE` for file-based memory or
+`MemoryManagement.DATABASE` to enable the dedicated
+**memory management sub-agent** (often exposed as a
+`memory_management_agent` tool) that mediates interactions with short-term
+(session history/trace) and long-term (Neo4j graph memory).
 **`tool_combos`** (optional): group multi-step tool workflows into a single callable tool.
 
 ### 4) Configuration
@@ -179,11 +183,17 @@ uv run opensage web --config "/path/to/config.toml" --agent "/path/to/my_agent"
 
 # Resume the latest saved web session
 uv run opensage web --resume
+
+# Resume a specific saved web session
 uv run opensage web --resume-from ctf_agent_c0606edc-2fff-496d-8964-48bdd7f0bd23
 ```
 
 Saved web snapshots are stored at:
 `~/.local/opensage/sessions/<agent_name>_<session_id>/`
+
+- `--resume` restores the latest saved snapshot.
+- `--resume-from` restores a specific saved snapshot by directory name, bare
+  session id suffix, or absolute path.
 
 Each snapshot folder includes:
 - `adk_session.json`: persisted ADK session object
@@ -214,7 +224,7 @@ See the full field reference in [Configuration](Configuration.md).
 
 **Enable memory agent**
 
-In `agent.py`: set `enable_memory_management=True`.
+In `agent.py`: set `memory_management=MemoryManagement.DATABASE`.
 
 **Enable dynamic sub-agents**
 

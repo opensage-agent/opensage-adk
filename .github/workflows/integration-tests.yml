@@ -1,4 +1,4 @@
-name: AIgiSE Integration Tests
+name: OpenSage Integration Tests
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
         source .venv/bin/activate
         uv sync --group dev
 
-    - name: Run AIgiSE integration tests
+    - name: Run OpenSage integration tests
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

@@ -2,7 +2,7 @@
 
 Delegates all isolation (namespaces, overlayfs/btrfs, cgroups, seccomp,
 persistent shell) to the ``agentdocker_lite`` package while implementing
-the AIgiSE :class:`BaseSandbox` interface.
+the OpenSage :class:`BaseSandbox` interface.
 
 Configuration::
 
@@ -45,7 +45,7 @@ def _container_config_to_sandbox_config(
     session_id: str | None = None,
     sandbox_type: str | None = None,
 ) -> tuple[_SandboxConfig, str]:
-    """Convert AIgiSE ContainerConfig → agentdocker-lite SandboxConfig.
+    """Convert OpenSage ContainerConfig → agentdocker-lite SandboxConfig.
 
     Returns (sandbox_config, sandbox_name).
     """
@@ -69,7 +69,7 @@ def _container_config_to_sandbox_config(
 
 
 class AgentDockerLiteSandbox(BaseSandbox):
-    """AIgiSE adapter over ``agentdocker_lite.Sandbox``.
+    """OpenSage adapter over ``agentdocker_lite.Sandbox``.
 
     Translates :class:`ContainerConfig` to :class:`SandboxConfig` and
     delegates sandbox operations to the underlying agentdocker-lite instance.

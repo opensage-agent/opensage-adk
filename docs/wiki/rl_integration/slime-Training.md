@@ -1,4 +1,4 @@
-# slime Training with AIgiSE
+# slime Training with OpenSage
 
 ## 1. Start slime Container
 
@@ -34,12 +34,12 @@ Then `ssh slime` to enter the container.
 
 Base image: `slimerl/slime:latest` (includes Megatron-LM, sglang, ray, slime).
 
-## 2. Install AIgiSE Inside Container
+## 2. Install OpenSage Inside Container
 
 ```bash
 # inside the container
 cd /root
-git clone https://github.com/AIgiSE/AIgiSE opensage
+git clone https://github.com/OpenSage/OpenSage opensage
 cd opensage
 pip install -e .
 ```
@@ -108,7 +108,7 @@ python opensage_mock.py \
 
 ## 7. Run Training (Local Docker)
 
-Use the AIgiSE launcher script (`rl/slime/train.sh`), which handles Docker cleanup, environment setup, and delegates to the SLIME launch script:
+Use the OpenSage launcher script (`rl/slime/train.sh`), which handles Docker cleanup, environment setup, and delegates to the SLIME launch script:
 
 ```bash
 # Mock benchmark (default):
@@ -196,12 +196,13 @@ TBD
 | SLIME | `examples/opensage/generate_with_opensage.py` | Rollout entry point called by `train.py` |
 | SLIME | `examples/opensage/opensage_mock.py` | Dataset → SLIME JSONL converter |
 | SLIME | `examples/opensage/run_qwen3_4B{_debug}.sh` | Launch scripts (ray job submit) |
-| AIgiSE | `rl/slime/train.sh` | **Launcher** — env setup, Docker cleanup, delegates to SLIME |
-| AIgiSE | `rl/slime/configs/*.yaml` | Training hyperparameter configs (`--slime-config`) |
-| AIgiSE | `src/opensage/rl_integration/` | `SlimeLlm`, `SlimeAdapter`, `Client`, `BenchmarkInterface` |
+| OpenSage | `rl/slime/train.sh` | **Launcher** — env setup, Docker cleanup, delegates to SLIME |
+| OpenSage | `rl/slime/configs/*.yaml` | Training hyperparameter configs (`--slime-config`) |
+| OpenSage | `src/opensage/rl_integration/` | `SlimeLlm`, `SlimeAdapter`, `Client`, `BenchmarkInterface` |
 
-For architecture and data flow details, see [RL-Integration](RL-Integration.md).
+For architecture and data flow details, see
+[AReaL Training](AReaL-Training.md).
 
 ## Known Issues
 
-- **ABORTED samples crash Megatron** ([slime #200](https://github.com/THUDM/slime/issues/200)): Samples with `response_length=0` cause `F.pad` to crash. Workaround: AIgiSE uses `TRUNCATED` status and always includes prompt tokens so `total_length > 0`. See `SlimeAdapter._build_error_sample()`.
+- **ABORTED samples crash Megatron** ([slime #200](https://github.com/THUDM/slime/issues/200)): Samples with `response_length=0` cause `F.pad` to crash. Workaround: OpenSage uses `TRUNCATED` status and always includes prompt tokens so `total_length > 0`. See `SlimeAdapter._build_error_sample()`.

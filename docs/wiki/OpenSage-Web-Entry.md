@@ -27,11 +27,17 @@ uv run opensage web --config /path/to/config.toml --agent /path/to/agent_dir --a
 
 # Resume latest snapshot
 uv run opensage web --resume
+
+# Resume a specific saved snapshot
 uv run opensage web --resume-from ctf_agent_c0606edc-2fff-496d-8964-48bdd7f0bd23
 ```
 
 Snapshots are stored under:
 `~/.local/opensage/sessions/<agent_name>_<session_id>/`
+
+- `--resume` restores the latest saved snapshot.
+- `--resume-from` restores a specific saved snapshot by directory name, bare
+  session id suffix, or absolute path.
 
 ### opensage dependency-check
 

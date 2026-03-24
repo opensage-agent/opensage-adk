@@ -1,11 +1,11 @@
 # Example configuration for Remote Docker backend
 #
-# This config demonstrates how to run AIgiSE with a remote Docker daemon
-# (e.g., on a GPU server) while running the main AIgiSE process locally.
+# This config demonstrates how to run OpenSage with a remote Docker daemon
+# (e.g., on a GPU server) while running the main OpenSage process locally.
 #
 # Setup:
 # 1. Configure docker_host and docker_remote_host below
-# 2. Run AIgiSE:
+# 2. Run OpenSage:
 #    python -m opensage.evaluations run_single_task --config remote_docker_config.toml
 #
 # Note: Environment variables (DOCKER_HOST, DOCKER_REMOTE_HOST) can still be used
@@ -68,6 +68,6 @@ default_host = ""  # Will be set to remote IP at runtime
 # Important Notes:
 # 1. Shared volumes will be created on the remote Docker host
 # 2. Data transfer uses Docker API (put_archive), which may be slower than local bind mounts
-# 3. All containers run on the remote host; AIgiSE main process runs locally
+# 3. All containers run on the remote host; OpenSage main process runs locally
 # 4. Neo4j and MCP ports are dynamically allocated to avoid conflicts
 # 5. Connection URIs are automatically updated with remote IP and actual ports

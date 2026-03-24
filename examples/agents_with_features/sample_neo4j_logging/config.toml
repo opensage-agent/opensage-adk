@@ -1,4 +1,4 @@
-# AIgiSE config for sample_neo4j_logging (requires neo4j)
+# OpenSage config for sample_neo4j_logging (requires neo4j)
 
 task_name = "sample_neo4j_logging_task"
 src_dir_in_sandbox = "/shared/code"

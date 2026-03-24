@@ -37,7 +37,7 @@ class BaseAdapter(ABC):
         """Initialize adapter.
 
         Args:
-            opensage_session ('OpenSageSession'): The AIgiSE session managing resources
+            opensage_session ('OpenSageSession'): The OpenSage session managing resources
             evaluation ('Evaluation'): The Evaluation instance to run samples
             benchmark ('BenchmarkInterface'): BenchmarkInterface for benchmark-specific logic"""
         self.opensage_session = opensage_session

@@ -24,11 +24,11 @@ class MemoryManagement(str, Enum):
 
 
 class OpenSageMCPToolset(McpToolset):
-    """An ADK McpToolset that also carries a stable `name` for AIgiSE.
+    """An ADK McpToolset that also carries a stable `name` for OpenSage.
 
     Why this exists:
     - ADK's McpToolset does not define a stable `name` attribute.
-    - AIgiSE dynamic subagent creation (`create_subagent`) validates requested Python tools by name via `extract_tools_from_agent()`.
+    - OpenSage dynamic subagent creation (`create_subagent`) validates requested Python tools by name via `extract_tools_from_agent()`.
 
     With this wrapper, callers can pass toolset names into `create_subagent`:
     - `tools_list=["gdb_mcp"]` injects the entire MCP toolset into the subagent.
@@ -676,30 +676,18 @@ class OpenSageAgent(LlmAgent):
             ):
                 tool_usage_policy += f"\n\n{toolset_summary}"
 
-            # Backward-compat for tests/callers that still set only legacy flags.
-            memory_management = getattr(self, "_memory_management", None)
-            if memory_management is None:
-                memory_management = (
-                    MemoryManagement.DATABASE
-                    if getattr(self, "_enable_memory_management", False)
-                    else MemoryManagement.FILE
-                )
+            memory_management = getattr(
+                self,
+                "_memory_management",
+                MemoryManagement.FILE,
+            )
 
             # Generate sandbox structure description based on required sandboxes.
-            # Keep compatibility with older ToolLoader signatures used in tests.
-            try:
-                sandbox_description = ToolLoader.generate_sandbox_structure_description(
-                    required_sandboxes,
-                    memory_management=memory_management,
-                    agent_name=self.name,
-                )
-            except TypeError:
-                sandbox_description = ToolLoader.generate_sandbox_structure_description(
-                    required_sandboxes,
-                    enable_memory_management=(
-                        memory_management == MemoryManagement.DATABASE
-                    ),
-                )
+            sandbox_description = ToolLoader.generate_sandbox_structure_description(
+                required_sandboxes,
+                memory_management=memory_management,
+                agent_name=self.name,
+            )
 
             # logger.info(
             #     "Injecting dynamically loaded tool descriptions into agent instruction:\n\n"
@@ -829,30 +817,18 @@ class OpenSageAgent(LlmAgent):
                 "`/bash_tools/new_tool_creator` to scaffold the initial directory structure.\n"
             )
 
-            # Backward-compat for tests/callers that still set only legacy flags.
-            memory_management = getattr(self, "_memory_management", None)
-            if memory_management is None:
-                memory_management = (
-                    MemoryManagement.DATABASE
-                    if getattr(self, "_enable_memory_management", False)
-                    else MemoryManagement.FILE
-                )
+            memory_management = getattr(
+                self,
+                "_memory_management",
+                MemoryManagement.FILE,
+            )
 
             # Generate sandbox structure description based on required sandboxes.
-            # Keep compatibility with older ToolLoader signatures used in tests.
-            try:
-                sandbox_description = ToolLoader.generate_sandbox_structure_description(
-                    required_sandboxes,
-                    memory_management=memory_management,
-                    agent_name=self.name,
-                )
-            except TypeError:
-                sandbox_description = ToolLoader.generate_sandbox_structure_description(
-                    required_sandboxes,
-                    enable_memory_management=(
-                        memory_management == MemoryManagement.DATABASE
-                    ),
-                )
+            sandbox_description = ToolLoader.generate_sandbox_structure_description(
+                required_sandboxes,
+                memory_management=memory_management,
+                agent_name=self.name,
+            )
 
             # Append new tool prompt to instruction
             self.instruction += (

@@ -47,8 +47,8 @@ class ToolComboTestRunner:
         self.current_session_id = str(uuid.uuid4())
 
     async def async_init(self):
-        """Initialize AIgiSE env and ADK session."""
-        # Prepare AIgiSE environment
+        """Initialize OpenSage env and ADK session."""
+        # Prepare OpenSage environment
         opensage_session = get_opensage_session(
             opensage_session_id=self.current_session_id, config_path=None
         )

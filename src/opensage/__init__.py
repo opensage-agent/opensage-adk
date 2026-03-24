@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 """
-AIgiSE: AI Agent Framework
+OpenSage: AI Agent Framework
 
 A comprehensive framework for security-focused AI agents with unified session management.
 
@@ -20,7 +20,7 @@ import logging
 
 from opensage.utils.logs import log_to_tmp_folder, setup_opensage_logging
 
-# Configure logging for AIgiSE module
+# Configure logging for OpenSage module
 # This will be executed once when the module is first imported
 
 
@@ -38,13 +38,15 @@ import litellm
 
 litellm.disable_streaming_logging = True
 
-# Apply AIgiSE patches on import (wrappers are toggleable at runtime)
+# Apply OpenSage patches on import (wrappers are toggleable at runtime)
 try:
     from .patches import apply_all as _apply_all_patches
 
     _apply_all_patches()
 except Exception as _patch_err:
-    logging.getLogger(__name__).warning(f"Failed to apply AIgiSE patches: {_patch_err}")
+    logging.getLogger(__name__).warning(
+        f"Failed to apply OpenSage patches: {_patch_err}"
+    )
 
 # Export version
 __version__ = "1.0.0"

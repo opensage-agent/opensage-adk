@@ -15,7 +15,7 @@ def apply() -> None:
         _c._process_compaction_events_orig = _c._process_compaction_events
 
     def _replacement(events):
-        """Processes events by applying compaction (AIgiSE patched).
+        """Processes events by applying compaction (OpenSage patched).
 
         Replace each valid compaction window [start, end] with a single summary
         event. Original compaction marker events are not copied to output.

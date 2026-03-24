@@ -1,7 +1,7 @@
 """
-Slime framework adapter for AIgiSE.
+Slime framework adapter for OpenSage.
 
-This adapter integrates AIgiSE agents with slime's RL training pipeline.
+This adapter integrates OpenSage agents with slime's RL training pipeline.
 It follows the same pattern as ArealAdapter: inject a custom BaseLlm (SlimeLlm)
 into the agent so that all LLM calls route to slime's sglang server while
 tracking tokens and loss_mask for GRPO training.
@@ -76,7 +76,7 @@ def _schema_to_openai_dict(schema) -> dict:
 class SlimeAdapter(BaseAdapter):
     """Adapter for slime RL framework integration.
 
-    Handles the translation between slime's Sample format and AIgiSE's
+    Handles the translation between slime's Sample format and OpenSage's
     Evaluation system, with token-level tracking for RL training.
 
     Key difference from ArealAdapter:
@@ -129,7 +129,7 @@ class SlimeAdapter(BaseAdapter):
         sample: Any,
         sampling_params: dict[str, Any],
     ) -> Any:
-        """Generate response using AIgiSE Evaluation for slime rollout.
+        """Generate response using OpenSage Evaluation for slime rollout.
 
         This is the main entry point called by slime's rollout system.
         It creates a SlimeLlm, injects it into the agent via the Evaluation
@@ -180,7 +180,7 @@ class SlimeAdapter(BaseAdapter):
             return result_sample
 
         except Exception as e:
-            logger.error(f"AIgiSE agent error: {e}", exc_info=True)
+            logger.error(f"OpenSage agent error: {e}", exc_info=True)
             return self._build_error_sample(sample, e, slime_llm=slime_llm)
 
     def _create_slime_llm(

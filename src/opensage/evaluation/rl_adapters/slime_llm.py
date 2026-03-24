@@ -2,7 +2,7 @@
 SlimeLlm — A BaseLlm implementation that routes LLM calls to a slime-managed
 sglang server and tracks tokens + loss_mask for RL training.
 
-This is the AIgiSE-side counterpart to tau-bench's TrainableAgentMixin.
+This is the OpenSage-side counterpart to tau-bench's TrainableAgentMixin.
 Instead of wrapping a tau-bench Agent, we implement BaseLlm so that *any*
 ADK agent can be trained via slime simply by swapping its model.
 

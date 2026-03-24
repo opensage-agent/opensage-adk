@@ -1,5 +1,5 @@
 """
-Configuration DataClass Definitions for AIgiSE Framework
+Configuration DataClass Definitions for OpenSage Framework
 
 Defines all configuration dataclasses with default values and environment variable overrides.
 """
@@ -315,7 +315,7 @@ class HistoryConfig:
 
 @dataclass
 class PluginsConfig:
-    """Configuration for AIgiSE plugins.
+    """Configuration for OpenSage plugins.
 
     The ``enabled`` list can contain:
 
@@ -382,9 +382,9 @@ class BuildConfig:
 class OpenSandboxConfig:
     """Configuration for OpenSandbox-backed sandboxes.
 
-    These settings are consumed by the AIgiSE ``opensandbox`` backend.
+    These settings are consumed by the OpenSage ``opensandbox`` backend.
     They describe both how to reach the OpenSandbox control plane and how
-    AIgiSE should provision runtime-native shared storage for that backend.
+    OpenSage should provision runtime-native shared storage for that backend.
     """
 
     domain: Optional[str] = None

@@ -28,14 +28,14 @@ def test_update_enabled_skills_all_uses_recursive(monkeypatch) -> None:
 
         @staticmethod
         def generate_sandbox_structure_description(
-            required_sandboxes, *, enable_memory_management=False
+            required_sandboxes, *, memory_management, agent_name=None
         ):
             return ""
 
     monkeypatch.setattr(mod, "ToolLoader", FakeToolLoader)
 
     dummy = SimpleNamespace(
-        _enable_memory_management=False,
+        _memory_management=mod.MemoryManagement.FILE,
         name="test-agent",
         instruction="hello\n\nHere are the available bash tools you can use:\nOLD",
     )
@@ -66,14 +66,14 @@ def test_update_enabled_skills_list_uses_load_tools(monkeypatch) -> None:
 
         @staticmethod
         def generate_sandbox_structure_description(
-            required_sandboxes, *, enable_memory_management=False
+            required_sandboxes, *, memory_management, agent_name=None
         ):
             return ""
 
     monkeypatch.setattr(mod, "ToolLoader", FakeToolLoader)
 
     dummy = SimpleNamespace(
-        _enable_memory_management=False,
+        _memory_management=mod.MemoryManagement.FILE,
         name="test-agent",
         instruction="hello\n\nHere are the available bash tools you can use:\nOLD",
     )

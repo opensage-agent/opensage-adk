@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# AIgiSE → SLIME Training Launcher
+# OpenSage → SLIME Training Launcher
 #
 # Usage (inside the slime container):
 #   bash /root/opensage/rl/slime/train.sh                        # mock (default)
@@ -36,7 +36,7 @@ Options:
   --gpus IDS            CUDA_VISIBLE_DEVICES (e.g. "2,3")
   --data FILE           Path to SLIME JSONL data file (default: auto-selected)
   --slime-dir DIR       Path to SLIME root (default: /root/slime)
-  --opensage-dir DIR      Path to AIgiSE root (default: /root/opensage)
+  --opensage-dir DIR      Path to OpenSage root (default: /root/opensage)
   --max-concurrent N    Max concurrent evaluations (default: 4)
   --slime-config FILE   YAML config for SLIME train.py parameters
                         (overrides defaults in the launch script)
@@ -130,7 +130,7 @@ fi
 MODE="production"; [[ "$DEBUG" -eq 1 ]] && MODE="debug"
 echo ""
 echo "============================================"
-echo "  AIgiSE → SLIME Training (${MODE})"
+echo "  OpenSage → SLIME Training (${MODE})"
 echo "  Benchmark:  ${BENCHMARK} / ${AGENT}"
 echo "  Data:       ${DATA_FILE:-<auto>}"
 echo "  GPUs:       ${GPUS:-<all>}"

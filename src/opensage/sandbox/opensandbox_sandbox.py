@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class OpenSandboxSandbox(BaseSandbox):
-    """AIgiSE sandbox backend powered by OpenSandbox."""
+    """OpenSage sandbox backend powered by OpenSandbox."""
 
     backend_type = "opensandbox"
     _injected_config: Optional[OpenSageConfig] = None

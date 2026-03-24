@@ -1,7 +1,7 @@
 """
-AIgiSE RL Framework Integration Module.
+OpenSage RL Framework Integration Module.
 
-Provides seamless integration between AIgiSE agents and RL framework rollout systems
+Provides seamless integration between OpenSage agents and RL framework rollout systems
 (slime, verl, areal, etc.).
 
 Architecture:

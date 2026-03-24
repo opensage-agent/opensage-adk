@@ -6,7 +6,7 @@ any ADK ToolContext. It reads:
   /shared/.opensage/coverage/<2>/<2>/<testcase_id>/testcase.json
 
 and writes coverage edges into Neo4j using the (TESTCASE)-[:COVERS]->(METHOD)
-schema used by AIgiSE runtime tools.
+schema used by OpenSage runtime tools.
 
 Failure policy:
   - If Neo4j env vars are missing OR Neo4j is unreachable, prints WARN and exits

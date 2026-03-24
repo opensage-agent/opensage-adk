@@ -84,7 +84,7 @@ async def create_subagent(
         available_models = ensemble_manager.get_available_models()
         # Allow the special sentinel model name "inherit" even if it is not
         # present in the configured available models list. "inherit" is an
-        # AIgiSE convention meaning: reuse the caller agent's resolved model
+        # OpenSage convention meaning: reuse the caller agent's resolved model
         # object from context.
         if model_name != INHERIT_MODEL and model_name not in available_models:
             return {
@@ -406,7 +406,7 @@ async def search_agent(
     """Search sub-agent pool by keywords in name/description and return metadata.
 
     This searches across:
-    - Dynamic subagents in the current AIgiSE session (including persisted metadata)
+    - Dynamic subagents in the current OpenSage session (including persisted metadata)
     - ADK subagents attached to the current caller agent via `sub_agents`
 
     Args:

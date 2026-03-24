@@ -2,9 +2,12 @@
 
 ## Overview
 
-The OpenSage sandbox system provides isolated execution environments through a pluggable backend architecture. This guide covers:
+The OpenSage sandbox system provides isolated execution environments through a
+pluggable backend architecture. This guide covers:
 
-- **Sandbox Backends**: Execution engines (Native Docker, Remote Docker, Kubernetes under development)
+- **Sandbox Backends**: Execution engines (`native`; `remotedocker`,
+  `opensandbox`, `agentdocker-lite`, `local`, and `k8s` are all currently under
+  development)
 - **Sandbox Initializers**: Functional types (main, neo4j, joern, gdb_mcp, etc.)
 
 ## Sandbox Backends
@@ -16,9 +19,11 @@ Backends determine **where and how** containers are executed.
 | Backend | Description | Use Case |
 |---------|-------------|----------|
 | **native** | Local Docker daemon | Development, testing |
-| **remotedocker** | Remote Docker via SSH/TCP | Remote execution, GPU servers |
-| **k8s** | Kubernetes cluster (under development) | Under development |
-| **local** | No containers (direct execution) | Debugging |
+| **remotedocker** | Remote Docker via SSH/TCP (**under development**) | Under development |
+| **opensandbox** | OpenSandbox-managed remote execution backend (**under development**) | Under development |
+| **agentdocker-lite** | Namespace sandbox backend built on `agentdocker-lite` (**under development**) | Under development |
+| **local** | No containers (direct execution on the host; **under development**) | Under development |
+| **k8s** | Kubernetes cluster backend (**under development**) | Under development |
 
 ### Selecting a Backend
 
@@ -26,10 +31,23 @@ In configuration file:
 
 ```toml
 [sandbox]
-backend = "native"  # or "remotedocker", "k8s", "local"
+backend = "native"  # other backend values are currently under development
 ```
 
+### Native Docker Backend
+
+The default backend. Sandboxes run as local Docker containers on the current
+machine.
+
+Typical use cases:
+
+- Local development
+- Integration tests
+- Standard single-machine execution
+
 ### Remote Docker Backend
+
+The `remotedocker` backend is currently **under development**.
 
 Execute sandboxes on remote Docker daemons (e.g., GPU servers, cloud VMs).
 
@@ -100,6 +118,67 @@ image = "ubuntu:22.04"
 | Image build | Local | Remote (with context upload) |
 | Port allocation | Loopback IP (127.0.0.x) | Dynamic ports |
 | Concurrent tasks | ~250 (IP limit) | 1000+ (port-based) |
+
+### OpenSandbox Backend
+
+The `opensandbox` backend is currently **under development**.
+
+Use OpenSandbox as the execution provider while keeping the same OpenSage
+sandbox abstractions.
+
+This backend is selected with:
+
+```toml
+[sandbox]
+backend = "opensandbox"
+```
+
+Unlike `remotedocker`, this backend relies on `sandbox.opensandbox` provider
+configuration and delegates sandbox lifecycle to OpenSandbox services.
+
+Typical use cases:
+
+- Managed remote execution
+- Hosted sandbox infrastructure
+- Teams already using OpenSandbox APIs
+
+### AgentDocker-Lite Backend
+
+The `agentdocker-lite` backend is currently **under development**.
+
+`agentdocker-lite` is a lightweight local isolation backend built on Linux
+namespaces/cgroups rather than a full Docker daemon.
+
+This backend is selected with:
+
+```toml
+[sandbox]
+backend = "agentdocker-lite"
+```
+
+Typical use cases:
+
+- Lightweight local isolation
+- Experiments where Docker is undesirable
+- Advanced namespace-based setups
+
+### Local Backend
+
+The `local` backend is currently **under development**.
+
+The `local` backend executes commands directly on the host machine with no
+container runtime. It is mainly for debugging and simple development loops.
+
+Important limitations:
+
+- No shared volumes
+- Only one sandbox is supported
+- No real container isolation
+
+### Kubernetes Backend
+
+The `k8s` backend exists in the codebase, but it should still be treated as
+**under development** in current documentation and user guidance.
 
 ## Extending the sandbox system
 

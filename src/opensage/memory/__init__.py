@@ -1,5 +1,5 @@
 """
-Graph-based Adaptive Memory System for AIgiSE.
+Graph-based Adaptive Memory System for OpenSage.
 
 This module provides a rich graph-based memory system with:
 - Domain Configuration Layer: Pluggable node types, relationships, search strategies

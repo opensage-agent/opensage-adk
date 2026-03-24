@@ -1,7 +1,7 @@
 """
-AIgiSE Client for RL Framework Integration.
+OpenSage Client for RL Framework Integration.
 
-This module provides the client class for integrating AIgiSE agents
+This module provides the client class for integrating OpenSage agents
 with RL frameworks like slime, verl, areal, etc.
 
 The Client handles:
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class Client:
-    """Client for AIgiSE RL framework integration.
+    """Client for OpenSage RL framework integration.
 
     Manages agent configuration and session creation for RL framework rollout systems.
 
@@ -231,7 +231,7 @@ class RLSession:
         sample: Any,
         sampling_params: dict[str, Any],
     ) -> Any:
-        """Generate using AIgiSE agent for slime rollout.
+        """Generate using OpenSage agent for slime rollout.
 
                 Args:
                     args (Any): Rollout arguments from slime
@@ -256,7 +256,7 @@ class RLSession:
         sample: Any,
         sampling_params: dict[str, Any],
     ) -> Any:
-        """Generate using AIgiSE agent for verl rollout.
+        """Generate using OpenSage agent for verl rollout.
 
                 Args:
                     args (Any): Rollout arguments from verl
@@ -280,7 +280,7 @@ class RLSession:
         model: Any,  # BaseLlm, but avoid import for flexibility
         **kwargs,
     ) -> dict[str, Any]:
-        """Generate using AIgiSE agent for AReaL rollout.
+        """Generate using OpenSage agent for AReaL rollout.
 
                 This method accepts an ADK-compatible model (ArealLlm) from AReaL.
                 ArealLlm wraps ArealOpenAI, which automatically tracks token log
@@ -335,7 +335,7 @@ def create(
     benchmark_name: str,
     model_name: str | None = None,
 ) -> Client:
-    """Create an AIgiSE client for RL framework integration.
+    """Create an OpenSage client for RL framework integration.
 
     This is the main entry point for RL framework integration.
 

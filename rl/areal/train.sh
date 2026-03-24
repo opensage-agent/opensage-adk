@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# AIgiSE → AReaL Training Launcher
+# OpenSage → AReaL Training Launcher
 #
 # Usage:
 #   bash rl/areal/train.sh                              # 4-GPU default
@@ -37,7 +37,7 @@ Options:
 AReaL directory is resolved in order:
   1. --areal-dir argument
   2. AREAL_DIR environment variable
-  3. ../AReaL (sibling directory to AIgiSE)
+  3. ../AReaL (sibling directory to OpenSage)
 EOF
     exit 0
 }
@@ -69,7 +69,7 @@ if [[ -z "$AREAL_DIR" ]]; then
         AREAL_DIR="$CANDIDATE"
     else
         echo "ERROR: Cannot find AReaL directory."
-        echo "  Set AREAL_DIR or use --areal-dir, or place AReaL as a sibling to AIgiSE."
+        echo "  Set AREAL_DIR or use --areal-dir, or place AReaL as a sibling to OpenSage."
         exit 1
     fi
 fi
@@ -94,7 +94,7 @@ ARGS=()
 
 echo ""
 echo "============================================"
-echo "  AIgiSE → AReaL Training"
+echo "  OpenSage → AReaL Training"
 echo "  AReaL dir:  $AREAL_DIR"
 [[ -n "$TRIAL" ]]      && echo "  Trial:      $TRIAL"
 [[ -n "$GPUS" ]]        && echo "  GPUs:       $GPUS"

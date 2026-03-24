@@ -1,4 +1,4 @@
-"""Fuzzing tools for AIgiSE."""
+"""Fuzzing tools for OpenSage."""
 
 from .fuzz_tools import (
     check_fuzzing_stats,

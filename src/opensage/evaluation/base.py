@@ -193,7 +193,7 @@ class EvaluationTask:
     """Local output directory for this task"""
 
     session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    """Unique AIgiSE session ID"""
+    """Unique OpenSage session ID"""
 
     # For sandbox
     initial_data_dir: str | None = None
@@ -210,7 +210,7 @@ class EvaluationTask:
 
     @property
     def opensage_session(self) -> OpenSageSession:
-        """Get or create AIgiSE session for this task."""
+        """Get or create OpenSage session for this task."""
         return get_opensage_session(self.session_id, create_if_missing=False)
 
 
@@ -1217,7 +1217,7 @@ class Evaluation(abc.ABC):
         """Export Neo4j history database files.
 
         Args:
-            opensage_session (OpenSageSession): AIgiSE session instance
+            opensage_session (OpenSageSession): OpenSage session instance
             output_path (Path): Local path to save database files"""
         output_path.mkdir(parents=True, exist_ok=True)
 

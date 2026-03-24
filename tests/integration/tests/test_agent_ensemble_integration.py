@@ -136,11 +136,11 @@ class TestAgentEnsembleIntegration:
         except Exception:
             pass
 
-        # Get the AIgiSE root directory and construct path to examples
+        # Get the OpenSage root directory and construct path to examples
         current_dir = os.path.dirname(__file__)  # tests/integration/tests/
         opensage_root = os.path.dirname(
             os.path.dirname(os.path.dirname(current_dir))
-        )  # AIgiSE root
+        )  # OpenSage root
         examples_dir = os.path.join(opensage_root, "examples", "agents_with_features")
         sys.path.insert(0, examples_dir)
 
@@ -148,7 +148,7 @@ class TestAgentEnsembleIntegration:
 
         root_agent = agent_module.mk_agent(opensage_session_id=opensage_session_id)
 
-        # Prepare AIgiSE environment
+        # Prepare OpenSage environment
         # Load per-example config
         config_path = os.path.join(
             examples_dir,

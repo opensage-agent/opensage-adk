@@ -45,7 +45,7 @@ echo ""
 echo "--- Pre-flight checks ---"
 
 [[ -d "$SLIME_DIR" ]] && pass "SLIME dir exists: $SLIME_DIR" || { fail "SLIME dir not found: $SLIME_DIR"; exit 1; }
-[[ -d "$OPENSAGE_DIR/src/opensage" ]] && pass "AIgiSE dir exists: $OPENSAGE_DIR" || { fail "AIgiSE dir not found"; exit 1; }
+[[ -d "$OPENSAGE_DIR/src/opensage" ]] && pass "OpenSage dir exists: $OPENSAGE_DIR" || { fail "OpenSage dir not found"; exit 1; }
 
 python3 -c "import opensage" 2>/dev/null && pass "opensage importable" || { fail "opensage not importable (pip install -e ?)"; exit 1; }
 python3 -c "import slime" 2>/dev/null && pass "slime importable" || { fail "slime not importable"; exit 1; }

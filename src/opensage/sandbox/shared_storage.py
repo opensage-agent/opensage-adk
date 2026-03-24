@@ -40,7 +40,7 @@ def _build_remote_docker_config(
 
 
 class SharedStorage:
-    """Helpers for provisioning AIgiSE shared storage on remote runtimes."""
+    """Helpers for provisioning OpenSage shared storage on remote runtimes."""
 
     @classmethod
     def create_for_opensandbox(

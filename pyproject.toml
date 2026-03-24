@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "opensage"
 version = "0.1.0"
-description = "AIgiSE"
+description = "OpenSage"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

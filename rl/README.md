@@ -1,6 +1,6 @@
 # RL Training
 
-AIgiSE currently supports RL training through two frameworks:
+OpenSage currently supports RL training through two frameworks:
 
 | Framework                  | Status | Docs                                             |
 |----------------------------|--------|--------------------------------------------------|
@@ -9,7 +9,7 @@ AIgiSE currently supports RL training through two frameworks:
 
 ## AReaL
 
-AReaL uses an ADK (Agent Development Kit) integration. Launch from AIgiSE:
+AReaL uses an ADK (Agent Development Kit) integration. Launch from OpenSage:
 
 ```bash
 bash rl/areal/train.sh --trial my_experiment

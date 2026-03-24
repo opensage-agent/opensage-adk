@@ -1,5 +1,5 @@
 """
-Sandbox module for AIgiSE Framework.
+Sandbox module for OpenSage Framework.
 
 Provides unified interfaces for different sandbox implementations:
 - BaseSandbox: Abstract base class defining the common interface

@@ -1,5 +1,5 @@
 # Zero-Day Evaluation Config
-# Run from AIgiSE project root so project_relative_dockerfile_path resolves.
+# Run from OpenSage project root so project_relative_dockerfile_path resolves.
 
 DEFAULT_IMAGE = "kalilinux/kali-rolling"
 TASK_NAME = "ctf_task"

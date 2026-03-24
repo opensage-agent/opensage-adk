@@ -1,17 +1,27 @@
-site_name: SAGE-X Documentation
-site_url: https://3rdn4Li.github.io/SAGE-X
-site_description: SAGE-X Development Documentation
+site_name: OpenSage
+site_description: OpenSage Development Documentation
 
 # Documentation directory (where markdown files are)
 docs_dir: docs/wiki
 
+# Output directory (generated static site)
+site_dir: site
+
+# Temporarily hide API reference pages from the build.
+exclude_docs: |
+  generated/api/*.md
+  API-Reference.md
+  RL-Integration.md
+
 # Repository information
-repo_url: https://github.com/AIgiSE/AIgiSE  # Update with your repo URL
-repo_name: AIgiSE/AIgiSE  # Update with your repo name
+repo_url: https://github.com/opensage-agent/OpenSage
+repo_name: opensage-agent/OpenSage
 
 # Theme
 theme:
   name: material
+  logo: assets/logos/opensage-logo.svg
+  favicon: assets/logos/opensage-favicon.svg
   palette:
     - scheme: default
       primary: blue
@@ -34,11 +44,26 @@ theme:
     - content.code.copy
     - content.code.annotate
 
+# Build-time hooks (generate docs automatically)
+hooks:
+  - docs/hooks/generate_opensage_cli_reference.py
+
 # Plugins
 plugins:
   - search
   - minify:
       minify_html: true
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            show_source: false
+            show_root_heading: true
+            show_root_toc_entry: true
+            show_signature_annotations: true
 
 # Markdown extensions
 markdown_extensions:
@@ -56,39 +81,58 @@ markdown_extensions:
   - toc:
       permalink: true
 
-# Navigation structure (maps to docs/wiki/ files)
+# Custom styles (logo sizing, small UI tweaks)
+extra_css:
+  - assets/stylesheets/extra.css
+
+# Navigation structure
 nav:
   - Home: index.md
-  - Getting Started:
-    - Introduction: Introduction.md
-    - Getting Started: Getting-Started.md
-    - Project Structure: Project-Structure.md
-  - Entry Points:
-    - Overview: Entry-Points.md
-    - OpenSage Web Entry: OpenSage-Web-Entry.md
-    - Evaluation Entry: Evaluation-Entry.md
-  - Architecture:
-    - Architecture: Architecture.md
-    - Core Components: Core-Components.md
-    - Core Concepts: Core-Concepts.md
-    - System Workflow (planned): System-Workflow.md
-    - Memory System (planned): Memory-System.md
-  - Development:
-    - Development Guides: Development-Guides.md
-    - Adding Tools: Adding-Tools.md
-    - Adding Sandboxes: Adding-Sandboxes.md
-    - Adding Evaluations: Adding-Evaluations.md
-  - Practices:
-    - Best Practices: Best-Practices.md
-    - Common Patterns: Common-Patterns.md
-    - Testing & Debugging: Testing-Debugging.md
-  - Reference:
+  - User Guide:
+    - Getting Started:
+      - Introduction: Introduction.md
+      - Getting Started: Getting-Started.md
+      - Project Structure: Project-Structure.md
+    - Entry Points:
+      - Overview: Entry-Points.md
+      - OpenSage Web Entry: OpenSage-Web-Entry.md
+      - Evaluation Entry: Evaluation-Entry.md
+    - Practices:
+      - Best Practices: Best-Practices.md
+      - Testing & Debugging: Testing-Debugging.md
     - Configuration: Configuration.md
-    - Troubleshooting: Troubleshooting.md
+  - Developer Guide:
+    - Core:
+      - Development Guides: Development-Guides.md
+      - Core Components: Core-Components.md
+    - Entry points:
+      - Entry-point walkthroughs:
+        - opensage web: OpenSage-Web-Workflow.md
+        - evaluations: Evaluation-Workflow.md
+    - Extending:
+      - Adding Tools: Adding-Tools.md
+      - Plugins: Plugins.md
+      - Adding a Evaluation Benchmark: Adding-Evaluations.md
+      - Sandboxes:
+        - Sandbox System Guide: Sandboxes.md
+        - Adding a sandbox: Adding-a-Sandbox.md
+        - Adding a new sandbox backend: Adding-a-New-Sandbox-Backend.md
+      - RL Integration:
+        - AReaL Training: rl_integration/AReaL-Training.md
+        - Slime Training: rl_integration/slime-Training.md
+  - Benchmarking:
+    - Overview: Benchmarking.md
+  - CLI Reference:
+    - Overview: CLI-Reference.md
+    - opensage: generated/cli/opensage.md
+    - opensage web: generated/cli/opensage-web.md
+    - opensage dependency-check: generated/cli/opensage-dependency-check.md
+  - Community:
+    - Overview: Community.md
     - Contributing: Contributing.md
 
 # Extra
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/AIgiSE/AIgiSE  # Update with your repo URL
+      link: https://github.com/opensage-agent/OpenSage

@@ -1,6 +1,6 @@
 """Sandbox requirement annotations and dependency collection.
 
-This module is part of the public AIgiSE toolbox API. Tool authors can use
+This module is part of the public OpenSage toolbox API. Tool authors can use
 `@requires_sandbox(...)` to declare which sandboxes a tool (or toolset factory)
 depends on.
 """

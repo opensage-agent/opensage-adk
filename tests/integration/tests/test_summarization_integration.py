@@ -189,7 +189,7 @@ class TestSummarizationIntegration:
             opensage_session_id=isolated_opensage_session_id
         )
 
-        # Prepare AIgiSE environment for this isolated test case
+        # Prepare OpenSage environment for this isolated test case
         config_path = os.path.join(
             examples_dir,
             "sample_summarization",

@@ -215,7 +215,7 @@ main, fuzz
 
 Tools are automatically discovered from:
 - `src/opensage/bash_tools/` (built-in tools)
-- `~/.local/opensage/bash_tools/` (user-local skills/extensions)
+- `~/.local/OpenSage/bash_tools/` (user-local skills/extensions)
 
 The framework scans these directories for `SKILL.md` files and loads them automatically.
 

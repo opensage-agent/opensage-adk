@@ -132,7 +132,7 @@ class TestNeo4jLoggingIntegration:
 
         root_agent = agent_module.mk_agent(opensage_session_id=opensage_session_id)
 
-        # Prepare AIgiSE environment for given opensage_session_id
+        # Prepare OpenSage environment for given opensage_session_id
         config_path = os.path.join(
             examples_dir,
             "sample_neo4j_logging",

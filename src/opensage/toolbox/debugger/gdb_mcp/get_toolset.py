@@ -10,7 +10,7 @@ def get_toolset(opensage_session_id: str) -> OpenSageMCPToolset:
     """Create a named MCP toolset for the GDB MCP server.
 
     Args:
-        opensage_session_id (str): AIgiSE session ID used to resolve the MCP SSE URL.
+        opensage_session_id (str): OpenSage session ID used to resolve the MCP SSE URL.
     Returns:
         OpenSageMCPToolset: OpenSageMCPToolset connected to the GDB MCP server (SSE).
 

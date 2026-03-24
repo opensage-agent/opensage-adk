@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
-from opensage.agents.opensage_agent import ToolLoader
+from opensage.agents.opensage_agent import MemoryManagement, ToolLoader
 
 
 def test_generate_sandbox_structure_description_neo4j_without_memory_management() -> (
@@ -19,11 +17,10 @@ def test_generate_sandbox_structure_description_neo4j_without_memory_management(
     assert "memory_management_agent" not in text
 
 
-@pytest.mark.skip(reason="Skipping memory management test for now")
 def test_generate_sandbox_structure_description_neo4j_with_memory_management() -> None:
     text = ToolLoader.generate_sandbox_structure_description(
-        {"neo4j"}, enable_memory_management=True
+        {"neo4j"}, memory_management=MemoryManagement.DATABASE
     )
     assert "Neo4j (Databases & Schemas)" in text
-    assert "Query long-term memory:" in text
+    assert "Querying long-term memory and short-term memory" in text
     assert "memory_management_agent" in text

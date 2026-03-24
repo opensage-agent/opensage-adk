@@ -55,7 +55,7 @@ def resolve_model_spec(
 def get_opensage_session_from_context(
     context: InvocationContext | ToolContext,
 ):
-    """Get AIgiSE session from context using new OpenSageSession architecture."""
+    """Get OpenSage session from context using new OpenSageSession architecture."""
     # Lazy import to avoid circular dependency
     from opensage.session import get_opensage_session
 
@@ -67,7 +67,7 @@ def get_opensage_session_from_context(
 def get_opensage_config_from_context(
     context: InvocationContext | ToolContext,
 ) -> OpenSageConfig:
-    """Get AIgiSE config from context using new OpenSageSession architecture."""
+    """Get OpenSage config from context using new OpenSageSession architecture."""
     # Lazy import to avoid circular dependency
     from opensage.session import get_opensage_session
 
@@ -77,11 +77,11 @@ def get_opensage_config_from_context(
 
 
 def get_mcp_url_from_session_id(mcp_name: str, opensage_session_id: str) -> str:
-    """Get MCP service URL from AIgiSE session configuration.
+    """Get MCP service URL from OpenSage session configuration.
 
     Args:
         mcp_name (str): Name of the MCP service (e.g., "gdb_mcp", "pdb_mcp")
-        opensage_session_id (str): AIgiSE session ID to retrieve configuration
+        opensage_session_id (str): OpenSage session ID to retrieve configuration
     Returns:
         str: MCP SSE URL (e.g., "http://localhost:8000/sse")
 
@@ -114,7 +114,7 @@ def get_mcp_url_from_session_id(mcp_name: str, opensage_session_id: str) -> str:
 def get_mcp_host_and_port_from_session_id(
     mcp_name: str, opensage_session_id: str
 ) -> tuple[str, int]:
-    """Get MCP host and port from AIgiSE session configuration.
+    """Get MCP host and port from OpenSage session configuration.
 
     Raises:
       RuntimeError: Raised when this operation fails."""
@@ -285,7 +285,7 @@ def get_opensage_session_id_from_context(context) -> str:
     """
     Extract opensage_session_id from context (ToolContext, InvocationContext, or similar).
 
-    This is a unified utility function used across the AIgiSE Framework to consistently
+    This is a unified utility function used across the OpenSage Framework to consistently
     extract and manage opensage_session_id for session isolation.
 
     Args:

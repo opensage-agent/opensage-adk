@@ -39,7 +39,7 @@ class ColoredFormatter(logging.Formatter):
 
 
 def setup_opensage_logging(level=None, use_colors=None):
-    """Setup logging configuration for AIgiSE.
+    """Setup logging configuration for OpenSage.
 
     This function can be called multiple times - it will reconfigure the logger
     each time. This allows users to override the default configuration.

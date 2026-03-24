@@ -50,12 +50,12 @@ class DynamicSubagentTestRunner:
         self.agent = agent
         self.session_service = OpenSageInMemorySessionService()
         self.agent_client = None
-        # Pin a fixed session id so AIgiSE env and ADK session align if needed
+        # Pin a fixed session id so OpenSage env and ADK session align if needed
         self.current_session_id = str(uuid.uuid4())
 
     async def async_init(self):
-        """Initialize async resources and prepare AIgiSE environment."""
-        # Prepare AIgiSE environment (collect sandbox deps and init sandboxes)
+        """Initialize async resources and prepare OpenSage environment."""
+        # Prepare OpenSage environment (collect sandbox deps and init sandboxes)
         import os
 
         base_dir = os.path.dirname(

@@ -53,4 +53,4 @@ OpenSage (Open Self-programming Agent Generation Engine) is an AI agent framewor
 
 ---
 
-*Check the [GitHub repository](https://github.com/OpenSage-ADK/OpenSage) for the latest code*
+*Check the [GitHub repository](https://github.com/opensage-agent/OpenSage) for the latest code*

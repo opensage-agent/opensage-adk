@@ -166,7 +166,7 @@ Configures sandbox environments (Docker containers or Kubernetes pods).
 | Field | Type | Description | Default |
 |-------|------|-------------|---------|
 | `default_image` | `string` | Default Docker image for sandboxes | `None` |
-| `backend` | `string` | Sandbox backend type: `"native"` (Docker) or `"k8s"` (Kubernetes; under development) | `"native"` |
+| `backend` | `string` | Sandbox backend type. Supported values: `"native"`; `"remotedocker"`, `"opensandbox"`, `"agentdocker-lite"`, `"local"`, and `"k8s"` are currently under development. | `"native"` |
 | `project_relative_shared_data_path` | `string` | Path relative to project root for shared data (will be mounted as `/shared` in containers) | `None` |
 | `absolute_shared_data_path` | `string` | Absolute path for shared data | `None` |
 | `host_shared_mem_dir` | `string` | Absolute host path mounted into all sandboxes as `/mem/shared` (for file-based shared knowledge) | `None` |
@@ -185,6 +185,14 @@ Each sandbox type is configured under `[sandbox.sandboxes.<sandbox_type>]`:
 - `gdb_mcp`: GDB debugger MCP service
 - `pdb_mcp`: PDB debugger MCP service
 - `fuzz`: Fuzzing environment
+
+**Supported Backend Values:**
+- `native`: local Docker backend
+- `remotedocker`: remote Docker daemon over SSH/TCP (**under development**)
+- `opensandbox`: OpenSandbox-managed execution backend (**under development**)
+- `agentdocker-lite`: namespace-based lightweight local isolation backend (**under development**)
+- `local`: direct host execution without containers (**under development**)
+- `k8s`: Kubernetes backend (**under development**)
 
 **Container Configuration Fields:**
 
@@ -278,6 +286,20 @@ JAVA_OPTS = "-Xmx16G -Xms4G"
 [sandbox.sandboxes.joern.ports]
 "8081/tcp" = 18087
 ```
+
+Backend-specific notes:
+
+- `native` is the default and recommended local-development backend.
+- `remotedocker` is currently **under development** and additionally uses
+  `docker_host` / `docker_remote_host`.
+- `opensandbox` is currently **under development** and additionally requires
+  `sandbox.opensandbox` provider settings.
+- `agentdocker-lite` is currently **under development** and commonly uses
+  `sandbox.sandboxes.<name>.extra` for namespace/cgroup options such as
+  `fs_backend`, `cpu_max`, or `memory_max`.
+- `local` is currently **under development**, is mainly for debugging, and
+  supports only a single sandbox without shared volumes.
+- `k8s` exists in code, but should still be considered **under development**.
 
 `mount_host_paths` is appended to every sandbox's `volumes`. Semantics:
 - absolute source path (`/abs/path`) is treated as host mount source
@@ -382,7 +404,7 @@ Configures which plugins are enabled and where to find them. See [Plugins](Plugi
 **Default plugin discovery paths (no extra config required):**
 - Built-in plugins: `src/opensage/plugins/default/adk_plugins/`
 - Built-in Claude hook plugins: `src/opensage/plugins/default/claude_code_hooks/`
-- User-local plugins: `~/.local/opensage/plugins/` (`.py` and `.json`)
+- User-local plugins: `~/.local/OpenSage/plugins/` (`.py` and `.json`)
 
 You can still add additional directories via `extra_plugin_dirs` if needed.
 

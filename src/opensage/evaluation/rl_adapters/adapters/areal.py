@@ -1,13 +1,13 @@
 """
-AReaL framework adapter for AIgiSE.
+AReaL framework adapter for OpenSage.
 
-This adapter provides integration between AIgiSE agents and the AReaL
+This adapter provides integration between OpenSage agents and the AReaL
 RL framework's rollout system.
 
 Design principle:
-- AReaL passes an ADK-compatible model (ArealLlm) to AIgiSE
+- AReaL passes an ADK-compatible model (ArealLlm) to OpenSage
 - ArealLlm wraps ArealOpenAI which tracks token log probs and rewards
-- AIgiSE uses ArealLlm like any other BaseLlm model
+- OpenSage uses ArealLlm like any other BaseLlm model
 - This is similar to how CAMEL integrates with AReaL
 
 Architecture:
@@ -17,10 +17,10 @@ Architecture:
          │
          ├── Create ArealLlm(openai_client=client)
          │
-         └── Pass model to AIgiSE
+         └── Pass model to OpenSage
                   │
                   ▼
-         AIgiSE Evaluation
+         OpenSage Evaluation
                   │
                   ├── Replace agent's model with ArealLlm
                   │
@@ -109,7 +109,7 @@ class ArealAdapter(BaseAdapter):
         model: BaseLlm,
         **kwargs,
     ) -> dict[str, Any]:
-        """Generate response using AIgiSE Evaluation with ArealLlm model.
+        """Generate response using OpenSage Evaluation with ArealLlm model.
 
         This method:
         1. Converts data to sample dict
@@ -165,7 +165,7 @@ class ArealAdapter(BaseAdapter):
             return result
 
         except Exception as e:
-            logger.error(f"AIgiSE agent error: {e}", exc_info=True)
+            logger.error(f"OpenSage agent error: {e}", exc_info=True)
             logger.debug(f"generate() ERROR for data_id={data_id}: {e}")
             return {
                 "error": str(e),

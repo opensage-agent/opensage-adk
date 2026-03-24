@@ -73,6 +73,7 @@ class JoernInitializer(SandboxInitializer):
         except Exception as e:
             logger.error(f"Joern initialization failed: {e}")
             return False
+        return True
 
     async def _initialize_joern_with_timeout(
         self, opensage_session, all_sandboxes: dict[str, BaseSandbox]
@@ -173,7 +174,7 @@ fi
                 server_endpoint=f"{opensage_session.config.default_host}:18087"
             )
 
-            await client.aexecute("importCpg('/cpg.bin')")
+            await client.aexecute('importCpg("/cpg.bin")')
             # Write Joern server host to ~/.bashrc
             self._write_joern_env_to_bashrc(opensage_session)
         except Exception as e:

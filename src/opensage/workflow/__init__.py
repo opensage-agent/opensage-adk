@@ -1,4 +1,4 @@
-"""Workflow orchestration for AIgiSE."""
+"""Workflow orchestration for OpenSage."""
 
 from opensage.workflow.spec import (
     BoundedSpec,

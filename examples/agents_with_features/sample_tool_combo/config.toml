@@ -1,4 +1,4 @@
-# AIgiSE config for sample_tool_combo
+# OpenSage config for sample_tool_combo
 
 task_name = "sample_tool_combo_task"
 src_dir_in_sandbox = "/shared/code"

@@ -1,6 +1,6 @@
-# AIgiSE Examples 101
+# OpenSage Examples 101
 
-Examples demonstrating key AIgiSE features.
+Examples demonstrating key OpenSage features.
 
 ## Examples
 

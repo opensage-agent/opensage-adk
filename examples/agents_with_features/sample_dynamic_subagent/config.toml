@@ -1,4 +1,4 @@
-# AIgiSE config for sample_dynamic_subagent
+# OpenSage config for sample_dynamic_subagent
 
 task_name = "sample_dynamic_subagent_task"
 src_dir_in_sandbox = "/shared/code"

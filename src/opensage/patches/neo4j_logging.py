@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import os
@@ -28,8 +29,14 @@ _enabled: bool = False
 _patched: bool = False
 _orig_base_agent_run: Optional[Callable] = None
 _MEM_ROOT_DIR = "/mem"
+_SHORT_TERM_MEM_ROOT = os.path.join(_MEM_ROOT_DIR, "short_term")
+_LONG_TERM_MEM_ROOT = os.path.join(_MEM_ROOT_DIR, "long_term")
+_LONG_TERM_KNOWLEDGE_DIR = os.path.join(_LONG_TERM_MEM_ROOT, "knowledge")
+_LONG_TERM_KNOWLEDGE_PATH = os.path.join(_LONG_TERM_KNOWLEDGE_DIR, "knowledge.json")
 _MEM_AGENT_DIR_KEY = "_mem_agent_dir"
 _MEM_TOPOLOGY_PATH = os.path.join(_MEM_ROOT_DIR, "topology.json")
+_FILE_MEMORY_CONTEXT_START = "[[OPENSAGE_FILE_MEMORY_CONTEXT]]"
+_FILE_MEMORY_CONTEXT_END = "[[/OPENSAGE_FILE_MEMORY_CONTEXT]]"
 
 
 def _sanitize_name(name: str) -> str:
@@ -40,16 +47,55 @@ def _sanitize_name(name: str) -> str:
     return safe_name or "agent"
 
 
-def _compute_agent_mem_dir(invocation_context) -> str:
-    """Compute flat agent memory directory under /mem/<agent_name>."""
-    session = invocation_context.session
-    state = session.state
-    existing = state.get(_MEM_AGENT_DIR_KEY)
-    if isinstance(existing, str) and existing:
-        return existing
+def _build_session_dir_name(agent_name: str, session_id: str) -> str:
+    """Return the directory name for one agent session."""
+    return f"{_sanitize_name(agent_name)}__{session_id}"
 
+
+def _compute_root_session_mem_dir(invocation_context) -> str:
+    """Compute the root short-term memory directory for a session."""
+    session = invocation_context.session
     agent_name = _sanitize_name(getattr(invocation_context.agent, "name", "agent"))
-    return os.path.join(_MEM_ROOT_DIR, agent_name)
+    return os.path.join(
+        _SHORT_TERM_MEM_ROOT,
+        _build_session_dir_name(agent_name, session.id),
+    )
+
+
+def _compute_agent_mem_dir(invocation_context) -> str:
+    """Return the current session memory directory from session.state."""
+    session = invocation_context.session
+    state = getattr(session, "state", None)
+    if not isinstance(state, dict):
+        raise ValueError("Session state must be a dict to resolve memory directory")
+    existing = state.get(_MEM_AGENT_DIR_KEY)
+    if (
+        isinstance(existing, str)
+        and existing
+        and existing.startswith(_SHORT_TERM_MEM_ROOT)
+    ):
+        return existing
+    raise ValueError("Session memory directory missing from session.state")
+
+
+def get_current_session_mem_dir(context) -> str:
+    """Return the current session directory for an invocation or tool context."""
+    invocation_context = getattr(context, "_invocation_context", context)
+    return _compute_agent_mem_dir(invocation_context)
+
+
+def get_current_session_tool_outputs_dir(context) -> str:
+    """Return the current session tool output directory."""
+    return os.path.join(get_current_session_mem_dir(context), "tool_outputs")
+
+
+def _compute_child_session_mem_dir(
+    parent_invocation_context, *, child_agent_name: str, child_session_id: str
+) -> str:
+    """Compute the nested child session directory under the caller session."""
+    parent_dir = _compute_agent_mem_dir(parent_invocation_context)
+    child_dir_name = _build_session_dir_name(child_agent_name, child_session_id)
+    return os.path.join(parent_dir, child_dir_name)
 
 
 def _get_main_sandbox(invocation_context):
@@ -81,36 +127,119 @@ def _write_text_to_main_sandbox(
             logger.debug("Failed to cleanup temp file: %s", local_path)
 
 
-def _ensure_agent_mem_layout(invocation_context, agent_mem_dir: str) -> None:
-    """Create agent memory folder and default planning.md in main sandbox."""
+def _ensure_file_memory_roots(invocation_context) -> None:
+    """Create shared file-memory roots in the main sandbox."""
     sandbox = _get_main_sandbox(invocation_context)
-    sandbox.run_command_in_container(f"mkdir -p {shlex.quote(agent_mem_dir)}")
-    # Always ensure shared memory directory exists for agents.
-    sandbox.run_command_in_container("mkdir -p /mem/shared")
-    planning_path = os.path.join(agent_mem_dir, "planning.md")
-    _, exit_code = sandbox.run_command_in_container(
-        f"test -f {shlex.quote(planning_path)}"
+    sandbox.run_command_in_container(
+        "mkdir -p "
+        f"{shlex.quote(_SHORT_TERM_MEM_ROOT)} "
+        f"{shlex.quote(_LONG_TERM_KNOWLEDGE_DIR)}"
     )
+    _, exit_code = sandbox.run_command_in_container(
+        f"test -f {shlex.quote(_LONG_TERM_KNOWLEDGE_PATH)}"
+    )
+    if exit_code != 0:
+        _write_text_to_main_sandbox(
+            invocation_context, _LONG_TERM_KNOWLEDGE_PATH, "{}\n"
+        )
+
+
+def _ensure_agent_mem_layout(
+    invocation_context, agent_mem_dir: str, *, agent_name: str
+) -> None:
+    """Create the current session folder and default TODO.md in main sandbox."""
+    sandbox = _get_main_sandbox(invocation_context)
+    _ensure_file_memory_roots(invocation_context)
+    sandbox.run_command_in_container(
+        f"mkdir -p {shlex.quote(agent_mem_dir)} "
+        f"{shlex.quote(os.path.join(agent_mem_dir, 'tool_outputs'))}"
+    )
+    todo_path = os.path.join(agent_mem_dir, "TODO.md")
+    _, exit_code = sandbox.run_command_in_container(f"test -f {shlex.quote(todo_path)}")
     if exit_code == 0:
         return
-    planning_seed = (
-        f"# Planning for {getattr(invocation_context.agent, 'name', 'agent')}\n\n"
-        "## Current Goal\n\n"
-        "- TODO\n\n"
-        "## Next Steps\n\n"
-        "- TODO\n"
+    todo_seed = (
+        f"# TODO for {agent_name}\n\n"
+        "- [ ] Capture the current task\n"
+        "- [ ] Update progress as work proceeds\n"
     )
-    _write_text_to_main_sandbox(invocation_context, planning_path, planning_seed)
+    _write_text_to_main_sandbox(invocation_context, todo_path, todo_seed)
 
 
-def _persist_session_json(invocation_context, agent_mem_dir: str) -> None:
-    """Persist full ADK session JSON into session_<session_id>.json."""
+def _persist_traj_json(invocation_context, agent_mem_dir: str) -> None:
+    """Persist full ADK session JSON into traj.json."""
     session_json = invocation_context.session.model_dump_json(
         indent=2, exclude_none=True
     )
-    session_id = invocation_context.session.id
-    session_json_path = os.path.join(agent_mem_dir, f"session_{session_id}.json")
-    _write_text_to_main_sandbox(invocation_context, session_json_path, session_json)
+    traj_json_path = os.path.join(agent_mem_dir, "traj.json")
+    _write_text_to_main_sandbox(invocation_context, traj_json_path, session_json)
+
+
+def persist_traj_json_for_invocation(invocation_context) -> None:
+    """Persist traj.json for the current invocation context."""
+    _persist_traj_json(invocation_context, _compute_agent_mem_dir(invocation_context))
+
+
+def _is_file_memory_enabled(agent: BaseAgent) -> bool:
+    """Return whether the agent is configured to use file memory."""
+    memory_management = getattr(agent, "_memory_management", None)
+    return getattr(memory_management, "value", memory_management) == "file"
+
+
+def _strip_runtime_file_memory_context(instruction: str) -> str:
+    """Remove any previously injected runtime file-memory context block."""
+    if not instruction:
+        return ""
+    pattern = (
+        rf"\n\n{re.escape(_FILE_MEMORY_CONTEXT_START)}.*?"
+        rf"{re.escape(_FILE_MEMORY_CONTEXT_END)}"
+    )
+    return re.sub(pattern, "", instruction, flags=re.DOTALL)
+
+
+def _build_runtime_file_memory_context(*, session_id: str, agent_mem_dir: str) -> str:
+    """Build the session-specific file-memory prompt block."""
+    return (
+        f"{_FILE_MEMORY_CONTEXT_START}\n"
+        "### Current File Memory Session\n"
+        f"- Your current `session_id` is `{session_id}`.\n"
+        f"- Your current short-term memory directory is `{agent_mem_dir}`.\n"
+        f"- Keep your working notes in `{os.path.join(agent_mem_dir, 'TODO.md')}`.\n"
+        f"- Your full trajectory file is `{os.path.join(agent_mem_dir, 'traj.json')}`.\n"
+        f"- Save long tool outputs under `{os.path.join(agent_mem_dir, 'tool_outputs')}/`.\n"
+        f"- Shared long-term knowledge lives at `{_LONG_TERM_KNOWLEDGE_PATH}`.\n"
+        f"{_FILE_MEMORY_CONTEXT_END}"
+    )
+
+
+def _inject_runtime_file_memory_context(
+    agent: BaseAgent, *, session_id: str, agent_mem_dir: str
+) -> str | None:
+    """Inject session-specific file-memory context into the agent instruction."""
+    if not _is_file_memory_enabled(agent) or not hasattr(agent, "instruction"):
+        return None
+
+    original_instruction = getattr(agent, "instruction", "") or ""
+    stripped_instruction = _strip_runtime_file_memory_context(original_instruction)
+    runtime_context = _build_runtime_file_memory_context(
+        session_id=session_id, agent_mem_dir=agent_mem_dir
+    )
+    agent.instruction = f"{stripped_instruction}\n\n{runtime_context}"
+    return original_instruction
+
+
+def _clone_agent_for_child_session(
+    agent: BaseAgent, *, session_id: str, agent_mem_dir: str
+) -> BaseAgent:
+    """Shallow copy the child agent before injecting session-specific prompt text."""
+    try:
+        cloned_agent = agent.model_copy(deep=False)
+    except Exception:
+        cloned_agent = copy.copy(agent)
+    _inject_runtime_file_memory_context(
+        cloned_agent, session_id=session_id, agent_mem_dir=agent_mem_dir
+    )
+    return cloned_agent
 
 
 def _now_iso_utc() -> str:
@@ -377,12 +506,32 @@ async def _wrapped_base_agent_run(self, invocation_context):
     logging_enabled = _enabled
     session_id = invocation_context.session.id
     query = _extract_query_from_invocation_context(invocation_context)
-    agent_mem_dir = _compute_agent_mem_dir(invocation_context)
-    invocation_context.session.state[_MEM_AGENT_DIR_KEY] = agent_mem_dir
+    session_state = getattr(invocation_context.session, "state", None)
+    if not isinstance(session_state, dict):
+        raise ValueError("Session state must be a dict for file memory layout")
+    agent_mem_dir = session_state.get(_MEM_AGENT_DIR_KEY)
+    if not (
+        isinstance(agent_mem_dir, str)
+        and agent_mem_dir
+        and agent_mem_dir.startswith(_SHORT_TERM_MEM_ROOT)
+    ):
+        agent_mem_dir = _compute_root_session_mem_dir(invocation_context)
+        session_state[_MEM_AGENT_DIR_KEY] = agent_mem_dir
+    original_instruction = None
     try:
-        _ensure_agent_mem_layout(invocation_context, agent_mem_dir)
+        _ensure_agent_mem_layout(
+            invocation_context,
+            agent_mem_dir,
+            agent_name=getattr(invocation_context.agent, "name", "agent"),
+        )
     except Exception as mem_error:
         logger.warning("Failed to initialize agent memory dir: %s", mem_error)
+    try:
+        original_instruction = _inject_runtime_file_memory_context(
+            self, session_id=session_id, agent_mem_dir=agent_mem_dir
+        )
+    except Exception as prompt_error:
+        logger.warning("Failed to inject file-memory prompt context: %s", prompt_error)
     try:
         _record_topology_agent_start(
             invocation_context,
@@ -433,9 +582,9 @@ async def _wrapped_base_agent_run(self, invocation_context):
 
     finally:
         try:
-            _persist_session_json(invocation_context, agent_mem_dir)
+            _persist_traj_json(invocation_context, agent_mem_dir)
         except Exception as mem_error:
-            logger.warning("Failed to persist session.json: %s", mem_error)
+            logger.warning("Failed to persist traj.json: %s", mem_error)
 
         if logging_enabled:
             try:
@@ -506,6 +655,9 @@ async def _wrapped_base_agent_run(self, invocation_context):
         except Exception as _e:
             logger.debug(f"skip writing child llm_calls_used: {_e}")
 
+        if original_instruction is not None:
+            self.instruction = original_instruction
+
 
 def apply() -> None:
     """Monkey-patch BaseAgent.run_async and AgentTool.run_async with toggle."""
@@ -543,6 +695,27 @@ def apply() -> None:
             OpenSageInMemorySessionService,
         )
 
+        session_service = OpenSageInMemorySessionService()
+        session = await session_service.create_session(
+            app_name=agent_tool.agent.name,
+            user_id="tmp_user",
+            state=tool_context.state.to_dict(),
+        )
+        child_agent_mem_dir = _compute_child_session_mem_dir(
+            tool_context._invocation_context,
+            child_agent_name=agent_tool.agent.name,
+            child_session_id=session.id,
+        )
+        session.state[_MEM_AGENT_DIR_KEY] = child_agent_mem_dir
+        try:
+            _ensure_agent_mem_layout(
+                tool_context._invocation_context,
+                child_agent_mem_dir,
+                agent_name=agent_tool.agent.name,
+            )
+        except Exception as mem_error:
+            logger.warning("Failed to initialize child agent memory dir: %s", mem_error)
+
         parent_plugins = []
         try:
             parent_plugins = list(
@@ -551,23 +724,23 @@ def apply() -> None:
         except Exception as plugin_error:
             logger.debug("Failed to reuse parent plugins: %s", plugin_error)
 
+        child_agent = _clone_agent_for_child_session(
+            agent_tool.agent,
+            session_id=session.id,
+            agent_mem_dir=child_agent_mem_dir,
+        )
         agentic_app = App(
-            name=agent_tool.agent.name,
-            root_agent=agent_tool.agent,
+            name=child_agent.name,
+            root_agent=child_agent,
             plugins=parent_plugins,
         )
 
         runner = Runner(
             app=agentic_app,
             artifact_service=ForwardingArtifactService(tool_context),
-            session_service=OpenSageInMemorySessionService(),
+            session_service=session_service,
             memory_service=InMemoryMemoryService(),
             credential_service=tool_context._invocation_context.credential_service,
-        )
-        session = await runner.session_service.create_session(
-            app_name=agent_tool.agent.name,
-            user_id="tmp_user",
-            state=tool_context.state.to_dict(),
         )
 
         await _record_agent_call(

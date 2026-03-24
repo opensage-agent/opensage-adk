@@ -171,6 +171,8 @@ def save_content_to_sandbox_file(
     tool_name: str,
     output_dir: str = "/workspace/.tool_outputs",
     sandbox_type: str = "main",
+    file_id: Optional[str] = None,
+    file_extension: str = ".txt",
 ) -> Optional[str]:
     """Save content to a file in the sandbox and return the file path.
 
@@ -183,6 +185,8 @@ def save_content_to_sandbox_file(
         tool_name (str): Name of the tool (used in filename).
         output_dir (str): Directory in sandbox to save files.
         sandbox_type (str): Type of sandbox to use.
+        file_id (Optional[str]): Optional stable file id for the output filename.
+        file_extension (str): Output file extension including the leading dot.
     Returns:
         Optional[str]: File path if saved successfully, None otherwise.
     """
@@ -201,8 +205,13 @@ def save_content_to_sandbox_file(
         )
 
         sandbox = get_sandbox_from_context(context, sandbox_type)
-        file_id = uuid.uuid4().hex[:8]
-        output_file = f"{output_dir}/{tool_name}_{file_id}.txt"
+        resolved_file_id = file_id or uuid.uuid4().hex[:8]
+        resolved_extension = (
+            file_extension
+            if isinstance(file_extension, str) and file_extension.startswith(".")
+            else ".txt"
+        )
+        output_file = f"{output_dir}/{tool_name}_{resolved_file_id}{resolved_extension}"
 
         logger.warning(f"[save_content_to_sandbox_file] Target file: {output_file}")
 

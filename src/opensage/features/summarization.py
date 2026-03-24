@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -14,6 +16,7 @@ from google.adk.models.llm_request import LlmRequest
 from google.genai import types
 
 from opensage.features.agent_history_tracker import is_neo4j_logging_enabled
+from opensage.patches.neo4j_logging import get_current_session_tool_outputs_dir
 from opensage.utils.agent_utils import (
     discover_all_agents,
     get_opensage_session_id_from_context,
@@ -147,8 +150,8 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         f"  session_id: {opensage_session_id}"
     )
 
-    # Save full output to file in sandbox using shared utility
-    output_dir = "/workspace/.tool_outputs"
+    # Save full output to the current session memory directory.
+    output_dir = get_current_session_tool_outputs_dir(tool_context)
 
     logger.warning(
         f"[ToolResponseSummarizer] Saving full output to file for '{tool_name}'"
@@ -158,6 +161,8 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         content=raw,
         tool_name=tool_name,
         output_dir=output_dir,
+        file_id=tool_context.function_call_id,
+        file_extension=".out",
     )
     file_saved = output_file is not None
     logger.warning(
@@ -826,6 +831,14 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     )
     session_service = tool_context._invocation_context.session_service
     await session_service.append_event(session=session, event=compaction_event)
+    try:
+        from opensage.patches.neo4j_logging import persist_traj_json_for_invocation
+
+        persist_traj_json_for_invocation(tool_context._invocation_context)
+    except Exception as persist_error:
+        logger.warning(
+            "Failed to persist traj.json after compaction: %s", persist_error
+        )
 
     # Neo4j persistence aligned with previous summarization semantics
     if is_neo4j_logging_enabled():

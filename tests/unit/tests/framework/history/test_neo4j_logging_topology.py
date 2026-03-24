@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from opensage.patches import neo4j_logging
 
 
@@ -72,3 +74,57 @@ def test_sync_parent_links_cycle_unchanged() -> None:
 
     assert by_id["a"]["parent_session_id"] == "b"
     assert by_id["b"]["parent_session_id"] == "a"
+
+
+def test_compute_agent_mem_dir_uses_nested_session_layout() -> None:
+    invocation_context = SimpleNamespace(
+        session=SimpleNamespace(
+            id="sess-1",
+            state={"_mem_agent_dir": "/mem/short_term/Agent_Alpha__sess-1"},
+        ),
+        agent=SimpleNamespace(name="Agent Alpha"),
+    )
+
+    agent_mem_dir = neo4j_logging._compute_agent_mem_dir(invocation_context)
+
+    assert agent_mem_dir == "/mem/short_term/Agent_Alpha__sess-1"
+
+
+def test_compute_child_session_mem_dir_nests_under_parent() -> None:
+    parent_context = SimpleNamespace(
+        session=SimpleNamespace(
+            id="root-session",
+            state={"_mem_agent_dir": "/mem/short_term/root_agent__root-session"},
+        ),
+        agent=SimpleNamespace(name="root_agent"),
+    )
+
+    child_mem_dir = neo4j_logging._compute_child_session_mem_dir(
+        parent_context,
+        child_agent_name="child agent",
+        child_session_id="child-session",
+    )
+
+    assert (
+        child_mem_dir
+        == "/mem/short_term/root_agent__root-session/child_agent__child-session"
+    )
+
+
+def test_inject_runtime_file_memory_context_adds_session_specific_block() -> None:
+    agent = SimpleNamespace(
+        _memory_management=SimpleNamespace(value="file"),
+        instruction="Base instruction",
+    )
+
+    original_instruction = neo4j_logging._inject_runtime_file_memory_context(
+        agent,
+        session_id="sess-42",
+        agent_mem_dir="/mem/short_term/agent__sess-42",
+    )
+
+    assert original_instruction == "Base instruction"
+    assert "sess-42" in agent.instruction
+    assert "/mem/short_term/agent__sess-42" in agent.instruction
+    assert "traj.json" in agent.instruction
+    assert "TODO.md" in agent.instruction

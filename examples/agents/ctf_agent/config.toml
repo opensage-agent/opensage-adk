@@ -8,6 +8,7 @@ HOST_LONG_TERM_MEM_DIR = "/tmp/opensage_ctf_long_term_mem"
 HOST_SHORT_TERM_MEM_DIR = "/tmp/opensage_ctf_short_term_mem"
 MAIN_MODEL = "anthropic/claude-sonnet-4-5-20250929"
 GDB_PORT = 1111
+IDA_MCP_PORT = 1112
 
 task_name = "${TASK_NAME}"
 src_dir_in_sandbox = "/shared/code"
@@ -25,8 +26,11 @@ host_shared_mem_dir = "${HOST_LONG_TERM_MEM_DIR}"
 image = "${TASK_NAME}_main"
 project_relative_dockerfile_path = "examples/agents/ctf_agent/main_sandbox/Dockerfile"
 timeout = 600
+mcp_services = ["ida_mcp"]
 [sandbox.sandboxes.main.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"
+[sandbox.sandboxes.main.ports]
+"8001/tcp" = "${IDA_MCP_PORT}"
 [sandbox.sandboxes.main.extra]
 initializer_timeout_sec = 1800
 
@@ -60,6 +64,9 @@ max_history_summary_length = 300000
 # GDB MCP service configuration
 [mcp.services.gdb_mcp]
 sse_port = "${GDB_PORT}"
+
+[mcp.services.ida_mcp]
+sse_port = "${IDA_MCP_PORT}"
 
 
 [plugins]

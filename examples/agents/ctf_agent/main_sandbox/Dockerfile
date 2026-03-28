@@ -34,7 +34,6 @@ RUN apt-get update && \
       qemu-user \
       qemu-user-static \
       z3 \
-      ghidra \
       nodejs \
       npm && \
     (apt-get install -y ctags || apt-get install -y universal-ctags || apt-get install -y exuberant-ctags || true) && \
@@ -65,13 +64,12 @@ RUN uv pip install --python /app/.venv/bin/python \
       ROPGadget \
       lief \
       z3-solver \
+      mcp \
+      requests \
       pyghidra-mcp \
-      ghidramcp \
       playwright \
       "https://github.com/mrexodia/ida-pro-mcp/archive/refs/heads/main.zip"
-RUN if [ -x /usr/share/ghidra/support/analyzeHeadless ]; then \
-      ln -sf /usr/share/ghidra/support/analyzeHeadless /usr/local/bin/analyzeHeadless; \
-    fi
+
 
 # Best-effort radare2 source install fallback when apt package is unavailable.
 RUN if ! command -v r2 >/dev/null 2>&1; then \
@@ -93,6 +91,12 @@ RUN cd /opt/ida && python idakeygen.py && \
 COPY --from=ghcr.io/opensage-agent/ida-pro:latest /root/ida.reg /root/.idapro/
 ENV PATH="/opt/ida:/opt/lumina:$PATH"
 
+
+# --- ghidra + ghidra-mcp ---
+COPY --from=ghcr.io/opensage-agent/ghidra:latest /opt/ghidra /opt/ghidra
+COPY --from=ghcr.io/opensage-agent/ghidra:latest /build/target/GhidraMCP-*.jar /opt/GhidraMCP.jar
+
+
 # --- mcp-cli tool ---
 RUN curl -fsSL https://raw.githubusercontent.com/philschmid/mcp-cli/main/install.sh | bash
 
@@ -101,7 +105,9 @@ COPY entrypoint.sh /root/entrypoint.sh
 RUN chmod +x /root/entrypoint.sh
 
 # --- Expose MCP ports ---
-EXPOSE 8001
+EXPOSE 8002
+EXPOSE 8003
+EXPOSE 8004
 
 ENTRYPOINT ["/root/entrypoint.sh"]
 WORKDIR /workspace

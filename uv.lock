@@ -13,134 +13,6 @@ version = "0.0.1"
 source = { git = "https://github.com/rucnyz/agentdocker-lite.git?rev=main#2578a853688ff5e7f0bbc623eae41855d03487db" }
 
 [[package]]
-name = "opensage"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "agentdocker-lite" },
-    { name = "click" },
-    { name = "cxxfilt" },
-    { name = "dacite" },
-    { name = "datasets" },
-    { name = "docker" },
-    { name = "fire" },
-    { name = "google-adk" },
-    { name = "jsonpickle" },
-    { name = "litellm" },
-    { name = "msgspec" },
-    { name = "neomodel" },
-    { name = "networkx" },
-    { name = "opensandbox" },
-    { name = "pandas" },
-    { name = "paramiko" },
-    { name = "pip" },
-    { name = "python-dotenv" },
-    { name = "python-magic" },
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "toml" },
-    { name = "tree-sitter-languages" },
-    { name = "uvicorn" },
-    { name = "websockets" },
-]
-
-[package.optional-dependencies]
-cybergym = [
-    { name = "cybergym", extra = ["dev", "server"] },
-]
-full = [
-    { name = "cybergym", extra = ["dev", "server"] },
-    { name = "langfuse" },
-    { name = "openinference-instrumentation-google-adk" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-exporter-otlp-proto-grpc" },
-    { name = "opentelemetry-exporter-otlp-proto-http" },
-    { name = "opentelemetry-sdk" },
-]
-langfuse = [
-    { name = "langfuse" },
-    { name = "openinference-instrumentation-google-adk" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-exporter-otlp-proto-grpc" },
-    { name = "opentelemetry-exporter-otlp-proto-http" },
-    { name = "opentelemetry-sdk" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "ipython" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-timeout" },
-    { name = "ruff" },
-]
-docs = [
-    { name = "mkdocs" },
-    { name = "mkdocs-autorefs" },
-    { name = "mkdocs-material" },
-    { name = "mkdocs-minify-plugin" },
-    { name = "mkdocstrings", extra = ["python"] },
-    { name = "pymdown-extensions" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "agentdocker-lite", git = "https://github.com/rucnyz/agentdocker-lite.git?rev=main" },
-    { name = "opensage", extras = ["langfuse", "cybergym"], marker = "extra == 'full'" },
-    { name = "click", specifier = ">=8.1.8,<9.0.0" },
-    { name = "cxxfilt", specifier = ">=0.3.0" },
-    { name = "cybergym", extras = ["dev", "server"], marker = "extra == 'cybergym'", git = "https://github.com/sunblaze-ucb/cybergym" },
-    { name = "dacite", specifier = ">=1.8.0" },
-    { name = "datasets", specifier = ">=2.0.0" },
-    { name = "docker", specifier = "==7.1.0" },
-    { name = "fire", specifier = ">=0.6.0" },
-    { name = "google-adk", specifier = "<=1.25.1" },
-    { name = "jsonpickle", specifier = ">=3.0.0" },
-    { name = "langfuse", marker = "extra == 'langfuse'", specifier = "==3.11.1" },
-    { name = "litellm", specifier = ">=1.74.7" },
-    { name = "msgspec", specifier = ">=0.19.0" },
-    { name = "neomodel", specifier = "==5.4.3" },
-    { name = "networkx", specifier = ">=3.4.2" },
-    { name = "openinference-instrumentation-google-adk", marker = "extra == 'langfuse'", specifier = "==0.1.8" },
-    { name = "opensandbox", specifier = ">=0.1.5" },
-    { name = "opentelemetry-api", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
-    { name = "opentelemetry-exporter-otlp-proto-grpc", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
-    { name = "opentelemetry-exporter-otlp-proto-http", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
-    { name = "opentelemetry-sdk", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
-    { name = "pandas", specifier = "==2.2.3" },
-    { name = "paramiko", specifier = ">=3.0.0" },
-    { name = "pip" },
-    { name = "python-dotenv", specifier = "==1.1.0" },
-    { name = "python-magic", specifier = ">=0.4.27" },
-    { name = "pyyaml", specifier = "==6.0.2" },
-    { name = "requests", specifier = "==2.32.4" },
-    { name = "toml", specifier = ">=0.10.2" },
-    { name = "tree-sitter-languages", specifier = "==1.10.2" },
-    { name = "uvicorn", specifier = ">=0.34.0,<1.0.0" },
-    { name = "websockets", specifier = ">=15.0.1" },
-]
-provides-extras = ["langfuse", "cybergym", "full"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "ipython" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-timeout" },
-    { name = "ruff" },
-]
-docs = [
-    { name = "mkdocs", specifier = ">=1.5.0" },
-    { name = "mkdocs-autorefs", specifier = ">=1.4.0" },
-    { name = "mkdocs-material", specifier = ">=9.0.0" },
-    { name = "mkdocs-minify-plugin", specifier = ">=0.7.0" },
-    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.30.0" },
-    { name = "pymdown-extensions", specifier = ">=10.16.0" },
-]
-
-[[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1672,6 +1544,7 @@ dependencies = [
     { name = "griffecli" },
     { name = "griffelib" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/04/56/28a0accac339c164b52a92c6cfc45a903acc0c174caa5c1713803467b533/griffe-2.0.0.tar.gz", hash = "sha256:c68979cd8395422083a51ea7cf02f9c119d889646d99b7b656ee43725de1b80f", size = 293906, upload-time = "2026-03-23T21:06:53.402Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8b/94/ee21d41e7eb4f823b94603b9d40f86d3c7fde80eacc2c3c71845476dddaa/griffe-2.0.0-py3-none-any.whl", hash = "sha256:5418081135a391c3e6e757a7f3f156f1a1a746cc7b4023868ff7d5e2f9a980aa", size = 5214, upload-time = "2026-02-09T19:09:44.105Z" },
 ]
@@ -1684,6 +1557,7 @@ dependencies = [
     { name = "colorama" },
     { name = "griffelib" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/a4/f8/2e129fd4a86e52e58eefe664de05e7d502decf766e7316cc9e70fdec3e18/griffecli-2.0.0.tar.gz", hash = "sha256:312fa5ebb4ce6afc786356e2d0ce85b06c1c20d45abc42d74f0cda65e159f6ef", size = 56213, upload-time = "2026-03-23T21:06:54.8Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e6/ed/d93f7a447bbf7a935d8868e9617cbe1cadf9ee9ee6bd275d3040fbf93d60/griffecli-2.0.0-py3-none-any.whl", hash = "sha256:9f7cd9ee9b21d55e91689358978d2385ae65c22f307a63fb3269acf3f21e643d", size = 9345, upload-time = "2026-02-09T19:09:42.554Z" },
 ]
@@ -1692,6 +1566,7 @@ wheels = [
 name = "griffelib"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ad/06/eccbd311c9e2b3ca45dbc063b93134c57a1ccc7607c5e545264ad092c4a9/griffelib-2.0.0.tar.gz", hash = "sha256:e504d637a089f5cab9b5daf18f7645970509bf4f53eda8d79ed71cce8bd97934", size = 166312, upload-time = "2026-03-23T21:06:55.954Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4d/51/c936033e16d12b627ea334aaaaf42229c37620d0f15593456ab69ab48161/griffelib-2.0.0-py3-none-any.whl", hash = "sha256:01284878c966508b6d6f1dbff9b6fa607bc062d8261c5c7253cb285b06422a7f", size = 142004, upload-time = "2026-02-09T19:09:40.561Z" },
 ]
@@ -2203,7 +2078,7 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.80.5"
+version = "1.82.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -2219,9 +2094,9 @@ dependencies = [
     { name = "tiktoken" },
     { name = "tokenizers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/85/b8/357544534bef87dd2858432f3cbd3a0e5cc267caebca5ea86b03618786c5/litellm-1.80.5.tar.gz", hash = "sha256:922791c264845d9ed59e540c8fa74a74d237c1b209568a05ffeacd8b51770deb", size = 11885764, upload-time = "2025-11-22T23:41:42.25Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/29/75/1c537aa458426a9127a92bc2273787b2f987f4e5044e21f01f2eed5244fd/litellm-1.82.6.tar.gz", hash = "sha256:2aa1c2da21fe940c33613aa447119674a3ad4d2ad5eb064e4d5ce5ee42420136", size = 17414147, upload-time = "2026-03-22T06:36:00.452Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bd/af/1d4693746ff9fbbe27a6e7d6394b801acf234e00c83f45ad1cb5bf2eaa6c/litellm-1.80.5-py3-none-any.whl", hash = "sha256:2ac5f4e88cd57ae056e00da8f872e1c2956653750929fba2fd9b007b400fdb77", size = 10671970, upload-time = "2025-11-22T23:41:39.923Z" },
+    { url = "https://files.pythonhosted.org/packages/02/6c/5327667e6dbe9e98cbfbd4261c8e91386a52e38f41419575854248bbab6a/litellm-1.82.6-py3-none-any.whl", hash = "sha256:164a3ef3e19f309e3cabc199bef3d2045212712fefdfa25fc7f75884a5b5b205", size = 15591595, upload-time = "2026-03-22T06:35:56.795Z" },
 ]
 
 [[package]]
@@ -2862,6 +2737,134 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/0b/68/81c8a0b90334ff11e4f285e4934c57f30bea3ef0c0b9f99b65e7b80fae3b/openinference_semantic_conventions-0.1.25.tar.gz", hash = "sha256:f0a8c2cfbd00195d1f362b4803518341e80867d446c2959bf1743f1894fce31d", size = 12767, upload-time = "2025-11-05T01:37:45.89Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fd/3d/dd14ee2eb8a3f3054249562e76b253a1545c76adbbfd43a294f71acde5c3/openinference_semantic_conventions-0.1.25-py3-none-any.whl", hash = "sha256:3814240f3bd61f05d9562b761de70ee793d55b03bca1634edf57d7a2735af238", size = 10395, upload-time = "2025-11-05T01:37:43.697Z" },
+]
+
+[[package]]
+name = "opensage"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "agentdocker-lite" },
+    { name = "click" },
+    { name = "cxxfilt" },
+    { name = "dacite" },
+    { name = "datasets" },
+    { name = "docker" },
+    { name = "fire" },
+    { name = "google-adk" },
+    { name = "jsonpickle" },
+    { name = "litellm" },
+    { name = "msgspec" },
+    { name = "neomodel" },
+    { name = "networkx" },
+    { name = "opensandbox" },
+    { name = "pandas" },
+    { name = "paramiko" },
+    { name = "pip" },
+    { name = "python-dotenv" },
+    { name = "python-magic" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "toml" },
+    { name = "tree-sitter-languages" },
+    { name = "uvicorn" },
+    { name = "websockets" },
+]
+
+[package.optional-dependencies]
+cybergym = [
+    { name = "cybergym", extra = ["dev", "server"] },
+]
+full = [
+    { name = "cybergym", extra = ["dev", "server"] },
+    { name = "langfuse" },
+    { name = "openinference-instrumentation-google-adk" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp-proto-grpc" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
+]
+langfuse = [
+    { name = "langfuse" },
+    { name = "openinference-instrumentation-google-adk" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp-proto-grpc" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "ipython" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-timeout" },
+    { name = "ruff" },
+]
+docs = [
+    { name = "mkdocs" },
+    { name = "mkdocs-autorefs" },
+    { name = "mkdocs-material" },
+    { name = "mkdocs-minify-plugin" },
+    { name = "mkdocstrings", extra = ["python"] },
+    { name = "pymdown-extensions" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "agentdocker-lite", git = "https://github.com/rucnyz/agentdocker-lite.git?rev=main" },
+    { name = "click", specifier = ">=8.1.8,<9.0.0" },
+    { name = "cxxfilt", specifier = ">=0.3.0" },
+    { name = "cybergym", extras = ["dev", "server"], marker = "extra == 'cybergym'", git = "https://github.com/sunblaze-ucb/cybergym" },
+    { name = "dacite", specifier = ">=1.8.0" },
+    { name = "datasets", specifier = ">=2.0.0" },
+    { name = "docker", specifier = "==7.1.0" },
+    { name = "fire", specifier = ">=0.6.0" },
+    { name = "google-adk", specifier = "<=1.25.1" },
+    { name = "jsonpickle", specifier = ">=3.0.0" },
+    { name = "langfuse", marker = "extra == 'langfuse'", specifier = "==3.11.1" },
+    { name = "litellm", specifier = ">=1.74.7" },
+    { name = "msgspec", specifier = ">=0.19.0" },
+    { name = "neomodel", specifier = "==5.4.3" },
+    { name = "networkx", specifier = ">=3.4.2" },
+    { name = "openinference-instrumentation-google-adk", marker = "extra == 'langfuse'", specifier = "==0.1.8" },
+    { name = "opensage", extras = ["langfuse", "cybergym"], marker = "extra == 'full'" },
+    { name = "opensandbox", specifier = ">=0.1.5" },
+    { name = "opentelemetry-api", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
+    { name = "opentelemetry-exporter-otlp-proto-grpc", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
+    { name = "opentelemetry-exporter-otlp-proto-http", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
+    { name = "opentelemetry-sdk", marker = "extra == 'langfuse'", specifier = "==1.37.0" },
+    { name = "pandas", specifier = "==2.2.3" },
+    { name = "paramiko", specifier = ">=3.0.0" },
+    { name = "pip" },
+    { name = "python-dotenv", specifier = "==1.1.0" },
+    { name = "python-magic", specifier = ">=0.4.27" },
+    { name = "pyyaml", specifier = "==6.0.2" },
+    { name = "requests", specifier = "==2.32.4" },
+    { name = "toml", specifier = ">=0.10.2" },
+    { name = "tree-sitter-languages", specifier = "==1.10.2" },
+    { name = "uvicorn", specifier = ">=0.34.0,<1.0.0" },
+    { name = "websockets", specifier = ">=15.0.1" },
+]
+provides-extras = ["langfuse", "cybergym", "full"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "ipython" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-timeout" },
+    { name = "ruff" },
+]
+docs = [
+    { name = "mkdocs", specifier = ">=1.5.0" },
+    { name = "mkdocs-autorefs", specifier = ">=1.4.0" },
+    { name = "mkdocs-material", specifier = ">=9.0.0" },
+    { name = "mkdocs-minify-plugin", specifier = ">=0.7.0" },
+    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.30.0" },
+    { name = "pymdown-extensions", specifier = ">=10.16.0" },
 ]
 
 [[package]]

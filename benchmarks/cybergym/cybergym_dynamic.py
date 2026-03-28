@@ -41,7 +41,7 @@ class CyberGym(Evaluation):
     max_llm_calls: int = 300
     config_template_path: str = str(Path(agent_dir) / "config.toml")
     run_until_explicit_finish: bool = True
-    use_cache: bool = True
+    use_sandbox_cache: bool = True
 
     # Benchmark specific configs
     agent_id: str

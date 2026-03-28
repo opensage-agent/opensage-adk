@@ -145,7 +145,7 @@ class MyEvaluation(Evaluation):
     max_workers: int = 6
     use_multiprocessing: bool = True
     run_until_explicit_finish: bool = True
-    use_cache: bool = True
+    use_sandbox_cache: bool = True
 
     # Custom fields for your benchmark
     custom_param: str = "default_value"
@@ -300,7 +300,7 @@ Each evaluation sample goes through the following lifecycle:
 - Create/initialize the OpenSage session for the task.
 - Launch and initialize required sandbox containers.
 - Set up Neo4j (if enabled).
-- Restore cached sandbox state (if `use_cache=True`).
+- Restore cached sandbox state (if `use_sandbox_cache=True`).
 
 ### 3) Agent preparation (`_prepare_agent()`)
 
@@ -380,7 +380,7 @@ Key configuration options available in `Evaluation`:
 | `max_llm_calls` | int | 100 | Maximum LLM calls per task |
 | `max_workers` | int | 6 | Parallel workers |
 | `use_multiprocessing` | bool | True | Use multiprocessing vs threading |
-| `use_cache` | bool | True | Load/cache sandbox states |
+| `use_sandbox_cache` | bool | True | Load/cache sandbox states |
 | `run_until_explicit_finish` | bool | True | Keep running until task finished |
 | `use_config_model` | bool | False | Use model from config file |
 | `llm_retry_count` | int | 3 | Retries for LLM API calls |

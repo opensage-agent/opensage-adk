@@ -430,5 +430,11 @@ git subtree add --prefix third_party/cybergym https://github.com/sunblaze-ucb/cy
 ```
 
 
+## Community
+
+Join the community chat on Discord:
+
+- [discord.gg/zbKe5ue8xc](https://discord.gg/zbKe5ue8xc)
+
 ## License
 This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.

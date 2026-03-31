@@ -56,6 +56,7 @@ ENV PATH="/opt/micromamba/envs/sage/bin:/root/.local/bin:$PATH"
 RUN uv venv --python python3 /app/.venv
 ENV PATH="/app/.venv/bin:/opt/micromamba/envs/sage/bin:/root/.local/bin:$PATH"
 RUN uv pip install --python /app/.venv/bin/python \
+      "protobuf==3.20.0" \
       "numpy>=1.26,<2" \
       neo4j \
       setuptools \
@@ -66,8 +67,8 @@ RUN uv pip install --python /app/.venv/bin/python \
       z3-solver \
       mcp \
       requests \
-      pyghidra-mcp \
       playwright \
+      "git+https://github.com/ziyue-pan/pyghidra-mcp.git" \
       "https://github.com/mrexodia/ida-pro-mcp/archive/refs/heads/main.zip"
 
 
@@ -95,10 +96,6 @@ ENV PATH="/opt/ida:/opt/lumina:$PATH"
 # --- ghidra + ghidra-mcp ---
 COPY --from=ghcr.io/opensage-agent/ghidra:latest /opt/ghidra /opt/ghidra
 COPY --from=ghcr.io/opensage-agent/ghidra:latest /build/target/GhidraMCP-*.jar /opt/GhidraMCP.jar
-
-
-# --- mcp-cli tool ---
-RUN curl -fsSL https://raw.githubusercontent.com/philschmid/mcp-cli/main/install.sh | bash
 
 # --- Entry ---
 COPY entrypoint.sh /root/entrypoint.sh

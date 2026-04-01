@@ -17,6 +17,9 @@ from opensage.toolbox.benchmark_specific.cybergym.cybergym import (
     generate_poc_and_submit,
     run_poc_from_script,
 )
+from opensage.toolbox.binary.ghidra_mcp.get_toolset import get_toolset as get_ghidra_toolset
+from opensage.toolbox.binary.ida_pro_mcp.get_toolset import get_toolset as get_ida_pro_toolset
+from opensage.toolbox.binary.pyghidra_mcp.get_toolset import get_toolset as get_pyghidra_toolset
 from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (
@@ -53,6 +56,9 @@ def mk_agent(opensage_session_id: str):
         ],
     )
     gdb_toolset = get_gdb_toolset(opensage_session_id)
+    ida_pro_toolset = get_ida_pro_toolset(opensage_session_id)
+    pyghidra_toolset = get_pyghidra_toolset(opensage_session_id)
+    ghidra_toolset = get_ghidra_toolset(opensage_session_id)
 
     root_agent = OpenSageAgent(
         name="ctf_agent",
@@ -60,6 +66,11 @@ def mk_agent(opensage_session_id: str):
         description="CTF agent",
         instruction=f"""
         You are a CTF agent that solves CTF challenges.
+        For reverse engineering workflows, use `create_subagent` and inject the
+        MCP toolsets you need by name from this agent's available Python toolsets
+        (for example `ida_pro_mcp`, `pyghidra_mcp`, `ghidra_mcp`, `gdb_mcp`).
+        Perform MCP actions inside those subagents rather than directly from the
+        root agent.
         """,
         tools=[
             agent_ensemble,
@@ -79,6 +90,10 @@ def mk_agent(opensage_session_id: str):
             list_available_scripts,
             # Debugger Tools
             gdb_toolset,
+            # Binary Analysis Tools
+            ida_pro_toolset,
+            pyghidra_toolset,
+            ghidra_toolset,
         ],
         enabled_skills=[],
     )

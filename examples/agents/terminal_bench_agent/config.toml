@@ -1,0 +1,35 @@
+# History configuration defaults
+MAX_TOOL_RESPONSE_LENGTH = 15000
+
+[llm]
+model_name = "openai/gpt-4o"
+temperature = 1.0
+
+[llm.model_configs.summarize]
+model_name = "inherit"
+temperature = 1
+
+[history]
+max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
+enable_quota_countdown = true
+
+[history.events_compaction]
+max_history_summary_length = 240000
+compaction_percent = 50
+
+[sandbox]
+backend = "native"
+
+[sandbox.sandboxes.main]
+image = "${TASK_NAME}_main"
+working_dir = "/app"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/main/Dockerfile"
+timeout = 300
+[sandbox.sandboxes.main.build_args]
+BASE_IMAGE = "${DEFAULT_IMAGE}"
+
+[plugins]
+enabled = [
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+]

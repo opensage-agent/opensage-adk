@@ -146,11 +146,11 @@ def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dic
                 handler.setLevel(terminal_log_level)
 
     try:
-        # Run async code in this process's event loop
         return asyncio.run(evaluation_instance._generate_one(task))
+    except KeyboardInterrupt:
+        logger.warning(f"Task {task.id} interrupted, cleaning up...")
+        raise
     except Exception as e:
-        # Convert all exceptions to RuntimeError to ensure pickle-ability
-        # This prevents ProcessPool from breaking when serializing exceptions
         import traceback
 
         error_msg = (
@@ -159,7 +159,12 @@ def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dic
         )
         raise RuntimeError(error_msg) from None
     finally:
-        # Clean up handlers to avoid duplicate logs and open file handles
+        from opensage.session.opensage_session import OpenSageSessionRegistry
+
+        try:
+            OpenSageSessionRegistry.cleanup_all_sessions()
+        except Exception:
+            pass
         for h in added_handlers:
             try:
                 root_logger.removeHandler(h)
@@ -797,12 +802,19 @@ class Evaluation(abc.ABC):
             logger.info(f"Task {task.id} completed successfully")
             return output_info
 
+        except KeyboardInterrupt:
+            logger.warning(f"Task {task.id} interrupted, cleaning up...")
+            try:
+                if task.opensage_session:
+                    task.opensage_session.cleanup()
+            except Exception as cleanup_error:
+                logger.error(f"Cleanup after interrupt failed: {cleanup_error}")
+            raise
+
         except Exception as e:
-            # Log exception details
             logger.error(f"Task {task.id} failed with exception: {e}")
             logger.error(f"Full traceback:\n{traceback.format_exc()}")
 
-            # Save error information to file
             error_file = output_path / "error.json"
             with open(error_file, "w") as f:
                 json.dump(
@@ -818,7 +830,6 @@ class Evaluation(abc.ABC):
                     indent=2,
                 )
 
-            # Try to cleanup even on error
             try:
                 if task.opensage_session:
                     task.opensage_session.cleanup()

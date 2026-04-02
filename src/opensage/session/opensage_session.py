@@ -13,8 +13,6 @@ from __future__ import annotations
 import atexit
 import logging
 import os
-import signal
-import sys
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Optional
@@ -158,9 +156,7 @@ class OpenSageSession:
         """
         Cleanup all resources for this session.
         """
-        if (
-            self.config.auto_cleanup
-        ):  # TODO: this auto_cleanup flag seems not very useful?
+        if self.config.auto_cleanup:
             self.sandboxes.cleanup()
             self.agents.cleanup()
             self.ensemble.cleanup()
@@ -174,42 +170,21 @@ class OpenSageSessionRegistry:
     - Creating and tracking session managers
     - Preventing duplicate sessions
     - Coordinating session cleanup
-    - Managing global signal handlers for graceful shutdown
+    - Providing atexit-based cleanup as a safety net
     """
 
     _sessions: Dict[str, OpenSageSession] = {}
 
-    # Setup signal handlers directly
-    def _signal_handler(signum, frame):
-        # Use print instead of logger to avoid reentrant logging errors
-        print(f"Received signal {signum}, cleaning up all sessions...", flush=True)
-        try:
-            OpenSageSessionRegistry.cleanup_all_sessions()
-        except Exception:
-            pass  # Ignore errors during signal handler cleanup
-        # Use a graceful process exit so outer layers (e.g., CLI finally blocks)
-        # can persist session snapshots before termination.
-        sys.exit(0)
-
     def _cleanup_at_exit():
         """Cleanup all sessions at exit, ignoring closed stream errors."""
         try:
-            # Avoid noisy "Logging error: I/O operation on closed file" messages
-            # when pytest (or other runners) close stderr/stdout before atexit.
             import logging as _logging  # pylint: disable=g-import-not-at-top
 
             _logging.raiseExceptions = False
             OpenSageSessionRegistry.cleanup_all_sessions()
         except (ValueError, OSError):
-            # Ignore errors from logging to closed streams during shutdown
             pass
 
-    try:
-        signal.signal(signal.SIGINT, _signal_handler)
-        signal.signal(signal.SIGTERM, _signal_handler)
-        logger.info("Signal handlers registered for graceful session cleanup")
-    except (ValueError, OSError):
-        pass
     atexit.register(_cleanup_at_exit)
 
     @classmethod

@@ -52,7 +52,7 @@ from opentelemetry.sdk.trace import export as export_lib
 from pydantic import ValidationError
 from starlette.types import Lifespan
 
-from opensage.patches.neo4j_logging import build_root_session_state
+from opensage.memory.file_based.short_term import build_root_session_state
 
 logger = logging.getLogger("opensage." + __name__)
 

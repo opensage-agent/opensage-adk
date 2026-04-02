@@ -1,4 +1,4 @@
-"""Unit tests for neo4j_history_management module."""
+"""Unit tests for short-term Neo4j history storage."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import pytest
 from google.adk.events.event import Event
 from google.genai import types
 
-from opensage.utils.neo4j_history_management import (
+from opensage.memory.database_based.short_term.history_store import (
     _create_event_node,
     _create_summarize_relation,
     _determine_event_type,
@@ -195,14 +195,14 @@ class TestNeo4jOperations:
 
         # Mock get_neo4j_client_from_context
         self.mock_get_client_patcher = patch(
-            "opensage.utils.neo4j_history_management.get_neo4j_client_from_context"
+            "opensage.memory.database_based.short_term.history_store.get_neo4j_client_from_context"
         )
         self.mock_get_client = self.mock_get_client_patcher.start()
         self.mock_get_client.return_value = self.mock_neo4j_client
 
         # Mock get_opensage_session_id_from_context
         self.mock_get_session_id_patcher = patch(
-            "opensage.utils.neo4j_history_management.get_opensage_session_id_from_context"
+            "opensage.memory.database_based.short_term.history_store.get_opensage_session_id_from_context"
         )
         self.mock_get_session_id = self.mock_get_session_id_patcher.start()
         self.mock_get_session_id.return_value = "shared-session-123"
@@ -560,7 +560,7 @@ class TestNeo4jOperations:
         )
 
         with patch(
-            "opensage.utils.neo4j_history_management._create_summarize_relation"
+            "opensage.memory.database_based.short_term.history_store._create_summarize_relation"
         ) as mock_create_relation:
             mock_create_relation.return_value = True
 
@@ -589,7 +589,7 @@ class TestNeo4jOperations:
         )
 
         with patch(
-            "opensage.utils.neo4j_history_management._create_summarize_relation"
+            "opensage.memory.database_based.short_term.history_store._create_summarize_relation"
         ) as mock_create_relation:
             mock_create_relation.return_value = True
 
@@ -634,13 +634,13 @@ class TestNeo4jOperations:
 
         with (
             patch(
-                "opensage.utils.neo4j_history_management._event_exists"
+                "opensage.memory.database_based.short_term.history_store._event_exists"
             ) as mock_exists,
             patch(
-                "opensage.utils.neo4j_history_management._create_event_node"
+                "opensage.memory.database_based.short_term.history_store._create_event_node"
             ) as mock_create,
             patch(
-                "opensage.utils.neo4j_history_management._maybe_create_summarize_relation"
+                "opensage.memory.database_based.short_term.history_store._maybe_create_summarize_relation"
             ) as mock_summarize,
         ):
             mock_exists.return_value = False  # Event doesn't exist
@@ -667,10 +667,10 @@ class TestNeo4jOperations:
 
         with (
             patch(
-                "opensage.utils.neo4j_history_management._event_exists"
+                "opensage.memory.database_based.short_term.history_store._event_exists"
             ) as mock_exists,
             patch(
-                "opensage.utils.neo4j_history_management._create_event_node"
+                "opensage.memory.database_based.short_term.history_store._create_event_node"
             ) as mock_create,
         ):
             mock_exists.return_value = True  # Event already exists

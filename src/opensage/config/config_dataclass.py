@@ -4,6 +4,8 @@ Configuration DataClass Definitions for OpenSage Framework
 Defines all configuration dataclasses with default values and environment variable overrides.
 """
 
+from __future__ import annotations
+
 import copy
 import os
 import re
@@ -91,6 +93,13 @@ def _expand_template_variables(config_data: dict) -> dict:
 
 
 @dataclass
+class ShortTermMemoryConfig:
+    """Short-term database memory configuration."""
+
+    enabled: bool = False
+
+
+@dataclass
 class LongTermMemoryConfig:
     """Long-term database memory configuration."""
 
@@ -107,6 +116,7 @@ class LongTermMemoryConfig:
 class DatabaseMemoryConfig:
     """Database-backed memory configuration."""
 
+    short_term: ShortTermMemoryConfig = field(default_factory=ShortTermMemoryConfig)
     long_term: LongTermMemoryConfig = field(default_factory=LongTermMemoryConfig)
 
 

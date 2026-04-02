@@ -22,7 +22,6 @@ from google.genai import types
 from pydantic_core import to_json
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.features.agent_history_tracker import enable_neo4j_logging
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
@@ -55,8 +54,6 @@ from opensage.toolbox.general.dynamic_subagent import (
 )
 
 logger = logging.getLogger(__name__)
-
-# enable_neo4j_logging()
 
 session_id = str(uuid4())
 app_name = "opensage_local"

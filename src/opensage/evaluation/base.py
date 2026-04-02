@@ -39,7 +39,10 @@ from opensage import get_opensage_session
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
-from opensage.patches.neo4j_logging import build_root_session_state
+from opensage.memory.database_based.short_term.config import (
+    is_database_short_term_enabled_from_config,
+)
+from opensage.memory.file_based.short_term import build_root_session_state
 from opensage.plugins import load_plugins
 from opensage.session.opensage_session import OpenSageSession
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
@@ -269,9 +272,6 @@ class Evaluation(abc.ABC):
 
     llm_retry_timeout: int = 30
     """Timeout in seconds for each LLM request, currently only applies to LiteLLM"""
-
-    neo4j_logging: bool = False
-    """Whether to enable Neo4j logging for this run"""
 
     # Dataset
     dataset_split: str = "train"
@@ -884,26 +884,12 @@ class Evaluation(abc.ABC):
             task (EvaluationTask): EvaluationTask instance with all task data"""
         opensage_session = task.opensage_session
 
-        # 1. Configure Neo4j logging
-        from opensage.features.agent_history_tracker import (
-            disable_neo4j_logging,
-            enable_neo4j_logging,
-            is_neo4j_logging_enabled,
-        )
-
-        if self.neo4j_logging:
-            if not is_neo4j_logging_enabled():
-                enable_neo4j_logging()
-                logger.warning("Neo4j logging enabled (neo4j_logging=True).")
-        else:
-            if is_neo4j_logging_enabled():
-                disable_neo4j_logging()
-                logger.warning("Neo4j logging disabled (neo4j_logging=False).")
-
         dummy_agent = self._mk_agent_original(opensage_session_id=task.session_id)
 
         # Collect sandbox dependencies from agent
         sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
+        if is_database_short_term_enabled_from_config(opensage_session.config):
+            sandbox_dependencies.add("neo4j")
         tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
 
         # Strong behavior:

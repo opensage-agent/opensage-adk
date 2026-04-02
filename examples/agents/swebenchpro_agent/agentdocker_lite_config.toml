@@ -7,6 +7,9 @@ MAX_HISTORY_SUMMARY_LENGTH = 240000
 [memory]
 management = "file"
 
+[memory.database.short_term]
+enabled = false
+
 [memory.database.long_term]
 enabled = false
 

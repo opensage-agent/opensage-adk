@@ -30,13 +30,6 @@ warnings.filterwarnings("ignore", message=".*PydanticSerializationUnexpectedValu
 @pytest.fixture
 def web_search_agent():
     """Create a minimal agent with WebSearchTool."""
-    from opensage.features.agent_history_tracker import disable_neo4j_logging
-
-    try:
-        disable_neo4j_logging()
-    except Exception:
-        pass
-
     agent = OpenSageAgent(
         name="web_search_test_agent",
         model=LiteLlm(model="anthropic/claude-sonnet-4-6"),

@@ -6,7 +6,7 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.planners import BasePlanner
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.memory.search_tool import search_memory
+from opensage.memory.database_based.long_term.search_tool import search_memory
 from opensage.session import get_opensage_session
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (

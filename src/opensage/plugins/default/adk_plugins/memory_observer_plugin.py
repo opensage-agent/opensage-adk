@@ -11,8 +11,13 @@ from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
 
-from opensage.memory.storage_decider import StorageDecider, StorageDecision
-from opensage.memory.update.update_controller import MemoryUpdateController
+from opensage.memory.database_based.long_term.storage_decider import (
+    StorageDecider,
+    StorageDecision,
+)
+from opensage.memory.database_based.long_term.update.update_controller import (
+    MemoryUpdateController,
+)
 from opensage.utils.agent_utils import (
     get_neo4j_client_from_context,
     get_opensage_config_from_context,

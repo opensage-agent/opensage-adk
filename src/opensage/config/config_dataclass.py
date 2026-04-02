@@ -91,29 +91,32 @@ def _expand_template_variables(config_data: dict) -> dict:
 
 
 @dataclass
-class MemoryConfig:
-    """Memory module configuration for graph-based knowledge storage."""
+class LongTermMemoryConfig:
+    """Long-term database memory configuration."""
 
-    # Whether memory module is enabled (default: disabled)
     enabled: bool = False
-
-    # LLM model for internal memory operations (strategy selection, entity extraction, etc.)
     llm_model: str = "gemini/gemini-2.5-flash-lite"
-
-    # Embedding model for vector similarity search
     embedding_model: str = "gemini/gemini-embedding-001"
-
-    # Whether to use LLM for search strategy selection
     use_llm_selection: bool = True
-
-    # Whether to use LLM for operation decisions (ADD/UPDATE/DELETE/NONE)
     use_llm_decision: bool = False
-
-    # Max iterations for search refinement
     search_max_iterations: int = 3
-
-    # Similarity threshold for relationship discovery
     similarity_threshold: float = 0.7
+
+
+@dataclass
+class DatabaseMemoryConfig:
+    """Database-backed memory configuration."""
+
+    long_term: LongTermMemoryConfig = field(default_factory=LongTermMemoryConfig)
+
+
+@dataclass
+class MemoryConfig:
+    """Top-level memory runtime configuration."""
+
+    # Runtime memory management mode for agent execution.
+    management: str = "file"
+    database: DatabaseMemoryConfig = field(default_factory=DatabaseMemoryConfig)
 
 
 @dataclass

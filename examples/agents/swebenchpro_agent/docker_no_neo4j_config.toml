@@ -2,6 +2,9 @@ MAX_TOOL_RESPONSE_LENGTH = 15000
 MAX_HISTORY_SUMMARY_LENGTH = 240000
 
 [memory]
+management = "file"
+
+[memory.database.long_term]
 enabled = false
 
 [llm]

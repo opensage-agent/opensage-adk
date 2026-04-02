@@ -52,6 +52,8 @@ from opentelemetry.sdk.trace import export as export_lib
 from pydantic import ValidationError
 from starlette.types import Lifespan
 
+from opensage.patches.neo4j_logging import build_root_session_state
+
 logger = logging.getLogger("opensage." + __name__)
 
 
@@ -125,6 +127,17 @@ class OpenSageWebServer:
         self.plugins = plugins or []
         self.url_prefix = url_prefix
         self._runner: Optional[Runner] = None
+
+    def _build_root_session_state(
+        self, base_state: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
+        """Build canonical state for the fixed root session."""
+        return build_root_session_state(
+            opensage_session_id=self.fixed_session_id,
+            session_id=self.fixed_session_id,
+            agent_name=getattr(self.root_agent, "name", "agent"),
+            base_state=base_state,
+        )
 
     async def get_runner_async(self) -> Runner:
         if self._runner:
@@ -316,7 +329,7 @@ class OpenSageWebServer:
                 session = await self.session_service.create_session(
                     app_name=app_name,
                     user_id=user_id,
-                    state=(req.state if req else None),
+                    state=self._build_root_session_state(req.state if req else None),
                     session_id=self.fixed_session_id,
                 )
             if req and req.events:
@@ -342,7 +355,7 @@ class OpenSageWebServer:
                 session = await self.session_service.create_session(
                     app_name=app_name,
                     user_id=user_id,
-                    state=None,
+                    state=self._build_root_session_state(),
                     session_id=self.fixed_session_id,
                 )
             return [session]

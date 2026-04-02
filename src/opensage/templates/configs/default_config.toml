@@ -182,6 +182,12 @@ compaction_percent = "${COMPACTION_PERCENT}"
 # Execution order matches the list order — see docs/wiki/Plugins.md for details.
 enabled = []
 
+[memory]
+management = "file"
+
+[memory.database.long_term]
+enabled = false
+
 
 [agent_ensemble]
 enforce_thread_safe_tools = false

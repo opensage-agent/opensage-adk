@@ -32,6 +32,7 @@ from opensage.cli.opensage_web_app import OpenSageWebServer
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
+from opensage.patches.neo4j_logging import build_root_session_state
 from opensage.plugins import load_plugins
 from opensage.session import get_opensage_session
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
@@ -306,6 +307,7 @@ async def _load_adk_session_into_service_async(
     session_id: str,
     target_app_name: str,
     target_user_id: str,
+    root_agent,
 ) -> tuple[str, str]:
     """Load persisted ADK session object into the in-memory session service."""
     from google.adk.sessions.session import Session
@@ -321,6 +323,23 @@ async def _load_adk_session_into_service_async(
     persisted.id = session_id
     persisted.app_name = target_app_name
     persisted.user_id = target_user_id
+    persisted_state = persisted.state if isinstance(persisted.state, dict) else {}
+    persisted_state["opensage_session_id"] = session_id
+    expected_root_state = build_root_session_state(
+        opensage_session_id=session_id,
+        session_id=session_id,
+        agent_name=getattr(root_agent, "name", "agent"),
+    )
+    expected_mem_dir = expected_root_state.get("_mem_agent_dir")
+    persisted_mem_dir = persisted_state.get("_mem_agent_dir")
+    if expected_mem_dir is not None and persisted_mem_dir != expected_mem_dir:
+        raise click.ClickException(
+            "Cannot resume file-memory session: persisted root session state is "
+            f"missing the expected `{expected_mem_dir}` directory."
+        )
+    if expected_mem_dir is None:
+        persisted_state.pop("_mem_agent_dir", None)
+    persisted.state = persisted_state
     app_name = target_app_name
     user_id = target_user_id
 
@@ -747,6 +766,7 @@ def cli_web(
                 session_id=session_id,
                 target_app_name=web_server.app_name,
                 target_user_id="user",
+                root_agent=root_agent,
             )
         )
         session_user_id = restored_user_id
@@ -755,7 +775,11 @@ def cli_web(
             session_service.create_session(
                 app_name=web_server.app_name,
                 user_id="user",
-                state={"opensage_session_id": session_id},
+                state=build_root_session_state(
+                    opensage_session_id=session_id,
+                    session_id=session_id,
+                    agent_name=getattr(root_agent, "name", "agent"),
+                ),
                 session_id=session_id,
             )
         )

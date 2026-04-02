@@ -5,6 +5,9 @@ MAX_HISTORY_SUMMARY_LENGTH = 240000
 # NEO4J_PASSWORD = "testpassword"
 
 [memory]
+management = "file"
+
+[memory.database.long_term]
 enabled = false
 
 [llm]

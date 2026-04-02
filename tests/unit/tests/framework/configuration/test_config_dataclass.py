@@ -15,10 +15,13 @@ from opensage.config.config_dataclass import (
     AgentEnsembleConfig,
     BuildConfig,
     ContainerConfig,
+    DatabaseMemoryConfig,
     HistoryConfig,
     LLMConfig,
+    LongTermMemoryConfig,
     MCPConfig,
     MCPServiceConfig,
+    MemoryConfig,
     ModelConfig,
     Neo4jConfig,
     OpenSageConfig,
@@ -137,6 +140,32 @@ class TestTemplateVariableExpansion:
 
 class TestDataclassCreation:
     """Test creation of various configuration dataclasses."""
+
+    def test_memory_config_nested_long_term_creation(self):
+        """Test nested long-term database memory configuration."""
+        config = MemoryConfig(
+            management="database",
+            database=DatabaseMemoryConfig(
+                long_term=LongTermMemoryConfig(
+                    enabled=True,
+                    llm_model="gemini-pro",
+                    embedding_model="text-embedding",
+                    use_llm_selection=False,
+                    use_llm_decision=True,
+                    search_max_iterations=5,
+                    similarity_threshold=0.9,
+                )
+            ),
+        )
+
+        assert config.management == "database"
+        assert config.database.long_term.enabled is True
+        assert config.database.long_term.llm_model == "gemini-pro"
+        assert config.database.long_term.embedding_model == "text-embedding"
+        assert config.database.long_term.use_llm_selection is False
+        assert config.database.long_term.use_llm_decision is True
+        assert config.database.long_term.search_max_iterations == 5
+        assert config.database.long_term.similarity_threshold == 0.9
 
     def test_neo4j_config_creation(self):
         """Test Neo4j configuration creation."""

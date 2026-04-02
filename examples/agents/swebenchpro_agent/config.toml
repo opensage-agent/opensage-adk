@@ -14,6 +14,9 @@ bolt_port = "${NEO4J_BOLT_PORT}"
 neo4j_http_port = "${NEO4J_HTTP_PORT}"
 
 [memory]
+management = "file"
+
+[memory.database.long_term]
 enabled = true
 llm_model = "vertex_ai/gemini-3-flash-preview"
 embedding_model = "text-embedding-3-small"

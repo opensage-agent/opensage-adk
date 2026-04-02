@@ -9,7 +9,6 @@ import shlex
 import sys
 import tempfile
 import traceback
-from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
 from google.adk.agents.base_agent import BaseAgent
@@ -34,9 +33,10 @@ _LONG_TERM_MEM_ROOT = os.path.join(_MEM_ROOT_DIR, "long_term")
 _LONG_TERM_KNOWLEDGE_DIR = os.path.join(_LONG_TERM_MEM_ROOT, "knowledge")
 _LONG_TERM_KNOWLEDGE_PATH = os.path.join(_LONG_TERM_KNOWLEDGE_DIR, "knowledge.json")
 _MEM_AGENT_DIR_KEY = "_mem_agent_dir"
-_MEM_TOPOLOGY_PATH = os.path.join(_MEM_ROOT_DIR, "topology.json")
-_FILE_MEMORY_CONTEXT_START = "[[OPENSAGE_FILE_MEMORY_CONTEXT]]"
-_FILE_MEMORY_CONTEXT_END = "[[/OPENSAGE_FILE_MEMORY_CONTEXT]]"
+_RUNTIME_MEMORY_CONTEXT_START = "[[OPENSAGE_RUNTIME_MEMORY_CONTEXT]]"
+_RUNTIME_MEMORY_CONTEXT_END = "[[/OPENSAGE_RUNTIME_MEMORY_CONTEXT]]"
+_MEMORY_MANAGEMENT_FILE = "file"
+_MEMORY_MANAGEMENT_DATABASE = "database"
 
 
 def _sanitize_name(name: str) -> str:
@@ -52,14 +52,35 @@ def _build_session_dir_name(agent_name: str, session_id: str) -> str:
     return f"{_sanitize_name(agent_name)}__{session_id}"
 
 
-def _compute_root_session_mem_dir(invocation_context) -> str:
-    """Compute the root short-term memory directory for a session."""
-    session = invocation_context.session
-    agent_name = _sanitize_name(getattr(invocation_context.agent, "name", "agent"))
+def compute_root_session_mem_dir(*, agent_name: str, session_id: str) -> str:
+    """Compute the root short-term memory directory from agent/session ids."""
     return os.path.join(
         _SHORT_TERM_MEM_ROOT,
-        _build_session_dir_name(agent_name, session.id),
+        _build_session_dir_name(agent_name, session_id),
     )
+
+
+def build_root_session_state(
+    *,
+    opensage_session_id: str,
+    session_id: str,
+    agent_name: str,
+    base_state: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
+    """Build canonical root session state for the configured memory mode."""
+    state = dict(base_state or {})
+    state["opensage_session_id"] = opensage_session_id
+    if (
+        _get_memory_management_from_opensage_session_id(opensage_session_id)
+        == _MEMORY_MANAGEMENT_FILE
+    ):
+        state[_MEM_AGENT_DIR_KEY] = compute_root_session_mem_dir(
+            agent_name=agent_name,
+            session_id=session_id,
+        )
+    else:
+        state.pop(_MEM_AGENT_DIR_KEY, None)
+    return state
 
 
 def _compute_agent_mem_dir(invocation_context) -> str:
@@ -177,74 +198,171 @@ def _persist_traj_json(invocation_context, agent_mem_dir: str) -> None:
 
 def persist_traj_json_for_invocation(invocation_context) -> None:
     """Persist traj.json for the current invocation context."""
+    if not _is_file_memory_enabled_for_context(invocation_context):
+        return
     _persist_traj_json(invocation_context, _compute_agent_mem_dir(invocation_context))
 
 
-def _is_file_memory_enabled(agent: BaseAgent) -> bool:
-    """Return whether the agent is configured to use file memory."""
-    memory_management = getattr(agent, "_memory_management", None)
-    return getattr(memory_management, "value", memory_management) == "file"
+def _normalize_memory_management(memory_management: Any) -> str:
+    """Normalize configured memory management mode."""
+    value = getattr(memory_management, "value", memory_management)
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in (_MEMORY_MANAGEMENT_FILE, _MEMORY_MANAGEMENT_DATABASE):
+            return normalized
+    return _MEMORY_MANAGEMENT_FILE
 
 
-def _strip_runtime_file_memory_context(instruction: str) -> str:
-    """Remove any previously injected runtime file-memory context block."""
+def _get_memory_management_from_opensage_session_id(opensage_session_id: str) -> str:
+    """Read memory management mode from the OpenSage session config."""
+    from opensage.session import get_opensage_session
+
+    opensage_session = get_opensage_session(opensage_session_id)
+    memory_config = getattr(getattr(opensage_session, "config", None), "memory", None)
+    return _normalize_memory_management(getattr(memory_config, "management", None))
+
+
+def _get_memory_management_from_context(context) -> str:
+    """Read memory management mode from the current invocation/tool context."""
+    from opensage.utils.agent_utils import get_opensage_session_id_from_context
+
+    opensage_session_id = get_opensage_session_id_from_context(context)
+    return _get_memory_management_from_opensage_session_id(opensage_session_id)
+
+
+def _is_file_memory_enabled_for_context(context) -> bool:
+    """Return whether current context is configured to use file memory."""
+    return _get_memory_management_from_context(context) == _MEMORY_MANAGEMENT_FILE
+
+
+def _is_database_memory_enabled_for_context(context) -> bool:
+    """Return whether current context is configured to use database memory."""
+    return _get_memory_management_from_context(context) == _MEMORY_MANAGEMENT_DATABASE
+
+
+def _strip_runtime_memory_context(instruction: str) -> str:
+    """Remove any previously injected runtime memory context block."""
     if not instruction:
         return ""
     pattern = (
-        rf"\n\n{re.escape(_FILE_MEMORY_CONTEXT_START)}.*?"
-        rf"{re.escape(_FILE_MEMORY_CONTEXT_END)}"
+        rf"\n\n{re.escape(_RUNTIME_MEMORY_CONTEXT_START)}.*?"
+        rf"{re.escape(_RUNTIME_MEMORY_CONTEXT_END)}"
     )
     return re.sub(pattern, "", instruction, flags=re.DOTALL)
 
 
-def _build_runtime_file_memory_context(*, session_id: str, agent_mem_dir: str) -> str:
-    """Build the session-specific file-memory prompt block."""
+def _build_runtime_memory_context(
+    *,
+    memory_management: str,
+    session_id: str,
+    agent_name: str,
+    agent_mem_dir: str | None = None,
+) -> str:
+    """Build the session-specific runtime memory prompt block."""
+    if memory_management == _MEMORY_MANAGEMENT_DATABASE:
+        guidance = (
+            "- Your current memory mode is `database`.\n"
+            f"- Your current `session_id` is `{session_id}`.\n"
+            "- Use the `memory_management_agent` tool for memory retrieval and memory-aware history inspection.\n"
+            "- Do not assume file-based memory directories exist for this run.\n"
+        )
+    else:
+        if not agent_mem_dir:
+            raise ValueError("agent_mem_dir is required for file memory context")
+        guidance = (
+            "- Your current memory mode is `file`.\n"
+            f"- Your current `session_id` is `{session_id}`.\n"
+            f"- Your current short-term memory directory is `{agent_mem_dir}`.\n"
+            f"- Keep your working notes in `{os.path.join(agent_mem_dir, 'TODO.md')}`.\n"
+            f"- Your full trajectory file is `{os.path.join(agent_mem_dir, 'traj.json')}`.\n"
+            f"- Save long tool outputs under `{os.path.join(agent_mem_dir, 'tool_outputs')}/`.\n"
+            f"- Shared long-term knowledge lives at `{_LONG_TERM_KNOWLEDGE_PATH}`.\n"
+        )
     return (
-        f"{_FILE_MEMORY_CONTEXT_START}\n"
-        "### Current File Memory Session\n"
-        f"- Your current `session_id` is `{session_id}`.\n"
-        f"- Your current short-term memory directory is `{agent_mem_dir}`.\n"
-        f"- Keep your working notes in `{os.path.join(agent_mem_dir, 'TODO.md')}`.\n"
-        f"- Your full trajectory file is `{os.path.join(agent_mem_dir, 'traj.json')}`.\n"
-        f"- Save long tool outputs under `{os.path.join(agent_mem_dir, 'tool_outputs')}/`.\n"
-        f"- Shared long-term knowledge lives at `{_LONG_TERM_KNOWLEDGE_PATH}`.\n"
-        f"{_FILE_MEMORY_CONTEXT_END}"
+        f"{_RUNTIME_MEMORY_CONTEXT_START}\n"
+        "### Current Runtime Memory Context\n"
+        f"- Your current agent is `{agent_name}`.\n"
+        f"{guidance}"
+        f"{_RUNTIME_MEMORY_CONTEXT_END}"
     )
 
 
-def _inject_runtime_file_memory_context(
-    agent: BaseAgent, *, session_id: str, agent_mem_dir: str
+def _inject_runtime_memory_context(
+    agent: BaseAgent,
+    *,
+    memory_management: str,
+    session_id: str,
+    agent_mem_dir: str | None = None,
 ) -> str | None:
-    """Inject session-specific file-memory context into the agent instruction."""
-    if not _is_file_memory_enabled(agent) or not hasattr(agent, "instruction"):
+    """Inject session-specific runtime memory context into the agent instruction."""
+    if not hasattr(agent, "instruction"):
         return None
 
     original_instruction = getattr(agent, "instruction", "") or ""
-    stripped_instruction = _strip_runtime_file_memory_context(original_instruction)
-    runtime_context = _build_runtime_file_memory_context(
-        session_id=session_id, agent_mem_dir=agent_mem_dir
+    stripped_instruction = _strip_runtime_memory_context(original_instruction)
+    runtime_context = _build_runtime_memory_context(
+        memory_management=memory_management,
+        session_id=session_id,
+        agent_name=getattr(agent, "name", "agent"),
+        agent_mem_dir=agent_mem_dir,
     )
     agent.instruction = f"{stripped_instruction}\n\n{runtime_context}"
     return original_instruction
 
 
-def _clone_agent_for_child_session(
-    agent: BaseAgent, *, session_id: str, agent_mem_dir: str
-) -> BaseAgent:
-    """Shallow copy the child agent before injecting session-specific prompt text."""
+def _extract_tool_name(tool: Any) -> str:
+    """Best-effort tool name extraction for runtime tool injection."""
+    name = getattr(tool, "name", None)
+    if isinstance(name, str) and name:
+        return name
+    nested_agent = getattr(tool, "agent", None)
+    nested_agent_name = getattr(nested_agent, "name", None)
+    if isinstance(nested_agent_name, str) and nested_agent_name:
+        return nested_agent_name
+    name = getattr(tool, "__name__", None)
+    return name if isinstance(name, str) else ""
+
+
+def _inject_runtime_memory_tools(
+    agent: BaseAgent, invocation_context
+) -> list[Any] | None:
+    """Temporarily inject memory tools for the current runtime if needed."""
+    if not _is_database_memory_enabled_for_context(invocation_context):
+        return None
+    if getattr(agent, "name", None) == "memory_management_agent":
+        return None
+    tools = getattr(agent, "tools", None)
+    if tools is None:
+        return None
+    if any(_extract_tool_name(tool) == "memory_management_agent" for tool in tools):
+        return None
+
+    from opensage.util_agents.memory_management_agent.agent import (
+        create_memory_management_agent_tool,
+    )
+    from opensage.utils.agent_utils import get_model_from_agent
+
+    model = get_model_from_agent(agent)
+    if model is None:
+        logger.warning(
+            "Failed to inject database memory tool for agent %s: model unavailable",
+            getattr(agent, "name", "agent"),
+        )
+        return None
+
+    original_tools = list(tools)
+    memory_tool = create_memory_management_agent_tool(model=model)
+    agent.tools = original_tools + [memory_tool]
+    return original_tools
+
+
+def _clone_agent_for_child_session(agent: BaseAgent) -> BaseAgent:
+    """Shallow copy the child agent before the child invocation starts."""
     try:
         cloned_agent = agent.model_copy(deep=False)
     except Exception:
         cloned_agent = copy.copy(agent)
-    _inject_runtime_file_memory_context(
-        cloned_agent, session_id=session_id, agent_mem_dir=agent_mem_dir
-    )
     return cloned_agent
-
-
-def _now_iso_utc() -> str:
-    """Return current UTC timestamp in ISO-8601 format."""
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
 def _extract_query_from_invocation_context(invocation_context) -> str:
@@ -259,184 +377,6 @@ def _extract_query_from_invocation_context(invocation_context) -> str:
     except Exception:
         logger.debug("Failed to extract query from invocation_context.user_content")
     return ""
-
-
-def _load_topology_data(invocation_context) -> dict[str, Any]:
-    """Load /mem/topology.json from main sandbox."""
-    sandbox = _get_main_sandbox(invocation_context)
-    try:
-        raw = (sandbox.extract_file_from_container(_MEM_TOPOLOGY_PATH) or "").strip()
-    except Exception:
-        raw = ""
-    if not raw:
-        return {"agents": [], "calls": []}
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError:
-        logger.warning("Invalid topology.json, resetting topology data")
-        return {"agents": [], "calls": []}
-    if not isinstance(data, dict):
-        return {"agents": [], "calls": []}
-    agents = data.get("agents", [])
-    calls = data.get("calls", [])
-    if not isinstance(agents, list):
-        agents = []
-    if not isinstance(calls, list):
-        calls = []
-    return {"agents": agents, "calls": calls}
-
-
-def _save_topology_data(invocation_context, topology_data: dict[str, Any]) -> None:
-    """Persist /mem/topology.json into main sandbox."""
-    topology_data["updated_at"] = _now_iso_utc()
-    payload = json.dumps(topology_data, indent=2, ensure_ascii=False)
-    _write_text_to_main_sandbox(invocation_context, _MEM_TOPOLOGY_PATH, payload)
-
-
-def _upsert_agent_record(topology_data: dict[str, Any], record: dict[str, Any]) -> None:
-    """Upsert an agent record by session_id."""
-    session_id = record.get("session_id")
-    if not session_id:
-        return
-    agents = topology_data.setdefault("agents", [])
-    for existing in agents:
-        if existing.get("session_id") == session_id:
-            # Avoid clobbering useful values with empty placeholders.
-            for key, value in record.items():
-                if value is None:
-                    continue
-                if isinstance(value, str) and value == "":
-                    continue
-                existing[key] = value
-            return
-    agents.append(record)
-
-
-def _infer_parent_links_from_calls(topology_data: dict[str, Any]) -> None:
-    """Infer parent fields from call relationships."""
-    agents = topology_data.get("agents", [])
-    calls = topology_data.get("calls", [])
-    if not isinstance(agents, list) or not isinstance(calls, list):
-        return
-    by_session_id = {
-        agent.get("session_id"): agent
-        for agent in agents
-        if isinstance(agent, dict) and agent.get("session_id")
-    }
-    for call in calls:
-        if not isinstance(call, dict):
-            continue
-        caller_session_id = call.get("caller_session_id")
-        caller_agent_name = call.get("caller_agent_name")
-        callee_session_id = call.get("callee_session_id")
-        if not (
-            isinstance(caller_session_id, str)
-            and caller_session_id
-            and isinstance(callee_session_id, str)
-            and callee_session_id
-        ):
-            continue
-        callee = by_session_id.get(callee_session_id)
-        if not isinstance(callee, dict):
-            continue
-        if not callee.get("parent_session_id"):
-            callee["parent_session_id"] = caller_session_id
-        if (
-            not callee.get("parent_agent_name")
-            and isinstance(caller_agent_name, str)
-            and caller_agent_name
-        ):
-            callee["parent_agent_name"] = caller_agent_name
-
-
-def _sync_parent_links(topology_data: dict[str, Any]) -> None:
-    """Sync parent fields from inferred call relationships."""
-    _infer_parent_links_from_calls(topology_data)
-
-
-def _record_topology_agent_start(
-    invocation_context, *, session_id: str, agent_name: str, query: str
-) -> None:
-    """Upsert topology agent start info."""
-    topology_data = _load_topology_data(invocation_context)
-    _upsert_agent_record(
-        topology_data,
-        {
-            "session_id": session_id,
-            "agent_name": agent_name,
-            "query": query or "",
-            "response": "",
-            "status": "running",
-            "updated_at": _now_iso_utc(),
-        },
-    )
-    _sync_parent_links(topology_data)
-    _save_topology_data(invocation_context, topology_data)
-
-
-def _record_topology_agent_end(
-    invocation_context, *, session_id: str, response: str, status: str
-) -> None:
-    """Update topology agent completion info."""
-    topology_data = _load_topology_data(invocation_context)
-    _upsert_agent_record(
-        topology_data,
-        {
-            "session_id": session_id,
-            "response": response or "",
-            "status": status,
-            "updated_at": _now_iso_utc(),
-        },
-    )
-    _sync_parent_links(topology_data)
-    _save_topology_data(invocation_context, topology_data)
-
-
-def _record_topology_call(
-    invocation_context,
-    *,
-    caller_session_id: str,
-    caller_agent_name: str,
-    callee_session_id: str,
-    callee_agent_name: str,
-    query: str,
-) -> None:
-    """Append topology call relationship and keep parent links synchronized."""
-    topology_data = _load_topology_data(invocation_context)
-    calls = topology_data.setdefault("calls", [])
-    if not isinstance(calls, list):
-        calls = []
-        topology_data["calls"] = calls
-    _upsert_agent_record(
-        topology_data,
-        {
-            "session_id": caller_session_id,
-            "agent_name": caller_agent_name,
-            "updated_at": _now_iso_utc(),
-        },
-    )
-    _upsert_agent_record(
-        topology_data,
-        {
-            "session_id": callee_session_id,
-            "agent_name": callee_agent_name,
-            "parent_session_id": caller_session_id,
-            "parent_agent_name": caller_agent_name,
-            "updated_at": _now_iso_utc(),
-        },
-    )
-    calls.append(
-        {
-            "caller_session_id": caller_session_id,
-            "caller_agent_name": caller_agent_name,
-            "callee_session_id": callee_session_id,
-            "callee_agent_name": callee_agent_name,
-            "query": query or "",
-            "updated_at": _now_iso_utc(),
-        }
-    )
-    _sync_parent_links(topology_data)
-    _save_topology_data(invocation_context, topology_data)
 
 
 async def _record_agent_call(
@@ -489,59 +429,46 @@ async def _record_agent_call(
             )
         except Exception as e:
             logger.error(f"Failed to create agent call relation: {e}")
-    try:
-        _record_topology_call(
-            tool_context._invocation_context,
-            caller_session_id=caller_session_id,
-            caller_agent_name=caller_agent_name,
-            callee_session_id=callee_session_id,
-            callee_agent_name=callee_agent_name,
-            query=input_content,
-        )
-    except Exception as topology_error:
-        logger.warning("Failed to record topology call: %s", topology_error)
 
 
 async def _wrapped_base_agent_run(self, invocation_context):
     logging_enabled = _enabled
     session_id = invocation_context.session.id
-    query = _extract_query_from_invocation_context(invocation_context)
-    session_state = getattr(invocation_context.session, "state", None)
-    if not isinstance(session_state, dict):
-        raise ValueError("Session state must be a dict for file memory layout")
-    agent_mem_dir = session_state.get(_MEM_AGENT_DIR_KEY)
-    if not (
-        isinstance(agent_mem_dir, str)
-        and agent_mem_dir
-        and agent_mem_dir.startswith(_SHORT_TERM_MEM_ROOT)
-    ):
-        agent_mem_dir = _compute_root_session_mem_dir(invocation_context)
-        session_state[_MEM_AGENT_DIR_KEY] = agent_mem_dir
+    memory_management = _get_memory_management_from_context(invocation_context)
+    file_memory_enabled = memory_management == _MEMORY_MANAGEMENT_FILE
+    agent_mem_dir = None
+    if file_memory_enabled:
+        agent_mem_dir = _compute_agent_mem_dir(invocation_context)
     original_instruction = None
+    original_tools = None
     try:
-        _ensure_agent_mem_layout(
-            invocation_context,
-            agent_mem_dir,
-            agent_name=getattr(invocation_context.agent, "name", "agent"),
-        )
-    except Exception as mem_error:
-        logger.warning("Failed to initialize agent memory dir: %s", mem_error)
-    try:
-        original_instruction = _inject_runtime_file_memory_context(
-            self, session_id=session_id, agent_mem_dir=agent_mem_dir
-        )
-    except Exception as prompt_error:
-        logger.warning("Failed to inject file-memory prompt context: %s", prompt_error)
-    try:
-        _record_topology_agent_start(
-            invocation_context,
-            session_id=session_id,
-            agent_name=getattr(invocation_context.agent, "name", "agent"),
-            query=query,
-        )
-    except Exception as topology_error:
-        logger.warning("Failed to record topology agent start: %s", topology_error)
-
+        original_tools = _inject_runtime_memory_tools(self, invocation_context)
+    except Exception as tool_error:
+        logger.warning("Failed to inject runtime memory tools: %s", tool_error)
+    if memory_management in (
+        _MEMORY_MANAGEMENT_FILE,
+        _MEMORY_MANAGEMENT_DATABASE,
+    ):
+        try:
+            original_instruction = _inject_runtime_memory_context(
+                self,
+                memory_management=memory_management,
+                session_id=session_id,
+                agent_mem_dir=agent_mem_dir,
+            )
+        except Exception as prompt_error:
+            logger.warning(
+                "Failed to inject runtime memory prompt context: %s", prompt_error
+            )
+    if file_memory_enabled:
+        try:
+            _ensure_agent_mem_layout(
+                invocation_context,
+                agent_mem_dir,
+                agent_name=getattr(invocation_context.agent, "name", "agent"),
+            )
+        except Exception as mem_error:
+            logger.warning("Failed to initialize agent memory dir: %s", mem_error)
     if logging_enabled:
         from opensage.utils.neo4j_history_management import (  # type: ignore
             find_agent_run_by_session_id,
@@ -581,10 +508,11 @@ async def _wrapped_base_agent_run(self, invocation_context):
         raise
 
     finally:
-        try:
-            _persist_traj_json(invocation_context, agent_mem_dir)
-        except Exception as mem_error:
-            logger.warning("Failed to persist traj.json: %s", mem_error)
+        if file_memory_enabled:
+            try:
+                _persist_traj_json(invocation_context, agent_mem_dir)
+            except Exception as mem_error:
+                logger.warning("Failed to persist traj.json: %s", mem_error)
 
         if logging_enabled:
             try:
@@ -621,25 +549,6 @@ async def _wrapped_base_agent_run(self, invocation_context):
                 logger.error(f"Failed to record agent end: {e}")
                 await record_agent_end(invocation_context, "", "error")
 
-        # File topology is independent from Neo4j logging toggle.
-        output_content = ""
-        if last_event and last_event.content and last_event.content.parts:
-            output_content = "\n".join(
-                p.text
-                for p in last_event.content.parts
-                if hasattr(p, "text") and p.text
-            )
-        topology_status = "error" if run_failed else "completed"
-        try:
-            _record_topology_agent_end(
-                invocation_context,
-                session_id=session_id,
-                response=output_content,
-                status=topology_status,
-            )
-        except Exception as topology_error:
-            logger.warning("Failed to record topology agent end: %s", topology_error)
-
         # Write child's used llm calls into its session.state for parent to read
         try:
             used_child = int(
@@ -657,6 +566,8 @@ async def _wrapped_base_agent_run(self, invocation_context):
 
         if original_instruction is not None:
             self.instruction = original_instruction
+        if original_tools is not None:
+            self.tools = original_tools
 
 
 def apply() -> None:
@@ -696,25 +607,34 @@ def apply() -> None:
         )
 
         session_service = OpenSageInMemorySessionService()
+        session_state = tool_context.state.to_dict()
+        from opensage.utils.agent_utils import get_opensage_session_id_from_context
+
+        session_state["opensage_session_id"] = get_opensage_session_id_from_context(
+            tool_context
+        )
         session = await session_service.create_session(
             app_name=agent_tool.agent.name,
             user_id="tmp_user",
-            state=tool_context.state.to_dict(),
+            state=session_state,
         )
-        child_agent_mem_dir = _compute_child_session_mem_dir(
-            tool_context._invocation_context,
-            child_agent_name=agent_tool.agent.name,
-            child_session_id=session.id,
-        )
-        session.state[_MEM_AGENT_DIR_KEY] = child_agent_mem_dir
-        try:
-            _ensure_agent_mem_layout(
+        if _is_file_memory_enabled_for_context(tool_context):
+            child_agent_mem_dir = _compute_child_session_mem_dir(
                 tool_context._invocation_context,
-                child_agent_mem_dir,
-                agent_name=agent_tool.agent.name,
+                child_agent_name=agent_tool.agent.name,
+                child_session_id=session.id,
             )
-        except Exception as mem_error:
-            logger.warning("Failed to initialize child agent memory dir: %s", mem_error)
+            session.state[_MEM_AGENT_DIR_KEY] = child_agent_mem_dir
+            try:
+                _ensure_agent_mem_layout(
+                    tool_context._invocation_context,
+                    child_agent_mem_dir,
+                    agent_name=agent_tool.agent.name,
+                )
+            except Exception as mem_error:
+                logger.warning(
+                    "Failed to initialize child agent memory dir: %s", mem_error
+                )
 
         parent_plugins = []
         try:
@@ -724,11 +644,7 @@ def apply() -> None:
         except Exception as plugin_error:
             logger.debug("Failed to reuse parent plugins: %s", plugin_error)
 
-        child_agent = _clone_agent_for_child_session(
-            agent_tool.agent,
-            session_id=session.id,
-            agent_mem_dir=child_agent_mem_dir,
-        )
+        child_agent = _clone_agent_for_child_session(agent_tool.agent)
         agentic_app = App(
             name=child_agent.name,
             root_agent=child_agent,

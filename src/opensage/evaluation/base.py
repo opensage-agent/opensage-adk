@@ -39,6 +39,7 @@ from opensage import get_opensage_session
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
+from opensage.patches.neo4j_logging import build_root_session_state
 from opensage.plugins import load_plugins
 from opensage.session.opensage_session import OpenSageSession
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
@@ -1013,9 +1014,11 @@ class Evaluation(abc.ABC):
             app_name=app_name,
             user_id=user_id,
             session_id=task.session_id,
-            state={
-                "opensage_session_id": task.session_id,
-            },
+            state=build_root_session_state(
+                opensage_session_id=task.session_id,
+                session_id=task.session_id,
+                agent_name=getattr(agent, "name", "agent"),
+            ),
         )
 
         # Helper to track remaining LLM-call budget across multiple runner invocations.

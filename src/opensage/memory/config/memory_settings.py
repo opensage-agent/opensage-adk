@@ -6,15 +6,15 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from opensage.config.config_dataclass import MemoryConfig
+    from opensage.config.config_dataclass import LongTermMemoryConfig
 
 
 @dataclass
 class MemorySettings:
-    """Configuration settings for the memory module.
+    """Configuration settings for long-term database memory.
 
     These settings are loaded from the TOML configuration file via OpenSageConfig.
-    The [memory] section in config controls these values.
+    The [memory.database.long_term] section in config controls these values.
     """
 
     # Whether memory module is enabled (default: disabled)
@@ -39,11 +39,11 @@ class MemorySettings:
     similarity_threshold: float = 0.7
 
     @classmethod
-    def from_config(cls, memory_config: "MemoryConfig") -> "MemorySettings":
-        """Create MemorySettings from a MemoryConfig dataclass.
+    def from_config(cls, memory_config: "LongTermMemoryConfig") -> "MemorySettings":
+        """Create MemorySettings from long-term database memory config.
 
         Args:
-            memory_config ('MemoryConfig'): The MemoryConfig from OpenSageConfig.
+            memory_config ('LongTermMemoryConfig'): Long-term memory config.
         Returns:
             'MemorySettings': MemorySettings instance with values from config.
         """
@@ -74,14 +74,16 @@ def get_memory_settings() -> MemorySettings:
     return _settings
 
 
-def configure_memory_from_config(memory_config: "MemoryConfig") -> MemorySettings:
-    """Configure memory settings from a MemoryConfig dataclass.
+def configure_memory_from_config(
+    memory_config: "LongTermMemoryConfig",
+) -> MemorySettings:
+    """Configure memory settings from long-term database memory config.
 
     This is typically called during session initialization with the
-    memory config from OpenSageConfig.
+    long-term database memory config from OpenSageConfig.
 
     Args:
-        memory_config ('MemoryConfig'): The MemoryConfig from OpenSageConfig.
+        memory_config ('LongTermMemoryConfig'): Long-term memory config.
     Returns:
         MemorySettings: The configured settings instance.
     """
@@ -97,12 +99,3 @@ def reset_memory_settings() -> None:
     """
     global _settings
     _settings = None
-
-
-def is_memory_enabled() -> bool:
-    """Check if memory module is enabled.
-
-    Returns:
-        bool: True if memory is enabled, False otherwise.
-    """
-    return get_memory_settings().enabled

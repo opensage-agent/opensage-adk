@@ -2,78 +2,9 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
+
 from opensage.patches import neo4j_logging
-
-
-def test_sync_parent_links_for_tree() -> None:
-    topology = {
-        "agents": [
-            {"session_id": "root", "agent_name": "root_agent"},
-            {"session_id": "child_a", "agent_name": "child_agent_a"},
-            {"session_id": "child_b", "agent_name": "child_agent_b"},
-        ],
-        "calls": [
-            {
-                "caller_session_id": "root",
-                "caller_agent_name": "root_agent",
-                "callee_session_id": "child_a",
-                "callee_agent_name": "child_agent_a",
-                "query": "analyze A",
-            },
-            {
-                "caller_session_id": "child_a",
-                "caller_agent_name": "child_agent_a",
-                "callee_session_id": "child_b",
-                "callee_agent_name": "child_agent_b",
-                "query": "analyze B",
-            },
-        ],
-    }
-
-    neo4j_logging._sync_parent_links(topology)
-    by_id = {a["session_id"]: a for a in topology["agents"]}
-
-    assert "lineage" not in by_id["root"]
-    assert "lineage" not in by_id["child_a"]
-    assert "lineage" not in by_id["child_b"]
-    assert by_id["child_a"]["parent_session_id"] == "root"
-    assert by_id["child_a"]["parent_agent_name"] == "root_agent"
-    assert by_id["child_b"]["parent_session_id"] == "child_a"
-    assert by_id["child_b"]["parent_agent_name"] == "child_agent_a"
-
-
-def test_sync_parent_links_fallback_for_missing_parent() -> None:
-    topology = {
-        "agents": [
-            {
-                "session_id": "orphan",
-                "agent_name": "orphan_agent",
-                "parent_session_id": "missing_parent",
-            }
-        ],
-        "calls": [],
-    }
-
-    neo4j_logging._sync_parent_links(topology)
-    orphan = topology["agents"][0]
-
-    assert orphan["parent_session_id"] == "missing_parent"
-
-
-def test_sync_parent_links_cycle_unchanged() -> None:
-    topology = {
-        "agents": [
-            {"session_id": "a", "agent_name": "agent_a", "parent_session_id": "b"},
-            {"session_id": "b", "agent_name": "agent_b", "parent_session_id": "a"},
-        ],
-        "calls": [],
-    }
-
-    neo4j_logging._sync_parent_links(topology)
-    by_id = {a["session_id"]: a for a in topology["agents"]}
-
-    assert by_id["a"]["parent_session_id"] == "b"
-    assert by_id["b"]["parent_session_id"] == "a"
 
 
 def test_compute_agent_mem_dir_uses_nested_session_layout() -> None:
@@ -88,6 +19,16 @@ def test_compute_agent_mem_dir_uses_nested_session_layout() -> None:
     agent_mem_dir = neo4j_logging._compute_agent_mem_dir(invocation_context)
 
     assert agent_mem_dir == "/mem/short_term/Agent_Alpha__sess-1"
+
+
+def test_compute_root_session_mem_dir_uses_agent_and_session_ids() -> None:
+    assert (
+        neo4j_logging.compute_root_session_mem_dir(
+            agent_name="Agent Alpha",
+            session_id="sess-1",
+        )
+        == "/mem/short_term/Agent_Alpha__sess-1"
+    )
 
 
 def test_compute_child_session_mem_dir_nests_under_parent() -> None:
@@ -111,14 +52,12 @@ def test_compute_child_session_mem_dir_nests_under_parent() -> None:
     )
 
 
-def test_inject_runtime_file_memory_context_adds_session_specific_block() -> None:
-    agent = SimpleNamespace(
-        _memory_management=SimpleNamespace(value="file"),
-        instruction="Base instruction",
-    )
+def test_inject_runtime_memory_context_adds_file_session_specific_block() -> None:
+    agent = SimpleNamespace(name="agent", instruction="Base instruction")
 
-    original_instruction = neo4j_logging._inject_runtime_file_memory_context(
+    original_instruction = neo4j_logging._inject_runtime_memory_context(
         agent,
+        memory_management="file",
         session_id="sess-42",
         agent_mem_dir="/mem/short_term/agent__sess-42",
     )
@@ -128,3 +67,171 @@ def test_inject_runtime_file_memory_context_adds_session_specific_block() -> Non
     assert "/mem/short_term/agent__sess-42" in agent.instruction
     assert "traj.json" in agent.instruction
     assert "TODO.md" in agent.instruction
+
+
+def test_clone_agent_for_child_session_does_not_preinject_runtime_context() -> None:
+    agent = SimpleNamespace(name="agent", instruction="Base instruction")
+
+    cloned_agent = neo4j_logging._clone_agent_for_child_session(agent)
+
+    assert cloned_agent is not agent
+    assert cloned_agent.instruction == "Base instruction"
+
+
+def test_build_root_session_state_adds_mem_dir_for_file_memory(monkeypatch) -> None:
+    monkeypatch.setattr(
+        neo4j_logging,
+        "_get_memory_management_from_opensage_session_id",
+        lambda _session_id: "file",
+    )
+
+    state = neo4j_logging.build_root_session_state(
+        opensage_session_id="opensage-1",
+        session_id="sess-42",
+        agent_name="Root Agent",
+        base_state={"custom": "value"},
+    )
+
+    assert state["opensage_session_id"] == "opensage-1"
+    assert state["custom"] == "value"
+    assert state["_mem_agent_dir"] == "/mem/short_term/Root_Agent__sess-42"
+
+
+def test_build_root_session_state_omits_mem_dir_for_non_file_memory(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        neo4j_logging,
+        "_get_memory_management_from_opensage_session_id",
+        lambda _session_id: "database",
+    )
+
+    state = neo4j_logging.build_root_session_state(
+        opensage_session_id="opensage-1",
+        session_id="sess-42",
+        agent_name="Root Agent",
+        base_state={"_mem_agent_dir": "/mem/short_term/old__sess-0"},
+    )
+
+    assert state == {"opensage_session_id": "opensage-1"}
+
+
+async def _empty_agent_run(_agent, _invocation_context):
+    if False:
+        yield None
+
+
+@pytest.mark.asyncio
+async def test_wrapped_base_agent_run_requires_precreated_mem_dir_for_file_memory(
+    monkeypatch,
+) -> None:
+    agent = SimpleNamespace(
+        name="root_agent",
+        instruction="Base instruction",
+        tools=[],
+    )
+    invocation_context = SimpleNamespace(
+        session=SimpleNamespace(id="sess-1", state={}),
+        agent=agent,
+    )
+
+    monkeypatch.setattr(neo4j_logging, "_orig_base_agent_run", _empty_agent_run)
+    monkeypatch.setattr(
+        neo4j_logging, "_get_memory_management_from_context", lambda _ctx: "file"
+    )
+
+    with pytest.raises(ValueError, match="Session memory directory missing"):
+        [
+            event
+            async for event in neo4j_logging._wrapped_base_agent_run(
+                agent, invocation_context
+            )
+        ]
+
+
+@pytest.mark.asyncio
+async def test_wrapped_base_agent_run_skips_file_memory_for_non_file_mode(
+    monkeypatch,
+) -> None:
+    agent = SimpleNamespace(
+        name="root_agent",
+        instruction="Base instruction",
+        tools=[],
+    )
+    invocation_context = SimpleNamespace(
+        session=SimpleNamespace(id="sess-1", state={}),
+        agent=agent,
+    )
+    calls = {"ensure": 0, "persist": 0}
+
+    def _count_ensure(*args, **kwargs) -> None:
+        calls["ensure"] += 1
+
+    def _count_persist(*args, **kwargs) -> None:
+        calls["persist"] += 1
+
+    monkeypatch.setattr(neo4j_logging, "_orig_base_agent_run", _empty_agent_run)
+    monkeypatch.setattr(
+        neo4j_logging, "_get_memory_management_from_context", lambda _ctx: "database"
+    )
+    monkeypatch.setattr(neo4j_logging, "_ensure_agent_mem_layout", _count_ensure)
+    monkeypatch.setattr(neo4j_logging, "_persist_traj_json", _count_persist)
+
+    events = [
+        event
+        async for event in neo4j_logging._wrapped_base_agent_run(
+            agent, invocation_context
+        )
+    ]
+
+    assert events == []
+    assert calls == {"ensure": 0, "persist": 0}
+    assert agent.instruction == "Base instruction"
+
+
+@pytest.mark.asyncio
+async def test_wrapped_base_agent_run_injects_database_memory_tool_temporarily(
+    monkeypatch,
+) -> None:
+    injected_tool = SimpleNamespace(name="memory_management_agent")
+    seen_tool_names = []
+
+    async def _record_tools(agent, _invocation_context):
+        seen_tool_names.extend(tool.name for tool in agent.tools)
+        if False:
+            yield None
+
+    agent = SimpleNamespace(name="root_agent", instruction="Base instruction", tools=[])
+    invocation_context = SimpleNamespace(
+        session=SimpleNamespace(id="sess-1", state={}),
+        agent=agent,
+    )
+
+    monkeypatch.setattr(neo4j_logging, "_orig_base_agent_run", _record_tools)
+    monkeypatch.setattr(
+        neo4j_logging, "_get_memory_management_from_context", lambda _ctx: "database"
+    )
+
+    def _inject_tools(_agent, _ctx):
+        original_tools = list(_agent.tools)
+        _agent.tools = original_tools + [injected_tool]
+        return original_tools
+
+    monkeypatch.setattr(neo4j_logging, "_inject_runtime_memory_tools", _inject_tools)
+    monkeypatch.setattr(
+        neo4j_logging,
+        "_inject_runtime_memory_context",
+        lambda _agent, **kwargs: "Base instruction",
+    )
+
+    events = [
+        event
+        async for event in neo4j_logging._wrapped_base_agent_run(
+            agent, invocation_context
+        )
+    ]
+
+    assert events == []
+    assert seen_tool_names == ["memory_management_agent"]
+    assert agent.instruction == "Base instruction"
+    assert agent.tools == []

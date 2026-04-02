@@ -13,7 +13,6 @@ from opensage.memory.config.memory_settings import (
     MemorySettings,
     configure_memory_from_config,
     get_memory_settings,
-    is_memory_enabled,
     reset_memory_settings,
 )
 from opensage.memory.config.qa_domain import QA_DOMAIN_CONFIG
@@ -35,5 +34,4 @@ __all__ = [
     "get_memory_settings",
     "configure_memory_from_config",
     "reset_memory_settings",
-    "is_memory_enabled",
 ]

@@ -193,7 +193,7 @@ def _session_store_dir(session_id: str) -> Path:
 
 def _sanitize_identifier(name: str) -> str:
     """Sanitize a name into a valid Python identifier (letters, digits, underscores)."""
-    sanitized = re.sub(r"[^A-Za-z0-9_.-]+", "_", (agent_name or "").strip())
+    sanitized = re.sub(r"[^A-Za-z0-9_.-]+", "_", (name or "").strip())
     return sanitized.strip("._-") or "agent"
 
 

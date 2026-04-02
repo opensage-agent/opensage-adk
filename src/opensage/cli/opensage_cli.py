@@ -191,15 +191,15 @@ def _session_store_dir(session_id: str) -> Path:
     return _SESSION_STORE_ROOT / session_id
 
 
-def _sanitize_agent_name(agent_name: str) -> str:
-    """Sanitize agent name for filesystem-safe session directory naming."""
-    sanitized = re.sub(r"[^A-Za-z0-9_.-]+", "_", (agent_name or "").strip())
+def _sanitize_identifier(name: str) -> str:
+    """Sanitize a name into a valid Python identifier (letters, digits, underscores)."""
+    sanitized = re.sub(r"[^A-Za-z0-9_.-]+", "_", (name or "").strip())
     return sanitized.strip("._-") or "agent"
 
 
 def _session_store_dir_for_agent(*, session_id: str, agent_name: str) -> Path:
     """Return canonical session store dir: <agent_name>_<session_id>."""
-    return _SESSION_STORE_ROOT / f"{_sanitize_agent_name(agent_name)}_{session_id}"
+    return _SESSION_STORE_ROOT / f"{_sanitize_identifier(agent_name)}_{session_id}"
 
 
 def _collect_sandbox_runtime_metadata(opensage_session) -> dict:
@@ -710,7 +710,8 @@ def cli_web(
     # 3) Build services (use OpenSageInMemorySessionService and pre-create the ADK session)
     # Infer app name as the parent folder of the agent directory.
     # Example: /.../examples/agents/debuger_agent -> app_name = "agents"
-    app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
+    raw_app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
+    app_name = _sanitize_identifier(raw_app_name)
     session_service = OpenSageInMemorySessionService()
 
     artifact_service = InMemoryArtifactService()

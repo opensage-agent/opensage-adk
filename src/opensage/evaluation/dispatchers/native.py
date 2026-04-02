@@ -81,16 +81,16 @@ class NativeDispatcher(BaseDispatcher):
         from opensage.evaluation.base import _run_sample_in_process
 
         evaluation.dataset = evaluation._get_dataset()
+        executor = ProcessPoolExecutor(max_workers=self.max_workers)
+        futures = {
+            executor.submit(_run_sample_in_process, evaluation, sample): sample
+            for sample in evaluation.dataset
+        }
 
-        with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
-            futures = {
-                executor.submit(_run_sample_in_process, evaluation, sample): sample
-                for sample in evaluation.dataset
-            }
+        results = []
+        failed_samples = []
 
-            results = []
-            failed_samples = []
-
+        try:
             for future in tqdm(
                 as_completed(futures),
                 total=len(evaluation.dataset),
@@ -112,6 +112,16 @@ class NativeDispatcher(BaseDispatcher):
                     error_file = Path(evaluation.output_dir) / task_name / "error.json"
                     if error_file.exists():
                         logger.error(f"  Detailed error saved to: {error_file}")
+
+        except KeyboardInterrupt:
+            logger.warning("Interrupted by Ctrl+C, cancelling pending tasks...")
+            for f in futures:
+                f.cancel()
+            executor.shutdown(wait=False, cancel_futures=True)
+            return
+
+        else:
+            executor.shutdown(wait=True)
 
         evaluation.customized_modify_and_save_results(
             results=results,

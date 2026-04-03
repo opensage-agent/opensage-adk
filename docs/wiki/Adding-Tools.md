@@ -250,34 +250,41 @@ once per session (subsequent runs are skipped via a marker under `/shared`).
 
 ## Creating an MCP Toolset
 
-MCP toolsets are created via Python functions that return `MCPToolset` instances:
+MCP toolsets are created via Python functions that return `OpenSageMCPToolset` instances:
 
 ```python
-# src/opensage/toolbox/category/get_toolset.py
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
-from opensage.toolbox.decorators import requires_sandbox, safe_tool_execution
+from google.adk.tools.mcp_tool.mcp_toolset import SseConnectionParams
+from opensage.agents.opensage_agent import OpenSageMCPToolset
+from opensage.toolbox.sandbox_requirements import requires_sandbox
 from opensage.utils.agent_utils import get_mcp_url_from_session_id
 
-@safe_tool_execution
 @requires_sandbox("gdb_mcp")
-def get_toolset(session_id: str) -> MCPToolset:
-    """Create MCPToolset with GDB MCP server running in Docker container.
+def get_toolset(opensage_session_id: str) -> OpenSageMCPToolset:
+    """Create a named MCP toolset for the GDB MCP server.
 
     Args:
-        session_id: Shared session ID for session-based management
-
+        opensage_session_id (str): OpenSage session ID used to resolve the MCP SSE URL.
     Returns:
-        MCPToolset connected to GDB MCP server
+        OpenSageMCPToolset: OpenSageMCPToolset connected to the GDB MCP server (SSE).
+
+        The returned toolset has:
+        - name="gdb_mcp" so it can be selected by `create_subagent` via
+          `tools_list=["gdb_mcp"]`.
+        - tool_name_prefix="gdb_mcp" so expanded MCP tool names are prefixed
+          (e.g. "gdb_mcp_step_control") to avoid collisions.
     """
-    url = get_mcp_url_from_session_id("gdb_mcp", session_id)
-    mcp_toolset = MCPToolset(connection_params=SseConnectionParams(url=url))
-    return mcp_toolset
+
+    url = get_mcp_url_from_session_id("gdb_mcp", opensage_session_id)
+    return OpenSageMCPToolset(
+        name="gdb_mcp",
+        connection_params=SseConnectionParams(url=url),
+        tool_name_prefix="gdb_mcp",
+    )
 ```
 
 The function should:
-- Use `@safe_tool_execution` decorator
 - Use `@requires_sandbox` to specify required sandbox types
-- Return an `MCPToolset` instance
+- Return an `OpenSageMCPToolset` instance
 - Be registered in the agent's tools list
 
 ## Tool Registration

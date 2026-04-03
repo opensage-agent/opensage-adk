@@ -35,9 +35,8 @@
 
 ### MCP Toolsets
 
-- Use `@safe_tool_execution` decorator
 - Use `@requires_sandbox` to specify required sandbox types
-- Return `MCPToolset` instances from getter functions
+- Return `OpenSageMCPToolset` instances from getter functions
 - Document connection parameters and usage
 
 ## Configuration

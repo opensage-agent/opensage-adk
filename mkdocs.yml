@@ -14,8 +14,8 @@ exclude_docs: |
   RL-Integration.md
 
 # Repository information
-repo_url: https://github.com/opensage-agent/OpenSage
-repo_name: opensage-agent/OpenSage
+repo_url: https://github.com/opensage-agent/opensage-adk
+repo_name: opensage-agent/opensage-adk
 
 # Theme
 theme:

@@ -332,23 +332,36 @@ root_agent = OpenSageAgent(
 
 ### 3) MCP toolsets
 
-To use an MCP toolset, write a **getter function** that returns an `MCPToolset`
-instance. The endpoint URL should come from config and be resolved per-session
-via `get_mcp_url_from_session_id("<service>", session_id)`.
+To use an MCP toolset, write a **getter function** that returns an `OpenSageMCPToolset` instance. The endpoint URL should come from config and be resolved per-session via `get_mcp_url_from_session_id("<service>", session_id)`.
 
 ```python
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
-
-from opensage.toolbox.decorators import requires_sandbox, safe_tool_execution
+from google.adk.tools.mcp_tool.mcp_toolset import SseConnectionParams
+from opensage.agents.opensage_agent import OpenSageMCPToolset
+from opensage.toolbox.sandbox_requirements import requires_sandbox
 from opensage.utils.agent_utils import get_mcp_url_from_session_id
 
-
-@safe_tool_execution
 @requires_sandbox("gdb_mcp")
-def get_gdb_toolset(session_id: str) -> MCPToolset:
-    """Return a GDB MCP toolset for the current session."""
-    url = get_mcp_url_from_session_id("gdb_mcp", session_id)
-    return MCPToolset(connection_params=SseConnectionParams(url=url))
+def get_toolset(opensage_session_id: str) -> OpenSageMCPToolset:
+    """Create a named MCP toolset for the GDB MCP server.
+
+    Args:
+        opensage_session_id (str): OpenSage session ID used to resolve the MCP SSE URL.
+    Returns:
+        OpenSageMCPToolset: OpenSageMCPToolset connected to the GDB MCP server (SSE).
+
+        The returned toolset has:
+        - name="gdb_mcp" so it can be selected by `create_subagent` via
+          `tools_list=["gdb_mcp"]`.
+        - tool_name_prefix="gdb_mcp" so expanded MCP tool names are prefixed
+          (e.g. "gdb_mcp_step_control") to avoid collisions.
+    """
+
+    url = get_mcp_url_from_session_id("gdb_mcp", opensage_session_id)
+    return OpenSageMCPToolset(
+        name="gdb_mcp",
+        connection_params=SseConnectionParams(url=url),
+        tool_name_prefix="gdb_mcp",
+    )
 ```
 
 Enable it by adding the getter to `tools`:

@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import sys
 import time
 from pathlib import Path
 from typing import Optional
@@ -33,7 +34,7 @@ from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
 from opensage.plugins import load_plugins
-from opensage.session import get_opensage_session
+from opensage.session import cleanup_opensage_session, get_opensage_session
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
 from opensage.utils.bash_tools_staging import compute_bash_tools_top_roots
 
@@ -191,15 +192,18 @@ def _session_store_dir(session_id: str) -> Path:
     return _SESSION_STORE_ROOT / session_id
 
 
-def _sanitize_agent_name(agent_name: str) -> str:
-    """Sanitize agent name for filesystem-safe session directory naming."""
-    sanitized = re.sub(r"[^A-Za-z0-9_.-]+", "_", (agent_name or "").strip())
-    return sanitized.strip("._-") or "agent"
+def _sanitize_identifier(name: str) -> str:
+    """Sanitize a name into a valid Python identifier (letters, digits, underscores)."""
+    sanitized = re.sub(r"[^A-Za-z0-9_]+", "_", (name or "").strip())
+    sanitized = sanitized.strip("_") or "agent"
+    if sanitized[0].isdigit():
+        sanitized = f"_{sanitized}"
+    return sanitized
 
 
 def _session_store_dir_for_agent(*, session_id: str, agent_name: str) -> Path:
     """Return canonical session store dir: <agent_name>_<session_id>."""
-    return _SESSION_STORE_ROOT / f"{_sanitize_agent_name(agent_name)}_{session_id}"
+    return _SESSION_STORE_ROOT / f"{_sanitize_identifier(agent_name)}_{session_id}"
 
 
 def _collect_sandbox_runtime_metadata(opensage_session) -> dict:
@@ -637,161 +641,197 @@ def cli_web(
     resume_from: Optional[str],
 ):
     """Starts an OpenSage-flavored Web UI: prepare environment then serve agents."""
+    session_id: str | None = None
+    opensage_session = None
+    session_service: OpenSageInMemorySessionService | None = None
+    web_server: OpenSageWebServer | None = None
+    session_user_id = "user"
     resume_requested = resume or bool(resume_from)
-    # Normalize logging
-    logging.basicConfig(level=getattr(logging, log_level.upper()))
-    if not resume_requested and not agent_dir:
-        raise click.ClickException("Missing required option '--agent'.")
-    if not resume_requested:
-        config_path = _resolve_config_path(config_path, agent_dir)
-
-    # Optionally enable Neo4j logging (monkey patches BaseAgent/AgentTool)
-    if neo4j_logging:
-        try:
-            from opensage.features.agent_history_tracker import enable_neo4j_logging
-
-            enable_neo4j_logging()
-            logger.info("Neo4j logging enabled.")
-        except Exception as e:
-            logger.error("Failed to enable Neo4j logging: %s", e)
-
-    # 1) Prepare environment (fresh) or resume environment (attach existing)
-    resume_metadata = None
-    resume_store_dir: Path | None = None
-    if resume_requested:
-        resume_store_dir = _resolve_saved_session_dir(resume_from)
-        resume_session_id = resume_store_dir.name
-        resume_label = (
-            f"saved session: {resume_session_id}"
-            if resume_from
-            else f"latest saved session: {resume_session_id}"
-        )
-        click.secho(f"Resuming from {resume_label}", fg="cyan")
-        session_id, resume_metadata, resumed_agent_dir = asyncio.run(
-            _resume_environment_async(
-                resume_dir=resume_store_dir, config_path=config_path or ""
-            )
-        )
-        if resumed_agent_dir:
-            if (
-                agent_dir
-                and Path(agent_dir).resolve() != Path(resumed_agent_dir).resolve()
-            ):
-                logger.warning(
-                    "CLI --agent (%s) differs from resumed agent_dir (%s); using resumed agent_dir.",
-                    agent_dir,
-                    resumed_agent_dir,
-                )
-            agent_dir = resumed_agent_dir
-        elif not agent_dir:
-            raise click.ClickException(
-                "Resume metadata does not contain agent_dir; please pass --agent."
-            )
-    else:
-        session_id = asyncio.run(
-            _prepare_environment_async(config_path=config_path, agent_dir=agent_dir)
-        )
-    click.secho(f"OpenSage session prepared: {session_id}", fg="green")
-    opensage_session = get_opensage_session(session_id)
-    opensage_session.config.auto_cleanup = auto_cleanup
-
-    # 2) Load the agent and bind to the prepared session (no reload/auto-discovery)
-    mk_agent = _load_mk_agent_from_dir(agent_dir)
-    root_agent = mk_agent(opensage_session_id=session_id)
-    enabled_plugins = []
-    if opensage_session and getattr(opensage_session, "config", None):
-        plugins_cfg = getattr(opensage_session.config, "plugins", None)
-        enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
-        extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
-    plugins = load_plugins(
-        enabled_plugins, agent_dir=agent_dir, extra_plugin_dirs=extra_plugin_dirs
-    )
-
-    # 3) Build services (use OpenSageInMemorySessionService and pre-create the ADK session)
-    # Infer app name as the parent folder of the agent directory.
-    # Example: /.../examples/agents/debuger_agent -> app_name = "agents"
-    app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
-    session_service = OpenSageInMemorySessionService()
-
-    artifact_service = InMemoryArtifactService()
-    memory_service = InMemoryMemoryService()
-    credential_service = InMemoryCredentialService()
-    # Eval managers (local) to retain parity with ADK Dev UI features
-    agents_dir_parent = os.path.dirname(agent_dir) or "."
-    eval_sets_manager = LocalEvalSetsManager(agents_dir=agents_dir_parent)
-    eval_set_results_manager = LocalEvalSetResultsManager(agents_dir=agents_dir_parent)
-
-    # 4) Create our single-agent web server (rich endpoints, no agent reload)
-    web_server = OpenSageWebServer(
-        app_name=app_name,
-        root_agent=root_agent,
-        fixed_session_id=session_id,
-        session_service=session_service,
-        artifact_service=artifact_service,
-        memory_service=memory_service,
-        credential_service=credential_service,
-        eval_sets_manager=eval_sets_manager,
-        eval_set_results_manager=eval_set_results_manager,
-        url_prefix=None,
-        plugins=plugins,
-    )
-    # Pre-create or restore the ADK session using fixed session id.
-    if resume_metadata:
-        snapshot_path = (
-            resume_store_dir or _session_store_dir(session_id)
-        ) / "adk_session.json"
-        restored_app_name, restored_user_id = asyncio.run(
-            _load_adk_session_into_service_async(
-                session_service=session_service,
-                snapshot_path=snapshot_path,
-                session_id=session_id,
-                target_app_name=web_server.app_name,
-                target_user_id="user",
-            )
-        )
-        session_user_id = restored_user_id
-    else:
-        asyncio.run(
-            session_service.create_session(
-                app_name=web_server.app_name,
-                user_id="user",
-                state={"opensage_session_id": session_id},
-                session_id=session_id,
-            )
-        )
-        session_user_id = "user"
-    app = web_server.get_fast_api_app(allow_origins=None, enable_dev_ui=True)
-
-    config = uvicorn.Config(
-        app,
-        host=host,
-        port=port,
-        reload=reload,
-        log_level=log_level.lower(),
-    )
-    click.secho(
-        f"Serving OpenSage Web at http://{host}:{port} (session: {session_id})",
-        fg="green",
-    )
-    server = uvicorn.Server(config)
     try:
+        # Normalize logging
+        logging.basicConfig(level=getattr(logging, log_level.upper()))
+        if not resume_requested and not agent_dir:
+            raise click.ClickException("Missing required option '--agent'.")
+        if not resume_requested:
+            config_path = _resolve_config_path(config_path, agent_dir)
+
+        # Optionally enable Neo4j logging (monkey patches BaseAgent/AgentTool)
+        if neo4j_logging:
+            try:
+                from opensage.features.agent_history_tracker import (
+                    enable_neo4j_logging,
+                )
+
+                enable_neo4j_logging()
+                logger.info("Neo4j logging enabled.")
+            except Exception as e:
+                logger.error("Failed to enable Neo4j logging: %s", e)
+
+        # 1) Prepare environment (fresh) or resume environment (attach existing)
+        resume_metadata = None
+        resume_store_dir: Path | None = None
+        if resume_requested:
+            resume_store_dir = _resolve_saved_session_dir(resume_from)
+            resume_session_id = resume_store_dir.name
+            resume_label = (
+                f"saved session: {resume_session_id}"
+                if resume_from
+                else f"latest saved session: {resume_session_id}"
+            )
+            click.secho(f"Resuming from {resume_label}", fg="cyan")
+            session_id, resume_metadata, resumed_agent_dir = asyncio.run(
+                _resume_environment_async(
+                    resume_dir=resume_store_dir, config_path=config_path or ""
+                )
+            )
+            if resumed_agent_dir:
+                if (
+                    agent_dir
+                    and Path(agent_dir).resolve() != Path(resumed_agent_dir).resolve()
+                ):
+                    logger.warning(
+                        "CLI --agent (%s) differs from resumed agent_dir (%s); using resumed agent_dir.",
+                        agent_dir,
+                        resumed_agent_dir,
+                    )
+                agent_dir = resumed_agent_dir
+            elif not agent_dir:
+                raise click.ClickException(
+                    "Resume metadata does not contain agent_dir; please pass --agent."
+                )
+        else:
+            session_id = asyncio.run(
+                _prepare_environment_async(config_path=config_path, agent_dir=agent_dir)
+            )
+        click.secho(f"OpenSage session prepared: {session_id}", fg="green")
+        opensage_session = get_opensage_session(session_id)
+        opensage_session.config.auto_cleanup = auto_cleanup
+
+        # 2) Load the agent and bind to the prepared session (no reload/auto-discovery)
+        mk_agent = _load_mk_agent_from_dir(agent_dir)
+        root_agent = mk_agent(opensage_session_id=session_id)
+        enabled_plugins = []
+        if opensage_session and getattr(opensage_session, "config", None):
+            plugins_cfg = getattr(opensage_session.config, "plugins", None)
+            enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
+            extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
+        plugins = load_plugins(
+            enabled_plugins, agent_dir=agent_dir, extra_plugin_dirs=extra_plugin_dirs
+        )
+
+        # 3) Build services (use OpenSageInMemorySessionService and pre-create the ADK session)
+        # Infer app name as the parent folder of the agent directory.
+        # Example: /.../examples/agents/debuger_agent -> app_name = "agents"
+        raw_app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
+        app_name = _sanitize_identifier(raw_app_name)
+        session_service = OpenSageInMemorySessionService()
+
+        artifact_service = InMemoryArtifactService()
+        memory_service = InMemoryMemoryService()
+        credential_service = InMemoryCredentialService()
+        # Eval managers (local) to retain parity with ADK Dev UI features
+        agents_dir_parent = os.path.dirname(agent_dir) or "."
+        eval_sets_manager = LocalEvalSetsManager(agents_dir=agents_dir_parent)
+        eval_set_results_manager = LocalEvalSetResultsManager(
+            agents_dir=agents_dir_parent
+        )
+
+        # 4) Create our single-agent web server (rich endpoints, no agent reload)
+        web_server = OpenSageWebServer(
+            app_name=app_name,
+            root_agent=root_agent,
+            fixed_session_id=session_id,
+            session_service=session_service,
+            artifact_service=artifact_service,
+            memory_service=memory_service,
+            credential_service=credential_service,
+            eval_sets_manager=eval_sets_manager,
+            eval_set_results_manager=eval_set_results_manager,
+            url_prefix=None,
+            plugins=plugins,
+        )
+        # Pre-create or restore the ADK session using fixed session id.
+        if resume_metadata:
+            snapshot_path = (
+                resume_store_dir or _session_store_dir(session_id)
+            ) / "adk_session.json"
+            _, restored_user_id = asyncio.run(
+                _load_adk_session_into_service_async(
+                    session_service=session_service,
+                    snapshot_path=snapshot_path,
+                    session_id=session_id,
+                    target_app_name=web_server.app_name,
+                    target_user_id="user",
+                )
+            )
+            session_user_id = restored_user_id
+        else:
+            asyncio.run(
+                session_service.create_session(
+                    app_name=web_server.app_name,
+                    user_id="user",
+                    state={"opensage_session_id": session_id},
+                    session_id=session_id,
+                )
+            )
+        app = web_server.get_fast_api_app(allow_origins=None, enable_dev_ui=True)
+
+        config = uvicorn.Config(
+            app,
+            host=host,
+            port=port,
+            reload=reload,
+            log_level=log_level.lower(),
+        )
+        click.secho(
+            f"Serving OpenSage Web at http://{host}:{port} (session: {session_id})",
+            fg="green",
+        )
+        server = uvicorn.Server(config)
         server.run()
     finally:
-        if not auto_cleanup:
-            store_dir = asyncio.run(
-                _persist_web_session_snapshot_async(
-                    session_id=session_id,
-                    app_name=web_server.app_name,
-                    user_id=session_user_id,
-                    agent_dir=agent_dir,
-                    session_service=session_service,
-                    opensage_session=opensage_session,
+        if session_id is not None:
+            exiting_with_exception = sys.exc_info()[0] is not None
+            if auto_cleanup:
+                try:
+                    cleanup_opensage_session(session_id)
+                except Exception:
+                    logger.exception(
+                        "Failed to clean up OpenSage session during web shutdown: %s",
+                        session_id,
+                    )
+            elif (
+                session_service is not None
+                and web_server is not None
+                and opensage_session is not None
+            ):
+                try:
+                    store_dir = asyncio.run(
+                        _persist_web_session_snapshot_async(
+                            session_id=session_id,
+                            app_name=web_server.app_name,
+                            user_id=session_user_id,
+                            agent_dir=agent_dir,
+                            session_service=session_service,
+                            opensage_session=opensage_session,
+                        )
+                    )
+                    click.secho(
+                        f"Session snapshot saved to {store_dir}",
+                        fg="yellow",
+                    )
+                except Exception:
+                    if not exiting_with_exception:
+                        raise
+                    logger.exception(
+                        "Failed to persist OpenSage web session snapshot during shutdown: %s",
+                        session_id,
+                    )
+            else:
+                logger.warning(
+                    "Skipping session snapshot for %s because web session state was not fully initialized.",
+                    session_id,
                 )
-            )
-            click.secho(
-                f"Session snapshot saved to {store_dir}",
-                fg="yellow",
-            )
 
 
 @main.command("dependency-check")

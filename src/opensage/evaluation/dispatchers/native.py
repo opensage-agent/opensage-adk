@@ -81,15 +81,19 @@ class NativeDispatcher(BaseDispatcher):
         from opensage.evaluation.base import _run_sample_in_process
 
         evaluation.dataset = evaluation._get_dataset()
+        results = []
+        failed_samples = []
+        executor = None
+        futures = {}
+        shutdown_wait = True
+        shutdown_cancel_futures = False
 
-        with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
+        try:
+            executor = ProcessPoolExecutor(max_workers=self.max_workers)
             futures = {
                 executor.submit(_run_sample_in_process, evaluation, sample): sample
                 for sample in evaluation.dataset
             }
-
-            results = []
-            failed_samples = []
 
             for future in tqdm(
                 as_completed(futures),
@@ -113,15 +117,35 @@ class NativeDispatcher(BaseDispatcher):
                     if error_file.exists():
                         logger.error(f"  Detailed error saved to: {error_file}")
 
-        evaluation.customized_modify_and_save_results(
-            results=results,
-            failed_samples=failed_samples,
-            mode="multiprocess",
-        )
-        logger.warning(
-            f"Generated {len(results)}/{len(evaluation.dataset)} samples successfully"
-        )
-        if failed_samples:
-            logger.warning(
-                f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
+            evaluation.customized_modify_and_save_results(
+                results=results,
+                failed_samples=failed_samples,
+                mode="multiprocess",
             )
+            logger.warning(
+                f"Generated {len(results)}/{len(evaluation.dataset)} samples successfully"
+            )
+            if failed_samples:
+                logger.warning(
+                    f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
+                )
+
+        except KeyboardInterrupt:
+            logger.warning("Interrupted by Ctrl+C, cancelling pending tasks...")
+            for f in futures:
+                f.cancel()
+            shutdown_wait = False
+            shutdown_cancel_futures = True
+            return
+
+        except Exception:
+            shutdown_wait = False
+            shutdown_cancel_futures = True
+            raise
+
+        finally:
+            if executor is not None:
+                executor.shutdown(
+                    wait=shutdown_wait,
+                    cancel_futures=shutdown_cancel_futures,
+                )

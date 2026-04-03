@@ -1,5 +1,5 @@
 # Zero-day eval: Kali base + headless tooling + static analysis stack
-ARG BASE_IMAGE=kalilinux/kali-rolling
+ARG BASE_IMAGE=kalilinux/kali-last-release
 FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive

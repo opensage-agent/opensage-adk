@@ -24,6 +24,11 @@ from opensage.sandbox.native_docker_sandbox import (
     DockerBuildResult,
     NativeDockerSandbox,
 )
+from opensage.sandbox.utils import (
+    SandboxCacheInfo,
+    load_named_cache_manifest,
+    normalize_image_name,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -583,6 +588,49 @@ class RemoteDockerSandbox(NativeDockerSandbox):
             )
 
     @classmethod
+    def load_cache_manifest(cls, task_name: str, config) -> tuple[dict, Optional[str]]:
+        """Load cache manifest for remote Docker backend."""
+        manifest, _, shared_volume_backup = load_named_cache_manifest(
+            task_name,
+            cache_dir_env="OPENSAGE_REMOTE_DOCKER_CACHE_DIR",
+            global_subdir="remote_docker_cache",
+            manifest_filename="remote_docker_cache_manifest.json",
+        )
+        return manifest, shared_volume_backup
+
+    @classmethod
+    def resolve_sandbox_cache(
+        cls,
+        sandbox_type: str,
+        cached_image_name: str,
+        manifest: dict,
+    ) -> SandboxCacheInfo:
+        """Resolve cache for remote Docker: named manifest image, then remote image check."""
+        entry = manifest.get(sandbox_type, {})
+
+        # Strategy 1: named manifest image
+        if entry:
+            logger.info(
+                f"Using runtime-visible cached image for {sandbox_type}: "
+                f"{entry.get('image_name', cached_image_name)}"
+            )
+            return SandboxCacheInfo(
+                found=True,
+                image=entry.get("image_name", cached_image_name),
+                rootfs_tar=entry.get("rootfs_tar"),
+                base_image=entry.get("base_image"),
+            )
+
+        # Strategy 2: check remote Docker daemon for image
+        if cls.image_exists_locally(cached_image_name) or cls.can_pull_image(
+            cached_image_name
+        ):
+            logger.info(f"Found cached image for {sandbox_type}: {cached_image_name}")
+            return SandboxCacheInfo(found=True, image=cached_image_name)
+
+        return SandboxCacheInfo(found=False)
+
+    @classmethod
     def cache_sandboxes(
         cls,
         sandbox_instances: dict,
@@ -591,18 +639,6 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         task_name: str,
     ) -> dict:
         """Cache containers on remote Docker."""
-        import re
-
-        def normalize_image_name(name: str) -> str:
-            normalized = name.lower()
-            normalized = re.sub(r"[^a-z0-9._-]", "_", normalized)
-            normalized = normalized.strip(".-")
-            if normalized.startswith("_"):
-                normalized = "img" + normalized
-            if len(normalized) > 200:
-                normalized = normalized[:200].rstrip("_-.")
-            return normalized
-
         cache_results = {
             "backend": "remotedocker",
             "task_name": task_name,

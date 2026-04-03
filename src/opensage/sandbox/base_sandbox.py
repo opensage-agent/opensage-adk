@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from opensage.config import ContainerConfig
+from opensage.sandbox.utils import SandboxCacheInfo
 
 logger = logging.getLogger(__name__)
 
@@ -181,6 +182,50 @@ class BaseSandbox(ABC):
     ) -> None:
         """Delete shared volumes."""
         pass
+
+    @classmethod
+    def load_cache_manifest(cls, task_name: str, config) -> tuple[dict, Optional[str]]:
+        """Load backend-specific cache manifest.
+
+        Returns:
+            (manifest_dict, shared_volume_backup_path)
+        """
+        return {}, None
+
+    @classmethod
+    def resolve_sandbox_cache(
+        cls,
+        sandbox_type: str,
+        cached_image_name: str,
+        manifest: dict,
+    ) -> SandboxCacheInfo:
+        """Resolve cache for a single sandbox.
+
+        Args:
+            sandbox_type: The sandbox type key
+            cached_image_name: Expected cached image name
+            manifest: Manifest dict from load_cache_manifest
+
+        Returns:
+            SandboxCacheInfo with cache details, or found=False
+        """
+        return SandboxCacheInfo(found=False)
+
+    @classmethod
+    def prepare_attach_config(
+        cls,
+        container_config: ContainerConfig,
+        *,
+        container_id: Optional[str] = None,
+        pod_name: Optional[str] = None,
+        container_name: Optional[str] = None,
+    ) -> None:
+        """Inject backend-specific attach identifiers into container_config.
+
+        Raises:
+            ValueError: If the backend does not support attach or required args are missing.
+        """
+        raise ValueError("This backend does not support attach")
 
     @classmethod
     @abstractmethod

@@ -8,10 +8,8 @@ SandboxManager with session-isolated sandbox handling.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import os
-import re
 from pathlib import Path
 from typing import Any, Dict, Optional, Set
 
@@ -22,7 +20,7 @@ from opensage.sandbox.factory import (
     get_backend_class,
     get_initializer_class,
 )
-from opensage.sandbox.utils import can_pull_image, image_exists_locally
+from opensage.sandbox.utils import normalize_image_name
 from opensage.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
@@ -555,17 +553,12 @@ class OpenSageSandboxManager:
                 )
 
         # Inject identifiers based on backend
-        if backend_type == "native":
-            if not container_id:
-                raise ValueError("attach(native) requires container_id")
-            container_config.container_id = container_id
-        elif backend_type == "k8s":
-            if not pod_name or not container_name:
-                raise ValueError("attach(k8s) requires pod_name and container_name")
-            container_config.pod_name = pod_name
-            container_config.container_name = container_name
-        else:
-            raise ValueError(f"Unsupported backend: {backend_type}")
+        backend_class.prepare_attach_config(
+            container_config,
+            container_id=container_id,
+            pod_name=pod_name,
+            container_name=container_name,
+        )
 
         initializer_class = get_initializer_class(sandbox_type)
         sandbox_class = create_sandbox_class(backend_class, initializer_class)
@@ -694,201 +687,62 @@ class OpenSageSandboxManager:
     def load_sandbox_caches_to_config(self) -> list[str]:
         """Load cached sandbox images and update sandbox configurations.
 
-                This method looks for cached images with the naming pattern:
-                {normalized_task_name}_sandbox_{normalized_sandbox_type}:cached
+        Delegates manifest loading and per-sandbox cache resolution to the
+        backend class, mirroring how cache_sandboxes() delegates saving.
 
-                For each found cached image, it updates the corresponding sandbox
-                configuration to use the cached image instead of the original.
+        Returns:
+            list[str]: List of sandbox types that don't have cached images available
 
         Raises:
-          Exception: Raised when this operation fails.
-                Returns:
-                    list[str]: List of sandbox types that don't have cached images available
+            Exception: Raised when this operation fails.
         """
-
-        def normalize_image_name(name: str) -> str:
-            """Normalize name to comply with Docker image naming rules."""
-            # Convert to lowercase
-            normalized = name.lower()
-            # Replace invalid characters with underscores
-            normalized = re.sub(r"[^a-z0-9._-]", "_", normalized)
-            # Remove leading/trailing dots and dashes
-            normalized = normalized.strip(".-")
-            # Ensure it doesn't start with underscore
-            if normalized.startswith("_"):
-                normalized = "img" + normalized
-            # Limit length to reasonable size (200 chars for repository)
-            if len(normalized) > 200:
-                normalized = normalized[:200].rstrip("_-.")
-            return normalized
-
-        def image_exists_or_pullable(image_name: str) -> bool:
-            """Check if image exists locally or can be pulled."""
-            if image_exists_locally(image_name):
-                return True
-            elif can_pull_image(image_name):
-                logger.info(f"Successfully pulled cached image: {image_name}")
-                return True
-            else:
-                return False
-
         try:
             config = self.config
-            task_name = config.task_name
-
             if not config.sandbox or not config.sandbox.sandboxes:
                 logger.warning("No sandbox configurations found")
                 return []
 
+            task_name = config.task_name
             normalized_task_name = normalize_image_name(task_name)
-            missing_caches = []
-            found_caches = []
+            backend_type = getattr(config.sandbox, "backend", "native")
+            backend_class = get_backend_class(backend_type, self.config)
 
             logger.info(f"Loading sandbox caches for task '{task_name}'")
 
-            backend_type = getattr(config.sandbox, "backend", "native")
-            k8s_manifest = {}
-            named_manifest = {}
-            shared_volume_backup = None
-            if backend_type == "k8s":
-                k8s_manifest, _, shared_volume_backup = self._load_k8s_cache_manifest(
-                    task_name, normalize_image_name
-                )
-            elif backend_type == "native":
-                candidate_dirs = []
-                if config.sandbox.absolute_shared_data_path:
-                    candidate_dirs.append(
-                        Path(config.sandbox.absolute_shared_data_path)
-                    )
-                candidate_dirs.append(Path(f"./sandbox_cache/{task_name}"))
-                for candidate_dir in candidate_dirs:
-                    candidate = candidate_dir / f"{task_name}_shared_volume.tar.gz"
-                    if candidate.exists():
-                        shared_volume_backup = str(candidate)
-                        break
-            elif backend_type == "remotedocker":
-                named_manifest, _, shared_volume_backup = (
-                    self._load_named_cache_manifest(
-                        task_name,
-                        normalize_image_name,
-                        cache_dir_env="OPENSAGE_REMOTE_DOCKER_CACHE_DIR",
-                        global_subdir="remote_docker_cache",
-                        manifest_filename="remote_docker_cache_manifest.json",
-                    )
-                )
-            elif backend_type == "opensandbox":
-                opensandbox_manifest, _, shared_volume_backup = (
-                    self._load_named_cache_manifest(
-                        task_name,
-                        normalize_image_name,
-                        cache_dir_env="OPENSAGE_OPENSANDBOX_CACHE_DIR",
-                        global_subdir="opensandbox_cache",
-                        manifest_filename="opensandbox_cache_manifest.json",
-                    )
-                )
-                named_manifest = opensandbox_manifest
-                if (
-                    config.sandbox.opensandbox
-                    and config.sandbox.opensandbox.runtime_type == "kubernetes"
-                ):
-                    k8s_manifest = opensandbox_manifest
-
+            # Phase 1: backend loads its manifest + shared volume backup
+            manifest, shared_volume_backup = backend_class.load_cache_manifest(
+                task_name, config
+            )
             if shared_volume_backup and os.path.exists(shared_volume_backup):
                 config.sandbox.absolute_shared_data_path = shared_volume_backup
                 logger.info(
                     f"Using cached shared volume backup: {shared_volume_backup}"
                 )
 
+            # Phase 2: per-sandbox cache resolution
+            missing_caches, found_caches = [], []
             for sandbox_type, container_config in config.sandbox.sandboxes.items():
-                # Generate expected cached image name
-                normalized_sandbox_type = normalize_image_name(sandbox_type)
                 cached_image_name = (
-                    f"{normalized_task_name}_sandbox_{normalized_sandbox_type}:cached"
+                    f"{normalized_task_name}_sandbox_"
+                    f"{normalize_image_name(sandbox_type)}:cached"
                 )
-
-                manifest_entry = (
-                    k8s_manifest.get(sandbox_type, {}) if backend_type == "k8s" else {}
+                result = backend_class.resolve_sandbox_cache(
+                    sandbox_type, cached_image_name, manifest
                 )
-                named_manifest_entry = named_manifest.get(sandbox_type, {})
-
-                if backend_type == "opensandbox":
-                    manifest_entry = k8s_manifest.get(sandbox_type, {})
-
-                if (
-                    backend_type in {"k8s", "opensandbox"}
-                    and manifest_entry
-                    and not manifest_entry.get("commit_succeeded", False)
-                ):
-                    rootfs_tar = manifest_entry.get("rootfs_tar")
-                    if rootfs_tar and os.path.exists(rootfs_tar):
+                if result.found:
+                    if result.image:
+                        container_config.image = result.image
+                    if result.rootfs_tar:
                         container_config.extra = container_config.extra or {}
-                        container_config.extra["cached_rootfs_tar"] = rootfs_tar
-                        if manifest_entry.get("base_image"):
-                            container_config.extra.setdefault(
-                                "cached_base_image", manifest_entry["base_image"]
-                            )
-                        container_config.using_cached = True
-                        found_caches.append(sandbox_type)
-                        logger.info(
-                            f"Using file-based cache for {sandbox_type} (image unchanged, applying rootfs snapshot)"
-                        )
-                        continue
-                    else:
-                        logger.info(
-                            f"No filesystem snapshot found for {sandbox_type}; skipping cache load"
-                        )
-
-                if (
-                    backend_type in {"remotedocker", "opensandbox"}
-                    and named_manifest_entry
-                ):
-                    original_image = container_config.image
-                    container_config.image = named_manifest_entry.get(
-                        "image_name", cached_image_name
-                    )
-                    container_config.using_cached = True
-                    found_caches.append(sandbox_type)
-                    logger.info(
-                        f"Using runtime-visible cached image for {sandbox_type}: "
-                        f"{container_config.image} (was: {original_image})"
-                    )
-                    if named_manifest_entry.get("rootfs_tar"):
-                        container_config.extra = container_config.extra or {}
-                        container_config.extra["cached_rootfs_tar"] = (
-                            named_manifest_entry["rootfs_tar"]
-                        )
-                    if named_manifest_entry.get("base_image"):
+                        container_config.extra["cached_rootfs_tar"] = result.rootfs_tar
+                    if result.base_image:
                         container_config.extra = container_config.extra or {}
                         container_config.extra.setdefault(
-                            "cached_base_image", named_manifest_entry["base_image"]
+                            "cached_base_image", result.base_image
                         )
-                    continue
-
-                # Check if cached image exists or can be pulled
-                if image_exists_or_pullable(cached_image_name):
-                    # Update the container config to use cached image
-                    original_image = container_config.image
-                    container_config.image = cached_image_name
-                    container_config.using_cached = True  # Mark as using cached image
-
-                    logger.info(
-                        f"Found cached image for {sandbox_type}: {cached_image_name} (was: {original_image})"
-                    )
+                    container_config.using_cached = True
                     found_caches.append(sandbox_type)
-
-                    if manifest_entry.get("rootfs_tar"):
-                        container_config.extra = container_config.extra or {}
-                        container_config.extra["cached_rootfs_tar"] = manifest_entry[
-                            "rootfs_tar"
-                        ]
-                        if manifest_entry.get("base_image"):
-                            container_config.extra.setdefault(
-                                "cached_base_image", manifest_entry["base_image"]
-                            )
                 else:
-                    logger.info(
-                        f"No cached image found for {sandbox_type}: {cached_image_name}"
-                    )
                     missing_caches.append(sandbox_type)
 
             if found_caches:
@@ -901,53 +755,3 @@ class OpenSageSandboxManager:
                 f"Failed to load sandbox caches for session {self.opensage_session_id}: {e}"
             )
             raise
-
-    def _load_k8s_cache_manifest(
-        self, task_name: str, normalizer
-    ) -> tuple[dict, Optional[str], Optional[str]]:
-        return self._load_named_cache_manifest(
-            task_name,
-            normalizer,
-            cache_dir_env="OPENSAGE_K8S_CACHE_DIR",
-            global_subdir="k8s_cache",
-            manifest_filename="k8s_cache_manifest.json",
-        )
-
-    def _load_named_cache_manifest(
-        self,
-        task_name: str,
-        normalizer,
-        *,
-        cache_dir_env: str,
-        global_subdir: str,
-        manifest_filename: str,
-    ) -> tuple[dict, Optional[str], Optional[str]]:
-        manifest_paths = []
-        cache_dir_value = os.getenv(cache_dir_env)
-        if cache_dir_value:
-            manifest_paths.append(Path(cache_dir_value) / manifest_filename)
-
-        global_manifest = (
-            Path.home()
-            / ".cache"
-            / "opensage"
-            / global_subdir
-            / f"{normalizer(task_name)}.json"
-        )
-        manifest_paths.append(global_manifest)
-
-        for manifest_path in manifest_paths:
-            if manifest_path and manifest_path.exists():
-                try:
-                    with manifest_path.open("r", encoding="utf-8") as manifest_file:
-                        data = json.load(manifest_file)
-                    return (
-                        data.get("sandboxes", {}),
-                        data.get("cache_dir"),
-                        data.get("shared_volume_backup"),
-                    )
-                except Exception as exc:
-                    logger.debug(
-                        f"Failed to read cache manifest {manifest_path}: {exc}"
-                    )
-        return {}, None, None

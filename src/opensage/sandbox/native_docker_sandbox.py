@@ -23,7 +23,12 @@ from opensage.config import ContainerConfig
 
 logger = logging.getLogger(__name__)
 from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
-from opensage.sandbox.utils import can_pull_image, image_exists_locally
+from opensage.sandbox.utils import (
+    SandboxCacheInfo,
+    can_pull_image,
+    image_exists_locally,
+    normalize_image_name,
+)
 from opensage.utils.bash_tools_staging import build_bash_tools_staging_dir
 from opensage.utils.parser import get_function_info
 from opensage.utils.project_info import PROJECT_PATH
@@ -1557,6 +1562,53 @@ class NativeDockerSandbox(BaseSandbox):
             raise
 
     @classmethod
+    def load_cache_manifest(cls, task_name: str, config) -> tuple[dict, Optional[str]]:
+        """Load cache manifest for native Docker backend.
+
+        Native backend has no manifest file. It only looks for a shared volume
+        backup tar.gz in candidate directories.
+        """
+        candidate_dirs = []
+        if config.sandbox and config.sandbox.absolute_shared_data_path:
+            candidate_dirs.append(Path(config.sandbox.absolute_shared_data_path))
+        candidate_dirs.append(Path(f"./sandbox_cache/{task_name}"))
+
+        for candidate_dir in candidate_dirs:
+            candidate = candidate_dir / f"{task_name}_shared_volume.tar.gz"
+            if candidate.exists():
+                return {}, str(candidate)
+        return {}, None
+
+    @classmethod
+    def resolve_sandbox_cache(
+        cls,
+        sandbox_type: str,
+        cached_image_name: str,
+        manifest: dict,
+    ) -> SandboxCacheInfo:
+        """Resolve cache for native Docker: check local image or pull."""
+        if image_exists_locally(cached_image_name):
+            return SandboxCacheInfo(found=True, image=cached_image_name)
+        if can_pull_image(cached_image_name):
+            logger.info(f"Successfully pulled cached image: {cached_image_name}")
+            return SandboxCacheInfo(found=True, image=cached_image_name)
+        return SandboxCacheInfo(found=False)
+
+    @classmethod
+    def prepare_attach_config(
+        cls,
+        container_config,
+        *,
+        container_id=None,
+        pod_name=None,
+        container_name=None,
+    ) -> None:
+        """Inject container_id for native Docker attach."""
+        if not container_id:
+            raise ValueError("attach(native) requires container_id")
+        container_config.container_id = container_id
+
+    @classmethod
     def cache_sandboxes(
         cls,
         sandbox_instances: dict,
@@ -1579,22 +1631,6 @@ class NativeDockerSandbox(BaseSandbox):
         Returns:
             dict: Dictionary with cache results
         """
-
-        def normalize_image_name(name: str) -> str:
-            """Normalize name to comply with Docker image naming rules."""
-            # Convert to lowercase
-            normalized = name.lower()
-            # Replace invalid characters with underscores
-            normalized = re.sub(r"[^a-z0-9._-]", "_", normalized)
-            # Remove leading/trailing dots and dashes
-            normalized = normalized.strip(".-")
-            # Ensure it doesn't start with underscore
-            if normalized.startswith("_"):
-                normalized = "img" + normalized
-            # Limit length to reasonable size (200 chars for repository)
-            if len(normalized) > 200:
-                normalized = normalized[:200].rstrip("_-.")
-            return normalized
 
         cache_results = {
             "task_name": task_name,

@@ -81,16 +81,20 @@ class NativeDispatcher(BaseDispatcher):
         from opensage.evaluation.base import _run_sample_in_process
 
         evaluation.dataset = evaluation._get_dataset()
-        executor = ProcessPoolExecutor(max_workers=self.max_workers)
-        futures = {
-            executor.submit(_run_sample_in_process, evaluation, sample): sample
-            for sample in evaluation.dataset
-        }
-
         results = []
         failed_samples = []
+        executor = None
+        futures = {}
+        shutdown_wait = True
+        shutdown_cancel_futures = False
 
         try:
+            executor = ProcessPoolExecutor(max_workers=self.max_workers)
+            futures = {
+                executor.submit(_run_sample_in_process, evaluation, sample): sample
+                for sample in evaluation.dataset
+            }
+
             for future in tqdm(
                 as_completed(futures),
                 total=len(evaluation.dataset),
@@ -117,11 +121,21 @@ class NativeDispatcher(BaseDispatcher):
             logger.warning("Interrupted by Ctrl+C, cancelling pending tasks...")
             for f in futures:
                 f.cancel()
-            executor.shutdown(wait=False, cancel_futures=True)
+            shutdown_wait = False
+            shutdown_cancel_futures = True
             return
 
-        else:
-            executor.shutdown(wait=True)
+        except Exception:
+            shutdown_wait = False
+            shutdown_cancel_futures = True
+            raise
+
+        finally:
+            if executor is not None:
+                executor.shutdown(
+                    wait=shutdown_wait,
+                    cancel_futures=shutdown_cancel_futures,
+                )
 
         evaluation.customized_modify_and_save_results(
             results=results,

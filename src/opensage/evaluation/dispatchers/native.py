@@ -117,6 +117,19 @@ class NativeDispatcher(BaseDispatcher):
                     if error_file.exists():
                         logger.error(f"  Detailed error saved to: {error_file}")
 
+            evaluation.customized_modify_and_save_results(
+                results=results,
+                failed_samples=failed_samples,
+                mode="multiprocess",
+            )
+            logger.warning(
+                f"Generated {len(results)}/{len(evaluation.dataset)} samples successfully"
+            )
+            if failed_samples:
+                logger.warning(
+                    f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
+                )
+
         except KeyboardInterrupt:
             logger.warning("Interrupted by Ctrl+C, cancelling pending tasks...")
             for f in futures:
@@ -136,16 +149,3 @@ class NativeDispatcher(BaseDispatcher):
                     wait=shutdown_wait,
                     cancel_futures=shutdown_cancel_futures,
                 )
-
-        evaluation.customized_modify_and_save_results(
-            results=results,
-            failed_samples=failed_samples,
-            mode="multiprocess",
-        )
-        logger.warning(
-            f"Generated {len(results)}/{len(evaluation.dataset)} samples successfully"
-        )
-        if failed_samples:
-            logger.warning(
-                f"Failed samples ({len(failed_samples)}): {', '.join(failed_samples)}"
-            )

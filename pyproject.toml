@@ -62,7 +62,7 @@ dev = [
     "pytest",
     "pytest-asyncio",
     "pytest-timeout",
-    "ruff",
+    "ruff==0.15.9",
 ]
 docs = [
     "mkdocs>=1.5.0",

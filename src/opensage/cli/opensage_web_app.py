@@ -305,6 +305,47 @@ class OpenSageWebServer:
         async def get_session(app_name: str, user_id: str, session_id: str):
             if app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
+            # For sub-agent sessions, reload from traj.json to get latest events
+            if session_id.startswith("subagent-"):
+                agent_name = session_id[len("subagent-") :]
+                try:
+                    from google.adk.sessions.session import Session as AdkSession
+
+                    from opensage.memory.file_based.short_term.session_files import (
+                        HOST_SESSION_ROOT,
+                        scan_host_agent_tree,
+                    )
+
+                    tree = scan_host_agent_tree(self.fixed_session_id)
+                    target = next(
+                        (
+                            a
+                            for a in tree.get("agents_flat", [])
+                            if a["name"] == agent_name
+                        ),
+                        None,
+                    )
+                    if target and target["has_traj"]:
+                        traj_path = (
+                            HOST_SESSION_ROOT
+                            / self.fixed_session_id
+                            / "mem"
+                            / target["dir"]
+                            / "traj.json"
+                        )
+                        if traj_path.exists():
+                            persisted = AdkSession.model_validate_json(
+                                traj_path.read_text(encoding="utf-8")
+                            )
+                            persisted.id = session_id
+                            persisted.app_name = self.app_name
+                            persisted.user_id = user_id
+                            # Update in-memory session
+                            self.session_service.sessions.setdefault(
+                                self.app_name, {}
+                            ).setdefault(user_id, {})[session_id] = persisted
+                except Exception as e:
+                    logger.debug("Failed to reload subagent traj: %s", e)
             session = await self.session_service.get_session(
                 app_name=app_name, user_id=user_id, session_id=session_id
             )
@@ -317,7 +358,9 @@ class OpenSageWebServer:
             response_model_exclude_none=True,
         )
         async def create_session(
-            app_name: str, user_id: str, req: Optional[CreateSessionRequest] = None
+            app_name: str,
+            user_id: str,
+            req: Optional[CreateSessionRequest] = None,
         ):
             if app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
@@ -346,19 +389,21 @@ class OpenSageWebServer:
         async def list_sessions(app_name: str, user_id: str):
             if app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
-            # Only expose the fixed session for this app/user.
-            session = await self.session_service.get_session(
-                app_name=app_name, user_id=user_id, session_id=self.fixed_session_id
+            # Return all sessions including loaded sub-agent sessions
+            # Angular uses queryParams.session to select the right one
+            result = await self.session_service.list_sessions(
+                app_name=app_name, user_id=user_id
             )
-            if not session:
-                # Lazily ensure it exists
+            sessions = result.sessions if result and result.sessions else []
+            if not any(s.id == self.fixed_session_id for s in sessions):
                 session = await self.session_service.create_session(
                     app_name=app_name,
                     user_id=user_id,
                     state=self._build_root_session_state(),
                     session_id=self.fixed_session_id,
                 )
-            return [session]
+                sessions.append(session)
+            return sessions
 
         @app.post("/run", response_model_exclude_none=True)
         async def run_agent(req: RunAgentRequest) -> list[Event]:
@@ -647,6 +692,206 @@ class OpenSageWebServer:
                     "logo_image_url": "assets/opensage.svg",
                 }
 
+            # --- Sub-agent visualization endpoints ---
+
+            @app.get("/control/subagents")
+            async def list_subagents():
+                from opensage.memory.file_based.short_term.session_files import (
+                    scan_host_agent_tree,
+                )
+
+                tree = scan_host_agent_tree(self.fixed_session_id)
+                root = tree.get("root")
+                root_name = root["name"] if root else ""
+                subagents = [
+                    a for a in tree.get("agents_flat", []) if a["name"] != root_name
+                ]
+                return {"agents": subagents, "root": root_name}
+
+            @app.get("/control/subagents/topology")
+            async def get_subagent_topology():
+                from opensage.memory.file_based.short_term.session_files import (
+                    scan_host_agent_tree,
+                )
+
+                tree = scan_host_agent_tree(self.fixed_session_id)
+                root = tree.get("root")
+                if not root:
+                    return {"nodes": [], "edges": []}
+
+                nodes: list[dict] = []
+                edges: list[dict] = []
+                counter = [0]
+
+                def _walk(node, parent_id=None):
+                    nid = f"n{counter[0]}"
+                    counter[0] += 1
+                    is_root = parent_id is None
+                    query = node.get("query", "")
+                    # Build label: name + query preview
+                    label = node["name"]
+                    if query and not is_root:
+                        preview = query[:40].replace("\n", " ")
+                        if len(query) > 40:
+                            preview += "..."
+                        label += f"\n({preview})"
+                    nodes.append(
+                        {
+                            "id": nid,
+                            "label": label,
+                            "name": node["name"],
+                            "query": query,
+                            "status": (
+                                "active"
+                                if is_root
+                                else ("completed" if node["has_traj"] else "running")
+                            ),
+                            "type": "root" if is_root else "subagent",
+                        }
+                    )
+                    if parent_id is not None:
+                        edges.append({"from": parent_id, "to": nid})
+                    for child in node.get("children", []):
+                        _walk(child, parent_id=nid)
+
+                _walk(root)
+                return {"nodes": nodes, "edges": edges}
+
+            @app.get("/control/subagents/{agent_name}/events")
+            async def get_subagent_events(
+                agent_name: str,
+                after_index: int = Query(default=0),
+            ):
+                from google.adk.sessions.session import Session
+
+                from opensage.memory.file_based.short_term.session_files import (
+                    HOST_SESSION_ROOT,
+                    scan_host_agent_tree,
+                )
+
+                tree = scan_host_agent_tree(self.fixed_session_id)
+                target = next(
+                    (a for a in tree.get("agents_flat", []) if a["name"] == agent_name),
+                    None,
+                )
+                if not target or not target["has_traj"]:
+                    return {
+                        "agent_name": agent_name,
+                        "events": [],
+                        "total": 0,
+                    }
+                traj_path = (
+                    HOST_SESSION_ROOT
+                    / self.fixed_session_id
+                    / "mem"
+                    / target["dir"]
+                    / "traj.json"
+                )
+                if not traj_path.exists():
+                    return {
+                        "agent_name": agent_name,
+                        "events": [],
+                        "total": 0,
+                    }
+                try:
+                    child_session = Session.model_validate_json(
+                        traj_path.read_text(encoding="utf-8")
+                    )
+                except Exception:
+                    return {
+                        "agent_name": agent_name,
+                        "events": [],
+                        "total": 0,
+                    }
+
+                events = child_session.events or []
+                filtered = []
+                for i, event in enumerate(events):
+                    if i < after_index:
+                        continue
+                    try:
+                        filtered.append(
+                            {
+                                "index": i,
+                                "id": event.id,
+                                "author": event.author,
+                                "timestamp": event.timestamp,
+                                "content": event.model_dump(
+                                    exclude_none=True, by_alias=True
+                                ),
+                            }
+                        )
+                    except Exception:
+                        continue
+                return {
+                    "agent_name": agent_name,
+                    "events": filtered,
+                    "total": len(events),
+                }
+
+            @app.post("/control/subagents/{agent_name}/load_session")
+            async def load_subagent_session(agent_name: str):
+                """Load a sub-agent's traj.json into session_service so Angular can render it natively."""
+                from google.adk.sessions.session import Session
+
+                from opensage.memory.file_based.short_term.session_files import (
+                    HOST_SESSION_ROOT,
+                    scan_host_agent_tree,
+                )
+
+                tree = scan_host_agent_tree(self.fixed_session_id)
+                target = next(
+                    (a for a in tree.get("agents_flat", []) if a["name"] == agent_name),
+                    None,
+                )
+                if not target or not target["has_traj"]:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"No traj.json found for agent '{agent_name}'",
+                    )
+                traj_path = (
+                    HOST_SESSION_ROOT
+                    / self.fixed_session_id
+                    / "mem"
+                    / target["dir"]
+                    / "traj.json"
+                )
+                if not traj_path.exists():
+                    raise HTTPException(status_code=404, detail="traj.json not found")
+                persisted = Session.model_validate_json(
+                    traj_path.read_text(encoding="utf-8")
+                )
+                # Use a deterministic session ID so reloading reuses the same session
+                sub_session_id = f"subagent-{agent_name}"
+                persisted.id = sub_session_id
+                persisted.app_name = self.app_name
+                persisted.user_id = "user"
+                # Check if already loaded
+                existing = await self.session_service.get_session(
+                    app_name=self.app_name,
+                    user_id="user",
+                    session_id=sub_session_id,
+                )
+                if existing:
+                    # Update events in place
+                    existing.events = persisted.events
+                else:
+                    await self.session_service.create_session(
+                        app_name=self.app_name,
+                        user_id="user",
+                        state=persisted.state or {},
+                        session_id=sub_session_id,
+                    )
+                    # Inject the full session with events
+                    self.session_service.sessions.setdefault(
+                        self.app_name, {}
+                    ).setdefault("user", {})[sub_session_id] = persisted
+                return {
+                    "session_id": sub_session_id,
+                    "agent_name": agent_name,
+                    "event_count": len(persisted.events or []),
+                }
+
             @app.post("/control/upload_to_sandbox")
             async def upload_file_to_sandbox(
                 file: UploadFile = File(...),
@@ -733,6 +978,7 @@ class OpenSageWebServer:
             async def get_stop_turn_js():
                 js = """
 (() => {
+  if (window !== window.top) return;
   const style = document.createElement('style');
   style.textContent = `
     #opensage-stop-btn {
@@ -780,6 +1026,7 @@ class OpenSageWebServer:
             async def get_upload_sandbox_js():
                 js = """
 (() => {
+  if (window !== window.top) return;
   const style = document.createElement('style');
   style.textContent = `
     #opensage-upload-btn {
@@ -856,6 +1103,354 @@ class OpenSageWebServer:
                 """.strip()
                 return PlainTextResponse(js, media_type="application/javascript")
 
+            @app.get("/dev-ui/opensage-subagent-panel.js")
+            async def get_subagent_panel_js():
+                js = r"""
+(() => {
+  /* Do not run inside iframes (sub-agent session tabs) */
+  if (window !== window.top) return;
+
+  const S = document.createElement('style');
+  S.textContent = `
+    #osp-tabbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 99990;
+      display: flex; align-items: center; gap: 0;
+      background: var(--mat-sys-surface-container, #2b2b2b);
+      border-bottom: 1px solid var(--mat-sys-outline-variant, #444);
+      font-family: Google Sans, Helvetica Neue, sans-serif;
+      font-size: 13px; height: 38px; padding: 0 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.3);
+    }
+    .osp-tab {
+      padding: 8px 16px; border: none; background: none;
+      color: var(--mat-sys-on-surface-variant, #9d9d9d);
+      cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500;
+      position: relative; white-space: nowrap; transition: color .15s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .osp-tab:hover { color: var(--mat-sys-on-surface, #e3e3e3); }
+    .osp-tab.active { color: var(--mat-sys-primary, #8ab4f8); }
+    .osp-tab.active::after {
+      content: ''; position: absolute; bottom: 0; left: 8px; right: 8px;
+      height: 3px; border-radius: 3px 3px 0 0;
+      background: var(--mat-sys-primary, #8ab4f8);
+    }
+    .osp-tab-close {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 50%; border: none; background: none;
+      color: var(--mat-sys-on-surface-variant, #656565); cursor: pointer;
+      font-size: 14px; line-height: 1; padding: 0;
+    }
+    .osp-tab-close:hover { background: var(--mat-sys-surface-container, #444); color: #fff; }
+    .osp-tab-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 8px;
+      font-size: 10px; font-weight: 600; margin-left: 4px;
+    }
+    .osp-tab-badge-running { background: #81c99533; color: #81c995; }
+    .osp-tab-badge-completed { background: #8ab4f822; color: #8ab4f8; }
+    #osp-content-wrapper {
+      position: fixed; top: 38px; left: 0; right: 0; bottom: 0;
+    }
+    .osp-frame {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      border: none;
+    }
+    #osp-topo-pane {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--mat-sys-surface, #1e1e1e);
+      display: none;
+    }
+    .osp-empty {
+      color: var(--mat-sys-on-surface-variant, #656565); text-align: center;
+      padding: 80px 24px; font-size: 14px;
+      font-family: Google Sans, Helvetica Neue, sans-serif;
+    }
+  `;
+  document.head.appendChild(S);
+
+  /* ---- State ---- */
+  const baseUrl = window.location.href.split('?')[0];
+  /* Read URL params lazily since Angular may set them after page load */
+  function _getParams() {
+    const p = new URLSearchParams(window.location.search);
+    return {
+      app: p.get('app') || '',
+      session: p.get('session') || '',
+      userId: p.get('userId') || 'user',
+    };
+  }
+  /* Also fetch app name from API as fallback */
+  let _cachedAppName = '';
+  fetch('/list-apps', {cache:'no-store'}).then(r=>r.json()).then(d=>{
+    if (Array.isArray(d) && d.length > 0) _cachedAppName = d[0];
+  }).catch(()=>{});
+  function getAppName() { return _getParams().app || _cachedAppName; }
+  function getUserId() { return _getParams().userId; }
+
+  /* tabs: [{id, label, type:'main'|'topology'|'subagent', sessionId?, agentName?, status?}] */
+  const tabs = [
+    { id: 'main', label: 'Session', type: 'main' },
+    { id: 'topology', label: 'Topology', type: 'topology' },
+    { id: 'list', label: 'Sub-Agents', type: 'list' },
+  ];
+  let activeTabId = 'main';
+
+  /* ---- Push existing page content into an iframe-like wrapper ---- */
+  /* We move the existing body content into the main pane, and overlay topology + subagent iframes */
+  document.body.style.margin = '0';
+  document.body.style.overflow = 'hidden';
+
+  /* Tab bar */
+  const tabbar = document.createElement('div');
+  tabbar.id = 'osp-tabbar';
+  document.body.prepend(tabbar);
+
+  /* Content wrapper */
+  const wrapper = document.createElement('div');
+  wrapper.id = 'osp-content-wrapper';
+  document.body.appendChild(wrapper);
+
+  /* Move existing app-root into the wrapper as-is, in a container div */
+  const mainPane = document.createElement('div');
+  mainPane.id = 'osp-main-pane';
+  mainPane.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;overflow:auto';
+  const appRoot = document.querySelector('app-root') || document.querySelector('body > *:not(#osp-tabbar):not(#osp-content-wrapper):not(style):not(script)');
+  if (appRoot) {
+    mainPane.appendChild(appRoot);
+  }
+  wrapper.appendChild(mainPane);
+
+  /* Topology pane */
+  const topoPane = document.createElement('div');
+  topoPane.id = 'osp-topo-pane';
+  topoPane.innerHTML = '<div class="osp-empty">Loading topology...</div>';
+  wrapper.appendChild(topoPane);
+
+  /* List pane */
+  const listPane = document.createElement('div');
+  listPane.id = 'osp-list-pane';
+  listPane.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:var(--mat-sys-surface,#1e1e1e);display:none;overflow:auto;font-family:Google Sans,Helvetica Neue,sans-serif;font-size:13px;color:var(--mat-sys-on-surface,#e3e3e3)';
+  listPane.innerHTML = '<div class="osp-empty">Loading...</div>';
+  wrapper.appendChild(listPane);
+
+  /* ---- Tab rendering ---- */
+  function renderTabs() {
+    tabbar.innerHTML = '';
+    tabs.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'osp-tab' + (t.id === activeTabId ? ' active' : '');
+      let label = t.label;
+      if (t.type === 'subagent' && t.status) {
+        const cls = t.status === 'running' ? 'running' : 'completed';
+        label += `<span class="osp-tab-badge osp-tab-badge-${cls}">${t.status}</span>`;
+      }
+      btn.innerHTML = label;
+      btn.addEventListener('click', () => activateTab(t.id));
+
+      if (t.type === 'subagent') {
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'osp-tab-close';
+        closeBtn.innerHTML = '\u00d7';
+        closeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeTab(t.id);
+        });
+        btn.appendChild(closeBtn);
+      }
+      tabbar.appendChild(btn);
+    });
+  }
+
+  function activateTab(id) {
+    activeTabId = id;
+    renderTabs();
+    /* Show/hide panes */
+    mainPane.style.display = id === 'main' ? 'block' : 'none';
+    topoPane.style.display = id === 'topology' ? 'block' : 'none';
+    listPane.style.display = id === 'list' ? 'block' : 'none';
+    /* Sub-agent iframes */
+    wrapper.querySelectorAll('.osp-subagent-frame').forEach(f => {
+      f.style.display = f.dataset.tabId === id ? 'block' : 'none';
+    });
+    if (id === 'topology') refreshTopology();
+    if (id === 'list') refreshList();
+  }
+
+  function closeTab(id) {
+    const idx = tabs.findIndex(t => t.id === id);
+    if (idx < 0) return;
+    tabs.splice(idx, 1);
+    /* Remove iframe */
+    const frame = wrapper.querySelector(`[data-tab-id="${id}"]`);
+    if (frame) frame.remove();
+    /* Switch to topology if closing active tab */
+    if (activeTabId === id) activateTab('topology');
+    else renderTabs();
+  }
+
+  function openSubagentTab(agentName, status) {
+    const tabId = 'sub-' + agentName;
+    /* If tab already exists, refresh it and activate */
+    if (tabs.find(t => t.id === tabId)) {
+      refreshSubagentTab(tabId);
+      activateTab(tabId);
+      return;
+    }
+    /* Load session into backend, then create iframe */
+    fetch(`/control/subagents/${encodeURIComponent(agentName)}/load_session`, { method: 'POST' })
+      .then(r => {
+        if (!r.ok) return r.text().then(t => { throw new Error(`${r.status}: ${t}`); });
+        return r.json();
+      })
+      .then(data => {
+        console.log('[SubAgent] Loaded session:', data);
+        const sessionId = data.session_id;
+        tabs.push({
+          id: tabId, label: agentName, type: 'subagent',
+          sessionId, agentName, status: status || 'completed',
+        });
+        /* Create iframe pointing to Angular app with sub-agent session */
+        const iframe = document.createElement('iframe');
+        iframe.className = 'osp-frame osp-subagent-frame';
+        iframe.dataset.tabId = tabId;
+        const app = getAppName();
+        const uid = getUserId();
+        const iframeSrc = `${baseUrl}?app=${encodeURIComponent(app)}&session=${encodeURIComponent(sessionId)}&userId=${encodeURIComponent(uid)}`;
+        console.log('[SubAgent] iframe src:', iframeSrc, 'appName:', app, 'sessionId:', sessionId);
+        iframe.src = iframeSrc;
+        iframe.style.display = 'none';
+        wrapper.appendChild(iframe);
+        activateTab(tabId);
+      })
+      .catch(err => {
+        console.error('[SubAgent] Failed to load session:', err);
+        alert('Failed to load sub-agent session: ' + err.message);
+      });
+  }
+
+  /* ---- Topology ---- */
+  let net = null;
+  let _lastTopoHash = '';
+  async function refreshTopology() {
+    try {
+      const r = await fetch('/control/subagents/topology', {cache:'no-store'});
+      const d = await r.json();
+      if (!d.nodes || d.nodes.length <= 1) {
+        if (_lastTopoHash !== 'empty') {
+          topoPane.innerHTML = '<div class="osp-empty">No sub-agents spawned yet</div>';
+          if (net) { net.destroy(); net = null; }
+          _lastTopoHash = 'empty';
+        }
+        return;
+      }
+      /* Only rebuild if data changed */
+      const newHash = JSON.stringify(d.nodes.map(n=>n.id+n.status)) + JSON.stringify(d.edges);
+      if (newHash === _lastTopoHash && net) return;
+      _lastTopoHash = newHash;
+
+      const cm = { active:'#8ab4f8', running:'#81c995', completed:'#5f9dff', error:'#f28b82' };
+      if (typeof vis !== 'undefined') {
+        const vn = d.nodes.map(n => ({
+          id: n.id, label: n.label,
+          color: { background: cm[n.status]||'#656565', border: 'transparent',
+                   highlight: {background:'#ffe665', border:'#ffe665'} },
+          font: { color: '#fff', size: 14, face: 'Google Sans, sans-serif' },
+          shape: n.type === 'root' ? 'diamond' : 'box',
+          borderWidth: 0, borderWidthSelected: 2,
+          margin: { top: 10, bottom: 10, left: 14, right: 14 },
+        }));
+        const ve = d.edges.map(e => ({
+          from: e.from, to: e.to, arrows: {to:{enabled:true,scaleFactor:.6}},
+          color: {color:'#4d4d4d', highlight:'#8ab4f8'}, width: 2,
+          smooth: {type:'cubicBezier', roundness:.4},
+        }));
+        if (net) net.destroy();
+        topoPane.innerHTML = '';
+        net = new vis.Network(topoPane, {nodes:vn, edges:ve}, {
+          layout: {hierarchical:{direction:'UD', sortMethod:'directed', levelSeparation:80, nodeSpacing:120}},
+          physics: false,
+          interaction: {hover:true, zoomView:true, dragView:true},
+        });
+        net.on('click', p => {
+          if (p.nodes.length === 1) {
+            const nd = d.nodes.find(n => n.id === p.nodes[0]);
+            if (nd && nd.type !== 'root') openSubagentTab(nd.name, nd.status);
+          }
+        });
+      } else {
+        let h = '<div style="padding:24px;font-family:monospace;font-size:13px;white-space:pre;color:#b2b2b2">';
+        d.nodes.forEach(n => {
+          const pre = n.type === 'root' ? '' : '  \u2514\u2500 ';
+          const dot = n.status === 'running' ? '\u25cf' : n.status === 'completed' ? '\u25c6' : '\u25cb';
+          const sc = cm[n.status] || '#656565';
+          h += `${pre}<span style="color:${sc};cursor:${n.type==='root'?'default':'pointer'}" onclick="window.__ospOpenSub && window.__ospOpenSub('${n.label}')">${dot} ${n.label}</span>\n`;
+        });
+        h += '</div>';
+        topoPane.innerHTML = h;
+        window.__ospOpenSub = (name) => openSubagentTab(name);
+      }
+    } catch(_) {
+      topoPane.innerHTML = '<div class="osp-empty">Failed to load topology</div>';
+    }
+  }
+
+  /* ---- List ---- */
+  async function refreshList() {
+    try {
+      const r = await fetch('/control/subagents', {cache:'no-store'});
+      const d = await r.json();
+      const cnt = d.agents.length;
+      /* Update Sub-Agents tab label with count */
+      const listTab = tabs.find(t => t.id === 'list');
+      if (listTab) listTab.label = cnt > 0 ? `Sub-Agents (${cnt})` : 'Sub-Agents';
+      renderTabs();
+      if (!cnt) { listPane.innerHTML = '<div class="osp-empty">No sub-agents created yet</div>'; return; }
+      listPane.innerHTML = '<div style="padding:8px 0">' + d.agents.map(a => {
+        const badge = a.status === 'running'
+          ? '<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;background:#81c99533;color:#81c995;border:1px solid #81c99544">running</span>'
+          : '<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;background:#8ab4f822;color:#8ab4f8;border:1px solid #8ab4f844">completed</span>';
+        const query = a.query ? `<div style="color:var(--mat-sys-on-surface-variant,#9d9d9d);font-size:12px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(a.query)}</div>` : '';
+        return `<div data-n="${_esc(a.name)}" style="padding:12px 20px;border-bottom:1px solid var(--mat-sys-outline-variant,#333);cursor:pointer;transition:background .1s" onmouseover="this.style.background='var(--mat-sys-surface-container,#2b2b2b)'" onmouseout="this.style.background=''">
+          <div style="display:flex;align-items:center;gap:8px">
+            <strong>${_esc(a.name)}</strong> ${badge}
+          </div>
+          <div style="color:var(--mat-sys-on-surface-variant,#656565);font-size:12px;margin-top:2px">${a.parent_name ? 'called by ' + _esc(a.parent_name) : 'root'}</div>
+          ${query}
+        </div>`;
+      }).join('') + '</div>';
+      listPane.querySelectorAll('[data-n]').forEach(el => {
+        el.addEventListener('click', () => openSubagentTab(el.dataset.n));
+      });
+    } catch(_) {}
+  }
+
+  function _esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  /* ---- Init ---- */
+  renderTabs();
+  activateTab('main');
+
+  /* Auto-refresh topology when visible */
+  setInterval(() => {
+    if (activeTabId === 'topology') refreshTopology();
+    if (activeTabId === 'list') refreshList();
+  }, 5000);
+
+  /* Refresh sub-agent tab on click: reload session from traj.json then reload iframe */
+  function refreshSubagentTab(tabId) {
+    const tab = tabs.find(t => t.id === tabId);
+    if (!tab || !tab.agentName) return;
+    const frame = wrapper.querySelector(`[data-tab-id="${tabId}"]`);
+    if (!frame) return;
+    /* Re-load session from latest traj.json */
+    fetch(`/control/subagents/${encodeURIComponent(tab.agentName)}/load_session`, {method:'POST'})
+      .then(() => { frame.contentWindow.location.replace(frame.src); })
+      .catch(() => {});
+  }
+})();
+                """.strip()
+                return PlainTextResponse(js, media_type="application/javascript")
+
             @app.get("/")
             async def redirect_root_to_dev_ui():
                 return RedirectResponse(redirect_dev_ui_url)
@@ -869,6 +1464,9 @@ class OpenSageWebServer:
                 index_html = (web_assets_dir / "index.html").read_text(encoding="utf-8")
                 tooltip_style_tag = """
 <style>
+  /* Dark background to prevent white flash on iframe reload */
+  html, body { background: #1e1e1e !important; }
+
   .mat-mdc-tooltip,
   .mdc-tooltip__surface {
     max-width: 420px !important;
@@ -880,11 +1478,15 @@ class OpenSageWebServer:
   }
 </style>
                 """.strip()
+                cdn_tag = '<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>'
                 script_tag = (
                     '<script src="./opensage-stop-turn.js" type="module"></script>'
                     '<script src="./opensage-upload-sandbox.js" type="module"></script>'
+                    '<script src="./opensage-subagent-panel.js" type="module"></script>'
                 )
-                injected = index_html.replace("</head>", f"{tooltip_style_tag}</head>")
+                injected = index_html.replace(
+                    "</head>", f"{tooltip_style_tag}{cdn_tag}</head>"
+                )
                 injected = injected.replace("</body>", f"{script_tag}</body>")
                 return HTMLResponse(content=injected)
 

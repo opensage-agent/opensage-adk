@@ -27,11 +27,16 @@ from opensage.memory.file_based.short_term.prompt import (
     strip_runtime_memory_context,
 )
 from opensage.memory.file_based.short_term.session_files import (
+    HOST_MEM_DIR_KEY,
     MEM_AGENT_DIR_KEY,
     _compute_agent_mem_dir,
     _compute_child_session_mem_dir,
+    _compute_host_child_mem_dir,
     _ensure_agent_mem_layout,
+    _ensure_host_mem_dir,
+    _get_host_mem_dir,
     _persist_traj_json,
+    _persist_traj_json_to_host,
 )
 
 logger = logging.getLogger(__name__)
@@ -262,6 +267,13 @@ async def _wrapped_base_agent_run(self, invocation_context):
     agent_mem_dir = None
     if file_memory_enabled:
         agent_mem_dir = _compute_agent_mem_dir(invocation_context)
+    # Host dir: always create (for Web UI sub-agent visualization)
+    host_dir = _get_host_mem_dir(invocation_context)
+    if host_dir:
+        try:
+            _ensure_host_mem_dir(host_dir)
+        except Exception:
+            pass
     original_instruction = None
     original_tools = None
     try:
@@ -305,6 +317,7 @@ async def _wrapped_base_agent_run(self, invocation_context):
 
     last_event = None
     run_failed = False
+    _host_event_count = 0
     try:
         async for event in _orig_base_agent_run(self, invocation_context):
             if logging_enabled:
@@ -318,6 +331,13 @@ async def _wrapped_base_agent_run(self, invocation_context):
                     raise
 
             last_event = event
+            # Incrementally persist traj to host for live sub-agent viewing
+            _host_event_count += 1
+            if host_dir and _host_event_count % 3 == 0:
+                try:
+                    _persist_traj_json_to_host(invocation_context, host_dir)
+                except Exception:
+                    pass
             yield event
 
     except Exception as e:
@@ -336,6 +356,13 @@ async def _wrapped_base_agent_run(self, invocation_context):
                 _persist_traj_json(invocation_context, agent_mem_dir)
             except Exception as mem_error:
                 logger.warning("Failed to persist traj.json: %s", mem_error)
+
+        # Host traj (always, for Web UI)
+        if host_dir:
+            try:
+                _persist_traj_json_to_host(invocation_context, host_dir)
+            except Exception:
+                pass
 
         if logging_enabled:
             try:
@@ -457,6 +484,22 @@ def apply() -> None:
                 logger.warning(
                     "Failed to initialize child agent memory dir: %s", mem_error
                 )
+
+        # Host path: always set (for Web UI, regardless of memory mode)
+        parent_host_dir = tool_context._invocation_context.session.state.get(
+            HOST_MEM_DIR_KEY
+        )
+        if parent_host_dir:
+            child_host_dir = _compute_host_child_mem_dir(
+                parent_host_dir,
+                child_agent_name=agent_tool.agent.name,
+                child_session_id=session.id,
+            )
+            session.state[HOST_MEM_DIR_KEY] = child_host_dir
+            try:
+                _ensure_host_mem_dir(child_host_dir)
+            except Exception:
+                pass
 
         parent_plugins = []
         try:

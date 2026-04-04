@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import shlex
+from pathlib import Path
 from typing import Any, Optional
 
 from opensage.memory.file_based.long_term import ensure_long_term_knowledge_store
@@ -17,6 +18,10 @@ logger = logging.getLogger(__name__)
 MEM_ROOT_DIR = "/mem"
 SHORT_TERM_MEM_ROOT = os.path.join(MEM_ROOT_DIR, "short_term")
 MEM_AGENT_DIR_KEY = "_mem_agent_dir"
+
+# Host-side memory directory (always enabled, independent of memory management mode)
+HOST_SESSION_ROOT = Path.home() / ".local" / "opensage" / "sessions"
+HOST_MEM_DIR_KEY = "_host_mem_dir"
 
 _MEMORY_MANAGEMENT_FILE = "file"
 
@@ -81,6 +86,12 @@ def build_root_session_state(
         )
     else:
         state.pop(MEM_AGENT_DIR_KEY, None)
+    # Host path: always set (for Web UI, regardless of memory mode)
+    state[HOST_MEM_DIR_KEY] = compute_host_root_mem_dir(
+        opensage_session_id=opensage_session_id,
+        agent_name=agent_name,
+        session_id=session_id,
+    )
     return state
 
 
@@ -161,3 +172,142 @@ def _persist_traj_json(invocation_context, agent_mem_dir: str) -> None:
 def persist_traj_json_for_invocation(invocation_context) -> None:
     """Persist traj.json for the current invocation context."""
     _persist_traj_json(invocation_context, _compute_agent_mem_dir(invocation_context))
+
+
+# ---------------------------------------------------------------------------
+# Host-side functions (always enabled, for Web UI sub-agent visualization)
+# ---------------------------------------------------------------------------
+
+
+def compute_host_root_mem_dir(
+    *, opensage_session_id: str, agent_name: str, session_id: str
+) -> str:
+    """Compute the host-side root agent directory path (always enabled)."""
+    dir_name = _build_session_dir_name(agent_name, session_id)
+    return str(HOST_SESSION_ROOT / opensage_session_id / "mem" / dir_name)
+
+
+def _compute_host_child_mem_dir(
+    parent_host_dir: str, *, child_agent_name: str, child_session_id: str
+) -> str:
+    """Compute host-side child directory, nested under parent."""
+    child_dir_name = _build_session_dir_name(child_agent_name, child_session_id)
+    return str(Path(parent_host_dir) / child_dir_name)
+
+
+def _get_host_mem_dir(invocation_context) -> str | None:
+    """Read host mem dir from session state. Returns None if not set."""
+    state = getattr(invocation_context.session, "state", None)
+    if isinstance(state, dict):
+        val = state.get(HOST_MEM_DIR_KEY)
+        if isinstance(val, str) and val:
+            return val
+    return None
+
+
+def _ensure_host_mem_dir(host_dir: str) -> None:
+    """Create directory on host (marks agent as running before traj.json exists)."""
+    try:
+        Path(host_dir).mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        logger.warning("Failed to create host mem dir: %s", e)
+
+
+def _persist_traj_json_to_host(invocation_context, host_dir: str) -> None:
+    """Write traj.json to host filesystem."""
+    try:
+        path = Path(host_dir)
+        path.mkdir(parents=True, exist_ok=True)
+        session_json = invocation_context.session.model_dump_json(
+            indent=2, exclude_none=True
+        )
+        (path / "traj.json").write_text(session_json, encoding="utf-8")
+    except Exception as e:
+        logger.warning("Failed to persist traj.json to host: %s", e)
+
+
+def scan_host_agent_tree(session_id: str) -> dict:
+    """Scan host mem/ directory tree and return topology.
+
+    Returns:
+        {
+            "root": {"name", "session_id", "dir", "has_traj", "children": [...]},
+            "agents_flat": [{"name", "dir", "parent_name", "has_traj", "status"}, ...]
+        }
+    """
+    mem_root = HOST_SESSION_ROOT / session_id / "mem"
+    if not mem_root.exists():
+        return {"root": None, "agents_flat": []}
+
+    def _parse_dir_name(dirname: str) -> tuple[str, str]:
+        if "__" in dirname:
+            parts = dirname.split("__", 1)
+            return parts[0], parts[1]
+        return dirname, ""
+
+    def _extract_query(traj_path: Path) -> str:
+        """Extract the first user message text from traj.json as the call query."""
+        try:
+            import json as _j
+
+            data = _j.loads(traj_path.read_text(encoding="utf-8"))
+            for ev in data.get("events", []):
+                content = ev.get("content") or {}
+                if content.get("role") != "user":
+                    continue
+                for part in content.get("parts") or []:
+                    text = part.get("text", "")
+                    if text:
+                        return text.strip()[:80]
+                break
+        except Exception:
+            pass
+        return ""
+
+    def _scan(directory: Path) -> dict | None:
+        if not directory.is_dir():
+            return None
+        agent_name, sid = _parse_dir_name(directory.name)
+        traj_path = directory / "traj.json"
+        has_traj = traj_path.exists()
+        query = _extract_query(traj_path) if has_traj else ""
+        children = []
+        for child in sorted(directory.iterdir()):
+            if child.is_dir() and "__" in child.name:
+                child_node = _scan(child)
+                if child_node:
+                    children.append(child_node)
+        return {
+            "name": agent_name,
+            "session_id": sid,
+            "dir": str(directory.relative_to(mem_root)),
+            "has_traj": has_traj,
+            "query": query,
+            "children": children,
+        }
+
+    agents_flat: list[dict] = []
+
+    def _flatten(node: dict, parent_name: str = "") -> None:
+        agents_flat.append(
+            {
+                "name": node["name"],
+                "session_id": node["session_id"],
+                "dir": node["dir"],
+                "parent_name": parent_name,
+                "has_traj": node["has_traj"],
+                "query": node.get("query", ""),
+                "status": "completed" if node["has_traj"] else "running",
+            }
+        )
+        for child in node.get("children", []):
+            _flatten(child, parent_name=node["name"])
+
+    top_dirs = [d for d in mem_root.iterdir() if d.is_dir() and "__" in d.name]
+    if not top_dirs:
+        return {"root": None, "agents_flat": []}
+
+    root_node = _scan(top_dirs[0])
+    if root_node:
+        _flatten(root_node)
+    return {"root": root_node, "agents_flat": agents_flat}

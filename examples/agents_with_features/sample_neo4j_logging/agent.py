@@ -23,7 +23,6 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.features import enable_neo4j_logging
 from opensage.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
@@ -95,8 +94,6 @@ geometry_tool = AgentTool(agent=geometry_calculator)
 
 
 def mk_agent(opensage_session_id: str):
-    enable_neo4j_logging()
-
     root_agent = OpenSageAgent(
         name="calculation_orchestrator",
         description="Main agent that coordinates mathematical and geometric calculations with Neo4j history logging",

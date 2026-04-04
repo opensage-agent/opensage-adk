@@ -161,7 +161,7 @@ class TestToolResponseSummarizer:
 
         # Mock neo4j logging
         self.mock_neo4j_logging_patcher = patch(
-            "opensage.features.summarization.is_neo4j_logging_enabled"
+            "opensage.features.summarization.is_database_short_term_enabled_from_context"
         )
         self.mock_neo4j_logging = self.mock_neo4j_logging_patcher.start()
         self.mock_neo4j_logging.return_value = False  # Default to disabled
@@ -376,7 +376,7 @@ class TestToolResponseSummarizer:
                 "opensage.features.summarization.resolve_model_spec"
             ) as mock_resolve_model_spec,
             patch(
-                "opensage.utils.neo4j_history_management.create_raw_tool_response_node"
+                "opensage.memory.database_based.short_term.history_store.create_raw_tool_response_node"
             ) as mock_create_node,
         ):
             mock_model = MagicMock()
@@ -483,7 +483,7 @@ class TestHistorySummarizer:
 
         # Mock neo4j logging
         self.mock_neo4j_logging_patcher = patch(
-            "opensage.features.summarization.is_neo4j_logging_enabled"
+            "opensage.features.summarization.is_database_short_term_enabled_from_context"
         )
         self.mock_neo4j_logging = self.mock_neo4j_logging_patcher.start()
         self.mock_neo4j_logging.return_value = False
@@ -816,7 +816,7 @@ class TestHistorySummarizer:
         )
 
         with patch(
-            "opensage.utils.neo4j_history_management.create_history_summary_node"
+            "opensage.memory.database_based.short_term.history_store.create_history_summary_node"
         ) as mock_create_node:
             mock_create_node.return_value = None
             from unittest.mock import AsyncMock as _AsyncMock

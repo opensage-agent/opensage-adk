@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -13,7 +15,12 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.genai import types
 
-from opensage.features.agent_history_tracker import is_neo4j_logging_enabled
+from opensage.memory.database_based.short_term.config import (
+    is_database_short_term_enabled_from_context,
+)
+from opensage.memory.file_based.short_term import (
+    get_current_session_tool_outputs_dir,
+)
 from opensage.utils.agent_utils import (
     discover_all_agents,
     get_opensage_session_id_from_context,
@@ -147,8 +154,8 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         f"  session_id: {opensage_session_id}"
     )
 
-    # Save full output to file in sandbox using shared utility
-    output_dir = "/workspace/.tool_outputs"
+    # Save full output to the current session memory directory.
+    output_dir = get_current_session_tool_outputs_dir(tool_context)
 
     logger.warning(
         f"[ToolResponseSummarizer] Saving full output to file for '{tool_name}'"
@@ -158,6 +165,8 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         content=raw,
         tool_name=tool_name,
         output_dir=output_dir,
+        file_id=tool_context.function_call_id,
+        file_extension=".out",
     )
     file_saved = output_file is not None
     logger.warning(
@@ -384,8 +393,8 @@ You can use `grep`, `cat`, or other commands to search or view the full content 
         else:
             tagged_summary += "\n[Quota] LLM calls: unlimited"
 
-    if is_neo4j_logging_enabled():
-        from opensage.utils.neo4j_history_management import (
+    if is_database_short_term_enabled_from_context(tool_context):
+        from opensage.memory.database_based.short_term.history_store import (
             create_raw_tool_response_node,
         )
 
@@ -826,10 +835,22 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     )
     session_service = tool_context._invocation_context.session_service
     await session_service.append_event(session=session, event=compaction_event)
+    try:
+        from opensage.memory.file_based.short_term import (
+            persist_traj_json_for_invocation,
+        )
+
+        persist_traj_json_for_invocation(tool_context._invocation_context)
+    except Exception as persist_error:
+        logger.warning(
+            "Failed to persist traj.json after compaction: %s", persist_error
+        )
 
     # Neo4j persistence aligned with previous summarization semantics
-    if is_neo4j_logging_enabled():
-        from opensage.utils.neo4j_history_management import create_history_summary_node
+    if is_database_short_term_enabled_from_context(tool_context):
+        from opensage.memory.database_based.short_term.history_store import (
+            create_history_summary_node,
+        )
 
         await create_history_summary_node(tool_context, compaction_event, window_events)
 

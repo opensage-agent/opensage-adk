@@ -57,10 +57,12 @@ class OpenSageSession:
             self.config = OpenSageConfig.create_default()
 
         # Initialize memory settings from config (lazy import to avoid circular dependency)
-        if self.config.memory:
-            from ..memory.config import configure_memory_from_config
+        if self.config.memory and self.config.memory.database:
+            from ..memory.database_based.long_term.config import (
+                configure_memory_from_config,
+            )
 
-            configure_memory_from_config(self.config.memory)
+            configure_memory_from_config(self.config.memory.database.long_term)
 
         # Initialize all session-specific managers
         # Pass self (session) instead of individual fields to allow dynamic property access

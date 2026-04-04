@@ -191,14 +191,6 @@ def agent():
 
     from google.adk.models.lite_llm import LiteLlm
 
-    from opensage.features.agent_history_tracker import disable_neo4j_logging
-
-    # Disable Neo4j logging for this non-Neo4j test
-    try:
-        disable_neo4j_logging()
-    except Exception:
-        pass
-
     # Add examples directory to Python path
     examples_dir = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),

@@ -6,7 +6,6 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.features import enable_neo4j_logging
 from opensage.session import get_opensage_session
 from opensage.toolbox.general.agent_tools import (
     agent_ensemble,
@@ -41,7 +40,6 @@ calculation_agent = LlmAgent(
 )
 
 calculation_agent_tool = AgentTool(agent=calculation_agent)
-enable_neo4j_logging()
 
 
 def mk_agent(opensage_session_id: str):

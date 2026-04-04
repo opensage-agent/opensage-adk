@@ -20,9 +20,6 @@ class _StubAgent(BaseAgent):
         return
 
 
-from opensage.features import agent_history_tracker
-
-
 class _DummyInvCostMgr:
     def __init__(self, used: int):
         self._number_of_llm_calls = used
@@ -35,8 +32,16 @@ class _DummyInvocationContext:
         self.run_config = RunConfig(max_llm_calls=limit)
         self._invocation_cost_manager = _DummyInvCostMgr(used)
         self.agent = _types.SimpleNamespace(name="parent")
-        self.session = _types.SimpleNamespace(id="parent-session")
+        self.session = _types.SimpleNamespace(
+            id="parent-session",
+            state={"_mem_agent_dir": "/mem/short_term/parent__parent-session"},
+        )
         self.credential_service = object()
+
+
+class _DummyState(dict):
+    def to_dict(self):
+        return dict(self)
 
 
 class _DummyToolContext:
@@ -45,7 +50,7 @@ class _DummyToolContext:
         self.actions = _types.SimpleNamespace(
             skip_summarization=False, state_delta=None
         )
-        self.state = _types.SimpleNamespace(to_dict=lambda: {})
+        self.state = _DummyState()
 
 
 class _DummySession:
@@ -89,19 +94,22 @@ class _DummyRunner:
 
 @pytest.mark.asyncio
 async def test_agenttool_runs_with_remaining_quota_and_merges_child_usage(monkeypatch):
-    agent_history_tracker.enable_neo4j_logging()
-
     tool_context = _DummyToolContext(used=7, limit=10)
     child_used = 2
 
-    import opensage.patches.neo4j_logging as patch_mod
+    import opensage.patches.agent_run_async as patch_mod
+    from opensage.features import opensage_in_memory_session_service as session_mod
 
     monkeypatch.setattr(
         patch_mod, "Runner", _types.SimpleNamespace(__call__=None), raising=False
     )
+    monkeypatch.setattr(
+        session_mod,
+        "OpenSageInMemorySessionService",
+        lambda: _DummySessionService(child_used=child_used),
+    )
 
     def _runner_ctor(**kwargs):
-        kwargs["session_service"] = _DummySessionService(child_used=child_used)
         return _DummyRunner(**kwargs)
 
     monkeypatch.setattr(patch_mod, "Runner", _runner_ctor, raising=True)
@@ -118,8 +126,6 @@ async def test_agenttool_runs_with_remaining_quota_and_merges_child_usage(monkey
 
 @pytest.mark.asyncio
 async def test_agenttool_passes_zero_remaining_when_parent_exhausted(monkeypatch):
-    agent_history_tracker.enable_neo4j_logging()
-
     tool_context = _DummyToolContext(used=5, limit=5)
 
     captured = {"run_config": None}
@@ -131,12 +137,17 @@ async def test_agenttool_passes_zero_remaining_when_parent_exhausted(monkeypatch
                 yield None
             return
 
-    import opensage.patches.neo4j_logging as patch_mod
+    import opensage.patches.agent_run_async as patch_mod
+    from opensage.features import opensage_in_memory_session_service as session_mod
 
     def _runner_ctor(**kwargs):
-        kwargs["session_service"] = _DummySessionService(child_used=0)
         return _CapturingRunner(**kwargs)
 
+    monkeypatch.setattr(
+        session_mod,
+        "OpenSageInMemorySessionService",
+        lambda: _DummySessionService(child_used=0),
+    )
     monkeypatch.setattr(patch_mod, "Runner", _runner_ctor, raising=True)
 
     dummy_agent = _StubAgent(name="child_agent", description="desc")

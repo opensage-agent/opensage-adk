@@ -22,7 +22,6 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.features import enable_neo4j_logging
 from opensage.toolbox.general.dynamic_subagent import (
     call_subagent_as_tool,
     create_subagent,
@@ -94,7 +93,6 @@ def calculate_area_and_perimeter(
 
 
 def mk_agent(opensage_session_id: str):
-    enable_neo4j_logging()
     os.environ["MAX_HISTORY_SUMMARY_LENGTH"] = "300"
     os.environ["MAX_TOOL_RESPONSE_LENGTH"] = "100"
 

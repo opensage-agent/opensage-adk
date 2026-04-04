@@ -4,7 +4,7 @@ from google.adk.models import BaseLlm
 from google.adk.tools.agent_tool import AgentTool
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.memory.search_tool import search_memory
+from opensage.memory.database_based.long_term.search_tool import search_memory
 from opensage.toolbox.general.history_management import (
     get_all_events_for_summarization,
     get_all_invocations_for_agent,

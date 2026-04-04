@@ -342,13 +342,6 @@ Compare the ground truth vulnerability with the predicted vulnerabilities and de
 """
 
     try:
-        # Temporarily disable neo4j logging patch for this simple comparison
-        from opensage.patches import neo4j_logging
-
-        was_enabled = neo4j_logging.is_enabled()
-        if was_enabled:
-            neo4j_logging.disable()
-
         # Use ADK LlmAgent with output_schema for structured response
         compare_agent = LlmAgent(
             name="vulnerability_comparison_agent",

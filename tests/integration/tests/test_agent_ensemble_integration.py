@@ -128,14 +128,6 @@ class TestAgentEnsembleIntegration:
         # Load the sample_agent_ensemble agent
         import sys
 
-        from opensage.features.agent_history_tracker import disable_neo4j_logging
-
-        # Disable Neo4j logging for this non-Neo4j test
-        try:
-            disable_neo4j_logging()
-        except Exception:
-            pass
-
         # Get the OpenSage root directory and construct path to examples
         current_dir = os.path.dirname(__file__)  # tests/integration/tests/
         opensage_root = os.path.dirname(

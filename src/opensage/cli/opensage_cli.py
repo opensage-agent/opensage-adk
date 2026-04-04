@@ -33,6 +33,10 @@ from opensage.cli.opensage_web_app import OpenSageWebServer
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
+from opensage.memory.database_based.short_term.config import (
+    is_database_short_term_enabled_from_config,
+)
+from opensage.memory.file_based.short_term import build_root_session_state
 from opensage.plugins import load_plugins
 from opensage.session import cleanup_opensage_session, get_opensage_session
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
@@ -136,6 +140,8 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
         mk_agent = _load_mk_agent_from_dir(agent_dir)
         dummy_agent = mk_agent(opensage_session_id=session_id)
         sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
+        if is_database_short_term_enabled_from_config(opensage_session.config):
+            sandbox_dependencies.add("neo4j")
         tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
         if (
             opensage_session.config.sandbox
@@ -310,6 +316,7 @@ async def _load_adk_session_into_service_async(
     session_id: str,
     target_app_name: str,
     target_user_id: str,
+    root_agent,
 ) -> tuple[str, str]:
     """Load persisted ADK session object into the in-memory session service."""
     from google.adk.sessions.session import Session
@@ -325,6 +332,23 @@ async def _load_adk_session_into_service_async(
     persisted.id = session_id
     persisted.app_name = target_app_name
     persisted.user_id = target_user_id
+    persisted_state = persisted.state if isinstance(persisted.state, dict) else {}
+    persisted_state["opensage_session_id"] = session_id
+    expected_root_state = build_root_session_state(
+        opensage_session_id=session_id,
+        session_id=session_id,
+        agent_name=getattr(root_agent, "name", "agent"),
+    )
+    expected_mem_dir = expected_root_state.get("_mem_agent_dir")
+    persisted_mem_dir = persisted_state.get("_mem_agent_dir")
+    if expected_mem_dir is not None and persisted_mem_dir != expected_mem_dir:
+        raise click.ClickException(
+            "Cannot resume file-memory session: persisted root session state is "
+            f"missing the expected `{expected_mem_dir}` directory."
+        )
+    if expected_mem_dir is None:
+        persisted_state.pop("_mem_agent_dir", None)
+    persisted.state = persisted_state
     app_name = target_app_name
     user_id = target_user_id
 
@@ -593,12 +617,6 @@ def _verify_agent_module(agent_dir: str) -> None:
     help="Logging level for the server.",
 )
 @click.option(
-    "--neo4j_logging/--no-neo4j_logging",
-    default=False,
-    show_default=True,
-    help="Enable Neo4j event logging via monkey patches.",
-)
-@click.option(
     "--auto_cleanup",
     type=bool,
     default=False,
@@ -635,7 +653,6 @@ def cli_web(
     port: int,
     reload: bool,
     log_level: str,
-    neo4j_logging: bool,
     auto_cleanup: bool,
     resume: bool,
     resume_from: Optional[str],
@@ -654,18 +671,6 @@ def cli_web(
             raise click.ClickException("Missing required option '--agent'.")
         if not resume_requested:
             config_path = _resolve_config_path(config_path, agent_dir)
-
-        # Optionally enable Neo4j logging (monkey patches BaseAgent/AgentTool)
-        if neo4j_logging:
-            try:
-                from opensage.features.agent_history_tracker import (
-                    enable_neo4j_logging,
-                )
-
-                enable_neo4j_logging()
-                logger.info("Neo4j logging enabled.")
-            except Exception as e:
-                logger.error("Failed to enable Neo4j logging: %s", e)
 
         # 1) Prepare environment (fresh) or resume environment (attach existing)
         resume_metadata = None
@@ -762,6 +767,7 @@ def cli_web(
                     session_id=session_id,
                     target_app_name=web_server.app_name,
                     target_user_id="user",
+                    root_agent=root_agent,
                 )
             )
             session_user_id = restored_user_id
@@ -770,10 +776,15 @@ def cli_web(
                 session_service.create_session(
                     app_name=web_server.app_name,
                     user_id="user",
-                    state={"opensage_session_id": session_id},
+                    state=build_root_session_state(
+                        opensage_session_id=session_id,
+                        session_id=session_id,
+                        agent_name=getattr(root_agent, "name", "agent"),
+                    ),
                     session_id=session_id,
                 )
             )
+            session_user_id = "user"
         app = web_server.get_fast_api_app(allow_origins=None, enable_dev_ui=True)
 
         config = uvicorn.Config(

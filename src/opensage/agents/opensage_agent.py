@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
 
@@ -16,11 +17,6 @@ from opensage.utils.project_info import PROJECT_PATH
 logger = logging.getLogger(__name__)
 
 _TOOLSET_SUMMARY_MARKER = "[[OPENSAGE_TOOLSET_SUMMARY]]"
-
-
-class MemoryManagement(str, Enum):
-    FILE = "file"
-    DATABASE = "database"
 
 
 class OpenSageMCPToolset(McpToolset):
@@ -450,14 +446,12 @@ class ToolLoader:
     def generate_sandbox_structure_description(
         required_sandboxes: Set[str],
         *,
-        memory_management: MemoryManagement = MemoryManagement.FILE,
         agent_name: Optional[str] = None,
     ) -> str:
         """Generate description of sandbox structure for required sandboxes.
 
         Args:
             required_sandboxes (Set[str]): Set of sandbox type names that are actually required
-            memory_management (MemoryManagement): Memory management type.
         Returns:
             str: Description text about sandbox structure and mount points
         """
@@ -510,58 +504,6 @@ class ToolLoader:
                 "",
             ]
         )
-        if memory_management == MemoryManagement.FILE:
-            lines.extend(
-                [
-                    "### File Memory Layout (`/mem`)",
-                    "",
-                    "File memory is organized by agent name (shared across sessions for the same agent name):",
-                    "",
-                    "```",
-                    "/mem/<agent_name>/",
-                    "  planning.md",
-                    "  session_<session_id>.json",
-                    "  session_<session_id>.json",
-                    "  ...",
-                    "/mem/topology.json",
-                    "```",
-                    "",
-                    f"- Your agent folder is `/mem/{agent_name or '<agent_name>'}/`.",
-                    "- `planning.md`: your living plan/todo file. Read it before work and update it after major steps.",
-                    "- `session_<session_id>.json`: one full trajectory dump per session.",
-                    "- `/mem/topology.json`: cross-agent topology with `agents` and `calls`; includes `query`, `response`, `parent_session_id`, and `parent_agent_name`.",
-                    "- Shared memory directory:",
-                    "```",
-                    "/mem/shared/",
-                    "  knowledge.jsonl",
-                    "  schema.md",
-                    "```",
-                    "- `/mem/shared` is reserved for high-level knowledge shared across tasks.",
-                    "- Use bash tools to maintain `planning.md`, inspect/search `session_<session_id>.json`, and curate `/mem/shared/knowledge.jsonl`.",
-                    "",
-                    "### Shared Knowledge Schema (`/mem/shared/knowledge.jsonl`)",
-                    "",
-                    "Store one JSON object per line (JSONL). Required fields:",
-                    "- `key` (string): short summary/description used as retrieval key.",
-                    "- `value` (string): the reusable high-level knowledge.",
-                    "",
-                    "Rules:",
-                    "- Keep `key` concise and specific (one idea per key).",
-                    "- `value` should be stable guidance, not raw transient logs.",
-                    "- Update existing entries when refining knowledge; do not create near-duplicate keys.",
-                    "",
-                    "Examples:",
-                    "```json",
-                    '{"key":"nginx authentication mechanism overview","value":"Nginx itself usually delegates auth to upstream services or auth_request; common patterns are Basic Auth, JWT verification via auth_request, or OIDC at ingress.","tags":["nginx","auth"],"source":{"agent":"security_agent","session_id":"abc123"},"updated_at":"2026-03-17T10:00:00Z"}',
-                    '{"key":"gdb mcp server readiness check","value":"Treat /sse endpoint as ready only after HTTP 200 and stable response for at least one retry interval.","tags":["gdb_mcp","ops"]}',
-                    '{"key":"neo4j bolt default port","value":"Neo4j Bolt uses 7687 by default; prefer reading resolved runtime config before connecting in resumed sessions.","tags":["neo4j","network"]}',
-                    "```",
-                    "",
-                    "When you discover valuable reusable knowledge, proactively add/update entries in `/mem/shared/knowledge.jsonl` and consult it via search before major decisions.",
-                    "",
-                ]
-            )
-
         if "neo4j" in required_sandboxes:
             idx = lines.index("### Python Environment")
             neo4j_lines = [
@@ -576,14 +518,6 @@ class ToolLoader:
                 "- Note: Some databases may not be available depending on sandbox configuration.",
                 "",
             ]
-            if memory_management == MemoryManagement.DATABASE:
-                neo4j_lines.extend(
-                    [
-                        "Querying long-term memory and short-term memory(agent execution history of sub-agents):",
-                        "- Prefer using the `memory_management_agent` tool. Use natrual language to interact with memory_management_agent.",
-                        "",
-                    ]
-                )
             lines[idx:idx] = neo4j_lines
 
         return "\n".join(lines)
@@ -598,7 +532,6 @@ class OpenSageAgent(LlmAgent):
         tools: Optional[List] = None,  # TODO: this should be the initial tool list?
         tool_combos: Optional[List[ToolCombo]] = None,
         enabled_skills: Optional[Union[List[str], str]] = None,
-        memory_management: MemoryManagement = MemoryManagement.FILE,
         **kwargs,
     ):
         tools = list(tools) if tools else []
@@ -609,17 +542,6 @@ class OpenSageAgent(LlmAgent):
             else:
                 if combo.agent_tool not in tools:
                     tools.append(combo.agent_tool)
-
-        if memory_management == MemoryManagement.DATABASE:
-            # Lazy import to avoid circular dependencies at module import time.
-            from opensage.util_agents.memory_management_agent.agent import (
-                create_memory_management_agent_tool,
-            )
-
-            model = kwargs.get("model", "")
-            memory_management_tool = create_memory_management_agent_tool(model=model)
-            if memory_management_tool not in tools:
-                tools.append(memory_management_tool)
 
         # Ensure all tools are safe and dict-shaped (including MCP-expanded tools).
         # We intentionally do this before calling the ADK LlmAgent constructor so the
@@ -633,7 +555,6 @@ class OpenSageAgent(LlmAgent):
 
         # Initialize the parent class first
         super().__init__(*args, **kwargs)
-        self._memory_management = memory_management
 
         # Store enabled_skills for dependency collection
         self._enabled_skills = enabled_skills
@@ -676,16 +597,9 @@ class OpenSageAgent(LlmAgent):
             ):
                 tool_usage_policy += f"\n\n{toolset_summary}"
 
-            memory_management = getattr(
-                self,
-                "_memory_management",
-                MemoryManagement.FILE,
-            )
-
             # Generate sandbox structure description based on required sandboxes.
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
                 required_sandboxes,
-                memory_management=memory_management,
                 agent_name=self.name,
             )
 
@@ -765,82 +679,3 @@ class OpenSageAgent(LlmAgent):
             "Note: toolsets (especially MCP toolsets) expand their individual tools at runtime."
         )
         return "\n".join(lines).strip()
-
-    def update_enabled_skills(
-        self, enabled_skills: Optional[Union[List[str], str]]
-    ) -> None:
-        """Update enabled_skills and regenerate system prompt with new bash tools.
-
-        This method:
-        1. Updates the _enabled_skills attribute
-        2. Removes the old bash tools section from instruction
-        3. Generates new tool prompt based on new enabled_skills
-        4. Appends the new tool prompt to instruction
-
-        Args:
-            enabled_skills (Optional[Union[List[str], str]]): New enabled_skills value (None, "all", or List[str])"""
-        import re
-
-        # Update enabled_skills
-        self._enabled_skills = enabled_skills
-
-        # Remove old tool prompt section from instruction
-        # Pattern matches from "Here are the available bash tools" to end of string
-        pattern = r"\n\nHere are the available bash tools you can use:.*"
-        self.instruction = re.sub(pattern, "", self.instruction, flags=re.DOTALL)
-
-        # Generate new tool prompt based on new enabled_skills
-        loader = ToolLoader(enabled_skills=enabled_skills)
-        metadata = loader.load_tools()
-        tool_prompt, required_sandboxes = ToolLoader.generate_system_prompt_part(
-            metadata
-        )
-
-        if tool_prompt:
-            # Preamble describing the skill structure
-            description_preamble = (
-                "Each tool path below is a Skill directory:\n"
-                "- `SKILL.md`: documentation/usage.\n"
-                "- Toolset Skills may not have `scripts/`.\n"
-                "- Executable Skills have `scripts/` with runnable tools.\n"
-            )
-
-            tool_usage_policy = (
-                "Tool usage policy:\n"
-                "- When planning or describing how you will accomplish a task, prefer using the provided Skills under "
-                "`/bash_tools/...` (i.e., the tool scripts described below). You should call them through run_terminal_command tool and execute the corresponding scripts.\n"
-                "- Prioritize using static analysis based tools to retrieve information rather than using general shell commands or general retrieval tools. Only fall back to generic shell commands when there is **no** suitable `/bash_tools` Skill for the job.\n"
-                "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
-                "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
-                "- Do NOT edit existing `/bash_tools/...` Skills in place. If you need changes, copy/adapt into a new "
-                "Skill/script under `/bash_tools/new_tools/<tool_name>/` (with a `SKILL.md`). You can use "
-                "`/bash_tools/new_tool_creator` to scaffold the initial directory structure.\n"
-            )
-
-            memory_management = getattr(
-                self,
-                "_memory_management",
-                MemoryManagement.FILE,
-            )
-
-            # Generate sandbox structure description based on required sandboxes.
-            sandbox_description = ToolLoader.generate_sandbox_structure_description(
-                required_sandboxes,
-                memory_management=memory_management,
-                agent_name=self.name,
-            )
-
-            # Append new tool prompt to instruction
-            self.instruction += (
-                "\n\nHere are the available bash tools you can use:\n"
-                f"{description_preamble}\n{tool_prompt}{sandbox_description}\n\n"
-                "## Tool Usage Policy (MUST FOLLOW)\n\n"
-                f"{tool_usage_policy}"
-            )
-            logger.info(
-                f"Updated enabled_skills and regenerated system prompt for agent '{self.name}'"
-            )
-        else:
-            logger.info(
-                f"Updated enabled_skills to {enabled_skills}, no bash tools found"
-            )

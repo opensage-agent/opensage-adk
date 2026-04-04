@@ -29,6 +29,12 @@ src_dir_in_sandbox = "/shared/code"
 agent_storage_path = "${AGENT_STORAGE_PATH}"
 default_host = ""
 
+[memory]
+management = "file"
+
+[memory.database.short_term]
+enabled = true
+
 [neo4j]
 user = "neo4j"
 password = "${NEO4J_PASSWORD}"

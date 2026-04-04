@@ -7,9 +7,6 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.sessions import InMemorySessionService
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.features import (
-    enable_neo4j_logging,
-)
 from opensage.session import get_opensage_session
 from opensage.toolbox.general.bash_tool import bash_tool_main
 from opensage.toolbox.retrieval.search_tools import (
@@ -30,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 
 def mk_agent(opensage_session_id="vulnerability-detection-agent-session"):
-    enable_neo4j_logging()
     opensage_session = get_opensage_session(opensage_session_id)
     ensemble_manager = opensage_session.ensemble
     ensemble_manager.add_thread_safe_tool("grep_tool")

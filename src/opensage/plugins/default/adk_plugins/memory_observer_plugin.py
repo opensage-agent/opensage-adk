@@ -11,8 +11,13 @@ from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
 
-from opensage.memory.storage_decider import StorageDecider, StorageDecision
-from opensage.memory.update.update_controller import MemoryUpdateController
+from opensage.memory.database_based.long_term.storage_decider import (
+    StorageDecider,
+    StorageDecision,
+)
+from opensage.memory.database_based.long_term.update.update_controller import (
+    MemoryUpdateController,
+)
 from opensage.utils.agent_utils import (
     get_neo4j_client_from_context,
     get_opensage_config_from_context,
@@ -75,7 +80,7 @@ class MemoryObserverPlugin(BasePlugin):
             fire_and_forget (bool): Whether to run storage in background without waiting.
                 If True, tool execution is not blocked by storage operations.
             decider_model (Optional[str]): LiteLLM model identifier for the storage decider.
-                If None, reads from [memory].llm_model in config."""
+                If None, reads from [memory.database.long_term].llm_model in config."""
         super().__init__(name="memory_observer")
         self.enable_llm_decision = enable_llm_decision
         self.fire_and_forget = fire_and_forget
@@ -104,8 +109,13 @@ class MemoryObserverPlugin(BasePlugin):
             # Try to get from config
             try:
                 config = get_opensage_config_from_context(tool_context)
-                if config.memory and config.memory.llm_model:
-                    model_name = config.memory.llm_model
+                long_term_cfg = (
+                    config.memory
+                    and config.memory.database
+                    and config.memory.database.long_term
+                )
+                if long_term_cfg and long_term_cfg.llm_model:
+                    model_name = long_term_cfg.llm_model
                     logger.info(
                         f"[MemoryObserver] Using model from config: {model_name}"
                     )
@@ -159,7 +169,12 @@ class MemoryObserverPlugin(BasePlugin):
         # Check if memory is enabled in config
         try:
             config = get_opensage_config_from_context(tool_context)
-            if not (config.memory and config.memory.enabled):
+            long_term_cfg = (
+                config.memory
+                and config.memory.database
+                and config.memory.database.long_term
+            )
+            if not (long_term_cfg and long_term_cfg.enabled):
                 logger.debug(
                     f"[MemoryObserver] Memory disabled in config, skipping {tool_name}"
                 )

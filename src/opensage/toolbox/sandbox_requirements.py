@@ -94,11 +94,6 @@ def collect_sandbox_dependencies(agent) -> set[str]:
     dependencies.update(skill_deps)
 
     dependencies.add("main")
-    from opensage.features import is_neo4j_logging_enabled
-
-    if is_neo4j_logging_enabled():
-        dependencies.add("neo4j")
-
     return dependencies
 
 

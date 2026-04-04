@@ -12,6 +12,12 @@ bolt_port = "${NEO4J_BOLT_PORT}"
 neo4j_http_port = "${NEO4J_HTTP_PORT}"
 
 [memory]
+management = "file"
+
+[memory.database.short_term]
+enabled = false
+
+[memory.database.long_term]
 enabled = false
 
 [llm]

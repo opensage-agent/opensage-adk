@@ -57,16 +57,19 @@ def build_image_from_dockerfile(
     Returns:
         DockerBuildResult: DockerBuildResult with build status and details
     """
-    if not config.project_relative_dockerfile_path or not config.image:
+    if (
+        not (config.project_relative_dockerfile_path or config.absolute_dockerfile_path)
+        and not config.image
+    ):
         return None
 
     # Use absolute path if provided, otherwise use project-relative path
     if config.absolute_dockerfile_path:
-        dockerfile_path = Path(config.absolute_dockerfile_path)
+        dockerfile_path = Path(config.absolute_dockerfile_path).absolute()
     else:
-        dockerfile_path = Path(PROJECT_PATH) / Path(
-            config.project_relative_dockerfile_path
-        )
+        dockerfile_path = (
+            Path(PROJECT_PATH) / config.project_relative_dockerfile_path
+        ).absolute()
 
     build_context = dockerfile_path.parent
     build_args = config.build_args
@@ -159,8 +162,11 @@ def ensure_docker_image(config: ContainerConfig) -> tuple[bool, Optional[str]]:
     logger.warning(f"Failed to pull {config.image}")
 
     if config.absolute_dockerfile_path or config.project_relative_dockerfile_path:
+        dockerfile_path = (
+            config.absolute_dockerfile_path or config.project_relative_dockerfile_path
+        )
         logger.info(
-            f"Attempting to build {config.image} from dockerfile {config.project_relative_dockerfile_path}..."
+            f"Attempting to build {config.image} from dockerfile {dockerfile_path}..."
         )
 
         build_result = build_image_from_dockerfile(config)

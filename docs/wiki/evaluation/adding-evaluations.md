@@ -189,5 +189,3 @@ For the full internal details, see [workflow details](workflow.md).
 | `src/opensage/evaluations/cybergym/cybergym_static.py` | Full-featured evaluation |
 | `src/opensage/evaluations/mock_debug/mock_debug_evaluation.py` | Minimal example |
 | `src/opensage/evaluations/secodeplt/vul_detection.py` | Another example |
-
-## See also

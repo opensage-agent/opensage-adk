@@ -101,24 +101,24 @@ nav:
       - Plugins: developer_guide/Plugins.md
     - Sandboxes:
       - Sandbox System Guide: developer_guide/Sandboxes.md
-      - Adding a sandbox: developer_guide/Adding-a-Sandbox.md
-      - Adding a new sandbox backend: developer_guide/Adding-a-New-Sandbox-Backend.md
+      - Adding a Sandbox: developer_guide/Adding-a-Sandbox.md
+      - Adding a New Sandbox Backend: developer_guide/Adding-a-New-Sandbox-Backend.md
   - Evaluation:
     - Overview: evaluation/index.md
     - Workflow Details: evaluation/workflow.md
     - Adding a Benchmark: evaluation/adding-evaluations.md
   - CLI Reference:
     - Overview: cli/index.md
-    - opensage:
+    - OpenSage:
       - Flag Reference: generated/cli/opensage.md
-    - opensage web:
+    - OpenSage Web:
       - Guide: cli/opensage-web.md
       - Flag Reference: generated/cli/opensage-web.md
-    - opensage dependency-check:
+    - OpenSage Dependency Check:
       - Guide: cli/dependency-check.md
       - Flag Reference: generated/cli/opensage-dependency-check.md
   - Community:
-    - Support and feedback: community/Support-and-Feedback.md
+    - Support and Feedback: community/Support-and-Feedback.md
     - Contributing: community/Contributing.md
 
 # Extra

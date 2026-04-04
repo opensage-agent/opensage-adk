@@ -24,5 +24,3 @@ refactor(component): Description
 3. Run tests and linting
 4. Update documentation
 5. Submit PR with description
-
-## See Also

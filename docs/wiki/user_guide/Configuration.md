@@ -671,9 +671,3 @@ If you see `KeyError: Template variable 'VAR_NAME' not found`, ensure:
 ### Dynamic Host Resolution
 
 If `default_host` is not set, services like Neo4j and MCP will default to `127.0.0.1`. Set `default_host` at the root level for Kubernetes deployments or remote services.
-
-## Related Documentation
-
-- [Setup](Setup.md) - Initial setup guide
-- [Sandboxes](../developer_guide/Sandboxes.md) - Sandbox backends and
-  configuration guide

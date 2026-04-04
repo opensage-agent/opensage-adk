@@ -368,5 +368,7 @@ MCP service endpoints are configured in TOML (host/port). See
 
 ## Next Steps
 
-[Project Structure](../developer_guide/Project-Structure.md) - Understand the
-codebase structure
+- [Project Structure](../developer_guide/Project-Structure.md) - Understand the
+  codebase structure
+- [CLI Reference](../cli/index.md) - Explore the CLI entry points and commands
+- [Evaluations](../evaluation/index.md) - Learn how evaluation runs are started

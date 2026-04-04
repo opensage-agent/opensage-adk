@@ -10,14 +10,14 @@ OpenSage (Open Self-programming Agent Generation Engine) is an AI agent framewor
 - [Introduction](user_guide/Introduction.md) - What is OpenSage-ADK?
 - [Setup](user_guide/Setup.md) - Environment setup and installation
 
-### Development Guides
+### Developer Guide
 - [Project Structure](developer_guide/Project-Structure.md) - Project structure overview
 - [Adding Tools](developer_guide/Adding-Tools.md) - How to add new tools
 - [Sandboxes](developer_guide/Sandboxes.md) - Sandbox backends and how to add new sandboxes
 - [Tools](user_guide/Setup.md#tools) - Tool types and patterns
 
 ### Reference
-- [Support and feedback](community/Support-and-Feedback.md) - Where to ask questions and report issues
+- [Support and Feedback](community/Support-and-Feedback.md) - Where to ask questions and report issues
 - [Contributing](community/Contributing.md) - Contributing guidelines
 
 ---

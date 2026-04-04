@@ -7,27 +7,33 @@ In this project, a “sandbox” is created by combining:
 - A **sandbox backend** (where/how the environment runs), and
 - A **sandbox initializer** (what gets installed/configured in that environment).
 
-This guide covers adding a **new sandbox type** by implementing and registering
-a sandbox initializer.
+This guide covers adding a **new sandbox type** by implementing a sandbox
+initializer.
 
 ## Steps
 
 ### 1) Create an initializer
 
-Add a new initializer under:
+Create a `.py` file containing a single `SandboxInitializer` subclass. Place it
+in either of the following directories:
 
-- `OpenSage/src/opensage/sandbox/initializers/`
+- **Built-in** (framework contributors): `src/opensage/sandbox/initializers/`
+- **User-defined** (no source changes needed): `~/.local/opensage/initializers/`
+
+The **file name** (without `.py`) becomes the sandbox type name used in
+configuration. For example, `my_sandbox.py` registers as `”my_sandbox”`.
+
+User-defined initializers with the same file name as a built-in one will
+override it.
 
 Implement the `SandboxInitializer` interface from
-`OpenSage/src/opensage/sandbox/initializers/base.py`.
+`opensage.sandbox.initializers.base`. The only method you need to override is
+`_async_initialize_impl`.
 
-### 2) Register the initializer
+### 2) No registration needed
 
-Register your initializer in the initializer registry:
-
-- `OpenSage/src/opensage/sandbox/factory.py` (`SANDBOX_INITIALIZERS`)
-
-This makes the sandbox type discoverable by name (e.g. `"my_sandbox"`).
+Initializers are **auto-discovered** by scanning the directories above at
+startup. There is no need to manually edit `factory.py` or any registry.
 
 ### 3) Add configuration
 
@@ -79,20 +85,44 @@ commands. Prefer `/app/.venv/bin/python ...`.
 
 ## Example
 
+Create `~/.local/opensage/initializers/my_sandbox.py` (or add to the built-in
+directory):
+
 ```python
+from opensage.sandbox.base_sandbox import BaseSandbox
 from opensage.sandbox.initializers.base import SandboxInitializer
 
 
 class MySandboxInitializer(SandboxInitializer):
-  async def async_initialize(self) -> None:
-    pass
+    async def _async_initialize_impl(
+        self: BaseSandbox, all_sandboxes: dict[str, BaseSandbox]
+    ) -> bool:
+        # Run setup commands inside the container
+        msg, err = self.run_command_in_container(
+            ["bash", "/sandbox_scripts/my_setup.sh"], timeout=600
+        )
+        if err != 0:
+            return False
+
+        # Optional: wait for another sandbox to be ready
+        # if not await all_sandboxes["neo4j"].wait_for_ready_or_error():
+        #     return False
+
+        return True
+```
+
+Then reference it in your config:
+
+```toml
+[sandbox.sandboxes.my_sandbox]
+image = "my_image:tag"
 ```
 
 ## Initialization flow
 
 1. Sandbox container is created
-2. `async_initialize()` is called
-3. Resources are set up
+2. `_async_initialize_impl()` is called (return `True` on success, `False` on failure)
+3. `_ensure_ready_impl()` is called (override to wait for MCP services, etc.)
 4. Sandbox is ready for use
 
 ## Skill dependency installers

@@ -2,18 +2,14 @@
 
 from __future__ import annotations
 
+import importlib
+import importlib.util
+import inspect
+import logging
+from pathlib import Path
 from typing import Optional, Type
 
-from opensage.sandbox.initializers import (
-    CodeQLInitializer,
-    CoverageInitializer,
-    FuzzInitializer,
-    GDBDebuggerInitializer,
-    JoernInitializer,
-    MainInitializer,
-    Neo4jInitializer,
-    SandboxInitializer,
-)
+from opensage.sandbox.initializers.base import SandboxInitializer
 
 from .agentdocker_lite_sandbox import AgentDockerLiteSandbox
 from .base_sandbox import BaseSandbox
@@ -23,6 +19,8 @@ from .native_docker_sandbox import NativeDockerSandbox
 from .opensandbox_sandbox import OpenSandboxSandbox
 from .remote_docker_sandbox import RemoteDockerSandbox
 
+logger = logging.getLogger(__name__)
+
 # Registry of available backends
 SANDBOX_BACKENDS = {
     "native": NativeDockerSandbox,
@@ -31,19 +29,89 @@ SANDBOX_BACKENDS = {
     "opensandbox": OpenSandboxSandbox,
     "agentdocker-lite": AgentDockerLiteSandbox,
     "local": LocalSandbox,
-    # Future backends can be added here:
 }
 
-# Registry of available initializers
-SANDBOX_INITIALIZERS = {
-    "main": MainInitializer,
-    "codeql": CodeQLInitializer,
-    "joern": JoernInitializer,
-    "fuzz": FuzzInitializer,
-    "neo4j": Neo4jInitializer,
-    "coverage": CoverageInitializer,
-    "gdb_mcp": GDBDebuggerInitializer,
-}
+_BUILTIN_DIR = Path(__file__).resolve().parent / "initializers"
+_BUILTIN_PACKAGE = "opensage.sandbox.initializers"
+_USER_DIR = Path.home() / ".local" / "opensage" / "initializers"
+
+
+def _load_initializer_from_file(
+    name: str, py_path: Path, *, is_builtin: bool = False
+) -> Type[SandboxInitializer] | None:
+    """Load a SandboxInitializer subclass from a .py file.
+
+    Returns None if the file contains no SandboxInitializer subclass.
+
+    Raises:
+        ValueError: If multiple SandboxInitializer subclasses are found.
+    """
+    if is_builtin:
+        # Built-in: import by module name to avoid double-loading
+        module = importlib.import_module(f"{_BUILTIN_PACKAGE}.{name}")
+    else:
+        # User: load from filesystem path
+        spec = importlib.util.spec_from_file_location(name, py_path)
+        if spec is None or spec.loader is None:
+            logger.warning('Cannot load initializer from "%s".', py_path)
+            return None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+    candidates = [
+        obj
+        for _, obj in inspect.getmembers(module, inspect.isclass)
+        if issubclass(obj, SandboxInitializer) and obj is not SandboxInitializer
+    ]
+    if not candidates:
+        return None
+    if len(candidates) > 1:
+        raise ValueError(
+            f'Multiple SandboxInitializer subclasses found in "{py_path}". '
+            "Please keep exactly one per file."
+        )
+    return candidates[0]
+
+
+def _scan_dir(
+    directory: Path, *, is_builtin: bool = False
+) -> dict[str, Type[SandboxInitializer]]:
+    """Scan a directory for .py files containing SandboxInitializer subclasses."""
+    found: dict[str, Type[SandboxInitializer]] = {}
+    if not directory.is_dir():
+        return found
+    for py_file in sorted(directory.glob("*.py")):
+        if py_file.name.startswith("_") or py_file.stem == "base":
+            continue
+        try:
+            cls = _load_initializer_from_file(
+                py_file.stem, py_file, is_builtin=is_builtin
+            )
+            if cls is not None:
+                found[py_file.stem] = cls
+        except Exception:
+            logger.exception("Failed to load sandbox initializer from %s", py_file)
+    return found
+
+
+def _discover_initializers() -> dict[str, Type[SandboxInitializer]]:
+    """Discover sandbox initializers by scanning directories.
+
+    Scan order (later entries override earlier ones):
+    1. Built-in: src/opensage/sandbox/initializers/*.py
+    2. User-defined: ~/.local/opensage/initializers/*.py
+    """
+    registry = _scan_dir(_BUILTIN_DIR, is_builtin=True)
+
+    user_initializers = _scan_dir(_USER_DIR)
+    for name, cls in user_initializers.items():
+        logger.info("Loaded user sandbox initializer: %s -> %s", name, cls.__name__)
+    registry.update(user_initializers)
+
+    return registry
+
+
+SANDBOX_INITIALIZERS = _discover_initializers()
 
 
 def create_sandbox_class(

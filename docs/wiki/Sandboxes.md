@@ -183,7 +183,10 @@ The `k8s` backend exists in the codebase, but it should still be treated as
 ## Extending the sandbox system
 
 - [Adding a sandbox](Adding-a-Sandbox.md): Add a new sandbox **type** by writing a
-  sandbox initializer and registering it.
+  sandbox initializer. Initializers are auto-discovered from
+  `src/opensage/sandbox/initializers/` (built-in) and
+  `~/.local/opensage/initializers/` (user-defined) — no manual registration
+  needed.
 - [Adding a new sandbox backend](Adding-a-New-Sandbox-Backend.md): Add a new
   execution backend (e.g., a new container/runtime environment).
 

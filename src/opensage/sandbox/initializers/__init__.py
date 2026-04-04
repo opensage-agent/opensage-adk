@@ -9,7 +9,7 @@ from .base import SandboxInitializer
 from .codeql import CodeQLInitializer
 from .coverage import CoverageInitializer
 from .fuzz import FuzzInitializer
-from .gdb_debugger import GDBDebuggerInitializer
+from .gdb_mcp import GDBMcpInitializer
 from .joern import JoernInitializer
 from .main import MainInitializer
 from .neo4j import Neo4jInitializer
@@ -21,6 +21,6 @@ __all__ = [
     "JoernInitializer",
     "FuzzInitializer",
     "Neo4jInitializer",
-    "GDBDebuggerInitializer",
+    "GDBMcpInitializer",
     "MainInitializer",
 ]

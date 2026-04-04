@@ -9,7 +9,7 @@ from .base import SandboxInitializer
 logger = logging.getLogger(__name__)
 
 
-class GDBDebuggerInitializer(SandboxInitializer):
+class GDBMcpInitializer(SandboxInitializer):
     """Initializer for debugger sandboxes to compile debug binaries."""
 
     async def _async_initialize_impl(

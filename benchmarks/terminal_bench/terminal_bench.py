@@ -51,9 +51,6 @@ class TerminalBench(Evaluation):
     test_timeout: int = 60
     """Timeout in seconds for running pytest inside the container"""
 
-    difficulty: str = "base"
-    """Task description difficulty level from task.yaml (e.g., 'base', 'hard')"""
-
     # Filtering
     start_idx: int = 0
     end_idx: int | None = None
@@ -68,10 +65,14 @@ class TerminalBench(Evaluation):
                 f"TB repo directory not found: {self.tb_repo_dir}. "
                 f"Please clone: git clone https://github.com/laude-institute/terminal-bench.git"
             )
-        tasks_dir = tb_path / "tasks"
+        # TB repo uses "original-tasks/" for task definitions
+        tasks_dir = tb_path / "original-tasks"
+        if not tasks_dir.exists():
+            # Fallback to "tasks/" in case of future repo restructuring
+            tasks_dir = tb_path / "tasks"
         if not tasks_dir.exists():
             raise FileNotFoundError(
-                f"No tasks/ directory found in {self.tb_repo_dir}. "
+                f"No original-tasks/ or tasks/ directory found in {self.tb_repo_dir}. "
                 f"Is this a valid terminal-bench repository?"
             )
         super().__post_init__()
@@ -80,7 +81,10 @@ class TerminalBench(Evaluation):
 
     def _get_dataset(self) -> datasets.Dataset:
         """Build dataset by scanning tb_repo_dir/tasks/ directory."""
-        tasks_dir = Path(self.tb_repo_dir) / "tasks"
+        # TB repo uses "original-tasks/" for task definitions
+        tasks_dir = Path(self.tb_repo_dir) / "original-tasks"
+        if not tasks_dir.exists():
+            tasks_dir = Path(self.tb_repo_dir) / "tasks"
         samples = []
 
         for task_dir in sorted(tasks_dir.iterdir()):
@@ -95,16 +99,10 @@ class TerminalBench(Evaluation):
             with open(task_yaml, "r") as f:
                 task_config = yaml.safe_load(f)
 
-            # Extract description at the requested difficulty level
-            descriptions = task_config.get("descriptions", {})
-            description = descriptions.get(self.difficulty)
+            # TB task.yaml uses "instruction" field for the task description
+            description = task_config.get("instruction")
             if description is None:
-                description = descriptions.get("base")
-            if description is None:
-                # Fallback: use the first available description
-                description = next(iter(descriptions.values()), None) if descriptions else None
-            if description is None:
-                logger.warning(f"Skipping {task_dir.name}: no description found in task.yaml")
+                logger.warning(f"Skipping {task_dir.name}: no instruction found in task.yaml")
                 continue
 
             samples.append({

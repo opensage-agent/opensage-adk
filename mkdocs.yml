@@ -93,10 +93,6 @@ nav:
       - Introduction: Introduction.md
       - Getting Started: Getting-Started.md
       - Project Structure: Project-Structure.md
-    - Entry Points:
-      - Overview: Entry-Points.md
-      - OpenSage Web Entry: OpenSage-Web-Entry.md
-      - Evaluation Entry: Evaluation-Entry.md
     - Practices:
       - Best Practices: Best-Practices.md
       - Testing & Debugging: Testing-Debugging.md
@@ -105,28 +101,30 @@ nav:
     - Core:
       - Development Guides: Development-Guides.md
       - Core Components: Core-Components.md
-    - Entry points:
-      - Entry-point walkthroughs:
-        - opensage web: OpenSage-Web-Workflow.md
-        - evaluations: Evaluation-Workflow.md
     - Extending:
       - Adding Tools: Adding-Tools.md
       - Plugins: Plugins.md
-      - Adding a Evaluation Benchmark: Adding-Evaluations.md
       - Sandboxes:
         - Sandbox System Guide: Sandboxes.md
-        - Adding a sandbox: Adding-a-Sandbox.md
-        - Adding a new sandbox backend: Adding-a-New-Sandbox-Backend.md
+        - Adding a Sandbox: Adding-a-Sandbox.md
+        - Adding a New Sandbox Backend: Adding-a-New-Sandbox-Backend.md
       - RL Integration:
         - AReaL Training: rl_integration/AReaL-Training.md
         - Slime Training: rl_integration/slime-Training.md
-  - Benchmarking:
-    - Overview: Benchmarking.md
   - CLI Reference:
-    - Overview: CLI-Reference.md
-    - opensage: generated/cli/opensage.md
-    - opensage web: generated/cli/opensage-web.md
-    - opensage dependency-check: generated/cli/opensage-dependency-check.md
+    - Overview: cli/index.md
+    - opensage:
+      - Flag Reference: generated/cli/opensage.md
+    - opensage web:
+      - Guide: cli/opensage-web.md
+      - Flag Reference: generated/cli/opensage-web.md
+    - opensage dependency-check:
+      - Guide: cli/dependency-check.md
+      - Flag Reference: generated/cli/opensage-dependency-check.md
+  - Evaluation:
+    - Overview: evaluation/index.md
+    - Workflow Details: evaluation/workflow.md
+    - Adding a Benchmark: evaluation/adding-evaluations.md
   - Community:
     - Overview: Community.md
     - Contributing: Contributing.md

@@ -20,6 +20,10 @@ from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
+from opensage.memory.file_based.short_term.session_files import (
+    build_root_session_state,
+)
+from opensage.session import get_opensage_session
 from opensage.toolbox.general.web_search_tool import WebSearchTool
 
 # Filter out Pydantic serialization warnings from LiteLLM
@@ -62,11 +66,17 @@ async def test_web_search_agent_returns_grounded_response(web_search_agent):
     app = App(name=app_name, root_agent=web_search_agent)
     runner = Runner(app=app, session_service=session_service)
 
+    get_opensage_session(opensage_session_id=session_id)
+
     await session_service.create_session(
         app_name=app_name,
         user_id=user_id,
         session_id=session_id,
-        state={"opensage_session_id": session_id},
+        state=build_root_session_state(
+            opensage_session_id=session_id,
+            session_id=session_id,
+            agent_name=web_search_agent.name,
+        ),
     )
 
     events = []

@@ -23,6 +23,9 @@ from google.genai import types
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
+from opensage.memory.file_based.short_term.session_files import (
+    build_root_session_state,
+)
 from opensage.plugins import load_plugins
 from opensage.session import get_opensage_session
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
@@ -97,7 +100,11 @@ class ToolComboTestRunner:
             app_name=self.app_name,
             user_id=self.user_id,
             session_id=self.current_session_id,
-            state={"opensage_session_id": self.current_session_id},
+            state=build_root_session_state(
+                opensage_session_id=self.current_session_id,
+                session_id=self.current_session_id,
+                agent_name=self.agent.name,
+            ),
         )
         return self
 

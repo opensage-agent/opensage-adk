@@ -30,6 +30,9 @@ from google.genai import types
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
+from opensage.memory.file_based.short_term.session_files import (
+    build_root_session_state,
+)
 from opensage.plugins import load_plugins
 from opensage.session import get_opensage_session
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
@@ -195,7 +198,12 @@ class TestAgentEnsembleIntegration:
         session = await session_service.create_session(
             app_name="agent_ensemble_test",
             user_id="test_user",
-            state={"opensage_session_id": opensage_session_id},
+            session_id=opensage_session_id,
+            state=build_root_session_state(
+                opensage_session_id=opensage_session_id,
+                session_id=opensage_session_id,
+                agent_name=root_agent.name,
+            ),
         )
 
         # Test with the required input

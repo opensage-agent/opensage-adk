@@ -96,6 +96,10 @@ def test_build_root_session_state_adds_mem_dir_for_file_memory(monkeypatch) -> N
     assert state["opensage_session_id"] == "opensage-1"
     assert state["custom"] == "value"
     assert state["_mem_agent_dir"] == "/mem/short_term/Root_Agent__sess-42"
+    assert (
+        state["_host_mem_dir"]
+        == "/root/.local/opensage/sessions/opensage-1/mem/Root_Agent__sess-42"
+    )
 
 
 def test_build_root_session_state_omits_mem_dir_for_non_file_memory(
@@ -114,7 +118,12 @@ def test_build_root_session_state_omits_mem_dir_for_non_file_memory(
         base_state={"_mem_agent_dir": "/mem/short_term/old__sess-0"},
     )
 
-    assert state == {"opensage_session_id": "opensage-1"}
+    assert state == {
+        "opensage_session_id": "opensage-1",
+        "_host_mem_dir": (
+            "/root/.local/opensage/sessions/opensage-1/mem/Root_Agent__sess-42"
+        ),
+    }
 
 
 async def _empty_agent_run(_agent, _invocation_context):

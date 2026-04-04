@@ -21,6 +21,9 @@ from google.genai import types
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
+from opensage.memory.file_based.short_term.session_files import (
+    build_root_session_state,
+)
 from opensage.plugins import load_plugins
 from opensage.session import get_opensage_session
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
@@ -183,10 +186,16 @@ class TestNeo4jLoggingIntegration:
         )
 
         # Create session with opensage_session_id in state
+        initial_session_id = str(uuid.uuid4())
         session = await session_service.create_session(
             app_name="neo4j_logging_test",
             user_id="test_user",
-            state={"opensage_session_id": opensage_session_id},
+            session_id=initial_session_id,
+            state=build_root_session_state(
+                opensage_session_id=opensage_session_id,
+                session_id=initial_session_id,
+                agent_name=root_agent.name,
+            ),
         )
 
         # Test cases with different mathematical operations
@@ -210,10 +219,16 @@ class TestNeo4jLoggingIntegration:
             print(f"\n--- Running test case {i + 1}: {test_case['description']} ---")
 
             # Create new session for each test case
+            test_session_id = str(uuid.uuid4())
             session = await session_service.create_session(
                 app_name="neo4j_logging_test",
                 user_id="test_user",
-                state={"opensage_session_id": opensage_session_id},
+                session_id=test_session_id,
+                state=build_root_session_state(
+                    opensage_session_id=opensage_session_id,
+                    session_id=test_session_id,
+                    agent_name=root_agent.name,
+                ),
             )
 
             # Run the agent

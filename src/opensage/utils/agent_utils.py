@@ -520,7 +520,7 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
 
     if model_name == INHERIT_MODEL:
         raise ValueError(
-            "model_name='inherit' requires using _copy_agent_with_updated_model_v2 "
+            "model_name='inherit' requires using _copy_agent_with_updated_model "
             "with inherit_model provided"
         )
 
@@ -607,7 +607,7 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
         return new_agent
 
 
-def _copy_agent_with_updated_model_v2(
+def _copy_agent_with_updated_model(
     base_agent_info, model_name: str, *, inherit_model: Optional[BaseLlm] = None
 ):
     """Like _copy_agent_with_updated_model but supports model inheritance.

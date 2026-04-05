@@ -27,7 +27,7 @@ from opensage.session.message_board import message_board_context
 from opensage.session.opensage_dynamic_agent_manager import DynamicAgentManager
 from opensage.utils.agent_utils import (
     INHERIT_MODEL,
-    _copy_agent_with_updated_model_v2,
+    _copy_agent_with_updated_model,
     extract_tools_from_agent,
     get_model_from_agent,
 )
@@ -376,13 +376,13 @@ Please provide your unique perspective and analysis. Consider that other agents 
                                 raise ValueError(
                                     "model_name='inherit' but current agent has no model"
                                 )
-                            agent_with_model = _copy_agent_with_updated_model_v2(
+                            agent_with_model = _copy_agent_with_updated_model(
                                 target_agent_info,
                                 model_name,
                                 inherit_model=inherit_model,
                             )
                         else:
-                            agent_with_model = _copy_agent_with_updated_model_v2(
+                            agent_with_model = _copy_agent_with_updated_model(
                                 target_agent_info, model_name
                             )
 

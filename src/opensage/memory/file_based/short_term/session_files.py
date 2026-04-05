@@ -265,7 +265,13 @@ def scan_host_agent_tree(session_id: str) -> dict:
         return ""
 
     def _infer_status(traj_path: Path) -> str:
-        """Infer status from the last event in traj.json."""
+        """Infer status from the last event in traj.json.
+
+        Mirrors ADK's Event.is_final_response() fallback semantics:
+        an agent is complete when the last event is non-user content with no
+        function calls/responses, not partial, and no trailing code execution
+        result.
+        """
         if not traj_path.exists():
             return "running"
         try:
@@ -277,17 +283,35 @@ def scan_host_agent_tree(session_id: str) -> dict:
                 return "running"
 
             last_event = events[-1] or {}
+            if last_event.get("author") == "user":
+                return "running"
+
             content = last_event.get("content") or {}
             parts = content.get("parts") or []
-            if content.get("role") == "model" and parts:
-                if all(
-                    isinstance(part, dict)
-                    and "text" in part
-                    and "function_call" not in part
-                    and "function_response" not in part
-                    for part in parts
-                ):
-                    return "completed"
+            if last_event.get("partial") is True:
+                return "running"
+
+            has_function_calls = any(
+                isinstance(part, dict) and part.get("function_call") for part in parts
+            )
+            if has_function_calls:
+                return "running"
+
+            has_function_responses = any(
+                isinstance(part, dict) and part.get("function_response")
+                for part in parts
+            )
+            if has_function_responses:
+                return "running"
+
+            if (
+                parts
+                and isinstance(parts[-1], dict)
+                and parts[-1].get("code_execution_result") is not None
+            ):
+                return "running"
+
+            return "completed"
         except Exception:
             pass
         return "running"

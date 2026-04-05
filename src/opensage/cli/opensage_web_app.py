@@ -274,6 +274,8 @@ class OpenSageWebServer:
 
         @app.get("/debug/trace/session/{session_id}")
         async def get_session_trace(session_id: str) -> Any:
+            if session_id.startswith("subagent-"):
+                session_id = session_id[len("subagent-") :]
             spans = memory_exporter.get_finished_spans(session_id)
             if not spans:
                 return []
@@ -307,7 +309,7 @@ class OpenSageWebServer:
                 raise HTTPException(status_code=404, detail="App not found")
             # For sub-agent sessions, reload from traj.json to get latest events
             if session_id.startswith("subagent-"):
-                agent_name = session_id[len("subagent-") :]
+                child_session_id = session_id[len("subagent-") :]
                 try:
                     from google.adk.sessions.session import Session as AdkSession
 
@@ -321,7 +323,7 @@ class OpenSageWebServer:
                         (
                             a
                             for a in tree.get("agents_flat", [])
-                            if a["name"] == agent_name
+                            if a["session_id"] == child_session_id
                         ),
                         None,
                     )
@@ -728,15 +730,15 @@ class OpenSageWebServer:
 
                 nodes: list[dict] = []
                 edges: list[dict] = []
-                counter = [0]
 
                 def _walk(node, parent_id=None):
-                    nid = f"n{counter[0]}"
-                    counter[0] += 1
+                    nid = node.get("session_id") or node["name"]
                     is_root = parent_id is None
                     query = node.get("query", "")
-                    # Build label: name + query preview
+                    # Build label: name + precise session id + query preview.
                     label = node["name"]
+                    if node.get("session_id"):
+                        label += f"\n[{node['session_id']}]"
                     if query and not is_root:
                         preview = query[:40].replace("\n", " ")
                         if len(query) > 40:
@@ -747,6 +749,7 @@ class OpenSageWebServer:
                             "id": nid,
                             "label": label,
                             "name": node["name"],
+                            "session_id": node.get("session_id", ""),
                             "query": query,
                             "status": (
                                 "active" if is_root else node.get("status", "running")
@@ -762,9 +765,9 @@ class OpenSageWebServer:
                 _walk(root)
                 return {"nodes": nodes, "edges": edges}
 
-            @app.get("/control/subagents/{agent_name}/events")
+            @app.get("/control/subagents/{subagent_session_id}/events")
             async def get_subagent_events(
-                agent_name: str,
+                subagent_session_id: str,
                 after_index: int = Query(default=0),
             ):
                 from google.adk.sessions.session import Session
@@ -776,12 +779,17 @@ class OpenSageWebServer:
 
                 tree = scan_host_agent_tree(self.fixed_session_id)
                 target = next(
-                    (a for a in tree.get("agents_flat", []) if a["name"] == agent_name),
+                    (
+                        a
+                        for a in tree.get("agents_flat", [])
+                        if a["session_id"] == subagent_session_id
+                    ),
                     None,
                 )
                 if not target or not target["has_traj"]:
                     return {
-                        "agent_name": agent_name,
+                        "agent_name": "",
+                        "subagent_session_id": subagent_session_id,
                         "events": [],
                         "total": 0,
                     }
@@ -794,7 +802,8 @@ class OpenSageWebServer:
                 )
                 if not traj_path.exists():
                     return {
-                        "agent_name": agent_name,
+                        "agent_name": "",
+                        "subagent_session_id": subagent_session_id,
                         "events": [],
                         "total": 0,
                     }
@@ -804,7 +813,8 @@ class OpenSageWebServer:
                     )
                 except Exception:
                     return {
-                        "agent_name": agent_name,
+                        "agent_name": "",
+                        "subagent_session_id": subagent_session_id,
                         "events": [],
                         "total": 0,
                     }
@@ -829,13 +839,14 @@ class OpenSageWebServer:
                     except Exception:
                         continue
                 return {
-                    "agent_name": agent_name,
+                    "agent_name": target["name"],
+                    "subagent_session_id": subagent_session_id,
                     "events": filtered,
                     "total": len(events),
                 }
 
-            @app.post("/control/subagents/{agent_name}/load_session")
-            async def load_subagent_session(agent_name: str):
+            @app.post("/control/subagents/{subagent_session_id}/load_session")
+            async def load_subagent_session(subagent_session_id: str):
                 """Load a sub-agent's traj.json into session_service so Angular can render it natively."""
                 from google.adk.sessions.session import Session
 
@@ -846,13 +857,20 @@ class OpenSageWebServer:
 
                 tree = scan_host_agent_tree(self.fixed_session_id)
                 target = next(
-                    (a for a in tree.get("agents_flat", []) if a["name"] == agent_name),
+                    (
+                        a
+                        for a in tree.get("agents_flat", [])
+                        if a["session_id"] == subagent_session_id
+                    ),
                     None,
                 )
                 if not target or not target["has_traj"]:
                     raise HTTPException(
                         status_code=404,
-                        detail=f"No traj.json found for agent '{agent_name}'",
+                        detail=(
+                            "No traj.json found for subagent session "
+                            f"'{subagent_session_id}'"
+                        ),
                     )
                 traj_path = (
                     HOST_SESSION_ROOT
@@ -866,8 +884,8 @@ class OpenSageWebServer:
                 persisted = Session.model_validate_json(
                     traj_path.read_text(encoding="utf-8")
                 )
-                # Use a deterministic session ID so reloading reuses the same session
-                sub_session_id = f"subagent-{agent_name}"
+                # Use the real child session id so same-name instances stay distinct.
+                sub_session_id = f"subagent-{subagent_session_id}"
                 persisted.id = sub_session_id
                 persisted.app_name = self.app_name
                 persisted.user_id = "user"
@@ -893,7 +911,8 @@ class OpenSageWebServer:
                     ).setdefault("user", {})[sub_session_id] = persisted
                 return {
                     "session_id": sub_session_id,
-                    "agent_name": agent_name,
+                    "agent_name": target["name"],
+                    "subagent_session_id": subagent_session_id,
                     "event_count": len(persisted.events or []),
                 }
 

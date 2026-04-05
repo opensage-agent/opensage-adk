@@ -59,7 +59,7 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
     # Make sure the isinstance check uses our dummy class.
     monkeypatch.setattr(emod, "OpenSageAgent", DummyOpenSageAgent)
 
-    def _fake_copy_agent_with_updated_model_v2(
+    def _fake_copy_agent_with_updated_model(
         base_agent_info, model_name: str, *, inherit_model=None
     ):
         del inherit_model
@@ -70,8 +70,8 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
 
     monkeypatch.setattr(
         emod,
-        "_copy_agent_with_updated_model_v2",
-        _fake_copy_agent_with_updated_model_v2,
+        "_copy_agent_with_updated_model",
+        _fake_copy_agent_with_updated_model,
     )
 
     class _DummyTool:

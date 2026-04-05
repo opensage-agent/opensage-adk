@@ -266,44 +266,6 @@ fi
         """Get a completed task's exit code without blocking the event loop."""
         return await asyncio.to_thread(self.get_task_exit_code, sandbox, task_id)
 
-    def wait_for_task(self, sandbox, task_id: str, timeout: int = 60) -> bool:
-        """Wait for a task to complete.
-
-        Args:
-            sandbox: The sandbox instance.
-            task_id (str): The ID of the task to wait for.
-            timeout (int): Maximum time to wait in seconds.
-        Returns:
-            bool: True if task completed, False if timed out.
-        """
-        import time
-
-        if task_id not in self.tasks:
-            return False
-
-        task = self.tasks[task_id]
-        pid = task.pid
-        start_time = time.time()
-
-        while time.time() - start_time < timeout:
-            # Check if process is still running
-            check_cmd = f"kill -0 {pid}"
-            _, exit_code = sandbox.run_command_in_container(check_cmd)
-
-            if exit_code != 0:
-                # Process finished
-                exit_code_val = self.get_task_exit_code(sandbox, task_id)
-                if exit_code_val is not None:
-                    task.exit_code = exit_code_val
-                    task.status = TaskStatus.COMPLETED
-                else:
-                    task.status = TaskStatus.UNKNOWN
-                return True
-
-            time.sleep(1)
-
-        return False
-
     async def wait_for_task_async(
         self, sandbox, task_id: str, timeout: int = 60
     ) -> bool:

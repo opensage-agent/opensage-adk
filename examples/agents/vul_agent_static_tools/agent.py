@@ -28,18 +28,8 @@ logger = logging.getLogger(__name__)
 
 def mk_agent(opensage_session_id="vulnerability-detection-agent-session"):
     opensage_session = get_opensage_session(opensage_session_id)
-    ensemble_manager = opensage_session.ensemble
-    ensemble_manager.add_thread_safe_tool("grep_tool")
-    ensemble_manager.add_thread_safe_tool("search_function")
-    ensemble_manager.add_thread_safe_tool("get_caller_by_funcname")
-    ensemble_manager.add_thread_safe_tool("get_callee_by_funcname")
-    ensemble_manager.add_thread_safe_tool("list_functions_in_file")
-    ensemble_manager.add_thread_safe_tool("get_line_around_linenum_in_file")
-    ensemble_manager.add_thread_safe_tool("neo4j_query")
-    # ensemble_manager.add_thread_safe_tool("joern_slice")
-    # ensemble_manager.add_thread_safe_tool("joern_query")
     config = opensage_session.config
-    config.agent_ensemble.available_models_for_ensemble = [
+    config.subagent.available_models_for_ensemble = [
         "anthropic/claude-sonnet-4-5-20250929",
         "openai/o4-mini",
         "openai/gpt-5",

@@ -76,7 +76,11 @@ class DynamicAgentManager:
         self.opensage_session_id = session.opensage_session_id
 
         # Get storage path from config, use default if not specified or empty
-        storage_path = session.config.agent_storage_path
+        storage_path = (
+            getattr(session.config.subagent, "agent_storage_path", None)
+            if session.config.subagent
+            else None
+        )
         if not storage_path:  # None or empty string
             storage_path = "~/.local/opensage/dynamic_agents"
 
@@ -350,7 +354,7 @@ class DynamicAgentManager:
         Args:
             caller_tools (Dict[str, Any]): Dictionary mapping tool names to tool instances from caller agent
             caller_agent (Optional[BaseAgent]): Optional caller agent instance (for enabled_skills check)"""
-        if not getattr(self.config, "load_dynamic_agents", False):
+        if not (self.config.subagent and self.config.subagent.load_dynamic_agents):
             return
 
         if not self.storage_path.exists():

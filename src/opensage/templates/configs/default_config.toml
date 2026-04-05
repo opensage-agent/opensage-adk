@@ -28,8 +28,6 @@ HOST_SHARED_MEM_DIR = ""
 
 task_name = "${TASK_NAME}"
 src_dir_in_sandbox = "/shared/code"
-agent_storage_path = "${AGENT_STORAGE_PATH}"
-load_dynamic_agents = false
 default_host = ""
 
 [neo4j]
@@ -192,7 +190,10 @@ enabled = false
 enabled = false
 
 
-[agent_ensemble]
+[subagent]
+max_llm_calls = 0
+agent_storage_path = "${AGENT_STORAGE_PATH}"
+load_dynamic_agents = false
 available_models_for_ensemble = "${AVAILABLE_MODELS}"
 
 [build]

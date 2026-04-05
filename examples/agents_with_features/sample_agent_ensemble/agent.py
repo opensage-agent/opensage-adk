@@ -43,15 +43,6 @@ calculation_agent_tool = AgentTool(agent=calculation_agent)
 
 
 def mk_agent(opensage_session_id: str):
-    opensage_session = get_opensage_session(opensage_session_id)
-    ensemble_manager = opensage_session.ensemble
-    ensemble_manager.add_thread_safe_tool("calculate_add")
-    config = opensage_session.config
-    config.agent_ensemble.available_models_for_ensemble = [
-        "openai/o4-mini",
-        "openai/gpt-5",
-    ]
-    opensage_session.config = config
     root_agent = OpenSageAgent(
         model=LiteLlm(model="openai/gpt-5"),
         name="simple_math_agent",

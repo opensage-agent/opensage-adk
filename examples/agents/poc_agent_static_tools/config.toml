@@ -26,7 +26,6 @@ PROJECT_RELATIVE_SHARED_DATA_PATH = ""
 
 task_name = "${TASK_NAME}"
 src_dir_in_sandbox = "/shared/code"
-agent_storage_path = "${AGENT_STORAGE_PATH}"
 default_host = ""
 
 [neo4j]
@@ -137,7 +136,8 @@ compaction_percent = 50
 #
 
 
-[agent_ensemble]
+[subagent]
+agent_storage_path = "${AGENT_STORAGE_PATH}"
 available_models_for_ensemble = "inherit"
 
 [build]

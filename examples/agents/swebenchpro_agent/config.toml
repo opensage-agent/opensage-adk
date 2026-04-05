@@ -52,7 +52,7 @@ max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
 max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
 compaction_percent = 50
 
-[agent_ensemble]
+[subagent]
 available_models_for_ensemble = "inherit"
 
 # Flag claims model configuration

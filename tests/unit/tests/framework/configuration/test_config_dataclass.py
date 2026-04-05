@@ -12,7 +12,6 @@ import pytest
 import toml
 
 from opensage.config.config_dataclass import (
-    AgentEnsembleConfig,
     BuildConfig,
     ContainerConfig,
     DatabaseMemoryConfig,
@@ -26,6 +25,7 @@ from opensage.config.config_dataclass import (
     Neo4jConfig,
     OpenSageConfig,
     SandboxConfig,
+    SubagentConfig,
     _expand_template_variables,
     load_config_from_toml,
 )
@@ -250,9 +250,9 @@ class TestDataclassCreation:
         assert config.events_compaction.max_history_summary_length == 80000
         assert config.events_compaction.compaction_percent == 60
 
-    def test_agent_ensemble_config_creation(self):
-        """Test AgentEnsembleConfig creation."""
-        config = AgentEnsembleConfig(
+    def test_subagent_config_creation(self):
+        """Test SubagentConfig creation."""
+        config = SubagentConfig(
             thread_safe_tools={"tool1", "tool2"},
             available_models_for_ensemble=["model1", "model2"],
         )
@@ -399,10 +399,10 @@ max_tokens = 2048
         assert summary_config.temperature == 0.3
         assert summary_config.max_tokens == 2048
 
-    def test_load_agent_ensemble_config_from_toml(self):
-        """Test loading agent ensemble configuration from TOML."""
+    def test_load_subagent_config_from_toml(self):
+        """Test loading subagent configuration from TOML."""
         toml_content = """
-[agent_ensemble]
+[subagent]
 thread_safe_tools = ["tool1", "tool2"]
 available_models_for_ensemble = "model1,model2,model3"
 """
@@ -412,9 +412,9 @@ available_models_for_ensemble = "model1,model2,model3"
 
         config = OpenSageConfig.from_toml(str(self.test_config_path))
 
-        assert config.agent_ensemble is not None
-        assert config.agent_ensemble.thread_safe_tools == {"tool1", "tool2"}
-        assert config.agent_ensemble.available_models_for_ensemble == [
+        assert config.subagent is not None
+        assert config.subagent.thread_safe_tools == {"tool1", "tool2"}
+        assert config.subagent.available_models_for_ensemble == [
             "model1",
             "model2",
             "model3",
@@ -560,7 +560,7 @@ class TestOpenSageConfigMethods:
             toml_path = Path(temp_dir) / "test_save.toml"
 
             self.config.task_name = "test_task"
-            self.config.agent_storage_path = "/tmp/storage"
+            self.config.subagent = SubagentConfig(agent_storage_path="/tmp/storage")
             self.config.save_to_toml(str(toml_path))
 
             assert toml_path.exists()
@@ -568,7 +568,7 @@ class TestOpenSageConfigMethods:
             # Load and verify the saved content
             loaded_data = toml.load(toml_path)
             assert loaded_data["task_name"] == "test_task"
-            assert loaded_data["agent_storage_path"] == "/tmp/storage"
+            assert loaded_data["subagent"]["agent_storage_path"] == "/tmp/storage"
 
     def test_copy(self):
         """Test configuration deep copy."""

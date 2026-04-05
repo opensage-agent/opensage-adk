@@ -61,9 +61,23 @@ def requires_sandbox(*sandbox_types: str) -> Callable[[F], F]:
     return decorator
 
 
-def collect_sandbox_dependencies(agent) -> set[str]:
-    """Collect sandbox dependencies from an agent and its tools."""
+def collect_sandbox_dependencies(agent, config=None) -> set[str]:
+    """Collect sandbox dependencies from an agent and its tools.
+
+    Args:
+        agent: The agent to collect dependencies from.
+        config: Optional OpenSageConfig. If provided and database-based
+            short-term memory is enabled, "neo4j" is added automatically.
+    """
     dependencies = set()
+
+    if config is not None:
+        from opensage.memory.database_based.short_term.config import (
+            is_database_short_term_enabled_from_config,
+        )
+
+        if is_database_short_term_enabled_from_config(config):
+            dependencies.add("neo4j")
 
     if hasattr(agent, "tools") and agent.tools:
         for tool in agent.tools:

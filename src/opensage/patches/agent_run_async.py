@@ -543,8 +543,33 @@ def apply() -> None:
             )
             or 0
         )
-        remaining = min(50, max(0, (limit - used) if limit > 0 else 50))
+        # Read per-subagent cap from config (0 = unlimited)
+        subagent_cap = 0
+        try:
+            from opensage.session import get_opensage_session
+            from opensage.utils.agent_utils import get_opensage_session_id_from_context
+
+            _osid = get_opensage_session_id_from_context(tool_context)
+            _os_session = get_opensage_session(_osid)
+            _subagent_cfg = getattr(_os_session.config, "subagent", None)
+            if _subagent_cfg:
+                subagent_cap = int(getattr(_subagent_cfg, "max_llm_calls", 0) or 0)
+        except Exception:
+            pass
+        parent_remaining = max(0, limit - used) if limit > 0 else None
+        if subagent_cap > 0 and parent_remaining is not None:
+            remaining = min(subagent_cap, parent_remaining)
+        elif subagent_cap > 0:
+            remaining = subagent_cap
+        elif parent_remaining is not None:
+            remaining = parent_remaining
+        else:
+            remaining = None  # no cap — use ADK default
         remaining_for_this_child = remaining
+
+        run_cfg = (
+            RunConfig(max_llm_calls=remaining) if remaining is not None else RunConfig()
+        )
 
         last_event = None
         try:
@@ -552,7 +577,7 @@ def apply() -> None:
                 user_id=session.user_id,
                 session_id=session.id,
                 new_message=content,
-                run_config=RunConfig(max_llm_calls=remaining),
+                run_config=run_cfg,
             ):
                 try:
                     logger.warning(
@@ -581,16 +606,17 @@ def apply() -> None:
                 parts=[types.Part.from_text(text=summary_prompt)],
             )
             fallback_last_event = None
+            fallback_cap = min(remaining, 5) if remaining is not None else 5
             async for ev in runner.run_async(
                 user_id=session.user_id,
                 session_id=session.id,
                 new_message=summary_content,
-                run_config=RunConfig(max_llm_calls=min(remaining, 5)),
+                run_config=RunConfig(max_llm_calls=fallback_cap),
             ):
                 fallback_last_event = ev
             if fallback_last_event:
                 last_event = fallback_last_event
-            session.state["_adk"]["llm_calls_used"] = remaining_for_this_child
+            session.state["_adk"]["llm_calls_used"] = remaining_for_this_child or 0
 
         return last_event, session
 

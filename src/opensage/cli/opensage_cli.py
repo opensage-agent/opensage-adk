@@ -139,9 +139,9 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
     try:
         mk_agent = _load_mk_agent_from_dir(agent_dir)
         dummy_agent = mk_agent(opensage_session_id=session_id)
-        sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
-        if is_database_short_term_enabled_from_config(opensage_session.config):
-            sandbox_dependencies.add("neo4j")
+        sandbox_dependencies = collect_sandbox_dependencies(
+            dummy_agent, config=opensage_session.config
+        )
         tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
         if (
             opensage_session.config.sandbox

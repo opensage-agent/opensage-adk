@@ -5,7 +5,6 @@ Provides centralized configuration management with per-session support.
 """
 
 from .config_dataclass import (
-    AgentEnsembleConfig,
     BuildConfig,
     ContainerConfig,
     HistoryConfig,
@@ -17,6 +16,7 @@ from .config_dataclass import (
     OpenSageConfig,
     OpenSandboxConfig,
     SandboxConfig,
+    SubagentConfig,
     load_config_from_toml,
 )
 
@@ -29,7 +29,7 @@ __all__ = [
     "ModelConfig",
     "LLMConfig",
     "HistoryConfig",
-    "AgentEnsembleConfig",
+    "SubagentConfig",
     "BuildConfig",
     "MCPServiceConfig",
     "MCPConfig",

@@ -68,11 +68,7 @@ async def critique(tool_context: ToolContext):
     try:
         opensage_session_id = get_opensage_session_id_from_context(tool_context)
         session = get_opensage_session(opensage_session_id)
-        FLAG_UNJUSTIFIED_CLAIMS_MODEL = session.config.llm.flag_claims_model
-        if not FLAG_UNJUSTIFIED_CLAIMS_MODEL:
-            print("FLAG_UNJUSTIFIED_CLAIMS_MODEL not configured in LLM settings")
-            return []
-        model_name = FLAG_UNJUSTIFIED_CLAIMS_MODEL
+        model_name = session.config.llm.flag_claims_model or INHERIT_MODEL
         # Get session and current conversation history
         invocation_context = tool_context._invocation_context
         session = invocation_context.session
@@ -224,11 +220,7 @@ async def flag_unjustified_claims(tool_context: ToolContext):
     # Get model name from environment variable
     opensage_session_id = get_opensage_session_id_from_context(tool_context)
     session = get_opensage_session(opensage_session_id)
-    FLAG_UNJUSTIFIED_CLAIMS_MODEL = session.config.llm.flag_claims_model
-    if not FLAG_UNJUSTIFIED_CLAIMS_MODEL:
-        print("FLAG_UNJUSTIFIED_CLAIMS_MODEL not configured in LLM settings")
-        return []
-    model_name = FLAG_UNJUSTIFIED_CLAIMS_MODEL
+    model_name = session.config.llm.flag_claims_model or INHERIT_MODEL
 
     # Get events from tool context
     events = tool_context._invocation_context.session.events

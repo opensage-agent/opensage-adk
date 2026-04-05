@@ -3,4 +3,3 @@ MAIN_MODEL = "gemini-2.5-flash"
 AGENT_STORAGE_PATH = ""
 
 task_name = "google_search_demo"
-agent_storage_path = "${AGENT_STORAGE_PATH}"

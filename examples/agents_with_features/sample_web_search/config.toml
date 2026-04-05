@@ -3,4 +3,3 @@ MAIN_MODEL = "anthropic/claude-sonnet-4-6"
 AGENT_STORAGE_PATH = ""
 
 task_name = "web_search_demo"
-agent_storage_path = "${AGENT_STORAGE_PATH}"

@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from opensage.config.config_dataclass import OpenSageConfig
+from opensage.config.config_dataclass import OpenSageConfig, SubagentConfig
 from opensage.session.opensage_dynamic_agent_manager import (
     AgentMetadata,
     AgentStatus,
@@ -112,7 +112,7 @@ class TestDynamicAgentManager:
 
         # Create test configuration
         self.config = OpenSageConfig()
-        self.config.agent_storage_path = self.temp_dir
+        self.config.subagent = SubagentConfig(agent_storage_path=self.temp_dir)
 
         # Create mock session
         class MockSession:
@@ -140,7 +140,7 @@ class TestDynamicAgentManager:
     def test_init_with_default_storage_path(self):
         """Test manager initialization with default storage path."""
         config = OpenSageConfig()
-        config.agent_storage_path = None  # No storage path specified
+        config.subagent = SubagentConfig(agent_storage_path=None)
 
         class MockSession:
             def __init__(self, session_id, config):
@@ -158,7 +158,7 @@ class TestDynamicAgentManager:
     def test_init_with_empty_storage_path(self):
         """Test manager initialization with empty storage path."""
         config = OpenSageConfig()
-        config.agent_storage_path = ""  # Empty string
+        config.subagent = SubagentConfig(agent_storage_path="")
 
         class MockSession:
             def __init__(self, session_id, config):

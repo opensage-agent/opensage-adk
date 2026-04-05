@@ -2,7 +2,6 @@
 
 task_name = "sample_dynamic_subagent_task"
 src_dir_in_sandbox = "/shared/code"
-agent_storage_path = "/tmp/dynamic_agent_test/agent_storage"
 
 [sandbox]
 backend = "native"
@@ -21,7 +20,8 @@ model_name = "openai/o4-mini"
 temperature = 0.2
 max_tokens = 2048
 
-[agent_ensemble]
+[subagent]
+agent_storage_path = "/tmp/dynamic_agent_test/agent_storage"
 available_models_for_ensemble = ["openai/o4-mini", "openai/gpt-5"]
 
 [plugins]

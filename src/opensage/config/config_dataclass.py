@@ -368,13 +368,17 @@ class PluginsConfig:
 
 
 @dataclass
-class AgentEnsembleConfig:
-    """Agent ensemble configuration."""
+class SubagentConfig:
+    """Subagent and ensemble configuration."""
 
+    # Per-subagent LLM call limit. 0 = unlimited (bounded only by parent's remaining quota).
+    max_llm_calls: int = 0
+    # Path where dynamically created agents are stored.
+    agent_storage_path: Optional[str] = None
+    # Whether to load dynamic agents at startup.
+    load_dynamic_agents: bool = False
     # If True, only agents whose tools are all listed in thread_safe_tools are
-    # considered "safe" and allowed for ensemble execution. If False, the
-    # thread_safe_tools filtering is disabled (all discovered agents are treated
-    # as safe).
+    # considered "safe" and allowed for ensemble execution.
     enforce_thread_safe_tools: bool = False
     thread_safe_tools: Set[str] = field(default_factory=set)
     available_models_for_ensemble: List[str] = field(default_factory=list)
@@ -506,14 +510,12 @@ class OpenSageConfig:
     llm: LLMConfig = None
     history: HistoryConfig = None
     plugins: PluginsConfig = field(default_factory=PluginsConfig)
-    agent_ensemble: AgentEnsembleConfig = None
+    subagent: SubagentConfig = None
     build: BuildConfig = None
     mcp: MCPConfig = None
     memory: MemoryConfig = None
     task_name: str = None
     src_dir_in_sandbox: str = None
-    agent_storage_path: Optional[str] = None
-    load_dynamic_agents: bool = False
     default_host: str = None
 
     auto_cleanup: bool = True
@@ -572,13 +574,13 @@ class OpenSageConfig:
         """Preprocess config data for special conversions before dacite.
 
         Modifies data dict in-place to handle:
-        - agent_ensemble: list → set, comma-separated string → list
+        - subagent: list → set, comma-separated string → list
         - build: empty string → None
         - mcp: convert to MCPServiceConfig with proper initialization
         """
         # Agent Ensemble: list → set, comma-separated string → list
-        if "agent_ensemble" in data:
-            ensemble_data = data["agent_ensemble"]
+        if "subagent" in data:
+            ensemble_data = data["subagent"]
 
             # Convert thread_safe_tools list to set
             if "thread_safe_tools" in ensemble_data:

@@ -293,11 +293,8 @@ class OpenSageEnsembleManager:
     def get_available_models(self) -> List[str]:
         """Get available models for ensemble from configuration."""
         config = self.config
-        if (
-            config.agent_ensemble
-            and config.agent_ensemble.available_models_for_ensemble
-        ):
-            return config.agent_ensemble.available_models_for_ensemble.copy()
+        if config.subagent and config.subagent.available_models_for_ensemble:
+            return config.subagent.available_models_for_ensemble.copy()
         # Default: at least "inherit" is always available
         return ["inherit"]
 

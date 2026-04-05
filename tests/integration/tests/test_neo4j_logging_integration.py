@@ -18,6 +18,7 @@ from google.adk import Runner
 from google.adk.apps.app import App
 from google.genai import types
 
+from opensage.config.config_dataclass import SubagentConfig
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
@@ -131,11 +132,7 @@ class TestNeo4jLoggingIntegration:
         )
         sys.path.insert(0, examples_dir)
 
-        from sample_neo4j_logging import agent as agent_module
-
-        root_agent = agent_module.mk_agent(opensage_session_id=opensage_session_id)
-
-        # Prepare OpenSage environment for given opensage_session_id
+        # Load per-example config BEFORE mk_agent so session uses correct config
         config_path = os.path.join(
             examples_dir,
             "sample_neo4j_logging",
@@ -144,26 +141,19 @@ class TestNeo4jLoggingIntegration:
         opensage_session = get_opensage_session(
             opensage_session_id=opensage_session_id, config_path=config_path
         )
+
+        from sample_neo4j_logging import agent as agent_module
+
+        root_agent = agent_module.mk_agent(opensage_session_id=opensage_session_id)
         # Force storage path via config to avoid env coupling
-        opensage_session.config.agent_storage_path = test_env["test_storage_dir"]
-        try:
-            deps = collect_sandbox_dependencies(root_agent)
-            if (
-                opensage_session.config.sandbox
-                and opensage_session.config.sandbox.sandboxes
-                and deps
-            ):
-                unused = [
-                    s
-                    for s in list(opensage_session.config.sandbox.sandboxes.keys())
-                    if s not in deps
-                ]
-                for s in unused:
-                    del opensage_session.config.sandbox.sandboxes[s]
-        except Exception:
-            pass
+        if not opensage_session.config.subagent:
+            opensage_session.config.subagent = SubagentConfig()
+        opensage_session.config.subagent.agent_storage_path = test_env[
+            "test_storage_dir"
+        ]
+        deps = collect_sandbox_dependencies(root_agent, config=opensage_session.config)
         opensage_session.sandboxes.initialize_shared_volumes()
-        await opensage_session.sandboxes.launch_all_sandboxes()
+        await opensage_session.sandboxes.launch_all_sandboxes(sandbox_types=deps)
         await opensage_session.sandboxes.initialize_all_sandboxes(
             continue_on_error=True
         )

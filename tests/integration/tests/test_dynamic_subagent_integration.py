@@ -23,6 +23,7 @@ from google.adk.apps.app import App
 from google.adk.events import Event
 from google.genai import types
 
+from opensage.config.config_dataclass import SubagentConfig
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
@@ -75,28 +76,12 @@ class DynamicSubagentTestRunner:
             opensage_session_id=self.current_session_id, config_path=config_path
         )
         # Force storage path via config to avoid env coupling
-        opensage_session.config.agent_storage_path = AGENT_STORAGE_PATH
-        try:
-            deps = collect_sandbox_dependencies(self.agent)
-            if (
-                opensage_session.config.sandbox
-                and opensage_session.config.sandbox.sandboxes
-                and deps
-            ):
-                # prune unused sandboxes
-                unused = [
-                    s
-                    for s in list(opensage_session.config.sandbox.sandboxes.keys())
-                    if s not in deps
-                ]
-                for s in unused:
-                    del opensage_session.config.sandbox.sandboxes[s]
-        except Exception:
-            # If dependency collection fails, continue with config as-is
-            pass
-        # Initialize sandboxes
+        if not opensage_session.config.subagent:
+            opensage_session.config.subagent = SubagentConfig()
+        opensage_session.config.subagent.agent_storage_path = AGENT_STORAGE_PATH
+        deps = collect_sandbox_dependencies(self.agent, config=opensage_session.config)
         opensage_session.sandboxes.initialize_shared_volumes()
-        await opensage_session.sandboxes.launch_all_sandboxes()
+        await opensage_session.sandboxes.launch_all_sandboxes(sandbox_types=deps)
         await opensage_session.sandboxes.initialize_all_sandboxes(
             continue_on_error=True
         )

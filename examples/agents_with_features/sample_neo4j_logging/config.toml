@@ -47,7 +47,7 @@ enabled = true
 
 [llm]
 [llm.model_configs.main]
-model_name = "openai/o4-mini"
+model_name = "openai/gpt-5"
 temperature = 0.2
 max_tokens = 2048
 

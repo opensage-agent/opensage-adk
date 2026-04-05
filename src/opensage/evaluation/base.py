@@ -898,9 +898,9 @@ class Evaluation(abc.ABC):
         dummy_agent = self._mk_agent_original(opensage_session_id=task.session_id)
 
         # Collect sandbox dependencies from agent
-        sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
-        if is_database_short_term_enabled_from_config(opensage_session.config):
-            sandbox_dependencies.add("neo4j")
+        sandbox_dependencies = collect_sandbox_dependencies(
+            dummy_agent, config=opensage_session.config
+        )
         tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
 
         # Strong behavior:

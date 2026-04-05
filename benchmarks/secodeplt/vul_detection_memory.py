@@ -11,6 +11,9 @@ from typing import Any, Callable, Coroutine, Optional, TypeVar
 
 import datasets
 import fire
+from examples.agents.code_understanding_agent import (
+    create_code_understanding_agent_tool,
+)
 from google import adk
 from google.adk import Runner
 from google.adk.agents import LlmAgent, RunConfig
@@ -24,9 +27,6 @@ from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field
 
-from examples.agents.code_understanding_agent import (
-    create_code_understanding_agent_tool,
-)
 from opensage import OpenSageSession
 from opensage.evaluation.base import Evaluation, EvaluationTask
 from opensage.session import get_opensage_session

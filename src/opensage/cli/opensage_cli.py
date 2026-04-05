@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import os
 import re
+import signal
 import sys
 import time
 from pathlib import Path
@@ -602,12 +604,6 @@ def _verify_agent_module(agent_dir: str) -> None:
     help="Port for the server.",
 )
 @click.option(
-    "--reload/--no-reload",
-    default=True,
-    show_default=True,
-    help="Whether to enable auto reload.",
-)
-@click.option(
     "--log_level",
     type=click.Choice(
         ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
@@ -651,7 +647,6 @@ def cli_web(
     agent_dir: str,
     host: str,
     port: int,
-    reload: bool,
     log_level: str,
     auto_cleanup: bool,
     resume: bool,
@@ -664,6 +659,16 @@ def cli_web(
     web_server: OpenSageWebServer | None = None
     session_user_id = "user"
     resume_requested = resume or bool(resume_from)
+
+    def _cli_signal_handler(signum, _frame):
+        logger.warning(
+            "Received signal %s, interrupting OpenSage web server.",
+            signum,
+        )
+        if signum == signal.SIGINT:
+            raise KeyboardInterrupt
+        raise SystemExit(128 + signum)
+
     try:
         # Normalize logging
         logging.basicConfig(level=getattr(logging, log_level.upper()))
@@ -791,7 +796,6 @@ def cli_web(
             app,
             host=host,
             port=port,
-            reload=reload,
             log_level=log_level.lower(),
         )
         click.secho(
@@ -799,6 +803,9 @@ def cli_web(
             fg="green",
         )
         server = uvicorn.Server(config)
+        server.capture_signals = lambda: contextlib.nullcontext()
+        signal.signal(signal.SIGINT, _cli_signal_handler)
+        signal.signal(signal.SIGTERM, _cli_signal_handler)
         server.run()
     finally:
         if session_id is not None:

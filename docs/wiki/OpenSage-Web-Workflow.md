@@ -195,8 +195,9 @@ app = web_server.get_fast_api_app(allow_origins=None, enable_dev_ui=True)
 ### Step 11: Start Uvicorn Server
 
 ```python
-config = uvicorn.Config(app, host=host, port=port, reload=reload, log_level=log_level.lower())
+config = uvicorn.Config(app, host=host, port=port, log_level=log_level.lower())
 server = uvicorn.Server(config)
+server.install_signal_handlers = lambda: None
 server.run()
 ```
 
@@ -211,7 +212,7 @@ server.run()
 
 When server stops (Ctrl+C):
 
-- Signal handler calls `cleanup_all_sessions()`
-- Sandbox containers are stopped
-- Shared volumes are cleaned up (if configured)
-- Session registry is cleared
+- CLI-level signal handling interrupts `server.run()`
+- Cleanup or session snapshot persistence runs in the `finally` block
+- Sandbox containers are stopped only when `auto_cleanup=True`
+- Session registry is cleared when cleanup runs

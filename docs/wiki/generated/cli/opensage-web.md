@@ -14,8 +14,6 @@ Options:
   --host TEXT                     Binding host for the server.  [default:
                                   127.0.0.1]
   --port INTEGER                  Port for the server.  [default: 8000]
-  --reload / --no-reload          Whether to enable auto reload.  [default:
-                                  reload]
   --log_level [debug|info|warning|error|critical]
                                   Logging level for the server.  [default:
                                   INFO]

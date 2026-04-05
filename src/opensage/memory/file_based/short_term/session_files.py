@@ -264,12 +264,41 @@ def scan_host_agent_tree(session_id: str) -> dict:
             pass
         return ""
 
+    def _infer_status(traj_path: Path) -> str:
+        """Infer status from the last event in traj.json."""
+        if not traj_path.exists():
+            return "running"
+        try:
+            import json as _j
+
+            data = _j.loads(traj_path.read_text(encoding="utf-8"))
+            events = data.get("events") or []
+            if not events:
+                return "running"
+
+            last_event = events[-1] or {}
+            content = last_event.get("content") or {}
+            parts = content.get("parts") or []
+            if content.get("role") == "model" and parts:
+                if all(
+                    isinstance(part, dict)
+                    and "text" in part
+                    and "function_call" not in part
+                    and "function_response" not in part
+                    for part in parts
+                ):
+                    return "completed"
+        except Exception:
+            pass
+        return "running"
+
     def _scan(directory: Path) -> dict | None:
         if not directory.is_dir():
             return None
         agent_name, sid = _parse_dir_name(directory.name)
         traj_path = directory / "traj.json"
         has_traj = traj_path.exists()
+        status = _infer_status(traj_path)
         query = _extract_query(traj_path) if has_traj else ""
         children = []
         for child in sorted(directory.iterdir()):
@@ -282,6 +311,7 @@ def scan_host_agent_tree(session_id: str) -> dict:
             "session_id": sid,
             "dir": str(directory.relative_to(mem_root)),
             "has_traj": has_traj,
+            "status": status,
             "query": query,
             "children": children,
         }
@@ -297,7 +327,7 @@ def scan_host_agent_tree(session_id: str) -> dict:
                 "parent_name": parent_name,
                 "has_traj": node["has_traj"],
                 "query": node.get("query", ""),
-                "status": "completed" if node["has_traj"] else "running",
+                "status": node.get("status", "running"),
             }
         )
         for child in node.get("children", []):

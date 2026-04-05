@@ -371,6 +371,12 @@ class PluginsConfig:
 class AgentEnsembleConfig:
     """Agent ensemble configuration."""
 
+    # If True, only agents whose tools are all listed in thread_safe_tools are
+    # considered "safe" and allowed for ensemble execution. If False, the
+    # thread_safe_tools filtering is disabled (all discovered agents are treated
+    # as safe).
+    enforce_thread_safe_tools: bool = False
+    thread_safe_tools: Set[str] = field(default_factory=set)
     available_models_for_ensemble: List[str] = field(default_factory=list)
 
 
@@ -573,6 +579,12 @@ class OpenSageConfig:
         # Agent Ensemble: list → set, comma-separated string → list
         if "agent_ensemble" in data:
             ensemble_data = data["agent_ensemble"]
+
+            # Convert thread_safe_tools list to set
+            if "thread_safe_tools" in ensemble_data:
+                ensemble_data["thread_safe_tools"] = set(
+                    ensemble_data["thread_safe_tools"]
+                )
 
             # Handle comma-separated available_models_for_ensemble string
             if "available_models_for_ensemble" in ensemble_data:

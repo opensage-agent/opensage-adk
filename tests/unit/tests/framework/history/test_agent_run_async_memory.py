@@ -5,6 +5,9 @@ from types import SimpleNamespace
 import pytest
 
 from opensage.memory.file_based.short_term import session_files
+from opensage.memory.file_based.short_term.session_files import (
+    compute_host_root_mem_dir,
+)
 from opensage.patches import agent_run_async
 
 
@@ -96,9 +99,10 @@ def test_build_root_session_state_adds_mem_dir_for_file_memory(monkeypatch) -> N
     assert state["opensage_session_id"] == "opensage-1"
     assert state["custom"] == "value"
     assert state["_mem_agent_dir"] == "/mem/short_term/Root_Agent__sess-42"
-    assert (
-        state["_host_mem_dir"]
-        == "/root/.local/opensage/sessions/opensage-1/mem/Root_Agent__sess-42"
+    assert state["_host_mem_dir"] == compute_host_root_mem_dir(
+        opensage_session_id="opensage-1",
+        agent_name="Root Agent",
+        session_id="sess-42",
     )
 
 
@@ -120,8 +124,10 @@ def test_build_root_session_state_omits_mem_dir_for_non_file_memory(
 
     assert state == {
         "opensage_session_id": "opensage-1",
-        "_host_mem_dir": (
-            "/root/.local/opensage/sessions/opensage-1/mem/Root_Agent__sess-42"
+        "_host_mem_dir": compute_host_root_mem_dir(
+            opensage_session_id="opensage-1",
+            agent_name="Root Agent",
+            session_id="sess-42",
         ),
     }
 

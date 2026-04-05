@@ -193,8 +193,6 @@ enabled = false
 
 
 [agent_ensemble]
-enforce_thread_safe_tools = false
-thread_safe_tools = []
 available_models_for_ensemble = "${AVAILABLE_MODELS}"
 
 [build]

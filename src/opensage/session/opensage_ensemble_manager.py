@@ -80,57 +80,6 @@ class OpenSageEnsembleManager:
         """Get agent manager from session dynamically."""
         return self._session.agents
 
-    def get_thread_safe_tools(self) -> Set[str]:
-        """Get the current set of thread-safe tools from configuration."""
-        config = self.config
-        if config.agent_ensemble and config.agent_ensemble.thread_safe_tools:
-            return config.agent_ensemble.thread_safe_tools.copy()
-        return set()
-
-    def add_thread_safe_tool(self, tool_name: str) -> None:
-        """Add a tool to the thread-safe tools list."""
-        config = self.config
-        if not config.agent_ensemble:
-            from ..config.config_dataclass import AgentEnsembleConfig
-
-            config.agent_ensemble = AgentEnsembleConfig()
-
-        config.agent_ensemble.thread_safe_tools.add(tool_name)
-        logger.info(
-            f"Added thread-safe tool: {tool_name} to session {self.opensage_session_id}"
-        )
-
-    def add_thread_safe_tools(self, tool_names: List[str]) -> None:
-        """Add multiple tools to the thread-safe tools list."""
-        config = self.config
-        if not config.agent_ensemble:
-            from ..config.config_dataclass import AgentEnsembleConfig
-
-            config.agent_ensemble = AgentEnsembleConfig()
-
-        config.agent_ensemble.thread_safe_tools.update(tool_names)
-        logger.info(
-            f"Added {len(tool_names)} thread-safe tools to session {self.opensage_session_id}"
-        )
-
-    def remove_thread_safe_tool(self, tool_name: str) -> bool:
-        """Remove a tool from the thread-safe tools list. Returns True if removed."""
-        config = self.config
-        if not config.agent_ensemble or not config.agent_ensemble.thread_safe_tools:
-            return False
-
-        if tool_name in config.agent_ensemble.thread_safe_tools:
-            config.agent_ensemble.thread_safe_tools.remove(tool_name)
-            logger.info(
-                f"Removed thread-safe tool: {tool_name} from session {self.opensage_session_id}"
-            )
-            return True
-        return False
-
-    def is_tool_thread_safe(self, tool_name: str) -> bool:
-        """Check if a tool is thread-safe."""
-        return tool_name in self.get_thread_safe_tools()
-
     def _extract_tool_names_from_agent(self, agent: BaseAgent) -> List[str]:
         """Extract tool names from an agent instance."""
         tool_names = []
@@ -270,71 +219,21 @@ class OpenSageEnsembleManager:
         )
         return discovered
 
-    def filter_thread_safe_agents(
-        self, agents: List[EnsembleAgentInfo]
-    ) -> Dict[str, List[EnsembleAgentInfo]]:
-        """Filter agents based on thread-safe tools coverage."""
-        config = self.config
-        enforce = True
-        if config and config.agent_ensemble:
-            enforce = getattr(config.agent_ensemble, "enforce_thread_safe_tools", True)
-
-        if not enforce:
-            return {"safe_agents": agents, "unsafe_agents": []}
-
-        safe_agents = []
-        unsafe_agents = []
-        thread_safe_tools = self.get_thread_safe_tools()
-
-        for agent in agents:
-            agent_tools = set(agent.tools)
-
-            # Check if all agent tools are in thread_safe_tools
-            if agent_tools.issubset(thread_safe_tools):
-                safe_agents.append(agent)
-            else:
-                # Find tools that are not thread-safe
-                unsafe_tools = agent_tools - thread_safe_tools
-                # Add unsafe_tools info to the agent for debugging
-                agent_info = EnsembleAgentInfo(
-                    name=agent.name,
-                    description=agent.description,
-                    tools=agent.tools,
-                    model=agent.model,
-                    agent_type=agent.agent_type,
-                    agent_instance=agent.agent_instance,
-                    source_path=agent.source_path,
-                )
-                # Store unsafe tools in a custom attribute
-                setattr(agent_info, "unsafe_tools", list(unsafe_tools))
-                unsafe_agents.append(agent_info)
-        return {"safe_agents": safe_agents, "unsafe_agents": unsafe_agents}
-
     def get_ensemble_ready_agents(
         self, current_agent: BaseAgent, include_dynamic: bool = True
     ) -> Dict[str, Any]:
         """Get all agents ready for ensemble from both static and dynamic sources."""
-        thread_safe_tools = self.get_thread_safe_tools()
-
         result = {
             "static_agents": [],
             "dynamic_agents": [],
             "safe_agents": [],
-            "unsafe_agents": [],
-            "thread_safe_tools": list(thread_safe_tools),
             "summary": {},
         }
 
         # Discover static agents
         static_agents = self.discover_all_static_agents(current_agent)
-        filtered_static = self.filter_thread_safe_agents(static_agents)
-        logger.info(
-            f"Filtered static agents in session {self.opensage_session_id}: {len(filtered_static['safe_agents'])} safe, {len(filtered_static['unsafe_agents'])} unsafe"
-        )
-
         result["static_agents"] = static_agents
-        result["safe_agents"].extend(filtered_static["safe_agents"])
-        result["unsafe_agents"].extend(filtered_static["unsafe_agents"])
+        result["safe_agents"].extend(static_agents)
 
         # Include dynamic agents if requested
         if include_dynamic:
@@ -344,13 +243,11 @@ class OpenSageEnsembleManager:
                     caller_tools, current_agent
                 )
 
-                # Get dynamic agents from this session's agent manager (includes loaded ones)
                 all_dynamic = self.agent_manager.list_agents()
 
                 dynamic_agents = []
                 for agent_metadata in all_dynamic:
                     agent_instance = self.agent_manager.get_agent(agent_metadata.id)
-                    # Only include OpenSageAgent instances (ensemble only supports OpenSageAgent)
                     if agent_instance and isinstance(agent_instance, OpenSageAgent):
                         tools = self._extract_tool_names_from_agent(agent_instance)
                         model = (
@@ -358,7 +255,6 @@ class OpenSageEnsembleManager:
                             if agent_metadata.config
                             else "default"
                         )
-                        # Extract enabled_skills from OpenSageAgent
                         enabled_skills = getattr(
                             agent_instance, "_enabled_skills", None
                         )
@@ -377,27 +273,19 @@ class OpenSageEnsembleManager:
                             )
                         )
 
-                filtered_dynamic = self.filter_thread_safe_agents(dynamic_agents)
-                logger.info(
-                    f"Filtered dynamic agents in session {self.opensage_session_id}: {len(filtered_dynamic['safe_agents'])} safe, {len(filtered_dynamic['unsafe_agents'])} unsafe"
-                )
                 result["dynamic_agents"] = dynamic_agents
-                result["safe_agents"].extend(filtered_dynamic["safe_agents"])
-                result["unsafe_agents"].extend(filtered_dynamic["unsafe_agents"])
+                result["safe_agents"].extend(dynamic_agents)
 
             except Exception as e:
                 logger.warning(
                     f"Failed to include dynamic agents in session {self.opensage_session_id}: {e}"
                 )
 
-        # Generate summary
         result["summary"] = {
             "opensage_session_id": self.opensage_session_id,
             "total_static_agents": len(static_agents),
             "total_dynamic_agents": len(result["dynamic_agents"]),
-            "total_safe_agents": len(result["safe_agents"]),
-            "total_unsafe_agents": len(result["unsafe_agents"]),
-            "thread_safe_tools_count": len(thread_safe_tools),
+            "total_agents": len(result["safe_agents"]),
         }
 
         return result
@@ -410,7 +298,8 @@ class OpenSageEnsembleManager:
             and config.agent_ensemble.available_models_for_ensemble
         ):
             return config.agent_ensemble.available_models_for_ensemble.copy()
-        return []
+        # Default: at least "inherit" is always available
+        return ["inherit"]
 
     async def execute_agent_ensemble(
         self,

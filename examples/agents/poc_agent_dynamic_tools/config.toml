@@ -146,7 +146,6 @@ compaction_percent = 50
 
 
 [agent_ensemble]
-thread_safe_tools = []
 available_models_for_ensemble = "inherit"
 
 [build]

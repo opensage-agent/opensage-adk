@@ -36,7 +36,7 @@ class OpenSageSession:
     - Configuration management (TOML loading, env overrides)
     - Agent lifecycle management (creation, persistence, cleanup)
     - Sandbox management (Docker containers, resource isolation)
-    - Agent ensemble management (thread-safe tools, agent discovery)
+    - Agent ensemble management (agent discovery)
 
     This replaces the previous singleton-based architecture with a clear
     session-bound resource management model.
@@ -144,14 +144,12 @@ class OpenSageSession:
         """
         agent_stats = self.agents.get_session_statistics()
         sandbox_stats = self.sandboxes.get_session_statistics()
-        thread_safe_tools = self.ensemble.get_thread_safe_tools()
 
         return {
             "opensage_session_id": self.opensage_session_id,
             "config_status": "loaded",
             "active_agents": agent_stats["total_agents"],
             "active_sandboxes": sandbox_stats["total_sandboxes"],
-            "thread_safe_tools_count": len(thread_safe_tools),
         }
 
     def cleanup(self) -> None:

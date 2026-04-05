@@ -350,32 +350,25 @@ async def get_available_agents_for_ensemble(tool_context: ToolContext):
     """
     Get the available agents for the ensemble.
     Uses AgentEnsembleManager to discover static subagents, agent tools, and dynamic agents.
-    Only agents whose tools are all covered by THREAD_SAFE_TOOLS are considered safe for ensemble.
 
     Note that maybe there are no agents that are suitable for the current task, you should create a dynamic subagent that is suitable for the current task and then call it by agent_ensemble tool.
-    Pick up thread-safe tools for dynamic agents if you want to create one for the current task.
 
     Returns:
-        Dictionary with safe_agents list, summary, and agent counts
+        Dictionary with available agents list, summary, and agent counts
     """
     try:
-        # Get session ID from tool context or use default
         session_id = get_opensage_session_id_from_context(tool_context)
-
-        # Use session-specific OpenSageEnsembleManager
         opensage_session = get_opensage_session(session_id)
         ensemble_manager = opensage_session.ensemble
         current_agent = tool_context._invocation_context.agent
 
-        # Get all ensemble-ready agents (static + dynamic) in current session
         ensemble_result = ensemble_manager.get_ensemble_ready_agents(
             current_agent=current_agent, include_dynamic=True
         )
 
-        # Convert EnsembleAgentInfo objects to dictionaries for API response
-        safe_agents = []
+        agents = []
         for agent_info in ensemble_result["safe_agents"]:
-            safe_agents.append(
+            agents.append(
                 {
                     "name": agent_info.name,
                     "description": agent_info.description,
@@ -386,33 +379,16 @@ async def get_available_agents_for_ensemble(tool_context: ToolContext):
                 }
             )
 
-        unsafe_agents = []
-        for agent_info in ensemble_result["unsafe_agents"]:
-            unsafe_tools = getattr(agent_info, "unsafe_tools", [])
-            unsafe_agents.append(
-                {
-                    "name": agent_info.name,
-                    "description": agent_info.description,
-                    "tools": agent_info.tools,
-                    "model": agent_info.model,
-                    "agent_type": agent_info.agent_type,
-                    "source_path": agent_info.source_path,
-                    "unsafe_tools": unsafe_tools,
-                }
-            )
-
-        safe_agent_names = [agent["name"] for agent in safe_agents]
+        agent_names = [a["name"] for a in agents]
 
         return {
             "success": True,
-            "safe_agents": safe_agent_names,
-            "safe_agents_details": safe_agents,
-            "unsafe_agents_details": unsafe_agents,
+            "agents": agent_names,
+            "agents_details": agents,
             "summary": ensemble_result["summary"],
-            "thread_safe_tools": ensemble_result["thread_safe_tools"],
             "static_agents_count": len(ensemble_result["static_agents"]),
             "dynamic_agents_count": len(ensemble_result["dynamic_agents"]),
-            "message": f"Found {len(safe_agents)} thread-safe agents out of {ensemble_result['summary']['total_static_agents'] + ensemble_result['summary']['total_dynamic_agents']} total agents. If there are no suitable agents for the current task, you should create a dynamic subagent that is suitable for the current task by calling the create_subagent tool and then call it by agent_ensemble tool.",
+            "message": f"Found {len(agents)} available agents. If there are no suitable agents for the current task, you should create a dynamic subagent and then call it by agent_ensemble tool.",
         }
 
     except Exception as e:
@@ -549,7 +525,7 @@ async def agent_ensemble(
         if agent_name not in safe_agent_names:
             return {
                 "success": False,
-                "error": f"Agent '{agent_name}' is not in the safe agents list. Available agents: {safe_agent_names}, if no agents are suitable for the current task, you should create a dynamic subagent that is suitable for the current task by calling the create_subagent tool and then call it by agent_ensemble tool. Pick up thread-safe tools for dynamic agents if you want to create one for the current task.",
+                "error": f"Agent '{agent_name}' is not in the available agents list. Available agents: {safe_agent_names}. If no agents are suitable, create a dynamic subagent and then call it by agent_ensemble tool.",
                 "safe_agents": safe_agent_names,
             }
 
@@ -656,7 +632,7 @@ async def agent_ensemble_pairwise(
         if agent_name not in safe_agent_names:
             return {
                 "success": False,
-                "error": f"Agent '{agent_name}' is not in the safe agents list. Available agents: {safe_agent_names}, if no agents are suitable for the current task, you should create a dynamic subagent that is suitable for the current task by calling the create_subagent tool and then call it by agent_ensemble tool. Pick up thread-safe tools for dynamic agents if you want to create one for the current task.",
+                "error": f"Agent '{agent_name}' is not in the available agents list. Available agents: {safe_agent_names}. If no agents are suitable, create a dynamic subagent and then call it by agent_ensemble tool.",
                 "safe_agents": safe_agent_names,
             }
 

@@ -983,12 +983,20 @@ class OpenSageWebServer:
   style.textContent = `
     #opensage-stop-btn {
       position: fixed; right: 16px; bottom: 16px; z-index: 99999;
-      border: none; border-radius: 8px; padding: 10px 14px;
-      color: #fff; font-weight: 600; cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      border: 1px solid var(--mat-sys-outline-variant, #444);
+      border-radius: var(--mat-sys-corner-full, 20px); padding: 8px 16px;
+      color: var(--mat-sys-on-surface, #e3e3e3); font-weight: 500; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,.4);
+      font-family: Google Sans, Helvetica Neue, sans-serif; font-size: 13px;
+      transition: background .15s, border-color .15s;
     }
-    #opensage-stop-btn.running { background: #d93025; }
-    #opensage-stop-btn.idle { background: #9aa0a6; cursor: not-allowed; }
+    #opensage-stop-btn.running {
+      background: #d93025; border-color: #d93025; color: #fff;
+    }
+    #opensage-stop-btn.idle {
+      background: var(--mat-sys-surface-container, #2b2b2b);
+      cursor: not-allowed;
+    }
   `;
   document.head.appendChild(style);
 
@@ -1031,12 +1039,21 @@ class OpenSageWebServer:
   style.textContent = `
     #opensage-upload-btn {
       position: fixed; right: 16px; bottom: 68px; z-index: 99999;
-      border: none; border-radius: 8px; padding: 10px 14px;
-      color: #fff; font-weight: 600; cursor: pointer;
-      background: #1a73e8; box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      border: 1px solid var(--mat-sys-outline-variant, #444);
+      border-radius: var(--mat-sys-corner-full, 20px); padding: 8px 16px;
+      color: var(--mat-sys-on-surface, #e3e3e3); font-weight: 500; cursor: pointer;
+      background: var(--mat-sys-surface-container, #2b2b2b);
+      box-shadow: 0 2px 8px rgba(0,0,0,.4);
+      font-family: Google Sans, Helvetica Neue, sans-serif; font-size: 13px;
+      transition: background .15s;
+    }
+    #opensage-upload-btn:hover {
+      background: var(--mat-sys-surface-container-low, #333);
     }
     #opensage-upload-btn:disabled {
-      background: #9aa0a6; cursor: progress;
+      background: var(--mat-sys-surface-container, #2b2b2b);
+      color: var(--mat-sys-on-surface-variant, #656565);
+      cursor: progress;
     }
   `;
   document.head.appendChild(style);
@@ -1478,16 +1495,7 @@ class OpenSageWebServer:
   }
 </style>
                 """.strip()
-                cdn_tag = '<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>'
-                script_tag = (
-                    '<script src="./opensage-stop-turn.js" type="module"></script>'
-                    '<script src="./opensage-upload-sandbox.js" type="module"></script>'
-                    '<script src="./opensage-subagent-panel.js" type="module"></script>'
-                )
-                injected = index_html.replace(
-                    "</head>", f"{tooltip_style_tag}{cdn_tag}</head>"
-                )
-                injected = injected.replace("</body>", f"{script_tag}</body>")
+                injected = index_html.replace("</head>", f"{tooltip_style_tag}</head>")
                 return HTMLResponse(content=injected)
 
             app.mount(

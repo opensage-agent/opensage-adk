@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -77,16 +77,21 @@ class TestRunBashToolScript:
         """Create a mock task manager."""
         task_manager = MagicMock()
         task_manager.start_bg_task = MagicMock(return_value=("task_123", "Started"))
-        task_manager.wait_for_task = MagicMock(return_value=True)
-        task_manager.get_task_output = MagicMock(return_value='{"result": "success"}')
-        task_manager.get_task_exit_code = MagicMock(return_value=0)
+        task_manager.wait_for_task_async = AsyncMock(return_value=True)
+        task_manager.get_task_output_async = AsyncMock(
+            return_value='{"result": "success"}'
+        )
+        task_manager.get_task_exit_code_async = AsyncMock(return_value=0)
         return task_manager
 
-    def test_run_bash_tool_script_with_sandbox(self, mock_sandbox, mock_task_manager):
+    @pytest.mark.asyncio
+    async def test_run_bash_tool_script_with_sandbox(
+        self, mock_sandbox, mock_task_manager
+    ):
         """Test run_bash_tool_script with direct sandbox."""
         mock_sandbox.bash_tasks = mock_task_manager
 
-        output, exit_code = run_bash_tool_script(
+        output, exit_code = await run_bash_tool_script(
             script_name="test_script",
             args={"arg1": "value1"},
             sandbox=mock_sandbox,
@@ -95,9 +100,10 @@ class TestRunBashToolScript:
 
         assert exit_code == 0
         mock_task_manager.start_bg_task.assert_called_once()
-        mock_task_manager.wait_for_task.assert_called_once()
+        mock_task_manager.wait_for_task_async.assert_awaited_once()
 
-    def test_run_bash_tool_script_with_tool_context(
+    @pytest.mark.asyncio
+    async def test_run_bash_tool_script_with_tool_context(
         self, mock_sandbox, mock_task_manager
     ):
         """Test run_bash_tool_script with tool_context."""
@@ -118,7 +124,7 @@ class TestRunBashToolScript:
             mock_session.bash_tasks = mock_task_manager
             mock_get_session.return_value = mock_session
 
-            output, exit_code = run_bash_tool_script(
+            output, exit_code = await run_bash_tool_script(
                 script_name="test_script",
                 args={"arg1": "value1"},
                 tool_context=mock_context,
@@ -128,10 +134,11 @@ class TestRunBashToolScript:
             mock_get_sandbox.assert_called_once()
             mock_get_session.assert_called_once()
 
-    def test_run_bash_tool_script_missing_context_and_sandbox(self):
+    @pytest.mark.asyncio
+    async def test_run_bash_tool_script_missing_context_and_sandbox(self):
         """Test run_bash_tool_script returns error when both context and sandbox are None."""
         #  decorator catches exceptions and returns error dict
-        result = run_bash_tool_script(
+        result = await run_bash_tool_script(
             script_name="test_script",
             args={},
             tool_context=None,
@@ -145,7 +152,8 @@ class TestRunBashToolScript:
         error_msg = result.get("error", str(result))
         assert "tool_context or sandbox must be provided" in error_msg
 
-    def test_run_bash_tool_script_with_param_definitions(
+    @pytest.mark.asyncio
+    async def test_run_bash_tool_script_with_param_definitions(
         self, mock_sandbox, mock_task_manager
     ):
         """Test run_bash_tool_script with parameter definitions."""
@@ -165,7 +173,7 @@ class TestRunBashToolScript:
             },
         ]
 
-        output, exit_code = run_bash_tool_script(
+        output, exit_code = await run_bash_tool_script(
             script_name="test_script",
             args={"arg1": "value1", "flag": True},
             sandbox=mock_sandbox,
@@ -179,14 +187,17 @@ class TestRunBashToolScript:
         assert "value1" in command
         assert "--flag" in command
 
-    def test_run_bash_tool_script_returns_json(self, mock_sandbox, mock_task_manager):
+    @pytest.mark.asyncio
+    async def test_run_bash_tool_script_returns_json(
+        self, mock_sandbox, mock_task_manager
+    ):
         """Test run_bash_tool_script with JSON parsing."""
         mock_sandbox.bash_tasks = mock_task_manager
-        mock_task_manager.get_task_output.return_value = (
+        mock_task_manager.get_task_output_async.return_value = (
             '{"result": "success", "data": [1, 2, 3]}'
         )
 
-        output, exit_code = run_bash_tool_script(
+        output, exit_code = await run_bash_tool_script(
             script_name="test_script",
             args={},
             sandbox=mock_sandbox,
@@ -197,11 +208,14 @@ class TestRunBashToolScript:
         assert isinstance(output, dict)
         assert output["result"] == "success"
 
-    def test_run_bash_tool_script_background(self, mock_sandbox, mock_task_manager):
+    @pytest.mark.asyncio
+    async def test_run_bash_tool_script_background(
+        self, mock_sandbox, mock_task_manager
+    ):
         """Test run_bash_tool_script in background mode."""
         mock_sandbox.bash_tasks = mock_task_manager
 
-        output, exit_code = run_bash_tool_script(
+        output, exit_code = await run_bash_tool_script(
             script_name="test_script",
             args={},
             sandbox=mock_sandbox,
@@ -211,14 +225,15 @@ class TestRunBashToolScript:
         assert exit_code == 0
         mock_task_manager.start_bg_task.assert_called_once()
         # Should not wait for task in background mode
-        mock_task_manager.wait_for_task.assert_not_called()
+        mock_task_manager.wait_for_task_async.assert_not_called()
 
-    def test_run_bash_tool_script_timeout(self, mock_sandbox, mock_task_manager):
+    @pytest.mark.asyncio
+    async def test_run_bash_tool_script_timeout(self, mock_sandbox, mock_task_manager):
         """Test run_bash_tool_script with timeout."""
         mock_sandbox.bash_tasks = mock_task_manager
-        mock_task_manager.wait_for_task.return_value = False  # Timeout
+        mock_task_manager.wait_for_task_async.return_value = False  # Timeout
 
-        output, exit_code = run_bash_tool_script(
+        output, exit_code = await run_bash_tool_script(
             script_name="test_script",
             args={},
             sandbox=mock_sandbox,
@@ -398,13 +413,16 @@ class TestRunTerminalCommand:
         """Create a mock task manager."""
         task_manager = MagicMock()
         task_manager.start_bg_task = MagicMock(return_value=("task_123", "Started"))
-        task_manager.wait_for_task = MagicMock(return_value=True)
-        task_manager.get_task_output = MagicMock(return_value="command output")
-        task_manager.get_task_exit_code = MagicMock(return_value=0)
-        task_manager.cleanup_task = MagicMock(return_value=True)
+        task_manager.wait_for_task_async = AsyncMock(return_value=True)
+        task_manager.get_task_output_async = AsyncMock(return_value="command output")
+        task_manager.get_task_exit_code_async = AsyncMock(return_value=0)
+        task_manager.cleanup_task_async = AsyncMock(return_value=True)
         return task_manager
 
-    def test_run_terminal_command_foreground(self, mock_sandbox, mock_task_manager):
+    @pytest.mark.asyncio
+    async def test_run_terminal_command_foreground(
+        self, mock_sandbox, mock_task_manager
+    ):
         """Test run_terminal_command in foreground."""
         mock_context = MagicMock()
         mock_context.state = {"opensage_session_id": "test_session"}
@@ -423,7 +441,7 @@ class TestRunTerminalCommand:
             mock_session.bash_tasks = mock_task_manager
             mock_get_session.return_value = mock_session
 
-            result = run_terminal_command(
+            result = await run_terminal_command(
                 command="echo test",
                 tool_context=mock_context,
             )
@@ -431,9 +449,12 @@ class TestRunTerminalCommand:
             assert result["success"] is True
             assert result["exit_code"] == 0
             assert "output" in result
-            mock_task_manager.cleanup_task.assert_called_once()
+            mock_task_manager.cleanup_task_async.assert_awaited_once()
 
-    def test_run_terminal_command_background(self, mock_sandbox, mock_task_manager):
+    @pytest.mark.asyncio
+    async def test_run_terminal_command_background(
+        self, mock_sandbox, mock_task_manager
+    ):
         """Test run_terminal_command in background."""
         mock_context = MagicMock()
         mock_context.state = {"opensage_session_id": "test_session"}
@@ -452,7 +473,7 @@ class TestRunTerminalCommand:
             mock_session.bash_tasks = mock_task_manager
             mock_get_session.return_value = mock_session
 
-            result = run_terminal_command(
+            result = await run_terminal_command(
                 command="echo test",
                 background=True,
                 tool_context=mock_context,
@@ -462,13 +483,14 @@ class TestRunTerminalCommand:
             assert result["status"] == "running"
             assert "task_id" in result
             # Should not wait or cleanup in background mode
-            mock_task_manager.wait_for_task.assert_not_called()
+            mock_task_manager.wait_for_task_async.assert_not_called()
 
-    def test_run_terminal_command_timeout(self, mock_sandbox, mock_task_manager):
+    @pytest.mark.asyncio
+    async def test_run_terminal_command_timeout(self, mock_sandbox, mock_task_manager):
         """Test run_terminal_command with timeout."""
         mock_context = MagicMock()
         mock_context.state = {"opensage_session_id": "test_session"}
-        mock_task_manager.wait_for_task.return_value = False  # Timeout
+        mock_task_manager.wait_for_task_async.return_value = False  # Timeout
 
         with (
             patch(
@@ -484,7 +506,7 @@ class TestRunTerminalCommand:
             mock_session.bash_tasks = mock_task_manager
             mock_get_session.return_value = mock_session
 
-            result = run_terminal_command(
+            result = await run_terminal_command(
                 command="echo test",
                 timeout=5,
                 tool_context=mock_context,
@@ -494,7 +516,8 @@ class TestRunTerminalCommand:
             assert result["timeout"] is True
             assert "task_id" in result
 
-    def test_run_terminal_command_sandbox_error(self):
+    @pytest.mark.asyncio
+    async def test_run_terminal_command_sandbox_error(self):
         """Test run_terminal_command when sandbox retrieval fails."""
         mock_context = MagicMock()
         mock_context.state = {"opensage_session_id": "test_session"}
@@ -504,7 +527,7 @@ class TestRunTerminalCommand:
         ) as mock_get_sandbox:
             mock_get_sandbox.side_effect = Exception("Sandbox not found")
 
-            result = run_terminal_command(
+            result = await run_terminal_command(
                 command="echo test",
                 tool_context=mock_context,
             )
@@ -512,11 +535,14 @@ class TestRunTerminalCommand:
             assert result["success"] is False
             assert "error" in result
 
-    def test_run_terminal_command_json_output(self, mock_sandbox, mock_task_manager):
+    @pytest.mark.asyncio
+    async def test_run_terminal_command_json_output(
+        self, mock_sandbox, mock_task_manager
+    ):
         """Test run_terminal_command with JSON output."""
         mock_context = MagicMock()
         mock_context.state = {"opensage_session_id": "test_session"}
-        mock_task_manager.get_task_output.return_value = '{"key": "value"}'
+        mock_task_manager.get_task_output_async.return_value = '{"key": "value"}'
 
         with (
             patch(
@@ -532,7 +558,7 @@ class TestRunTerminalCommand:
             mock_session.bash_tasks = mock_task_manager
             mock_get_session.return_value = mock_session
 
-            result = run_terminal_command(
+            result = await run_terminal_command(
                 command='echo \'{"key": "value"}\'',
                 tool_context=mock_context,
             )

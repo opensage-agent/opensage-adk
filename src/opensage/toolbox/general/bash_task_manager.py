@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
@@ -243,6 +244,10 @@ fi
         output, _ = sandbox.run_command_in_container(f"cat {log_file}")
         return output
 
+    async def get_task_output_async(self, sandbox, task_id: str) -> str:
+        """Get the output log of a task without blocking the event loop."""
+        return await asyncio.to_thread(self.get_task_output, sandbox, task_id)
+
     def get_task_exit_code(self, sandbox, task_id: str) -> Optional[int]:
         """Get the exit code of a completed task."""
         if task_id not in self.tasks:
@@ -256,6 +261,10 @@ fi
         if exit_code == 0 and output.strip().isdigit():
             return int(output.strip())
         return None
+
+    async def get_task_exit_code_async(self, sandbox, task_id: str) -> Optional[int]:
+        """Get a completed task's exit code without blocking the event loop."""
+        return await asyncio.to_thread(self.get_task_exit_code, sandbox, task_id)
 
     def wait_for_task(self, sandbox, task_id: str, timeout: int = 60) -> bool:
         """Wait for a task to complete.
@@ -294,6 +303,42 @@ fi
             time.sleep(1)
 
         return False
+
+    async def wait_for_task_async(
+        self, sandbox, task_id: str, timeout: int = 60
+    ) -> bool:
+        """Wait for a task to complete without blocking the event loop."""
+        import time
+
+        if task_id not in self.tasks:
+            return False
+
+        task = self.tasks[task_id]
+        pid = task.pid
+        start_time = time.time()
+
+        while time.time() - start_time < timeout:
+            check_cmd = f"kill -0 {pid}"
+            _, exit_code = await asyncio.to_thread(
+                sandbox.run_command_in_container, check_cmd
+            )
+
+            if exit_code != 0:
+                exit_code_val = await self.get_task_exit_code_async(sandbox, task_id)
+                if exit_code_val is not None:
+                    task.exit_code = exit_code_val
+                    task.status = TaskStatus.COMPLETED
+                else:
+                    task.status = TaskStatus.UNKNOWN
+                return True
+
+            await asyncio.sleep(1)
+
+        return False
+
+    async def cleanup_task_async(self, sandbox, task_id: str) -> bool:
+        """Clean up a task without blocking the event loop."""
+        return await asyncio.to_thread(self.cleanup_task, sandbox, task_id)
 
     def cleanup_task(self, sandbox, task_id: str) -> bool:
         """Clean up a task by deleting temporary files and removing from management.

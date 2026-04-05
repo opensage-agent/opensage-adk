@@ -8,6 +8,7 @@ of these tools for agent use.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import shlex
@@ -108,7 +109,7 @@ class BashToolMetadata:
         }
 
 
-def run_bash_tool_script(
+async def run_bash_tool_script(
     script_name: str,
     args: Dict[str, Any],
     sandbox_type: str = "main",
@@ -231,8 +232,12 @@ def run_bash_tool_script(
     )
 
     # 1. Start as background task
-    task_id, msg = task_manager.start_bg_task(
-        sandbox, command, execution_timeout=execution_timeout
+    task_id, msg = await asyncio.to_thread(
+        task_manager.start_bg_task,
+        sandbox,
+        command,
+        "main",
+        execution_timeout,
     )
     if not task_id:
         return msg, 1  # Error starting task
@@ -242,14 +247,14 @@ def run_bash_tool_script(
         return msg, 0
 
     # 3. If foreground, wait with timeout
-    completed = task_manager.wait_for_task(sandbox, task_id, timeout)
+    completed = await task_manager.wait_for_task_async(sandbox, task_id, timeout)
 
     if completed:
         # Task finished, get output
-        output = task_manager.get_task_output(sandbox, task_id)
+        output = await task_manager.get_task_output_async(sandbox, task_id)
 
         # Get exit code
-        exit_code_val = task_manager.get_task_exit_code(sandbox, task_id)
+        exit_code_val = await task_manager.get_task_exit_code_async(sandbox, task_id)
         exit_code = exit_code_val if exit_code_val is not None else 1
 
         # Try to parse JSON if requested
@@ -379,7 +384,7 @@ def list_available_scripts(
     return "\\n".join(output)
 
 
-def wait_for_background(
+async def wait_for_background(
     task_id: str,
     timeout: int = 300,
     *,
@@ -417,16 +422,16 @@ def wait_for_background(
             "message": f"Could not access sandbox '{sandbox_name}': {str(e)}",
         }
 
-    completed = task_manager.wait_for_task(sandbox, task_id, timeout)
+    completed = await task_manager.wait_for_task_async(sandbox, task_id, timeout)
 
     if completed:
         # Task finished, get output
-        output = task_manager.get_task_output(sandbox, task_id)
-        exit_code_val = task_manager.get_task_exit_code(sandbox, task_id)
+        output = await task_manager.get_task_output_async(sandbox, task_id)
+        exit_code_val = await task_manager.get_task_exit_code_async(sandbox, task_id)
         exit_code = exit_code_val if exit_code_val is not None else 1
 
         # Clean up task (memory + files)
-        task_manager.cleanup_task(sandbox, task_id)
+        await task_manager.cleanup_task_async(sandbox, task_id)
 
         # Try to parse JSON if it looks like JSON
         parsed_output = _parse_json_if_possible(output, context=f"task {task_id}")
@@ -450,7 +455,7 @@ def wait_for_background(
         }
 
 
-def run_terminal_command(
+async def run_terminal_command(
     command: str,
     background: bool = False,
     timeout: int = 60,
@@ -525,11 +530,12 @@ def run_terminal_command(
     # This might be confusing, but it keeps the intent.
     # Or should we update the name to "main"?
     # Let's keep the intent but note the fallback in logs if we could.
-    task_id, msg = task_manager.start_bg_task(
+    task_id, msg = await asyncio.to_thread(
+        task_manager.start_bg_task,
         sandbox,
         final_command,
-        sandbox_name=target_sandbox,
-        execution_timeout=execution_timeout,
+        target_sandbox,
+        execution_timeout,
     )
     if not task_id:
         return {"success": False, "error": msg}
@@ -545,16 +551,16 @@ def run_terminal_command(
         }
 
     # 3. If foreground, wait with timeout
-    completed = task_manager.wait_for_task(sandbox, task_id, timeout)
+    completed = await task_manager.wait_for_task_async(sandbox, task_id, timeout)
 
     if completed:
         # Task finished, get output
-        output = task_manager.get_task_output(sandbox, task_id)
-        exit_code_val = task_manager.get_task_exit_code(sandbox, task_id)
+        output = await task_manager.get_task_output_async(sandbox, task_id)
+        exit_code_val = await task_manager.get_task_exit_code_async(sandbox, task_id)
         exit_code = exit_code_val if exit_code_val is not None else 1
 
         # Clean up task (memory + files)
-        task_manager.cleanup_task(sandbox, task_id)
+        await task_manager.cleanup_task_async(sandbox, task_id)
 
         # Try to parse JSON if it looks like JSON
         parsed_output = _parse_json_if_possible(output, context=f"task {task_id}")

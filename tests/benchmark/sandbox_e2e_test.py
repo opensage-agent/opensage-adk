@@ -136,7 +136,7 @@ def _worker_adl(args: tuple) -> dict:
     except Exception as e:
         result["status"] = "error"
         result["error"] = str(e)
-        logger.error("Worker ns w%d r%d failed: %s", worker_id, round_id, e)
+        logger.exception("Worker ns w%d r%d failed: %s", worker_id, round_id, e)
 
     return result
 
@@ -211,7 +211,7 @@ def _worker_docker(args: tuple) -> dict:
     except Exception as e:
         result["status"] = "error"
         result["error"] = str(e)
-        logger.error("Worker docker w%d r%d failed: %s", worker_id, round_id, e)
+        logger.exception("Worker docker w%d r%d failed: %s", worker_id, round_id, e)
 
     return result
 

@@ -196,7 +196,7 @@ def run_test(image: str, rounds: int):
             results["adl_btrfs"].append(ns_timings)
             logger.info("ADL btrfs timings: %s", json.dumps(ns_timings, indent=2))
         except Exception as e:
-            logger.error("ADL btrfs failed: %s", e, exc_info=True)
+            logger.exception("ADL btrfs failed: %s", e)
             results["adl_btrfs"].append({"error": str(e)})
 
         logger.info("--- AgentDocker-Lite (overlayfs) ---")
@@ -205,7 +205,7 @@ def run_test(image: str, rounds: int):
             results["adl_overlayfs"].append(ovl_timings)
             logger.info("ADL overlayfs timings: %s", json.dumps(ovl_timings, indent=2))
         except Exception as e:
-            logger.error("ADL overlayfs failed: %s", e, exc_info=True)
+            logger.exception("ADL overlayfs failed: %s", e)
             results["adl_overlayfs"].append({"error": str(e)})
 
         logger.info("--- Docker ---")
@@ -214,7 +214,7 @@ def run_test(image: str, rounds: int):
             results["docker"].append(dk_timings)
             logger.info("Docker timings: %s", json.dumps(dk_timings, indent=2))
         except Exception as e:
-            logger.error("Docker failed: %s", e, exc_info=True)
+            logger.exception("Docker failed: %s", e)
             results["docker"].append({"error": str(e)})
 
     logger.info("\n=== SUMMARY ===")

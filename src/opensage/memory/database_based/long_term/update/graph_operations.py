@@ -95,7 +95,7 @@ class GraphOperations:
                 label=label,
             )
         except Exception as e:
-            logger.error(f"Failed to add entity {label}: {e}")
+            logger.exception(f"Failed to add entity {label}: {e}")
             return OperationResult(
                 operation=OperationType.ADD,
                 success=False,
@@ -125,7 +125,9 @@ class GraphOperations:
                 error="Source or target node not found",
             )
         except Exception as e:
-            logger.error(f"Failed to add relationship {relationship.type_name}: {e}")
+            logger.exception(
+                f"Failed to add relationship {relationship.type_name}: {e}"
+            )
             return OperationResult(
                 operation=OperationType.ADD,
                 success=False,
@@ -263,7 +265,7 @@ class GraphOperations:
 
             return True
         except Exception as e:
-            logger.error(f"Failed to create indexes: {e}")
+            logger.exception(f"Failed to create indexes: {e}")
             return False
 
     def _get_merge_key(self, label: str, props: Dict[str, Any]) -> Dict[str, Any]:
@@ -395,7 +397,7 @@ class GraphOperations:
                 error=None if deleted > 0 else "No matching node found",
             )
         except Exception as e:
-            logger.error(f"Failed to delete entity {label}: {e}")
+            logger.exception(f"Failed to delete entity {label}: {e}")
             return OperationResult(
                 operation=OperationType.DELETE,
                 success=False,
@@ -441,7 +443,7 @@ class GraphOperations:
                 error=None if deleted > 0 else "No matching relationship found",
             )
         except Exception as e:
-            logger.error(f"Failed to delete relationship {rel_type}: {e}")
+            logger.exception(f"Failed to delete relationship {rel_type}: {e}")
             return OperationResult(
                 operation=OperationType.DELETE,
                 success=False,

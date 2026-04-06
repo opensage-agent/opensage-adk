@@ -305,7 +305,7 @@ class RayDispatcher(BaseDispatcher):
                         break
                     else:
                         failed_samples.append(err_str)
-                        logger.error("[%d/%d] Task FAILED: %s", completed, total, e)
+                        logger.exception("[%d/%d] Task FAILED: %s", completed, total, e)
                         _submit_next(actor_idx)
 
         elapsed = time.monotonic() - t0

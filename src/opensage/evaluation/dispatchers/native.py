@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import traceback
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING
 
@@ -55,9 +54,7 @@ class NativeDispatcher(BaseDispatcher):
                 logger.info(f"✓ Task {task_name} completed")
             except Exception as e:
                 failed_samples.append(task_name)
-                logger.error(f"✗ Task {task_name} FAILED")
-                logger.error(f"  Error: {e}")
-                logger.error(f"  Traceback:\n{traceback.format_exc()}")
+                logger.exception(f"✗ Task {task_name} FAILED: {e}")
 
         evaluation.customized_modify_and_save_results(
             results=results,
@@ -109,13 +106,11 @@ class NativeDispatcher(BaseDispatcher):
                     logger.info(f"✓ Task {task_name} completed successfully")
                 except Exception as e:
                     failed_samples.append(task_name)
-                    logger.error(f"✗ Task {task_name} FAILED")
-                    logger.error(f"  Error: {e}")
-                    logger.error(f"  Traceback:\n{traceback.format_exc()}")
+                    logger.exception(f"✗ Task {task_name} FAILED: {e}")
 
                     error_file = Path(evaluation.output_dir) / task_name / "error.json"
                     if error_file.exists():
-                        logger.error(f"  Detailed error saved to: {error_file}")
+                        logger.info(f"  Detailed error saved to: {error_file}")
 
             evaluation.customized_modify_and_save_results(
                 results=results,

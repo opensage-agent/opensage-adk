@@ -563,7 +563,7 @@ class OpenSandboxSandbox(BaseSandbox):
                     sandboxes.get_sandbox(sandbox_type).state = final_state
                 except Exception:
                     pass
-            logger.error(
+            logger.exception(
                 "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
                 sandbox_type,
                 opensage_session_id,

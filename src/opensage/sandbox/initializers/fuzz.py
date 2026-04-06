@@ -47,7 +47,7 @@ class FuzzInitializer(SandboxInitializer):
             await self._compile_with_aflpp(infos)
             return True
         except Exception as e:
-            logger.error(f"Failed to initialize fuzzing environment: {e}")
+            logger.exception(f"Failed to initialize fuzzing environment: {e}")
             return False
 
     def _extract_infos_from_ossfuzz(self, sandbox: BaseSandbox) -> dict[str, str]:

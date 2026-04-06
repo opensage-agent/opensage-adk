@@ -303,7 +303,7 @@ class MemoryObserverPlugin(BasePlugin):
                     f"[MemoryObserver] Got Neo4j client for session: {opensage_session_id}"
                 )
             except Exception as e:
-                logger.error(f"[MemoryObserver] Failed to get Neo4j client: {e}")
+                logger.exception(f"[MemoryObserver] Failed to get Neo4j client: {e}")
                 return
 
             # Prepare content for storage
@@ -345,9 +345,8 @@ class MemoryObserverPlugin(BasePlugin):
                 )
 
         except Exception as e:
-            logger.error(
+            logger.exception(
                 f"[MemoryObserver] Exception processing '{tool_name}': {e}",
-                exc_info=True,
             )
 
     def _save_full_output_to_file(

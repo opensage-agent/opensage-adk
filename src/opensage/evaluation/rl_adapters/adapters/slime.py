@@ -180,7 +180,7 @@ class SlimeAdapter(BaseAdapter):
             return result_sample
 
         except Exception as e:
-            logger.error(f"OpenSage agent error: {e}", exc_info=True)
+            logger.exception(f"OpenSage agent error: {e}")
             return self._build_error_sample(sample, e, slime_llm=slime_llm)
 
     def _create_slime_llm(

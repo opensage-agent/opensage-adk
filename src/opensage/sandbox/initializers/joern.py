@@ -66,12 +66,12 @@ class JoernInitializer(SandboxInitializer):
                 timeout=1200.0,  # 10 minutes
             )
         except asyncio.TimeoutError:
-            logger.error(
+            logger.exception(
                 f"Joern initialization failed; timed out after 10 minutes for session {self.opensage_session_id}"
             )
             return False
         except Exception as e:
-            logger.error(f"Joern initialization failed: {e}")
+            logger.exception(f"Joern initialization failed: {e}")
             return False
         return True
 
@@ -178,6 +178,6 @@ fi
             # Write Joern server host to ~/.bashrc
             self._write_joern_env_to_bashrc(opensage_session)
         except Exception as e:
-            logger.error(f"Joern server is collapsed during ensure_ready: {e}")
+            logger.exception(f"Joern server is collapsed during ensure_ready: {e}")
             return False
         return True

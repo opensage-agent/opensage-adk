@@ -151,7 +151,7 @@ class MemoryUpdateController:
             )
 
         except Exception as e:
-            logger.error(f"Failed to store Q&A pair: {e}")
+            logger.exception(f"Failed to store Q&A pair: {e}")
             return UpdateResult(success=False, error=str(e))
 
     async def store_knowledge(
@@ -211,7 +211,7 @@ class MemoryUpdateController:
             )
 
         except Exception as e:
-            logger.error(f"Failed to store knowledge: {e}")
+            logger.exception(f"Failed to store knowledge: {e}")
             return UpdateResult(success=False, error=str(e))
 
     async def link_entities(
@@ -363,7 +363,7 @@ class MemoryUpdateController:
             )
 
         except Exception as e:
-            logger.error(f"Failed to store knowledge with decision: {e}")
+            logger.exception(f"Failed to store knowledge with decision: {e}")
             return UpdateResult(success=False, error=str(e))
 
     async def _find_similar_nodes(

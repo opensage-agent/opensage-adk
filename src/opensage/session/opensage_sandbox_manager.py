@@ -195,12 +195,12 @@ class OpenSageSandboxManager:
                 )
 
             except Exception as e:
-                logger.error(
+                logger.exception(
                     f"Failed to initialize shared volume for session {self.opensage_session_id}: {e}"
                 )
 
         except Exception as e:
-            logger.error(f"Error during shared volume initialization: {e}")
+            logger.exception(f"Error during shared volume initialization: {e}")
 
     @staticmethod
     def _normalize_mount_host_path_spec(spec: str) -> str:
@@ -353,7 +353,9 @@ class OpenSageSandboxManager:
             )
 
         except Exception as e:
-            logger.error(f"Failed to update sandbox configs with shared volumes: {e}")
+            logger.exception(
+                f"Failed to update sandbox configs with shared volumes: {e}"
+            )
 
     async def launch_all_sandboxes(
         self, sandbox_types: Optional[Set[str]] = None
@@ -442,7 +444,7 @@ class OpenSageSandboxManager:
             )
 
         except Exception as e:
-            logger.error(
+            logger.exception(
                 f"Failed to launch sandboxes for session {self.opensage_session_id}: {e}"
             )
             raise
@@ -679,7 +681,7 @@ class OpenSageSandboxManager:
             return cache_result
 
         except Exception as e:
-            logger.error(
+            logger.exception(
                 f"Failed to cache sandboxes for session {self.opensage_session_id}: {e}"
             )
             raise
@@ -751,7 +753,7 @@ class OpenSageSandboxManager:
             return missing_caches
 
         except Exception as e:
-            logger.error(
+            logger.exception(
                 f"Failed to load sandbox caches for session {self.opensage_session_id}: {e}"
             )
             raise

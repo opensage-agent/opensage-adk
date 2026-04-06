@@ -89,7 +89,7 @@ async def get_all_agent_runs(tool_context: ToolContext):
         return agent_runs
 
     except Exception as e:
-        logger.error(f"Failed to get all agent runs: {e}")
+        logger.exception(f"Failed to get all agent runs: {e}")
         return []
 
 
@@ -197,7 +197,7 @@ async def list_all_events_for_session(session_id: str, tool_context: ToolContext
         return formatted_events
 
     except Exception as e:
-        logger.error(f"Failed to list events for session {session_id}: {e}")
+        logger.exception(f"Failed to list events for session {session_id}: {e}")
         return []
 
 
@@ -336,7 +336,9 @@ async def get_all_events_for_summarization(
         }
 
     except Exception as e:
-        logger.error(f"Failed to get events for summarization {summarization_id}: {e}")
+        logger.exception(
+            f"Failed to get events for summarization {summarization_id}: {e}"
+        )
         return {
             "error": f"Failed to get summarized events: {e}",
             "summarization_id": summarization_id,
@@ -554,7 +556,7 @@ async def drop_or_summarize_events(tool_context: ToolContext):
             }
 
         except Exception as e:
-            logger.error(f"Error in _summarize_events: {str(e)}")
+            logger.exception(f"Error in _summarize_events: {str(e)}")
             import traceback
 
             traceback.print_exc()
@@ -695,7 +697,7 @@ async def drop_or_summarize_events(tool_context: ToolContext):
             }
 
         except Exception as e:
-            logger.error(f"Error in _drop_events: {str(e)}")
+            logger.exception(f"Error in _drop_events: {str(e)}")
             import traceback
 
             traceback.print_exc()
@@ -828,7 +830,7 @@ You must call exactly one of the three functions."""
             )
 
     except Exception as e:
-        logger.error(f"Error in drop_or_summarize_events: {str(e)}")
+        logger.exception(f"Error in drop_or_summarize_events: {str(e)}")
         import traceback
 
         traceback.print_exc()

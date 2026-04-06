@@ -809,12 +809,11 @@ class Evaluation(abc.ABC):
                 if task.opensage_session:
                     task.opensage_session.cleanup()
             except Exception as cleanup_error:
-                logger.error(f"Cleanup after interrupt failed: {cleanup_error}")
+                logger.exception(f"Cleanup after interrupt failed: {cleanup_error}")
             raise
 
         except Exception as e:
-            logger.error(f"Task {task.id} failed with exception: {e}")
-            logger.error(f"Full traceback:\n{traceback.format_exc()}")
+            logger.exception(f"Task {task.id} failed with exception: {e}")
 
             error_file = output_path / "error.json"
             with open(error_file, "w") as f:
@@ -835,7 +834,7 @@ class Evaluation(abc.ABC):
                 if task.opensage_session:
                     task.opensage_session.cleanup()
             except Exception as cleanup_error:
-                logger.error(f"Cleanup after error failed: {cleanup_error}")
+                logger.exception(f"Cleanup after error failed: {cleanup_error}")
 
             raise
 

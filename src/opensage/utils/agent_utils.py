@@ -241,11 +241,10 @@ def save_content_to_sandbox_file(
         return output_file
 
     except Exception as e:
-        logger.error(
+        logger.exception(
             f"[save_content_to_sandbox_file] FAILED to save content:\n"
             f"  tool_name: {tool_name}\n"
             f"  error: {e}",
-            exc_info=True,
         )
         return None
 

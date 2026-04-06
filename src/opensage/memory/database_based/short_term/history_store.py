@@ -76,7 +76,7 @@ async def record_agent_start(agent: BaseAgent, context: InvocationContext) -> st
             await log_single_event_neo4j(latest_event, session_id, context)
 
     except Exception as e:
-        logger.error(f"Failed to record agent start: {e}")
+        logger.exception(f"Failed to record agent start: {e}")
 
     return session_id
 
@@ -109,7 +109,7 @@ async def record_agent_end(
             },
         )
     except Exception as e:
-        logger.error(f"Failed to record agent end: {e}")
+        logger.exception(f"Failed to record agent end: {e}")
 
 
 async def create_agent_call_relation(
@@ -187,7 +187,7 @@ async def create_agent_call_relation(
         )
 
     except Exception as e:
-        logger.error(f"Failed to create agent call relation: {e}")
+        logger.exception(f"Failed to create agent call relation: {e}")
 
 
 async def store_session_state(
@@ -213,7 +213,7 @@ async def store_session_state(
         )
         logger.info(f"Stored session state for session: {session_id}")
     except Exception as e:
-        logger.error(f"Failed to store session state: {e}")
+        logger.exception(f"Failed to store session state: {e}")
 
 
 def _determine_event_type(event: Event) -> str:
@@ -281,7 +281,7 @@ async def _event_exists(
         )
         return len(result) > 0
     except Exception as e:
-        logger.error(f"Failed to check event existence: {e}")
+        logger.exception(f"Failed to check event existence: {e}")
         return False
 
 
@@ -295,7 +295,7 @@ async def _create_event_node(event: Event, session_id: str, context: InvocationC
     try:
         raw_content = event.model_dump_json(exclude_none=True)
     except Exception as e:
-        logger.error(f"Failed to serialize event: {e}")
+        logger.exception(f"Failed to serialize event: {e}")
         raw_content = json.dumps(
             {"error": "serialization_failed", "event_id": event.id}
         )
@@ -338,7 +338,7 @@ async def _create_event_node(event: Event, session_id: str, context: InvocationC
             )
 
     except Exception as e:
-        logger.error(f"Failed to create event node for {event.id}: {e}")
+        logger.exception(f"Failed to create event node for {event.id}: {e}")
 
 
 async def create_raw_tool_response_node(
@@ -396,7 +396,7 @@ async def create_raw_tool_response_node(
             return True
 
     except Exception as e:
-        logger.error(f"Failed to create raw_tool_response node: {e}")
+        logger.exception(f"Failed to create raw_tool_response node: {e}")
         return False
 
 
@@ -438,7 +438,7 @@ async def _create_summarize_relation(
         import traceback
 
         traceback.print_exc()
-        logger.error(f"Failed to create summarize relation: {e}")
+        logger.exception(f"Failed to create summarize relation: {e}")
         return False
 
 
@@ -499,7 +499,7 @@ async def log_single_event_neo4j(
             logger.info(f"Event {event.id} already exists, skipping")
 
     except Exception as e:
-        logger.error(
+        logger.exception(
             f"Failed to process event {event.id} at timestamp {event.timestamp}: {e}"
         )
 
@@ -520,7 +520,7 @@ async def find_agent_run_by_session_id(
             return result[0]["found_session_id"]
         return None
     except Exception as e:
-        logger.error(f"Failed to find agent_run by session_id: {e}")
+        logger.exception(f"Failed to find agent_run by session_id: {e}")
         return None
 
 
@@ -597,5 +597,5 @@ async def create_history_summary_node(
         return True
 
     except Exception as e:
-        logger.error(f"Failed to create history summary node: {e}")
+        logger.exception(f"Failed to create history summary node: {e}")
         return False

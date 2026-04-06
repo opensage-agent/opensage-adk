@@ -303,7 +303,7 @@ Keep your response concise and actionable."""
         }
 
     except Exception as e:
-        logger.error(f"Failed to get idea from other models: {e}")
+        logger.exception(f"Failed to get idea from other models: {e}")
         return {
             "success": False,
             "error": f"Failed to get idea from other models: {str(e)}",

@@ -398,7 +398,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
                 except Exception:
                     pass
             elapsed_ms = (time.monotonic() - t0) * 1000
-            logger.error(
+            logger.exception(
                 "sandbox '%s' state=%s — init FAILED (%.1fms): %s",
                 sandbox_type,
                 final_state.value,

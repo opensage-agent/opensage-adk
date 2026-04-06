@@ -541,7 +541,9 @@ class OpenSageWebServer:
                         data = await websocket.receive_text()
                         live_request_queue.send(LiveRequest.model_validate_json(data))
                 except ValidationError as ve:
-                    logger.error("Validation error in live process_messages: %s", ve)
+                    logger.exception(
+                        "Validation error in live process_messages: %s", ve
+                    )
 
             tasks = [
                 asyncio.create_task(forward_events()),

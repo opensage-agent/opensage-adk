@@ -67,7 +67,7 @@ async def list_node_types(
             "count": len(node_types),
         }
     except Exception as e:
-        logger.error(f"Failed to list node types: {e}")
+        logger.exception(f"Failed to list node types: {e}")
         return {
             "success": False,
             "error": f"Failed to list node types: {str(e)}",
@@ -116,7 +116,7 @@ async def list_relations(
             "count": len(relation_types),
         }
     except Exception as e:
-        logger.error(f"Failed to list relationship types: {e}")
+        logger.exception(f"Failed to list relationship types: {e}")
         return {
             "success": False,
             "error": f"Failed to list relationship types: {str(e)}",

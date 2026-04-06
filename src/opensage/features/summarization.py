@@ -333,7 +333,7 @@ Here is a brief preview:
     try:
         summary = await _get_summary_async(model, llm_request)
     except Exception as e:
-        logger.error(f"Error summarizing tool response: {e}")
+        logger.exception(f"Error summarizing tool response: {e}")
         summary = raw[:1000] + ("..." if len(raw) > 1000 else "")
 
     # Build the full summary message
@@ -546,7 +546,7 @@ class OpenSageFullEventSummarizer:
         try:
             summary_text = await _get_summary_async(self._model, llm_request)
         except Exception as e:
-            logger.error(f"Error generating compaction summary: {e}")
+            logger.exception(f"Error generating compaction summary: {e}")
             return None
 
         if not summary_text:
@@ -626,7 +626,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
                                 )
                             )
         except Exception as _e:
-            logger.error(f"Failed to build folded contents for budget calc: {_e}")
+            logger.exception(f"Failed to build folded contents for budget calc: {_e}")
 
     total_chars = (
         folded_chars

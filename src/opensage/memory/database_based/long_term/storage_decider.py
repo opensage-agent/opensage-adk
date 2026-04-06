@@ -157,9 +157,8 @@ class StorageDecider:
             return decision
 
         except Exception as e:
-            logger.error(
+            logger.exception(
                 f"[StorageDecider] LLM call FAILED for '{tool_name}': {e}",
-                exc_info=True,
             )
             return StorageDecision(
                 should_store=False,
@@ -204,7 +203,7 @@ class StorageDecider:
             )
 
         except (json.JSONDecodeError, KeyError, TypeError) as e:
-            logger.error(
+            logger.exception(
                 f"[StorageDecider] Failed to parse LLM response: {e}\n"
                 f"  raw_content: {content[:300]}{'...' if len(content) > 300 else ''}"
             )

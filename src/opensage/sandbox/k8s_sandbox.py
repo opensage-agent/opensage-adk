@@ -1263,7 +1263,7 @@ class K8sSandbox(BaseSandbox):
             return (scripts_pvc_id, data_pvc_id, tools_pvc_id)
 
         except Exception as e:
-            logger.error(f"Failed to create shared PVCs: {e}")
+            logger.exception(f"Failed to create shared PVCs: {e}")
             # Clean up any created PVCs on failure
             try:
                 cls._run_kubectl_class(
@@ -1665,7 +1665,7 @@ class K8sSandbox(BaseSandbox):
                         final_state.value,
                         state_exc,
                     )
-            logger.error(
+            logger.exception(
                 "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
                 sandbox_type,
                 opensage_session_id,
@@ -1871,7 +1871,7 @@ class K8sSandbox(BaseSandbox):
                     f"Shared volume {shared_volume_id} backed up to {backup_path}"
                 )
             except Exception as exc:
-                logger.error(
+                logger.exception(
                     f"Failed to backup shared volume {shared_volume_id}: {exc}"
                 )
                 cache_results["errors"].append(str(exc))
@@ -2047,7 +2047,7 @@ class K8sSandbox(BaseSandbox):
                         )
 
             except Exception as exc:
-                logger.error(f"Failed to cache sandbox {sandbox_type}: {exc}")
+                logger.exception(f"Failed to cache sandbox {sandbox_type}: {exc}")
                 cache_results["errors"].append(f"{sandbox_type}: {exc}")
 
         if k8s_metadata:

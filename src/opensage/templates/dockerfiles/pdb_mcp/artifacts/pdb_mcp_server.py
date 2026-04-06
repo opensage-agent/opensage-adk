@@ -58,7 +58,7 @@ def read_pdb_output(process, output_queue):
         # Handle ValueError if stdout is closed prematurely (e.g., process killed)
         logger.warning("PDB output reader: ValueError (stdout likely closed).")
     except Exception as e:
-        logger.error(f"PDB output reader: Unexpected error: {e}")
+        logger.exception(f"PDB output reader: Unexpected error: {e}")
         # Optionally log traceback here if needed
     finally:
         # Ensure stdout is closed if loop finishes normally or breaks
@@ -66,7 +66,7 @@ def read_pdb_output(process, output_queue):
             try:
                 process.stdout.close()
             except Exception as e:
-                logger.error(f"PDB output reader: Error closing stdout: {e}")
+                logger.exception(f"PDB output reader: Error closing stdout: {e}")
         logger.info("PDB output reader thread finished.")
 
 
@@ -138,7 +138,7 @@ def send_to_pdb(session_state: SessionState, command, timeout_multiplier=1.0):
             return output
 
         except (OSError, BrokenPipeError) as e:
-            logger.error(f"Error writing to PDB stdin: {e}")
+            logger.exception(f"Error writing to PDB stdin: {e}")
             pdb_running = False
             # Try to get final output
             final_output = get_pdb_output(session_state, timeout=0.1)
@@ -147,7 +147,7 @@ def send_to_pdb(session_state: SessionState, command, timeout_multiplier=1.0):
                 pdb_process.wait(timeout=0.5)
             return f"Error communicating with PDB: {e}\nFinal Output:\n{final_output}\n\n*** The debugging session has likely ended. ***"
         except Exception as e:
-            logger.error(f"Unexpected error in send_to_pdb: {e}")
+            logger.exception(f"Unexpected error in send_to_pdb: {e}")
             pdb_running = False
             return f"Unexpected error sending command: {e}"
 
@@ -712,7 +712,7 @@ def send_pdb_command(command: str, context: Context = None) -> str:
 
     except Exception as e:
         # Catch unexpected errors during command sending/processing
-        logger.error(f"Error in send_pdb_command: {e}")
+        logger.exception(f"Error in send_pdb_command: {e}")
         # Check process status again
         if pdb_process and pdb_process.poll() is not None:
             pdb_running = False
@@ -1152,7 +1152,7 @@ def end_debug(context: Context = None) -> str:
                     except subprocess.TimeoutExpired:
                         pass
                 except (OSError, ProcessLookupError) as e:
-                    logger.error(f"SIGINT failed: {e}")
+                    logger.exception(f"SIGINT failed: {e}")
 
             # Next try sending quit command for graceful exit
             if session_state.pdb_process.poll() is None:
@@ -1180,10 +1180,10 @@ def end_debug(context: Context = None) -> str:
                     session_state.pdb_process.wait(timeout=0.5)  # Wait for kill
                     logger.info("PDB process killed.")
                 except Exception as term_err:
-                    logger.error(f"Error during terminate/kill: {term_err}")
+                    logger.exception(f"Error during terminate/kill: {term_err}")
                     result_message = f"Debugging session ended with errors during termination: {term_err}"
         except Exception as e:
-            logger.error(f"Error during end_debug: {e}")
+            logger.exception(f"Error during end_debug: {e}")
             result_message = f"Debugging session ended with errors: {e}"
 
     # Clean up state

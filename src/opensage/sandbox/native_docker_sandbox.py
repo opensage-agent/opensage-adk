@@ -866,7 +866,7 @@ class NativeDockerSandbox(BaseSandbox):
                 f"Successfully copied {label or source_dir} to volume {volume_name}"
             )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 f"Failed to copy {label or source_dir} to volume {volume_name}: {e}"
             )
             raise RuntimeError(f"Failed to copy data to volume: {e}")
@@ -930,7 +930,7 @@ class NativeDockerSandbox(BaseSandbox):
                                 f"Extracted {tar_file.name} to temporary directory"
                             )
                         except Exception as e:
-                            logger.error(f"Failed to extract {tar_file.name}: {e}")
+                            logger.exception(f"Failed to extract {tar_file.name}: {e}")
                             raise RuntimeError(f"Failed to extract tar.gz: {e}")
 
                         cls._docker_cp_to_volume(
@@ -953,7 +953,7 @@ class NativeDockerSandbox(BaseSandbox):
                             f"Extracted {source_path.name} to temporary directory"
                         )
                     except Exception as e:
-                        logger.error(f"Failed to extract {source_path.name}: {e}")
+                        logger.exception(f"Failed to extract {source_path.name}: {e}")
                         raise RuntimeError(f"Failed to extract tar.gz: {e}")
 
                     cls._docker_cp_to_volume(
@@ -972,10 +972,12 @@ class NativeDockerSandbox(BaseSandbox):
             return volume_name
 
         except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to create Docker volume {volume_name}: {e.stderr}")
+            logger.exception(
+                f"Failed to create Docker volume {volume_name}: {e.stderr}"
+            )
             raise RuntimeError(f"Docker volume creation failed: {e.stderr}")
         except Exception as e:
-            logger.error(f"Unexpected error creating volume {volume_name}: {e}")
+            logger.exception(f"Unexpected error creating volume {volume_name}: {e}")
             raise
 
     @classmethod
@@ -1098,7 +1100,7 @@ class NativeDockerSandbox(BaseSandbox):
             return (scripts_volume_id, data_volume_id, tools_volume_id)
 
         except Exception as e:
-            logger.error(f"Failed to create shared volumes: {e}")
+            logger.exception(f"Failed to create shared volumes: {e}")
             # Clean up any created volumes on failure
             try:
                 subprocess.run(
@@ -1229,7 +1231,7 @@ class NativeDockerSandbox(BaseSandbox):
                         final_state.value,
                         state_exc,
                     )
-            logger.error(
+            logger.exception(
                 "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
                 sandbox_type,
                 opensage_session_id,
@@ -1553,7 +1555,9 @@ class NativeDockerSandbox(BaseSandbox):
             return sandbox_instances
 
         except Exception as e:
-            logger.error(f"Failed to launch sandboxes for session {session_id}: {e}")
+            logger.exception(
+                f"Failed to launch sandboxes for session {session_id}: {e}"
+            )
 
             # Cleanup any successfully created sandboxes (including placeholder)
             for sandbox in sandbox_instances.values():
@@ -1689,11 +1693,11 @@ class NativeDockerSandbox(BaseSandbox):
                     error_msg = (
                         f"Failed to backup shared volume {shared_volume_id}: {e.stderr}"
                     )
-                    logger.error(error_msg)
+                    logger.exception(error_msg)
                     cache_results["errors"].append(error_msg)
                 except Exception as e:
                     error_msg = f"Unexpected error backing up shared volume: {e}"
-                    logger.error(error_msg)
+                    logger.exception(error_msg)
                     cache_results["errors"].append(error_msg)
 
             # 2. Commit each sandbox container to an image
@@ -1745,7 +1749,7 @@ class NativeDockerSandbox(BaseSandbox):
 
                 except Exception as e:
                     error_msg = f"Failed to commit {sandbox_type} container: {e}"
-                    logger.error(error_msg)
+                    logger.exception(error_msg)
                     cache_results["errors"].append(error_msg)
 
             logger.info(f"Sandbox caching completed for task {task_name}")
@@ -1753,7 +1757,7 @@ class NativeDockerSandbox(BaseSandbox):
 
         except Exception as e:
             error_msg = f"Failed to cache sandboxes: {e}"
-            logger.error(error_msg)
+            logger.exception(error_msg)
             cache_results["errors"].append(error_msg)
             return cache_results
 

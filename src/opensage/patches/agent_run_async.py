@@ -256,7 +256,7 @@ async def _record_agent_call(
                 context=tool_context,
             )
         except Exception as e:
-            logger.error(f"Failed to create agent call relation: {e}")
+            logger.exception(f"Failed to create agent call relation: {e}")
 
 
 async def _wrapped_base_agent_run(self, invocation_context):
@@ -327,7 +327,7 @@ async def _wrapped_base_agent_run(self, invocation_context):
                     exc_type, exc_value, exc_traceback = sys.exc_info()
                     if exc_traceback:
                         traceback.print_tb(exc_traceback)
-                    logger.error(f"Failed to process event: {event_error}")
+                    logger.exception(f"Failed to process event: {event_error}")
                     raise
 
             last_event = event
@@ -346,7 +346,7 @@ async def _wrapped_base_agent_run(self, invocation_context):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             if exc_traceback:
                 traceback.print_tb(exc_traceback)
-            logger.error(f"Failed to record agent run: {e}")
+            logger.exception(f"Failed to record agent run: {e}")
             await record_agent_end(invocation_context, "", "error")
         raise
 
@@ -378,7 +378,7 @@ async def _wrapped_base_agent_run(self, invocation_context):
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 if exc_traceback:
                     traceback.print_tb(exc_traceback)
-                logger.error(f"Failed to store final session state: {state_error}")
+                logger.exception(f"Failed to store final session state: {state_error}")
 
             try:
                 output_content = ""
@@ -396,7 +396,7 @@ async def _wrapped_base_agent_run(self, invocation_context):
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 if exc_traceback:
                     traceback.print_tb(exc_traceback)
-                logger.error(f"Failed to record agent end: {e}")
+                logger.exception(f"Failed to record agent end: {e}")
                 await record_agent_end(invocation_context, "", "error")
 
         try:
@@ -592,7 +592,9 @@ def apply() -> None:
                     tool_context.state.update(event.actions.state_delta)
                 last_event = event
         except Exception as run_error:
-            logger.error(f"Subagent run error, switching to final summary: {run_error}")
+            logger.exception(
+                f"Subagent run error, switching to final summary: {run_error}"
+            )
             summary_prompt = (
                 "Final summary requested due to internal error.\n\n"
                 "Instructions:\n"

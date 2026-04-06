@@ -90,7 +90,7 @@ class EntityExtractor:
                 return await self._extract_from_code(content, metadata)
             return await self._extract_from_text(content, metadata)
         except Exception as e:
-            logger.error(f"Entity extraction failed: {e}")
+            logger.exception(f"Entity extraction failed: {e}")
             return ExtractionResult(success=False, error=str(e))
 
     async def _extract_from_question(

@@ -113,7 +113,7 @@ def async_retry(max_attempts: int = 3):
                         f"Attempt {attempt}/{max_attempts} failed for {func.__name__}: {e}"
                     )
                     if attempt == max_attempts:
-                        logger.error(
+                        logger.exception(
                             f"All {max_attempts} attempts failed for {func.__name__}"
                         )
                         raise last_exception
@@ -879,7 +879,7 @@ class CyberGym(Evaluation):
                             resp += text
 
             except LlmCallsLimitExceededError as e:
-                logger.error(
+                logger.exception(
                     f"Llm calls limit exceeded for session {task.session_id}: {e}"
                 )
                 raise e

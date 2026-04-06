@@ -329,7 +329,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
                         pass
 
         except Exception as e:
-            logger.error(f"Failed to create volume {volume_name}: {e}")
+            logger.exception(f"Failed to create volume {volume_name}: {e}")
             raise
 
     @classmethod
@@ -398,7 +398,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
             return sandbox_instances
 
         except Exception as e:
-            logger.error(f"Failed to launch: {e}")
+            logger.exception(f"Failed to launch: {e}")
             for sandbox in sandbox_instances.values():
                 try:
                     if hasattr(sandbox, "delete_container"):
@@ -662,7 +662,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
                     cache_results["shared_volume_backup"] = str(backup_path)
                 except Exception as exc:
                     error = f"Failed to backup shared volume {shared_volume_id}: {exc}"
-                    logger.error(error)
+                    logger.exception(error)
                     cache_results["errors"].append(error)
 
             client = cls._get_docker_client()
@@ -700,7 +700,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
                 except Exception as e:
                     error = f"Failed to commit {sandbox_type}: {e}"
-                    logger.error(error)
+                    logger.exception(error)
                     cache_results["errors"].append(error)
 
             manifest_data = {
@@ -727,7 +727,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
         except Exception as e:
             error = f"Failed to cache: {e}"
-            logger.error(error)
+            logger.exception(error)
             cache_results["errors"].append(error)
             return cache_results
 

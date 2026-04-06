@@ -61,7 +61,7 @@ class EmbeddingSearchStrategy(SearchStrategy):
         try:
             query_embedding = await self._get_embedding(context.query)
         except Exception as e:
-            logger.error(f"Failed to generate embedding: {e}")
+            logger.exception(f"Failed to generate embedding: {e}")
             return []
 
         node_types = context.node_types

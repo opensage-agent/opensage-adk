@@ -75,5 +75,5 @@ class CodeQLInitializer(SandboxInitializer):
                 )
             return True
         except Exception as e:
-            logger.error(f"CodeQL initialization failed: {e}")
+            logger.exception(f"CodeQL initialization failed: {e}")
             return False

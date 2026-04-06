@@ -212,7 +212,7 @@ class DynamicAgentManager:
             return agent_id, agent
 
         except Exception as e:
-            logger.error(f"Failed to create agent: {e}")
+            logger.exception(f"Failed to create agent: {e}")
             raise
 
     def get_agent(self, agent_id: str) -> Optional[BaseAgent]:
@@ -511,7 +511,7 @@ class DynamicAgentManager:
                 metadata.updated_at = datetime.now()
                 logger.info(f"Restored agent {metadata.id} without tools")
             except Exception as e:
-                logger.error(f"Failed to restore agent {metadata.id}: {e}")
+                logger.exception(f"Failed to restore agent {metadata.id}: {e}")
                 metadata.status = AgentStatus.ERROR
             return
 
@@ -554,7 +554,7 @@ class DynamicAgentManager:
             )
 
         except Exception as e:
-            logger.error(f"Failed to restore agent {metadata.id}: {e}")
+            logger.exception(f"Failed to restore agent {metadata.id}: {e}")
             metadata.status = AgentStatus.ERROR
 
     def cleanup(self) -> None:

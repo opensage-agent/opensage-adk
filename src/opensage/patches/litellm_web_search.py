@@ -168,8 +168,20 @@ def apply() -> None:
         _lite_llm_module._model_response_to_generate_content_response
     )
 
+    def _collect_server_tool_ids(content_blocks: List[Dict[str, Any]]) -> set:
+        """Return the set of tool-call IDs that originated from server_tool_use blocks."""
+        ids: set = set()
+        for block in content_blocks:
+            if block.get("type") == "server_tool_use":
+                block_id = block.get("id")
+                if block_id:
+                    ids.add(block_id)
+        return ids
+
     def _patched_model_response_to_gcr(response):
         llm_response = _orig_model_response_to_generate_content_response(response)
+
+        server_tool_ids: set = set()
 
         # Extract web search metadata from Anthropic's raw content blocks
         hidden = getattr(response, "_hidden_params", None)
@@ -179,6 +191,18 @@ def apply() -> None:
                 metadata = _extract_grounding_metadata(original)
                 if metadata is not None:
                     llm_response.grounding_metadata = metadata
+                server_tool_ids = _collect_server_tool_ids(original)
+
+        # Strip server-side tool FunctionCall parts that litellm converted
+        # from server_tool_use blocks.  These are already executed by the
+        # provider and must not be dispatched by ADK.  We match by tool-call
+        # ID so user-defined tools with the same name are not affected.
+        if server_tool_ids and llm_response.content and llm_response.content.parts:
+            llm_response.content.parts = [
+                p
+                for p in llm_response.content.parts
+                if not (p.function_call and p.function_call.id in server_tool_ids)
+            ]
 
         return llm_response
 

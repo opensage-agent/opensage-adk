@@ -57,14 +57,6 @@ uv run opensage --help
 uv run opensage dependency-check
 ```
 
-## Tools
-
-OpenSage-ADK agents can use Python tools, filesystem-discovered Skills, and MCP
-toolsets.
-
-[Adding a New Tool](../developer_guide/Adding-Tools.md): How to add new
-tools/skills/toolsets.
-
 ## Creating Your Own Agent
 
 This section shows the minimal structure and conventions for writing an agent
@@ -251,6 +243,7 @@ starting points:
 Run one in the web UI by pointing `--agent` to the example directory and
 `--config` to the config file shipped alongside it.
 
+
 ## Adding tools to your agent
 
 OpenSage-ADK supports three tool types you can enable in your agent:
@@ -304,6 +297,7 @@ name: my-tool
 description: Tool description
 should_run_in_sandbox: main
 ---
+
 
 ## Usage
 

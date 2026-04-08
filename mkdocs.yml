@@ -1,4 +1,4 @@
-site_name: OpenSage
+site_name: OpenSage-ADK
 site_description: OpenSage Development Documentation
 
 # Documentation directory (where markdown files are)
@@ -90,7 +90,7 @@ nav:
   - Home: index.md
   - User Guide:
     - Introduction: user_guide/Introduction.md
-    - Setup: user_guide/Setup.md
+    - Getting Started: user_guide/Setup.md
     - Configuration: user_guide/Configuration.md
   - Developer Guide:
     - Project Structure: developer_guide/Project-Structure.md

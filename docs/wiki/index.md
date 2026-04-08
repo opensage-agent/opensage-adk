@@ -6,9 +6,9 @@ OpenSage-ADK is an AI agent development framework that enables AI to write its o
 
 ## Documentation Index
 
-### Getting Started
+### User Guide
 - [Introduction](user_guide/Introduction.md) - What is OpenSage-ADK?
-- [Setup](user_guide/Setup.md) - Environment setup and installation
+- [Getting Started](user_guide/Setup.md) - Environment setup and agent construction
 - [Configuration](user_guide/Configuration.md) - Configuration reference
 
 ### Developer Guide

@@ -10,6 +10,7 @@ from typing import Any, Callable, List, Literal, Optional
 from urllib.parse import urlencode
 
 import graphviz
+import pydantic
 from fastapi import (
     FastAPI,
     File,
@@ -40,8 +41,6 @@ from google.adk.cli.adk_web_server import (
     ListEvalResultsResponse,
     ListEvalSetsResponse,
     RunAgentRequest,
-    UpdateSessionEventRequest,
-    _replace_event_part,
 )
 from google.adk.events.event import Event
 from google.adk.plugins.base_plugin import BasePlugin
@@ -57,6 +56,69 @@ from starlette.types import Lifespan
 from opensage.memory.file_based.short_term import build_root_session_state
 
 logger = logging.getLogger("opensage." + __name__)
+
+
+class UpdateSessionEventRequest(pydantic.BaseModel):
+    """Request to update one editable content part in a session event."""
+
+    model_config = pydantic.ConfigDict(
+        alias_generator=pydantic.alias_generators.to_camel,
+        populate_by_name=True,
+    )
+
+    part_index: Optional[int] = None
+    text: Optional[str] = None
+    function_call: Optional[types.FunctionCall] = None
+    function_response: Optional[types.FunctionResponse] = None
+
+
+def _replace_event_part(event: Event, req: UpdateSessionEventRequest) -> Event:
+    """Return a copy of an event with one editable part replaced."""
+    if not event.content or not event.content.parts:
+        raise ValueError("Only events with content parts can be edited.")
+
+    updated_event = event.model_copy(deep=True)
+    parts = updated_event.content.parts
+
+    if req.text is not None:
+        if req.part_index is None:
+            target_index = next(
+                (
+                    index
+                    for index, part in enumerate(parts)
+                    if part.text is not None and not part.thought
+                ),
+                None,
+            )
+        else:
+            target_index = req.part_index
+
+        if target_index is None or not (0 <= target_index < len(parts)):
+            raise ValueError("The requested text part does not exist.")
+        if parts[target_index].text is None or parts[target_index].thought:
+            raise ValueError("Only non-thought text parts can be edited.")
+        parts[target_index].text = req.text
+        return updated_event
+
+    if req.function_call is not None:
+        if req.part_index is None or not (0 <= req.part_index < len(parts)):
+            raise ValueError("A valid part_index is required for tool call edits.")
+        if parts[req.part_index].function_call is None:
+            raise ValueError("The requested content part is not a tool call.")
+        parts[req.part_index].function_call = req.function_call
+        return updated_event
+
+    if req.function_response is not None:
+        if req.part_index is None or not (0 <= req.part_index < len(parts)):
+            raise ValueError("A valid part_index is required for tool response edits.")
+        if parts[req.part_index].function_response is None:
+            raise ValueError("The requested content part is not a tool response.")
+        parts[req.part_index].function_response = req.function_response
+        return updated_event
+
+    raise ValueError(
+        "One of text, function_call, or function_response must be provided."
+    )
 
 
 class _InMemoryExporter(export_lib.SpanExporter):

@@ -116,7 +116,9 @@ async def test_execute_agent_ensemble_creates_temp_message_board(tmp_path, monke
                 content=SimpleNamespace(parts=[SimpleNamespace(text="aggregated")])
             )
 
-    monkeypatch.setattr(emod, "LiteLlm", _FakeModel)
+    monkeypatch.setattr(
+        emod, "create_litellm_model", lambda model_name: _FakeModel(model_name)
+    )
 
     class _Part:
         @staticmethod

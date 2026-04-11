@@ -7,7 +7,6 @@ import tempfile
 from datetime import datetime
 from typing import Tuple
 
-from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.tools import ToolContext
 from google.genai import types
@@ -16,6 +15,7 @@ from opensage.session import get_opensage_session
 from opensage.toolbox.sandbox_requirements import requires_sandbox
 from opensage.utils.agent_utils import (
     INHERIT_MODEL,
+    create_litellm_model,
     get_model_from_agent,
     get_opensage_config_from_context,
     get_opensage_session_id_from_context,
@@ -284,7 +284,7 @@ Keep your response concise and actionable."""
                     "error": "flag_claims_model='inherit' but current agent has no model",
                 }
         else:
-            model = LiteLlm(model=model_name)
+            model = create_litellm_model(model_name)
 
         # Call model
         idea_parts = []

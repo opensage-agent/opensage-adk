@@ -9,7 +9,6 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 from google.adk.events.event import Event
-from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.function_tool import FunctionTool
 from google.adk.tools.tool_context import ToolContext
@@ -18,6 +17,7 @@ from google.genai import types
 from opensage.session import get_opensage_session
 from opensage.toolbox.sandbox_requirements import requires_sandbox
 from opensage.utils.agent_utils import (
+    create_litellm_model,
     get_neo4j_client_from_context,
     get_opensage_session_id_from_context,
 )
@@ -371,7 +371,7 @@ async def drop_or_summarize_events(tool_context: ToolContext):
             return None
         model = agent.canonical_model
     else:
-        model = LiteLlm(model=model_name)
+        model = create_litellm_model(model_name)
 
     # Get events from tool context
     events = tool_context._invocation_context.session.events

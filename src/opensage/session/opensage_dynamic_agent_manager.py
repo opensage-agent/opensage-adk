@@ -18,10 +18,9 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from google.adk.agents.base_agent import BaseAgent
-from google.adk.models.lite_llm import LiteLlm
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.utils.agent_utils import INHERIT_MODEL
+from opensage.utils.agent_utils import INHERIT_MODEL, create_litellm_model
 
 logger = logging.getLogger(__name__)
 
@@ -123,9 +122,9 @@ class DynamicAgentManager:
                             "model='inherit' requires either _resolved_model "
                             "or a configured llm.model_configs.main.model_name"
                         )
-                    kwargs["model"] = LiteLlm(model=fallback)
+                    kwargs["model"] = create_litellm_model(fallback)
             else:
-                kwargs["model"] = LiteLlm(model=kwargs["model"])
+                kwargs["model"] = create_litellm_model(kwargs["model"])
 
         # Validate required parameters
         required_params = ["name", "model"]

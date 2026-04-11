@@ -40,6 +40,8 @@ from google.adk.cli.adk_web_server import (
     ListEvalResultsResponse,
     ListEvalSetsResponse,
     RunAgentRequest,
+    UpdateSessionEventRequest,
+    _replace_event_part,
 )
 from google.adk.events.event import Event
 from google.adk.plugins.base_plugin import BasePlugin
@@ -406,6 +408,42 @@ class OpenSageWebServer:
                 )
                 sessions.append(session)
             return sessions
+
+        @app.patch(
+            "/apps/{app_name}/users/{user_id}/sessions/{session_id}/events/{event_id}",
+            response_model_exclude_none=True,
+        )
+        async def update_session_event(
+            app_name: str,
+            user_id: str,
+            session_id: str,
+            event_id: str,
+            req: UpdateSessionEventRequest,
+        ) -> Event:
+            if app_name != self.app_name:
+                raise HTTPException(status_code=404, detail="App not found")
+
+            session = await self.session_service.get_session(
+                app_name=app_name, user_id=user_id, session_id=session_id
+            )
+            if not session:
+                raise HTTPException(status_code=404, detail="Session not found")
+
+            existing_event = next(
+                (event for event in session.events if event.id == event_id), None
+            )
+            if not existing_event:
+                raise HTTPException(status_code=404, detail="Event not found")
+
+            try:
+                updated_event = _replace_event_part(existing_event, req)
+                return await self.session_service.update_event(
+                    session=session, event=updated_event
+                )
+            except NotImplementedError as exc:
+                raise HTTPException(status_code=501, detail=str(exc)) from exc
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         @app.post("/run", response_model_exclude_none=True)
         async def run_agent(req: RunAgentRequest) -> list[Event]:

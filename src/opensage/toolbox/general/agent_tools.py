@@ -1,7 +1,6 @@
 import asyncio
 import logging
 
-from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
@@ -9,6 +8,7 @@ from google.genai import types
 from opensage.session import get_opensage_session
 from opensage.utils.agent_utils import (
     INHERIT_MODEL,
+    create_litellm_model,
     get_model_from_agent,
     get_opensage_session_id_from_context,
 )
@@ -184,7 +184,7 @@ Keep your response concise and actionable."""
                     "error": "flag_claims_model='inherit' but current agent has no model",
                 }
         else:
-            model = LiteLlm(model=model_name)
+            model = create_litellm_model(model_name)
 
         # Call model
         idea_parts = []
@@ -238,7 +238,7 @@ async def flag_unjustified_claims(tool_context: ToolContext):
                 "error": "flag_claims_model='inherit' but current agent has no model",
             }
     else:
-        model = LiteLlm(model=model_name)
+        model = create_litellm_model(model_name)
 
     # Prepare events text for analysis
     events_text = []

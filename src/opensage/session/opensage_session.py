@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Optional
 
 from ..config.config_dataclass import OpenSageConfig
+from ..memory.file_based.short_term.session_files import HOST_SESSION_ROOT
 from ..utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
@@ -98,10 +99,12 @@ class OpenSageSession:
             MessageBoardManager,  # pylint: disable=g-import-not-at-top
         )
 
+        root_dir = HOST_SESSION_ROOT / self.opensage_session_id / "message_board"
         board = MessageBoardManager(
             base_dir=Path("/tmp"),
             session_id=self.opensage_session_id,
             board_id=board_id,
+            root_dir=root_dir,
         )
         self._message_boards_by_id[board_id] = board
         return board

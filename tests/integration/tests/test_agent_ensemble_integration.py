@@ -21,6 +21,8 @@ import re
 import shutil
 import uuid
 import warnings
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 from google.adk import Runner
@@ -58,7 +60,7 @@ class TestAgentEnsembleIntegration:
         return ""
 
     @pytest.fixture(scope="function")
-    def setup_test_environment(self):
+    def setup_test_environment(self) -> Generator[dict[str, str], None, None]:
         """Set up test environment with temporary directories and database cleanup."""
         # Generate unique shared session ID
         opensage_session_id = str(uuid.uuid4())
@@ -83,7 +85,7 @@ class TestAgentEnsembleIntegration:
 
     async def _cleanup_test_database(
         self, opensage_session_id: str, database_name: str
-    ):
+    ) -> None:
         """Clean up the test database."""
         try:
             # Import here to avoid circular import
@@ -105,7 +107,7 @@ class TestAgentEnsembleIntegration:
         except Exception as e:
             print(f"Warning: Failed to drop test database {database_name}: {e}")
 
-    async def _manual_cleanup(self, test_env):
+    async def _manual_cleanup(self, test_env: dict[str, str]) -> None:
         """Manual cleanup after test completion."""
         try:
             opensage_session_id = test_env["opensage_session_id"]
@@ -124,7 +126,9 @@ class TestAgentEnsembleIntegration:
 
     @pytest.mark.filterwarnings("ignore::UserWarning")
     @pytest.mark.asyncio
-    async def test_agent_ensemble_with_calculation(self, setup_test_environment):
+    async def test_agent_ensemble_with_calculation(
+        self, setup_test_environment: dict[str, str]
+    ) -> None:
         """Test complete agent ensemble flow with mathematical calculation."""
         test_env = setup_test_environment
         opensage_session_id = test_env["opensage_session_id"]
@@ -242,7 +246,7 @@ class TestAgentEnsembleIntegration:
 
     async def _verify_ensemble_functionality(
         self, session_id: str, opensage_session_id: str
-    ):
+    ) -> None:
         """Verify ensemble functionality was triggered (simplified approach)."""
         # Import here to avoid circular import
         from opensage.session import get_opensage_session
@@ -256,15 +260,15 @@ class TestAgentEnsembleIntegration:
 
         # Create mock tool context for history management functions
         class MockInvocationContext:
-            def __init__(self, session_obj):
+            def __init__(self, session_obj: Any) -> None:
                 self.session = session_obj
 
         class MockToolContext:
-            def __init__(self, session_obj):
+            def __init__(self, session_obj: Any) -> None:
                 self._invocation_context = MockInvocationContext(session_obj)
 
         class MockSession:
-            def __init__(self, session_id, opensage_session_id):
+            def __init__(self, session_id: str, opensage_session_id: str) -> None:
                 self.id = session_id
                 self.state = {"opensage_session_id": opensage_session_id}
 
@@ -356,7 +360,7 @@ class TestAgentEnsembleIntegration:
 if __name__ == "__main__":
     import asyncio
 
-    async def run_manual_test():
+    async def run_manual_test() -> None:
         """Run the test manually for debugging."""
         test_instance = TestAgentEnsembleIntegration()
 
@@ -368,10 +372,10 @@ if __name__ == "__main__":
 
         # Mock the setup_test_environment fixture return
         class MockFixture:
-            def __init__(self, data):
+            def __init__(self, data: dict[str, Any]) -> None:
                 self._data = data
 
-            def __getitem__(self, key):
+            def __getitem__(self, key: str) -> Any:
                 return self._data[key]
 
         test_env = MockFixture(

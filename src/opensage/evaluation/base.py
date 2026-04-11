@@ -28,7 +28,6 @@ from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.run_config import RunConfig
 from google.adk.apps.app import App
 from google.adk.models import BaseLlm
-from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import Runner
 from google.adk.sessions import Session
 from google.adk.tools.agent_tool import AgentTool
@@ -46,6 +45,7 @@ from opensage.memory.file_based.short_term import build_root_session_state
 from opensage.plugins import load_plugins
 from opensage.session.opensage_session import OpenSageSession
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
+from opensage.utils.agent_utils import create_litellm_model
 from opensage.utils.bash_tools_staging import compute_bash_tools_top_roots
 from opensage.utils.project_info import PROJECT_PATH, SRC_PATH
 
@@ -710,11 +710,20 @@ class Evaluation(abc.ABC):
                     if "model_name" in config_dict:
                         config_dict["model"] = config_dict.pop("model_name")
 
-                    # Create LiteLlm instance with all config parameters
-                    model_to_use = LiteLlm(**config_dict)
-                    model_source = (
-                        f"config model '{config_dict.get('model', 'unknown')}'"
-                    )
+                    resolved_model_name = config_dict.get("model", "unknown")
+
+                    # Create LiteLlm instance with config parameters while
+                    # preserving provider-specific routing overrides.
+                    model_name = config_dict.pop("model", None)
+                    if not model_name:
+                        raise ValueError(
+                            "Expected configured LiteLlm model to include a model name."
+                        )
+
+                    model_to_use = create_litellm_model(model_name)
+                    for key, value in config_dict.items():
+                        setattr(model_to_use, key, value)
+                    model_source = f"config model '{resolved_model_name}'"
 
         # Try to create agent with model parameter
         try:

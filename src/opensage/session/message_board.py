@@ -28,12 +28,17 @@ class MessageBoardManager:
         base_dir: Path,
         session_id: str,
         board_id: str | None = None,
+        root_dir: Path | None = None,
         lock_ttl_seconds: int = 60,
     ):
         self._session_id = session_id
         self._board_id = board_id
         self._lock_ttl_seconds = int(lock_ttl_seconds)
-        if board_id:
+        if root_dir is not None:
+            root = Path(root_dir)
+            if board_id:
+                root = root / "boards" / board_id
+        elif board_id:
             root = (
                 Path(base_dir)
                 / "opensage_message_board"

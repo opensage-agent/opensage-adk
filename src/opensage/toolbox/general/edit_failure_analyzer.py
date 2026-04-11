@@ -10,7 +10,6 @@ import hashlib
 import logging
 from typing import Optional
 
-from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
@@ -18,6 +17,7 @@ from google.genai import types
 from opensage.session import get_opensage_session
 from opensage.utils.agent_utils import (
     INHERIT_MODEL,
+    create_litellm_model,
     get_opensage_session_id_from_context,
 )
 
@@ -184,9 +184,9 @@ async def analyze_edit_failure(
             if not resolved_name:
                 logger.debug("Cannot resolve model name for edit failure analysis")
                 return None
-            model = LiteLlm(model=resolved_name)
+            model = create_litellm_model(resolved_name)
         else:
-            model = LiteLlm(model=model_name)
+            model = create_litellm_model(model_name)
 
         # Call model
         analysis_parts = []

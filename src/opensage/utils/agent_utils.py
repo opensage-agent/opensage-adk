@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, List, Optional, Set
 
 from google.adk.agents.base_agent import BaseAgent
@@ -15,6 +16,26 @@ from opensage.config.config_dataclass import OpenSageConfig
 from opensage.session.joern_client import JoernClient
 
 INHERIT_MODEL = "inherit"
+
+
+def _get_litellm_kwargs_for_model(model_name: str) -> Dict[str, Any]:
+    """Build LiteLLM kwargs from environment for provider-specific routing.
+
+    LiteLLM forwards these kwargs to ``litellm.acompletion()``. This allows
+    OpenSage to honor local proxy endpoints such as ``ANTHROPIC_BASE_URL``
+    without requiring every call site to thread ``api_base`` manually.
+    """
+    kwargs: Dict[str, Any] = {}
+    if model_name.startswith("anthropic/"):
+        api_base = os.getenv("ANTHROPIC_API_BASE") or os.getenv("ANTHROPIC_BASE_URL")
+        if api_base:
+            kwargs["api_base"] = api_base.rstrip("/")
+    return kwargs
+
+
+def create_litellm_model(model_name: str) -> LiteLlm:
+    """Create a LiteLlm model with provider-specific env overrides applied."""
+    return LiteLlm(model=model_name, **_get_litellm_kwargs_for_model(model_name))
 
 
 def get_model_from_agent(agent: Any) -> Optional[BaseLlm]:
@@ -49,7 +70,7 @@ def resolve_model_spec(
         if model is None:
             raise ValueError("Unable to resolve current agent model for 'inherit'")
         return model
-    return LiteLlm(model=model_name)
+    return create_litellm_model(model_name)
 
 
 def get_opensage_session_from_context(
@@ -527,7 +548,7 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
     try:
         new_agent = base_agent.copy(
             update={
-                "model": LiteLlm(model=model_name),
+                "model": create_litellm_model(model_name),
                 "name": f"{base_agent.name}_{model_name.replace('/', '_').replace('-', '_')}",
             }
         )
@@ -549,7 +570,7 @@ def _copy_agent_with_updated_model(base_agent_info, model_name: str):
             f"Warning: agent.copy() failed ({copy_error}), falling back to manual creation"
         )
 
-        new_model = LiteLlm(model=model_name)
+        new_model = create_litellm_model(model_name)
 
         # Create new OpenSageAgent with the same configuration but different model
         new_agent = OpenSageAgent(
@@ -631,7 +652,7 @@ def _copy_agent_with_updated_model(
         resolved_model = inherit_model
         suffix = INHERIT_MODEL
     else:
-        resolved_model = LiteLlm(model=model_name)
+        resolved_model = create_litellm_model(model_name)
         suffix = model_name.replace("/", "_").replace("-", "_")
 
     try:

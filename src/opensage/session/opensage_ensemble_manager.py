@@ -16,7 +16,6 @@ from typing import Any, Dict, List, Optional, Set, Union
 
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
-from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
@@ -28,6 +27,7 @@ from opensage.session.opensage_dynamic_agent_manager import DynamicAgentManager
 from opensage.utils.agent_utils import (
     INHERIT_MODEL,
     _copy_agent_with_updated_model,
+    create_litellm_model,
     extract_tools_from_agent,
     get_model_from_agent,
 )
@@ -553,7 +553,7 @@ Final aggregated response:
                 if model is None:
                     raise ValueError("Unable to resolve current agent model")
             else:
-                model = LiteLlm(model=model_name)
+                model = create_litellm_model(model_name)
 
             llm_request = LlmRequest()
             llm_request.config = types.GenerateContentConfig()

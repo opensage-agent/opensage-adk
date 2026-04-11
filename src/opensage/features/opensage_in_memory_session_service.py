@@ -102,6 +102,21 @@ class OpenSageInMemorySessionService(BaseSessionService):
         storage_session.last_update_time = event.timestamp
         return event
 
+    async def update_event(self, *, session: Session, event: Event) -> Event:
+        storage_session = self._get_session_impl(
+            app_name=session.app_name, user_id=session.user_id, session_id=session.id
+        )
+        if storage_session is None:
+            raise ValueError(f"Session {session.id} not found.")
+
+        for idx, existing_event in enumerate(storage_session.events):
+            if existing_event.id == event.id:
+                storage_session.events[idx] = event
+                storage_session.last_update_time = time.time()
+                return event
+
+        raise ValueError(f"Event {event.id} not found in session {session.id}.")
+
     async def list_sessions(
         self, *, app_name: str, user_id: Optional[str] = None
     ) -> ListSessionsResponse:

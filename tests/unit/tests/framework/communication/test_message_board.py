@@ -9,6 +9,7 @@ from opensage.plugins.default.adk_plugins.message_board_diff_plugin import (
     MessageBoardDiffPlugin,
 )
 from opensage.session.message_board import MessageBoardManager, message_board_context
+from opensage.session.opensage_session import OpenSageSession
 
 
 class _DummyAgent:
@@ -144,3 +145,24 @@ async def test_message_board_diff_plugin_uses_context_board_id(tmp_path, monkeyp
         )
     assert "_message_board_diff" in result2
     assert "hello from tmp" in result2["_message_board_diff"]
+
+
+def test_opensage_session_places_message_board_under_host_session_root(
+    tmp_path, monkeypatch
+):
+    import opensage.session.opensage_session as session_mod
+
+    monkeypatch.setattr(session_mod, "HOST_SESSION_ROOT", Path(tmp_path))
+
+    session = OpenSageSession.__new__(OpenSageSession)
+    session.opensage_session_id = "sid"
+    session._message_boards_by_id = {}
+
+    board = session.get_message_board(board_id="b1")
+
+    assert board.paths.board_path == (
+        Path(tmp_path) / "sid" / "message_board" / "boards" / "b1" / "board.jsonl"
+    )
+    assert board.paths.lock_path == (
+        Path(tmp_path) / "sid" / "message_board" / "boards" / "b1" / "board.lock"
+    )

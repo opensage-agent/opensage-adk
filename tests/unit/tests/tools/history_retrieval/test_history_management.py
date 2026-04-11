@@ -405,18 +405,17 @@ class TestDropOrSummarizeEvents:
         mock_response = MagicMock()
         mock_response.content.parts = []  # No function calls
 
-        with patch("opensage.toolbox.general.history_management.LiteLlm"):
-            # Properly mock the async generator without AsyncMock
-            async def mock_async_gen():
-                yield mock_response
+        # Properly mock the async generator without AsyncMock
+        async def mock_async_gen():
+            yield mock_response
 
-            self.mock_agent.canonical_model.generate_content_async = MagicMock(
-                return_value=mock_async_gen()
-            )
+        self.mock_agent.canonical_model.generate_content_async = MagicMock(
+            return_value=mock_async_gen()
+        )
 
-            result = await drop_or_summarize_events(self.mock_context)
+        result = await drop_or_summarize_events(self.mock_context)
 
-            assert result is None  # No function calls found
+        assert result is None  # No function calls found
 
     @pytest.mark.asyncio
     async def test_drop_or_summarize_events_no_agent_model(self):
@@ -514,10 +513,10 @@ class TestDropOrSummarizeEvents:
         mock_response.content.parts = [func_call_part]
 
         with patch(
-            "opensage.toolbox.general.history_management.LiteLlm"
-        ) as mock_lite_llm:
+            "opensage.toolbox.general.history_management.create_litellm_model"
+        ) as mock_create_litellm_model:
             mock_model = MagicMock()
-            mock_lite_llm.return_value = mock_model
+            mock_create_litellm_model.return_value = mock_model
 
             # Create proper async generator
             async def mock_async_gen():
@@ -527,8 +526,8 @@ class TestDropOrSummarizeEvents:
 
             result = await drop_or_summarize_events(self.mock_context)
 
-            # Verify mock was called
-            mock_lite_llm.assert_called_once()
+            # Verify helper was called
+            mock_create_litellm_model.assert_called_once()
             assert result == "No modifications needed"
 
     @pytest.mark.asyncio
@@ -542,10 +541,10 @@ class TestDropOrSummarizeEvents:
         self.mock_llm_config.summarize_model = "test-model"
 
         with patch(
-            "opensage.toolbox.general.history_management.LiteLlm"
-        ) as mock_lite_llm:
+            "opensage.toolbox.general.history_management.create_litellm_model"
+        ) as mock_create_litellm_model:
             mock_model = MagicMock()
-            mock_lite_llm.return_value = mock_model
+            mock_create_litellm_model.return_value = mock_model
 
             # Create a failing async generator
             async def failing_async_gen():

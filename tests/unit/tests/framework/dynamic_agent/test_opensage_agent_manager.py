@@ -187,15 +187,15 @@ class TestDynamicAgentManager:
         }
 
         with patch(
-            "opensage.session.opensage_dynamic_agent_manager.LiteLlm"
-        ) as mock_lite_llm:
+            "opensage.session.opensage_dynamic_agent_manager.create_litellm_model"
+        ) as mock_create_litellm_model:
             mock_model = MagicMock()
-            mock_lite_llm.return_value = mock_model
+            mock_create_litellm_model.return_value = mock_model
 
             result = self.manager._create_agent_instance(**config)
 
-            # Verify LiteLlm was called with the model string
-            mock_lite_llm.assert_called_once_with(model="test-model-string")
+            # Verify the helper was called with the model string
+            mock_create_litellm_model.assert_called_once_with("test-model-string")
 
             # Verify OpenSageAgent was called with wrapped model
             expected_config = config.copy()

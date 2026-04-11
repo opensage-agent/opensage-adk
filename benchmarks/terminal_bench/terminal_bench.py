@@ -93,7 +93,9 @@ class TerminalBench(Evaluation):
             task_yaml = task_dir / "task.yaml"
             dockerfile = task_dir / "Dockerfile"
             if not task_yaml.exists() or not dockerfile.exists():
-                logger.debug(f"Skipping {task_dir.name}: missing task.yaml or Dockerfile")
+                logger.debug(
+                    f"Skipping {task_dir.name}: missing task.yaml or Dockerfile"
+                )
                 continue
 
             with open(task_yaml, "r") as f:
@@ -102,16 +104,22 @@ class TerminalBench(Evaluation):
             # TB task.yaml uses "instruction" field for the task description
             description = task_config.get("instruction")
             if description is None:
-                logger.warning(f"Skipping {task_dir.name}: no instruction found in task.yaml")
+                logger.warning(
+                    f"Skipping {task_dir.name}: no instruction found in task.yaml"
+                )
                 continue
 
-            samples.append({
-                "task_id": task_dir.name,
-                "description": description,
-                "task_dir": str(task_dir),
-                "max_agent_timeout_sec": task_config.get("max_agent_timeout_sec", 180),
-                "max_test_timeout_sec": task_config.get("max_test_timeout_sec", 30),
-            })
+            samples.append(
+                {
+                    "task_id": task_dir.name,
+                    "description": description,
+                    "task_dir": str(task_dir),
+                    "max_agent_timeout_sec": task_config.get(
+                        "max_agent_timeout_sec", 180
+                    ),
+                    "max_test_timeout_sec": task_config.get("max_test_timeout_sec", 30),
+                }
+            )
 
         if not samples:
             raise ValueError(f"No valid tasks found in {tasks_dir}")
@@ -126,16 +134,21 @@ class TerminalBench(Evaluation):
                 with open(task_file_path, "r") as f:
                     task_ids = set(line.strip() for line in f if line.strip())
                 dataset = dataset.filter(lambda x: x["task_id"] in task_ids)
-                logger.warning(f"Filtered to {len(dataset)} tasks from {self.task_file}")
+                logger.warning(
+                    f"Filtered to {len(dataset)} tasks from {self.task_file}"
+                )
 
         if self.end_idx is not None:
-            dataset = dataset.select(range(self.start_idx, min(self.end_idx, len(dataset))))
+            dataset = dataset.select(
+                range(self.start_idx, min(self.end_idx, len(dataset)))
+            )
         elif self.start_idx > 0:
             dataset = dataset.select(range(self.start_idx, len(dataset)))
 
         if self.skip_existing and Path(self.output_dir).exists():
             existing = {
-                d.name for d in Path(self.output_dir).iterdir()
+                d.name
+                for d in Path(self.output_dir).iterdir()
                 if d.is_dir() and d.name not in ("results", "__pycache__")
             }
             if existing:
@@ -259,7 +272,9 @@ class TerminalBench(Evaluation):
             "task_id": task.id,
             "passed": exit_code == 0,
             "exit_code": exit_code,
-            "output": output if isinstance(output, str) else output.decode("utf-8", errors="replace"),
+            "output": output
+            if isinstance(output, str)
+            else output.decode("utf-8", errors="replace"),
         }
 
     def evaluate(self) -> dict:

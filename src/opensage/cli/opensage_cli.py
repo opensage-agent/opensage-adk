@@ -214,6 +214,11 @@ def _session_store_dir_for_agent(*, session_id: str, agent_name: str) -> Path:
     return _SESSION_STORE_ROOT / f"{_sanitize_identifier(agent_name)}_{session_id}"
 
 
+def _is_saved_session_dir(path: Path) -> bool:
+    """Return whether a directory is a resumable saved session snapshot."""
+    return path.is_dir() and (path / "metadata.json").exists()
+
+
 def _collect_sandbox_runtime_metadata(opensage_session) -> dict:
     """Collect attachable runtime metadata for current sandboxes."""
     backend = (
@@ -420,7 +425,9 @@ def _resolve_latest_saved_session_dir() -> Path:
             f"No saved sessions found under {_SESSION_STORE_ROOT}."
         )
 
-    session_dirs = [p for p in _SESSION_STORE_ROOT.iterdir() if p.is_dir()]
+    session_dirs = [
+        p for p in _SESSION_STORE_ROOT.iterdir() if _is_saved_session_dir(p)
+    ]
     if not session_dirs:
         raise click.ClickException(
             f"No saved sessions found under {_SESSION_STORE_ROOT}."
@@ -443,6 +450,11 @@ def _resolve_saved_session_dir(resume_from: Optional[str]) -> Path:
             raise click.ClickException(
                 f"Saved session path must be a directory: {resolved}"
             )
+        if not _is_saved_session_dir(resolved):
+            raise click.ClickException(
+                f"Saved session metadata not found in {resolved}: "
+                f"{resolved / 'metadata.json'}"
+            )
         return resolved
 
     if not _SESSION_STORE_ROOT.exists():
@@ -456,9 +468,16 @@ def _resolve_saved_session_dir(resume_from: Optional[str]) -> Path:
             raise click.ClickException(
                 f"Saved session path must be a directory: {exact_match}"
             )
+        if not _is_saved_session_dir(exact_match):
+            raise click.ClickException(
+                f"Saved session metadata not found in {exact_match}: "
+                f"{exact_match / 'metadata.json'}"
+            )
         return exact_match
 
-    session_dirs = [p for p in _SESSION_STORE_ROOT.iterdir() if p.is_dir()]
+    session_dirs = [
+        p for p in _SESSION_STORE_ROOT.iterdir() if _is_saved_session_dir(p)
+    ]
     suffix_matches = sorted(
         [p for p in session_dirs if p.name.endswith(f"_{resume_from}")]
     )

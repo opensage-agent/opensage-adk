@@ -1,3 +1,26 @@
+"""Harbor-compatible benchmark evaluation for OpenSage.
+
+Runs any benchmark that uses Harbor's standard task directory format:
+    task_dir/
+    ├── instruction.md          # agent prompt
+    ├── task.toml               # timeout, resources config
+    ├── environment/Dockerfile  # container image
+    └── tests/test.sh           # verification script (exit 0 = pass)
+
+This includes TerminalBench, SWE-bench, CompileBench, and 60+ other
+benchmarks from the Harbor ecosystem.
+
+Usage:
+    # Run with a directory of Harbor tasks
+    python -m benchmarks.terminal_bench.terminal_bench run \\
+        --tasks_dir /path/to/harbor/tasks \\
+        --agent_dir examples/agents/terminal_bench_agent \\
+        --max_workers 1 --end_idx 1
+
+    # Generate Harbor tasks from TerminalBench using harbor CLI:
+    #   harbor run -p /path/to/terminal-bench-tasks -a opensage ...
+"""
+
 import datetime
 import json
 import logging
@@ -7,7 +30,11 @@ from pathlib import Path
 import datasets
 import docker
 import fire
-import yaml
+
+try:
+    import toml
+except ImportError:
+    toml = None
 
 from opensage.evaluation.base import Evaluation, EvaluationTask
 from opensage.session import get_opensage_session
@@ -16,40 +43,51 @@ from opensage.utils.project_info import PROJECT_PATH
 logger = logging.getLogger(__name__)
 
 
+def _parse_task_toml(path: Path) -> dict:
+    """Parse task.toml, return empty dict if missing or unparseable."""
+    if not path.exists():
+        return {}
+    if toml is not None:
+        with open(path) as f:
+            return toml.load(f)
+    # Fallback: basic key=value parsing for timeout
+    config = {}
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if "=" in line and not line.startswith("[") and not line.startswith("#"):
+                k, v = line.split("=", 1)
+                config[k.strip()] = v.strip().strip('"').strip("'")
+    return config
+
+
 @dataclass(kw_only=True)
-class TerminalBench(Evaluation):
-    """TerminalBench 2.0 benchmark evaluation.
+class HarborEvaluation(Evaluation):
+    """Generic Harbor-format benchmark evaluation.
 
-    Evaluates AI agents on real-world terminal tasks. Each task provides a Docker
-    environment and a test script to verify task completion.
+    Reads task directories in Harbor's standard format and runs them
+    with OpenSage agents. Compatible with any Harbor adapter output.
 
-    Requires a local clone of the terminal-bench repository:
-        git clone https://github.com/laude-institute/terminal-bench.git
-
-    Usage:
-        python -m benchmarks.terminal_bench.terminal_bench run \\
-            --tb_repo_dir /path/to/terminal-bench \\
-            --agent_dir examples/agents/terminal_bench_agent \\
-            --max_workers 1 --end_idx 1
+    Each task directory must contain:
+    - instruction.md: Agent prompt
+    - environment/Dockerfile: Container image definition
+    - tests/test.sh: Verification script (exit 0 = pass)
+    - task.toml (optional): Timeout and resource configuration
     """
 
-    # TB repo path (required)
-    tb_repo_dir: str
-    """Path to local clone of terminal-bench repository"""
+    # Path to directory containing Harbor task subdirectories
+    tasks_dir: str
+    """Path to directory containing Harbor task subdirectories"""
 
     # Override Evaluation defaults
-    dataset_path: str = ""  # Not used; we override _get_dataset()
-    name: str = "terminal_bench"
+    dataset_path: str = ""
+    name: str = "harbor"
     agent_dir: str = str(PROJECT_PATH / "examples/agents/terminal_bench_agent")
     config_template_path: str = str(
         PROJECT_PATH / "examples/agents/terminal_bench_agent/config.toml"
     )
     max_llm_calls: int = 200
     run_until_explicit_finish: bool = True
-
-    # TB-specific configs
-    test_timeout: int = 60
-    """Timeout in seconds for running pytest inside the container"""
 
     # Filtering
     start_idx: int = 0
@@ -58,81 +96,73 @@ class TerminalBench(Evaluation):
     """Path to file with task IDs to run (one per line)"""
     skip_existing: bool = False
 
+    # Test execution
+    test_timeout: int = 120
+    """Default timeout for running tests (seconds), overridden by task.toml"""
+
     def __post_init__(self):
-        tb_path = Path(self.tb_repo_dir)
-        if not tb_path.exists():
-            raise FileNotFoundError(
-                f"TB repo directory not found: {self.tb_repo_dir}. "
-                f"Please clone: git clone https://github.com/laude-institute/terminal-bench.git"
-            )
-        # TB repo uses "original-tasks/" for task definitions
-        tasks_dir = tb_path / "original-tasks"
-        if not tasks_dir.exists():
-            # Fallback to "tasks/" in case of future repo restructuring
-            tasks_dir = tb_path / "tasks"
-        if not tasks_dir.exists():
-            raise FileNotFoundError(
-                f"No original-tasks/ or tasks/ directory found in {self.tb_repo_dir}. "
-                f"Is this a valid terminal-bench repository?"
-            )
+        tasks_path = Path(self.tasks_dir)
+        if not tasks_path.exists():
+            raise FileNotFoundError(f"Tasks directory not found: {self.tasks_dir}")
         super().__post_init__()
 
     # ========= Dataset loading =========
 
     def _get_dataset(self) -> datasets.Dataset:
-        """Build dataset by scanning tb_repo_dir/tasks/ directory."""
-        # TB repo uses "original-tasks/" for task definitions
-        tasks_dir = Path(self.tb_repo_dir) / "original-tasks"
-        if not tasks_dir.exists():
-            tasks_dir = Path(self.tb_repo_dir) / "tasks"
+        """Build dataset by scanning Harbor task directories."""
+        tasks_path = Path(self.tasks_dir)
         samples = []
 
-        for task_dir in sorted(tasks_dir.iterdir()):
+        for task_dir in sorted(tasks_path.iterdir()):
             if not task_dir.is_dir():
                 continue
-            task_yaml = task_dir / "task.yaml"
-            dockerfile = task_dir / "Dockerfile"
-            if not task_yaml.exists() or not dockerfile.exists():
-                logger.debug(
-                    f"Skipping {task_dir.name}: missing task.yaml or Dockerfile"
-                )
+
+            instruction_file = task_dir / "instruction.md"
+            dockerfile = task_dir / "environment" / "Dockerfile"
+
+            if not instruction_file.exists():
+                logger.debug(f"Skipping {task_dir.name}: no instruction.md")
+                continue
+            if not dockerfile.exists():
+                logger.debug(f"Skipping {task_dir.name}: no environment/Dockerfile")
                 continue
 
-            with open(task_yaml, "r") as f:
-                task_config = yaml.safe_load(f)
-
-            # TB task.yaml uses "instruction" field for the task description
-            description = task_config.get("instruction")
-            if description is None:
-                logger.warning(
-                    f"Skipping {task_dir.name}: no instruction found in task.yaml"
-                )
+            instruction = instruction_file.read_text().strip()
+            if not instruction:
+                logger.warning(f"Skipping {task_dir.name}: empty instruction.md")
                 continue
+
+            # Parse task.toml for config
+            task_config = _parse_task_toml(task_dir / "task.toml")
+            verifier_config = task_config.get("verifier", {})
+            agent_config = task_config.get("agent", {})
 
             samples.append(
                 {
                     "task_id": task_dir.name,
-                    "description": description,
+                    "description": instruction,
                     "task_dir": str(task_dir),
-                    "max_agent_timeout_sec": task_config.get(
-                        "max_agent_timeout_sec", 180
+                    "agent_timeout_sec": int(
+                        agent_config.get("timeout_sec", 300)
                     ),
-                    "max_test_timeout_sec": task_config.get("max_test_timeout_sec", 30),
+                    "test_timeout_sec": int(
+                        verifier_config.get("timeout_sec", self.test_timeout)
+                    ),
                 }
             )
 
         if not samples:
-            raise ValueError(f"No valid tasks found in {tasks_dir}")
+            raise ValueError(f"No valid Harbor tasks found in {tasks_path}")
 
-        logger.warning(f"Found {len(samples)} tasks in {tasks_dir}")
+        logger.warning(f"Found {len(samples)} Harbor tasks in {tasks_path}")
         dataset = datasets.Dataset.from_list(samples)
 
         # Apply filtering
         if self.task_file:
             task_file_path = Path(self.task_file)
             if task_file_path.exists():
-                with open(task_file_path, "r") as f:
-                    task_ids = set(line.strip() for line in f if line.strip())
+                with open(task_file_path) as f:
+                    task_ids = {line.strip() for line in f if line.strip()}
                 dataset = dataset.filter(lambda x: x["task_id"] in task_ids)
                 logger.warning(
                     f"Filtered to {len(dataset)} tasks from {self.task_file}"
@@ -174,21 +204,22 @@ class TerminalBench(Evaluation):
 
     def _get_config_template_variables(self, task: EvaluationTask) -> dict:
         tmpl_vars = super()._get_config_template_variables(task)
-        tmpl_vars["DEFAULT_IMAGE"] = f"tb_{task.id}"
+        tmpl_vars["DEFAULT_IMAGE"] = f"harbor_{task.id}"
         return tmpl_vars
 
     # ========= Docker image building =========
 
     def _before_generate_one_callback(self, task: EvaluationTask):
-        """Build the Docker image for this task from its Dockerfile."""
-        task_dir = task.sample["task_dir"]
-        image_tag = f"tb_{task.id}"
+        """Build Docker image from the task's environment/Dockerfile."""
+        task_dir = Path(task.sample["task_dir"])
+        dockerfile_dir = task_dir / "environment"
+        image_tag = f"harbor_{task.id}"
 
-        logger.warning(f"Building Docker image '{image_tag}' from {task_dir}")
+        logger.warning(f"Building Docker image '{image_tag}' from {dockerfile_dir}")
         client = docker.from_env()
         try:
             _, build_logs = client.images.build(
-                path=task_dir,
+                path=str(dockerfile_dir),
                 tag=image_tag,
                 rm=True,
             )
@@ -205,15 +236,12 @@ class TerminalBench(Evaluation):
     # ========= Test execution and evaluation =========
 
     async def _collect_outputs(self, task: EvaluationTask, session) -> dict:
-        """Collect outputs and run TB's test scripts inside the container."""
-        # First, run the standard output collection
+        """Run Harbor's tests/test.sh for verification."""
         info = await super()._collect_outputs(task, session)
 
-        # Then run TB's test scripts
         test_result = self._run_task_tests(task)
         info["test_result"] = test_result
 
-        # Save test result to task output dir
         test_result_file = Path(task.output_dir) / "test_result.json"
         with open(test_result_file, "w") as f:
             json.dump(test_result, f, indent=2)
@@ -224,7 +252,7 @@ class TerminalBench(Evaluation):
         return info
 
     def _run_task_tests(self, task: EvaluationTask) -> dict:
-        """Copy test scripts into the container and run pytest."""
+        """Copy and execute tests/test.sh inside the container."""
         opensage_session = get_opensage_session(task.session_id)
         sandbox = opensage_session.sandboxes.get_sandbox("main")
 
@@ -241,28 +269,27 @@ class TerminalBench(Evaluation):
                 "error": "missing_tests",
             }
 
-        # Copy tests/ into the container at /tests/
+        # Copy tests/ into the container
         sandbox.copy_directory_to_container(
             src_path=str(tests_dir),
             dst_path="/tests",
         )
-        logger.info(f"Copied tests/ to container for task {task.id}")
 
-        # Copy run-tests.sh if it exists, otherwise use default
-        run_tests_sh = task_dir / "run-tests.sh"
-        if run_tests_sh.exists():
+        # Run test.sh (Harbor standard) or fallback to pytest
+        test_sh = tests_dir / "test.sh"
+        if test_sh.exists():
             sandbox.copy_file_to_container(
-                local_path=str(run_tests_sh),
-                container_path="/run-tests.sh",
+                local_path=str(test_sh),
+                container_path="/tests/test.sh",
             )
-            test_cmd = "chmod +x /run-tests.sh && TEST_DIR=/tests/ /run-tests.sh"
+            test_cmd = "chmod +x /tests/test.sh && /tests/test.sh"
         else:
             test_cmd = (
                 "pip install -q pytest && "
-                "TEST_DIR=/tests/ python -m pytest /tests/test_outputs.py -v --tb=short"
+                "python -m pytest /tests/ -v --tb=short"
             )
 
-        test_timeout = task.sample.get("max_test_timeout_sec", self.test_timeout)
+        test_timeout = task.sample.get("test_timeout_sec", self.test_timeout)
         output, exit_code = sandbox.run_command_in_container(
             test_cmd,
             timeout=test_timeout,
@@ -272,10 +299,24 @@ class TerminalBench(Evaluation):
             "task_id": task.id,
             "passed": exit_code == 0,
             "exit_code": exit_code,
-            "output": output
-            if isinstance(output, str)
-            else output.decode("utf-8", errors="replace"),
+            "output": (
+                output
+                if isinstance(output, str)
+                else output.decode("utf-8", errors="replace")
+            ),
         }
+
+    # ========= Reward function for RL integration =========
+
+    @staticmethod
+    async def reward_func(args, sample, **kwargs) -> dict:
+        """Compute reward from test results."""
+        metadata = getattr(sample, "metadata", {}) if not isinstance(sample, dict) else sample
+        test_result = metadata.get("test_result", {})
+        passed = test_result.get("passed", False)
+        return {"score": 1.0 if passed else 0.0}
+
+    # ========= Aggregated evaluation =========
 
     def evaluate(self) -> dict:
         """Aggregate test results across all tasks."""
@@ -286,7 +327,7 @@ class TerminalBench(Evaluation):
             test_result_file = task_dir / "test_result.json"
             if not test_result_file.exists():
                 continue
-            with open(test_result_file, "r") as f:
+            with open(test_result_file) as f:
                 results.append(json.load(f))
 
         total = len(results)
@@ -295,7 +336,7 @@ class TerminalBench(Evaluation):
         pass_rate = (passed / total * 100) if total > 0 else 0
 
         logger.warning("=" * 60)
-        logger.warning("TerminalBench Evaluation Results")
+        logger.warning("Harbor Evaluation Results")
         logger.warning(f"Total tasks: {total}")
         logger.warning(f"Passed: {passed}")
         logger.warning(f"Failed: {failed}")
@@ -328,5 +369,8 @@ class TerminalBench(Evaluation):
         return eval_results
 
 
+# Keep TerminalBench as alias for backwards compat
+TerminalBench = HarborEvaluation
+
 if __name__ == "__main__":
-    fire.Fire(TerminalBench)
+    fire.Fire(HarborEvaluation)

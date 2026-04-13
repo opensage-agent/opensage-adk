@@ -7,10 +7,12 @@ RL training framework (slime, verl, areal, etc.).
 
 from .areal import ArealAdapter
 from .base import BaseAdapter
+from .miles import MilesAdapter
 from .slime import SlimeAdapter
 
 __all__ = [
     "ArealAdapter",
     "BaseAdapter",
+    "MilesAdapter",
     "SlimeAdapter",
 ]

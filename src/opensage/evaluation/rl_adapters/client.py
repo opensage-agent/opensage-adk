@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any
 
 from opensage.session import cleanup_opensage_session, get_opensage_session
 
-from .adapters import ArealAdapter, BaseAdapter, SlimeAdapter
+from .adapters import ArealAdapter, BaseAdapter, MilesAdapter, SlimeAdapter
 from .benchmark_interface import BenchmarkInterface
 
 if TYPE_CHECKING:
@@ -220,6 +220,12 @@ class RLSession:
                     evaluation=self.client._evaluation,
                     benchmark=self.client._benchmark,
                 )
+            elif framework == "miles":
+                self._adapters[framework] = MilesAdapter(
+                    opensage_session=dummy_session,
+                    evaluation=self.client._evaluation,
+                    benchmark=self.client._benchmark,
+                )
             else:
                 raise ValueError(f"Unsupported framework: {framework}")
 
@@ -248,6 +254,41 @@ class RLSession:
 
         adapter = self._get_adapter("slime")
         return await adapter.generate(args, sample, sampling_params)
+
+    async def miles_generate(
+        self,
+        base_url: str,
+        prompt: Any,
+        metadata: dict[str, Any] | None = None,
+        sampling_params: dict[str, Any] | None = None,
+        model_name: str = "",
+    ) -> dict[str, Any]:
+        """Generate using OpenSage agent for Miles rollout.
+
+        Miles handles token tracking externally via TITO session server.
+        The agent just uses base_url for LLM calls (standard OpenAI API).
+
+        Args:
+            base_url: Miles session server endpoint
+            prompt: Task prompt
+            metadata: Task metadata from Miles sample
+            sampling_params: Sampling parameters
+            model_name: Model name for the agent
+
+        Returns:
+            dict with {reward, exit_status, agent_metrics, eval_report}
+        """
+        if self._closed:
+            raise RuntimeError("Session has been closed")
+
+        adapter = self._get_adapter("miles")
+        return await adapter.generate(
+            base_url=base_url,
+            prompt=prompt,
+            metadata=metadata,
+            sampling_params=sampling_params,
+            model_name=model_name,
+        )
 
     # Future framework methods (placeholders)
     async def verl_generate(

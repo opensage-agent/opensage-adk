@@ -31,8 +31,8 @@ import time
 from pathlib import Path
 from typing import Awaitable, Optional
 
-from agentdocker_lite import Sandbox as _make_sandbox
-from agentdocker_lite import SandboxConfig as _SandboxConfig
+from nitrobox import Sandbox as _make_sandbox
+from nitrobox import SandboxConfig as _SandboxConfig
 
 from opensage.config.config_dataclass import ContainerConfig
 from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState

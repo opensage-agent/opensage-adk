@@ -7,23 +7,26 @@ Runs any benchmark that uses Harbor's standard task directory format:
     ├── environment/Dockerfile  # container image
     └── tests/test.sh           # verification script (exit 0 = pass)
 
-This includes TerminalBench, SWE-bench, CompileBench, and 60+ other
-benchmarks from the Harbor ecosystem.
+This includes SWE-bench, CompileBench, GAIA, and 60+ other benchmarks
+from the Harbor ecosystem.
 
 Usage:
-    # Run with a directory of Harbor tasks
-    python -m benchmarks.terminal_bench.terminal_bench run \\
-        --tasks_dir /path/to/harbor/tasks \\
-        --agent_dir examples/agents/terminal_bench_agent \\
-        --max_workers 1 --end_idx 1
+    # Local tasks directory
+    python -m benchmarks.harbor.harbor_evaluation run \\
+        --dataset_path /path/to/harbor/tasks \\
+        --agent_dir examples/agents/harbor_agent
 
-    # Generate Harbor tasks from TerminalBench using harbor CLI:
-    #   harbor run -p /path/to/terminal-bench-tasks -a opensage ...
+    # Auto-download from harbor registry (requires: pip install harbor)
+    python -m benchmarks.harbor.harbor_evaluation run \\
+        --dataset_path swebench \\
+        --agent_dir examples/agents/harbor_agent
 """
 
 import datetime
 import json
 import logging
+import shutil
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -41,6 +44,9 @@ from opensage.session import get_opensage_session
 from opensage.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
+
+# Harbor's default cache directory
+HARBOR_TASKS_CACHE = Path.home() / ".cache" / "harbor" / "tasks"
 
 
 def _parse_task_toml(path: Path) -> dict:
@@ -61,6 +67,50 @@ def _parse_task_toml(path: Path) -> dict:
     return config
 
 
+def _resolve_tasks_path(dataset_path: str) -> Path:
+    """Resolve dataset_path to a local directory.
+
+    If dataset_path is a local directory, return it directly.
+    Otherwise, treat it as a harbor registry name and download
+    to ~/.cache/harbor/tasks/ using `harbor download`.
+    """
+    local = Path(dataset_path)
+    if local.is_dir():
+        return local
+
+    # Check if already cached by harbor
+    cached = HARBOR_TASKS_CACHE / dataset_path
+    if cached.is_dir():
+        logger.info(f"Using cached harbor tasks: {cached}")
+        return cached
+
+    # Try harbor download
+    if shutil.which("harbor") is None:
+        raise FileNotFoundError(
+            f"'{dataset_path}' is not a local directory and `harbor` CLI is not installed. "
+            f"Either provide a local path or install harbor: pip install harbor"
+        )
+
+    logger.warning(f"Downloading harbor tasks: {dataset_path}")
+    result = subprocess.run(
+        ["harbor", "download", dataset_path, "-o", str(cached)],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"harbor download failed:\n{result.stderr or result.stdout}"
+        )
+
+    if not cached.is_dir():
+        raise FileNotFoundError(
+            f"harbor download succeeded but tasks not found at {cached}"
+        )
+
+    logger.warning(f"Downloaded harbor tasks to: {cached}")
+    return cached
+
+
 @dataclass(kw_only=True)
 class HarborEvaluation(Evaluation):
     """Generic Harbor-format benchmark evaluation.
@@ -68,23 +118,22 @@ class HarborEvaluation(Evaluation):
     Reads task directories in Harbor's standard format and runs them
     with OpenSage agents. Compatible with any Harbor adapter output.
 
-    Each task directory must contain:
+    Set dataset_path to either:
+    - A local directory containing Harbor task subdirectories
+    - A harbor registry dataset name (auto-downloaded via `harbor download`)
+
+    Each task subdirectory must contain:
     - instruction.md: Agent prompt
     - environment/Dockerfile: Container image definition
     - tests/test.sh: Verification script (exit 0 = pass)
     - task.toml (optional): Timeout and resource configuration
     """
 
-    # Path to directory containing Harbor task subdirectories
-    tasks_dir: str
-    """Path to directory containing Harbor task subdirectories"""
-
-    # Override Evaluation defaults
     dataset_path: str = ""
     name: str = "harbor"
-    agent_dir: str = str(PROJECT_PATH / "examples/agents/terminal_bench_agent")
+    agent_dir: str = str(PROJECT_PATH / "examples/agents/harbor_agent")
     config_template_path: str = str(
-        PROJECT_PATH / "examples/agents/terminal_bench_agent/config.toml"
+        PROJECT_PATH / "examples/agents/harbor_agent/config.toml"
     )
     max_llm_calls: int = 200
     run_until_explicit_finish: bool = True
@@ -101,16 +150,17 @@ class HarborEvaluation(Evaluation):
     """Default timeout for running tests (seconds), overridden by task.toml"""
 
     def __post_init__(self):
-        tasks_path = Path(self.tasks_dir)
-        if not tasks_path.exists():
-            raise FileNotFoundError(f"Tasks directory not found: {self.tasks_dir}")
+        if not self.dataset_path:
+            raise ValueError("dataset_path is required (local dir or harbor dataset name)")
+        # Resolve to local path (downloads if needed)
+        self._resolved_tasks_path = _resolve_tasks_path(self.dataset_path)
         super().__post_init__()
 
     # ========= Dataset loading =========
 
     def _get_dataset(self) -> datasets.Dataset:
         """Build dataset by scanning Harbor task directories."""
-        tasks_path = Path(self.tasks_dir)
+        tasks_path = self._resolved_tasks_path
         samples = []
 
         for task_dir in sorted(tasks_path.iterdir()):
@@ -311,7 +361,11 @@ class HarborEvaluation(Evaluation):
     @staticmethod
     async def reward_func(args, sample, **kwargs) -> dict:
         """Compute reward from test results."""
-        metadata = getattr(sample, "metadata", {}) if not isinstance(sample, dict) else sample
+        metadata = (
+            getattr(sample, "metadata", {})
+            if not isinstance(sample, dict)
+            else sample
+        )
         test_result = metadata.get("test_result", {})
         passed = test_result.get("passed", False)
         return {"score": 1.0 if passed else 0.0}
@@ -368,9 +422,6 @@ class HarborEvaluation(Evaluation):
 
         return eval_results
 
-
-# Keep TerminalBench as alias for backwards compat
-TerminalBench = HarborEvaluation
 
 if __name__ == "__main__":
     fire.Fire(HarborEvaluation)

@@ -223,7 +223,7 @@ class Filemap:
     def show_filemap(self, file_contents: str, encoding: str = "utf8"):
         import warnings
 
-        from tree_sitter_languages import get_language, get_parser
+        from tree_sitter_language_pack import get_language, get_parser
 
         warnings.simplefilter("ignore", category=FutureWarning)
 

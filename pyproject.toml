@@ -15,8 +15,8 @@ dependencies = [
     "neomodel==5.4.3",
     "docker==7.1.0",
     "paramiko>=3.0.0",
-    "python-dotenv==1.1.0",
-    "tree-sitter-languages==1.10.2",
+    "python-dotenv>=1.1.0",
+    "tree-sitter-language-pack",
     "pyyaml==6.0.2",
     "requests==2.32.4",
     "litellm>=1.74.7",
@@ -48,8 +48,13 @@ langfuse = [
 cybergym = [
     "cybergym[dev,server] @ git+https://github.com/sunblaze-ucb/cybergym",
 ]
+harbor = [
+    # harbor CLI is used for downloading tasks (subprocess only, not imported).
+    # Install separately if dependency conflicts arise: pip install "harbor>=0.3.0"
+    "harbor>=0.3.0",
+]
 full = [
-    "opensage[langfuse,cybergym]",
+    "opensage[langfuse,cybergym,harbor]",
 ]
 
 [project.scripts]

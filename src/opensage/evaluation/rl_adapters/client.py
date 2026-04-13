@@ -46,6 +46,7 @@ class Client:
         agent_name: str,
         benchmark_name: str,
         model_name: str | None = None,
+        **eval_kwargs: Any,
     ):
         """Initialize client.
 
@@ -53,12 +54,12 @@ class Client:
             agent_name (str): Name of the agent (defined in opensage/agents/ or examples/agents/)
             benchmark_name (str): Name of the benchmark (defined in opensage/evaluations/)
             model_name (str | None): Optional model name to override the evaluation's default.
-                When provided, this is passed to the evaluation class constructor
-                so that prompt formatting and model-specific logic use the correct
-                model identity (e.g., "qwen3-8b" instead of default "gemini-3-pro-preview")."""
+            **eval_kwargs: Extra keyword arguments passed to the Evaluation constructor
+                (e.g., dataset_path for HarborEvaluation)."""
         self.agent_name = agent_name
         self.benchmark_name = benchmark_name
         self.model_name = model_name
+        self._extra_eval_kwargs = eval_kwargs
 
         # Resolve agent directory
         self._agent_dir = self._resolve_agent_dir()
@@ -112,9 +113,10 @@ class Client:
 
                 # Create instance with agent_dir and agent_id (other params use defaults)
                 eval_kwargs = dict(
-                    dataset_path="",  # Not used for RL rollout
+                    dataset_path="",
                     agent_dir=self._agent_dir,
                     agent_id=agent_id,
+                    **self._extra_eval_kwargs,
                 )
                 if self.model_name is not None:
                     eval_kwargs["model_name"] = self.model_name
@@ -375,6 +377,7 @@ def create(
     agent_name: str,
     benchmark_name: str,
     model_name: str | None = None,
+    **eval_kwargs: Any,
 ) -> Client:
     """Create an OpenSage client for RL framework integration.
 
@@ -384,9 +387,8 @@ def create(
         agent_name (str): Name of the agent defined in opensage/agents/ directory
         benchmark_name (str): Name of the benchmark defined in opensage/evaluations/ directory
         model_name (str | None): Optional model name to override the evaluation's default.
-            When using RL integration (e.g., AReaL), the actual inference model
-            may differ from the evaluation's default. Passing model_name ensures
-            prompt formatting and model-specific logic use the correct identity.
+        **eval_kwargs: Extra keyword arguments passed to the Evaluation constructor
+            (e.g., dataset_path for HarborEvaluation).
     Returns:
         Client: Client instance
 
@@ -394,21 +396,20 @@ def create(
         ```python
         import opensage
 
-        # Create client
+        # SeCodePLT (auto-downloads from HuggingFace)
         client = opensage.create("vul_agent_static_tools", "secodeplt")
 
-        # For slime
-        with client.init_session() as session:
-            sample = await session.slime_generate(args, sample, sampling_params)
+        # Harbor tasks (auto-downloads from harbor registry)
+        client = opensage.create("harbor_agent", "harbor", dataset_path="swebench")
 
-        # For AReaL (with model_name override)
-        client = opensage.create("vul_agent_static_tools", "secodeplt", model_name="qwen3-8b")
-        with client.init_session() as session:
-            result = await session.areal_generate(data, model)
+        # Harbor tasks (local directory)
+        client = opensage.create("harbor_agent", "harbor",
+                                 dataset_path="/data/my_tasks")
         ```
     """
     return Client(
         agent_name=agent_name,
         benchmark_name=benchmark_name,
         model_name=model_name,
+        **eval_kwargs,
     )

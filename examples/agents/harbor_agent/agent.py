@@ -64,7 +64,7 @@ def mk_agent(
         model = LiteLlm(model="openai/gpt-4o")
 
     root_agent = OpenSageAgent(
-        name="terminal_bench_agent",
+        name="harbor_agent",
         model=model,
         instruction=SYSTEM_PROMPT,
         tools=[

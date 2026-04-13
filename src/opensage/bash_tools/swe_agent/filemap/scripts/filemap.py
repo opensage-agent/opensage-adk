@@ -5,7 +5,7 @@ import warnings
 
 # tree_sitter is throwing a FutureWarning
 warnings.simplefilter("ignore", category=FutureWarning)
-from tree_sitter_languages import get_language, get_parser
+from tree_sitter_language_pack import get_language, get_parser
 
 parser = argparse.ArgumentParser(
     description="Print the contents of a Python file, skipping lengthy function and method definitions."

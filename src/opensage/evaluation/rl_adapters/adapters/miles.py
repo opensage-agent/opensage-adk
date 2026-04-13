@@ -180,9 +180,7 @@ class MilesAdapter(BaseAdapter):
 
         model = LiteLlm(model=model_str, **litellm_kwargs)
 
-        logger.info(
-            f"Created LiteLlm: model={model_str}, base_url={api_base}"
-        )
+        logger.info(f"Created LiteLlm: model={model_str}, base_url={api_base}")
         return model
 
     async def _compute_reward(self, result: Any) -> float:
@@ -220,8 +218,12 @@ class MilesAdapter(BaseAdapter):
             "agent_run_time": agent_run_time,
         }
         if isinstance(result, dict):
-            for key in ("turns", "tool_calls", "model_query_time_sum",
-                        "env_execution_time_sum"):
+            for key in (
+                "turns",
+                "tool_calls",
+                "model_query_time_sum",
+                "env_execution_time_sum",
+            ):
                 if key in result:
                     metrics[key] = result[key]
         return metrics

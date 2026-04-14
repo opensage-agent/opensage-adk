@@ -14,6 +14,10 @@ python cybergym/cybergym_vul_detection.py run \
   --max_workers 3
 ```
 
+## DevOps-Gym
+
+See [DevopsGym.md](DevopsGym.md) for full documentation.
+
 ## Workflow details
 
 For the full step-by-step workflow (dataset loading, parallel execution modes,

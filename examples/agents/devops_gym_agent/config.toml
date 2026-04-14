@@ -1,0 +1,60 @@
+# DevOps-Gym Agent Configuration
+# Single main sandbox only — no Neo4j, no debugger sidecars needed.
+# Template variables (${VAR}) are substituted per-task by DevOpsGym._get_config_template_variables.
+
+DEFAULT_IMAGE = "ubuntu:22.04"
+TASK_NAME = "devopsgym_task"
+MAX_TOOL_RESPONSE_LENGTH = 20000
+MAX_HISTORY_SUMMARY_LENGTH = 240000
+
+task_name = "${TASK_NAME}"
+
+[memory]
+management = "file"
+
+[memory.database.short_term]
+enabled = false
+
+[memory.database.long_term]
+enabled = false
+
+[llm]
+[llm.model_configs.main]
+model_name = "openai/gpt-4o-mini"
+temperature = 1.0
+
+[llm.model_configs.summarize]
+model_name = "inherit"
+temperature = 1.0
+
+[history]
+max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
+enable_quota_countdown = true
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+
+[history.events_compaction]
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+compaction_percent = 50
+
+[sandbox]
+backend = "native"
+
+# Main sandbox — uses the task's own Docker image built on top of the OpenSage base layer.
+# working_dir matches /workspace used by DevOps-Gym task instructions.
+[sandbox.sandboxes.main]
+image = "${TASK_NAME}_main"
+working_dir = "/workspace"
+project_relative_dockerfile_path = "examples/agents/devops_gym_agent/Dockerfile"
+timeout = 1200
+[sandbox.sandboxes.main.build_args]
+BASE_IMAGE = "${DEFAULT_IMAGE}"
+[sandbox.sandboxes.main.extra]
+# DevOps-Gym task images can be large; allow generous initialisation time.
+initializer_timeout_sec = 1800
+
+[plugins]
+enabled = [
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+    "doom_loop_detector_plugin",
+]

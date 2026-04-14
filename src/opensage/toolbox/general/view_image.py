@@ -1,11 +1,16 @@
+from io import BytesIO
+
 import magic
 from google.adk.tools import ToolContext
 from google.genai import types
+from PIL import Image, UnidentifiedImageError
 
 from opensage.plugins.default.adk_plugins.image_injection_plugin import (
     PARTS_FROM_TOOLS_ID,
 )
 from opensage.utils.agent_utils import get_sandbox_from_context
+
+MAX_IMAGE_DIMENSION = 8000
 
 
 def view_image(file_path: str, *, tool_context: ToolContext) -> str:
@@ -30,6 +35,21 @@ def view_image(file_path: str, *, tool_context: ToolContext) -> str:
     mime_type = magic.from_buffer(content, mime=True)
     if mime_type not in ["image/jpeg", "image/png", "image/webp"]:
         return f"Unsupported image type: {mime_type}. Supported types are JPEG, PNG, and WEBP."
+
+    try:
+        with Image.open(BytesIO(content)) as image:
+            width, height = image.size
+    except (UnidentifiedImageError, OSError):
+        return (
+            "Failed to parse image data. The image file may be corrupted or truncated."
+        )
+
+    if width > MAX_IMAGE_DIMENSION or height > MAX_IMAGE_DIMENSION:
+        return (
+            f"Image dimensions exceed the maximum allowed size of "
+            f"{MAX_IMAGE_DIMENSION}px per side."
+        )
+
     parts = [types.Part.from_bytes(data=content, mime_type=mime_type)]
 
     if PARTS_FROM_TOOLS_ID in tool_context.state:

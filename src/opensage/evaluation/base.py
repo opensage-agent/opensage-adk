@@ -251,6 +251,10 @@ class Evaluation(abc.ABC):
     output_dir: str | None = None
     """If None, will create by default as evals/{name}/{timestamp}"""
 
+    non_interactive: bool = False
+    """If True, skip the interactive 'output_dir already exists, continue?' prompt.
+    Set to True when running from RL pipelines (Ray workers have no stdin)."""
+
     max_workers: int = 6
 
     run_until_explicit_finish: bool = False
@@ -338,14 +342,17 @@ class Evaluation(abc.ABC):
             Path(self.output_dir).mkdir(parents=True, exist_ok=True)
         else:
             if Path(self.output_dir).exists():
-                flag = (
-                    input(f"{self.output_dir} already exists, continue? (y/n): ")
-                    .strip()
-                    .lower()
-                )
-                if flag != "y" and flag != "" and flag != "yes":
-                    print("Exiting...")
-                    exit(0)
+                if self.non_interactive:
+                    logger.info(f"{self.output_dir} already exists, continuing (non_interactive=True)")
+                else:
+                    flag = (
+                        input(f"{self.output_dir} already exists, continue? (y/n): ")
+                        .strip()
+                        .lower()
+                    )
+                    if flag != "y" and flag != "" and flag != "yes":
+                        print("Exiting...")
+                        exit(0)
             else:
                 Path(self.output_dir).mkdir(parents=True)
 
@@ -1073,6 +1080,11 @@ class Evaluation(abc.ABC):
             ):
                 logger.warning(event.model_dump_json())
                 all_events.append(event)
+                # Write live event to JSONL for real-time viewing
+                _live_trace = Path(task.output_dir) / "live_events.jsonl"
+                _live_trace.parent.mkdir(parents=True, exist_ok=True)
+                with open(_live_trace, "a") as _f:
+                    _f.write(event.model_dump_json(exclude_none=True) + "\n")
 
             session_snapshot = await _update_remaining_and_get_session()
             if self.max_llm_calls > 0:
@@ -1106,6 +1118,8 @@ class Evaluation(abc.ABC):
                     ):
                         logger.warning(event.model_dump_json(exclude_none=True))
                         all_events.append(event)
+                        with open(_live_trace, "a") as _f:
+                            _f.write(event.model_dump_json(exclude_none=True) + "\n")
 
                     session_snapshot = await _update_remaining_and_get_session()
                     if self.max_llm_calls > 0:

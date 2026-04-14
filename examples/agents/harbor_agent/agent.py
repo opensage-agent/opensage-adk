@@ -7,6 +7,7 @@ from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
+    list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
@@ -48,7 +49,7 @@ Before marking any task as complete:
 
 Remember: Taking time to verify and review prevents mistakes and ensures quality results.
 
-At the beginning of the task, call the plan tool, explicitly state the tools that you can use, explicitly state your understanding of the user's requirements and explicitly enumerate all possible corner cases and checks that must be considered.
+At the beginning of the task, explicitly state the tools that you can use, explicitly state your understanding of the user's requirements and explicitly enumerate all possible corner cases and checks that must be considered.
 
 Before finishing, try to run existing tests or write new tests to validate your changes. But be careful not to break existing environments.
 
@@ -72,6 +73,7 @@ def mk_agent(
             view_file,
             str_replace_edit,
             run_terminal_command,
+            list_available_scripts,
             list_background_tasks,
             get_background_task_output,
         ],

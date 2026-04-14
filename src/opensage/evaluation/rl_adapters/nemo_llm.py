@@ -62,8 +62,20 @@ class NemoLlm(BaseLlm):
     _last_prompt_token_ids: Optional[List[int]] = None
     _last_generation_token_ids: Optional[List[int]] = None
     _last_generation_log_probs: Optional[List[float]] = None
+    # Pre-check: if the running prompt+gen total reaches this, end the turn
+    # synthetically with a finish_task call so the agent stops before vLLM
+    # rejects an over-context request (which would just spin in retries).
+    _max_prompt_tokens: Optional[int] = None
 
-    def __init__(self, *, model: str = "nemo", base_url: str = "", api_key: str = "dummy", **kwargs):
+    def __init__(
+        self,
+        *,
+        model: str = "nemo",
+        base_url: str = "",
+        api_key: str = "dummy",
+        max_prompt_tokens: Optional[int] = None,
+        **kwargs,
+    ):
         super().__init__(model=model, **kwargs)
         self._base_url = base_url
         self._api_key = api_key
@@ -71,6 +83,7 @@ class NemoLlm(BaseLlm):
         self._last_prompt_token_ids = None
         self._last_generation_token_ids = None
         self._last_generation_log_probs = None
+        self._max_prompt_tokens = max_prompt_tokens
 
     def get_logprob_turns(self) -> List[LogprobTurn]:
         return list(self._logprob_turns)
@@ -86,6 +99,50 @@ class NemoLlm(BaseLlm):
     ) -> AsyncGenerator[LlmResponse, None]:
         """Call model server /v1/responses and return ADK LlmResponse."""
         self._maybe_append_user_content(llm_request)
+
+        # Pre-check: if the cumulative prompt+gen from the prior turn already
+        # exceeds the budget, the next request would be even larger and vLLM
+        # would reject it (then the agent + NemoGym retry loops spin until
+        # max_llm_calls). Yield a synthetic finish_task so the agent gracefully
+        # ends with the partial trajectory we have so far (which preserves
+        # contiguity for NeMo RL training).
+        if (
+            self._max_prompt_tokens is not None
+            and self._last_prompt_token_ids is not None
+        ):
+            cumulative = (
+                len(self._last_prompt_token_ids)
+                + len(self._last_generation_token_ids or [])
+            )
+            if cumulative >= self._max_prompt_tokens:
+                logger.warning(
+                    f"NemoLlm context-limit pre-check tripped: cumulative tokens "
+                    f"{cumulative} >= max_prompt_tokens {self._max_prompt_tokens}. "
+                    "Yielding synthetic finish_task to end agent gracefully."
+                )
+                tool_names = (
+                    set((llm_request.tools_dict or {}).keys())
+                    if llm_request.tools_dict
+                    else set()
+                )
+                if "finish_task" in tool_names:
+                    parts = [types.Part(
+                        function_call=types.FunctionCall(
+                            id=f"call_{uuid4().hex[:8]}",
+                            name="finish_task",
+                            args={},
+                        )
+                    )]
+                else:
+                    parts = [types.Part(
+                        text="[NemoLlm context-limit pre-check: ending task]"
+                    )]
+                yield LlmResponse(
+                    content=types.Content(role="model", parts=parts),
+                    partial=False,
+                    finish_reason=types.FinishReason.STOP,
+                )
+                return
 
         # Convert LlmRequest → Responses API format
         input_items, tools = _llm_request_to_responses_input(llm_request)

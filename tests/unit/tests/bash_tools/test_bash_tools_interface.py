@@ -667,8 +667,11 @@ class TestGetBackgroundTaskOutput:
         )
         mock_task_manager.tasks = {"task_123": task_123}
         mock_task_manager.get_task_output = MagicMock(return_value="test output")
+        mock_task_manager.get_task_output_async = AsyncMock(return_value="test output")
         mock_task_manager.get_task_exit_code = MagicMock(return_value=0)
+        mock_task_manager.get_task_exit_code_async = AsyncMock(return_value=0)
         mock_task_manager.cleanup_task = MagicMock(return_value=True)
+        mock_task_manager.cleanup_task_async = AsyncMock(return_value=True)
         mock_task_manager.list_tasks = MagicMock()
 
         mock_sandbox = MagicMock()

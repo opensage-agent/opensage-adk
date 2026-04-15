@@ -37,6 +37,10 @@ jobs:
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v6
 
+    - name: Enable unprivileged user namespaces
+      run: |
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
     - name: Start Docker service
       run: |
         sudo systemctl start docker

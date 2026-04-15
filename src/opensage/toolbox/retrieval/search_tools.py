@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @requires_sandbox("main")
-def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
+async def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
     """
     Search the codebase inside the running container for a given regex pattern.
     The pattern is passed to grep with flags '-rnE' for recursive, line-numbered,
@@ -47,7 +47,7 @@ def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
 
     output = ""
     try:
-        output, exit_code = sandbox.run_command_in_container(grep_command)
+        output, exit_code = await sandbox.arun_command_in_container(grep_command)
     except Exception as e:
         return {"result": [], "error": f"Failed to run grep command: {e}"}
 
@@ -120,7 +120,7 @@ async def list_functions_in_file(filepath: str, *, tool_context: ToolContext) ->
 
 
 @requires_sandbox("main")
-def get_line_around_linenum_in_file(
+async def get_line_around_linenum_in_file(
     filepath: str, linenum: int, context: int, *, tool_context: ToolContext
 ) -> dict:
     """
@@ -137,7 +137,7 @@ def get_line_around_linenum_in_file(
     try:
         sandbox = get_sandbox_from_context(tool_context, "main")
 
-        file_content = sandbox.extract_file_from_container(filepath)
+        file_content = await sandbox.aextract_file_from_container(filepath)
         lines = file_content.splitlines()
         start = max(0, linenum - context - 1)  # Adjust for 0-based index
         end = min(len(lines), linenum + context)  # Adjust for 0-based index
@@ -159,7 +159,9 @@ def get_line_around_linenum_in_file(
 
 
 @requires_sandbox("main")
-def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> dict:
+async def search_symbol_definition(
+    symbol_name: str, *, tool_context: ToolContext
+) -> dict:
     """
     Search the codebase inside the running container for the definition of a given symbol.
     If the symbol is a method in a class, do not include the class name in the symbol_name.
@@ -176,11 +178,11 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
     opensage_session = get_opensage_session(sandbox.opensage_session_id)
     src_dir_path = opensage_session.config.src_dir_in_sandbox
     # Generate tags file if not exists or regenerate
-    output, exit_code = sandbox.run_command_in_container(
+    output, exit_code = await sandbox.arun_command_in_container(
         f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R {src_dir_path}"
     )
     if exit_code != 0:
-        output, exit_code = sandbox.run_command_in_container(
+        output, exit_code = await sandbox.arun_command_in_container(
             "apt update && apt install ctags"
         )
         if exit_code != 0:
@@ -188,7 +190,7 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
                 "result": [],
                 "error": f"Failed to install ctags: {output}, do not call this tool again.",
             }
-        output, exit_code = sandbox.run_command_in_container(
+        output, exit_code = await sandbox.arun_command_in_container(
             f"ctags --excmd=number --exclude=Makefile -f /shared/.tags -R {src_dir_path}"
         )
         if exit_code != 0:
@@ -204,7 +206,7 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
         res += f"Searching for '{symbol_name}':\n"
 
     # First, try exact match (symbol name at start of line followed by tab)
-    grep_output, grep_exit = sandbox.run_command_in_container(
+    grep_output, grep_exit = await sandbox.arun_command_in_container(
         f"grep -i '^{symbol_name}\t' /shared/.tags"
     )
 
@@ -214,7 +216,7 @@ def search_symbol_definition(symbol_name: str, *, tool_context: ToolContext) -> 
         return {"result": res}
 
     # If no exact match, try fuzzy match (symbol name anywhere in line)
-    grep_output, grep_exit = sandbox.run_command_in_container(
+    grep_output, grep_exit = await sandbox.arun_command_in_container(
         f"grep -i '{symbol_name}' /shared/.tags"
     )
 

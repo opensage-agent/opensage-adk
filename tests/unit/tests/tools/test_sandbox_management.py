@@ -47,6 +47,9 @@ class FakeSandbox:
     def run_command_in_container(self, command, timeout=None):
         return self._run_results[0]
 
+    async def arun_command_in_container(self, command, timeout=None):
+        return self.run_command_in_container(command, timeout)
+
 
 class FakeManager:
     """Minimal OpenSageSandboxManager stand-in."""

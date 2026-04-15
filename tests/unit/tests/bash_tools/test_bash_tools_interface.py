@@ -292,9 +292,11 @@ class TestListAvailableScripts:
             return ("", 1)
 
         sandbox.run_command_in_container = MagicMock(side_effect=_run)
+        sandbox.arun_command_in_container = AsyncMock(side_effect=_run)
         return sandbox
 
-    def test_list_available_scripts(self):
+    @pytest.mark.asyncio
+    async def test_list_available_scripts(self):
         """Test listing available scripts."""
         mock_context = MagicMock()
         skill_path = "/bash_tools/retrieval/foo/SKILL.md"
@@ -318,7 +320,7 @@ class TestListAvailableScripts:
             "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context",
             return_value=mock_sandbox,
         ):
-            result = list_available_scripts(tool_context=mock_context)
+            result = await list_available_scripts(tool_context=mock_context)
 
         assert isinstance(result, str)
         assert "Available Skills under /bash_tools" in result
@@ -327,7 +329,8 @@ class TestListAvailableScripts:
         assert "name:" in result
         assert "description:" in result
 
-    def test_list_available_scripts_accepts_container_style_start_dir(self):
+    @pytest.mark.asyncio
+    async def test_list_available_scripts_accepts_container_style_start_dir(self):
         mock_context = MagicMock()
         skill_path = "/bash_tools/retrieval/foo/SKILL.md"
         mock_sandbox = self._make_mock_sandbox(
@@ -349,14 +352,15 @@ class TestListAvailableScripts:
             "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context",
             return_value=mock_sandbox,
         ):
-            result = list_available_scripts(
+            result = await list_available_scripts(
                 start_dir="/bash_tools/retrieval", tool_context=mock_context
             )
 
         assert skill_path in result
         assert "name: foo" in result
 
-    def test_list_available_scripts_accepts_container_root_start_dir(self):
+    @pytest.mark.asyncio
+    async def test_list_available_scripts_accepts_container_root_start_dir(self):
         mock_context = MagicMock()
         skill_path = "/bash_tools/retrieval/foo/SKILL.md"
         mock_sandbox = self._make_mock_sandbox(
@@ -378,14 +382,15 @@ class TestListAvailableScripts:
             "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context",
             return_value=mock_sandbox,
         ):
-            result = list_available_scripts(
+            result = await list_available_scripts(
                 start_dir="/bash_tools", tool_context=mock_context
             )
 
         assert "Available Skills under /bash_tools" in result
         assert skill_path in result
 
-    def test_list_available_scripts_no_tools(self):
+    @pytest.mark.asyncio
+    async def test_list_available_scripts_no_tools(self):
         """Test list_available_scripts when no tools are found."""
         mock_context = MagicMock()
         mock_sandbox = self._make_mock_sandbox({})
@@ -394,7 +399,7 @@ class TestListAvailableScripts:
             "opensage.toolbox.general.bash_tools_interface.get_sandbox_from_context",
             return_value=mock_sandbox,
         ):
-            result = list_available_scripts(tool_context=mock_context)
+            result = await list_available_scripts(tool_context=mock_context)
 
         assert "No bash tools found" in result
 
@@ -571,7 +576,8 @@ class TestRunTerminalCommand:
 class TestListBackgroundTasks:
     """Test list_background_tasks function."""
 
-    def test_list_background_tasks_no_tasks(self):
+    @pytest.mark.asyncio
+    async def test_list_background_tasks_no_tasks(self):
         """Test list_background_tasks when no tasks exist."""
         mock_context = MagicMock()
         mock_context.state = {"opensage_session_id": "test_session"}
@@ -587,13 +593,14 @@ class TestListBackgroundTasks:
             mock_session = MockSession()
             mock_get_session.return_value = mock_session
 
-            result = list_background_tasks(tool_context=mock_context)
+            result = await list_background_tasks(tool_context=mock_context)
 
             assert "tasks" in result
             assert result["tasks"] == []
             assert "No background tasks" in result["summary"]
 
-    def test_list_background_tasks_with_tasks(self):
+    @pytest.mark.asyncio
+    async def test_list_background_tasks_with_tasks(self):
         """Test list_background_tasks with existing tasks."""
         mock_context = MagicMock()
         mock_context.state = {"opensage_session_id": "test_session"}
@@ -627,7 +634,7 @@ class TestListBackgroundTasks:
             mock_session.bash_tasks = mock_task_manager
             mock_get_session.return_value = mock_session
 
-            result = list_background_tasks(tool_context=mock_context)
+            result = await list_background_tasks(tool_context=mock_context)
 
             assert "tasks" in result
             assert len(result["tasks"]) == 1
@@ -638,7 +645,8 @@ class TestListBackgroundTasks:
 class TestGetBackgroundTaskOutput:
     """Test get_background_task_output function."""
 
-    def test_get_background_task_output_success(self):
+    @pytest.mark.asyncio
+    async def test_get_background_task_output_success(self):
         """Test get_background_task_output with successful task."""
         mock_context = MagicMock()
         mock_context.state = {"opensage_session_id": "test_session"}
@@ -678,7 +686,7 @@ class TestGetBackgroundTaskOutput:
             mock_get_session.return_value = mock_session
             mock_get_sandbox.return_value = mock_sandbox
 
-            result = get_background_task_output(
+            result = await get_background_task_output(
                 task_id="task_123",
                 tool_context=mock_context,
             )
@@ -688,7 +696,8 @@ class TestGetBackgroundTaskOutput:
             assert result["exit_code"] == 0
             assert result["cleaned_up"] is True
 
-    def test_get_background_task_output_not_found(self):
+    @pytest.mark.asyncio
+    async def test_get_background_task_output_not_found(self):
         """Test get_background_task_output when task doesn't exist."""
         mock_context = MagicMock()
         mock_context.state = {"opensage_session_id": "test_session"}
@@ -703,7 +712,7 @@ class TestGetBackgroundTaskOutput:
             mock_session.bash_tasks = mock_task_manager
             mock_get_session.return_value = mock_session
 
-            result = get_background_task_output(
+            result = await get_background_task_output(
                 task_id="nonexistent",
                 tool_context=mock_context,
             )
@@ -711,7 +720,8 @@ class TestGetBackgroundTaskOutput:
             assert "error" in result
             assert "not found" in result["error"].lower()
 
-    def test_get_background_task_output_no_manager(self):
+    @pytest.mark.asyncio
+    async def test_get_background_task_output_no_manager(self):
         """Test get_background_task_output when no task manager exists."""
         mock_context = MagicMock()
         mock_context.state = {"opensage_session_id": "test_session"}
@@ -727,7 +737,7 @@ class TestGetBackgroundTaskOutput:
             mock_session = MockSession()
             mock_get_session.return_value = mock_session
 
-            result = get_background_task_output(
+            result = await get_background_task_output(
                 task_id="task_123",
                 tool_context=mock_context,
             )

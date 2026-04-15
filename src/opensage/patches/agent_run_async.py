@@ -297,7 +297,7 @@ async def _wrapped_base_agent_run(self, invocation_context):
             )
     if file_memory_enabled:
         try:
-            _ensure_agent_mem_layout(
+            await _ensure_agent_mem_layout(
                 invocation_context,
                 agent_mem_dir,
                 agent_name=getattr(invocation_context.agent, "name", "agent"),
@@ -353,7 +353,7 @@ async def _wrapped_base_agent_run(self, invocation_context):
     finally:
         if file_memory_enabled:
             try:
-                _persist_traj_json(invocation_context, agent_mem_dir)
+                await _persist_traj_json(invocation_context, agent_mem_dir)
             except Exception as mem_error:
                 logger.warning("Failed to persist traj.json: %s", mem_error)
 
@@ -475,7 +475,7 @@ def apply() -> None:
             )
             session.state[MEM_AGENT_DIR_KEY] = child_agent_mem_dir
             try:
-                _ensure_agent_mem_layout(
+                await _ensure_agent_mem_layout(
                     tool_context._invocation_context,
                     child_agent_mem_dir,
                     agent_name=agent_tool.agent.name,

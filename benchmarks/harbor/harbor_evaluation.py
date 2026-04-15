@@ -98,9 +98,7 @@ def _resolve_tasks_path(dataset_path: str) -> Path:
         text=True,
     )
     if result.returncode != 0:
-        raise RuntimeError(
-            f"harbor download failed:\n{result.stderr or result.stdout}"
-        )
+        raise RuntimeError(f"harbor download failed:\n{result.stderr or result.stdout}")
 
     if not cached.is_dir():
         raise FileNotFoundError(
@@ -151,7 +149,9 @@ class HarborEvaluation(Evaluation):
 
     def __post_init__(self):
         if not self.dataset_path:
-            raise ValueError("dataset_path is required (local dir or harbor dataset name)")
+            raise ValueError(
+                "dataset_path is required (local dir or harbor dataset name)"
+            )
         # Resolve to local path (downloads if needed)
         self._resolved_tasks_path = _resolve_tasks_path(self.dataset_path)
         super().__post_init__()
@@ -192,9 +192,7 @@ class HarborEvaluation(Evaluation):
                     "task_id": task_dir.name,
                     "description": instruction,
                     "task_dir": str(task_dir),
-                    "agent_timeout_sec": int(
-                        agent_config.get("timeout_sec", 300)
-                    ),
+                    "agent_timeout_sec": int(agent_config.get("timeout_sec", 300)),
                     "test_timeout_sec": int(
                         verifier_config.get("timeout_sec", self.test_timeout)
                     ),
@@ -334,10 +332,7 @@ class HarborEvaluation(Evaluation):
             )
             test_cmd = "chmod +x /tests/test.sh && /tests/test.sh"
         else:
-            test_cmd = (
-                "pip install -q pytest && "
-                "python -m pytest /tests/ -v --tb=short"
-            )
+            test_cmd = "pip install -q pytest && python -m pytest /tests/ -v --tb=short"
 
         test_timeout = task.sample.get("test_timeout_sec", self.test_timeout)
         output, exit_code = sandbox.run_command_in_container(
@@ -362,9 +357,7 @@ class HarborEvaluation(Evaluation):
     async def reward_func(args, sample, **kwargs) -> dict:
         """Compute reward from test results."""
         metadata = (
-            getattr(sample, "metadata", {})
-            if not isinstance(sample, dict)
-            else sample
+            getattr(sample, "metadata", {}) if not isinstance(sample, dict) else sample
         )
         test_result = metadata.get("test_result", {})
         passed = test_result.get("passed", False)

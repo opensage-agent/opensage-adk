@@ -209,7 +209,9 @@ async def exec_in_sandbox(
 
     try:
         sandbox = manager.get_sandbox(sandbox_type)
-        output, exit_code = sandbox.run_command_in_container(command, timeout=timeout)
+        output, exit_code = await sandbox.arun_command_in_container(
+            command, timeout=timeout
+        )
         result = output or ""
         if exit_code != 0:
             result += f"\n[exit_code: {exit_code}]"

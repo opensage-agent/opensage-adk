@@ -270,7 +270,7 @@ async def run_bash_tool_script(
         )
 
 
-def list_available_scripts(
+async def list_available_scripts(
     start_dir: Optional[str] = None, *, tool_context: ToolContext
 ) -> str:
     """List available bash tools by printing full SKILL.md contents.
@@ -336,7 +336,9 @@ def list_available_scripts(
     )
 
     find_cmd = f"find {shlex.quote(base_dir)} -type f -name SKILL.md -print"
-    find_output, find_exit = sandbox.run_command_in_container(["bash", "-lc", find_cmd])
+    find_output, find_exit = await sandbox.arun_command_in_container(
+        ["bash", "-lc", find_cmd]
+    )
     if find_exit != 0:
         return (
             "Some unexpected error occurred. You should run ls or tree to explore "
@@ -361,7 +363,7 @@ def list_available_scripts(
             f"find {shlex.quote(skill_dir)}/scripts -maxdepth 1 -type f "
             "\\( -name '*.sh' -o -name '*.py' \\) | head -n 1"
         )
-        probe_output, probe_exit = sandbox.run_command_in_container(
+        probe_output, probe_exit = await sandbox.arun_command_in_container(
             ["bash", "-lc", probe_cmd]
         )
         if probe_exit == 0 and str(probe_output).strip():
@@ -373,7 +375,9 @@ def list_available_scripts(
     for container_skill_md in executable_skill_paths:
         output.append(f"--- {container_skill_md} ---")
         read_cmd = f"cat {shlex.quote(container_skill_md)}"
-        content, read_exit = sandbox.run_command_in_container(["bash", "-lc", read_cmd])
+        content, read_exit = await sandbox.arun_command_in_container(
+            ["bash", "-lc", read_cmd]
+        )
         if read_exit != 0:
             output.append(f"ERROR: Failed to read SKILL.md (exit_code={read_exit})")
             output.append("")
@@ -584,7 +588,7 @@ async def run_terminal_command(
         }
 
 
-def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
+async def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
     """List all background tasks and their current status.
 
     This tool allows the agent to check the status of background tasks
@@ -617,7 +621,7 @@ def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
         return get_sandbox_from_context(tool_context, name)
 
     # Get all tasks with updated status
-    tasks = task_manager.list_tasks(sandbox_getter)
+    tasks = await asyncio.to_thread(task_manager.list_tasks, sandbox_getter)
 
     if not tasks:
         return {"tasks": [], "summary": "No background tasks found."}
@@ -637,7 +641,7 @@ def list_background_tasks(tool_context: ToolContext) -> Dict[str, Any]:
     return {"tasks": tasks, "summary": ", ".join(summary_parts)}
 
 
-def get_background_task_output(
+async def get_background_task_output(
     task_id: str, *, tool_context: ToolContext
 ) -> Dict[str, Any]:
     """Retrieve the output and exit code from a specific background task.
@@ -699,12 +703,12 @@ def get_background_task_output(
                 return sandbox
             return get_sandbox_from_context(tool_context, name)
 
-        task_manager.list_tasks(sandbox_getter)
+        await asyncio.to_thread(task_manager.list_tasks, sandbox_getter)
         task = task_manager.tasks[task_id]
 
     # Get output and exit code before cleanup
-    output = task_manager.get_task_output(sandbox, task_id)
-    exit_code = task_manager.get_task_exit_code(sandbox, task_id)
+    output = await task_manager.get_task_output_async(sandbox, task_id)
+    exit_code = await task_manager.get_task_exit_code_async(sandbox, task_id)
 
     # Prepare result
     result = {
@@ -721,14 +725,16 @@ def get_background_task_output(
     # Clean up ONLY if task is finished
     cleanup_success = False
     if task.status.to_be_cleaned_up():
-        cleanup_success = task_manager.cleanup_task(sandbox, task_id)
+        cleanup_success = await task_manager.cleanup_task_async(sandbox, task_id)
 
     result["cleaned_up"] = cleanup_success
 
     return result
 
 
-def kill_background_task(task_id: str, *, tool_context: ToolContext) -> Dict[str, Any]:
+async def kill_background_task(
+    task_id: str, *, tool_context: ToolContext
+) -> Dict[str, Any]:
     """Kill a running background task.
 
     Args:
@@ -758,7 +764,7 @@ def kill_background_task(task_id: str, *, tool_context: ToolContext) -> Dict[str
             "message": f"Could not access sandbox '{sandbox_name}': {str(e)}",
         }
 
-    success = task_manager.kill_task(sandbox, task_id)
+    success = await asyncio.to_thread(task_manager.kill_task, sandbox, task_id)
 
     if success:
         return {"success": True, "message": f"Task {task_id} killed."}

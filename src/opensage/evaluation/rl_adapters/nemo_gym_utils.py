@@ -65,19 +65,27 @@ def events_to_nemo_gym_output(
             text = _get(part, "text")
 
             if fc:
-                function_calls.append({
-                    "call_id": _get(fc, "id", "") or f"call_{uuid4().hex[:8]}",
-                    "name": _get(fc, "name", ""),
-                    "arguments": json.dumps(_get(fc, "args", {}) or {}),
-                })
+                function_calls.append(
+                    {
+                        "call_id": _get(fc, "id", "") or f"call_{uuid4().hex[:8]}",
+                        "name": _get(fc, "name", ""),
+                        "arguments": json.dumps(_get(fc, "args", {}) or {}),
+                    }
+                )
             elif fr:
                 response_data = _get(fr, "response", "")
-                response_str = json.dumps(response_data) if isinstance(response_data, dict) else str(response_data)
-                function_responses.append({
-                    "call_id": _get(fr, "id", "") or f"call_{uuid4().hex[:8]}",
-                    "name": _get(fr, "name", ""),
-                    "output": response_str,
-                })
+                response_str = (
+                    json.dumps(response_data)
+                    if isinstance(response_data, dict)
+                    else str(response_data)
+                )
+                function_responses.append(
+                    {
+                        "call_id": _get(fr, "id", "") or f"call_{uuid4().hex[:8]}",
+                        "name": _get(fr, "name", ""),
+                        "output": response_str,
+                    }
+                )
             elif text:
                 thought = _get(part, "thought", False)
                 if not thought:
@@ -95,22 +103,26 @@ def events_to_nemo_gym_output(
             output_items.append(message_item)
 
             for fc in function_calls:
-                output_items.append({
-                    "type": "function_call",
-                    "id": f"fc_{uuid4().hex[:8]}",
-                    "call_id": fc["call_id"],
-                    "name": fc["name"],
-                    "arguments": fc["arguments"],
-                    "status": "completed",
-                })
+                output_items.append(
+                    {
+                        "type": "function_call",
+                        "id": f"fc_{uuid4().hex[:8]}",
+                        "call_id": fc["call_id"],
+                        "name": fc["name"],
+                        "arguments": fc["arguments"],
+                        "status": "completed",
+                    }
+                )
 
         for fr in function_responses:
-            output_items.append({
-                "type": "function_call_output",
-                "id": f"fco_{uuid4().hex[:8]}",
-                "call_id": fr["call_id"],
-                "output": fr["output"],
-            })
+            output_items.append(
+                {
+                    "type": "function_call_output",
+                    "id": f"fco_{uuid4().hex[:8]}",
+                    "call_id": fr["call_id"],
+                    "output": fr["output"],
+                }
+            )
 
     return output_items
 
@@ -124,9 +136,21 @@ def extract_usage_from_events(events: list) -> Dict[str, Any]:
     for event in events:
         usage = _get(event, "usage_metadata") or _get(event, "usageMetadata")
         if usage:
-            input_tokens += _get(usage, "prompt_token_count", 0) or _get(usage, "promptTokenCount", 0) or 0
-            output_tokens += _get(usage, "candidates_token_count", 0) or _get(usage, "candidatesTokenCount", 0) or 0
-            cached_tokens += _get(usage, "cached_content_token_count", 0) or _get(usage, "cachedContentTokenCount", 0) or 0
+            input_tokens += (
+                _get(usage, "prompt_token_count", 0)
+                or _get(usage, "promptTokenCount", 0)
+                or 0
+            )
+            output_tokens += (
+                _get(usage, "candidates_token_count", 0)
+                or _get(usage, "candidatesTokenCount", 0)
+                or 0
+            )
+            cached_tokens += (
+                _get(usage, "cached_content_token_count", 0)
+                or _get(usage, "cachedContentTokenCount", 0)
+                or 0
+            )
 
     return {
         "input_tokens": input_tokens,
@@ -150,11 +174,13 @@ def extract_input_from_events(events: list) -> List[Dict[str, Any]]:
             for part in parts:
                 text = _get(part, "text")
                 if text:
-                    input_messages.append({
-                        "role": "user",
-                        "content": text,
-                        "type": "message",
-                    })
+                    input_messages.append(
+                        {
+                            "role": "user",
+                            "content": text,
+                            "type": "message",
+                        }
+                    )
         elif role == "model":
             break
     return input_messages
@@ -165,12 +191,14 @@ def _build_message_item(
     logprob_data: Optional[Dict[str, Any]],
 ) -> Dict[str, Any]:
     """Build a NeMo Gym output message item, with or without logprob data."""
-    content = [{
-        "type": "output_text",
-        "annotations": [],
-        "text": text,
-        "logprobs": None,
-    }]
+    content = [
+        {
+            "type": "output_text",
+            "annotations": [],
+            "text": text,
+            "logprobs": None,
+        }
+    ]
 
     item = {
         "id": f"cht_{uuid4().hex[:12]}",

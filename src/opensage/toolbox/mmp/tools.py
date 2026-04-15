@@ -96,13 +96,13 @@ def _servers_from_ls_output(stdout: str) -> list[dict[str, Any]]:
     return servers
 
 
-def _run_mmp_in_sandbox(
+async def _run_mmp_in_sandbox(
     command: str,
     tool_context: ToolContext,
     timeout: int = _DEFAULT_MMP_TIMEOUT_SECONDS,
 ) -> dict[str, Any]:
     sandbox = get_sandbox_from_context(tool_context, "main")
-    output, exit_code = sandbox.run_command_in_container(
+    output, exit_code = await sandbox.arun_command_in_container(
         f"mmp {command}", timeout=timeout
     )
     return {
@@ -114,9 +114,11 @@ def _run_mmp_in_sandbox(
     }
 
 
-def _read_toml_from_sandbox(path: str, tool_context: ToolContext) -> dict[str, Any]:
+async def _read_toml_from_sandbox(
+    path: str, tool_context: ToolContext
+) -> dict[str, Any]:
     sandbox = get_sandbox_from_context(tool_context, "main")
-    content = sandbox.extract_file_from_container(path)
+    content = await sandbox.aextract_file_from_container(path)
     return tomllib.loads(content)
 
 
@@ -134,7 +136,7 @@ def _read_servers_from_toml(raw: dict[str, Any]) -> list[dict[str, Any]]:
     return servers
 
 
-def mmp_load_config(
+async def mmp_load_config(
     config_path: str,
     tool_context: ToolContext,
 ) -> dict[str, Any]:
@@ -154,7 +156,7 @@ def mmp_load_config(
         with both `message` and `error`.
     """
     cmd = f"load {shlex.quote(config_path)}"
-    result = _run_mmp_in_sandbox(cmd, tool_context)
+    result = await _run_mmp_in_sandbox(cmd, tool_context)
     if not result["success"]:
         error = str(result["stdout"]).strip() or "mmp load failed"
         return {
@@ -164,7 +166,7 @@ def mmp_load_config(
         }
 
     try:
-        raw = _read_toml_from_sandbox(config_path, tool_context)
+        raw = await _read_toml_from_sandbox(config_path, tool_context)
         servers = _read_servers_from_toml(raw)
     except (OSError, tomllib.TOMLDecodeError) as exc:
         error = str(exc).strip() or "failed to read or parse TOML config"
@@ -190,7 +192,7 @@ def mmp_load_config(
     }
 
 
-def mmp_list_servers(
+async def mmp_list_servers(
     *,
     tool_context: ToolContext,
 ) -> dict[str, Any]:
@@ -206,7 +208,7 @@ def mmp_list_servers(
         dict[str, Any]: Structured result with `success`, `servers`.
         On failure, returns `success=False` with an `error` message.
     """
-    result = _run_mmp_in_sandbox("ls", tool_context)
+    result = await _run_mmp_in_sandbox("ls", tool_context)
     if not result["success"]:
         error = str(result["stdout"]).strip() or "mmp ls failed"
         return {
@@ -225,7 +227,7 @@ def mmp_list_servers(
     }
 
 
-def mmp_call(
+async def mmp_call(
     *,
     method: str,
     tool_context: ToolContext,
@@ -273,7 +275,7 @@ def mmp_call(
         }
 
     command = " ".join(shlex.quote(part) for part in command_parts)
-    result = _run_mmp_in_sandbox(command=command, tool_context=tool_context)
+    result = await _run_mmp_in_sandbox(command=command, tool_context=tool_context)
     if not result["success"]:
         error = str(result["stdout"]).strip() or "mmp call failed"
         return {
@@ -303,7 +305,7 @@ def mmp_call(
     }
 
 
-def mmp_list_sessions(
+async def mmp_list_sessions(
     *,
     tool_context: ToolContext,
 ) -> dict[str, Any]:
@@ -319,7 +321,7 @@ def mmp_list_sessions(
         dict[str, Any]: Structured result with `success`, `sessions`.
         On failure, returns `success=False` with an `error` message.
     """
-    result = _run_mmp_in_sandbox(command="ps", tool_context=tool_context)
+    result = await _run_mmp_in_sandbox(command="ps", tool_context=tool_context)
     if not result["success"]:
         error = str(result["stdout"]).strip() or "mmp ps failed"
         return {
@@ -346,7 +348,7 @@ def mmp_list_sessions(
     }
 
 
-def mmp_remove_session(
+async def mmp_remove_session(
     *,
     tool_context: ToolContext,
     session_id: str | None = None,
@@ -379,7 +381,7 @@ def mmp_remove_session(
             "error": error,
         }
 
-    result = _run_mmp_in_sandbox(command=command, tool_context=tool_context)
+    result = await _run_mmp_in_sandbox(command=command, tool_context=tool_context)
     if not result["success"]:
         error = str(result["stdout"]).strip() or "mmp rm failed"
         return {

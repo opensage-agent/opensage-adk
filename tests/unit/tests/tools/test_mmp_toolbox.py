@@ -5,6 +5,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+import pytest
+
 from opensage.toolbox.mmp.tools import (
     _DEFAULT_MMP_TIMEOUT_SECONDS,
     mmp_call,
@@ -33,8 +35,16 @@ class _FakeSandbox:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(Path(local_path).read_bytes())
 
+    async def acopy_file_to_container(
+        self, local_path: str, container_path: str
+    ) -> None:
+        self.copy_file_to_container(local_path, container_path)
+
     def extract_file_from_container(self, filepath: str) -> str:
         return self._to_host_path(filepath).read_text(encoding="utf-8")
+
+    async def aextract_file_from_container(self, filepath: str) -> str:
+        return self.extract_file_from_container(filepath)
 
     def run_command_in_container(
         self, command: str, timeout: int | None = None
@@ -57,8 +67,14 @@ class _FakeSandbox:
         )
         return completed.stdout, completed.returncode
 
+    async def arun_command_in_container(
+        self, command: str, timeout: int | None = None
+    ) -> tuple[str, int]:
+        return self.run_command_in_container(command, timeout)
 
-def test_typed_tools_load_list_call_ps_rm(monkeypatch, tmp_path: Path) -> None:
+
+@pytest.mark.asyncio
+async def test_typed_tools_load_list_call_ps_rm(monkeypatch, tmp_path: Path) -> None:
     sandbox = _FakeSandbox()
     try:
         monkeypatch.setattr(
@@ -124,19 +140,21 @@ def test_typed_tools_load_list_call_ps_rm(monkeypatch, tmp_path: Path) -> None:
             container_path=sandbox_config_path,
         )
 
-        loaded = mmp_load_config(config_path=sandbox_config_path, tool_context=object())
+        loaded = await mmp_load_config(
+            config_path=sandbox_config_path, tool_context=object()
+        )
         assert loaded["success"] is True
         assert loaded["config_path"] == sandbox_config_path
         assert len(loaded["servers"]) == 1
         assert "Loaded MMP config" in loaded["message"]
 
-        listed = mmp_list_servers(tool_context=object())
+        listed = await mmp_list_servers(tool_context=object())
         assert listed["success"] is True
         assert listed["servers"][0]["name"] == "alpha"
         assert listed["servers"][0]["transport"] == "http"
         assert "Found 1 MMP server" in listed["message"]
 
-        called = mmp_call(
+        called = await mmp_call(
             method="tools/list",
             server_name="alpha",
             tool_context=object(),
@@ -145,11 +163,11 @@ def test_typed_tools_load_list_call_ps_rm(monkeypatch, tmp_path: Path) -> None:
         assert called["server"] == "alpha"
         assert "Called MMP method tools/list" in called["message"]
 
-        sessions = mmp_list_sessions(tool_context=object())
+        sessions = await mmp_list_sessions(tool_context=object())
         assert sessions["success"] is True
         assert len(sessions["sessions"]) == 1
 
-        removed = mmp_remove_session(tool_context=object(), session_id="sess-1")
+        removed = await mmp_remove_session(tool_context=object(), session_id="sess-1")
         assert removed["success"] is True
         assert removed["removed"][0]["id"] == "sess-1"
         assert "Removed 1 MMP session" in removed["message"]
@@ -164,12 +182,13 @@ def test_typed_tools_load_list_call_ps_rm(monkeypatch, tmp_path: Path) -> None:
         sandbox.cleanup()
 
 
-def test_typed_tools_validate_target_selection(monkeypatch) -> None:
-    result = mmp_call(method="tools/list", tool_context=object())
+@pytest.mark.asyncio
+async def test_typed_tools_validate_target_selection(monkeypatch) -> None:
+    result = await mmp_call(method="tools/list", tool_context=object())
     assert result["success"] is False
     assert result["error"] == "invalid mmp call"
     assert "exactly one" in result["message"]
 
-    result = mmp_remove_session(tool_context=object())
+    result = await mmp_remove_session(tool_context=object())
     assert result["success"] is False
     assert "session_id is required" in result["error"]

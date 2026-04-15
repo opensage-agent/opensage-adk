@@ -343,7 +343,9 @@ class Evaluation(abc.ABC):
         else:
             if Path(self.output_dir).exists():
                 if self.non_interactive:
-                    logger.info(f"{self.output_dir} already exists, continuing (non_interactive=True)")
+                    logger.info(
+                        f"{self.output_dir} already exists, continuing (non_interactive=True)"
+                    )
                 else:
                     flag = (
                         input(f"{self.output_dir} already exists, continue? (y/n): ")
@@ -1186,7 +1188,7 @@ class Evaluation(abc.ABC):
             for idx, src_path in enumerate(paths_to_copy):
                 # Check if path exists in container before copying
                 check_cmd = f"test -e {src_path}"
-                _, exit_code = sandbox.run_command_in_container(check_cmd)
+                _, exit_code = await sandbox.arun_command_in_container(check_cmd)
 
                 if exit_code != 0:
                     logger.warning(
@@ -1258,10 +1260,10 @@ class Evaluation(abc.ABC):
                 f"tar -czf {tar_path_in_container} -C /data/databases {database_name}"
             )
 
-            neo4j_sandbox.run_command_in_container(tar_command)
+            await neo4j_sandbox.arun_command_in_container(tar_command)
 
             # Copy tar file from container
-            neo4j_sandbox.copy_file_from_container(
+            await neo4j_sandbox.acopy_file_from_container(
                 src_path=tar_path_in_container,
                 dst_path=str(output_path / f"{database_name}.tar.gz"),
             )

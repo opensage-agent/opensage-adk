@@ -31,7 +31,7 @@ def get_testcase_storage_dir(testcase_id: str) -> str:
     )
 
 
-def save_testcase(sandbox: BaseSandbox, testcase_path: str) -> tuple[str, str]:
+async def save_testcase(sandbox: BaseSandbox, testcase_path: str) -> tuple[str, str]:
     """
     Save the testcase to the sandbox environment.
 
@@ -43,7 +43,7 @@ def save_testcase(sandbox: BaseSandbox, testcase_path: str) -> tuple[str, str]:
     """
     assert testcase_path.startswith("/shared")
 
-    md5_hash, _ = sandbox.run_command_in_container(
+    md5_hash, _ = await sandbox.arun_command_in_container(
         f"md5sum {testcase_path} | awk '{{ print $1 }}'"
     )
     md5_hash = md5_hash.strip()
@@ -51,7 +51,7 @@ def save_testcase(sandbox: BaseSandbox, testcase_path: str) -> tuple[str, str]:
 
     dst_dir = get_testcase_storage_dir(md5_hash)
     dst_path = os.path.join(dst_dir, "testcase")
-    sandbox.run_command_in_container(
+    await sandbox.arun_command_in_container(
         f"mkdir -p {dst_dir} && cp {testcase_path} {dst_path}"
     )
 
@@ -72,7 +72,7 @@ async def upload_testcase_to_database(
         get_testcase_storage_dir(testcase_id), "testcase.json"
     )
 
-    cov_data = sandbox.extract_file_from_container_bytes(testcase_cov_json)
+    cov_data = await sandbox.aextract_file_from_container_bytes(testcase_cov_json)
     if not cov_data:
         logger.error(f"Failed to extract coverage data for testcase {testcase_id}")
         return
@@ -120,9 +120,9 @@ async def run_coverage(testcase_path: str, *, tool_context: ToolContext) -> dict
     """
     target_binary = get_opensage_config_from_context(tool_context).build.target_binary
     cov_sandbox = get_sandbox_from_context(tool_context, "coverage")
-    testcase_id, saved_testcase_dir = save_testcase(cov_sandbox, testcase_path)
+    testcase_id, saved_testcase_dir = await save_testcase(cov_sandbox, testcase_path)
     saved_testcase_path = os.path.join(saved_testcase_dir, "testcase")
-    msg, err = cov_sandbox.run_command_in_container(
+    msg, err = await cov_sandbox.arun_command_in_container(
         [
             "bash",
             "/sandbox_scripts/coverage/export_cov.sh",
@@ -135,7 +135,7 @@ async def run_coverage(testcase_path: str, *, tool_context: ToolContext) -> dict
         logger.error(f"Coverage analysis failed, stderr: {msg}")
         return {"error": "Coverage analysis failed"}
 
-    report_msg, err = cov_sandbox.run_command_in_container(
+    report_msg, err = await cov_sandbox.arun_command_in_container(
         f"sed -n '1p;$p' {saved_testcase_dir}/report.txt"
     )
     if err != 0:
@@ -179,7 +179,7 @@ async def show_coverage(
     else:
         name_regex = function_name
 
-    msg, err = cov_sandbox.run_command_in_container(
+    msg, err = await cov_sandbox.arun_command_in_container(
         [
             "bash",
             "/sandbox_scripts/coverage/show_cov.sh",

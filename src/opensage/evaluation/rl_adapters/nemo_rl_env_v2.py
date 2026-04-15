@@ -105,7 +105,9 @@ class OpenSageEnvironment:
         self._sessions: dict[int, _AgentSession] = {}
         self._loop = asyncio.new_event_loop()
 
-        logger.info(f"OpenSageEnvironment (v2/ADK) initialized: tasks_dir={self.tasks_dir}")
+        logger.info(
+            f"OpenSageEnvironment (v2/ADK) initialized: tasks_dir={self.tasks_dir}"
+        )
 
     def step(
         self,
@@ -138,7 +140,10 @@ class OpenSageEnvironment:
             t0 = time.time()
             turn = meta.get("turn", 0) + 1
             task_id = meta.get("task_id", "?")
-            print(f"{_TAG} sample {i+1}/{batch_size} | task={task_id} | turn={turn}", flush=True)
+            print(
+                f"{_TAG} sample {i + 1}/{batch_size} | task={task_id} | turn={turn}",
+                flush=True,
+            )
 
             # Extract last assistant message
             conversation = message_log_batch[i]
@@ -176,16 +181,23 @@ class OpenSageEnvironment:
             meta["turn"] = turn
 
             # Check termination
-            is_done = turn >= meta.get("max_turns", self.max_turns) or session.is_finished
+            is_done = (
+                turn >= meta.get("max_turns", self.max_turns) or session.is_finished
+            )
 
             if is_done:
                 terminateds[i] = True
                 if session.is_finished:
                     # Agent called finish_task — run verification
-                    print(f"{_TAG} sample {i+1}/{batch_size} | task={task_id} | running verification...", flush=True)
+                    print(
+                        f"{_TAG} sample {i + 1}/{batch_size} | task={task_id} | running verification...",
+                        flush=True,
+                    )
                     passed = session.run_verification(self.test_timeout)
                     rewards[i] = 1.0 if passed else 0.0
-                    obs_content += f"\n\n[Verification: {'PASSED' if passed else 'FAILED'}]"
+                    obs_content += (
+                        f"\n\n[Verification: {'PASSED' if passed else 'FAILED'}]"
+                    )
                 else:
                     rewards[i] = 0.0
                     obs_content += "\n\n[Max turns reached]"
@@ -193,12 +205,22 @@ class OpenSageEnvironment:
                 session.cleanup()
                 new_metadata.append(None)
                 elapsed = time.time() - t0
-                print(f"{_TAG} sample {i+1}/{batch_size} | task={task_id} | DONE reward={rewards[i]:.0f} | {elapsed:.1f}s", flush=True)
+                print(
+                    f"{_TAG} sample {i + 1}/{batch_size} | task={task_id} | DONE reward={rewards[i]:.0f} | {elapsed:.1f}s",
+                    flush=True,
+                )
             else:
                 new_metadata.append(meta)
                 elapsed = time.time() - t0
-                tool_names = [t.get("name", "?") for t in tool_details] if tool_details else ["none"]
-                print(f"{_TAG} sample {i+1}/{batch_size} | task={task_id} | turn={turn} tools={tool_names} | {elapsed:.1f}s", flush=True)
+                tool_names = (
+                    [t.get("name", "?") for t in tool_details]
+                    if tool_details
+                    else ["none"]
+                )
+                print(
+                    f"{_TAG} sample {i + 1}/{batch_size} | task={task_id} | turn={turn} tools={tool_names} | {elapsed:.1f}s",
+                    flush=True,
+                )
 
             observations.append({"role": "environment", "content": obs_content})
 
@@ -220,7 +242,12 @@ class OpenSageEnvironment:
                     for msg in conversation:
                         if msg.get("role") == "assistant":
                             break
-                        prompt_messages.append({"role": msg.get("role", ""), "content": msg.get("content", "")})
+                        prompt_messages.append(
+                            {
+                                "role": msg.get("role", ""),
+                                "content": msg.get("content", ""),
+                            }
+                        )
                     entry["prompt"] = prompt_messages
 
                 step_dir = self._trajectory_dir / f"step_{self._step_count}" / task_id
@@ -270,7 +297,9 @@ class _AgentSession:
         # Create agent using harbor_agent's mk_agent
         self._setup_agent(agent_dir, first_user_message, loop)
 
-    def _setup_agent(self, agent_dir: str, first_user_message: str, loop: asyncio.AbstractEventLoop):
+    def _setup_agent(
+        self, agent_dir: str, first_user_message: str, loop: asyncio.AbstractEventLoop
+    ):
         """Set up ADK agent with PassthroughLLM and OpenSage session."""
         import importlib.util
         import sys
@@ -284,9 +313,14 @@ class _AgentSession:
             agent_module_path = Path(agent_dir) / "agent.py"
         else:
             from opensage.utils.project_info import PROJECT_PATH
-            agent_module_path = PROJECT_PATH / "examples" / "agents" / "harbor_agent" / "agent.py"
 
-        spec = importlib.util.spec_from_file_location("harbor_agent", str(agent_module_path))
+            agent_module_path = (
+                PROJECT_PATH / "examples" / "agents" / "harbor_agent" / "agent.py"
+            )
+
+        spec = importlib.util.spec_from_file_location(
+            "harbor_agent", str(agent_module_path)
+        )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
@@ -314,6 +348,7 @@ class _AgentSession:
 
         # Send initial user message to start the session
         from google.genai import types
+
         self._first_message = types.Content(
             role="user",
             parts=[types.Part(text=first_user_message)],
@@ -337,25 +372,30 @@ class _AgentSession:
         try:
             if not self._agent_started:
                 # First turn: send user message to start
-                events = list(self._runner.run(
-                    user_id=self._user_id,
-                    session_id=self._session_id,
-                    new_message=self._first_message,
-                ))
+                events = list(
+                    self._runner.run(
+                        user_id=self._user_id,
+                        session_id=self._session_id,
+                        new_message=self._first_message,
+                    )
+                )
                 self._agent_started = True
             else:
                 # Subsequent turns: ADK should continue from where it left off
                 # The PassthroughLLM already has the response buffered
                 from google.genai import types
+
                 # Send empty continuation to trigger next LLM call
-                events = list(self._runner.run(
-                    user_id=self._user_id,
-                    session_id=self._session_id,
-                    new_message=types.Content(
-                        role="user",
-                        parts=[types.Part(text="")],
-                    ),
-                ))
+                events = list(
+                    self._runner.run(
+                        user_id=self._user_id,
+                        session_id=self._session_id,
+                        new_message=types.Content(
+                            role="user",
+                            parts=[types.Part(text="")],
+                        ),
+                    )
+                )
 
             # Process events
             for event in events:
@@ -368,11 +408,13 @@ class _AgentSession:
                                 output = response.get("result", str(response))
                             else:
                                 output = str(response)
-                            tool_details.append({
-                                "name": name,
-                                "arguments": {},
-                                "output": output,
-                            })
+                            tool_details.append(
+                                {
+                                    "name": name,
+                                    "arguments": {},
+                                    "output": output,
+                                }
+                            )
                             observations.append(f"[{name}]: {output}")
 
                             if name == "finish_task":
@@ -386,7 +428,11 @@ class _AgentSession:
             logger.exception(f"Agent error for task {self.task_id}: {e}")
             observations.append(f"[Agent error: {e}]")
 
-        obs_text = "\n".join(observations) if observations else "No tool calls found in response."
+        obs_text = (
+            "\n".join(observations)
+            if observations
+            else "No tool calls found in response."
+        )
         return obs_text, tool_details
 
     def run_verification(self, timeout: int) -> bool:
@@ -399,19 +445,21 @@ class _AgentSession:
             return False
 
         try:
-            import docker
-            import tarfile
             import io
+            import tarfile
+
+            import docker
 
             client = docker.from_env()
             image_tag = f"opensage_nemo_{self.task_id}"
 
             # Find running container for this task
-            containers = client.containers.list(
-                filters={"ancestor": image_tag}
-            )
+            containers = client.containers.list(filters={"ancestor": image_tag})
             if not containers:
-                print(f"{_TAG} task={self.task_id} | no container found for verification", flush=True)
+                print(
+                    f"{_TAG} task={self.task_id} | no container found for verification",
+                    flush=True,
+                )
                 return False
 
             container = containers[0]
@@ -426,11 +474,18 @@ class _AgentSession:
             container.put_archive("/", tar_stream)
 
             test_sh = tests_dir / "test.sh"
-            cmd = "chmod +x /tests/test.sh && /tests/test.sh" if test_sh.exists() else "cd /tests && python -m pytest -v --tb=short 2>&1"
+            cmd = (
+                "chmod +x /tests/test.sh && /tests/test.sh"
+                if test_sh.exists()
+                else "cd /tests && python -m pytest -v --tb=short 2>&1"
+            )
 
             exit_code, output = container.exec_run(["bash", "-c", cmd], demux=True)
             passed = exit_code == 0
-            print(f"{_TAG} task={self.task_id} | verification {'PASSED' if passed else 'FAILED'}", flush=True)
+            print(
+                f"{_TAG} task={self.task_id} | verification {'PASSED' if passed else 'FAILED'}",
+                flush=True,
+            )
             return passed
 
         except Exception as e:
@@ -441,6 +496,7 @@ class _AgentSession:
         """Clean up agent session and sandbox."""
         try:
             from opensage.session import cleanup_opensage_session
+
             cleanup_opensage_session(self._session_id)
         except Exception:
             pass

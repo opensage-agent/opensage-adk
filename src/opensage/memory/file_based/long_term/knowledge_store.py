@@ -14,14 +14,16 @@ LONG_TERM_KNOWLEDGE_DIR = os.path.join(LONG_TERM_MEM_ROOT, "knowledge")
 LONG_TERM_KNOWLEDGE_PATH = os.path.join(LONG_TERM_KNOWLEDGE_DIR, "knowledge.json")
 
 
-def ensure_long_term_knowledge_store(invocation_context) -> None:
+async def ensure_long_term_knowledge_store(invocation_context) -> None:
     """Create the shared file-based long-term knowledge store if missing."""
     sandbox = _get_main_sandbox(invocation_context)
-    sandbox.run_command_in_container(f"mkdir -p {shlex.quote(LONG_TERM_KNOWLEDGE_DIR)}")
-    _, exit_code = sandbox.run_command_in_container(
+    await sandbox.arun_command_in_container(
+        f"mkdir -p {shlex.quote(LONG_TERM_KNOWLEDGE_DIR)}"
+    )
+    _, exit_code = await sandbox.arun_command_in_container(
         f"test -f {shlex.quote(LONG_TERM_KNOWLEDGE_PATH)}"
     )
     if exit_code != 0:
-        _write_text_to_main_sandbox(
+        await _write_text_to_main_sandbox(
             invocation_context, LONG_TERM_KNOWLEDGE_PATH, "{}\n"
         )

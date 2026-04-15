@@ -49,7 +49,9 @@ async def simplified_python_fuzzer(
         # 5. Copy fuzzer script to container
         container_fuzzer_path = "/tmp/fuzzer.py"
         try:
-            sandbox.copy_file_to_container(fuzzer_script_path, container_fuzzer_path)
+            await sandbox.acopy_file_to_container(
+                fuzzer_script_path, container_fuzzer_path
+            )
         except Exception as e:
             return {
                 "success": False,
@@ -58,13 +60,13 @@ async def simplified_python_fuzzer(
 
         # 6. Run the fuzzer script for 180 seconds
         logger.info("Running fuzzer script for 180 seconds...")
-        output, exit_code = sandbox.run_command_in_container(
+        output, exit_code = await sandbox.arun_command_in_container(
             f"timeout 70s python3 {container_fuzzer_path}",
             timeout=70,  # Give a bit more time for timeout command to complete
         )
 
         # 7. Check for crash files or outputs
-        crash_files, _ = sandbox.run_command_in_container(
+        crash_files, _ = await sandbox.arun_command_in_container(
             "find /tmp -name 'crash_*' -o -name 'crash.txt' 2>/dev/null"
         )
 
@@ -82,7 +84,7 @@ async def simplified_python_fuzzer(
             ]
             result["crash_details"] = []
             for crash_file in crash_file_list[:5]:  # Limit to first 5 crash files
-                crash_content, _ = sandbox.run_command_in_container(
+                crash_content, _ = await sandbox.arun_command_in_container(
                     f"head -n 100 {crash_file} 2>/dev/null"
                 )
                 result["crash_details"].append(
@@ -134,15 +136,17 @@ async def run_fuzzing_campaign(
     # Set up fuzzing directory
     # Check existence of /fuzz/out
     exists_fuzz_out = True
-    _, exit_code = fuzz_sandbox.run_command_in_container(
+    _, exit_code = await fuzz_sandbox.arun_command_in_container(
         "find /fuzz/out -type f -name fuzzer_stats | grep -q ."
     )
     if exit_code != 0:
-        fuzz_sandbox.run_command_in_container("rm -rf /fuzz/out && mkdir -p /fuzz/out")
+        await fuzz_sandbox.arun_command_in_container(
+            "rm -rf /fuzz/out && mkdir -p /fuzz/out"
+        )
         exists_fuzz_out = False
 
-    fuzz_sandbox.run_command_in_container("rm -rf /fuzz/in && mkdir -p /fuzz/in")
-    fuzz_sandbox.run_command_in_container("mkdir -p /fuzz/mutator")
+    await fuzz_sandbox.arun_command_in_container("rm -rf /fuzz/in && mkdir -p /fuzz/in")
+    await fuzz_sandbox.arun_command_in_container("mkdir -p /fuzz/mutator")
 
     # Set up custom mutator if provided
     if custom_mutator:
@@ -150,21 +154,21 @@ async def run_fuzzing_campaign(
             with tempfile.NamedTemporaryFile(suffix=".py") as tmp_file:
                 tmp_file.write(custom_mutator.encode("utf-8"))
                 tmp_file.flush()
-                fuzz_sandbox.copy_file_to_container(
+                await fuzz_sandbox.acopy_file_to_container(
                     tmp_file.name, "/fuzz/mutator/custom_mutator.py"
                 )
         else:
-            fuzz_sandbox.run_command_in_container(
+            await fuzz_sandbox.arun_command_in_container(
                 f"cp {custom_mutator} /fuzz/mutator/custom_mutator.py"
             )
 
     # Create seed inputs
     if seeds:
         for seed in seeds:
-            fuzz_sandbox.run_command_in_container(f"cp -r {seed} /fuzz/in")
+            await fuzz_sandbox.arun_command_in_container(f"cp -r {seed} /fuzz/in")
     elif not exists_fuzz_out:
         # Create a default seed input if no previous state
-        fuzz_sandbox.run_command_in_container('echo "1234" > /fuzz/in/seed.txt')
+        await fuzz_sandbox.arun_command_in_container('echo "1234" > /fuzz/in/seed.txt')
 
     # Run fuzzing campaign
     duration_seconds = duration_minutes * 60  # TODO: make this configurable
@@ -174,10 +178,10 @@ async def run_fuzzing_campaign(
     env_cmd = f"export AFL_NO_UI=1 && timeout {duration_seconds}s /out/afl-fuzz -i /fuzz/in -o /fuzz/out /out/{fuzz_target}"
     # TODO: this will override the env_cmd? make the customer mutator not useful....
 
-    res, exit_code = fuzz_sandbox.run_command_in_container(env_cmd)
+    res, exit_code = await fuzz_sandbox.arun_command_in_container(env_cmd)
 
     # Analyze results
-    results = _analyze_fuzzing_results(fuzz_sandbox, fuzz_target)
+    results = await _analyze_fuzzing_results(fuzz_sandbox, fuzz_target)
 
     return {
         "success": True,
@@ -202,22 +206,24 @@ async def extract_crashes(
         Dictionary indicating success or failure.
     """
     fuzz_sandbox = get_sandbox_from_context(tool_context, "fuzz")
-    crashes_dir, exit_code = fuzz_sandbox.run_command_in_container(
+    crashes_dir, exit_code = await fuzz_sandbox.arun_command_in_container(
         "find /fuzz/out -name 'crashes' -type d"
     )
     if exit_code != 0:
         return {"success": False, "error": "No crashes directory found."}
     crashes_dir = crashes_dir.strip()
-    _, exit_code = fuzz_sandbox.run_command_in_container(["ls", "-la", crashes_dir])
+    _, exit_code = await fuzz_sandbox.arun_command_in_container(
+        ["ls", "-la", crashes_dir]
+    )
     if exit_code != 0:
         return {"success": False, "error": "No crashes directory found."}
     if crash_names:
         for crash_name in crash_names:
-            fuzz_sandbox.run_command_in_container(
+            await fuzz_sandbox.arun_command_in_container(
                 ["cp", f"{crashes_dir}/{crash_name}", target_dir]
             )
     else:
-        fuzz_sandbox.run_command_in_container(
+        await fuzz_sandbox.arun_command_in_container(
             ["cp", "-r", f"{crashes_dir}/.", target_dir]
         )
 
@@ -235,7 +241,7 @@ async def check_fuzzing_stats(*, tool_context: ToolContext) -> Dict[str, Any]:
     fuzz_sandbox = get_sandbox_from_context(tool_context, "fuzz")
 
     # Check if fuzzing output directory exists
-    _, exit_code = fuzz_sandbox.run_command_in_container(
+    _, exit_code = await fuzz_sandbox.arun_command_in_container(
         "ls -la /fuzz/out/ 2>/dev/null"
     )
 
@@ -247,7 +253,7 @@ async def check_fuzzing_stats(*, tool_context: ToolContext) -> Dict[str, Any]:
 
     if coverage_info["has_output"]:
         # Get basic statistics
-        stats_res, _ = fuzz_sandbox.run_command_in_container(
+        stats_res, _ = await fuzz_sandbox.arun_command_in_container(
             "find /fuzz/out -name 'fuzzer_stats' -exec cat {} \\; 2>/dev/null || echo 'No stats'"
         )
         coverage_info["statistics"] = _parse_fuzzer_stats(stats_res)
@@ -255,7 +261,7 @@ async def check_fuzzing_stats(*, tool_context: ToolContext) -> Dict[str, Any]:
     return {"success": True, "coverage_info": coverage_info}
 
 
-def _analyze_fuzzing_results(fuzz_sandbox, fuzz_target: str) -> Dict[str, Any]:
+async def _analyze_fuzzing_results(fuzz_sandbox, fuzz_target: str) -> Dict[str, Any]:
     """Analyze fuzzing results."""
     results = {
         "crashes_found": 0,
@@ -266,7 +272,7 @@ def _analyze_fuzzing_results(fuzz_sandbox, fuzz_target: str) -> Dict[str, Any]:
     }
 
     # Check for crashes
-    crash_res, _ = fuzz_sandbox.run_command_in_container(
+    crash_res, _ = await fuzz_sandbox.arun_command_in_container(
         "find /fuzz/out -name 'crashes' -type d -exec ls {} \\; 2>/dev/null || echo 'No crashes'"
     )
     if "No crashes" not in crash_res:

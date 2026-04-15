@@ -1066,7 +1066,7 @@ class OpenSageWebServer:
                             temp_file.write(chunk)
                         temp_path = temp_file.name
 
-                    _, mkdir_exit_code = sandbox.run_command_in_container(
+                    _, mkdir_exit_code = await sandbox.arun_command_in_container(
                         ["mkdir", "-p", parent_dir]
                     )
                     if mkdir_exit_code != 0:
@@ -1075,7 +1075,9 @@ class OpenSageWebServer:
                             detail=f"Failed to create sandbox directory: {parent_dir}",
                         )
 
-                    sandbox.copy_file_to_container(temp_path, resolved_target_path)
+                    await sandbox.acopy_file_to_container(
+                        temp_path, resolved_target_path
+                    )
                 except HTTPException:
                     raise
                 except Exception as exc:

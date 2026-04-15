@@ -85,6 +85,38 @@ class BaseSandbox(ABC):
         """Run a command inside the container."""
         pass
 
+    async def arun_command_in_container(
+        self, command: str | list[str], timeout: int | None = None
+    ) -> tuple[str, int]:
+        """Async wrapper around run_command_in_container.
+
+        Runs the synchronous sandbox command in a thread so that concurrent
+        asyncio tasks (e.g. other agents) are not blocked.
+        """
+        return await asyncio.to_thread(self.run_command_in_container, command, timeout)
+
+    async def acopy_file_to_container(
+        self, local_path: str, container_path: str
+    ) -> None:
+        """Async wrapper around copy_file_to_container."""
+        return await asyncio.to_thread(
+            self.copy_file_to_container, local_path, container_path
+        )
+
+    async def acopy_file_from_container(self, src_path: str, dst_path: str) -> None:
+        """Async wrapper around copy_file_from_container."""
+        return await asyncio.to_thread(
+            self.copy_file_from_container, src_path, dst_path
+        )
+
+    async def aextract_file_from_container(self, filepath: str) -> str:
+        """Async wrapper around extract_file_from_container."""
+        return await asyncio.to_thread(self.extract_file_from_container, filepath)
+
+    async def aextract_file_from_container_bytes(self, filepath: str) -> bytes:
+        """Async wrapper around extract_file_from_container_bytes."""
+        return await asyncio.to_thread(self.extract_file_from_container_bytes, filepath)
+
     @abstractmethod
     def get_work_dir(self):
         """Get the current working directory in the container."""

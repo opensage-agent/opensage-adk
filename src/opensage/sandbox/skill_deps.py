@@ -94,7 +94,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
             root = f"/bash_tools/{entry}"
 
             # If entry itself is a skill dir (has SKILL.md), include it.
-            _, has_skill_md = sandbox.run_command_in_container(
+            _, has_skill_md = await sandbox.arun_command_in_container(
                 ["bash", "-lc", f"test -f {shlex.quote(root + '/SKILL.md')}"],
                 timeout=10,
             )
@@ -102,7 +102,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
                 skill_dirs.append(entry)
 
             # Expand nested skills under this prefix.
-            out, code = sandbox.run_command_in_container(
+            out, code = await sandbox.arun_command_in_container(
                 [
                     "bash",
                     "-lc",
@@ -126,7 +126,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
                     if rel_dir:
                         skill_dirs.append(rel_dir)
     else:
-        out, code = sandbox.run_command_in_container(
+        out, code = await sandbox.arun_command_in_container(
             ["bash", "-lc", "find /bash_tools -type f -name SKILL.md -print"],
             timeout=60,
         )
@@ -143,7 +143,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
     if not skill_dirs:
         return
 
-    sandbox.run_command_in_container(
+    await sandbox.arun_command_in_container(
         [
             "bash",
             "-lc",
@@ -158,7 +158,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
         skill_root = f"/bash_tools/{rel_skill_dir}"
         skill_md_path = f"{skill_root}/SKILL.md"
         try:
-            skill_md = sandbox.extract_file_from_container(skill_md_path)
+            skill_md = await sandbox.aextract_file_from_container(skill_md_path)
         except Exception:  # pylint: disable=broad-except
             continue
         if not isinstance(skill_md, str) or not skill_md:
@@ -183,7 +183,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
         skill_root = skill_info["skill_root"]
         marker = _marker_path(rel_skill_dir)
 
-        _, already = sandbox.run_command_in_container(
+        _, already = await sandbox.arun_command_in_container(
             ["bash", "-lc", f"test -f {shlex.quote(marker)}"],
             timeout=10,
         )
@@ -196,7 +196,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
         ]
         chosen = None
         for installer in installers:
-            _, exists = sandbox.run_command_in_container(
+            _, exists = await sandbox.arun_command_in_container(
                 ["bash", "-lc", f"test -f {shlex.quote(installer)}"],
                 timeout=10,
             )
@@ -213,7 +213,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
             rel_skill_dir,
             skill_info["priority"],
         )
-        msg, err = sandbox.run_command_in_container(
+        msg, err = await sandbox.arun_command_in_container(
             ["bash", "-lc", f"chmod +x {shlex.quote(chosen)} && {shlex.quote(chosen)}"],
             timeout=1800,
         )
@@ -223,7 +223,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
                 % (sandbox_type, rel_skill_dir, msg)
             )
 
-        sandbox.run_command_in_container(
+        await sandbox.arun_command_in_container(
             ["bash", "-lc", f"touch {shlex.quote(marker)}"],
             timeout=10,
         )

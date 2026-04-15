@@ -395,7 +395,7 @@ async def joern_slice(
         The response from the Joern client.
     """
     sandbox = get_sandbox_from_context(tool_context, "joern")
-    sandbox.run_command_in_container(
+    await sandbox.arun_command_in_container(
         [
             "joern-slice",
             "data-flow",
@@ -407,7 +407,7 @@ async def joern_slice(
         + (["--file-filter", file_path] if file_path else [])
         + ["/cpg.bin"]
     )
-    res = json.loads(sandbox.extract_file_from_container("/tmp/slices.json"))
+    res = json.loads(await sandbox.aextract_file_from_container("/tmp/slices.json"))
     nodes = res["nodes"]
     lines = {}
     for node in nodes:

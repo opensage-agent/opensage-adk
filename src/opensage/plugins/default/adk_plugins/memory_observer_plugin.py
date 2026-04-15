@@ -247,7 +247,7 @@ class MemoryObserverPlugin(BasePlugin):
                     f"({content_len} > {self.SAVE_TO_FILE_THRESHOLD}), "
                     f"saving full output to file for '{tool_name}'"
                 )
-                full_output_file = self._save_full_output_to_file(
+                full_output_file = await self._save_full_output_to_file(
                     tool_name, result_content, tool_context
                 )
                 logger.warning(
@@ -349,7 +349,7 @@ class MemoryObserverPlugin(BasePlugin):
                 f"[MemoryObserver] Exception processing '{tool_name}': {e}",
             )
 
-    def _save_full_output_to_file(
+    async def _save_full_output_to_file(
         self,
         tool_name: str,
         content: str,
@@ -363,7 +363,7 @@ class MemoryObserverPlugin(BasePlugin):
         Returns:
             Optional[str]: File path if saved successfully, None otherwise.
         """
-        return save_content_to_sandbox_file(
+        return await save_content_to_sandbox_file(
             context=tool_context,
             content=content,
             tool_name=tool_name,

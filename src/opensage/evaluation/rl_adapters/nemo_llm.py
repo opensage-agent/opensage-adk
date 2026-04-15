@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class LogprobTurn:
     """Logprob data for a single LLM generation turn."""
+
     prompt_token_ids: List[int]
     generation_token_ids: List[int]
     generation_log_probs: List[float]
@@ -116,9 +117,8 @@ class NemoLlm(BaseLlm):
             self._max_prompt_tokens is not None
             and self._last_prompt_token_ids is not None
         ):
-            cumulative = (
-                len(self._last_prompt_token_ids)
-                + len(self._last_generation_token_ids or [])
+            cumulative = len(self._last_prompt_token_ids) + len(
+                self._last_generation_token_ids or []
             )
             if cumulative >= self._max_prompt_tokens:
                 tool_names = (
@@ -139,20 +139,26 @@ class NemoLlm(BaseLlm):
                         "Yielding finish_task to set state.task_finished=True."
                     )
                     self._finish_task_signaled = True
-                    parts = [types.Part(function_call=types.FunctionCall(
-                        id=f"call_{uuid4().hex[:8]}",
-                        name="finish_task",
-                        args={},
-                    ))]
+                    parts = [
+                        types.Part(
+                            function_call=types.FunctionCall(
+                                id=f"call_{uuid4().hex[:8]}",
+                                name="finish_task",
+                                args={},
+                            )
+                        )
+                    ]
                 else:
                     logger.warning(
                         f"NemoLlm context-limit pre-check tripped again: "
                         f"{cumulative} >= {self._max_prompt_tokens}. "
                         "Yielding text-only STOP so outer loop sees task_finished."
                     )
-                    parts = [types.Part(
-                        text="[NemoLlm context-limit pre-check: ending task]"
-                    )]
+                    parts = [
+                        types.Part(
+                            text="[NemoLlm context-limit pre-check: ending task]"
+                        )
+                    ]
                 yield LlmResponse(
                     content=types.Content(role="model", parts=parts),
                     partial=False,
@@ -169,10 +175,10 @@ class NemoLlm(BaseLlm):
         # contiguity that NeMo RL's trajectory collector requires.
         if self._last_prompt_token_ids is not None:
             for item in reversed(input_items):
-                is_assistant_message = (
-                    item.get("type") in (None, "message")
-                    and item.get("role") in ("assistant", "model")
-                )
+                is_assistant_message = item.get("type") in (
+                    None,
+                    "message",
+                ) and item.get("role") in ("assistant", "model")
                 is_function_call = item.get("type") == "function_call"
                 if is_assistant_message or is_function_call:
                     item["prompt_token_ids"] = self._last_prompt_token_ids
@@ -210,12 +216,22 @@ class NemoLlm(BaseLlm):
 
         async with aiohttp.ClientSession() as session:
             # Long timeout: RL rollouts with high concurrency can queue for a while in vLLM
-            async with session.post(url, json=body, headers=headers, timeout=aiohttp.ClientTimeout(total=1800)) as resp:
+            async with session.post(
+                url,
+                json=body,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=1800),
+            ) as resp:
                 if resp.status != 200:
                     error_text = await resp.text()
-                    logger.error(f"Model server error {resp.status}: {error_text[:1000]}")
+                    logger.error(
+                        f"Model server error {resp.status}: {error_text[:1000]}"
+                    )
                     yield LlmResponse(
-                        content=types.Content(role="model", parts=[types.Part(text=f"[Error: {resp.status}]")]),
+                        content=types.Content(
+                            role="model",
+                            parts=[types.Part(text=f"[Error: {resp.status}]")],
+                        ),
                         partial=False,
                         finish_reason=types.FinishReason.STOP,
                         error_message=f"Model server returned {resp.status}",
@@ -240,11 +256,13 @@ class NemoLlm(BaseLlm):
             prompt_ids = item.get("prompt_token_ids", []) or []
             log_probs = item.get("generation_log_probs", []) or []
 
-            self._logprob_turns.append(LogprobTurn(
-                prompt_token_ids=prompt_ids,
-                generation_token_ids=gen_ids,
-                generation_log_probs=log_probs,
-            ))
+            self._logprob_turns.append(
+                LogprobTurn(
+                    prompt_token_ids=prompt_ids,
+                    generation_token_ids=gen_ids,
+                    generation_log_probs=log_probs,
+                )
+            )
             # Cache for next turn's on-policy correction
             self._last_prompt_token_ids = prompt_ids
             self._last_generation_token_ids = gen_ids
@@ -286,10 +304,12 @@ def _llm_request_to_responses_input(
 
     # System instruction → developer role
     if llm_request.config and llm_request.config.system_instruction:
-        input_items.append({
-            "role": "developer",
-            "content": llm_request.config.system_instruction,
-        })
+        input_items.append(
+            {
+                "role": "developer",
+                "content": llm_request.config.system_instruction,
+            }
+        )
 
     # Content history
     for content in llm_request.contents or []:
@@ -304,34 +324,46 @@ def _llm_request_to_responses_input(
             for p in func_responses:
                 fr = p.function_response
                 response_data = fr.response
-                output = json.dumps(response_data) if isinstance(response_data, dict) else str(response_data)
-                input_items.append({
-                    "type": "function_call_output",
-                    "call_id": fr.id or f"call_{uuid4().hex[:8]}",
-                    "output": output,
-                })
+                output = (
+                    json.dumps(response_data)
+                    if isinstance(response_data, dict)
+                    else str(response_data)
+                )
+                input_items.append(
+                    {
+                        "type": "function_call_output",
+                        "call_id": fr.id or f"call_{uuid4().hex[:8]}",
+                        "output": output,
+                    }
+                )
             continue
 
         # Separate text and function calls
         func_calls = [p for p in content.parts if p.function_call]
-        text_parts = [p.text for p in content.parts if p.text and not getattr(p, "thought", False)]
+        text_parts = [
+            p.text for p in content.parts if p.text and not getattr(p, "thought", False)
+        ]
 
         if role in ("model", "assistant"):
             # Assistant text content
             if text_parts:
-                input_items.append({
-                    "role": "assistant",
-                    "content": "\n".join(text_parts),
-                })
+                input_items.append(
+                    {
+                        "role": "assistant",
+                        "content": "\n".join(text_parts),
+                    }
+                )
             # Function calls
             for p in func_calls:
                 fc = p.function_call
-                input_items.append({
-                    "type": "function_call",
-                    "call_id": fc.id or f"call_{uuid4().hex[:8]}",
-                    "name": fc.name,
-                    "arguments": json.dumps(fc.args or {}),
-                })
+                input_items.append(
+                    {
+                        "type": "function_call",
+                        "call_id": fc.id or f"call_{uuid4().hex[:8]}",
+                        "name": fc.name,
+                        "arguments": json.dumps(fc.args or {}),
+                    }
+                )
         elif role == "system":
             # System messages → developer
             text = "\n".join(text_parts) if text_parts else ""
@@ -363,7 +395,9 @@ def _llm_request_to_responses_input(
                     params = getattr(decl, "parameters", None)
                     if params:
                         tool_schema["parameters"] = (
-                            params.model_dump() if hasattr(params, "model_dump") else dict(params)
+                            params.model_dump()
+                            if hasattr(params, "model_dump")
+                            else dict(params)
                         )
             tools.append(tool_schema)
 
@@ -391,17 +425,21 @@ def _response_output_to_parts(output_items: list[dict]) -> list[types.Part]:
             arguments = item.get("arguments", "{}")
             call_id = item.get("call_id", "")
             try:
-                args = json.loads(arguments) if isinstance(arguments, str) else arguments
+                args = (
+                    json.loads(arguments) if isinstance(arguments, str) else arguments
+                )
             except json.JSONDecodeError:
                 args = {"_raw": arguments}
 
-            parts.append(types.Part(
-                function_call=types.FunctionCall(
-                    id=call_id or f"call_{uuid4().hex[:8]}",
-                    name=name,
-                    args=args,
+            parts.append(
+                types.Part(
+                    function_call=types.FunctionCall(
+                        id=call_id or f"call_{uuid4().hex[:8]}",
+                        name=name,
+                        args=args,
+                    )
                 )
-            ))
+            )
 
         elif item_type == "reasoning":
             # Reasoning items — extract summary text as thought

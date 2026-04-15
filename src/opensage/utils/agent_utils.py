@@ -186,7 +186,7 @@ def get_sandbox_from_context(
     return opensage_session.sandboxes.get_sandbox(sandbox_type)
 
 
-def save_content_to_sandbox_file(
+async def save_content_to_sandbox_file(
     context: "InvocationContext | ToolContext",
     content: str,
     tool_name: str,
@@ -237,20 +237,20 @@ def save_content_to_sandbox_file(
         logger.warning(f"[save_content_to_sandbox_file] Target file: {output_file}")
 
         # Create directory if not exists
-        mkdir_result = sandbox.run_command_in_container(
+        mkdir_result = await sandbox.arun_command_in_container(
             f"mkdir -p {output_dir}", timeout=10
         )
         logger.warning(f"[save_content_to_sandbox_file] mkdir result: {mkdir_result}")
 
         # Use heredoc to write content safely
-        write_result = sandbox.run_command_in_container(
+        write_result = await sandbox.arun_command_in_container(
             f"cat > {output_file} << 'OPENSAGE_SAVE_EOF'\n{content}\nOPENSAGE_SAVE_EOF",
             timeout=30,
         )
         logger.warning(f"[save_content_to_sandbox_file] write result: {write_result}")
 
         # Verify file was created
-        verify_result = sandbox.run_command_in_container(
+        verify_result = await sandbox.arun_command_in_container(
             f"ls -la {output_file} && wc -c {output_file}",
             timeout=10,
         )

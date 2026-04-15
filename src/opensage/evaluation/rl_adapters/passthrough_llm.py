@@ -108,7 +108,11 @@ def _parse_response_to_parts(response_text: str) -> list[types.Part]:
         for tc in result.tool_calls:
             if tc.function and tc.function.name:
                 try:
-                    args = json.loads(tc.function.arguments) if tc.function.arguments else {}
+                    args = (
+                        json.loads(tc.function.arguments)
+                        if tc.function.arguments
+                        else {}
+                    )
                 except json.JSONDecodeError:
                     args = {"_raw": tc.function.arguments}
 

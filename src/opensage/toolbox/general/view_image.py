@@ -13,7 +13,7 @@ from opensage.utils.agent_utils import get_sandbox_from_context
 MAX_IMAGE_DIMENSION = 8000
 
 
-def view_image(file_path: str, *, tool_context: ToolContext) -> str:
+async def view_image(file_path: str, *, tool_context: ToolContext) -> str:
     """View an local image file in main sandbox.
     Please use this tool if you want to check visual content.
     Only supports JPEG, PNG, WEBP formats.
@@ -27,7 +27,7 @@ def view_image(file_path: str, *, tool_context: ToolContext) -> str:
     """
     sandbox = get_sandbox_from_context(tool_context, "main")
     # Copy the image from the agent's sandbox to a temporary location accessible by the host
-    content = sandbox.extract_file_from_container_bytes(file_path)
+    content = await sandbox.aextract_file_from_container_bytes(file_path)
 
     # OpenAI and Anthropic support image/jpeg, image/png, image/webp, image/gif.
     # Google supports image/png, image/jpeg, image/webp, image/heic, image/heif.

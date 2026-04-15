@@ -160,7 +160,7 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
     logger.warning(
         f"[ToolResponseSummarizer] Saving full output to file for '{tool_name}'"
     )
-    output_file = save_content_to_sandbox_file(
+    output_file = await save_content_to_sandbox_file(
         context=tool_context,
         content=raw,
         tool_name=tool_name,
@@ -829,7 +829,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
             persist_traj_json_for_invocation,
         )
 
-        persist_traj_json_for_invocation(tool_context._invocation_context)
+        await persist_traj_json_for_invocation(tool_context._invocation_context)
     except Exception as persist_error:
         logger.warning(
             "Failed to persist traj.json after compaction: %s", persist_error

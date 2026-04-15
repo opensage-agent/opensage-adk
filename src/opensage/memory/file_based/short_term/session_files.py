@@ -131,25 +131,29 @@ def _compute_child_session_mem_dir(
     return os.path.join(parent_dir, child_dir_name)
 
 
-def _ensure_file_memory_roots(invocation_context) -> None:
+async def _ensure_file_memory_roots(invocation_context) -> None:
     """Create shared file-memory roots in the main sandbox."""
     sandbox = _get_main_sandbox(invocation_context)
-    sandbox.run_command_in_container(f"mkdir -p {shlex.quote(SHORT_TERM_MEM_ROOT)}")
-    ensure_long_term_knowledge_store(invocation_context)
+    await sandbox.arun_command_in_container(
+        f"mkdir -p {shlex.quote(SHORT_TERM_MEM_ROOT)}"
+    )
+    await ensure_long_term_knowledge_store(invocation_context)
 
 
-def _ensure_agent_mem_layout(
+async def _ensure_agent_mem_layout(
     invocation_context, agent_mem_dir: str, *, agent_name: str
 ) -> None:
     """Create the current session folder and default TODO.md in main sandbox."""
     sandbox = _get_main_sandbox(invocation_context)
-    _ensure_file_memory_roots(invocation_context)
-    sandbox.run_command_in_container(
+    await _ensure_file_memory_roots(invocation_context)
+    await sandbox.arun_command_in_container(
         f"mkdir -p {shlex.quote(agent_mem_dir)} "
         f"{shlex.quote(os.path.join(agent_mem_dir, 'tool_outputs'))}"
     )
     todo_path = os.path.join(agent_mem_dir, "TODO.md")
-    _, exit_code = sandbox.run_command_in_container(f"test -f {shlex.quote(todo_path)}")
+    _, exit_code = await sandbox.arun_command_in_container(
+        f"test -f {shlex.quote(todo_path)}"
+    )
     if exit_code == 0:
         return
     todo_seed = (
@@ -157,21 +161,23 @@ def _ensure_agent_mem_layout(
         "- [ ] Capture the current task\n"
         "- [ ] Update progress as work proceeds\n"
     )
-    _write_text_to_main_sandbox(invocation_context, todo_path, todo_seed)
+    await _write_text_to_main_sandbox(invocation_context, todo_path, todo_seed)
 
 
-def _persist_traj_json(invocation_context, agent_mem_dir: str) -> None:
+async def _persist_traj_json(invocation_context, agent_mem_dir: str) -> None:
     """Persist full ADK session JSON into traj.json."""
     session_json = invocation_context.session.model_dump_json(
         indent=2, exclude_none=True
     )
     traj_json_path = os.path.join(agent_mem_dir, "traj.json")
-    _write_text_to_main_sandbox(invocation_context, traj_json_path, session_json)
+    await _write_text_to_main_sandbox(invocation_context, traj_json_path, session_json)
 
 
-def persist_traj_json_for_invocation(invocation_context) -> None:
+async def persist_traj_json_for_invocation(invocation_context) -> None:
     """Persist traj.json for the current invocation context."""
-    _persist_traj_json(invocation_context, _compute_agent_mem_dir(invocation_context))
+    await _persist_traj_json(
+        invocation_context, _compute_agent_mem_dir(invocation_context)
+    )
 
 
 # ---------------------------------------------------------------------------

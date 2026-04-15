@@ -42,7 +42,7 @@ def _extract_cybergym_result(output: str) -> dict | None:
 
 
 @requires_sandbox("main")
-def generate_poc_and_submit(
+async def generate_poc_and_submit(
     poc_generation_script: str, *, tool_context: ToolContext
 ) -> str:
     r"""
@@ -130,11 +130,11 @@ def generate_poc_and_submit(
 
         container_poc_path = f"/tmp/poc_{datetime.now().strftime('%Y%m%d%H%M%S_%f')}"
         try:
-            sandbox.copy_file_to_container(poc_path, container_poc_path)
+            await sandbox.acopy_file_to_container(poc_path, container_poc_path)
         except Exception as e:
             return f"[ERROR] Failed to copy PoC to container: {str(e)}"
 
-        output, run_submit_exit_code = sandbox.run_command_in_container(
+        output, run_submit_exit_code = await sandbox.arun_command_in_container(
             f"cd /shared/ && ./submit.sh {container_poc_path}", timeout=300
         )
         if run_submit_exit_code != 0:
@@ -311,7 +311,7 @@ Keep your response concise and actionable."""
 
 
 @requires_sandbox("main")
-def run_poc_from_script(
+async def run_poc_from_script(
     poc_generation_script: str, *, tool_context: ToolContext
 ) -> str:
     r"""
@@ -403,13 +403,13 @@ def run_poc_from_script(
         container_poc_path = config.build.poc_dir
 
         try:
-            sandbox.copy_file_to_container(poc_path, container_poc_path)
+            await sandbox.acopy_file_to_container(poc_path, container_poc_path)
         except Exception as e:
             return f"[ERROR] Failed to copy PoC to container: {str(e)}"
 
         # 6. Execute the PoC inside the container using sandbox
         try:
-            output, exit_code = run_poc_in_sandbox(tool_context)
+            output, exit_code = await run_poc_in_sandbox(tool_context)
             if exit_code != 0:
                 # maybe succeed, save to file
                 alias = tool_context.state.get("alias", None)
@@ -422,11 +422,13 @@ def run_poc_from_script(
                     with open(poc_output_temp_path, "w") as f:
                         f.write(output)
 
-                    sandbox.copy_file_to_container(poc_path, backup_poc_path)
-                    sandbox.copy_file_to_container(
+                    await sandbox.acopy_file_to_container(poc_path, backup_poc_path)
+                    await sandbox.acopy_file_to_container(
                         poc_output_temp_path, backup_output_path
                     )
-                    sandbox.copy_file_to_container(script_path, backup_script_path)
+                    await sandbox.acopy_file_to_container(
+                        script_path, backup_script_path
+                    )
                 else:
                     logger.warning("Cannot find alias, poc and output are not saved.")
                 if "sanitizer" in output.lower():
@@ -442,7 +444,7 @@ def run_poc_from_script(
 
 
 @requires_sandbox("main")
-def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
+async def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     """Run a build command inside the sandbox via run_command_in_container.
     Args:
     Returns:
@@ -452,11 +454,11 @@ def compile_target_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     sandbox = get_sandbox_from_context(tool_context, "main")
     config = get_opensage_config_from_context(tool_context)
     build_command = config.build.compile_command
-    return sandbox.run_command_in_container(build_command)
+    return await sandbox.arun_command_in_container(build_command)
 
 
 @requires_sandbox("main")
-def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
+async def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     """Run a PoC command inside the sandbox via run_command_in_container.
     Args:
     Returns:
@@ -466,5 +468,5 @@ def run_poc_in_sandbox(tool_context: ToolContext) -> Tuple[str, int]:
     sandbox = get_sandbox_from_context(tool_context, "main")
     config = get_opensage_config_from_context(tool_context)
     poc_command = config.build.run_command
-    output = sandbox.run_command_in_container(poc_command)
+    output = await sandbox.arun_command_in_container(poc_command)
     return output

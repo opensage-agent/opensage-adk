@@ -283,7 +283,7 @@ async def str_replace_edit(
     old_string: str,
     new_string: str,
     replace_all: bool = False,
-    analyze_failure: bool = True,
+    analyze_failure: bool = False,
     *,
     tool_context: ToolContext,
 ) -> str:
@@ -306,7 +306,12 @@ async def str_replace_edit(
         old_string (str): The string to find.
         new_string (str): The string to replace it with.
         replace_all (bool): If True, replace all occurrences. Default False.
-        analyze_failure (bool): If True, use LLM to analyze why edit failed. Default True.
+        analyze_failure (bool): If True, use LLM to analyze why edit failed.
+            Default False — the analyzer creates a fresh LiteLlm instance with
+            no timeout that can hang the agent indefinitely when the shared
+            vLLM queue is under contention (observed in RL rollouts: 9 agents
+            deadlocked on str_replace_edit → analyze_edit_failure → LiteLlm
+            waiting forever for a response from an idle vLLM server).
     Returns:
         str: Success message or error with context. If analyze_failure is True and
         the edit fails, includes LLM analysis of why the edit failed.

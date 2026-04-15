@@ -62,10 +62,15 @@ class NemoLlm(BaseLlm):
     _last_prompt_token_ids: Optional[List[int]] = None
     _last_generation_token_ids: Optional[List[int]] = None
     _last_generation_log_probs: Optional[List[float]] = None
-    # Pre-check: if the running prompt+gen total reaches this, end the turn
-    # synthetically with a finish_task call so the agent stops before vLLM
-    # rejects an over-context request (which would just spin in retries).
+    # Pre-check: if the running prompt+gen total reaches this, signal the
+    # agent to finish so it stops before vLLM rejects over-context requests.
     _max_prompt_tokens: Optional[int] = None
+    # Tracks whether we've already signaled finish_task once. Two-step exit:
+    #   1) first trigger → yield finish_task function_call (sets
+    #      state.task_finished=True via the tool's side effect)
+    #   2) subsequent triggers → yield text-only STOP (ends ADK's inner loop;
+    #      HarborEvaluation's outer loop sees task_finished=True and exits)
+    _finish_task_signaled: bool = False
 
     def __init__(
         self,
@@ -84,6 +89,7 @@ class NemoLlm(BaseLlm):
         self._last_generation_token_ids = None
         self._last_generation_log_probs = None
         self._max_prompt_tokens = max_prompt_tokens
+        self._finish_task_signaled = False
 
     def get_logprob_turns(self) -> List[LogprobTurn]:
         return list(self._logprob_turns)
@@ -115,25 +121,35 @@ class NemoLlm(BaseLlm):
                 + len(self._last_generation_token_ids or [])
             )
             if cumulative >= self._max_prompt_tokens:
-                logger.warning(
-                    f"NemoLlm context-limit pre-check tripped: cumulative tokens "
-                    f"{cumulative} >= max_prompt_tokens {self._max_prompt_tokens}. "
-                    "Yielding synthetic finish_task to end agent gracefully."
-                )
                 tool_names = (
                     set((llm_request.tools_dict or {}).keys())
                     if llm_request.tools_dict
                     else set()
                 )
-                if "finish_task" in tool_names:
-                    parts = [types.Part(
-                        function_call=types.FunctionCall(
-                            id=f"call_{uuid4().hex[:8]}",
-                            name="finish_task",
-                            args={},
-                        )
-                    )]
+                # Two-step exit for HarborEvaluation's run_until_explicit_finish
+                # loop. Step 1: yield a finish_task call the first time we
+                # trip — the tool's side effect sets state.task_finished=True.
+                # Step 2: any subsequent trip yields text-only so ADK's inner
+                # loop exits, the outer loop reads task_finished, and the
+                # whole rollout ends.
+                if not self._finish_task_signaled and "finish_task" in tool_names:
+                    logger.warning(
+                        f"NemoLlm context-limit pre-check tripped: cumulative tokens "
+                        f"{cumulative} >= max_prompt_tokens {self._max_prompt_tokens}. "
+                        "Yielding finish_task to set state.task_finished=True."
+                    )
+                    self._finish_task_signaled = True
+                    parts = [types.Part(function_call=types.FunctionCall(
+                        id=f"call_{uuid4().hex[:8]}",
+                        name="finish_task",
+                        args={},
+                    ))]
                 else:
+                    logger.warning(
+                        f"NemoLlm context-limit pre-check tripped again: "
+                        f"{cumulative} >= {self._max_prompt_tokens}. "
+                        "Yielding text-only STOP so outer loop sees task_finished."
+                    )
                     parts = [types.Part(
                         text="[NemoLlm context-limit pre-check: ending task]"
                     )]

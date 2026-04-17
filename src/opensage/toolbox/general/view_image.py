@@ -10,8 +10,6 @@ from opensage.plugins.default.adk_plugins.image_injection_plugin import (
 )
 from opensage.utils.agent_utils import get_sandbox_from_context
 
-MAX_IMAGE_DIMENSION = 8000
-
 
 async def view_image(file_path: str, *, tool_context: ToolContext) -> str:
     """View an local image file in main sandbox.
@@ -38,16 +36,10 @@ async def view_image(file_path: str, *, tool_context: ToolContext) -> str:
 
     try:
         with Image.open(BytesIO(content)) as image:
-            width, height = image.size
+            image.verify()
     except (UnidentifiedImageError, OSError):
         return (
             "Failed to parse image data. The image file may be corrupted or truncated."
-        )
-
-    if width > MAX_IMAGE_DIMENSION or height > MAX_IMAGE_DIMENSION:
-        return (
-            f"Image dimensions exceed the maximum allowed size of "
-            f"{MAX_IMAGE_DIMENSION}px per side."
         )
 
     parts = [types.Part.from_bytes(data=content, mime_type=mime_type)]

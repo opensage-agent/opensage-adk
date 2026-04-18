@@ -1,0 +1,75 @@
+# repo_maintainer agent configuration.
+#
+# The host directory of the project being maintained is mounted into the
+# container at /workspace. It is resolved from the MAINTAINED_PROJECT_PATH
+# environment variable at session start. Example:
+#
+#   MAINTAINED_PROJECT_PATH=/abs/path/to/my_repo \
+#     uv run opensage web \
+#       --agent  examples/agents/repo_maintainer_agent \
+#       --config examples/agents/repo_maintainer_agent/config.toml
+#
+# The agent persists its lessons to ${MAINTAINED_PROJECT_PATH}/.opensage/lessons.md
+# on the host — the same file is visible inside the container at
+# /workspace/.opensage/lessons.md.
+
+DEFAULT_IMAGE = "ubuntu:22.04"
+TASK_NAME = "repo_maintainer"
+MAX_TOOL_RESPONSE_LENGTH = 20000
+MAX_HISTORY_SUMMARY_LENGTH = 240000
+
+task_name = "${TASK_NAME}"
+
+[memory]
+management = "file"
+
+[memory.database.short_term]
+enabled = false
+
+[memory.database.long_term]
+enabled = false
+
+[llm]
+[llm.model_configs.main]
+model_name = "openai/gpt-5"
+temperature = 1.0
+
+[llm.model_configs.summarize]
+model_name = "inherit"
+temperature = 1.0
+
+[llm.model_configs.flag_claims]
+model_name = "inherit"
+temperature = 1.0
+
+[history]
+max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
+enable_quota_countdown = true
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+
+[history.events_compaction]
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+compaction_percent = 50
+
+[sandbox]
+backend = "native"
+# Bind-mount the maintained project into /workspace (read-write).
+# The same path on the host is where .opensage/lessons.md is persisted.
+mount_host_paths = ["${MAINTAINED_PROJECT_PATH}:/workspace:rw"]
+
+[sandbox.sandboxes.main]
+image = "${TASK_NAME}_main"
+working_dir = "/workspace"
+project_relative_dockerfile_path = "examples/agents/repo_maintainer_agent/Dockerfile"
+timeout = 1200
+[sandbox.sandboxes.main.build_args]
+BASE_IMAGE = "${DEFAULT_IMAGE}"
+[sandbox.sandboxes.main.extra]
+initializer_timeout_sec = 1200
+
+[plugins]
+enabled = [
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+    "doom_loop_detector_plugin",
+]

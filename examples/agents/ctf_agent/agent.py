@@ -48,12 +48,14 @@ from opensage.toolbox.general.dynamic_subagent import (
     create_subagent,
     list_active_agents,
 )
+from opensage.toolbox.general.view_image import view_image
 
 
 def mk_agent(opensage_session_id: str):
     model = LiteLlm(
         model="claude-opus-4-6",
-        base_url="http://localhost:8082",
+        api_key=os.getenv("LITELLM_API_KEY"),
+        base_url=os.getenv("LITELLM_BASE_URL") or "http://localhost:8082",
         cache_control_injection_points=[
             {"location": "message", "role": "system"},  # Cache all system messages
             {"location": "message", "index": -2},  # Cache second-to-last message
@@ -83,6 +85,7 @@ def mk_agent(opensage_session_id: str):
             get_available_models,
             agent_ensemble_pairwise,
             create_subagent,
+            view_image,
             list_active_agents,
             call_subagent_as_tool,
             critique,
@@ -99,6 +102,7 @@ def mk_agent(opensage_session_id: str):
             ida_pro_toolset,
             pyghidra_toolset,
             ghidra_toolset,
+            finish_task,
         ],
         enabled_skills=[],
     )

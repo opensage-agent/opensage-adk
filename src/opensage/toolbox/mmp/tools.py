@@ -1,3 +1,14 @@
+"""OpenSage Python wrappers around the `mmp` CLI.
+
+Note on installation: these tools only *invoke* `mmp` inside the main sandbox;
+they do not install it. The `mmp` binary is provisioned by the bash skill at
+`src/opensage/bash_tools/mmp` via its `deps/install.sh`, which only runs when
+`"mmp"` is in `OpenSageAgent(enabled_skills=...)` (see
+`opensage.sandbox.skill_deps.prepare_skill_deps`). If you wire these tools in
+without enabling the skill, calls will fail with `mmp: command not found`
+unless `mmp` is preinstalled in the main sandbox image.
+"""
+
 from __future__ import annotations
 
 import json

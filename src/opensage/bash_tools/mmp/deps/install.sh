@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="git+https://github.com/ziyue-pan/mmp.git"
+REPO_URL="git+https://github.com/opensage-agent/mmp.git"
 
 if command -v mmp >/dev/null 2>&1; then
   exit 0

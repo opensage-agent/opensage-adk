@@ -247,11 +247,12 @@ async def _persist_web_session_snapshot_async(
     app_name: str,
     user_id: str,
     agent_dir: str,
+    root_agent_name: str | None,
     session_service: OpenSageInMemorySessionService,
     opensage_session,
 ) -> Path:
     """Persist ADK session + sandbox runtime metadata to local disk."""
-    agent_name = Path(agent_dir).resolve().name
+    agent_name = _sanitize_identifier(root_agent_name or "agent")
     store_dir = _session_store_dir_for_agent(
         session_id=session_id, agent_name=agent_name
     )
@@ -463,17 +464,16 @@ def _resolve_saved_session_dir(resume_from: Optional[str]) -> Path:
         )
 
     exact_match = (_SESSION_STORE_ROOT / resume_from).resolve()
+    exact_match_invalid: Path | None = None
     if exact_match.exists():
         if not exact_match.is_dir():
             raise click.ClickException(
                 f"Saved session path must be a directory: {exact_match}"
             )
         if not _is_saved_session_dir(exact_match):
-            raise click.ClickException(
-                f"Saved session metadata not found in {exact_match}: "
-                f"{exact_match / 'metadata.json'}"
-            )
-        return exact_match
+            exact_match_invalid = exact_match
+        else:
+            return exact_match
 
     session_dirs = [
         p for p in _SESSION_STORE_ROOT.iterdir() if _is_saved_session_dir(p)
@@ -487,6 +487,12 @@ def _resolve_saved_session_dir(resume_from: Optional[str]) -> Path:
         raise click.ClickException(
             "Multiple saved sessions match "
             f"'{resume_from}': {', '.join(p.name for p in suffix_matches)}"
+        )
+
+    if exact_match_invalid is not None:
+        raise click.ClickException(
+            f"Saved session metadata not found in {exact_match_invalid}: "
+            f"{exact_match_invalid / 'metadata.json'}"
         )
 
     raise click.ClickException(
@@ -849,6 +855,7 @@ def cli_web(
                             app_name=web_server.app_name,
                             user_id=session_user_id,
                             agent_dir=agent_dir,
+                            root_agent_name=getattr(root_agent, "name", "agent"),
                             session_service=session_service,
                             opensage_session=opensage_session,
                         )

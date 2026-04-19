@@ -71,6 +71,19 @@ def test_resolve_saved_session_dir_accepts_bare_session_id_suffix(
     )
 
 
+def test_resolve_saved_session_dir_prefers_saved_suffix_over_invalid_exact_dir(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    bare_session_id = "c0606edc-2fff-496d-8964-48bdd7f0bd23"
+    invalid_runtime_dir = tmp_path / bare_session_id
+    invalid_runtime_dir.mkdir()
+    saved_store_dir = _make_saved_session_dir(tmp_path / f"ctf_agent_{bare_session_id}")
+
+    monkeypatch.setattr(opensage_cli, "_SESSION_STORE_ROOT", tmp_path)
+
+    assert opensage_cli._resolve_saved_session_dir(bare_session_id) == saved_store_dir
+
+
 def test_resolve_saved_session_dir_rejects_ambiguous_suffix(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

@@ -1,35 +1,30 @@
 ---
-name: static_analysis
-description: "Static code analysis tools using Joern and Neo4j. These tools perform advanced code analysis including control flow analysis, data flow analysis, call graph traversal, and program slicing. Available tools: joern-query, joern-slice, search-function, get-caller, get-callee, get-call-paths-to-function.
-"
+name: static-analysis
+description: "Static code analysis tools using Joern and Neo4j for call graph traversal, program slicing, control flow analysis, and code property graph queries. Use when the user asks about static analysis, call graphs, function callers/callees, program slicing, vulnerability detection, code property graphs, or Joern queries. Available tools: joern-query, joern-slice, search-function, get-caller, get-callee, get-call-paths-to-function."
 ---
 
 # Static Analysis Tools
 
-Category of tools for advanced static code analysis using Joern and Neo4j. These tools provide sophisticated code analysis capabilities including call graph analysis, program slicing, control flow analysis, and graph-based queries.
+Advanced static code analysis using Joern and Neo4j. Provides call graph analysis, program slicing, control flow analysis, and graph-based code queries.
 
 ## Available Tools
 
-- **joern-query**: Execute Joern queries for code analysis
-- **joern-slice**: Perform program slicing to extract relevant code paths
-- **search-function**: Search for functions matching specific criteria
-- **get-caller**: Get callers of a specific function
-- **get-callee**: Get callees (functions called by) a specific function
-- **get-call-paths-to-function**: Find all call paths leading to a function
+| Tool | Purpose | Key use |
+|------|---------|---------|
+| **joern-query** | Execute Joern/CPG queries | Ad-hoc code property graph traversal |
+| **joern-slice** | Program slicing | Extract code paths relevant to a function |
+| **search-function** | Function search | Locate functions by name in the codebase |
+| **get-caller** | Caller lookup | Find which functions call a given function |
+| **get-callee** | Callee lookup | Find which functions a given function calls |
+| **get-call-paths-to-function** | Call path analysis | Trace all call chains leading to a target function |
 
+## Workflow
 
-## Usage
-
-These tools work with joern and main sandbox types, depending on the specific tool.
-
-## Common Use Cases
-
-- Analyzing call graphs and control flow
-- Finding all paths to a function or vulnerability
-- Performing program slicing for focused analysis
-- Querying code structure using graph databases
-- Identifying function dependencies and relationships
-- Static analysis for security vulnerability detection
+1. **Identify target**: Use `search-function` to locate the function of interest
+2. **Explore call graph**: Use `get-caller` / `get-callee` to understand direct dependencies
+3. **Trace paths**: Use `get-call-paths-to-function` to find indirect call chains to a vulnerable or critical function
+4. **Slice code**: Use `joern-slice` to extract the relevant program slice for focused analysis
+5. **Custom queries**: Use `joern-query` for advanced CPG queries not covered by the other tools
 
 ## Requires Sandbox
 

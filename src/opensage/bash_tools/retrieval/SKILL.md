@@ -1,26 +1,24 @@
 ---
 name: retrieval
-description: "Code retrieval tools. This category currently includes symbol lookup and function listing (via Neo4j-backed queries). Available tools: search-symbol, list-functions."
+description: "Code retrieval tools for symbol lookup and function listing via Neo4j-backed queries. Searches for function/symbol definitions and lists functions with file paths and line ranges. Use when the user asks to find a function definition, locate a symbol, list all functions in a file, look up where something is defined, or navigate codebase structure. Available tools: search-symbol, list-functions."
 ---
 
 # Retrieval Tools
 
-Category of tools for searching and retrieving code structure information (symbols, functions).
+Search and retrieve code structure information — symbol definitions and function listings — backed by Neo4j graph queries.
 
 ## Available Tools
 
-- **search-symbol**: Search the codebase for the definition of a given symbol (ctags-style output)
-- **list-functions**: List functions in a file via Neo4j queries over the code property graph
+| Tool | Purpose | When to use |
+|------|---------|-------------|
+| **search-symbol** | Find the definition of a symbol in the codebase | User asks "where is X defined?", needs to locate a function, class, or variable definition |
+| **list-functions** | List all functions in a file with line ranges | User wants to browse functions in a file, identify candidate functions for analysis |
 
-## Usage
+## Workflow
 
-Use `search-symbol` to quickly locate definitions, and `list-functions` to enumerate functions with locations (requires Neo4j-backed graph data).
-
-## Common Use Cases
-
-- Finding where a symbol is defined
-- Locating candidate functions for further analysis
-- Enumerating functions in a file with start/end line numbers
+1. **Find a definition**: Run `search-symbol` with the symbol name to get ctags-style output showing file path and location
+2. **Browse functions**: Run `list-functions` with a file path to enumerate all functions with their start/end line numbers
+3. **Combine with analysis**: Feed results into static analysis tools (get-caller, get-callee) for deeper investigation
 
 ## Requires Sandbox
 

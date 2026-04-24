@@ -138,9 +138,10 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
 
     # 1.5) Collect sandbox dependencies from the specified agent, and prune config
     tools_top_roots = None
+    mk_agent = _load_mk_agent_from_dir(agent_dir)
+    dummy_agent = mk_agent(opensage_session_id=session_id)
+
     try:
-        mk_agent = _load_mk_agent_from_dir(agent_dir)
-        dummy_agent = mk_agent(opensage_session_id=session_id)
         sandbox_dependencies = collect_sandbox_dependencies(
             dummy_agent, config=opensage_session.config
         )

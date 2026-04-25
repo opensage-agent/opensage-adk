@@ -568,7 +568,9 @@ def apply() -> None:
         remaining_for_this_child = remaining
 
         run_cfg = (
-            RunConfig(max_llm_calls=remaining) if remaining is not None else RunConfig()
+            RunConfig(max_llm_calls=remaining)
+            if remaining is not None
+            else RunConfig(max_llm_calls=0)
         )
 
         last_event = None

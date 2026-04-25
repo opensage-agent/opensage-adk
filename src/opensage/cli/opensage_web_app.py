@@ -577,7 +577,7 @@ class OpenSageWebServer:
                             session_id=session_id,
                             new_message=new_message,
                             state_delta=state_delta,
-                            run_config=RunConfig(streaming_mode=mode),
+                            run_config=RunConfig(streaming_mode=mode, max_llm_calls=0),
                             invocation_id=invocation_id,
                         )
                     ) as agen:

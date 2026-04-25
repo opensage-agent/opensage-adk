@@ -27,6 +27,11 @@ PARTS_FROM_TOOLS_ID = "temp:PARTS_FROM_TOOLS_ID"
 MAX_SINGLE_DIMENSION = 8000
 MAX_BATCH_DIMENSION = 2000
 
+# Anthropic rejects any single image whose source exceeds 5 MB (base64-decoded
+# bytes). Dimension checks alone let lossless PNGs through — a 2000x2000
+# screenshot can easily be >5 MB — so we gate on raw byte length too.
+MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
 
 # https://github.com/google/adk-python/issues/2096#issuecomment-3106556493
 class ImageInjectionPlugin(BasePlugin):
@@ -104,27 +109,30 @@ class ImageInjectionPlugin(BasePlugin):
         # total image count.
         self._reject_oversized_in_contents(llm_request.contents, limit)
 
-        # Inject the pending batch under the same limit, dropping oversized
-        # parts and warning the model via an inline text notice so it knows
-        # what to resubmit.
+        # Inject the pending batch under the same limit. Policy is all-or-
+        # nothing on images: if any image in the batch is oversized, every
+        # image in the batch is rejected. The model gets an inline notice
+        # listing the offenders so it knows what to resubmit.
         if self._pending_request_parts:
-            kept, dropped = self._filter_parts(self._pending_request_parts, limit)
-            content_parts: list[types.Part] = [
-                types.Part(text="Here are the images from the tool:")
-            ]
+            kept, violations = self._filter_parts(self._pending_request_parts, limit)
+            content_parts: list[types.Part] = []
+            if any(self._image_size(p) is not None for p in kept):
+                content_parts.append(
+                    types.Part(text="Here are the images from the tool:")
+                )
             content_parts.extend(kept)
-            if dropped:
+            if violations:
                 content_parts.append(
                     types.Part(
                         text=(
-                            "Dropped (oversized — resubmit smaller):\n- "
-                            + "\n- ".join(dropped)
+                            "Image batch rejected (any oversized image "
+                            "rejects the whole batch — resubmit all "
+                            "smaller):\n- " + "\n- ".join(violations)
                         )
                     )
                 )
 
-            # Only inject if we have something beyond the leading prose part.
-            if len(content_parts) > 1:
+            if content_parts:
                 logger.info("Creating new user content with images")
                 llm_request.contents.append(
                     types.Content(role="user", parts=content_parts)
@@ -179,23 +187,35 @@ class ImageInjectionPlugin(BasePlugin):
     def _filter_parts(
         self, parts: list[types.Part], limit: int
     ) -> tuple[list[types.Part], list[str]]:
-        """Split pending parts into (kept, dropped_descriptions) using the
-        caller-provided per-side limit. Non-image parts and parts we can't
-        parse are always kept — we only ever drop things we can confirm
-        are oversized images.
+        """Split pending parts into (kept, violations). All-or-nothing on
+        images: if ANY image in the batch is oversized (per-side dimension
+        or per-image byte count), every image in the batch is rejected and
+        only the offenders are listed in violations. Non-image parts are
+        always kept — they can't violate the cap.
         """
-        kept: list[types.Part] = []
-        dropped: list[str] = []
+        non_image_parts: list[types.Part] = []
+        image_parts: list[types.Part] = []
+        violations: list[str] = []
         for idx, part in enumerate(parts, 1):
             size = self._image_size(part)
-            if size is not None and (size[0] > limit or size[1] > limit):
-                dropped.append(
+            if size is None:
+                non_image_parts.append(part)
+                continue
+            image_parts.append(part)
+            byte_len = len(part.inline_data.data)
+            if size[0] > limit or size[1] > limit:
+                violations.append(
                     f"image {idx}: {size[0]}x{size[1]}px exceeds "
                     f"{limit}px per-side limit"
                 )
-            else:
-                kept.append(part)
-        return kept, dropped
+            elif byte_len > MAX_IMAGE_BYTES:
+                violations.append(
+                    f"image {idx}: {byte_len / 1024 / 1024:.1f}MB exceeds "
+                    f"{MAX_IMAGE_BYTES // 1024 // 1024}MB per-image limit"
+                )
+        if violations:
+            return non_image_parts, violations
+        return non_image_parts + image_parts, []
 
     def _reject_oversized_in_contents(
         self, contents: list[types.Content], limit: int
@@ -212,13 +232,28 @@ class ImageInjectionPlugin(BasePlugin):
             changed = False
             for part in content.parts:
                 size = self._image_size(part)
-                if size is not None and (size[0] > limit or size[1] > limit):
+                if size is None:
+                    new_parts.append(part)
+                    continue
+                byte_len = len(part.inline_data.data)
+                if size[0] > limit or size[1] > limit:
                     new_parts.append(
                         types.Part(
                             text=(
                                 f"[image removed: {size[0]}x{size[1]}px "
                                 f"exceeds {limit}px per-side limit for "
                                 f"multi-image requests]"
+                            )
+                        )
+                    )
+                    changed = True
+                elif byte_len > MAX_IMAGE_BYTES:
+                    new_parts.append(
+                        types.Part(
+                            text=(
+                                f"[image removed: {byte_len / 1024 / 1024:.1f}MB "
+                                f"exceeds {MAX_IMAGE_BYTES // 1024 // 1024}MB "
+                                f"per-image limit]"
                             )
                         )
                     )

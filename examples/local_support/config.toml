@@ -43,15 +43,6 @@ backend = "local"
 timeout = 300
 
 [llm]
-# Main model configuration
-[llm.model_configs.main]
-model_name = "inherit"
-temperature = 0.7
-max_tokens = 4096
-rpm = 60
-tpm = 60000
-
-# Drop/summarize model configuration
 [llm.model_configs.summarize]
 model_name = "inherit"
 temperature = 0.3
@@ -86,4 +77,3 @@ enabled = [
 
 [subagent]
 agent_storage_path = "${AGENT_STORAGE_PATH}"
-available_models_for_ensemble = "${AVAILABLE_MODELS}"

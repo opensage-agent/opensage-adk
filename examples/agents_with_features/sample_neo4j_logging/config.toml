@@ -38,19 +38,7 @@ user = "neo4j"
 password = "callgraphn4j!"
 bolt_port = 7687
 neo4j_http_port = 7474
-
-[memory]
-management = "file"
-
-[memory.database.short_term]
-enabled = true
-
 [llm]
-[llm.model_configs.main]
-model_name = "openai/gpt-5"
-temperature = 0.2
-max_tokens = 2048
-
 [llm.model_configs.summarize]
 model_name = "openai/gpt-5"
 temperature = 0.3

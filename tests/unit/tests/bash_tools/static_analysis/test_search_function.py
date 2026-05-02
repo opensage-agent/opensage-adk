@@ -44,7 +44,7 @@ async def test_search_function_basic(opensage_session: OpenSageSession):
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test search-function for a known function
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/search-function/scripts/search_function.py "file_fsmagic"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -75,7 +75,7 @@ async def test_search_function_nonexistent(opensage_session: OpenSageSession):
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test with non-existent function
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/search-function/scripts/search_function.py "nonexistent_function_xyz123"',
         tool_context=mock_context,
         sandbox_name="main",

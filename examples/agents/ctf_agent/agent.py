@@ -28,25 +28,21 @@ from opensage.toolbox.binary.pyghidra_mcp.get_toolset import (
 from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (
-    agent_ensemble,
-    agent_ensemble_pairwise,
     complain,
-    get_available_agents_for_ensemble,
-    get_available_models,
     note_suspicious_things,
     think,
 )
 from opensage.toolbox.general.bash_tool import bash_tool_main
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
-    list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    get_available_models,
+    list_subagents,
 )
 from opensage.toolbox.general.view_image import view_image
 
@@ -80,14 +76,11 @@ def mk_agent(opensage_session_id: str):
         root agent.
         """,
         tools=[
-            agent_ensemble,
-            get_available_agents_for_ensemble,
             get_available_models,
-            agent_ensemble_pairwise,
             create_subagent,
             view_image,
-            list_active_agents,
-            call_subagent_as_tool,
+            list_subagents,
+            call_subagent,
             critique,
             # think,
             complain,
@@ -95,7 +88,6 @@ def mk_agent(opensage_session_id: str):
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
-            list_available_scripts,
             # Debugger Tools
             gdb_toolset,
             # Binary Analysis Tools

@@ -7,7 +7,6 @@ If you need manager classes or other session types, import them from their
 modules directly, e.g.:
 
 - `from opensage.session.opensage_sandbox_manager import OpenSageSandboxManager`
-- `from opensage.session.opensage_dynamic_agent_manager import AgentStatus`
 """
 
 from __future__ import annotations

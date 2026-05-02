@@ -10,16 +10,6 @@ user = "neo4j"
 password = "${NEO4J_PASSWORD}"
 bolt_port = "${NEO4J_BOLT_PORT}"
 neo4j_http_port = "${NEO4J_HTTP_PORT}"
-
-[memory]
-management = "file"
-
-[memory.database.short_term]
-enabled = false
-
-[memory.database.long_term]
-enabled = false
-
 [llm]
 model_name = "gemini-3-flash-preview"
 temperature = 0.7
@@ -42,7 +32,6 @@ max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
 compaction_percent = 50
 
 [subagent]
-available_models_for_ensemble = "inherit"
 
 [llm.model_configs.flag_claims]
 model_name = "inherit"
@@ -81,7 +70,6 @@ enabled = [
 
     "history_summarizer_plugin",
     "tool_response_summarizer_plugin",
-    "message_board_diff_plugin",
     "careful_edit",
     "test_output_review",
 ]

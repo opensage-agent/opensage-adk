@@ -44,7 +44,7 @@ async def test_get_callee_basic(opensage_session: OpenSageSession):
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test get-callee for a known function
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/get-callee/scripts/get_callee.py "file_or_fd"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -75,7 +75,7 @@ async def test_get_callee_with_file_path(opensage_session: OpenSageSession):
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test get-callee with file path
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/get-callee/scripts/get_callee.py "file_or_fd" --file-path "src/magic.c"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -104,7 +104,7 @@ async def test_get_callee_nonexistent_function(opensage_session: OpenSageSession
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test with non-existent function
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/get-callee/scripts/get_callee.py "nonexistent_function_xyz123"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -135,7 +135,7 @@ async def test_get_callee_uses_env_vars(opensage_session: OpenSageSession):
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test without explicit Neo4j parameters (should use env vars from ~/.bashrc)
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/get-callee/scripts/get_callee.py "file_or_fd"',
         tool_context=mock_context,
         sandbox_name="main",

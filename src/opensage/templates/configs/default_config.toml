@@ -39,7 +39,6 @@ neo4j_http_port = "${NEO4J_HTTP_PORT}"
 [sandbox]
 backend = "native"
 absolute_shared_data_path = "${ABSOLUTE_SHARED_DATA_PATH}"
-host_shared_mem_dir = "${HOST_SHARED_MEM_DIR}"
 
 # OpenSandbox backend configuration (used when sandbox.backend = "opensandbox")
 [sandbox.opensandbox]
@@ -142,15 +141,6 @@ NEO4J_dbms_mode = "SINGLE"
 initializer_timeout_sec = 1800
 
 [llm]
-# Main model configuration
-[llm.model_configs.main]
-model_name = "${MAIN_MODEL}"
-temperature = 0.7
-max_tokens = 4096
-rpm = 60
-tpm = 60000
-
-# Drop/summarize model configuration
 [llm.model_configs.summarize]
 model_name = "${MAIN_MODEL}"
 temperature = 0.3
@@ -179,22 +169,26 @@ compaction_percent = "${COMPACTION_PERCENT}"
 # No plugins enabled by default. Explicitly list plugins in your agent config.
 # Execution order matches the list order — see docs/wiki/Plugins.md for details.
 enabled = []
-
-[memory]
-management = "file"
-
-[memory.database.short_term]
-enabled = false
-
-[memory.database.long_term]
-enabled = false
-
-
 [subagent]
 max_llm_calls = 0
 agent_storage_path = "${AGENT_STORAGE_PATH}"
 load_dynamic_agents = false
-available_models_for_ensemble = "${AVAILABLE_MODELS}"
+
+# Model registry: which LiteLlm instances LLM-driven subagents may use.
+# Configure either ``[[model.available_models]]`` (declarative) OR
+# ``models_python_file`` (path to a .py exporting ``models: list[BaseLlm]``),
+# never both. ``api_key_env`` is the *name* of the env var that holds the secret —
+# never put secrets in TOML directly.
+#
+# Example (declarative):
+# [[model.available_models]]
+# model = "openai/gpt-5.4"
+# api_key_env = "LITELLM_API_KEY"
+# base_url = "http://localhost:8088/v1"
+#
+# Example (python file):
+# [model]
+# models_python_file = "models.py"
 
 [build]
 poc_dir = "${POC_DIR}"

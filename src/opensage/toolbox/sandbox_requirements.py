@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Callable, List, Optional, Set, TypeVar, Union
 
 from google.adk.agents.base_agent import BaseAgent
-from google.adk.tools.agent_tool import AgentTool
 
 from opensage.utils.project_info import SRC_PATH
 
@@ -71,19 +70,9 @@ def collect_sandbox_dependencies(agent, config=None) -> set[str]:
     """
     dependencies = set()
 
-    if config is not None:
-        from opensage.memory.database_based.short_term.config import (
-            is_database_short_term_enabled_from_config,
-        )
-
-        if is_database_short_term_enabled_from_config(config):
-            dependencies.add("neo4j")
-
     if hasattr(agent, "tools") and agent.tools:
         for tool in agent.tools:
-            if isinstance(tool, AgentTool):
-                dependencies.update(collect_sandbox_dependencies(tool.agent))
-            elif hasattr(tool, "agent") and isinstance(tool.agent, BaseAgent):
+            if hasattr(tool, "agent") and isinstance(tool.agent, BaseAgent):
                 dependencies.update(collect_sandbox_dependencies(tool.agent))
 
             if hasattr(tool, "__sandbox_requirements__"):
@@ -93,6 +82,11 @@ def collect_sandbox_dependencies(agent, config=None) -> set[str]:
                 elif isinstance(deps, str):
                     dependencies.add(deps)
 
+    # OpenSageAgent sub-agents (our field, not ADK's sub_agents)
+    for sub_agent in getattr(agent, "_subagents", None) or []:
+        dependencies.update(collect_sandbox_dependencies(sub_agent))
+
+    # ADK's sub_agents field (for non-OpenSage ADK agents)
     if hasattr(agent, "sub_agents") and agent.sub_agents:
         for sub_agent in agent.sub_agents:
             dependencies.update(collect_sandbox_dependencies(sub_agent))

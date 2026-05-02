@@ -71,24 +71,23 @@ Carefully read the task description and list the requirements provided by the us
 
 #### Initial Setup (Required for every task)
 Before starting any task, you MUST:
-1. **Call `get_available_models`** to list available models
-2. **Call `list_active_agents`** to check current agents
-3. **Call `get_available_agents_for_ensemble`** to see ensemble options
+1. **Call `get_available_models`** to list registered model identifiers
+2. **Call `list_subagents`** to check currently registered agents and instances
 
 #### When to Create Subagents (Mandatory Conditions)
 You MUST create and use subagents in the following scenarios:
 - **Any task with multiple components or steps** (use separate subagents per component)
 - **Tasks requiring verification or validation** (create a dedicated verification subagent)
 - **Complex coding tasks** (minimum 2 subagents: one for implementation, one for testing)
-- **Tasks with uncertainty** (run multiple subagents to explore different approaches or try multiple times)
-- **Parallel subtasks** (use `ensemble_pairwise` for concurrent execution)
+- **Tasks with uncertainty** (run multiple subagents to explore different approaches)
 - **Any task that would benefit from fresh context** (subagents provide clean slate)
 
 #### Subagent Orchestration Methods
-- **`create_subagent`** - Create a new subagent with specific model and configuration
-- **`call_subagent_as_tool`** - Delegate a specific task to a subagent
-- **`agent_ensemble`** - Run multiple subagents on the same task, try multiple times
-- **`ensemble_pairwise`** - Run different tasks or try different approaches in parallel across subagents
+- **`create_subagent`** - Register a new subagent template with a specific model and toolset (does not run it)
+- **`call_subagent`** - Spawn a fresh instance of a registered agent and run it; supports an optional `model_name` override per call
+- **`continue_agent_instance`** - Send another turn to an existing instance by session_id
+- **`send_message`** - Fire-and-forget peer messaging to an instance's inbox (broadcast with `to_session_id="*"`)
+- **`wait_for_subagent`** - Block until a target instance's current invocation finishes
 
 #### Mandatory Workflow Pattern
 For every task, follow this structure:

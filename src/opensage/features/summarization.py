@@ -15,17 +15,14 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.genai import types
 
-from opensage.memory.database_based.short_term.config import (
-    is_database_short_term_enabled_from_context,
-)
 from opensage.memory.file_based.short_term import (
     get_current_session_tool_outputs_dir,
 )
 from opensage.utils.agent_utils import (
+    create_litellm_model,
     discover_all_agents,
     get_opensage_session_id_from_context,
     register_callback_to_all_agents,
-    resolve_model_spec,
     save_content_to_sandbox_file,
 )
 
@@ -262,7 +259,7 @@ Here is a brief preview:
     model_name = getattr(opensage_session.config.llm, "summarize_model", None)
     agent = tool_context._invocation_context.agent
     if model_name:
-        model = resolve_model_spec(model_name, tool_context=tool_context)
+        model = create_litellm_model(model_name)
     else:
         if not hasattr(agent, "canonical_model"):
             logger.warning("Agent has no model, skipping tool response summarization")
@@ -393,14 +390,6 @@ You can use `grep`, `cat`, or other commands to search or view the full content 
         else:
             tagged_summary += "\n[Quota] LLM calls: unlimited"
 
-    if is_database_short_term_enabled_from_context(tool_context):
-        from opensage.memory.database_based.short_term.history_store import (
-            create_raw_tool_response_node,
-        )
-
-        await create_raw_tool_response_node(
-            tool, args, tool_context, tool_response, tagged_summary
-        )
     tool_response.clear()
     tool_response["_tool_response_summarized"] = True
     tool_response["_tool_response_summary"] = tagged_summary
@@ -747,7 +736,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     # Choose summarization model
     model_name = getattr(opensage_session.config.llm, "summarize_model", None)
     if model_name:
-        summarizer_model = resolve_model_spec(model_name, tool_context=tool_context)
+        summarizer_model = create_litellm_model(model_name)
     else:
         summarizer_model = agent.canonical_model
 
@@ -834,14 +823,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         logger.warning(
             "Failed to persist traj.json after compaction: %s", persist_error
         )
-
-    # Neo4j persistence aligned with previous summarization semantics
-    if is_database_short_term_enabled_from_context(tool_context):
-        from opensage.memory.database_based.short_term.history_store import (
-            create_history_summary_node,
-        )
-
-        await create_history_summary_node(tool_context, compaction_event, window_events)
 
     logger.info(
         f"History compaction appended. Window size={len(window_events)}; "

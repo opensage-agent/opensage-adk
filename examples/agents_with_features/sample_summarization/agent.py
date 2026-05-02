@@ -22,10 +22,10 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    list_subagents,
 )
 from opensage.utils.agent_utils import (
     discover_all_agents,
@@ -135,8 +135,8 @@ Formulate the final answer as a single number inside <final_answer>...</final_an
         tools=[
             geometry_tool,
             create_subagent,
-            list_active_agents,
-            call_subagent_as_tool,
+            list_subagents,
+            call_subagent,
             add_numbers,
             subtract_numbers,
         ],

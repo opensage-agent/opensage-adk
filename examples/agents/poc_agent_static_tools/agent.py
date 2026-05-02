@@ -18,12 +18,8 @@ from opensage.toolbox.benchmark_specific.cybergym.cybergym import (
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.fuzzing.fuzz_tools import simplified_python_fuzzer
 from opensage.toolbox.general.agent_tools import (
-    agent_ensemble,
-    agent_ensemble_pairwise,
     critique,
     flag_unjustified_claims,
-    get_available_agents_for_ensemble,
-    get_available_models,
     note_suspicious_things,
 )
 from opensage.toolbox.general.bash_tool import bash_tool_main
@@ -45,14 +41,14 @@ from opensage.toolbox.general.bash_tool import bash_tool_main
 # )
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
-    list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    get_available_models,
+    list_subagents,
 )
 
 
@@ -95,26 +91,18 @@ def mk_agent(opensage_session_id: str):
 
          **Dynamic Agent Usage (Very Important)**
         Whenever the task can be broken into subtasks you MUST:
-        0. list the available models and the available agents by calling get_available_models and list_active_agents tools.
+        0. list the available models and the available agents by calling get_available_models and list_subagents tools.
         1. Create a subagent using the create_subagent tool.
         2. Give that subagent a very specific subtask, with specific enabled skills and tools, you should provide all necessary tools and skills that the subagent needs to complete the task.
-        3. Call the subagent via call_subagent_as_tool.
-        This is the preferred and default behavior.
-
-        **Ensemble Usage (Very Important)**
-        If you cannot confidently complete a subtask or multiple possible reasoning paths exist, you MUST use agent_ensemble tools.
-        0. list the available models and the available agents by calling get_available_models and get_available_agents_for_ensemble tools.
-        1. Create an ensemble using the agent_ensemble tool.
-        2. Give that ensemble a very specific subtask.
-        3. Call the ensemble via agent_ensemble.
+        3. Call the subagent via call_subagent.
         This is the preferred and default behavior.
 
         ***********IMPORTANT***********
         You should prefer using /bash_tools/, do not use general shell commands such as sed if a suitable Skill exists.
         Try to explore the path by calling the appropriate scripts under /bash_tools/, e.g., read-file, list-functions-in-file, search-symbol-definition, get-call-paths-to-function, get-callee, get-caller, joern-query, joern-slice, neo4j-query, search-function. Use them as much as possible instead of general shell commands like sed, grep, etc.
-        If you are stuck, maybe you are looking at the wrong vulnerability, you can use a subagent with no history to solve the task, as your history might be misleading. Also, you can use agent ensemble to explore the code and understand the vulnerability by multiple agents.
+        If you are stuck, maybe you are looking at the wrong vulnerability, you can use a subagent with no history to solve the task, as your history might be misleading.
         You should use subagent entensively whenever you want to do a subtask.
-        Use dynamic subagents and agent ensemble extensively.
+        Use dynamic subagents extensively.
         You can submit a poc by calling generate_poc_and_submit.
         You should not see the git commit history.
         If you submitted a poc to the server that triggers a crash and exit code is not equal to 0, you should call the finish_task tool, and then summarize the task and the result without calling any other tool.
@@ -122,21 +110,17 @@ def mk_agent(opensage_session_id: str):
         ***********IMPORTANT***********
         """,
         tools=[
-            agent_ensemble,
-            agent_ensemble_pairwise,
-            get_available_agents_for_ensemble,
             get_available_models,
             finish_task,
             generate_poc_and_submit,
             create_subagent,
-            list_active_agents,
-            call_subagent_as_tool,
+            list_subagents,
+            call_subagent,
             critique,
             # Super Terminal Tools
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
-            list_available_scripts,
         ],
         enabled_skills=["new_tool_creator", "retrieval", "static_analysis", "neo4j"],
     )

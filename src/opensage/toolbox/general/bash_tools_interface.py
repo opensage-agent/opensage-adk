@@ -270,124 +270,6 @@ async def run_bash_tool_script(
         )
 
 
-async def list_available_scripts(
-    start_dir: Optional[str] = None, *, tool_context: ToolContext
-) -> str:
-    """List available bash tools by printing full SKILL.md contents.
-
-        Use this tool to discover what bash tools are available under `/bash_tools`
-        and read their full documentation. For each discovered *executable* Skill
-        (a directory containing `SKILL.md` and a `scripts/` subdirectory with at
-        least one `.sh` or `.py` file), this returns the complete `SKILL.md`
-        content.
-
-        IMPORTANT (MUST FOLLOW):
-        - Do NOT call this tool with the `/bash_tools` root directory (i.e.
-          `start_dir="/bash_tools"`). That produces too much output.
-
-        Args:
-            start_dir (Optional[str]): Optional subdirectory under bash_tools to start discovery from,
-                e.g. "fuzz" or "static_analysis". If omitted, scans all bash_tools.
-                DO NOT pass the `/bash_tools` root directory.
-
-    Raises:
-      ValueError: Raised when this operation fails.
-        Returns:
-            str: Formatted list of available Skills with full SKILL.md content
-    """
-
-    def _normalize_start_dir(value: str) -> str:
-        """Normalize start_dir into a relative path under BASH_TOOLS_DIR.
-
-                Accepts both:
-                - "retrieval"
-                - "retrieval/search-symbol"
-                - "/bash_tools/retrieval"
-                - "/bash_tools/retrieval/search-symbol"
-
-        Raises:
-          ValueError: Raised when this operation fails."""
-        value = value.strip()
-        # Treat "/bash_tools" (and "/bash_tools/" + extra trailing slashes) as root.
-        if value.rstrip("/") == CONTAINER_BASH_TOOLS_DIR:
-            return ""
-        if value.startswith(f"{CONTAINER_BASH_TOOLS_DIR}/"):
-            value = value[len(f"{CONTAINER_BASH_TOOLS_DIR}/") :]
-        value = value.lstrip("/")
-        # Disallow traversal.
-        normalized = f"/{value}/"
-        if value in (".", "..") or "/../" in normalized or "/./" in normalized:
-            raise ValueError(f"Invalid start_dir: {value!r}")
-        return value
-
-    # IMPORTANT: discover from the active sandbox mount (/bash_tools), not host path.
-    sandbox = get_sandbox_from_context(tool_context, "main")
-
-    normalized_start_dir = _normalize_start_dir(start_dir) if start_dir else ""
-    root_label = (
-        "/bash_tools"
-        if not normalized_start_dir
-        else f"/bash_tools/{normalized_start_dir}"
-    )
-    base_dir = (
-        CONTAINER_BASH_TOOLS_DIR
-        if not normalized_start_dir
-        else f"{CONTAINER_BASH_TOOLS_DIR}/{normalized_start_dir}"
-    )
-
-    find_cmd = f"find {shlex.quote(base_dir)} -type f -name SKILL.md -print"
-    find_output, find_exit = await sandbox.arun_command_in_container(
-        ["bash", "-lc", find_cmd]
-    )
-    if find_exit != 0:
-        return (
-            "Some unexpected error occurred. You should run ls or tree to explore "
-            "the bash tools directory /bash_tools by your self."
-        )
-
-    skill_md_paths = [
-        line.strip()
-        for line in str(find_output).splitlines()
-        if line.strip().endswith("/SKILL.md")
-    ]
-    if not skill_md_paths:
-        return "No bash tools found in skills directories."
-
-    output = [f"Available Skills under {root_label}:", "=" * 30, ""]
-    executable_skill_paths: list[str] = []
-    for skill_md_path in sorted(skill_md_paths):
-        skill_dir = skill_md_path.rsplit("/SKILL.md", 1)[0]
-        # A valid executable skill must have scripts/*.sh or scripts/*.py
-        probe_cmd = (
-            f"test -d {shlex.quote(skill_dir)}/scripts && "
-            f"find {shlex.quote(skill_dir)}/scripts -maxdepth 1 -type f "
-            "\\( -name '*.sh' -o -name '*.py' \\) | head -n 1"
-        )
-        probe_output, probe_exit = await sandbox.arun_command_in_container(
-            ["bash", "-lc", probe_cmd]
-        )
-        if probe_exit == 0 and str(probe_output).strip():
-            executable_skill_paths.append(skill_md_path)
-
-    if not executable_skill_paths:
-        return "No bash tools found in skills directories."
-
-    for container_skill_md in executable_skill_paths:
-        output.append(f"--- {container_skill_md} ---")
-        read_cmd = f"cat {shlex.quote(container_skill_md)}"
-        content, read_exit = await sandbox.arun_command_in_container(
-            ["bash", "-lc", read_cmd]
-        )
-        if read_exit != 0:
-            output.append(f"ERROR: Failed to read SKILL.md (exit_code={read_exit})")
-            output.append("")
-            continue
-        output.append(str(content).rstrip())
-        output.append("")
-
-    return "\\n".join(output)
-
-
 async def wait_for_background(
     task_id: str,
     timeout: int = 300,
@@ -471,7 +353,7 @@ async def run_terminal_command(
     """Execute arbitrary bash inside the specified sandbox.
 
     This behaves like a one-off terminal session: any bash syntax, pipes, or
-    scripts listed via `list_available_scripts` can be invoked.
+    scripts under `/bash_tools/<skill>/scripts/` can be invoked.
 
     Command syntax and escaping rules (what the model should assume):
       - **Write `command` exactly as you would type it in bash.** Pipes (`|`),

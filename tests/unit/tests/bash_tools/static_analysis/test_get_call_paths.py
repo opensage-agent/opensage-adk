@@ -44,7 +44,7 @@ async def test_get_call_paths_basic(opensage_session: OpenSageSession):
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test get-call-paths for a known function (using default source function)
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/get-call-paths-to-function/scripts/get_call_paths_to_function.py "file_fsmagic"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -74,7 +74,7 @@ async def test_get_call_paths_with_source_function(opensage_session: OpenSageSes
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test with source function specified
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/static_analysis/get-call-paths-to-function/scripts/get_call_paths_to_function.py "file_fsmagic" --src-function "file_or_fd"',
         tool_context=mock_context,
         sandbox_name="main",

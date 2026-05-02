@@ -59,15 +59,3 @@ sse_port = 8081
 # Note: actual port will be dynamically assigned and auto-updated
 
 # Other configurations (same as native backend)
-[llm.model_configs.main]
-model_name = "gemini-2.0-flash-exp"
-temperature = 0.0
-
-default_host = ""  # Will be set to remote IP at runtime
-
-# Important Notes:
-# 1. Shared volumes will be created on the remote Docker host
-# 2. Data transfer uses Docker API (put_archive), which may be slower than local bind mounts
-# 3. All containers run on the remote host; OpenSage main process runs locally
-# 4. Neo4j and MCP ports are dynamically allocated to avoid conflicts
-# 5. Connection URIs are automatically updated with remote IP and actual ports

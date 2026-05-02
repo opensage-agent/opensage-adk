@@ -31,6 +31,10 @@ class OpenSageInMemorySessionService(BaseSessionService):
     def __init__(self):
         # sessions[app_name][user_id][session_id] = Session (live object)
         self.sessions: dict[str, dict[str, dict[str, Session]]] = {}
+        # Back-reference to the OpenSageSession that owns this service. Set by
+        # OpenSageSession.__init__ after construction. Tools can reach the full
+        # environment via ``invocation_context.session_service.opensage_session``.
+        self.opensage_session: Any = None
 
     async def create_session(
         self,
@@ -101,6 +105,42 @@ class OpenSageInMemorySessionService(BaseSessionService):
 
         storage_session.last_update_time = event.timestamp
         return event
+
+    def inject_session(self, session: Session) -> None:
+        """Insert a pre-built Session into the store (used on resume / load).
+
+        Keyed by (app_name, user_id, session_id) taken from the Session object
+        itself. Overwrites any existing entry.
+
+        Collision warning: if the bucket already contains a *different* Session
+        object at the same key, log a warning. This should not happen in the
+        normal flow — `_load_instance` consults `get_session` first and only
+        injects when the slot is empty. A collision means some code path is
+        bypassing that precheck; investigate rather than suppress.
+        """
+        bucket = self.sessions.setdefault(session.app_name, {}).setdefault(
+            session.user_id, {}
+        )
+        existing = bucket.get(session.id)
+        if existing is not None and existing is not session:
+            logger.warning(
+                "inject_session collision for (%s, %s, %s); overwriting. "
+                "This should not happen — _load_instance is expected to "
+                "consult get_session() before injecting.",
+                session.app_name,
+                session.user_id,
+                session.id,
+            )
+        bucket[session.id] = session
+
+    def evict(self, session_id: str) -> None:
+        """Remove a Session from the in-memory store by session_id.
+
+        Scans all (app_name, user_id) buckets. Best-effort: no error if missing.
+        """
+        for app_sessions in self.sessions.values():
+            for user_sessions in app_sessions.values():
+                user_sessions.pop(session_id, None)
 
     async def update_event(self, *, session: Session, event: Event) -> Event:
         storage_session = self._get_session_impl(

@@ -379,10 +379,10 @@ class OpenSageWebServer:
 
                     from opensage.memory.file_based.short_term.session_files import (
                         HOST_SESSION_ROOT,
-                        scan_host_agent_tree,
+                        scan_host_instance_tree,
                     )
 
-                    tree = scan_host_agent_tree(self.fixed_session_id)
+                    tree = scan_host_instance_tree(self.fixed_session_id)
                     target = next(
                         (
                             a
@@ -395,7 +395,7 @@ class OpenSageWebServer:
                         traj_path = (
                             HOST_SESSION_ROOT
                             / self.fixed_session_id
-                            / "mem"
+                            / "instances"
                             / target["dir"]
                             / "traj.json"
                         )
@@ -808,10 +808,10 @@ class OpenSageWebServer:
             @app.get("/control/subagents")
             async def list_subagents():
                 from opensage.memory.file_based.short_term.session_files import (
-                    scan_host_agent_tree,
+                    scan_host_instance_tree,
                 )
 
-                tree = scan_host_agent_tree(self.fixed_session_id)
+                tree = scan_host_instance_tree(self.fixed_session_id)
                 root = tree.get("root")
                 root_name = root["name"] if root else ""
                 subagents = [
@@ -822,10 +822,10 @@ class OpenSageWebServer:
             @app.get("/control/subagents/topology")
             async def get_subagent_topology():
                 from opensage.memory.file_based.short_term.session_files import (
-                    scan_host_agent_tree,
+                    scan_host_instance_tree,
                 )
 
-                tree = scan_host_agent_tree(self.fixed_session_id)
+                tree = scan_host_instance_tree(self.fixed_session_id)
                 root = tree.get("root")
                 if not root:
                     return {"nodes": [], "edges": []}
@@ -876,10 +876,10 @@ class OpenSageWebServer:
 
                 from opensage.memory.file_based.short_term.session_files import (
                     HOST_SESSION_ROOT,
-                    scan_host_agent_tree,
+                    scan_host_instance_tree,
                 )
 
-                tree = scan_host_agent_tree(self.fixed_session_id)
+                tree = scan_host_instance_tree(self.fixed_session_id)
                 target = next(
                     (
                         a
@@ -898,7 +898,7 @@ class OpenSageWebServer:
                 traj_path = (
                     HOST_SESSION_ROOT
                     / self.fixed_session_id
-                    / "mem"
+                    / "instances"
                     / target["dir"]
                     / "traj.json"
                 )
@@ -954,10 +954,10 @@ class OpenSageWebServer:
 
                 from opensage.memory.file_based.short_term.session_files import (
                     HOST_SESSION_ROOT,
-                    scan_host_agent_tree,
+                    scan_host_instance_tree,
                 )
 
-                tree = scan_host_agent_tree(self.fixed_session_id)
+                tree = scan_host_instance_tree(self.fixed_session_id)
                 target = next(
                     (
                         a
@@ -977,7 +977,7 @@ class OpenSageWebServer:
                 traj_path = (
                     HOST_SESSION_ROOT
                     / self.fixed_session_id
-                    / "mem"
+                    / "instances"
                     / target["dir"]
                     / "traj.json"
                 )

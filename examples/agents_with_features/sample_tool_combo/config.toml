@@ -15,12 +15,6 @@ timeout = 300
 BASE_IMAGE = "ubuntu:20.04"
 
 [llm]
-[llm.model_configs.main]
-model_name = "openai/o4-mini"
-temperature = 0.2
-max_tokens = 2048
-
-
 [plugins]
 enabled = [
     "history_summarizer_plugin",

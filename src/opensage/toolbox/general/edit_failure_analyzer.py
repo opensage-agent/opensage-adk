@@ -16,7 +16,6 @@ from google.genai import types
 
 from opensage.session import get_opensage_session
 from opensage.utils.agent_utils import (
-    INHERIT_MODEL,
     create_litellm_model,
     get_opensage_session_id_from_context,
 )
@@ -175,18 +174,11 @@ async def analyze_edit_failure(
             types.Content(role="user", parts=[types.Part.from_text(text=user_prompt)])
         ]
 
-        # Resolve model for standalone LLM call.
-        # When "inherit", use the session's main model name via LiteLlm rather
-        # than reusing the agent's model instance (which may have thinking mode
-        # or other config that causes 404 on a bare single-turn call).
-        if model_name == INHERIT_MODEL:
-            resolved_name = session.config.llm.model_name
-            if not resolved_name:
-                logger.debug("Cannot resolve model name for edit failure analysis")
-                return None
-            model = create_litellm_model(resolved_name)
-        else:
-            model = create_litellm_model(model_name)
+        # Resolve model for standalone LLM call. We always build a fresh LiteLlm
+        # rather than reusing the agent's model instance because the agent's
+        # instance may carry thinking-mode or other config that causes 404 on
+        # a bare single-turn call.
+        model = create_litellm_model(model_name)
 
         # Call model
         analysis_parts = []

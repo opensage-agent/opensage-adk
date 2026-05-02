@@ -46,7 +46,7 @@ async def test_neo4j_query_basic(opensage_session: OpenSageSession):
 
     # Test with a simple query
     query = "MATCH (n) RETURN count(n) AS count LIMIT 1"
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command=f'python3 /bash_tools/neo4j/neo4j-query/scripts/neo4j_query.py "{query}"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -77,7 +77,7 @@ async def test_neo4j_query_with_params(opensage_session: OpenSageSession):
     # Test with query and parameters (may return no results, which is OK)
     query = "MATCH (n) RETURN count(n) AS count LIMIT 1"
     params = "{}"
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command=f"python3 /bash_tools/neo4j/neo4j-query/scripts/neo4j_query.py \"{query}\" --params '{params}'",
         tool_context=mock_context,
         sandbox_name="main",
@@ -107,7 +107,7 @@ async def test_neo4j_query_invalid_query(opensage_session: OpenSageSession):
 
     # Test with invalid query syntax
     query = "INVALID CYPHER QUERY SYNTAX !!!"
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command=f'python3 /bash_tools/neo4j/neo4j-query/scripts/neo4j_query.py "{query}"',
         tool_context=mock_context,
         sandbox_name="main",

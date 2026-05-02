@@ -39,19 +39,7 @@ bolt_port = 7687
 neo4j_http_port = 7474
 
 [llm]
-[llm.model_configs.main]
-model_name = "openai/o4-mini"
-temperature = 0.2
-max_tokens = 2048
-
-[memory]
-management = "database"
-
-[memory.database.short_term]
-enabled = true
-
 [subagent]
-available_models_for_ensemble = "openai/o4-mini,openai/gpt-5"
 
 [plugins]
 enabled = [

@@ -28,13 +28,6 @@ logger = logging.getLogger(__name__)
 
 def mk_agent(opensage_session_id="vulnerability-detection-agent-session"):
     opensage_session = get_opensage_session(opensage_session_id)
-    config = opensage_session.config
-    config.subagent.available_models_for_ensemble = [
-        "anthropic/claude-sonnet-4-5-20250929",
-        "openai/o4-mini",
-        "openai/gpt-5",
-    ]
-    opensage_session.config = config
     vul_detect_agent = OpenSageAgent(
         name="vulnerability_detection_agent",
         model=LiteLlm(model="anthropic/claude-sonnet-4-5-20250929"),

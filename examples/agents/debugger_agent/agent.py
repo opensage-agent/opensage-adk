@@ -30,24 +30,21 @@ from opensage.toolbox.fuzzing.fuzz_tools import (
     simplified_python_fuzzer,
 )
 from opensage.toolbox.general.agent_tools import (
-    agent_ensemble,
     complain,
-    get_available_agents_for_ensemble,
-    get_available_models,
     note_suspicious_things,
     think,
 )
 from opensage.toolbox.general.bash_tool import bash_tool_main
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
-    list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    get_available_models,
+    list_subagents,
 )
 from opensage.toolbox.retrieval.search_tools import (
     get_line_around_linenum_in_file,
@@ -95,12 +92,11 @@ def mk_agent(opensage_session_id: str):
         tools=[
             complain,
             gdb_toolset,
-            list_available_scripts,
             list_background_tasks,
             run_terminal_command,
             create_subagent,
-            call_subagent_as_tool,
-            list_active_agents,
+            call_subagent,
+            list_subagents,
             critique,
         ],
     )

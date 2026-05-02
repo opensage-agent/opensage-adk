@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import asyncio
+import json
 import logging
 import os
-import re
 import shlex
 from pathlib import Path
 from typing import Any, Optional
@@ -12,6 +13,7 @@ from opensage.memory.file_based.short_term.sandbox_io import (
     _get_main_sandbox,
     _write_text_to_main_sandbox,
 )
+from opensage.utils.agent_utils import sanitize_agent_name
 
 logger = logging.getLogger(__name__)
 
@@ -19,51 +21,27 @@ MEM_ROOT_DIR = "/mem"
 SHORT_TERM_MEM_ROOT = os.path.join(MEM_ROOT_DIR, "short_term")
 MEM_AGENT_DIR_KEY = "_mem_agent_dir"
 
-# Host-side memory directory (always enabled, independent of memory management mode)
+# Host-side instance directory.
 HOST_SESSION_ROOT = Path.home() / ".local" / "opensage" / "sessions"
-HOST_MEM_DIR_KEY = "_host_mem_dir"
-
-_MEMORY_MANAGEMENT_FILE = "file"
-
-
-def _sanitize_name(name: str) -> str:
-    """Return a filesystem-safe agent name component."""
-    if not name:
-        return "agent"
-    safe_name = re.sub(r"[^a-zA-Z0-9._-]+", "_", name).strip("._-")
-    return safe_name or "agent"
+HOST_INSTANCE_DIR_KEY = "_host_instance_dir"
+HOST_INSTANCES_SUBDIR = "instances"
 
 
 def _build_session_dir_name(agent_name: str, session_id: str) -> str:
-    """Return the directory name for one agent session."""
-    return f"{_sanitize_name(agent_name)}__{session_id}"
+    """Return the directory name for one agent session in the sandbox.
+
+    Sandbox-side layout is unchanged: ``{sanitized_name}__{sid}``.
+    Host side uses pure ``sid`` and does not go through this helper.
+    """
+    return f"{sanitize_agent_name(agent_name)}__{session_id}"
 
 
 def compute_root_session_mem_dir(*, agent_name: str, session_id: str) -> str:
-    """Compute the root short-term memory directory from agent/session ids."""
+    """Compute the root short-term memory directory inside the sandbox."""
     return os.path.join(
         SHORT_TERM_MEM_ROOT,
         _build_session_dir_name(agent_name, session_id),
     )
-
-
-def _normalize_memory_management(memory_management: Any) -> str:
-    """Normalize configured memory management mode."""
-    value = getattr(memory_management, "value", memory_management)
-    if isinstance(value, str):
-        normalized = value.strip().lower()
-        if normalized == _MEMORY_MANAGEMENT_FILE:
-            return normalized
-    return _MEMORY_MANAGEMENT_FILE
-
-
-def _get_memory_management_from_opensage_session_id(opensage_session_id: str) -> str:
-    """Read memory management mode from the OpenSage session config."""
-    from opensage.session import get_opensage_session
-
-    opensage_session = get_opensage_session(opensage_session_id)
-    memory_config = getattr(getattr(opensage_session, "config", None), "memory", None)
-    return _normalize_memory_management(getattr(memory_config, "management", None))
 
 
 def build_root_session_state(
@@ -76,20 +54,13 @@ def build_root_session_state(
     """Build canonical root session state for file-based memory."""
     state = dict(base_state or {})
     state["opensage_session_id"] = opensage_session_id
-    if (
-        _get_memory_management_from_opensage_session_id(opensage_session_id)
-        == _MEMORY_MANAGEMENT_FILE
-    ):
-        state[MEM_AGENT_DIR_KEY] = compute_root_session_mem_dir(
-            agent_name=agent_name,
-            session_id=session_id,
-        )
-    else:
-        state.pop(MEM_AGENT_DIR_KEY, None)
-    # Host path: always set (for Web UI, regardless of memory mode)
-    state[HOST_MEM_DIR_KEY] = compute_host_root_mem_dir(
-        opensage_session_id=opensage_session_id,
+    state[MEM_AGENT_DIR_KEY] = compute_root_session_mem_dir(
         agent_name=agent_name,
+        session_id=session_id,
+    )
+    # Host instance dir: pure sid, no agent_name prefix
+    state[HOST_INSTANCE_DIR_KEY] = compute_host_root_instance_dir(
+        opensage_session_id=opensage_session_id,
         session_id=session_id,
     )
     return state
@@ -125,7 +96,7 @@ def get_current_session_tool_outputs_dir(context) -> str:
 def _compute_child_session_mem_dir(
     parent_invocation_context, *, child_agent_name: str, child_session_id: str
 ) -> str:
-    """Compute the nested child session directory under the caller session."""
+    """Compute the nested child session directory under the caller session (sandbox)."""
     parent_dir = _compute_agent_mem_dir(parent_invocation_context)
     child_dir_name = _build_session_dir_name(child_agent_name, child_session_id)
     return os.path.join(parent_dir, child_dir_name)
@@ -165,7 +136,7 @@ async def _ensure_agent_mem_layout(
 
 
 async def _persist_traj_json(invocation_context, agent_mem_dir: str) -> None:
-    """Persist full ADK session JSON into traj.json."""
+    """Persist full ADK session JSON into traj.json (sandbox path)."""
     session_json = invocation_context.session.model_dump_json(
         indent=2, exclude_none=True
     )
@@ -174,89 +145,132 @@ async def _persist_traj_json(invocation_context, agent_mem_dir: str) -> None:
 
 
 async def persist_traj_json_for_invocation(invocation_context) -> None:
-    """Persist traj.json for the current invocation context."""
+    """Persist traj.json for the current invocation context (sandbox path)."""
     await _persist_traj_json(
         invocation_context, _compute_agent_mem_dir(invocation_context)
     )
 
 
 # ---------------------------------------------------------------------------
-# Host-side functions (always enabled, for Web UI sub-agent visualization)
+# Host-side functions (always enabled, for Web UI sub-agent visualization and
+# orchestration persistence — the two layers share the same nested tree).
 # ---------------------------------------------------------------------------
 
 
-def compute_host_root_mem_dir(
-    *, opensage_session_id: str, agent_name: str, session_id: str
+def _host_instances_root(opensage_session_id: str) -> Path:
+    """Return the top-level ``instances/`` dir for an OpenSage session."""
+    return HOST_SESSION_ROOT / opensage_session_id / HOST_INSTANCES_SUBDIR
+
+
+def compute_host_root_instance_dir(*, opensage_session_id: str, session_id: str) -> str:
+    """Compute the host-side root agent directory path (pure sid, no name)."""
+    return str(_host_instances_root(opensage_session_id) / session_id)
+
+
+def _compute_host_child_instance_dir(
+    parent_host_dir: str, *, child_session_id: str
 ) -> str:
-    """Compute the host-side root agent directory path (always enabled)."""
-    dir_name = _build_session_dir_name(agent_name, session_id)
-    return str(HOST_SESSION_ROOT / opensage_session_id / "mem" / dir_name)
+    """Compute host-side child directory, nested under parent (pure sid)."""
+    return str(Path(parent_host_dir) / child_session_id)
 
 
-def _compute_host_child_mem_dir(
-    parent_host_dir: str, *, child_agent_name: str, child_session_id: str
-) -> str:
-    """Compute host-side child directory, nested under parent."""
-    child_dir_name = _build_session_dir_name(child_agent_name, child_session_id)
-    return str(Path(parent_host_dir) / child_dir_name)
-
-
-def _get_host_mem_dir(invocation_context) -> str | None:
-    """Read host mem dir from session state. Returns None if not set."""
+def _get_host_instance_dir(invocation_context) -> str | None:
+    """Read host instance dir from session state. Returns None if not set."""
     state = getattr(invocation_context.session, "state", None)
     if isinstance(state, dict):
-        val = state.get(HOST_MEM_DIR_KEY)
+        val = state.get(HOST_INSTANCE_DIR_KEY)
         if isinstance(val, str) and val:
             return val
     return None
 
 
-def _ensure_host_mem_dir(host_dir: str) -> None:
+def _ensure_host_instance_dir(host_dir: str) -> None:
     """Create directory on host (marks agent as running before traj.json exists)."""
     try:
         Path(host_dir).mkdir(parents=True, exist_ok=True)
     except Exception as e:
-        logger.warning("Failed to create host mem dir: %s", e)
+        logger.warning("Failed to create host instance dir: %s", e)
 
 
-def _persist_traj_json_to_host(invocation_context, host_dir: str) -> None:
-    """Write traj.json to host filesystem."""
+def _write_traj_json_sync(host_dir: str, session_json: str) -> None:
+    path = Path(host_dir)
+    path.mkdir(parents=True, exist_ok=True)
+    (path / "traj.json").write_text(session_json, encoding="utf-8")
+
+
+async def _persist_traj_json_to_host(invocation_context, host_dir: str) -> None:
+    """Write traj.json to host filesystem (file I/O dispatched to a worker
+    thread to avoid blocking the event loop)."""
     try:
-        path = Path(host_dir)
-        path.mkdir(parents=True, exist_ok=True)
         session_json = invocation_context.session.model_dump_json(
             indent=2, exclude_none=True
         )
-        (path / "traj.json").write_text(session_json, encoding="utf-8")
+        await asyncio.to_thread(_write_traj_json_sync, host_dir, session_json)
     except Exception as e:
         logger.warning("Failed to persist traj.json to host: %s", e)
 
 
-def scan_host_agent_tree(session_id: str) -> dict:
-    """Scan host mem/ directory tree and return topology.
+def find_instance_dir(opensage_session_id: str, session_id: str) -> Path | None:
+    """Recursively walk ``instances/`` and return the dir whose name == session_id.
+
+    Since session_id is a UUID (globally unique), at most one match exists.
+    Returns ``None`` if no such directory is found.
+    """
+    root = _host_instances_root(opensage_session_id)
+    if not root.exists():
+        return None
+    # Direct child at top level is the common case (root instance).
+    direct = root / session_id
+    if direct.is_dir():
+        return direct
+    for current in root.rglob(session_id):
+        if current.is_dir() and current.name == session_id:
+            return current
+    return None
+
+
+def scan_host_instance_tree(opensage_session_id: str) -> dict:
+    """Scan host ``instances/`` tree and return topology.
+
+    Directory names are pure session_ids. agent_name is read from
+    ``metadata.json``. Parent-child relationships come from directory nesting.
 
     Returns:
         {
-            "root": {"name", "session_id", "dir", "has_traj", "children": [...]},
-            "agents_flat": [{"name", "dir", "parent_name", "has_traj", "status"}, ...]
+            "root": {"name", "session_id", "dir", "has_traj", "status",
+                     "query", "children": [...]} | None,
+            "agents_flat": [
+                {"name", "session_id", "dir", "parent_name",
+                 "has_traj", "status", "query"},
+                ...
+            ]
         }
+
+    Raises:
+        ValueError: if more than one top-level instance is found.
+        FileNotFoundError: if a subdirectory is missing metadata.json.
     """
-    mem_root = HOST_SESSION_ROOT / session_id / "mem"
-    if not mem_root.exists():
+    instances_root = _host_instances_root(opensage_session_id)
+    if not instances_root.exists():
         return {"root": None, "agents_flat": []}
 
-    def _parse_dir_name(dirname: str) -> tuple[str, str]:
-        if "__" in dirname:
-            parts = dirname.split("__", 1)
-            return parts[0], parts[1]
-        return dirname, ""
+    def _read_agent_name(directory: Path) -> str:
+        metadata_path = directory / "metadata.json"
+        if not metadata_path.exists():
+            raise FileNotFoundError(
+                f"metadata.json missing in {directory} — "
+                f"instance directory is corrupted or was not created via spawn"
+            )
+        data = json.loads(metadata_path.read_text(encoding="utf-8"))
+        name = data.get("agent_name")
+        if not isinstance(name, str) or not name:
+            raise ValueError(f"metadata.json in {directory} has no valid agent_name")
+        return name
 
     def _extract_query(traj_path: Path) -> str:
         """Extract the first user message text from traj.json as the call query."""
         try:
-            import json as _j
-
-            data = _j.loads(traj_path.read_text(encoding="utf-8"))
+            data = json.loads(traj_path.read_text(encoding="utf-8"))
             for ev in data.get("events", []):
                 content = ev.get("content") or {}
                 if content.get("role") != "user":
@@ -271,19 +285,11 @@ def scan_host_agent_tree(session_id: str) -> dict:
         return ""
 
     def _infer_status(traj_path: Path) -> str:
-        """Infer status from the last event in traj.json.
-
-        Mirrors ADK's Event.is_final_response() fallback semantics:
-        an agent is complete when the last event is non-user content with no
-        function calls/responses, not partial, and no trailing code execution
-        result.
-        """
+        """Infer status from the last event in traj.json."""
         if not traj_path.exists():
             return "running"
         try:
-            import json as _j
-
-            data = _j.loads(traj_path.read_text(encoding="utf-8"))
+            data = json.loads(traj_path.read_text(encoding="utf-8"))
             events = data.get("events") or []
             if not events:
                 return "running"
@@ -322,29 +328,54 @@ def scan_host_agent_tree(session_id: str) -> dict:
             pass
         return "running"
 
+    def _is_instance_dir(d: Path) -> bool:
+        # An instance dir is identified by the presence of metadata.json.
+        # Tool-output / scratch subdirs that lack metadata are skipped by
+        # both the recursive walk and the top-level invariant check below.
+        return (d / "metadata.json").exists()
+
     def _scan(directory: Path) -> dict | None:
-        if not directory.is_dir():
+        if not _is_instance_dir(directory):
             return None
-        agent_name, sid = _parse_dir_name(directory.name)
+        agent_name = _read_agent_name(directory)
+        session_id = directory.name
         traj_path = directory / "traj.json"
         has_traj = traj_path.exists()
         status = _infer_status(traj_path)
         query = _extract_query(traj_path) if has_traj else ""
-        children = []
+        children: list[dict] = []
         for child in sorted(directory.iterdir()):
-            if child.is_dir() and "__" in child.name:
-                child_node = _scan(child)
-                if child_node:
-                    children.append(child_node)
+            if not child.is_dir():
+                continue
+            scanned = _scan(child)
+            if scanned is not None:
+                children.append(scanned)
         return {
             "name": agent_name,
-            "session_id": sid,
-            "dir": str(directory.relative_to(mem_root)),
+            "session_id": session_id,
+            "dir": str(directory.relative_to(instances_root)),
             "has_traj": has_traj,
             "status": status,
             "query": query,
             "children": children,
         }
+
+    # Filter non-instance siblings BEFORE the >1-root invariant check, so
+    # the assertion still fires on the case it was designed for (truly two
+    # instance roots) but tolerates unrelated scratch dirs at the top level.
+    top_dirs = [
+        d for d in instances_root.iterdir() if d.is_dir() and _is_instance_dir(d)
+    ]
+    if not top_dirs:
+        return {"root": None, "agents_flat": []}
+    if len(top_dirs) > 1:
+        raise ValueError(
+            f"instances/ has {len(top_dirs)} top-level instance dirs for "
+            f"osid {opensage_session_id!r}; expected exactly 1 root instance. "
+            f"Found: {[d.name for d in top_dirs]}"
+        )
+
+    root_node = _scan(top_dirs[0])
 
     agents_flat: list[dict] = []
 
@@ -363,11 +394,5 @@ def scan_host_agent_tree(session_id: str) -> dict:
         for child in node.get("children", []):
             _flatten(child, parent_name=node["name"])
 
-    top_dirs = [d for d in mem_root.iterdir() if d.is_dir() and "__" in d.name]
-    if not top_dirs:
-        return {"root": None, "agents_flat": []}
-
-    root_node = _scan(top_dirs[0])
-    if root_node:
-        _flatten(root_node)
+    _flatten(root_node)
     return {"root": root_node, "agents_flat": agents_flat}

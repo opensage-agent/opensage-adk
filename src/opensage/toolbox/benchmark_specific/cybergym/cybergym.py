@@ -14,9 +14,7 @@ from google.genai import types
 from opensage.session import get_opensage_session
 from opensage.toolbox.sandbox_requirements import requires_sandbox
 from opensage.utils.agent_utils import (
-    INHERIT_MODEL,
     create_litellm_model,
-    get_model_from_agent,
     get_opensage_config_from_context,
     get_opensage_session_id_from_context,
     get_sandbox_from_context,
@@ -275,16 +273,8 @@ Keep your response concise and actionable."""
             types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
         ]
 
-        # Get or create model
-        if model_name == INHERIT_MODEL:
-            model = get_model_from_agent(agent)
-            if model is None:
-                return {
-                    "success": False,
-                    "error": "flag_claims_model='inherit' but current agent has no model",
-                }
-        else:
-            model = create_litellm_model(model_name)
+        # Configured model name only — empty config returns early at line ~165.
+        model = create_litellm_model(model_name)
 
         # Call model
         idea_parts = []

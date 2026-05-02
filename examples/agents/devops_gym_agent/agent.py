@@ -19,25 +19,21 @@ from google.adk.models.lite_llm import LiteLlm
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (
-    agent_ensemble,
-    agent_ensemble_pairwise,
     complain,
-    get_available_agents_for_ensemble,
-    get_available_models,
     think,
 )
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
-    list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
-    create_subagent,
-    list_active_agents,
-)
 from opensage.toolbox.general.fileop import str_replace_edit, view_file
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
+    create_subagent,
+    get_available_models,
+    list_subagents,
+)
 
 _SYSTEM_PROMPT = """
 You are an expert DevOps engineer and software developer. Your goal is to
@@ -94,8 +90,8 @@ containerised environment.
 - Do NOT read, search for, or try to execute any evaluation or grading
   scripts that may exist in the environment.
 - Always verify your work before calling `finish_task`.
-- If you are stuck after several attempts, use `create_subagent` or
-  `agent_ensemble_pairwise` to get a fresh perspective.
+- If you are stuck after several attempts, use `create_subagent` to delegate a
+  bounded subtask to a fresh agent.
 """
 
 
@@ -123,15 +119,11 @@ def mk_agent(
             run_terminal_command,
             list_background_tasks,
             get_background_task_output,
-            list_available_scripts,
             # Multi-agent
-            agent_ensemble,
-            agent_ensemble_pairwise,
-            get_available_agents_for_ensemble,
             get_available_models,
             create_subagent,
-            list_active_agents,
-            call_subagent_as_tool,
+            list_subagents,
+            call_subagent,
         ],
         enabled_skills=None,
     )

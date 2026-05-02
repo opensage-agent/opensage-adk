@@ -26,18 +26,15 @@ from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
 from opensage.plugins import load_plugins
-from opensage.plugins.builtins.adk_plugins.parts_from_tool import (
+from opensage.plugins.default.adk_plugins.image_injection_plugin import (
     PARTS_FROM_TOOLS_ID,
     ImageInjectionPlugin,
 )
 from opensage.session.opensage_session import get_opensage_session
 from opensage.toolbox.general.agent_tools import (
-    agent_ensemble,
-    agent_ensemble_pairwise,
     complain,
     critique,
     flag_unjustified_claims,
-    get_available_models,
     plan,
     think,
 )
@@ -47,10 +44,11 @@ from opensage.toolbox.general.bash_tools_interface import (
     run_terminal_command,
     wait_for_background,
 )
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    get_available_models,
+    list_subagents,
 )
 
 logger = logging.getLogger(__name__)
@@ -185,14 +183,11 @@ async def run_agent(
     ]
 
     if use_subagent:
-        list_active_agents.__name__ = "get_available_agents"
         tools += [
-            call_subagent_as_tool,
+            call_subagent,
             get_available_models,
             create_subagent,
-            list_active_agents,
-            # agent_ensemble,
-            agent_ensemble_pairwise,
+            list_subagents,
         ]
 
     local_agent = OpenSageAgent(

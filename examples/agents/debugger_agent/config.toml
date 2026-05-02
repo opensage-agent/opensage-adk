@@ -113,13 +113,6 @@ initializer_timeout_sec = 1800
 
 [llm]
 # Main model configuration
-[llm.model_configs.main]
-model_name = "${MAIN_MODEL}"
-temperature = 0.7
-rpm = 60
-tpm = 60000
-
-# Drop/summarize model configuration
 [llm.model_configs.summarize]
 model_name = "${MAIN_MODEL}"
 temperature = 0.3
@@ -147,7 +140,6 @@ compaction_percent = 50
 
 [subagent]
 agent_storage_path = "${AGENT_STORAGE_PATH}"
-available_models_for_ensemble = "${AVAILABLE_MODELS}"
 
 [build]
 poc_dir = "${POC_DIR}"
@@ -188,5 +180,4 @@ enabled = [
     "history_summarizer_plugin",
     "tool_response_summarizer_plugin",
     "quota_after_tool_plugin",
-    "message_board_diff_plugin",
 ]

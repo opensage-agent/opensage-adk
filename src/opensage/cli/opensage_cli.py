@@ -5,7 +5,6 @@ import contextlib
 import json
 import logging
 import os
-import re
 import signal
 import sys
 import time
@@ -35,13 +34,11 @@ from opensage.cli.opensage_web_app import OpenSageWebServer
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
-from opensage.memory.database_based.short_term.config import (
-    is_database_short_term_enabled_from_config,
-)
 from opensage.memory.file_based.short_term import build_root_session_state
 from opensage.plugins import load_plugins
 from opensage.session import cleanup_opensage_session, get_opensage_session
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
+from opensage.utils.agent_utils import sanitize_agent_name
 from opensage.utils.bash_tools_staging import compute_bash_tools_top_roots
 
 logger = logging.getLogger(__name__)
@@ -201,18 +198,9 @@ def _session_store_dir(session_id: str) -> Path:
     return _SESSION_STORE_ROOT / session_id
 
 
-def _sanitize_identifier(name: str) -> str:
-    """Sanitize a name into a valid Python identifier (letters, digits, underscores)."""
-    sanitized = re.sub(r"[^A-Za-z0-9_]+", "_", (name or "").strip())
-    sanitized = sanitized.strip("_") or "agent"
-    if sanitized[0].isdigit():
-        sanitized = f"_{sanitized}"
-    return sanitized
-
-
 def _session_store_dir_for_agent(*, session_id: str, agent_name: str) -> Path:
     """Return canonical session store dir: <agent_name>_<session_id>."""
-    return _SESSION_STORE_ROOT / f"{_sanitize_identifier(agent_name)}_{session_id}"
+    return _SESSION_STORE_ROOT / f"{sanitize_agent_name(agent_name)}_{session_id}"
 
 
 def _is_saved_session_dir(path: Path) -> bool:
@@ -253,7 +241,7 @@ async def _persist_web_session_snapshot_async(
     opensage_session,
 ) -> Path:
     """Persist ADK session + sandbox runtime metadata to local disk."""
-    agent_name = _sanitize_identifier(root_agent_name or "agent")
+    agent_name = sanitize_agent_name(root_agent_name or "agent")
     store_dir = _session_store_dir_for_agent(
         session_id=session_id, agent_name=agent_name
     )
@@ -755,16 +743,25 @@ def cli_web(
             enabled_plugins, agent_dir=agent_dir, extra_plugin_dirs=extra_plugin_dirs
         )
 
-        # 3) Build services (use OpenSageInMemorySessionService and pre-create the ADK session)
+        # 3) Use the ADK services owned by OpenSageSession (one set per environment).
         # Infer app name as the parent folder of the agent directory.
         # Example: /.../examples/agents/debuger_agent -> app_name = "agents"
         raw_app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
-        app_name = _sanitize_identifier(raw_app_name)
-        session_service = OpenSageInMemorySessionService()
+        app_name = sanitize_agent_name(raw_app_name)
+        session_service = opensage_session.session_service
+        artifact_service = opensage_session.artifact_service
+        memory_service = opensage_session.memory_service
+        credential_service = opensage_session.credential_service
 
-        artifact_service = InMemoryArtifactService()
-        memory_service = InMemoryMemoryService()
-        credential_service = InMemoryCredentialService()
+        # 3b) Register root agent and every OpenSage subagent under it with the
+        # AgentManager, so that call_subagent / continue_agent_instance /
+        # send_message tools can resolve names in this environment. The
+        # dispatcher is started inside the uvicorn lifespan (see _lifespan
+        # below) so it runs on the same event loop that will serve requests.
+        opensage_session.agent_manager.set_app_name(app_name)
+        opensage_session.agent_manager.set_base_plugins(plugins)
+        opensage_session.agent_manager.register_agent_tree(root_agent)
+
         # Eval managers (local) to retain parity with ADK Dev UI features
         agents_dir_parent = os.path.dirname(agent_dir) or "."
         eval_sets_manager = LocalEvalSetsManager(agents_dir=agents_dir_parent)
@@ -787,6 +784,9 @@ def cli_web(
             plugins=plugins,
         )
         # Pre-create or restore the ADK session using fixed session id.
+        # Both paths go through agent_manager.spawn — for resume, the legacy
+        # snapshot is first injected into the session_service and spawn adopts
+        # the existing session; otherwise spawn creates a fresh one.
         if resume_metadata:
             snapshot_path = (
                 resume_store_dir or _session_store_dir(session_id)
@@ -803,20 +803,36 @@ def cli_web(
             )
             session_user_id = restored_user_id
         else:
-            asyncio.run(
-                session_service.create_session(
-                    app_name=web_server.app_name,
-                    user_id="user",
-                    state=build_root_session_state(
-                        opensage_session_id=session_id,
-                        session_id=session_id,
-                        agent_name=getattr(root_agent, "name", "agent"),
-                    ),
-                    session_id=session_id,
-                )
-            )
             session_user_id = "user"
-        app = web_server.get_fast_api_app(allow_origins=None, enable_dev_ui=True)
+
+        asyncio.run(
+            opensage_session.agent_manager.spawn(
+                agent_name=root_agent.name,
+                session_id=session_id,
+                parent_session_id=None,
+            )
+        )
+
+        # Lifespan owns the dispatcher task. Anything that creates persistent
+        # event-loop state (Tasks/Queues) must run here so it lives on
+        # uvicorn's loop — which is also the loop that serves requests and
+        # therefore the loop where call_subagent / send_message-triggered
+        # invocations execute. spawn() does NOT belong here: it does internal
+        # awaits but creates only disk + dict state, no loop-bound resources.
+        @contextlib.asynccontextmanager
+        async def _lifespan(app):
+            started = False
+            try:
+                await opensage_session.agent_manager.start()
+                started = True
+                yield
+            finally:
+                if started:
+                    await opensage_session.agent_manager.shutdown()
+
+        app = web_server.get_fast_api_app(
+            allow_origins=None, enable_dev_ui=True, lifespan=_lifespan
+        )
 
         config = uvicorn.Config(
             app,

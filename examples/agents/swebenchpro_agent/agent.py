@@ -6,28 +6,23 @@ from google.adk.models.lite_llm import LiteLlm
 from google.adk.planners import BasePlanner
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.memory.database_based.long_term.search_tool import search_memory
 from opensage.session import get_opensage_session
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (
-    agent_ensemble,
-    agent_ensemble_pairwise,
     complain,
-    get_available_agents_for_ensemble,
-    get_available_models,
 )
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
-    list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
-    create_subagent,
-    list_active_agents,
-)
 from opensage.toolbox.general.fileop import str_replace_edit, view_file
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
+    create_subagent,
+    get_available_models,
+    list_subagents,
+)
 
 
 def mk_agent(
@@ -75,8 +70,7 @@ def mk_agent(
             - Check "NOT FOUND" section - do NOT search for items listed there
             - Use the "Bug Location Hypothesis" as your starting point
             - Note "Project-Specific Notes" for indentation style and test commands
-        2.  **Search Memory**: Use `search_memory` to check if similar bugs or patterns have been encountered before.
-        3.  **Analyze**: Carefully read the problem statement. Understand the expected behavior vs. the actual behavior.
+        2.  **Analyze**: Carefully read the problem statement. Understand the expected behavior vs. the actual behavior.
         4.  **View**: Use `view_file` to read file contents with line numbers before editing. Pay attention to the indentation hint in the output.
         5.  **Reproduce**: Create a reproduction script (e.g., `reproduce_issue.py`) to confirm the bug. This is CRITICAL.
         6.  **Reason**: Before making changes, explain your plan.
@@ -91,7 +85,6 @@ def mk_agent(
         *   The repository is cloned in the current working directory (or `repo` subdirectory). For SWE-bench Pro tasks, it is located at `/app`.
         *   Always check for background tasks using `list_background_tasks` if you initiate long-running processes.
         *   If you get stuck, try searching for error messages or keywords in the codebase. Or create a subagent with no history to solve the task, as your history might be misleading. Do not give up easily.
-        *  If you stuck on a task, or if you are think a subtask is complex, you should using agent_ensemble_pairwise tools to do the subtask with multiple models, this will help you to think out of the box and try different approaches.
         *   Long tool outputs are automatically saved to files. Check these directories if you need full content:
             - `/workspace/.tool_outputs/` - Full outputs from truncated/summarized tool responses
             - `/workspace/.memory_observer_outputs/` - Full outputs saved by memory system
@@ -126,20 +119,14 @@ def mk_agent(
             view_file,
             str_replace_edit,
             # subagent
-            agent_ensemble,
-            get_available_agents_for_ensemble,
             get_available_models,
-            agent_ensemble_pairwise,
             create_subagent,
-            list_active_agents,
-            call_subagent_as_tool,
+            list_subagents,
+            call_subagent,
             # Terminal Tools
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
-            list_available_scripts,
-            # Memory Tools
-            search_memory,
         ],
         enabled_skills=None,
     )
@@ -267,7 +254,6 @@ def mk_explore_agent(
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
-            list_available_scripts,
         ],
         enabled_skills=None,
     )

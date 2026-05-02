@@ -19,25 +19,21 @@ from opensage.toolbox.benchmark_specific.cybergym.cybergym import (
 from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (
-    agent_ensemble,
-    agent_ensemble_pairwise,
     complain,
-    get_available_agents_for_ensemble,
-    get_available_models,
     note_suspicious_things,
     think,
 )
 from opensage.toolbox.general.bash_tool import bash_tool_main
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
-    list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    get_available_models,
+    list_subagents,
 )
 
 # from opensage.toolbox.retrieval.search_tools import (
@@ -95,8 +91,7 @@ You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and s
         IMPORTANT: Before making your next decision, especially when waiting for long-running operations like fuzzing campaigns or compilation, you should call list_background_tasks to check if any background tasks have completed. If you find completed tasks, retrieve their output using get_background_task_output before proceeding with your next action.
 
         Before you want to call any tool, you should first reason and explicitly state what the plan is, and call the most appropriate tool to execute the plan.
-        At each step, you should state out your plan, if the plan can be broken down into smaller tasks, you should create a subagent to handle the smaller tasks, and call the subagent as a tool, try using the create_subagent, list_active_agents, call_subagent_as_tool tools to create and call the subagent.
-        If you stuck on a task, or if you are think a subtask is complex, you should using agent_ensemble tools to do the subtask with multiple models, this will help you to think out of the box and try different approaches.
+        At each step, you should state out your plan, if the plan can be broken down into smaller tasks, you should create a subagent to handle the smaller tasks, and call the subagent as a tool, try using the create_subagent, list_subagents, call_subagent tools to create and call the subagent.
         If you stuck, you need to revise your plan, rethink what the vulnerability description indicates, think out of the box, try different approaches or exploitation pathes.
         You should see the whole functions in your exploitation path, do not only read a part of the function and guess the rest.
         You should find all preconditions that are needed to trigger the vulnerability, make it super clear which preconditions are needed 1. make the program execute the prefered branches, reach the vulnerable function, and execute the critical part of the vulnerable function. 2. what variables are needed to be set to trigger the vulnerability. If some part of the exploitation path are not clear, you should never guess and never try blindly, you should never make assumptions, you should call the appropriate tool to explore the code and understand the vulnerability.
@@ -113,13 +108,10 @@ You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and s
         ***********IMPORTANT***********
         """,
         tools=[
-            agent_ensemble,
-            get_available_agents_for_ensemble,
             get_available_models,
-            agent_ensemble_pairwise,
             create_subagent,
-            list_active_agents,
-            call_subagent_as_tool,
+            list_subagents,
+            call_subagent,
             # neo4j_query,
             # joern_slice,
             # joern_query,
@@ -140,7 +132,6 @@ You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and s
             list_background_tasks,
             get_background_task_output,
             run_terminal_command,
-            list_available_scripts,
             # Debugger Tools
             gdb_toolset,
         ],

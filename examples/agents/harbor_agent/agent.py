@@ -7,7 +7,6 @@ from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
-    list_available_scripts,
     list_background_tasks,
     run_terminal_command,
 )
@@ -73,7 +72,6 @@ def mk_agent(
             view_file,
             str_replace_edit,
             run_terminal_command,
-            list_available_scripts,
             list_background_tasks,
             get_background_task_output,
         ],

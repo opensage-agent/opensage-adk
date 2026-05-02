@@ -1,17 +1,17 @@
-import os
+"""Minimal example showing static subagent declaration + call_subagent / get_available_models.
 
-from google.adk import Agent
-from google.adk.agents.llm_agent import LlmAgent
+(This was previously an ensemble demo. The ensemble tools have been removed —
+ensemble can be expressed as multiple ``call_subagent(model_name=...)`` invocations
+in driver code, but is no longer a first-class LLM tool.)
+"""
+
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools.agent_tool import AgentTool
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.session import get_opensage_session
-from opensage.toolbox.general.agent_tools import (
-    agent_ensemble,
-    flag_unjustified_claims,
-    get_available_agents_for_ensemble,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     get_available_models,
+    list_subagents,
 )
 
 
@@ -28,7 +28,7 @@ def calculate_add(a: float, b: float) -> float:
     return a + b
 
 
-calculation_agent = LlmAgent(
+calculation_agent = OpenSageAgent(
     model=LiteLlm(model="openai/o4-mini"),
     name="calculation_agent",
     instruction="""
@@ -39,25 +39,27 @@ calculation_agent = LlmAgent(
     ],
 )
 
-calculation_agent_tool = AgentTool(agent=calculation_agent)
-
 
 def mk_agent(opensage_session_id: str):
     root_agent = OpenSageAgent(
         model=LiteLlm(model="openai/gpt-5"),
         name="simple_math_agent",
         instruction="""
-        You are a helpful math assistant. You can help users with basic arithmetic operations.
-        When a user asks you to add two numbers, use the calculate_add tool to perform the calculation.
-        Always use the tool to get accurate results instead of calculating manually.
-        Provide clear and friendly responses to the user.
-        Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
+        You are a helpful math assistant. Delegate calculations to the
+        ``calculation_agent`` sub-agent via the ``call_subagent`` tool.
+
+        Use ``list_subagents`` to discover available sub-agents and
+        ``get_available_models`` to see which model identifiers are valid for
+        the optional ``model_name`` parameter of ``call_subagent``.
+
+        Formulate the final answer as a single number inside
+        <final_answer>...</final_answer> tags.
         """,
-        description="A simple math agent that can perform addition operations.",
+        description="A simple math agent that delegates addition to a calculation sub-agent.",
+        subagents=[calculation_agent],
         tools=[
-            calculation_agent_tool,
-            agent_ensemble,
-            get_available_agents_for_ensemble,
+            call_subagent,
+            list_subagents,
             get_available_models,
         ],
     )

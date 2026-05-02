@@ -20,20 +20,13 @@ MAX_HISTORY_SUMMARY_LENGTH = 240000
 
 task_name = "${TASK_NAME}"
 
-[memory]
-management = "file"
-
-[memory.database.short_term]
-enabled = false
-
-[memory.database.long_term]
-enabled = false
+# Inject review-discipline guidance (cross-cutting paths verification) into
+# every agent's instruction at runtime. Resolved relative to this agent's
+# directory; overrides the framework default (long-term memory policy).
+[auto_insert_prompt_file]
+agent_relative_path = "review_discipline.md"
 
 [llm]
-[llm.model_configs.main]
-model_name = "openai/gpt-5"
-temperature = 1.0
-
 [llm.model_configs.summarize]
 model_name = "inherit"
 temperature = 1.0

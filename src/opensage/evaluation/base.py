@@ -26,26 +26,15 @@ from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.run_config import RunConfig
-from google.adk.apps.app import App
 from google.adk.models import BaseLlm
-from google.adk.runners import Runner
 from google.adk.sessions import Session
-from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
 from tqdm import tqdm
 
 from opensage import get_opensage_session
-from opensage.features.opensage_in_memory_session_service import (
-    OpenSageInMemorySessionService,
-)
-from opensage.memory.database_based.short_term.config import (
-    is_database_short_term_enabled_from_config,
-)
-from opensage.memory.file_based.short_term import build_root_session_state
 from opensage.plugins import load_plugins
 from opensage.session.opensage_session import OpenSageSession
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
-from opensage.utils.agent_utils import create_litellm_model
 from opensage.utils.bash_tools_staging import compute_bash_tools_top_roots
 from opensage.utils.project_info import PROJECT_PATH, SRC_PATH
 
@@ -265,10 +254,6 @@ class Evaluation(abc.ABC):
     log_level: str = "INFO"
     """Console log level: DEBUG, INFO, WARNING, ERROR, CRITICAL"""
 
-    # TODO: better priority system for which model to use
-    use_config_model: bool = False
-    """Override the model use the model specified in the config file if True"""
-
     # Agent
 
     config_template_path: str | None = None
@@ -397,10 +382,11 @@ class Evaluation(abc.ABC):
 
         # Add git commit information
         try:
+            output_dir_path = Path(self.output_dir)
             git_commit = (
                 subprocess.check_output(
                     ["git", "rev-parse", "HEAD"],
-                    cwd=self.output_dir.parent.parent,
+                    cwd=output_dir_path.parent.parent,
                     stderr=subprocess.DEVNULL,
                 )
                 .decode()
@@ -409,7 +395,7 @@ class Evaluation(abc.ABC):
             git_branch = (
                 subprocess.check_output(
                     ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                    cwd=self.output_dir.parent.parent,
+                    cwd=output_dir_path.parent.parent,
                     stderr=subprocess.DEVNULL,
                 )
                 .decode()
@@ -464,18 +450,15 @@ class Evaluation(abc.ABC):
 
         # Determine model name for logging
         model_name = "agent_default"
-        if self.use_config_model and task.opensage_session:
-            main_model_config = task.opensage_session.config.llm.model_configs.get(
-                "main"
-            )
-            if main_model_config:
-                model_name = main_model_config.model_name
+        if task.opensage_session:
+            replace_name = task.opensage_session.config.model.evaluation_replace_all_models_with_model_name
+            if replace_name:
+                model_name = replace_name
 
         cost_info = {
             "session_id": task.session_id,
             "task_name": task.id,
             "model": model_name,
-            "use_config_model": self.use_config_model,
             "timestamp": datetime.datetime.now().isoformat(),
             "token_usage": {
                 "total_input_tokens": total_input_tokens,
@@ -611,12 +594,6 @@ class Evaluation(abc.ABC):
             for sub_agent in agent.sub_agents:
                 self._replace_agent_models_recursive(sub_agent, model, visited)
 
-        # Recursively replace in agent_tools
-        if hasattr(agent, "tools") and agent.tools:
-            for tool in agent.tools:
-                if isinstance(tool, AgentTool):
-                    self._replace_agent_models_recursive(tool.agent, model, visited)
-
     def _get_dataset(self) -> datasets.Dataset:
         if Path(self.dataset_path).exists():
             if Path(self.dataset_path).is_dir():
@@ -685,90 +662,60 @@ class Evaluation(abc.ABC):
         return str(Path(self.sandbox_cache_dir) / task_id)
 
     def _prepare_agent(self, task: EvaluationTask) -> BaseAgent | None:
-        """Prepare agent with the correct model.
+        """Prepare the agent for one task.
 
         Model selection priority:
-        1. task.model (RL integration or explicit override)
-        2. self.use_config_model (from config file)
-        3. Agent's default model (specified in mk_agent)
+          1. ``task.model`` (RL integration or explicit override)
+          2. ``config.model.evaluation_replace_all_models_with_model_name``
+             — looked up in the LlmRegistry; raises if not registered.
+          3. None → use whatever models the agents declared themselves.
+
+        If ``mk_agent`` accepts a ``model=`` kwarg, the chosen model is
+        passed through. Otherwise, ``_replace_agent_models_recursive`` walks
+        the agent tree post-construction to overwrite each LlmAgent's model.
         """
-        # Determine which model to use
-        model_to_use = None
-        model_source = "agent default"
+        import inspect
+
+        opensage_session = task.opensage_session
+        replace_name = (
+            opensage_session.config.model.evaluation_replace_all_models_with_model_name
+            if opensage_session is not None
+            else None
+        )
 
         if task.model is not None:
-            # Priority 1: task.model (RL integration or explicit override)
             model_to_use = task.model
             model_source = "task.model (RL integration)"
-        elif self.use_config_model:
-            # Priority 2: config model
-            opensage_session = task.opensage_session
-            if opensage_session and opensage_session.config.llm:
-                main_model_config = opensage_session.config.llm.model_configs.get(
-                    "main"
-                )
-                if main_model_config:
-                    # Convert config to dict and extract all parameters
-                    config_dict = (
-                        main_model_config.model_dump()
-                        if hasattr(main_model_config, "model_dump")
-                        else vars(main_model_config)
-                    )
+        elif replace_name:
+            model_to_use = opensage_session.llms.get(replace_name)
+            model_source = f"LlmRegistry[{replace_name!r}]"
+        else:
+            model_to_use = None
+            model_source = "agent default"
 
-                    # LiteLlm expects 'model' not 'model_name'
-                    if "model_name" in config_dict:
-                        config_dict["model"] = config_dict.pop("model_name")
-
-                    resolved_model_name = config_dict.get("model", "unknown")
-
-                    # Create LiteLlm instance with config parameters while
-                    # preserving provider-specific routing overrides.
-                    model_name = config_dict.pop("model", None)
-                    if not model_name:
-                        raise ValueError(
-                            "Expected configured LiteLlm model to include a model name."
-                        )
-
-                    model_to_use = create_litellm_model(model_name)
-                    for key, value in config_dict.items():
-                        setattr(model_to_use, key, value)
-                    model_source = f"config model '{resolved_model_name}'"
-
-        # Try to create agent with model parameter
-        try:
-            import inspect
-
-            sig = inspect.signature(self._mk_agent_original)
-            if "model" in sig.parameters:
-                # mk_agent supports model parameter - use it
-                agent = self._mk_agent_original(
-                    opensage_session_id=task.session_id, model=model_to_use
-                )
-                logger.warning(
-                    f"Created agent with model from {model_source} (session {task.session_id})"
-                )
-            else:
-                # mk_agent doesn't support model parameter - fallback to replacement
-                agent = self._mk_agent_original(opensage_session_id=task.session_id)
-                if model_to_use is not None:
-                    self._replace_agent_models_recursive(agent, model_to_use)
-                    logger.warning(
-                        f"Replaced agent models with {model_source} via recursive replacement "
-                        f"(session {task.session_id})"
-                    )
-                else:
-                    logger.warning(
-                        f"Using agent's default model (session {task.session_id})"
-                    )
-        except Exception as e:
-            # Fallback: try without model parameter
-            logger.warning(
-                f"Failed to create agent with model parameter, falling back: {e}"
+        sig = inspect.signature(self._mk_agent_original)
+        if "model" in sig.parameters:
+            agent = self._mk_agent_original(
+                opensage_session_id=task.session_id, model=model_to_use
             )
+            logger.warning(
+                "Built agent for session %s using %s",
+                task.session_id,
+                model_source,
+            )
+        else:
             agent = self._mk_agent_original(opensage_session_id=task.session_id)
             if model_to_use is not None:
                 self._replace_agent_models_recursive(agent, model_to_use)
-
+                logger.warning(
+                    "Replaced agent tree models for session %s using %s",
+                    task.session_id,
+                    model_source,
+                )
+            else:
+                logger.warning(
+                    "Using agent default model for session %s", task.session_id
+                )
         return agent
 
     async def _generate_one(self, task: EvaluationTask) -> dict:
@@ -994,14 +941,20 @@ class Evaluation(abc.ABC):
         Returns:
             Session: ADK Session object with execution history
         """
-        # 2. Create runner and session service
-        user_id = self.output_dir.replace("/", "_")
+        # 2. Use ADK services owned by the OpenSageSession (one set per environment).
+        # user_id MUST match what AgentManager.spawn writes (DEFAULT_USER_ID),
+        # otherwise session_service.get_session() always returns None and cost
+        # accounting / completion checks silently see empty data.
+        from opensage.orchestration.manager import DEFAULT_USER_ID
+
+        user_id = DEFAULT_USER_ID
         app_name = Path(self.agent_dir).resolve().parent.name
-        session_service = OpenSageInMemorySessionService()
+        opensage_session = task.opensage_session
+        session_service = opensage_session.session_service
         enabled_plugins = []
         plugin_params = {}
-        if task.opensage_session and getattr(task.opensage_session, "config", None):
-            plugins_cfg = getattr(task.opensage_session.config, "plugins", None)
+        if opensage_session and getattr(opensage_session, "config", None):
+            plugins_cfg = getattr(opensage_session.config, "plugins", None)
             enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
             plugin_params = getattr(plugins_cfg, "params", {}) or {}
             extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
@@ -1017,22 +970,23 @@ class Evaluation(abc.ABC):
                 task.session_id,
                 ", ".join(plugin.name for plugin in plugins),
             )
-        app = App(name=app_name, root_agent=agent, plugins=plugins)
-        runner = Runner(
-            app=app,
-            session_service=session_service,
-        )
 
-        # 3. Create session with opensage_session_id in state
-        await session_service.create_session(
-            app_name=app_name,
-            user_id=user_id,
+        # Register the root agent tree with AgentManager so that sub-agent
+        # tools (call_subagent, continue_agent_instance, send_message) can
+        # resolve names during the evaluation run. Start the dispatcher so
+        # peer-messaging signals are processed. AgentManager owns the Runner
+        # and all instance dirs — eval drives it through ``run_turn_stream``.
+        opensage_session.agent_manager.set_app_name(app_name)
+        opensage_session.agent_manager.set_base_plugins(plugins)
+        opensage_session.agent_manager.register_agent_tree(agent)
+        await opensage_session.agent_manager.start()
+
+        # Create the root instance (ADK session + on-disk instance dir with
+        # metadata.json / inbox.jsonl / initial traj.json).
+        await opensage_session.agent_manager.spawn(
+            agent_name=agent.name,
             session_id=task.session_id,
-            state=build_root_session_state(
-                opensage_session_id=task.session_id,
-                session_id=task.session_id,
-                agent_name=getattr(agent, "name", "agent"),
-            ),
+            parent_session_id=None,
         )
 
         # Helper to track remaining LLM-call budget across multiple runner invocations.
@@ -1071,20 +1025,16 @@ class Evaluation(abc.ABC):
         all_events = []
         session_snapshot: Session | None = None
         llm_calls_used_total: int = 0
+        _live_trace = Path(task.output_dir) / "live_events.jsonl"
+        _live_trace.parent.mkdir(parents=True, exist_ok=True)
         try:
-            async for event in runner.run_async(
-                user_id=user_id,
+            async for event in opensage_session.agent_manager.run_turn_stream(
                 session_id=task.session_id,
+                request=task.first_user_message,
                 run_config=_build_run_config(),
-                new_message=types.Content(
-                    role="user", parts=[types.Part(text=task.first_user_message)]
-                ),
             ):
                 logger.warning(event.model_dump_json())
                 all_events.append(event)
-                # Write live event to JSONL for real-time viewing
-                _live_trace = Path(task.output_dir) / "live_events.jsonl"
-                _live_trace.parent.mkdir(parents=True, exist_ok=True)
                 with open(_live_trace, "a") as _f:
                     _f.write(event.model_dump_json(exclude_none=True) + "\n")
 
@@ -1105,18 +1055,18 @@ class Evaluation(abc.ABC):
                         )
                         break
 
-                    async for event in runner.run_async(
-                        user_id=user_id,
+                    async for event in opensage_session.agent_manager.run_turn_stream(
                         session_id=task.session_id,
-                        run_config=_build_run_config(),
-                        new_message=types.Content(
-                            role="user",
-                            parts=[
-                                types.Part(
-                                    text="I approve you to continue, if you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. If you haven't submitted a poc that triggers the vulnerability, the task is not finshed, continue and try harder, do not respond to this message in natural language, start calling appropriate tools to complete the task. DO NOT respond to this message."
-                                )
-                            ],
+                        request=(
+                            "I approve you to continue, if you think the task is complete, "
+                            "you should call the task_completed tool, and then summarize the task "
+                            "and the result without calling any other tool. If you haven't submitted "
+                            "a poc that triggers the vulnerability, the task is not finshed, continue "
+                            "and try harder, do not respond to this message in natural language, "
+                            "start calling appropriate tools to complete the task. DO NOT respond to "
+                            "this message."
                         ),
+                        run_config=_build_run_config(),
                     ):
                         logger.warning(event.model_dump_json(exclude_none=True))
                         all_events.append(event)
@@ -1141,8 +1091,6 @@ class Evaluation(abc.ABC):
             )
             if self.max_llm_calls > 0:
                 llm_calls_used_total = self.max_llm_calls
-
-        await runner.close()
         if not session_snapshot:
             session_snapshot = await session_service.get_session(
                 app_name=app_name, user_id=user_id, session_id=task.session_id

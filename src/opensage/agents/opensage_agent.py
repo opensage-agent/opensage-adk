@@ -507,15 +507,12 @@ class ToolLoader:
         if "neo4j" in required_sandboxes:
             idx = lines.index("### Python Environment")
             neo4j_lines = [
-                "### Neo4j (Databases & Schemas)",
+                "### Neo4j",
                 "",
-                "The `neo4j` sandbox provides Neo4j as structured storage.",
-                "",
-                "Database organization (selected by `client_type`):",
-                "- **history**: Agent execution history (e.g. `AgentRun`, `Event`, `RawToolResponse`; relationships like `HAS_EVENT`, `SUMMARIZES_TOOL_RESPONSE`)",
-                "- **analysis**: Static analysis / code graph data (Joern/CodeQL-related)",
-                "- **memory**: Long-term memory (e.g. Q&A cache `QACache`)",
-                "- Note: Some databases may not be available depending on sandbox configuration.",
+                "The `neo4j` sandbox provides Neo4j as structured storage. The "
+                "`analysis` database holds the code property graph populated by "
+                "Joern/CodeQL initializers; query it with the `static_analysis` "
+                "or `neo4j-query` skills (see their `SKILL.md` for schema).",
                 "",
             ]
             lines[idx:idx] = neo4j_lines
@@ -532,9 +529,38 @@ class OpenSageAgent(LlmAgent):
         tools: Optional[List] = None,  # TODO: this should be the initial tool list?
         tool_combos: Optional[List[ToolCombo]] = None,
         enabled_skills: Optional[Union[List[str], str]] = None,
+        subagents: Optional[List["OpenSageAgent"]] = None,
         **kwargs,
     ):
+        # --- Ban AgentTool in tools list ---
         tools = list(tools) if tools else []
+        try:
+            from google.adk.tools.agent_tool import AgentTool as _AgentTool
+
+            offending_names = [
+                getattr(getattr(t, "agent", None), "name", "?")
+                for t in tools
+                if isinstance(t, _AgentTool)
+            ]
+            if offending_names:
+                raise ValueError(
+                    f"AgentTool is forbidden in OpenSageAgent. "
+                    f"Found AgentTool(s) wrapping: {offending_names}. "
+                    f"Use subagents=[...] to declare sub-agents; use the "
+                    f"call_subagent / continue_agent_instance tools to invoke them."
+                )
+        except ImportError:
+            pass
+
+        # --- Validate and stash subagents (OpenSage's own declaration field) ---
+        subagents_list = list(subagents or [])
+        for sa in subagents_list:
+            if not isinstance(sa, OpenSageAgent):
+                raise ValueError(
+                    f"subagents must contain OpenSageAgent instances; got "
+                    f"{type(sa).__name__}"
+                )
+
         sub_agents = kwargs.get("sub_agents", [])
         for combo in tool_combos or []:  # TODO: why tool combos for sub-agents?
             if combo.return_history:
@@ -555,6 +581,11 @@ class OpenSageAgent(LlmAgent):
 
         # Initialize the parent class first
         super().__init__(*args, **kwargs)
+
+        # Store the OpenSage-specific subagents declaration (distinct from ADK's
+        # sub_agents field). These are registered to AgentManager.agents at
+        # startup and are invoked via call_subagent / continue_agent_instance.
+        self._subagents = subagents_list
 
         # Store enabled_skills for dependency collection
         self._enabled_skills = enabled_skills
@@ -581,8 +612,9 @@ class OpenSageAgent(LlmAgent):
                 "`/bash_tools/...` (i.e., the tool scripts described below).\n"
                 "- Only fall back to generic shell commands when there is **no** suitable `/bash_tools` Skill for the job.\n"
                 "- Before starting work, survey the tool ecosystem broadly:\n"
-                "  - Call `list_available_scripts to review relevant available Skill docs.\n"
-                "  - Then inspect and consider multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
+                "  - Skill paths and descriptions are listed in your prompt above; "
+                "`cat /bash_tools/<path>/SKILL.md` to read a Skill's full docs when needed.\n"
+                "  - Inspect multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
                 "  - If a Skill exists, use it instead of generic shell.\n"
                 "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
                 "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
@@ -603,10 +635,6 @@ class OpenSageAgent(LlmAgent):
                 agent_name=self.name,
             )
 
-            # logger.info(
-            #     "Injecting dynamically loaded tool descriptions into agent instruction:\n\n"
-            #     + tool_prompt
-            # )
             self.instruction += (
                 "\n\nHere are the available bash tools you can use:\n"
                 f"{description_preamble}\n{tool_prompt}{sandbox_description}\n\n"

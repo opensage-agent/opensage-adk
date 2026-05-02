@@ -93,43 +93,6 @@ def _expand_template_variables(config_data: dict) -> dict:
 
 
 @dataclass
-class ShortTermMemoryConfig:
-    """Short-term database memory configuration."""
-
-    enabled: bool = False
-
-
-@dataclass
-class LongTermMemoryConfig:
-    """Long-term database memory configuration."""
-
-    enabled: bool = False
-    llm_model: str = "gemini/gemini-2.5-flash-lite"
-    embedding_model: str = "gemini/gemini-embedding-001"
-    use_llm_selection: bool = True
-    use_llm_decision: bool = False
-    search_max_iterations: int = 3
-    similarity_threshold: float = 0.7
-
-
-@dataclass
-class DatabaseMemoryConfig:
-    """Database-backed memory configuration."""
-
-    short_term: ShortTermMemoryConfig = field(default_factory=ShortTermMemoryConfig)
-    long_term: LongTermMemoryConfig = field(default_factory=LongTermMemoryConfig)
-
-
-@dataclass
-class MemoryConfig:
-    """Top-level memory runtime configuration."""
-
-    # Runtime memory management mode for agent execution.
-    management: str = "file"
-    database: DatabaseMemoryConfig = field(default_factory=DatabaseMemoryConfig)
-
-
-@dataclass
 class Neo4jConfig:
     """Neo4j database configuration with dynamic URI construction."""
 
@@ -234,8 +197,6 @@ class SandboxConfig:
     sandboxes: Dict[str, ContainerConfig] = field(default_factory=dict)
     project_relative_shared_data_path: Optional[str] = None
     absolute_shared_data_path: Optional[str] = None
-    # Optional absolute host directory mounted to /mem/shared in all sandboxes.
-    host_shared_mem_dir: Optional[str] = None
     # Global host bind mounts injected into every sandbox config as
     # "<abs_host_path>:<abs_container_path>:<ro|rw>" entries.
     mount_host_paths: List[str] = field(default_factory=list)
@@ -284,22 +245,15 @@ class LLMConfig:
         """Add a new model configuration."""
         self.model_configs[name] = config
 
-    # Backward compatibility properties
-    @property
-    def model_name(self) -> Optional[str]:
-        """Get main model name for backward compatibility."""
-        main_config = self.model_configs.get("main")
-        return main_config.model_name if main_config else None
-
     @property
     def summarize_model(self) -> Optional[str]:
-        """Get drop/summarize model name for backward compatibility."""
+        """Get drop/summarize model name."""
         drop_config = self.model_configs.get("summarize")
         return drop_config.model_name if drop_config else None
 
     @property
     def flag_claims_model(self) -> Optional[str]:
-        """Get flag claims model name for backward compatibility."""
+        """Get flag claims model name."""
         flag_config = self.model_configs.get("flag_claims")
         return flag_config.model_name if flag_config else None
 
@@ -369,7 +323,7 @@ class PluginsConfig:
 
 @dataclass
 class SubagentConfig:
-    """Subagent and ensemble configuration."""
+    """Subagent configuration."""
 
     # Per-subagent LLM call limit. 0 = unlimited (bounded only by parent's remaining quota).
     max_llm_calls: int = 0
@@ -378,10 +332,76 @@ class SubagentConfig:
     # Whether to load dynamic agents at startup.
     load_dynamic_agents: bool = False
     # If True, only agents whose tools are all listed in thread_safe_tools are
-    # considered "safe" and allowed for ensemble execution.
+    # considered "safe".
     enforce_thread_safe_tools: bool = False
     thread_safe_tools: Set[str] = field(default_factory=set)
-    available_models_for_ensemble: List[str] = field(default_factory=list)
+
+
+@dataclass
+class ModelEntry:
+    """One model entry under ``config.model.available_models``.
+
+    The ``model`` field doubles as the registry key (LLM-facing name) and the
+    provider id passed to ``LiteLlm(model=...)``. No aliasing — duplicates raise.
+    """
+
+    model: str
+    api_key_env: str
+    base_url: Optional[str] = None
+
+
+@dataclass
+class ModelRegistryConfig:
+    """Model registry configuration (corresponds to the ``[model]`` TOML section).
+
+    Two mutually-exclusive sources:
+    - ``available_models``: declarative list parsed from TOML (simple LiteLlm setups)
+    - ``models_python_file``: path to a Python file exporting ``models: list[BaseLlm]``
+      (for cases that need custom LiteLlm kwargs like ``cache_control_injection_points``)
+
+    Configuring both raises at registry load time.
+
+    Optional override fields are framework-specific shortcuts and reference a
+    registry key (i.e. the ``model`` field of one of ``available_models``).
+    """
+
+    available_models: List[ModelEntry] = field(default_factory=list)
+    models_python_file: Optional[str] = None
+
+    # When set, ``Evaluation._prepare_agent`` walks the agent tree and
+    # replaces every LlmAgent.model with the registered model under this
+    # name. None = use the agents' declared models. Validated against the
+    # LlmRegistry at the moment of use; not at config-load time, since the
+    # registry is built from the same config.
+    evaluation_replace_all_models_with_model_name: Optional[str] = None
+
+
+@dataclass
+class AutoInsertPromptFileConfig:
+    """Path to a markdown file whose content is appended to every agent's
+    instruction at invocation time (covers static + dynamic agents alike).
+
+    Two mutually-exclusive sources:
+    - ``agent_relative_path``: resolved against the agent_dir (the directory
+      that contains this agent's ``agent.py`` / ``config.toml``) at load time.
+    - ``absolute_path``: used as-is.
+
+    Note: this differs from ``project_relative_dockerfile_path`` elsewhere,
+    which is relative to the OpenSage repo root. We deliberately use a
+    different prefix here to avoid that confusion.
+
+    Both unset ⇒ a built-in default template under
+    ``src/opensage/templates/auto_insert_prompts/default.md`` is used; the
+    default describes long-term memory conventions and what kinds of
+    knowledge to persist there.
+
+    The resolved file's content is injected at runtime by the
+    ``BaseAgent.run_async`` patch (with a marker so it is restored after
+    the invocation finishes). Empty/missing file ⇒ nothing is injected.
+    """
+
+    agent_relative_path: Optional[str] = None
+    absolute_path: Optional[str] = None
 
 
 @dataclass
@@ -511,9 +531,12 @@ class OpenSageConfig:
     history: HistoryConfig = None
     plugins: PluginsConfig = field(default_factory=PluginsConfig)
     subagent: SubagentConfig = None
+    model: ModelRegistryConfig = field(default_factory=ModelRegistryConfig)
+    auto_insert_prompt_file: AutoInsertPromptFileConfig = field(
+        default_factory=AutoInsertPromptFileConfig
+    )
     build: BuildConfig = None
     mcp: MCPConfig = None
-    memory: MemoryConfig = None
     task_name: str = None
     src_dir_in_sandbox: str = None
     default_host: str = None
@@ -578,28 +601,13 @@ class OpenSageConfig:
         - build: empty string → None
         - mcp: convert to MCPServiceConfig with proper initialization
         """
-        # Agent Ensemble: list → set, comma-separated string → list
+        # Subagent: convert thread_safe_tools list → set
         if "subagent" in data:
-            ensemble_data = data["subagent"]
-
-            # Convert thread_safe_tools list to set
-            if "thread_safe_tools" in ensemble_data:
-                ensemble_data["thread_safe_tools"] = set(
-                    ensemble_data["thread_safe_tools"]
+            subagent_data = data["subagent"]
+            if "thread_safe_tools" in subagent_data:
+                subagent_data["thread_safe_tools"] = set(
+                    subagent_data["thread_safe_tools"]
                 )
-
-            # Handle comma-separated available_models_for_ensemble string
-            if "available_models_for_ensemble" in ensemble_data:
-                models_value = ensemble_data["available_models_for_ensemble"]
-                if isinstance(models_value, str) and models_value.strip():
-                    # Split comma-separated string and clean up whitespace
-                    ensemble_data["available_models_for_ensemble"] = [
-                        model.strip()
-                        for model in models_value.split(",")
-                        if model.strip()
-                    ]
-                elif not models_value or models_value == "":
-                    ensemble_data["available_models_for_ensemble"] = []
 
         # Build: empty string → None
         if "build" in data:
@@ -614,7 +622,6 @@ class OpenSageConfig:
             for field in [
                 "project_relative_shared_data_path",
                 "absolute_shared_data_path",
-                "host_shared_mem_dir",
             ]:
                 if sandbox_data.get(field) == "":
                     sandbox_data[field] = None
@@ -682,18 +689,6 @@ class OpenSageConfig:
         """
         if self.sandbox:
             return self.sandbox.get_sandbox_config(sandbox_type)
-        return None
-
-    def get_llm_config(self, model_name: str):
-        """Get LLM configuration for a specific model.
-
-        Args:
-            model_name (str): Name of the model configuration to get
-        Returns:
-            ModelConfig for the specified model, or None if not found
-        """
-        if self.llm and model_name in self.llm.model_configs:
-            return self.llm.model_configs[model_name]
         return None
 
     def save_to_toml(self, toml_path: str) -> None:

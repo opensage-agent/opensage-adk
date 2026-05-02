@@ -143,7 +143,6 @@ class OpenSageSandboxManager:
             self.enabled_skills = enabled_skills
             config = self.config
             self._add_mount_host_paths_to_all_configs()
-            self._add_host_shared_mem_mount_to_all_configs()
 
             # Check if global sandbox config has shared data path
             try:
@@ -261,39 +260,6 @@ class OpenSageSandboxManager:
                         sandbox_type,
                         spec,
                     )
-
-    def _add_host_shared_mem_mount_to_all_configs(self) -> None:
-        """Inject host_shared_mem_dir mount into every sandbox as /mem/shared."""
-        config = self.config
-        if not config.sandbox or not config.sandbox.sandboxes:
-            return
-
-        host_shared_mem_dir = getattr(config.sandbox, "host_shared_mem_dir", None)
-        if not host_shared_mem_dir:
-            return
-        if not isinstance(host_shared_mem_dir, str):
-            raise TypeError(
-                "sandbox.host_shared_mem_dir must be a string absolute path"
-            )
-        if not host_shared_mem_dir.startswith("/"):
-            raise ValueError(
-                "sandbox.host_shared_mem_dir must be an absolute host path"
-            )
-
-        host_path = Path(host_shared_mem_dir)
-        host_path.mkdir(parents=True, exist_ok=True)
-        mount_spec = f"{host_path}:/mem/shared:rw"
-
-        for sandbox_type, sandbox_config in config.sandbox.sandboxes.items():
-            if not sandbox_config.volumes:
-                sandbox_config.volumes = []
-            if mount_spec not in sandbox_config.volumes:
-                sandbox_config.volumes.append(mount_spec)
-                logger.debug(
-                    "Added host_shared_mem_dir mount to %s: %s",
-                    sandbox_type,
-                    mount_spec,
-                )
 
     def get_shared_volume(self) -> Optional[str]:
         """Get the shared volume ID for this session.

@@ -14,13 +14,10 @@ import toml
 from opensage.config.config_dataclass import (
     BuildConfig,
     ContainerConfig,
-    DatabaseMemoryConfig,
     HistoryConfig,
     LLMConfig,
-    LongTermMemoryConfig,
     MCPConfig,
     MCPServiceConfig,
-    MemoryConfig,
     ModelConfig,
     Neo4jConfig,
     OpenSageConfig,
@@ -141,32 +138,6 @@ class TestTemplateVariableExpansion:
 class TestDataclassCreation:
     """Test creation of various configuration dataclasses."""
 
-    def test_memory_config_nested_long_term_creation(self):
-        """Test nested long-term database memory configuration."""
-        config = MemoryConfig(
-            management="database",
-            database=DatabaseMemoryConfig(
-                long_term=LongTermMemoryConfig(
-                    enabled=True,
-                    llm_model="gemini-pro",
-                    embedding_model="text-embedding",
-                    use_llm_selection=False,
-                    use_llm_decision=True,
-                    search_max_iterations=5,
-                    similarity_threshold=0.9,
-                )
-            ),
-        )
-
-        assert config.management == "database"
-        assert config.database.long_term.enabled is True
-        assert config.database.long_term.llm_model == "gemini-pro"
-        assert config.database.long_term.embedding_model == "text-embedding"
-        assert config.database.long_term.use_llm_selection is False
-        assert config.database.long_term.use_llm_decision is True
-        assert config.database.long_term.search_max_iterations == 5
-        assert config.database.long_term.similarity_threshold == 0.9
-
     def test_neo4j_config_creation(self):
         """Test Neo4j configuration creation."""
         config = Neo4jConfig(user="neo4j", password="test_password")
@@ -223,18 +194,18 @@ class TestDataclassCreation:
         assert config.tpm == 60000
 
     def test_llm_config_with_models(self):
-        """Test LLMConfig with multiple models."""
-        main_model = ModelConfig(model_name="main-model", temperature=0.7)
+        """Test LLMConfig with the supported model_configs keys."""
         summary_model = ModelConfig(model_name="summary-model", temperature=0.3)
+        flag_model = ModelConfig(model_name="flag-model", temperature=0.0)
 
         llm_config = LLMConfig(
-            model_configs={"main": main_model, "summarize": summary_model}
+            model_configs={"summarize": summary_model, "flag_claims": flag_model}
         )
 
-        assert llm_config.get_model_config("main") == main_model
         assert llm_config.get_model_config("summarize") == summary_model
-        assert llm_config.model_name == "main-model"
+        assert llm_config.get_model_config("flag_claims") == flag_model
         assert llm_config.summarize_model == "summary-model"
+        assert llm_config.flag_claims_model == "flag-model"
 
     def test_history_config_creation(self):
         """Test HistoryConfig creation."""
@@ -254,11 +225,9 @@ class TestDataclassCreation:
         """Test SubagentConfig creation."""
         config = SubagentConfig(
             thread_safe_tools={"tool1", "tool2"},
-            available_models_for_ensemble=["model1", "model2"],
         )
 
         assert config.thread_safe_tools == {"tool1", "tool2"}
-        assert config.available_models_for_ensemble == ["model1", "model2"]
 
     def test_build_config_creation(self):
         """Test BuildConfig creation."""
@@ -367,17 +336,15 @@ timeout = 300
         toml_content = """
 MAIN_MODEL = "test/model"
 
-[llm.model_configs.main]
-model_name = "${MAIN_MODEL}"
-temperature = 0.7
-max_tokens = 4096
-rpm = 60
-tpm = 60000
-
 [llm.model_configs.summarize]
 model_name = "${MAIN_MODEL}"
 temperature = 0.3
 max_tokens = 2048
+
+[llm.model_configs.flag_claims]
+model_name = "${MAIN_MODEL}"
+temperature = 0.0
+max_tokens = 1024
 """
 
         with open(self.test_config_path, "w") as f:
@@ -386,25 +353,23 @@ max_tokens = 2048
         config = OpenSageConfig.from_toml(str(self.test_config_path))
 
         assert config.llm is not None
-        assert config.llm.model_name == "test/model"
         assert config.llm.summarize_model == "test/model"
-
-        main_config = config.llm.get_model_config("main")
-        assert main_config.model_name == "test/model"
-        assert main_config.temperature == 0.7
-        assert main_config.max_tokens == 4096
+        assert config.llm.flag_claims_model == "test/model"
 
         summary_config = config.llm.get_model_config("summarize")
         assert summary_config.model_name == "test/model"
         assert summary_config.temperature == 0.3
         assert summary_config.max_tokens == 2048
 
+        flag_config = config.llm.get_model_config("flag_claims")
+        assert flag_config.model_name == "test/model"
+        assert flag_config.temperature == 0.0
+
     def test_load_subagent_config_from_toml(self):
         """Test loading subagent configuration from TOML."""
         toml_content = """
 [subagent]
 thread_safe_tools = ["tool1", "tool2"]
-available_models_for_ensemble = "model1,model2,model3"
 """
 
         with open(self.test_config_path, "w") as f:
@@ -414,11 +379,6 @@ available_models_for_ensemble = "model1,model2,model3"
 
         assert config.subagent is not None
         assert config.subagent.thread_safe_tools == {"tool1", "tool2"}
-        assert config.subagent.available_models_for_ensemble == [
-            "model1",
-            "model2",
-            "model3",
-        ]
 
     def test_load_build_config_with_empty_strings(self):
         """Test loading build configuration with empty string handling."""
@@ -440,23 +400,6 @@ target_type = "default"
         assert config.build.compile_command is None  # Empty string converted to None
         assert config.build.run_command == "arvo"
         assert config.build.target_type == "default"
-
-    def test_load_sandbox_host_shared_mem_dir_empty_string(self):
-        """Test sandbox.host_shared_mem_dir empty string is normalized to None."""
-        toml_content = """
-[sandbox]
-backend = "native"
-host_shared_mem_dir = ""
-
-[sandbox.sandboxes.main]
-image = "ubuntu:20.04"
-"""
-        with open(self.test_config_path, "w") as f:
-            f.write(toml_content)
-
-        config = OpenSageConfig.from_toml(str(self.test_config_path))
-        assert config.sandbox is not None
-        assert config.sandbox.host_shared_mem_dir is None
 
     def test_load_mcp_config_from_toml(self):
         """Test loading MCP configuration from TOML."""
@@ -520,9 +463,9 @@ class TestOpenSageConfigMethods:
             backend="native",
         )
 
-        # Set up LLM configuration
-        main_model = ModelConfig(model_name="test-model", temperature=0.7)
-        self.config.llm = LLMConfig(model_configs={"main": main_model})
+        # Set up LLM configuration (summarize is one of the supported keys)
+        summary_model = ModelConfig(model_name="test-model", temperature=0.3)
+        self.config.llm = LLMConfig(model_configs={"summarize": summary_model})
 
     def test_get_sandbox_config(self):
         """Test get_sandbox_config method."""
@@ -538,21 +481,6 @@ class TestOpenSageConfigMethods:
         """Test get_sandbox_config when no sandbox configuration exists."""
         config = OpenSageConfig()
         assert config.get_sandbox_config("main") is None
-
-    def test_get_llm_config(self):
-        """Test get_llm_config method."""
-        llm_config = self.config.get_llm_config("main")
-        assert llm_config is not None
-        assert llm_config.model_name == "test-model"
-        assert llm_config.temperature == 0.7
-
-        # Test non-existent model
-        assert self.config.get_llm_config("non_existent") is None
-
-    def test_get_llm_config_no_llm(self):
-        """Test get_llm_config when no LLM configuration exists."""
-        config = OpenSageConfig()
-        assert config.get_llm_config("main") is None
 
     def test_save_to_toml(self):
         """Test saving configuration to TOML file."""

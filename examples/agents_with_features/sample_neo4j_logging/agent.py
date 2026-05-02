@@ -23,10 +23,10 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    list_subagents,
 )
 
 
@@ -105,9 +105,9 @@ def mk_agent(opensage_session_id: str):
         # Agent tools - these are tools that wrap agents
         tools=[
             geometry_tool,
-            call_subagent_as_tool,
+            call_subagent,
             create_subagent,
-            list_active_agents,
+            list_subagents,
             add_numbers,
             multiply_numbers,
         ],

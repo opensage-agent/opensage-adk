@@ -3,10 +3,10 @@ from typing import Any, Dict
 from google.adk.models.lite_llm import LiteLlm
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    list_subagents,
 )
 
 # Math operation tools
@@ -123,8 +123,8 @@ def mk_agent(opensage_session_id: str):
         description="Root math agent that dynamically creates and manages specialized math sub-agents for calculations.",
         tools=[
             create_subagent,
-            list_active_agents,
-            call_subagent_as_tool,
+            list_subagents,
+            call_subagent,
             add_numbers,
             subtract_numbers,
             multiply_numbers,

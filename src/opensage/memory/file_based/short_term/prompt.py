@@ -23,21 +23,27 @@ def strip_runtime_memory_context(instruction: str) -> str:
 def build_file_runtime_memory_context(
     *, session_id: str, agent_name: str, agent_mem_dir: str
 ) -> str:
-    """Build the file-based runtime memory prompt block."""
-    guidance = (
-        "- Your current memory mode is `file`.\n"
-        f"- Your current `session_id` is `{session_id}`.\n"
-        f"- Your current short-term memory directory is `{agent_mem_dir}`.\n"
-        f"- Keep your working notes in `{os.path.join(agent_mem_dir, 'TODO.md')}`.\n"
-        f"- Your full trajectory file is `{os.path.join(agent_mem_dir, 'traj.json')}`.\n"
-        f"- Save long tool outputs under `{os.path.join(agent_mem_dir, 'tool_outputs')}/`.\n"
-        f"- Shared long-term knowledge lives at `{LONG_TERM_KNOWLEDGE_PATH}`.\n"
+    """Build the file-based runtime memory prompt block.
+
+    This block lists only **paths and locations** (the framework-level facts:
+    where things live on disk). Policy / how-to-use guidance belongs in the
+    user-configurable ``auto_insert_prompt_file`` and is injected as a
+    separate block.
+    """
+    long_term_dir = os.path.dirname(LONG_TERM_KNOWLEDGE_PATH)
+    facts = (
+        f"- Agent: `{agent_name}` | session_id: `{session_id}`\n"
+        f"- Short-term memory dir (per-agent): `{agent_mem_dir}/`\n"
+        f"  - notes: `{os.path.join(agent_mem_dir, 'TODO.md')}`\n"
+        f"  - trajectory: `{os.path.join(agent_mem_dir, 'traj.json')}`\n"
+        f"  - tool outputs: `{os.path.join(agent_mem_dir, 'tool_outputs')}/`\n"
+        f"- Long-term memory dir (shared in this OpenSage session): `{long_term_dir}/`\n"
+        f"  - index: `{os.path.join(long_term_dir, 'index.md')}`\n"
     )
     return (
         f"{RUNTIME_MEMORY_CONTEXT_START}\n"
-        "### Current Runtime Memory Context\n"
-        f"- Your current agent is `{agent_name}`.\n"
-        f"{guidance}"
+        "### Current Runtime Memory Locations\n"
+        f"{facts}"
         f"{RUNTIME_MEMORY_CONTEXT_END}"
     )
 

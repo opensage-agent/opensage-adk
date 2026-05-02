@@ -42,7 +42,7 @@ async def test_run_fuzzing_campaign_missing_target(opensage_session: OpenSageSes
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test run-fuzzing-campaign without target (should fail)
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command="bash /bash_tools/fuzz/run-fuzzing-campaign/scripts/run_fuzzing_campaign.sh",
         tool_context=mock_context,
         sandbox_name="main",
@@ -67,7 +67,7 @@ async def test_run_fuzzing_campaign_json_structure(opensage_session: OpenSageSes
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test with a non-existent target (should return error in JSON format)
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/fuzz/run-fuzzing-campaign/scripts/run_fuzzing_campaign.sh "nonexistent_target" 10',
         tool_context=mock_context,
         sandbox_name="main",

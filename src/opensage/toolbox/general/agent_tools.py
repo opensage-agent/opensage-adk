@@ -7,7 +7,6 @@ from google.genai import types
 
 from opensage.session import get_opensage_session
 from opensage.utils.agent_utils import (
-    INHERIT_MODEL,
     create_litellm_model,
     get_model_from_agent,
     get_opensage_session_id_from_context,
@@ -68,7 +67,7 @@ async def critique(tool_context: ToolContext):
     try:
         opensage_session_id = get_opensage_session_id_from_context(tool_context)
         session = get_opensage_session(opensage_session_id)
-        model_name = session.config.llm.flag_claims_model or INHERIT_MODEL
+        configured_model = session.config.llm.flag_claims_model
         # Get session and current conversation history
         invocation_context = tool_context._invocation_context
         session = invocation_context.session
@@ -175,16 +174,23 @@ Keep your response concise and actionable."""
             types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
         ]
 
-        # Get or create model
-        if model_name == INHERIT_MODEL:
+        # Resolve model: use configured ``flag_claims_model`` if set, else fall
+        # back to the calling agent's own model object directly. No "inherit"
+        # sentinel — the fallback is the explicit semantics for an empty config.
+        if configured_model:
+            model = create_litellm_model(configured_model)
+            model_used = configured_model
+        else:
             model = get_model_from_agent(agent)
             if model is None:
                 return {
                     "success": False,
-                    "error": "flag_claims_model='inherit' but current agent has no model",
+                    "error": (
+                        "flag_claims_model is not configured and the calling "
+                        "agent has no usable model to fall back to"
+                    ),
                 }
-        else:
-            model = create_litellm_model(model_name)
+            model_used = getattr(model, "model", "<caller-model>")
 
         # Call model
         idea_parts = []
@@ -199,7 +205,7 @@ Keep your response concise and actionable."""
         return {
             "success": True,
             "idea": idea,
-            "model_used": model_name,
+            "model_used": model_used,
         }
 
     except Exception as e:
@@ -217,10 +223,10 @@ async def flag_unjustified_claims(tool_context: ToolContext):
     Returns:
         A natural language analysis of unjustified claims found in the conversation
     """
-    # Get model name from environment variable
+    # Get model name from config; fall back to caller agent's model directly.
     opensage_session_id = get_opensage_session_id_from_context(tool_context)
     session = get_opensage_session(opensage_session_id)
-    model_name = session.config.llm.flag_claims_model or INHERIT_MODEL
+    configured_model = session.config.llm.flag_claims_model
 
     # Get events from tool context
     events = tool_context._invocation_context.session.events
@@ -228,17 +234,19 @@ async def flag_unjustified_claims(tool_context: ToolContext):
         print("No events to analyze")
         return []
 
-    # Create LiteLLM model instance
-    if model_name == INHERIT_MODEL:
+    if configured_model:
+        model = create_litellm_model(configured_model)
+    else:
         current_agent = tool_context._invocation_context.agent
         model = get_model_from_agent(current_agent)
         if model is None:
             return {
                 "success": False,
-                "error": "flag_claims_model='inherit' but current agent has no model",
+                "error": (
+                    "flag_claims_model is not configured and the calling "
+                    "agent has no usable model to fall back to"
+                ),
             }
-    else:
-        model = create_litellm_model(model_name)
 
     # Prepare events text for analysis
     events_text = []
@@ -336,356 +344,3 @@ If no unjustified claims are found, simply state that no problematic claims were
 
         traceback.print_exc()
         return error_msg
-
-
-async def get_available_agents_for_ensemble(tool_context: ToolContext):
-    """
-    Get the available agents for the ensemble.
-    Uses AgentEnsembleManager to discover static subagents, agent tools, and dynamic agents.
-
-    Note that maybe there are no agents that are suitable for the current task, you should create a dynamic subagent that is suitable for the current task and then call it by agent_ensemble tool.
-
-    Returns:
-        Dictionary with available agents list, summary, and agent counts
-    """
-    try:
-        session_id = get_opensage_session_id_from_context(tool_context)
-        opensage_session = get_opensage_session(session_id)
-        ensemble_manager = opensage_session.ensemble
-        current_agent = tool_context._invocation_context.agent
-
-        ensemble_result = ensemble_manager.get_ensemble_ready_agents(
-            current_agent=current_agent, include_dynamic=True
-        )
-
-        agents = []
-        for agent_info in ensemble_result["safe_agents"]:
-            agents.append(
-                {
-                    "name": agent_info.name,
-                    "description": agent_info.description,
-                    "tools": agent_info.tools,
-                    "model": agent_info.model,
-                    "agent_type": agent_info.agent_type,
-                    "source_path": agent_info.source_path,
-                }
-            )
-
-        agent_names = [a["name"] for a in agents]
-
-        return {
-            "success": True,
-            "agents": agent_names,
-            "agents_details": agents,
-            "summary": ensemble_result["summary"],
-            "static_agents_count": len(ensemble_result["static_agents"]),
-            "dynamic_agents_count": len(ensemble_result["dynamic_agents"]),
-            "message": f"Found {len(agents)} available agents. If there are no suitable agents for the current task, you should create a dynamic subagent and then call it by agent_ensemble tool.",
-        }
-
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Failed to get available agents for ensemble: {str(e)}",
-            "safe_agents": [],
-        }
-
-
-async def get_available_models(tool_context: ToolContext):
-    """
-    Get the available models configured for ensemble use.
-
-    Notes:
-        - The special model name "inherit" means: reuse the current agent's model
-          object from context (i.e., the root/current agent model).
-
-    Returns:
-        Dictionary with available_models list and count
-    """
-    try:
-        # Get session ID from tool context or use default
-        session_id = get_opensage_session_id_from_context(tool_context)
-
-        # Use session-specific OpenSageEnsembleManager
-        opensage_session = get_opensage_session(session_id)
-        ensemble_manager = opensage_session.ensemble
-
-        # Get available models for ensemble
-        available_models = ensemble_manager.get_available_models()
-
-        return {
-            "success": True,
-            "available_models": available_models,
-            "models_count": len(available_models),
-            "message": f"Found {len(available_models)} available models for ensemble",
-        }
-
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Failed to get available models for ensemble: {str(e)}",
-            "available_models": [],
-        }
-
-
-def _build_full_instruction(
-    instruction: str, include_history: bool, tool_context: ToolContext
-) -> str:
-    """Build complete instruction with optional conversation history.
-
-    Args:
-        instruction (str): The base instruction
-        include_history (bool): Whether to include conversation history
-    Returns:
-        str: Complete instruction string with optional history context
-    """
-    task_parts = [f"=== INSTRUCTION ===\n{instruction}\n"]
-
-    if include_history:
-        # Include conversation history for context
-        session_events = tool_context._invocation_context.session.events
-        if session_events:
-            task_parts.append("=== CONVERSATION HISTORY ===")
-            for i, event in enumerate(
-                session_events[-10:]
-            ):  # Last 10 events to avoid too much context
-                if event.content and event.content.parts:
-                    for part in event.content.parts:
-                        if hasattr(part, "text") and part.text:
-                            task_parts.append(f"Event {i}: {event.author}: {part.text}")
-            task_parts.append("=== END HISTORY ===")
-
-    return "\n".join(task_parts)
-
-
-async def agent_ensemble(
-    instruction: str,
-    agent_name: str,
-    model_name_to_count: dict[str, int],
-    history_passed_in: bool,
-    tool_context: ToolContext,
-):
-    """
-    Agent ensemble is a tool that allows launching multiple agents, each with a different model, to perform a task.
-    The agent will then aggregate the results from the agents and return the final result.
-
-    Before calling this tool, you must call get_available_agents_for_ensemble and get_available_models FIRST to get the allowed agents and models, as the allowed agents and models may change over time.
-
-    IMPORTANT:
-        - "inherit" is a special model name meaning: reuse the current/root
-          agent's model object from context.
-        - If get_available_models returns only ["inherit"], then you MUST pass
-          model_name_to_count={"inherit": N}. This will run N ensemble agents
-          using the same model object as the current/root agent.
-
-        Args:
-            instruction (str): The specific instruction/task you want all agents to execute
-            agent_name (str): The name of the agent to launch (must be in safe agents list)
-            model_name_to_count (dict[str, int]): A dictionary of model names and the number of agents to launch with that model, where the key is the model name and the value is the number of agents to launch with that model, the total number of agents to launch is the sum of the values in the dictionary, it should be at least 2.
-            history_passed_in (bool): Whether to pass conversation history to agents for additional context
-        Returns:
-            The aggregated final result from all agents
-    """
-    if not isinstance(model_name_to_count, dict) or len(model_name_to_count) == 0:
-        return {
-            "success": False,
-            "error": "model_name_to_count must be a non-empty dictionary",
-        }
-    if sum(model_name_to_count.values()) < 2:
-        return {
-            "success": False,
-            "error": "the total number of agents to launch is less than 2",
-        }
-    try:
-        # Build complete instruction with optional history
-        full_instruction = _build_full_instruction(
-            instruction, history_passed_in, tool_context
-        )
-
-        # Get session and validate agent
-        session_id = get_opensage_session_id_from_context(tool_context)
-        opensage_session = get_opensage_session(session_id)
-        current_agent = tool_context._invocation_context.agent
-
-        # Validate the agent is in the safe agents list and get agent info
-        ensemble_result = opensage_session.ensemble.get_ensemble_ready_agents(
-            current_agent=current_agent, include_dynamic=True
-        )
-
-        # Check if the requested agent is in the safe agents list
-        safe_agent_names = [agent.name for agent in ensemble_result["safe_agents"]]
-        if agent_name not in safe_agent_names:
-            return {
-                "success": False,
-                "error": f"Agent '{agent_name}' is not in the available agents list. Available agents: {safe_agent_names}. If no agents are suitable, create a dynamic subagent and then call it by agent_ensemble tool.",
-                "safe_agents": safe_agent_names,
-            }
-
-        # Find the target agent info
-        target_agent_info = None
-        for agent in ensemble_result["safe_agents"]:
-            if agent.name == agent_name:
-                target_agent_info = agent
-                break
-
-        if not target_agent_info:
-            return {
-                "success": False,
-                "error": f"Failed to find agent info for '{agent_name}'",
-            }
-
-        # Delegate to ensemble manager with validated agent info
-        return await opensage_session.ensemble.execute_agent_ensemble(
-            full_instruction=full_instruction,
-            target_agent_info=target_agent_info,
-            model_name_to_count=model_name_to_count,
-            current_agent=current_agent,
-            tool_context=tool_context,
-        )
-
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Agent ensemble failed: {str(e)}",
-            "instruction": instruction,
-            "agent_name": agent_name,
-        }
-
-
-async def agent_ensemble_pairwise(
-    instructions: list[str],
-    agent_name: str,
-    model_names: list[str],
-    history_passed_in: bool,
-    tool_context: ToolContext,
-):
-    """
-    Launch multiple agents in parallel, each with its own instruction and model.
-    call this tool when you have multiple tasks to complete, for example, you have different approaches to solve the task, you can use this tool to try different approaches in parallel.
-    - instructions: list of per-agent instructions
-    - model_names: list of per-agent model names (same length as instructions)
-    - agent_name: target agent to launch (must be in safe agents list)
-    - history_passed_in: whether to include folded history in each instruction
-
-    Examples:
-      1) Two tasks on the same model
-         instructions = [
-           "Summarize repo READMEs",
-           "Extract CVEs from logs",
-         ]
-         model_names = [
-           "openai/gpt-5",
-           "openai/gpt-5",
-         ]
-
-      2) Three tasks with mixed models
-         instructions = [
-           "Generate remediation plan",
-           "List risky endpoints from code",
-           "Draft incident report",
-         ]
-         model_names = [
-           "anthropic/claude-sonnet-4-20250514",
-           "openai/gpt-5",
-           "openai/gpt-5",
-         ]
-    real instructions should be more specific and detailed, not just a general task description.
-    """
-    try:
-        # Validate inputs
-        if not isinstance(instructions, list) or not isinstance(model_names, list):
-            return {
-                "success": False,
-                "error": "instructions and model_names must be lists",
-            }
-        if len(instructions) == 0 or len(model_names) == 0:
-            return {"success": False, "error": "lists must be non-empty"}
-        if len(instructions) != len(model_names):
-            return {
-                "success": False,
-                "error": f"lists must have equal length: got {len(instructions)} vs {len(model_names)}",
-            }
-        for i, (ins, mdl) in enumerate(zip(instructions, model_names)):
-            if not isinstance(ins, str) or not isinstance(mdl, str):
-                return {
-                    "success": False,
-                    "error": f"instructions[{i}] and model_names[{i}] must be strings",
-                }
-
-        # Get session and validate agent
-        session_id = get_opensage_session_id_from_context(tool_context)
-        opensage_session = get_opensage_session(session_id)
-        current_agent = tool_context._invocation_context.agent
-
-        ensemble_result = opensage_session.ensemble.get_ensemble_ready_agents(
-            current_agent=current_agent, include_dynamic=True
-        )
-        safe_agent_names = [agent.name for agent in ensemble_result["safe_agents"]]
-        if agent_name not in safe_agent_names:
-            return {
-                "success": False,
-                "error": f"Agent '{agent_name}' is not in the available agents list. Available agents: {safe_agent_names}. If no agents are suitable, create a dynamic subagent and then call it by agent_ensemble tool.",
-                "safe_agents": safe_agent_names,
-            }
-
-        target_agent_info = None
-        for agent in ensemble_result["safe_agents"]:
-            if agent.name == agent_name:
-                target_agent_info = agent
-                break
-        if not target_agent_info:
-            return {
-                "success": False,
-                "error": f"Failed to find agent info for '{agent_name}'",
-            }
-
-        # Build and run tasks in parallel (one model per instruction)
-        async def _run_one(instr: str, model_name: str):
-            full_instruction = _build_full_instruction(
-                instr, history_passed_in, tool_context
-            )
-            return await opensage_session.ensemble.execute_agent_ensemble(
-                full_instruction=full_instruction,
-                target_agent_info=target_agent_info,
-                model_name_to_count={model_name: 1},
-                current_agent=current_agent,
-                tool_context=tool_context,
-            )
-
-        tasks = [_run_one(instr, mdl) for instr, mdl in zip(instructions, model_names)]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        aggregated = []
-        for idx, (instr, mdl, res) in enumerate(
-            zip(instructions, model_names, results)
-        ):
-            if isinstance(res, Exception):
-                aggregated.append(
-                    {
-                        "index": idx,
-                        "instruction": instr,
-                        "model_name": mdl,
-                        "success": False,
-                        "error": str(res),
-                    }
-                )
-            else:
-                aggregated.append(
-                    {
-                        "index": idx,
-                        "instruction": instr,
-                        "model_name": mdl,
-                        "success": True
-                        if isinstance(res, dict) and res.get("success", True)
-                        else True,
-                        "result": res,
-                    }
-                )
-
-        return {"success": True, "results": aggregated}
-
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Agent ensemble pairwise failed: {str(e)}",
-        }

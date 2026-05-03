@@ -3,6 +3,9 @@ FROM ${BASE_IMAGE}
 
 USER root
 
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
 RUN set -e; \
     if command -v apt-get >/dev/null 2>&1; then \
         apt-get update && \

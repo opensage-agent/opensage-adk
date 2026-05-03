@@ -94,7 +94,8 @@ def build_image_from_dockerfile(
     try:
         # Prepare docker build command
         # --load ensures the image is loaded into the local daemon (required for buildx)
-        cmd = ["docker", "build", "--load", "-t", image_name]
+        # --progress=plain streams line-oriented output suitable for piping/logging.
+        cmd = ["docker", "build", "--progress=plain", "--load", "-t", image_name]
 
         # Add build args if provided
         if build_args:
@@ -104,24 +105,39 @@ def build_image_from_dockerfile(
         # Add dockerfile and context
         cmd.extend(["-f", str(dockerfile_path), str(build_context)])
 
-        # Change to build context directory and run docker build
+        # Stream stdout/stderr line-by-line to the logger so a hung build
+        # (e.g. an interactive apt prompt) is visible in real time, while
+        # also accumulating output for the DockerBuildResult.
         original_cwd = os.getcwd()
         try:
             os.chdir(build_context)
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, cwd=build_context
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                cwd=build_context,
             )
+            output_lines: list[str] = []
+            assert proc.stdout is not None
+            for line in proc.stdout:
+                line = line.rstrip("\n")
+                output_lines.append(line)
+                logger.info("[docker build %s] %s", image_name, line)
+            returncode = proc.wait()
+            output = "\n".join(output_lines)
 
-            if result.returncode == 0:
+            if returncode == 0:
                 return DockerBuildResult(
-                    success=True, image_name=image_name, build_output=result.stdout
+                    success=True, image_name=image_name, build_output=output
                 )
             else:
                 return DockerBuildResult(
                     success=False,
                     image_name=image_name,
-                    build_output=result.stdout,
-                    error_message=result.stderr,
+                    build_output=output,
+                    error_message=f"docker build exited with code {returncode}",
                 )
 
         finally:

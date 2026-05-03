@@ -1,7 +1,10 @@
-from google.adk import Agent
-from google.adk.agents.llm_agent import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools.agent_tool import AgentTool
+
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
+    list_subagents,
+)
 
 
 def calculate_add(a: float, b: float) -> float:
@@ -30,9 +33,10 @@ def calculate_subtract(a: float, b: float) -> float:
     return a - b
 
 
-calculation_agent = LlmAgent(
+calculation_agent = OpenSageAgent(
     model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
     name="calculation_agent",
+    description="A math sub-agent that performs basic arithmetic operations.",
     instruction="""
     You are a helpful math assistant. You can help users with basic arithmetic operations.
     """,
@@ -41,20 +45,21 @@ calculation_agent = LlmAgent(
     ],
 )
 
-calculation_tool = AgentTool(agent=calculation_agent)
-
-root_agent = Agent(
+root_agent = OpenSageAgent(
     model=LiteLlm(model="openai/o4-mini"),
     name="simple_math_agent",
     instruction="""
     You are a helpful math assistant. You can help users with basic arithmetic operations.
-    When a user asks you to add two numbers, use the calculate_add tool to perform the calculation.
-    Always use the tool to get accurate results instead of calculating manually.
+    When a user asks you to add two numbers, delegate the calculation to the
+    `calculation_agent` sub-agent via the `call_subagent` tool.
+    Always use the sub-agent to get accurate results instead of calculating manually.
     Provide clear and friendly responses to the user.
     """,
     description="A simple math agent that can perform addition operations.",
+    subagents=[calculation_agent],
     tools=[
-        calculation_tool,
+        call_subagent,
+        list_subagents,
     ],
 )
 

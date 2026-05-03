@@ -17,9 +17,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict
 
-from google.adk.agents.llm_agent import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from opensage.agents.opensage_agent import OpenSageAgent
@@ -88,10 +86,6 @@ Always explain the geometric concepts involved and show the calculation steps.""
     tools=[calculate_area_and_perimeter],
 )
 
-# Create AgentTools from sub-agents
-# Note: AgentTool automatically uses the agent's name and description
-geometry_tool = AgentTool(agent=geometry_calculator)
-
 
 def mk_agent(opensage_session_id: str):
     root_agent = OpenSageAgent(
@@ -100,11 +94,12 @@ def mk_agent(opensage_session_id: str):
         model=LiteLlm(model="openai/o4-mini"),
         instruction="""
       You are a calculation orchestrator. You help users with various mathematical and geometric calculations.
+      Delegate geometric calculations to the `geometry_calculator` sub-agent
+      via the `call_subagent` tool.
       Formulate the final answer as a single number inside <final_answer>...</final_answer> tags.
       """,
-        # Agent tools - these are tools that wrap agents
+        subagents=[geometry_calculator],
         tools=[
-            geometry_tool,
             call_subagent,
             create_subagent,
             list_subagents,

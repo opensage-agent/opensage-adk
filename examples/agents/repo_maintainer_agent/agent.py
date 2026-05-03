@@ -13,9 +13,7 @@ no callback-based enforcement.
 
 from __future__ import annotations
 
-from google.adk.agents.llm_agent import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools.agent_tool import AgentTool
 
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.general.agent_tools import complain, think
@@ -26,6 +24,10 @@ from opensage.toolbox.general.bash_tools_interface import (
     wait_for_background,
 )
 from opensage.toolbox.general.fileop import str_replace_edit, view_file
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
+    list_subagents,
+)
 
 _PROPOSER_INSTRUCTION = """
 You are **design_proposer** for a repository-maintenance agent.
@@ -98,11 +100,13 @@ directory is `/workspace`.
 
 For every task that mutates the repo:
 
-1. Call `design_proposer` with the task. Expect ≥ 2 options, each with
-   `logic` / `verification` / `metrics` / `pros` / `cons`.
-2. Call `design_critic` with that proposer output.
+1. Invoke `design_proposer` via `call_subagent("design_proposer", request=...)`
+   with the task. Expect ≥ 2 options, each with `logic` / `verification` /
+   `metrics` / `pros` / `cons`.
+2. Invoke `design_critic` via `call_subagent("design_critic", request=...)`
+   with that proposer output.
 3. If the critic rejects or asks for revision, send the concerns back to
-   `design_proposer` and repeat.
+   `design_proposer` (another `call_subagent` invocation) and repeat.
 4. **Convergence** = the latest critic round `accept`s a single option
    AND its `verification_ok` and `metrics_ok` are both true. Convergence
    covers three things: the **logic**, **how to verify it**, and the
@@ -154,7 +158,9 @@ avoid duplicates.
 ## Tools
 
 - Reasoning: `think`, `complain`.
-- Design loop: `design_proposer`, `design_critic` (sub-agents).
+- Design loop: `design_proposer`, `design_critic` (sub-agents, invoked
+  via `call_subagent(agent_name=..., request=...)`; use `list_subagents`
+  to verify they are registered).
 - Read / explore: `view_file`, `run_terminal_command` (read-only use
   before convergence).
 - Mutate (only after convergence): `str_replace_edit`,
@@ -165,7 +171,7 @@ avoid duplicates.
 
 
 def mk_agent(opensage_session_id: str) -> OpenSageAgent:
-    proposer = LlmAgent(
+    proposer = OpenSageAgent(
         name="design_proposer",
         model=LiteLlm(model="openai/gpt-5"),
         description=(
@@ -175,7 +181,7 @@ def mk_agent(opensage_session_id: str) -> OpenSageAgent:
         instruction=_PROPOSER_INSTRUCTION,
         tools=[think],
     )
-    critic = LlmAgent(
+    critic = OpenSageAgent(
         name="design_critic",
         model=LiteLlm(model="openai/gpt-5"),
         description=(
@@ -195,11 +201,12 @@ def mk_agent(opensage_session_id: str) -> OpenSageAgent:
             "only — never pushes."
         ),
         instruction=_ROOT_INSTRUCTION,
+        subagents=[proposer, critic],
         tools=[
             think,
             complain,
-            AgentTool(agent=proposer),
-            AgentTool(agent=critic),
+            call_subagent,
+            list_subagents,
             view_file,
             str_replace_edit,
             run_terminal_command,

@@ -18,7 +18,6 @@ import os
 from typing import Dict
 
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from opensage.agents.opensage_agent import OpenSageAgent
@@ -109,10 +108,6 @@ Formulate the final answer as a single number inside <final_answer>...</final_an
         tools=[calculate_area_and_perimeter],
     )
 
-    # Create AgentTools from sub-agents
-    # Note: AgentTool automatically uses the agent's name and description
-    geometry_tool = AgentTool(agent=geometry_calculator)
-
     math_calculator = OpenSageAgent(
         name="math_calculator",
         description="Calculates multiplication",
@@ -129,18 +124,19 @@ Formulate the final answer as a single number inside <final_answer>...</final_an
         description="Main agent that coordinates mathematical and geometric calculations with Neo4j history logging",
         model=LiteLlm(model="openai/gpt-5"),
         instruction="""You are a calculation orchestrator. You help users with various mathematical and geometric calculations.
+      Delegate geometry questions to the `geometry_calculator` sub-agent and
+      multiplication to the `math_calculator` sub-agent via the
+      `call_subagent` tool.
       Formulate the final answer as a single number inside <final_answer> ...</final_answer> tags.
       """,
-        # Agent tools - these are tools that wrap agents
+        subagents=[geometry_calculator, math_calculator],
         tools=[
-            geometry_tool,
             create_subagent,
             list_subagents,
             call_subagent,
             add_numbers,
             subtract_numbers,
         ],
-        sub_agents=[math_calculator],
     )
 
     return root_agent

@@ -7,7 +7,6 @@ import google.adk as adk
 from dotenv import load_dotenv
 from google.adk.agents.llm_agent import ToolUnion
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools.agent_tool import AgentTool
 
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.session import get_opensage_session

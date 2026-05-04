@@ -412,6 +412,11 @@ class NYU_CTF_Bench(Evaluation):
             ],
             cwd=challenge.challenge_dir,
         )
+        logger.info(
+            "Starting challenge %s with compose: %s",
+            challenge.canonical_name,
+            compose_file,
+        )
         self._connect_challenge_containers_to_network(challenge)
 
     def _stop_challenge(self, challenge: LoadedChallenge) -> None:

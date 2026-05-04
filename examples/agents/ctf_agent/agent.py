@@ -25,7 +25,6 @@ from opensage.toolbox.binary.pyghidra_mcp.get_toolset import (
     get_toolset as get_pyghidra_toolset,
 )
 from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
-from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (
     complain,
     note_suspicious_things,
@@ -93,7 +92,6 @@ def mk_agent(opensage_session_id: str):
             ida_pro_toolset,
             pyghidra_toolset,
             ghidra_toolset,
-            finish_task,
         ],
         enabled_skills=[],
     )

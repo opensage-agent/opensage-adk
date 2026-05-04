@@ -9,24 +9,14 @@ from benchmarks.nyuctf.helpers import (
     LoadedChallenge,
     build_challenge_prompt,
     build_judge_prompt,
-    canonical_name_from_info,
     extract_trace_entries,
     find_exact_flag,
     judge_trajectory_sync,
     judge_trajectory_with_llm,
     load_dataset,
+    resolve_dataset_json_path,
 )
 from benchmarks.nyuctf.nyuctf_bench import NYU_CTF_Bench
-
-
-def test_canonical_name_from_info() -> None:
-    info = {
-        "year": "2021",
-        "event": "qualifiers-fall",
-        "category": "rev",
-        "challenge": "Maze Runner",
-    }
-    assert canonical_name_from_info(info) == "2021f-rev-maze_runner"
 
 
 def test_find_exact_flag_matches_only_exact_candidate() -> None:
@@ -100,7 +90,7 @@ def test_extract_trace_entries_handles_text_and_tools() -> None:
     assert entries[2]["type"] == "tool_response"
 
 
-def test_load_dataset_json_fallback(tmp_path: Path) -> None:
+def test_load_dataset_reads_explicit_dataset_json(tmp_path: Path) -> None:
     challenge_dir = tmp_path / "maze"
     challenge_dir.mkdir()
     (challenge_dir / "challenge.json").write_text(
@@ -123,7 +113,7 @@ def test_load_dataset_json_fallback(tmp_path: Path) -> None:
     dataset_json.write_text(
         json.dumps(
             {
-                "challenge_1": {
+                "2021f-rev-maze": {
                     "year": "2021",
                     "event": "qualifiers-fall",
                     "category": "rev",
@@ -143,6 +133,62 @@ def test_load_dataset_json_fallback(tmp_path: Path) -> None:
     assert len(challenges) == 1
     assert challenges[0].canonical_name == "2021f-rev-maze"
     assert challenges[0].description == "Connect to maze:31337"
+
+
+def test_resolve_dataset_json_path_prefers_explicit_dataset_json(
+    tmp_path: Path, monkeypatch
+) -> None:
+    explicit_dataset = tmp_path / "custom_dataset.json"
+    explicit_dataset.write_text("{}")
+
+    repository_dir = tmp_path / "repo"
+    repository_dir.mkdir()
+    (repository_dir / "test_dataset.json").write_text("{}")
+
+    env_dir = tmp_path / "env_repo"
+    env_dir.mkdir()
+    (env_dir / "test_dataset.json").write_text("{}")
+    monkeypatch.setenv("NYUCTF_REPOSITORY_DIR", str(env_dir))
+
+    assert (
+        resolve_dataset_json_path(
+            split="test",
+            dataset_json=explicit_dataset,
+            repository_dir=repository_dir,
+        )
+        == explicit_dataset.resolve()
+    )
+
+
+def test_resolve_dataset_json_path_prefers_repository_dir_over_env(
+    tmp_path: Path, monkeypatch
+) -> None:
+    repository_dir = tmp_path / "repo"
+    repository_dir.mkdir()
+    repository_dataset = repository_dir / "test_dataset.json"
+    repository_dataset.write_text("{}")
+
+    env_dir = tmp_path / "env_repo"
+    env_dir.mkdir()
+    (env_dir / "test_dataset.json").write_text("{}")
+    monkeypatch.setenv("NYUCTF_REPOSITORY_DIR", str(env_dir))
+
+    assert (
+        resolve_dataset_json_path(split="test", repository_dir=repository_dir)
+        == repository_dataset.resolve()
+    )
+
+
+def test_resolve_dataset_json_path_uses_env_repository(
+    tmp_path: Path, monkeypatch
+) -> None:
+    env_dir = tmp_path / "env_repo"
+    env_dir.mkdir()
+    env_dataset = env_dir / "test_dataset.json"
+    env_dataset.write_text("{}")
+    monkeypatch.setenv("NYUCTF_REPOSITORY_DIR", str(env_dir))
+
+    assert resolve_dataset_json_path(split="test") == env_dataset.resolve()
 
 
 def test_build_judge_prompt_includes_trajectory_and_flag() -> None:

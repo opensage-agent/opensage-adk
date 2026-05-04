@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-import importlib
 import json
 import os
 import re
 import shutil
 import subprocess
-import sys
 import threading
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
@@ -19,16 +17,6 @@ from google.genai import types
 from pydantic import BaseModel
 
 FLAG_RE = re.compile(r"[A-Za-z0-9_]+\{[^}\n]+\}")
-
-_REP_UNDERSCORE = re.compile(r"_+")
-_CATEGORY_SHORT = {
-    "crypto": "cry",
-    "forensics": "for",
-    "misc": "msc",
-    "pwn": "pwn",
-    "rev": "rev",
-    "web": "web",
-}
 
 
 def run_command(
@@ -47,51 +35,9 @@ def run_command(
     )
 
 
-def ensure_nyuctf_importable(repository_dir: Path | None = None) -> bool:
-    """Make the upstream `nyuctf` package importable from common checkout paths."""
-    try:
-        importlib.import_module("nyuctf.dataset")
-        return True
-    except ModuleNotFoundError:
-        pass
-
-    for root in candidate_python_roots(repository_dir):
-        if (root / "nyuctf").is_dir():
-            root_str = str(root)
-            if root_str not in sys.path:
-                sys.path.insert(0, root_str)
-            importlib.import_module("nyuctf.dataset")
-            return True
-    return False
-
-
-def candidate_python_roots(repository_dir: Path | None) -> Iterable[Path]:
-    if repository_dir is not None:
-        yield repository_dir / "python"
-    env_root = os.getenv("NYUCTF_REPOSITORY_DIR")
-    if env_root:
-        yield Path(env_root).expanduser().resolve() / "python"
-    yield Path.cwd() / "NYU_CTF_Bench" / "python"
-    yield Path.home() / ".nyuctf" / "v20250206" / "python"
-    yield Path.home() / ".nyuctf" / "v20241008" / "python"
-
-
 class _SafeDict(dict):
     def __missing__(self, key: str) -> str:
         return "{" + key + "}"
-
-
-def _safe_name(value: str) -> str:
-    safe = value.replace(" ", "_").lower()
-    safe = "".join(char if char.isalnum() else "_" for char in safe).rstrip("_")
-    return _REP_UNDERSCORE.sub("_", safe)
-
-
-def canonical_name_from_info(info: dict[str, str]) -> str:
-    event = info["event"].rsplit("-", 1)[1]
-    event_char = event.lower()[0]
-    category = _CATEGORY_SHORT[info["category"]]
-    return f"{info['year']}{event_char}-{category}-{_safe_name(info['challenge'])}"
 
 
 def description_with_placeholders(challenge_data: dict[str, object]) -> str:
@@ -115,25 +61,6 @@ class LoadedChallenge:
     port: str | None
     compose: bool
     dataset_path: Path
-
-    @classmethod
-    def from_upstream(
-        cls, challenge: Any, *, split: str, dataset_path: Path
-    ) -> "LoadedChallenge":
-        return cls(
-            split=split,
-            canonical_name=challenge.canonical_name,
-            challenge_dir=Path(challenge.challenge_dir),
-            name=challenge.name,
-            category=challenge.category,
-            description=challenge.description,
-            files=list(challenge.files),
-            flag=challenge.flag,
-            server_name=challenge.server_name,
-            port=str(challenge.port) if challenge.port is not None else None,
-            compose=bool(challenge.container),
-            dataset_path=dataset_path,
-        )
 
     def to_sample(self) -> dict[str, Any]:
         sample = asdict(self)
@@ -197,80 +124,92 @@ def load_dataset(
     dataset_json: Path | None = None,
     repository_dir: Path | None = None,
 ) -> tuple[Path, list[LoadedChallenge]]:
-    """Load the official NYU CTF Bench split through `nyuctf` or a JSON fallback."""
-    imported = ensure_nyuctf_importable(repository_dir)
+    """Load a CTF dataset directly from its JSON index.
+
+    The dataset JSON is a flat map of `canonical_name → {path, ...metadata}`,
+    where `path` is the location of the challenge directory relative to the
+    JSON file. Each `<dataset_root>/<path>/challenge.json` carries the
+    challenge fields (name, description, flag, files, box, internal_port,
+    compose). No Python wrapper package is required — any benchmark that
+    follows this layout can be loaded by pointing `--dataset_json` (or
+    `--repository_dir` + the conventional `<split>_dataset.json` name) at it.
+    """
+    dataset_path = resolve_dataset_json_path(
+        split=split,
+        dataset_json=dataset_json,
+        repository_dir=repository_dir,
+    )
+    if dataset_path is None:
+        raise FileNotFoundError(
+            "Could not locate a dataset JSON. Pass --dataset_json directly, "
+            "or pass --repository_dir / set NYUCTF_REPOSITORY_DIR pointing at "
+            f"a directory that contains `{split}_dataset.json`."
+        )
+
+    dataset_path = dataset_path.expanduser().resolve()
+    dataset_root = dataset_path.parent
+    dataset = json.loads(dataset_path.read_text())
     items: list[LoadedChallenge] = []
 
-    if imported:
-        from nyuctf.challenge import CTFChallenge
-        from nyuctf.dataset import CTFDataset
-
-        if dataset_json is not None:
-            dataset_json = dataset_json.expanduser().resolve()
-            dataset = CTFDataset(dataset_json=dataset_json)
-            dataset_path = dataset_json
-        else:
-            dataset = CTFDataset(split=split)
-            dataset_path = (Path(dataset.basedir) / f"{split}_dataset.json").resolve()
-
-        for canonical_name, info in dataset.all():
-            if challenge_name and canonical_name != challenge_name:
-                continue
-            upstream = CTFChallenge(info, dataset.basedir)
-            items.append(
-                LoadedChallenge.from_upstream(
-                    upstream,
-                    split=split,
-                    dataset_path=dataset_path,
-                )
+    for canonical_key, info in dataset.items():
+        if challenge_name and canonical_key != challenge_name:
+            continue
+        challenge_dir = (dataset_root / info["path"]).resolve()
+        challenge_data = json.loads((challenge_dir / "challenge.json").read_text())
+        items.append(
+            LoadedChallenge(
+                split=split,
+                canonical_name=canonical_key,
+                challenge_dir=challenge_dir,
+                name=str(
+                    challenge_data.get("name", info.get("challenge", canonical_key))
+                ),
+                category=str(challenge_data["category"]),
+                description=description_with_placeholders(challenge_data),
+                files=list(challenge_data.get("files", [])),
+                flag=str(challenge_data["flag"]),
+                server_name=(
+                    str(challenge_data["box"])
+                    if challenge_data.get("box") is not None
+                    else None
+                ),
+                port=(
+                    str(challenge_data["internal_port"])
+                    if challenge_data.get("internal_port") is not None
+                    else None
+                ),
+                compose=bool(challenge_data.get("compose", False)),
+                dataset_path=dataset_path,
             )
-    else:
-        if dataset_json is None:
-            raise ModuleNotFoundError(
-                "Could not import `nyuctf`. Install the package, point "
-                "NYUCTF_REPOSITORY_DIR at a local NYU_CTF_Bench checkout, or "
-                "pass --dataset_json for a manual dataset load."
-            )
-
-        dataset_path = dataset_json.expanduser().resolve()
-        dataset_root = dataset_path.parent
-        dataset = json.loads(dataset_path.read_text())
-        for _, info in sorted(dataset.items()):
-            canonical_name = canonical_name_from_info(info)
-            if challenge_name and canonical_name != challenge_name:
-                continue
-            challenge_dir = (dataset_root / info["path"]).resolve()
-            challenge_data = json.loads((challenge_dir / "challenge.json").read_text())
-            items.append(
-                LoadedChallenge(
-                    split=split,
-                    canonical_name=canonical_name,
-                    challenge_dir=challenge_dir,
-                    name=str(challenge_data.get("name", info["challenge"])),
-                    category=str(challenge_data["category"]),
-                    description=description_with_placeholders(challenge_data),
-                    files=list(challenge_data.get("files", [])),
-                    flag=str(challenge_data["flag"]),
-                    server_name=(
-                        str(challenge_data["box"])
-                        if challenge_data.get("box") is not None
-                        else None
-                    ),
-                    port=(
-                        str(challenge_data["internal_port"])
-                        if challenge_data.get("internal_port") is not None
-                        else None
-                    ),
-                    compose=bool(challenge_data.get("compose", False)),
-                    dataset_path=dataset_path,
-                )
-            )
+        )
 
     if challenge_name and not items:
         raise KeyError(f"Challenge not found in dataset: {challenge_name}")
 
-    items.sort(key=lambda item: item.canonical_name)
     return dataset_path, items
+
+
+def resolve_dataset_json_path(
+    *,
+    split: str,
+    dataset_json: Path | None = None,
+    repository_dir: Path | None = None,
+) -> Path | None:
+    if dataset_json is not None:
+        return dataset_json.expanduser().resolve()
+
+    candidates: list[Path] = []
+    if repository_dir is not None:
+        candidates.append(repository_dir.expanduser().resolve())
+    env_root = os.getenv("NYUCTF_REPOSITORY_DIR")
+    if env_root:
+        candidates.append(Path(env_root).expanduser().resolve())
+
+    for root in candidates:
+        candidate = root / f"{split}_dataset.json"
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def build_challenge_prompt(challenge: LoadedChallenge) -> str:
@@ -510,10 +449,12 @@ async def judge_trajectory_with_llm(
         base_url=os.getenv("LITELLM_BASE_URL") or "http://localhost:8082",
     )
     llm_request = LlmRequest()
-    llm_request.config = types.GenerateContentConfig(
-        temperature=0,
-        response_schema=JudgeDecision.model_json_schema(),
-    )
+    # Don't set `response_schema` — older `litellm` versions translate it into
+    # a top-level `output_format` field that the Anthropic API now rejects in
+    # favour of `output_config.format`. The judge prompt already specifies the
+    # JSON shape, and `_extract_json_object` + `JudgeDecision.model_validate_json`
+    # below validate the parsed reply, so the request-level schema is redundant.
+    llm_request.config = types.GenerateContentConfig(temperature=0)
     llm_request.contents = [
         types.Content(role="user", parts=[types.Part.from_text(text=judge_prompt)])
     ]

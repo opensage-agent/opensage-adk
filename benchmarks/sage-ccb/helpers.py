@@ -12,7 +12,7 @@ import subprocess
 import sys
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -26,13 +26,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from benchmarks.nyuctf.helpers import (  # noqa: E402
-    LoadedChallenge,
-    extract_trace_entries,
-    find_exact_flag,
-)
-
 logger = logging.getLogger(__name__)
+
+FLAG_RE = re.compile(r"[A-Za-z0-9_]+\{[^}\n]+\}")
 
 DEFAULT_REPOSITORY_DIR = PROJECT_ROOT.parent / "sage-ccb"
 DEFAULT_DATASET_JSON = DEFAULT_REPOSITORY_DIR / "dataset.json"
@@ -50,6 +46,58 @@ class _SafeDict(dict):
 
 def _utcnow_iso() -> str:
     return datetime.datetime.now(datetime.UTC).isoformat()
+
+
+@dataclass
+class LoadedChallenge:
+    split: str
+    canonical_name: str
+    challenge_dir: Path
+    name: str
+    category: str
+    description: str
+    files: list[str]
+    flag: str
+    server_name: str | None
+    port: str | None
+    compose: bool
+    dataset_path: Path
+
+    def to_sample(self) -> dict[str, Any]:
+        sample = asdict(self)
+        sample["challenge_dir"] = str(self.challenge_dir)
+        sample["dataset_path"] = str(self.dataset_path)
+        return sample
+
+    @classmethod
+    def from_sample(cls, sample: dict[str, Any]) -> "LoadedChallenge":
+        return cls(
+            split=str(sample["split"]),
+            canonical_name=str(sample["canonical_name"]),
+            challenge_dir=Path(sample["challenge_dir"]).resolve(),
+            name=str(sample["name"]),
+            category=str(sample["category"]),
+            description=str(sample["description"]),
+            files=list(sample.get("files", [])),
+            flag=str(sample["flag"]),
+            server_name=(
+                str(sample["server_name"]) if sample.get("server_name") else None
+            ),
+            port=str(sample["port"]) if sample.get("port") else None,
+            compose=bool(sample.get("compose")),
+            dataset_path=Path(sample["dataset_path"]).resolve(),
+        )
+
+    def stage_files(self, destination: Path) -> None:
+        destination.mkdir(parents=True, exist_ok=True)
+        for name in self.files:
+            source = self.challenge_dir / name
+            target = destination / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if source.is_dir():
+                shutil.copytree(source, target, dirs_exist_ok=True)
+            else:
+                shutil.copy2(source, target)
 
 
 def run_command(
@@ -89,6 +137,68 @@ def run_command(
             f"stderr:\n{stderr}"
         )
     return completed
+
+
+def find_exact_flag(challenge_flag: str, *texts: str) -> tuple[bool, str | None]:
+    for text in texts:
+        for candidate in FLAG_RE.findall(text or ""):
+            if candidate == challenge_flag:
+                return True, candidate
+    return False, None
+
+
+def extract_trace_entries(session_trace: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """Convert an ADK-style event dump into compact transcript entries."""
+    if not session_trace:
+        return []
+
+    entries: list[dict[str, Any]] = []
+    for event in session_trace.get("events", []):
+        author = (
+            event.get("author") or event.get("content", {}).get("role") or "unknown"
+        )
+        timestamp = event.get("timestamp")
+        parts = event.get("content", {}).get("parts", []) or []
+        for part in parts:
+            text = part.get("text")
+            if text:
+                entries.append(
+                    {
+                        "type": "text",
+                        "author": author,
+                        "timestamp": timestamp,
+                        "text": text,
+                    }
+                )
+
+            function_call = part.get("function_call") or part.get("functionCall")
+            if function_call:
+                entries.append(
+                    {
+                        "type": "tool_call",
+                        "author": author,
+                        "timestamp": timestamp,
+                        "name": function_call.get("name"),
+                        "args": function_call.get("args")
+                        or function_call.get("arguments")
+                        or {},
+                    }
+                )
+
+            function_response = part.get("function_response") or part.get(
+                "functionResponse"
+            )
+            if function_response:
+                entries.append(
+                    {
+                        "type": "tool_response",
+                        "author": author,
+                        "timestamp": timestamp,
+                        "name": function_response.get("name"),
+                        "response": function_response.get("response"),
+                    }
+                )
+    return entries
 
 
 def parse_timeout(timeout: str) -> int:

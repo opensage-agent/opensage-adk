@@ -39,9 +39,11 @@ from helpers import (  # noqa: E402
     DEFAULT_NETWORK,
     DEFAULT_REPOSITORY_DIR,
     DEFAULT_TIMEOUT,
+    LoadedChallenge,
     build_suite_prompt,
     load_sage_ccb_challenges,
     parse_timeout,
+    run_command,
     score_and_write_results,
     stage_challenge_suite,
     start_challenge_services,
@@ -49,8 +51,6 @@ from helpers import (  # noqa: E402
     stream_json_to_session_trace,
     write_raw_run_artifacts,
 )
-
-from benchmarks.nyuctf.helpers import LoadedChallenge, run_command  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("sage-ccb-cc-baseline")

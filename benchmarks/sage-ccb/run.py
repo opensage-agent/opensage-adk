@@ -25,6 +25,7 @@ from helpers import (  # noqa: E402
     DEFAULT_NETWORK,
     DEFAULT_REPOSITORY_DIR,
     DEFAULT_TIMEOUT,
+    LoadedChallenge,
     build_suite_prompt,
     load_sage_ccb_challenges,
     parse_timeout,
@@ -36,7 +37,6 @@ from helpers import (  # noqa: E402
     write_raw_run_artifacts,
 )
 
-from benchmarks.nyuctf.helpers import LoadedChallenge  # noqa: E402
 from opensage import get_opensage_session  # noqa: E402
 from opensage.evaluation.base import Evaluation, EvaluationTask  # noqa: E402
 from opensage.utils.project_info import PROJECT_PATH  # noqa: E402

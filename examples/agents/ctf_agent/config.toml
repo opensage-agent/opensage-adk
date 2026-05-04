@@ -5,10 +5,6 @@
 DEFAULT_IMAGE = "kalilinux/kali-rolling"
 TASK_NAME = "ctf_task"
 ABSOLUTE_SHARED_DATA_PATH = ""
-# Host directory mounted into the main sandbox at /mem/long_term so
-# long-term knowledge survives container restarts. Override via the
-# environment variable of the same name; empty disables the mount.
-HOST_LONG_TERM_MEM_DIR = ""
 MAIN_MODEL = "anthropic/claude-sonnet-4-5-20250929"
 GDB_PORT = 1111
 IDA_PRO_MCP_PORT = 1112
@@ -22,9 +18,6 @@ default_host = ""
 [sandbox]
 backend = "native"
 absolute_shared_data_path = "${ABSOLUTE_SHARED_DATA_PATH}"
-mount_host_paths = [
-    "${HOST_LONG_TERM_MEM_DIR}:/mem/long_term:rw",
-]
 
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"

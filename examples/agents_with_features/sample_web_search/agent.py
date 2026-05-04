@@ -7,7 +7,7 @@ from opensage.toolbox.general.web_search_tool import WebSearchTool
 def mk_agent(opensage_session_id: str):
     return OpenSageAgent(
         name="web_search_agent",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-6"),
+        model=LiteLlm(model="anthropic/claude-opus-4-7"),
         description="An agent with server-side web search.",
         instruction=(
             "You are a helpful assistant with web search capability. "

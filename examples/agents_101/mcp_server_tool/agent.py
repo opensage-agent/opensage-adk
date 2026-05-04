@@ -1,9 +1,10 @@
-from google.adk import Agent
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.mcp_tool.mcp_toolset import (
     MCPToolset,
     StreamableHTTPConnectionParams,
 )
+
+from opensage.agents.opensage_agent import OpenSageAgent
 
 
 def calculate_add(a: float, b: float) -> float:
@@ -19,8 +20,8 @@ def calculate_add(a: float, b: float) -> float:
     return a + b
 
 
-root_agent = Agent(
-    model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+root_agent = OpenSageAgent(
+    model=LiteLlm(model="anthropic/claude-opus-4-7"),
     name="simple_math_agent",
     description="A simple math agent that can perform addition operations.",
     instruction="""

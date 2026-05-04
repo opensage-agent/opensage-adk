@@ -71,12 +71,7 @@ dev = [
     "ruff==0.15.9",
 ]
 docs = [
-    "mkdocs>=1.5.0",
-    "mkdocs-autorefs>=1.4.0",
-    "mkdocs-material>=9.0.0",
-    "mkdocs-minify-plugin>=0.7.0",
-    "mkdocstrings[python]>=0.30.0",
-    "pymdown-extensions>=10.16.0",
+    "zensical>=0.0.33",
 ]
 
 [tool.uv]

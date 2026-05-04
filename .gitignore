@@ -182,8 +182,12 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
+# zensical / static-site build output
 /site
+
+# CLI reference pages are auto-generated from `opensage --help` before each
+# docs build (see docs/scripts/generate_cli_reference.py). Do not commit them.
+/docs/wiki/generated/
 
 # mypy
 .mypy_cache/

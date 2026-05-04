@@ -1,0 +1,224 @@
+# Zensical configuration for the OpenSage-ADK docs site.
+#
+# Migrated from mkdocs.yml. Zensical (https://zensical.org) is the TOML-
+# configured successor to Material for MkDocs from the same team. Notes:
+#   - There is no `hooks` system yet, so CLI reference pages are generated
+#     by `docs/scripts/generate_cli_reference.py` and must be regenerated
+#     manually before `zensical build`.
+#   - There is no `exclude_docs` yet; we currently have nothing to exclude.
+
+[project]
+site_name = "OpenSage-ADK"
+site_description = "OpenSage-ADK Documentation"
+
+# Documentation source directory and build output directory.
+docs_dir = "docs/wiki"
+site_dir = "site"
+
+# Repository information (shown in the header).
+repo_url = "https://github.com/opensage-agent/opensage-adk"
+repo_name = "opensage-adk"
+
+# copyright notice
+copyright = "&copy; 2026 OpenSage"
+
+# Custom styles (logo sizing, palette overrides, small UI tweaks).
+extra_css = ["assets/stylesheets/extra.css"]
+dev_addr = "localhost:11451"
+
+
+# Navigation structure.
+nav = [
+    { "Home" = "https://www.opensage-agent.ai/adk.html" },
+    { "Get Started" = [
+        { "Welcome" = "get-started/welcome.md" },
+        { "Quick Start" = "get-started/quick-start.md" },
+        { "Customize Agents" = [
+            { "Customize Agents" = "get-started/customize/index.md" },
+            { "Step 1: Pick an LLM" = "get-started/customize/llm.md" },
+            { "Step 2: Choose a Sandbox" = "get-started/customize/sandbox.md" },
+            { "Step 3: Add MCP Tools" = "get-started/customize/mcp.md" },
+            { "Step 4: Tune Memory & History" = "get-started/customize/history.md" },
+            { "Step 5: Turn on Plugins" = "get-started/customize/plugins.md" },
+            { "Step 6: Agent Ensembles" = "get-started/customize/agent-ensemble.md" },
+            { "Step 7: Neo4j Logging" = "get-started/customize/neo4j.md" },
+            { "Step 8: Extra Building" = "get-started/customize/build.md" },
+            { "Complete Example" = "get-started/customize/complete-example.md" }
+        ] },
+        { "Agent Examples" = [
+            { "Examples" = "get-started/examples/index.md" },
+            { "Agents 101" = [
+                { "Basic Agent with a Function Tool" = "get-started/examples/agents_101/sample_agent.md" },
+                { "Agent with a Sub-Agent Tool" = "get-started/examples/agents_101/sample_agent_tool.md" },
+                { "Agent with an SSE MCP Server" = "get-started/examples/agents_101/mcp_agent_sse.md" },
+                { "Agent with a Stdio MCP Server" = "get-started/examples/agents_101/mcp_agent_stdio.md" },
+                { "Agent with a Custom MCP Server" = "get-started/examples/agents_101/mcp_server_tool.md" },
+            ] },
+            { "Agents With Features" = [
+                { "Agent Ensemble" = "get-started/examples/agents_with_features/sample_agent_ensemble.md" },
+                { "Dynamic Sub-Agents" = "get-started/examples/agents_with_features/sample_dynamic_subagent.md" },
+                { "Tool Combo" = "get-started/examples/agents_with_features/sample_tool_combo.md" },
+                { "History Summarization" = "get-started/examples/agents_with_features/sample_summarization.md" },
+                { "Neo4j Logging" = "get-started/examples/agents_with_features/sample_neo4j_logging.md" },
+                { "Web Search" = "get-started/examples/agents_with_features/sample_web_search.md" },
+            ] },
+        ] },
+    ] },
+    { "Inside OpenSage-ADK" = [
+        { "Roadmap" = "inside-opensage/roadmap.md" },
+        { "Project Structure" = "inside-opensage/project-structure.md" },
+        { "OpenSage Workflow" = "inside-opensage/workflow.md" },
+        { "Components" = [
+            { "Core Concepts" = "inside-opensage/components/index.md" },
+            { "Sessions" = "inside-opensage/components/sessions.md" },
+            { "Sandbox" = "inside-opensage/components/sandbox.md" },
+            { "Tools" = "inside-opensage/components/tools.md" },
+            { "Plugins" = "inside-opensage/components/plugins.md" },
+            { "History" = "inside-opensage/components/history.md" },
+            { "Multi-Agent" = "inside-opensage/components/multi-agent.md" },
+        ] },
+        { "Production Agents" = [
+            { "Overview" = "inside-opensage/examples/index.md" },
+            { "Terminal Coding Agent (Harbor)" = "inside-opensage/examples/harbor_agent.md" },
+            { "DevOps Engineering Agent" = "inside-opensage/examples/devops_gym_agent.md" },
+            { "Issue-Fixing Agent (SWE-Bench Pro)" = "inside-opensage/examples/swebenchpro_agent.md" },
+            { "Static Vulnerability Detection" = "inside-opensage/examples/vul_agent_static_tools.md" },
+            { "PoC Generation — Static" = "inside-opensage/examples/poc_agent_static_tools.md" },
+            { "PoC Generation — Dynamic" = "inside-opensage/examples/poc_agent_dynamic_tools.md" },
+            { "Debugger Agent" = "inside-opensage/examples/debugger_agent.md" },
+            { "CTF Agent" = "inside-opensage/examples/ctf_agent.md" },
+            { "Patch Scaffold" = "inside-opensage/examples/patch_agent.md" },
+            { "Fuzzing Agent" = "inside-opensage/examples/fuzzing_agent.md" },
+        ] },
+        { "Learn More" = "inside-opensage/learn-more.md" },
+    ] },
+    { "Developer Guide" = [
+        { "Adding Tools" = "developer-guide/adding-tools.md" },
+        { "Adding Plugins" = "developer-guide/adding-plugins.md" },
+        { "Best Practices" = "developer-guide/best-practices.md" },
+        { "Troubleshooting" = "developer-guide/troubleshooting.md" },
+        { "Customize Sandbox" = [
+            { "Customize Sandbox" = "developer-guide/sandbox/index.md" },
+            { "Adding a Sandbox" = "developer-guide/sandbox/adding-a-sandbox.md" },
+            { "Adding a New Sandbox Backend" = "developer-guide/sandbox/adding-a-new-sandbox-backend.md" },
+        ] },
+        { "Evaluation" = [
+            { "Evaluation" = "developer-guide/evaluation/index.md" },
+            { "Workflow Details" = "developer-guide/evaluation/workflow.md" },
+            { "Built-in Benchmarks" = "developer-guide/evaluation/built-in-benchmarks.md" },
+            { "Adding a Benchmark" = "developer-guide/evaluation/adding-evaluations.md" },
+        ] },
+        { "RL Training" = [
+            { "RL Training" = "developer-guide/rl-integration/index.md" },
+            { "AReaL Training" = "developer-guide/rl-integration/areal.md" },
+            { "slime Training" = "developer-guide/rl-integration/slime.md" },
+        ] },
+    ] },
+    { "Reference" = [
+        { "CLI Reference" = "reference/opensage-cli.md" },
+        { "Web Reference" = "reference/opensage-web.md" },
+        { "Dependency Check" = "reference/dependency-check.md" },
+        { "Configuration Reference" = [
+            { "Overview" = "reference/configuration/index.md" },
+            { "[llm]" = "reference/configuration/llm.md" },
+            { "[sandbox]" = "reference/configuration/sandbox.md" },
+            { "[mcp]" = "reference/configuration/mcp.md" },
+            { "[history]" = "reference/configuration/history.md" },
+            { "[plugins]" = "reference/configuration/plugins.md" },
+            { "[agent_ensemble]" = "reference/configuration/agent-ensemble.md" },
+            { "[neo4j]" = "reference/configuration/neo4j.md" },
+            { "[build]" = "reference/configuration/build.md" },
+        ] },
+    ] },
+    { "Community" = [
+        { "Get Involved" = "community/get-involved.md" },
+        { "Contributing" = "community/contributing.md" },
+        { "Code of Conduct" = "community/coc.md" },
+    ] },
+]
+
+# ----------------------------------------------------------------------------
+# Theme
+# ----------------------------------------------------------------------------
+[project.theme]
+variant = "classic"
+logo = "assets/logos/opensage-logo.svg"
+favicon = "assets/logos/opensage-favicon.svg"
+language = "en"
+features = [
+    "navigation.tabs",
+    "navigation.sections",
+    "navigation.top",
+    "navigation.indexes",
+    "navigation.path",
+    "navigation.footer",
+    "search.suggest",
+    "search.highlight",
+    "content.code.copy",
+    "content.code.annotate",
+    "content.tabs.link",
+    "content.footnote.tooltips",
+]
+
+# Light/dark color schemes. The actual colors are driven by extra.css via the
+# Material CSS variables under [data-md-color-scheme="default"|"slate"].
+[[project.theme.palette]]
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[project.theme.icon.admonition]
+note = "octicons/tag-16"
+abstract = "octicons/checklist-16"
+info = "octicons/info-16"
+tip = "octicons/squirrel-16"
+success = "octicons/check-16"
+question = "octicons/question-16"
+warning = "octicons/alert-16"
+failure = "octicons/x-circle-16"
+danger = "octicons/zap-16"
+bug = "octicons/bug-16"
+example = "octicons/beaker-16"
+quote = "octicons/quote-16"
+
+# ----------------------------------------------------------------------------
+# Extra
+# ----------------------------------------------------------------------------
+[project.extra]
+homepage = "https://www.opensage-agent.ai/adk.html"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/opensage-agent/opensage-adk"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/discord"
+link = "https://discord.gg/zbKe5ue8xc"
+
+# ----------------------------------------------------------------------------
+# Markdown extensions
+# ----------------------------------------------------------------------------
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.md_in_html]
+
+[project.markdown_extensions.toc]
+permalink = true
+
+[project.markdown_extensions.pymdownx.details]
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.snippets]
+[project.markdown_extensions.pymdownx.superfences]
+[project.markdown_extensions.pymdownx.emoji]
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true

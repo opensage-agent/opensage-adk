@@ -16,7 +16,7 @@ from opensage.toolbox.general.bash_tool import bash_tool_main
 def mk_agent(opensage_session_id: str):
     return OpenSageAgent(
         name="patch_generation_agent",
-        model=LiteLlm(model="anthropic/claude-sonnet-4-20250514"),
+        model=LiteLlm(model="anthropic/claude-opus-4-7"),
         description="Generates Python patch scripts for vulnerabilities.",
         instruction="""
         You are a dummy agent. You should use bash_tool_main to echo "Hello, world!" and get the output.

@@ -1,13 +1,124 @@
+:root {
+  font-size: 135%; /* Default is usually 16px or 100% */
+}
+
+/* Light mode: soft white header with teal accent */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:        #f0f2f5;
+  --md-primary-fg-color--light: #e6e9ee;
+  --md-primary-fg-color--dark:  #d8dce4;
+  --md-primary-bg-color:        #1a1a2e;
+  --md-primary-bg-color--light: rgba(26, 26, 46, 0.7);
+  --md-accent-fg-color:         #0a6e8a;
+  --md-accent-fg-color--transparent: rgba(10, 110, 138, 0.1);
+  --md-accent-bg-color:         #f8f9fb;
+}
+
+/* Dark mode: dark navy header with cyan accent */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #071528;
+  --md-primary-fg-color--light: #0c1e38;
+  --md-primary-fg-color--dark:  #040d1a;
+  --md-primary-bg-color:        #ffffff;
+  --md-primary-bg-color--light: rgba(255, 255, 255, 0.7);
+  --md-accent-fg-color:         #00d4ff;
+  --md-accent-fg-color--transparent: rgba(0, 212, 255, 0.1);
+  --md-accent-bg-color:         #ffffff;
+}
+
+/* Light mode: clean white background with navy/cyan accents */
+[data-md-color-scheme="default"] {
+  --md-default-bg-color:        #f8f9fb;
+  --md-default-bg-color--light: #f1f3f7;
+  --md-default-bg-color--lighter: #e9ecf2;
+  --md-default-bg-color--lightest: #e0e4ec;
+  --md-default-fg-color:        #1a1a2e;
+  --md-default-fg-color--light: rgba(26, 26, 46, 0.75);
+  --md-default-fg-color--lighter: rgba(26, 26, 46, 0.5);
+  --md-default-fg-color--lightest: rgba(26, 26, 46, 0.12);
+  --md-typeset-a-color:         #0a6e8a;
+  --md-code-bg-color:           #f0f4f8;
+  --md-code-fg-color:           #1a1a2e;
+}
+
+[data-md-color-scheme="default"] .md-content a {
+  color: #0a6e8a;
+}
+
+[data-md-color-scheme="default"] .md-content a:hover {
+  color: #00a2cc;
+}
+
+[data-md-color-scheme="default"] .md-nav__link--active,
+[data-md-color-scheme="default"] .md-nav__link:hover {
+  color: #0a6e8a;
+}
+
+[data-md-color-scheme="default"] .md-footer {
+  background-color: #e6e9ee;
+  color: #1a1a2e;
+}
+
+/* Dark mode: cyan-tinted links for visibility */
+[data-md-color-scheme="slate"] .md-content a {
+  color: #5ecfff;
+}
+
+[data-md-color-scheme="slate"] .md-content code {
+  color: #e0e2e8;
+}
+
+[data-md-color-scheme="slate"] .md-content a:hover {
+  color: #00d4ff;
+}
+
+[data-md-color-scheme="slate"] .md-nav__link,
+[data-md-color-scheme="slate"] .md-nav__title {
+  color: #ffffff;
+}
+
+[data-md-color-scheme="slate"] .md-nav__link:hover,
+[data-md-color-scheme="slate"] .md-nav__link--active {
+  color: #00d4ff;
+}
+
+
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color:        #141820;
+  --md-default-bg-color--light: #1a1f28;
+  --md-default-bg-color--lighter: #212730;
+  --md-default-bg-color--lightest: #2a3040;
+  --md-default-fg-color:        #e0e2e8;
+  --md-default-fg-color--light: rgba(224, 226, 232, 0.75);
+  --md-default-fg-color--lighter: rgba(224, 226, 232, 0.5);
+  --md-default-fg-color--lightest: rgba(224, 226, 232, 0.12);
+  --md-typeset-a-color:         #5ecfff;
+  --md-code-bg-color:           #1a1f28;
+  --md-code-fg-color:           #e0e2e8;
+}
+
+/* Dark mode: fix back-to-top button shadow */
+[data-md-color-scheme="slate"] .md-top {
+  background-color: #212730;
+  color: #e0e2e8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
 /* Make the header logo larger and more visible. */
 .md-header__button.md-logo img,
 .md-header__button.md-logo svg {
-  height: 2.4rem;
+  height: 2rem;
   width: auto;
 }
 
-/* Our logo SVG is black; invert it for the colored header background. */
-.md-header__button.md-logo img {
+/* Dark mode: invert black logo to white for dark header */
+[data-md-color-scheme="slate"] .md-header__button.md-logo img {
   filter: brightness(0) invert(1);
+}
+
+/* Light mode: keep logo dark on light header */
+[data-md-color-scheme="default"] .md-header__button.md-logo img {
+  filter: brightness(0);
 }
 
 /* Make the homepage logo prominent. */

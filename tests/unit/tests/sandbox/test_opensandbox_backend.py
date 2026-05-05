@@ -423,3 +423,96 @@ def test_manager_mount_host_paths_validator():
         OpenSageSandboxManager._normalize_mount_host_path_spec("/a:rel:rw")
     with pytest.raises(ValueError, match="mode must be 'ro' or 'rw'"):
         OpenSageSandboxManager._normalize_mount_host_path_spec("/a:/b:rwx")
+
+
+def test_native_docker_host_gateway_adds_extra_hosts(monkeypatch):
+    from opensage.sandbox.native_docker_sandbox import NativeDockerSandbox
+
+    sandbox = object.__new__(NativeDockerSandbox)
+    sandbox.container_config_obj = ContainerConfig(
+        image="ubuntu:latest",
+        container_name="test-container",
+        host_gateway=True,
+    )
+    sandbox.sandbox_type = "main"
+    sandbox.opensage_session_id = "session-1"
+
+    fake_container = SimpleNamespace(id="container-1")
+    fake_client = SimpleNamespace(
+        containers=SimpleNamespace(
+            run=lambda image, **kwargs: SimpleNamespace(
+                id=fake_container.id,
+                image=image,
+                kwargs=kwargs,
+            )
+        )
+    )
+    captured = {}
+
+    def _fake_run(image, **kwargs):
+        captured["image"] = image
+        captured["kwargs"] = kwargs
+        return fake_container
+
+    fake_client.containers.run = _fake_run
+    sandbox.client = fake_client
+
+    container_id = sandbox._get_container()
+
+    assert container_id == "container-1"
+    assert captured["kwargs"]["extra_hosts"] == {"host.docker.internal": "host-gateway"}
+
+
+def test_native_docker_host_gateway_default_omits_extra_hosts():
+    from opensage.sandbox.native_docker_sandbox import NativeDockerSandbox
+
+    sandbox = object.__new__(NativeDockerSandbox)
+    sandbox.container_config_obj = ContainerConfig(
+        image="ubuntu:latest",
+        container_name="test-container",
+    )
+    sandbox.sandbox_type = "main"
+    sandbox.opensage_session_id = "session-1"
+
+    fake_container = SimpleNamespace(id="container-1")
+    captured = {}
+
+    def _fake_run(image, **kwargs):
+        captured["kwargs"] = kwargs
+        return fake_container
+
+    sandbox.client = SimpleNamespace(containers=SimpleNamespace(run=_fake_run))
+
+    sandbox._get_container()
+
+    assert "extra_hosts" not in captured["kwargs"]
+
+
+def test_native_docker_host_gateway_warns_with_host_network(caplog):
+    from opensage.sandbox.native_docker_sandbox import NativeDockerSandbox
+
+    sandbox = object.__new__(NativeDockerSandbox)
+    sandbox.container_config_obj = ContainerConfig(
+        image="ubuntu:latest",
+        container_name="test-container",
+        host_gateway=True,
+        network="host",
+    )
+    sandbox.sandbox_type = "main"
+    sandbox.opensage_session_id = "session-1"
+
+    fake_container = SimpleNamespace(id="container-1")
+    captured = {}
+
+    def _fake_run(image, **kwargs):
+        captured["kwargs"] = kwargs
+        return fake_container
+
+    sandbox.client = SimpleNamespace(containers=SimpleNamespace(run=_fake_run))
+
+    with caplog.at_level("WARNING", logger="opensage.sandbox.native_docker_sandbox"):
+        sandbox._get_container()
+
+    assert captured["kwargs"]["network"] == "host"
+    assert "extra_hosts" not in captured["kwargs"]
+    assert "host_gateway has no effect when network='host'" in caplog.text

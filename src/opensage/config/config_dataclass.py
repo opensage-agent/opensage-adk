@@ -141,6 +141,7 @@ class ContainerConfig:
     # Runtime/engine options
     platform: Optional[str] = None
     network: Optional[str] = None
+    host_gateway: bool = False
     privileged: bool = False
     security_opt: List[str] = field(default_factory=list)
     cap_add: List[str] = field(default_factory=list)

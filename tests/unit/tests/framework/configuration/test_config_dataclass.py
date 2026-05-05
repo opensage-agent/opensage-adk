@@ -177,6 +177,7 @@ class TestDataclassCreation:
 
         assert config.image is None
         assert config.timeout == 300
+        assert config.host_gateway is False
         assert config.privileged is False
         assert config.environment == {}
         assert config.volumes == []
@@ -330,6 +331,24 @@ timeout = 300
         assert config.sandbox.backend == "native"
         assert config.sandbox.sandboxes["main"].image == "ubuntu:20.04"
         assert config.sandbox.sandboxes["main"].timeout == 300
+
+    def test_load_sandbox_host_gateway_from_toml(self):
+        """Test loading the host_gateway sandbox option."""
+        toml_content = """
+[sandbox]
+backend = "native"
+
+[sandbox.sandboxes.main]
+image = "ubuntu:20.04"
+host_gateway = true
+"""
+
+        with open(self.test_config_path, "w") as f:
+            f.write(toml_content)
+
+        config = OpenSageConfig.from_toml(str(self.test_config_path))
+
+        assert config.sandbox.sandboxes["main"].host_gateway is True
 
     def test_load_llm_config_from_toml(self):
         """Test loading LLM configuration from TOML."""

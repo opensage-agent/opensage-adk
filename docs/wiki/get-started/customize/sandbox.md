@@ -36,6 +36,7 @@ mount_host_paths = [
 image = "ubuntu:20.04"
 project_relative_dockerfile_path = "dockerfiles/main/Dockerfile"
 timeout = 300
+host_gateway = true
 
 [sandbox.sandboxes.main.build_args]
 BASE_IMAGE = "ubuntu:20.04"
@@ -62,6 +63,11 @@ JAVA_OPTS = "-Xmx16G -Xms4G"
     `mount_host_paths` is appended to every sandbox's `volumes`. Absolute source paths are treated as host mount sources; mode defaults to `rw` when omitted.
 
     `host_shared_mem_dir` is also injected into every sandbox volume as `"<host_shared_mem_dir>:/mem/shared:rw"`. The host directory is created automatically if it does not exist.
+
+!!! tip "Host services"
+    Set `host_gateway = true` on a sandbox when that container needs to access services running on the Docker host. This adds `host.docker.internal:host-gateway` to that Docker-backed sandbox container.
+
+    On Linux this requires Docker Engine 20.10 or newer. It is unnecessary when the same sandbox uses `network = "host"`, where the option has no effect.
 
 ## Backend Notes
 

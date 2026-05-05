@@ -62,6 +62,7 @@ request_working_directory = ""
 image = "${DEFAULT_IMAGE}_main"
 project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/main/Dockerfile"
 timeout = 300
+host_gateway = false
 [sandbox.sandboxes.main.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"
 [sandbox.sandboxes.main.extra]

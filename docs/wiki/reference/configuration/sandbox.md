@@ -53,6 +53,7 @@ Each sandbox is configured under `[sandbox.sandboxes.<name>]`. Common built-in n
 | `command` | `string` | Override container command (empty string = use Dockerfile default, `None` = use `bash`) | `None` |
 | `platform` | `string` | Platform architecture (e.g., `"linux/amd64"`) | `None` |
 | `network` | `string` | Docker network name | `None` |
+| `host_gateway` | `boolean` | Add `host.docker.internal:host-gateway` to this Docker container so it can reach services on the Docker host | `false` |
 | `privileged` | `boolean` | Run container in privileged mode | `false` |
 | `security_opt` | `list[string]` | Security options | `[]` |
 | `cap_add` | `list[string]` | Additional capabilities | `[]` |
@@ -87,3 +88,6 @@ Each sandbox is configured under `[sandbox.sandboxes.<name>]`. Common built-in n
 |-------|------|-------------|
 | `pod_name` | `string` | Connect to existing Pod instead of creating new |
 | `container_name` | `string` | Name of container within the Pod |
+
+!!! note "`host_gateway` compatibility"
+    On Linux, Docker's `host-gateway` option requires Docker Engine 20.10 or newer. Older Docker daemons may fail container startup when `host_gateway = true`. The option has no effect when the same sandbox also sets `network = "host"`.

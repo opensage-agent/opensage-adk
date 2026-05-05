@@ -408,6 +408,13 @@ class NativeDockerSandbox(BaseSandbox):
         if self.container_config_obj.cpus is not None:
             # docker SDK uses nano_cpus or cpuset; keep simple mapping to cpus via host_config is complex; skip if not trivial
             run_kwargs["cpuset_cpus"] = str(self.container_config_obj.cpus)
+        if self.container_config_obj.host_gateway:
+            if self.container_config_obj.network == "host":
+                logger.warning("host_gateway has no effect when network='host'")
+            else:
+                run_kwargs["extra_hosts"] = {
+                    "host.docker.internal": "host-gateway",
+                }
 
         # Volumes: list of binds "host:cont[:mode]"
         if self.container_config_obj.volumes:
@@ -712,8 +719,6 @@ class NativeDockerSandbox(BaseSandbox):
         self, key: str, lang: str = "c", line_in_func: int = -1
     ) -> tuple[str, int, int]:
         """Retrieve the content of a specific function from a file inside the container."""
-        container = self.client.containers.get(self.container_id)
-
         parts = key.split__xx__
         if len(parts) != 2:
             logger.warning(

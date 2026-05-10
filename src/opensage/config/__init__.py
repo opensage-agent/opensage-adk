@@ -18,7 +18,6 @@ from .config_dataclass import (
     OpenSageConfig,
     OpenSandboxConfig,
     SandboxConfig,
-    SubagentConfig,
     load_config_from_toml,
 )
 
@@ -33,7 +32,6 @@ __all__ = [
     "ModelRegistryConfig",
     "LLMConfig",
     "HistoryConfig",
-    "SubagentConfig",
     "BuildConfig",
     "MCPServiceConfig",
     "MCPConfig",

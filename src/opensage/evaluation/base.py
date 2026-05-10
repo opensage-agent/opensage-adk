@@ -848,7 +848,11 @@ class Evaluation(abc.ABC):
         template_variables = self._get_config_template_variables(task)
         self._replace_template_variables_in_config(temp_config_path, template_variables)
 
-        get_opensage_session(task.session_id, config_path=temp_config_path)
+        get_opensage_session(
+            task.session_id,
+            config_path=temp_config_path,
+            agent_dir=self.agent_dir,
+        )
 
         # clean up temp config file
         shutil.rmtree(temp_dir, ignore_errors=True)

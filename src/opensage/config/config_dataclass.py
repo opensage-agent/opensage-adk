@@ -323,22 +323,6 @@ class PluginsConfig:
 
 
 @dataclass
-class SubagentConfig:
-    """Subagent configuration."""
-
-    # Per-subagent LLM call limit. 0 = unlimited (bounded only by parent's remaining quota).
-    max_llm_calls: int = 0
-    # Path where dynamically created agents are stored.
-    agent_storage_path: Optional[str] = None
-    # Whether to load dynamic agents at startup.
-    load_dynamic_agents: bool = False
-    # If True, only agents whose tools are all listed in thread_safe_tools are
-    # considered "safe".
-    enforce_thread_safe_tools: bool = False
-    thread_safe_tools: Set[str] = field(default_factory=set)
-
-
-@dataclass
 class ModelEntry:
     """One model entry under ``config.model.available_models``.
 
@@ -531,7 +515,6 @@ class OpenSageConfig:
     llm: LLMConfig = None
     history: HistoryConfig = None
     plugins: PluginsConfig = field(default_factory=PluginsConfig)
-    subagent: SubagentConfig = None
     model: ModelRegistryConfig = field(default_factory=ModelRegistryConfig)
     auto_insert_prompt_file: AutoInsertPromptFileConfig = field(
         default_factory=AutoInsertPromptFileConfig
@@ -598,18 +581,9 @@ class OpenSageConfig:
         """Preprocess config data for special conversions before dacite.
 
         Modifies data dict in-place to handle:
-        - subagent: list → set, comma-separated string → list
         - build: empty string → None
         - mcp: convert to MCPServiceConfig with proper initialization
         """
-        # Subagent: convert thread_safe_tools list → set
-        if "subagent" in data:
-            subagent_data = data["subagent"]
-            if "thread_safe_tools" in subagent_data:
-                subagent_data["thread_safe_tools"] = set(
-                    subagent_data["thread_safe_tools"]
-                )
-
         # Build: empty string → None
         if "build" in data:
             build_data = data["build"]

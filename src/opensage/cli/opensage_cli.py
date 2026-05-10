@@ -130,7 +130,9 @@ async def _prepare_environment_async(config_path: str, agent_dir: str) -> str:
 
     # 1) Create session from config
     opensage_session = get_opensage_session(
-        opensage_session_id=session_id, config_path=config_path
+        opensage_session_id=session_id,
+        config_path=config_path,
+        agent_dir=agent_dir,
     )
 
     # 1.5) Collect sandbox dependencies from the specified agent, and prune config
@@ -396,15 +398,17 @@ async def _resume_environment_async(
             "Resolved config snapshot missing in saved session and no --config provided. "
             "Please pass --config PATH for this legacy snapshot."
         )
+    agent_dir = metadata.get("agent_dir", "")
     opensage_session = get_opensage_session(
-        opensage_session_id=session_id, config_path=resume_config_path
+        opensage_session_id=session_id,
+        config_path=resume_config_path,
+        agent_dir=agent_dir or None,
     )
     await _attach_sandboxes_from_snapshot_async(
         opensage_session=opensage_session,
         snapshot_metadata=metadata,
     )
     logger.info("Resumed OpenSage environment for session: %s", session_id)
-    agent_dir = metadata.get("agent_dir", "")
     return session_id, metadata, agent_dir
 
 

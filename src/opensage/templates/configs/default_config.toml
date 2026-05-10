@@ -9,7 +9,6 @@ TASK_NAME = "my_analysis_task"
 POC_DIR = "/tmp/poc"
 COMPILE_COMMAND = "arvo compile"
 RUN_COMMAND = "arvo"
-AGENT_STORAGE_PATH = ""
 # History configuration defaults
 MAX_TOOL_RESPONSE_LENGTH = 10000
 MAX_HISTORY_SUMMARY_LENGTH = 100000
@@ -170,10 +169,6 @@ compaction_percent = "${COMPACTION_PERCENT}"
 # No plugins enabled by default. Explicitly list plugins in your agent config.
 # Execution order matches the list order — see docs/wiki/Plugins.md for details.
 enabled = []
-[subagent]
-max_llm_calls = 0
-agent_storage_path = "${AGENT_STORAGE_PATH}"
-load_dynamic_agents = false
 
 # Model registry: which LiteLlm instances LLM-driven subagents may use.
 # Configure either ``[[model.available_models]]`` (declarative) OR

@@ -224,7 +224,12 @@ async def wait_for_subagent(
 
 
 async def list_subagents(tool_context: ToolContext) -> Dict[str, Any]:
-    """List all registered agent definitions and all known instances."""
+    """List all registered agent definitions and all known instances.
+
+    You do NOT need to call this to check on subagent progress. Both sync
+    and async subagents automatically report results back to you when they
+    finish — do not poll.
+    """
     import json
 
     from opensage.orchestration.persistence import instance_dir, read_metadata

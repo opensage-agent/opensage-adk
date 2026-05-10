@@ -1,20 +1,9 @@
-import importlib
-import logging
 import os
-from typing import Optional
 
-import google.adk as adk
-from dotenv import load_dotenv
-from google.adk.agents.llm_agent import ToolUnion
 from google.adk.models.lite_llm import LiteLlm
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.session import get_opensage_session
-from opensage.toolbox.benchmark_specific.cybergym.cybergym import (
-    critique,
-    generate_poc_and_submit,
-    run_poc_from_script,
-)
+from opensage.toolbox.benchmark_specific.cybergym.cybergym import critique
 from opensage.toolbox.binary.ghidra_mcp.get_toolset import (
     get_toolset as get_ghidra_toolset,
 )
@@ -25,12 +14,7 @@ from opensage.toolbox.binary.pyghidra_mcp.get_toolset import (
     get_toolset as get_pyghidra_toolset,
 )
 from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
-from opensage.toolbox.general.agent_tools import (
-    complain,
-    note_suspicious_things,
-    think,
-)
-from opensage.toolbox.general.bash_tool import bash_tool_main
+from opensage.toolbox.general.agent_tools import complain
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
     list_background_tasks,
@@ -38,9 +22,12 @@ from opensage.toolbox.general.bash_tools_interface import (
 )
 from opensage.toolbox.general.orchestration_tools import (
     call_subagent,
+    continue_agent_instance,
     create_subagent,
     get_available_models,
     list_subagents,
+    send_message,
+    wait_for_subagent,
 )
 from opensage.toolbox.general.view_image import view_image
 
@@ -51,9 +38,9 @@ def mk_agent(opensage_session_id: str):
         api_key=os.getenv("LITELLM_API_KEY"),
         base_url=os.getenv("LITELLM_BASE_URL") or "http://localhost:8082",
         cache_control_injection_points=[
-            {"location": "message", "role": "system"},  # Cache all system messages
-            {"location": "message", "index": -2},  # Cache second-to-last message
-            {"location": "message", "index": -1},  # Cache last message
+            {"location": "message", "role": "system"},
+            {"location": "message", "index": -2},
+            {"location": "message", "index": -1},
         ],
     )
     gdb_toolset = get_gdb_toolset(opensage_session_id)
@@ -65,7 +52,7 @@ def mk_agent(opensage_session_id: str):
         name="ctf_agent",
         model=model,
         description="CTF agent",
-        instruction=f"""
+        instruction="""
         You are a CTF agent that solves CTF challenges.
         For reverse engineering workflows, use `create_subagent` and inject the
         MCP toolsets you need by name from this agent's available Python toolsets
@@ -76,9 +63,12 @@ def mk_agent(opensage_session_id: str):
         tools=[
             get_available_models,
             create_subagent,
+            call_subagent,
+            continue_agent_instance,
+            send_message,
+            wait_for_subagent,
             view_image,
             list_subagents,
-            call_subagent,
             critique,
             # think,
             complain,
@@ -93,7 +83,7 @@ def mk_agent(opensage_session_id: str):
             pyghidra_toolset,
             ghidra_toolset,
         ],
-        enabled_skills=[],
+        enabled_skills=["mmp", "workflow"],
     )
 
     return root_agent

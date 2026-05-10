@@ -565,6 +565,7 @@ class OpenSageWebServer:
                 raise HTTPException(status_code=404, detail="Session not found")
 
             async def event_generator():
+                nonlocal state_delta, invocation_id
                 current_task = asyncio.current_task()
                 if current_task is None:
                     yield 'data: {"error": "No active task context"}\n\n'

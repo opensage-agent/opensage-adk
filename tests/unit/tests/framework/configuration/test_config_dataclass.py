@@ -22,7 +22,6 @@ from opensage.config.config_dataclass import (
     Neo4jConfig,
     OpenSageConfig,
     SandboxConfig,
-    SubagentConfig,
     _expand_template_variables,
     load_config_from_toml,
 )
@@ -222,14 +221,6 @@ class TestDataclassCreation:
         assert config.events_compaction.max_history_summary_length == 80000
         assert config.events_compaction.compaction_percent == 60
 
-    def test_subagent_config_creation(self):
-        """Test SubagentConfig creation."""
-        config = SubagentConfig(
-            thread_safe_tools={"tool1", "tool2"},
-        )
-
-        assert config.thread_safe_tools == {"tool1", "tool2"}
-
     def test_build_config_creation(self):
         """Test BuildConfig creation."""
         config = BuildConfig(
@@ -384,21 +375,6 @@ max_tokens = 1024
         assert flag_config.model_name == "test/model"
         assert flag_config.temperature == 0.0
 
-    def test_load_subagent_config_from_toml(self):
-        """Test loading subagent configuration from TOML."""
-        toml_content = """
-[subagent]
-thread_safe_tools = ["tool1", "tool2"]
-"""
-
-        with open(self.test_config_path, "w") as f:
-            f.write(toml_content)
-
-        config = OpenSageConfig.from_toml(str(self.test_config_path))
-
-        assert config.subagent is not None
-        assert config.subagent.thread_safe_tools == {"tool1", "tool2"}
-
     def test_load_build_config_with_empty_strings(self):
         """Test loading build configuration with empty string handling."""
         toml_content = """
@@ -507,7 +483,6 @@ class TestOpenSageConfigMethods:
             toml_path = Path(temp_dir) / "test_save.toml"
 
             self.config.task_name = "test_task"
-            self.config.subagent = SubagentConfig(agent_storage_path="/tmp/storage")
             self.config.save_to_toml(str(toml_path))
 
             assert toml_path.exists()
@@ -515,7 +490,6 @@ class TestOpenSageConfigMethods:
             # Load and verify the saved content
             loaded_data = toml.load(toml_path)
             assert loaded_data["task_name"] == "test_task"
-            assert loaded_data["subagent"]["agent_storage_path"] == "/tmp/storage"
 
     def test_copy(self):
         """Test configuration deep copy."""

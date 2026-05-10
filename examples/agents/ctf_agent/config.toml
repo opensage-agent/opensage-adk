@@ -21,6 +21,9 @@ default_host = ""
 [sandbox]
 backend = "native"
 absolute_shared_data_path = "${ABSOLUTE_SHARED_DATA_PATH}"
+mount_host_paths = [
+    "${HOST_LONG_TERM_MEM_DIR}:/mem/long_term:rw",
+]
 
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"

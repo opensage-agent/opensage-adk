@@ -20,7 +20,6 @@ from google.adk.apps.app import App
 from google.adk.events import Event
 from google.genai import types
 
-from opensage.config.config_dataclass import SubagentConfig
 from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
@@ -55,12 +54,6 @@ class ToolComboTestRunner:
         # Prepare OpenSage environment
         opensage_session = get_opensage_session(
             opensage_session_id=self.current_session_id, config_path=None
-        )
-        # Force storage path via config to avoid env coupling
-        if not opensage_session.config.subagent:
-            opensage_session.config.subagent = SubagentConfig()
-        opensage_session.config.subagent.agent_storage_path = (
-            "/tmp/tool_combo_test/agent_storage"
         )
         deps = collect_sandbox_dependencies(self.agent, config=opensage_session.config)
         opensage_session.sandboxes.initialize_shared_volumes()

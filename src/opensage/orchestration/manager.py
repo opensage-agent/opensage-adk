@@ -193,6 +193,16 @@ class AgentManager:
         return self._app_name
 
     @property
+    def default_user_id(self) -> str:
+        """Default user_id for ADK sessions created by this manager."""
+        return DEFAULT_USER_ID
+
+    @property
+    def session_service(self):
+        """Public accessor for the session service."""
+        return self._opensage_session.session_service
+
+    @property
     def opensage_session_id(self) -> str:
         return self._opensage_session.opensage_session_id
 

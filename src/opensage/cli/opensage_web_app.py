@@ -177,6 +177,7 @@ class OpenSageWebServer:
         eval_set_results_manager=None,
         plugins: Optional[list[BasePlugin]] = None,
         url_prefix: Optional[str] = None,
+        fake_user_fn=None,
     ):
         # Use the app_name provided by CLI (parent folder of --agent) to match ADK's expectation.
         self.app_name = app_name
@@ -191,6 +192,7 @@ class OpenSageWebServer:
         self.plugins = plugins or []
         self.url_prefix = url_prefix
         self._runner: Optional[Runner] = None
+        self.fake_user_fn = fake_user_fn
 
     def _build_root_session_state(
         self, base_state: Optional[dict[str, Any]] = None
@@ -571,24 +573,46 @@ class OpenSageWebServer:
                     _register_active_turn(session_id, current_task)
                     mode = StreamingMode.SSE if streaming else StreamingMode.NONE
                     runner = await self.get_runner_async()
-                    async with Aclosing(
-                        runner.run_async(
-                            user_id=user_id,
-                            session_id=session_id,
-                            new_message=new_message,
-                            state_delta=state_delta,
-                            run_config=RunConfig(streaming_mode=mode, max_llm_calls=0),
-                            invocation_id=invocation_id,
-                        )
-                    ) as agen:
-                        async for event in agen:
-                            yield (
-                                "data: "
-                                + event.model_dump_json(
-                                    exclude_none=True, by_alias=True
-                                )
-                                + "\n\n"
+                    current_msg = new_message
+
+                    while True:
+                        async with Aclosing(
+                            runner.run_async(
+                                user_id=user_id,
+                                session_id=session_id,
+                                new_message=current_msg,
+                                state_delta=state_delta,
+                                run_config=RunConfig(
+                                    streaming_mode=mode, max_llm_calls=0
+                                ),
+                                invocation_id=invocation_id,
                             )
+                        ) as agen:
+                            async for event in agen:
+                                yield (
+                                    "data: "
+                                    + event.model_dump_json(
+                                        exclude_none=True, by_alias=True
+                                    )
+                                    + "\n\n"
+                                )
+
+                        # If no fake_user configured, single invocation only.
+                        if not self.fake_user_fn:
+                            break
+
+                        # Refresh session and ask fake user for next message.
+                        session_snapshot = await self.session_service.get_session(
+                            app_name=app_name, user_id=user_id, session_id=session_id
+                        )
+                        next_msg = await self.fake_user_fn(session_snapshot)
+                        if next_msg is None:
+                            break
+                        current_msg = next_msg
+                        # Clear state_delta and invocation_id for follow-up turns.
+                        state_delta = None
+                        invocation_id = None
+
                 except asyncio.CancelledError:
                     yield 'data: {"stopped": true, "message": "Turn stopped by UI"}\n\n'
                     return

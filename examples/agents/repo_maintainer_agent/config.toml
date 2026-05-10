@@ -34,10 +34,6 @@ agent_relative_path = "auto_insert_review.md"
 model_name = "inherit"
 temperature = 1.0
 
-[llm.model_configs.flag_claims]
-model_name = "inherit"
-temperature = 1.0
-
 [history]
 max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
 enable_quota_countdown = true

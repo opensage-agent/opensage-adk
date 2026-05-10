@@ -129,25 +129,30 @@ runner = Runner(
 
 ### 5.6 Run Agent
 
-```python
-run_config = RunConfig(max_llm_calls=self.max_llm_calls)
+The agent is driven by `run_with_fake_user()`, which handles single-turn and multi-turn execution uniformly:
 
-async for event in runner.run_async(
-    user_id=user_id,
+```python
+from opensage.orchestration.fake_user import run_with_fake_user
+
+result = await run_with_fake_user(
+    agent_manager=opensage_session.agent_manager,
     session_id=task.session_id,
-    run_config=run_config,
-    new_message=types.Content(parts=[types.Part(text=task.prompt)]),
-):
-    ...
+    first_message=task.first_user_message,
+    fake_user=fake_user_callback,
+    max_llm_calls=self.max_llm_calls,
+    event_callback=event_callback,
+)
 ```
 
-The agent enters a reason-act loop:
+Each invocation enters a reason-act loop:
 
-- **Runner starts agent execution**: sends the prompt and hands control to the agent.
+- **Runner starts agent execution**: sends the user message and hands control to the agent.
 - **Agent reasoning**: calls the LLM, decides which tools to use, generates function calls.
 - **Tool execution**: the runner executes tools in the sandbox; tools access session resources; results return to the agent.
 - **Iteration**: the agent processes tool results, picks the next action, and continues until completion or `max_llm_calls`.
-- **Completion**: the agent generates a final response; the runner finishes; events collect for downstream analysis.
+- **Completion**: the agent generates a final response; the runner finishes.
+
+After each invocation, if a fake-user callback is configured, the driver refreshes the session from `session_service`, calls `fake_user(session)`, and starts another invocation if the callback returns a follow-up message. The loop stops when the callback returns `None`, the LLM budget runs out, or `max_turns` is reached.
 
 ### 5.7 Collect and Save Results
 

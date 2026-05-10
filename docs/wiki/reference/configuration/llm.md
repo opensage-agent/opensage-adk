@@ -10,7 +10,6 @@ Models are defined under `[llm.model_configs.<profile>]`. Recognized profile nam
 |---------|---------|
 | `main` | Primary model for agent reasoning |
 | `summarize` | Summarization and context compression |
-| `flag_claims` | Flag-claims processing |
 
 You can add further custom profiles; subsystems that know a profile name will use it, otherwise they fall back to `main`.
 

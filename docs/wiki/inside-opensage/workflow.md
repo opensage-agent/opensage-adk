@@ -224,6 +224,7 @@ server.run()
 - The dev UI loads and connects to the backend.
 - The user sends a chat message.
 - The backend runs the agent and streams events back to the UI.
+- If a [`[fake_user]`](../reference/configuration/fake-user.md) callback is configured, the server automatically calls it after each invocation. When the callback returns a follow-up message, the server injects it as the next user message and continues streaming the agent's response within the same SSE connection. The loop repeats until the callback returns `None`. Fake-user messages are recorded in the session history and visible on page refresh, but are not displayed in real time in the UI.
 
 ### Cleanup
 

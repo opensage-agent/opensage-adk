@@ -196,7 +196,7 @@ TOML with template variables: top-level UPPERCASE keys can be referenced as `${V
 
 ### `[llm]`
 
-Profiles under `[llm.model_configs.<profile>]`. Built-in profiles: `main` (required), `summarize`, `flag_claims` (fall back to `main` if absent).
+Profiles under `[llm.model_configs.<profile>]`. Built-in profiles: `main` (required), `summarize` (fall back to `main` if absent).
 
 Fields: `model_name` (required), `temperature`, `max_tokens`, `rpm`, `tpm`.
 

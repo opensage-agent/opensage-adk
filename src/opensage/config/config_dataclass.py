@@ -252,12 +252,6 @@ class LLMConfig:
         drop_config = self.model_configs.get("summarize")
         return drop_config.model_name if drop_config else None
 
-    @property
-    def flag_claims_model(self) -> Optional[str]:
-        """Get flag claims model name."""
-        flag_config = self.model_configs.get("flag_claims")
-        return flag_config.model_name if flag_config else None
-
 
 @dataclass
 class HistoryConfig:
@@ -401,6 +395,21 @@ class BuildConfig:
 
 
 @dataclass
+class FakeUserConfig:
+    """Configuration for fake-user (user-simulator) callbacks.
+
+    Corresponds to the ``[fake_user]`` TOML section.  Points at a Python
+    file that exports an async function named ``fake_user`` with signature
+    ``async (Session) -> str | None``.
+
+    Relative paths are resolved against the agent directory.
+    """
+
+    python_file: Optional[str] = None
+    """Path to a Python file exporting ``async def fake_user(session) -> str | None``."""
+
+
+@dataclass
 class OpenSandboxConfig:
     """Configuration for OpenSandbox-backed sandboxes.
 
@@ -512,13 +521,14 @@ class OpenSageConfig:
 
     neo4j: Neo4jConfig = None
     sandbox: SandboxConfig = None
-    llm: LLMConfig = None
+    llm: LLMConfig = field(default_factory=LLMConfig)
     history: HistoryConfig = None
     plugins: PluginsConfig = field(default_factory=PluginsConfig)
     model: ModelRegistryConfig = field(default_factory=ModelRegistryConfig)
     auto_insert_prompt_file: AutoInsertPromptFileConfig = field(
         default_factory=AutoInsertPromptFileConfig
     )
+    fake_user: FakeUserConfig = None
     build: BuildConfig = None
     mcp: MCPConfig = None
     task_name: str = None

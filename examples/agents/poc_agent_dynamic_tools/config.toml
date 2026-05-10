@@ -118,13 +118,6 @@ temperature = 0.3
 rpm = 30
 tpm = 30000
 
-# Flag claims model configuration
-[llm.model_configs.flag_claims]
-model_name = "inherit"
-temperature = 0.1
-rpm = 30
-tpm = 30000
-
 [history]
 max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
 enable_quota_countdown = true

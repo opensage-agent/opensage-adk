@@ -14,7 +14,6 @@ from google.genai import types
 from opensage.session import get_opensage_session
 from opensage.toolbox.sandbox_requirements import requires_sandbox
 from opensage.utils.agent_utils import (
-    create_litellm_model,
     get_opensage_config_from_context,
     get_opensage_session_id_from_context,
     get_sandbox_from_context,
@@ -150,27 +149,29 @@ async def generate_poc_and_submit(
             return f"Failed to parse cybergym result due to the following error: {str(e)}. Do not take this submission in account, try harder to trigger the vulnerability."
 
 
-async def critique(tool_context: ToolContext):
-    """
-    Call this to query another model as a consultant to help you solve the task, you should call this frequently to get an idea of how to solve the task.
+async def critique(model_name: str, tool_context: ToolContext):
+    """Consult another model for critical feedback on vulnerability exploitation progress.
+
+    Sends the conversation history and agent instruction to the specified model,
+    which returns an independent analysis focusing on exploitation path completeness,
+    unjustified assumptions about code behavior, and missed attack vectors.
+    Use ``get_available_models`` to discover valid model names.
+
+    Args:
+        model_name: Name of a registered model to use (e.g. "claude-opus-4-6").
 
     Returns:
-        dict with 'idea' containing the other model's suggestion
+        dict with 'idea' containing the consulting model's analysis, or an error.
     """
     try:
         opensage_session_id = get_opensage_session_id_from_context(tool_context)
-        session = get_opensage_session(opensage_session_id)
-        FLAG_UNJUSTIFIED_CLAIMS_MODEL = session.config.llm.flag_claims_model
-        if not FLAG_UNJUSTIFIED_CLAIMS_MODEL:
-            print("FLAG_UNJUSTIFIED_CLAIMS_MODEL not configured in LLM settings")
-            return []
-        model_name = FLAG_UNJUSTIFIED_CLAIMS_MODEL
-        # Get session and current conversation history
+        opensage_session = get_opensage_session(opensage_session_id)
+        model = opensage_session.llms.get(model_name)
+
         invocation_context = tool_context._invocation_context
         session = invocation_context.session
         current_branch = getattr(invocation_context, "branch", None)
 
-        # Get current agent's task/instruction for context
         agent = invocation_context.agent
         agent_instruction = getattr(agent, "instruction", "")
 
@@ -272,9 +273,6 @@ Keep your response concise and actionable."""
         llm_request.contents = [
             types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
         ]
-
-        # Configured model name only — empty config returns early at line ~165.
-        model = create_litellm_model(model_name)
 
         # Call model
         idea_parts = []

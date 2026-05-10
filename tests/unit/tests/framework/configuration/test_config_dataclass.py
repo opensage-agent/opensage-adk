@@ -196,16 +196,11 @@ class TestDataclassCreation:
     def test_llm_config_with_models(self):
         """Test LLMConfig with the supported model_configs keys."""
         summary_model = ModelConfig(model_name="summary-model", temperature=0.3)
-        flag_model = ModelConfig(model_name="flag-model", temperature=0.0)
 
-        llm_config = LLMConfig(
-            model_configs={"summarize": summary_model, "flag_claims": flag_model}
-        )
+        llm_config = LLMConfig(model_configs={"summarize": summary_model})
 
         assert llm_config.get_model_config("summarize") == summary_model
-        assert llm_config.get_model_config("flag_claims") == flag_model
         assert llm_config.summarize_model == "summary-model"
-        assert llm_config.flag_claims_model == "flag-model"
 
     def test_history_config_creation(self):
         """Test HistoryConfig creation."""
@@ -350,11 +345,6 @@ MAIN_MODEL = "test/model"
 model_name = "${MAIN_MODEL}"
 temperature = 0.3
 max_tokens = 2048
-
-[llm.model_configs.flag_claims]
-model_name = "${MAIN_MODEL}"
-temperature = 0.0
-max_tokens = 1024
 """
 
         with open(self.test_config_path, "w") as f:
@@ -364,16 +354,11 @@ max_tokens = 1024
 
         assert config.llm is not None
         assert config.llm.summarize_model == "test/model"
-        assert config.llm.flag_claims_model == "test/model"
 
         summary_config = config.llm.get_model_config("summarize")
         assert summary_config.model_name == "test/model"
         assert summary_config.temperature == 0.3
         assert summary_config.max_tokens == 2048
-
-        flag_config = config.llm.get_model_config("flag_claims")
-        assert flag_config.model_name == "test/model"
-        assert flag_config.temperature == 0.0
 
     def test_load_build_config_with_empty_strings(self):
         """Test loading build configuration with empty string handling."""

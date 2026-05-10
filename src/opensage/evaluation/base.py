@@ -23,15 +23,20 @@ import google.adk as adk
 import jsonpickle
 import litellm
 from google.adk.agents.base_agent import BaseAgent
-from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.agents.llm_agent import LlmAgent
-from google.adk.agents.run_config import RunConfig
 from google.adk.models import BaseLlm
 from google.adk.sessions import Session
 from google.genai import types
 from tqdm import tqdm
 
 from opensage import get_opensage_session
+from opensage.orchestration.fake_user import (
+    FakeUserFn,
+    FakeUserRunResult,
+    default_fake_user,
+    load_fake_user_from_file,
+    run_with_fake_user,
+)
 from opensage.plugins import load_plugins
 from opensage.session.opensage_session import OpenSageSession
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
@@ -42,6 +47,12 @@ from opensage.utils.project_info import PROJECT_PATH, SRC_PATH
 litellm.disable_streaming_logging = True
 
 logger = logging.getLogger(__name__)
+
+
+async def _no_followup(_session: "Session") -> None:
+    """Trivial fake-user that never sends a follow-up (single invocation)."""
+    return None
+
 
 # Registry for Evaluation subclasses
 _EVALUATION_REGISTRY: dict[str, type[Evaluation]] = {}
@@ -248,6 +259,14 @@ class Evaluation(abc.ABC):
 
     run_until_explicit_finish: bool = False
     continuation_prompt: str | None = None
+
+    fake_user_fn: FakeUserFn | None = None
+    """Custom fake-user callback.  ``async (Session) -> str | None``.
+
+    If set, this takes precedence over ``run_until_explicit_finish``.
+    After each invocation the callback receives the refreshed Session
+    and returns the next user message (str) or None to stop.
+    """
 
     runner_type: str = "native"
     """Execution backend: "native" (threading/multiprocessing) or "ray" (distributed)"""
@@ -994,122 +1013,37 @@ class Evaluation(abc.ABC):
             parent_session_id=None,
         )
 
-        # Helper to track remaining LLM-call budget across multiple runner invocations.
-        remaining_llm_calls = self.max_llm_calls
+        # Build the fake-user callback (None = single invocation).
+        fake_user_callback = self._get_fake_user_fn(opensage_session)
 
-        def _build_run_config() -> RunConfig:
-            """Construct RunConfig reflecting the remaining LLM quota."""
-            if remaining_llm_calls is None:
-                return RunConfig(max_llm_calls=self.max_llm_calls)
-            return RunConfig(max_llm_calls=remaining_llm_calls)
-
-        async def _update_remaining_and_get_session() -> Session | None:
-            """Refresh the cached session and update remaining call budget."""
-            nonlocal remaining_llm_calls
-            used_calls = 0
-            session_snapshot = await session_service.get_session(
-                app_name=app_name,
-                user_id=user_id,
-                session_id=task.session_id,
-            )
-            if (
-                self.max_llm_calls > 0
-                and session_snapshot
-                and session_snapshot.state
-                and "_adk" in session_snapshot.state
-            ):
-                used_calls = int(
-                    session_snapshot.state.get("_adk", {}).get("llm_calls_used", 0) or 0
-                )
-                remaining_llm_calls = max(0, remaining_llm_calls - used_calls)
-            logger.warning(f"Remaining LLM calls: {remaining_llm_calls}")
-            logger.warning(f"Used LLM calls during last invocation: {used_calls}")
-            logger.warning(f"Max LLM calls: {self.max_llm_calls}")
-            return session_snapshot
-
-        all_events = []
-        session_snapshot: Session | None = None
-        llm_calls_used_total: int = 0
         _live_trace = Path(task.output_dir) / "live_events.jsonl"
         _live_trace.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            async for event in opensage_session.agent_manager.run_turn_stream(
-                session_id=task.session_id,
-                request=task.first_user_message,
-                run_config=_build_run_config(),
-            ):
-                logger.warning(event.model_dump_json())
-                all_events.append(event)
-                with open(_live_trace, "a") as _f:
-                    _f.write(event.model_dump_json(exclude_none=True) + "\n")
 
-            session_snapshot = await _update_remaining_and_get_session()
-            if self.max_llm_calls > 0:
-                llm_calls_used_total = max(0, self.max_llm_calls - remaining_llm_calls)
+        def _event_callback(event):
+            logger.warning(event.model_dump_json(exclude_none=True))
+            with open(_live_trace, "a") as _f:
+                _f.write(event.model_dump_json(exclude_none=True) + "\n")
 
-            if self.run_until_explicit_finish:
-                task_finished = (
-                    session_snapshot.state.get("task_finished", False)
-                    if session_snapshot
-                    else False
-                )
-                while not task_finished:
-                    if self.max_llm_calls > 0 and remaining_llm_calls <= 0:
-                        logger.warning(
-                            "LLM-call budget exhausted before task signaled completion; stopping follow-up loop."
-                        )
-                        break
+        result: FakeUserRunResult = await run_with_fake_user(
+            agent_manager=opensage_session.agent_manager,
+            session_id=task.session_id,
+            first_message=task.first_user_message,
+            fake_user=fake_user_callback or _no_followup,
+            max_llm_calls=self.max_llm_calls if self.max_llm_calls > 0 else None,
+            event_callback=_event_callback,
+        )
 
-                    continuation_text = self.continuation_prompt or (
-                        "I approve you to continue, if you think the task is "
-                        "complete, you should call the task_completed tool, and "
-                        "then summarize the task and the result without calling "
-                        "any other tool. If you haven't submitted a poc that "
-                        "triggers the vulnerability, the task is not finished, "
-                        "continue and try harder, do not respond to this message "
-                        "in natural language, start calling appropriate tools to "
-                        "complete the task. DO NOT respond to this message."
-                    )
-                    async for event in opensage_session.agent_manager.run_turn_stream(
-                        session_id=task.session_id,
-                        request=continuation_text,
-                        run_config=_build_run_config(),
-                    ):
-                        logger.warning(event.model_dump_json(exclude_none=True))
-                        all_events.append(event)
-                        with open(_live_trace, "a") as _f:
-                            _f.write(event.model_dump_json(exclude_none=True) + "\n")
-
-                    session_snapshot = await _update_remaining_and_get_session()
-                    if self.max_llm_calls > 0:
-                        llm_calls_used_total = max(
-                            0, self.max_llm_calls - remaining_llm_calls
-                        )
-
-                    task_finished = (
-                        session_snapshot.state.get("task_finished", False)
-                        if session_snapshot
-                        else False
-                    )
-
-        except LlmCallsLimitExceededError as e:
-            logger.warning(
-                f"Llm calls limit exceeded for session {task.session_id}: {e}"
-            )
-            if self.max_llm_calls > 0:
-                llm_calls_used_total = self.max_llm_calls
-        if not session_snapshot:
-            session_snapshot = await session_service.get_session(
-                app_name=app_name, user_id=user_id, session_id=task.session_id
-            )
-        session = session_snapshot
-        # set our collected events to the session object, since the original events may be lost due to summarization
-        session.events = all_events
+        session = result.session
+        # Overwrite session.events with the driver's complete collection —
+        # session.events from session_service may be truncated by
+        # summarization / compaction.
+        if session:
+            session.events = result.events
 
         logger.warning(f"Agent execution completed for session: {task.session_id}")
 
         # Calculate and save cost information
-        self._save_cost_info(task, session, num_llm_calls=llm_calls_used_total)
+        self._save_cost_info(task, session, num_llm_calls=result.llm_calls_used)
 
         return session
 
@@ -1347,6 +1281,52 @@ class Evaluation(abc.ABC):
         Args:
             task (EvaluationTask): EvaluationTask instance with all task data"""
         pass
+
+    def _get_fake_user_fn(self, opensage_session=None) -> FakeUserFn | None:
+        """Return the fake-user callback for multi-turn interaction.
+
+        Override in subclasses for custom multi-turn logic.
+
+        Returns:
+            - A ``FakeUserFn`` callback to drive multi-turn interaction, or
+            - ``None`` for single-invocation mode (no follow-up).
+
+        Precedence (mirrors model selection priority):
+            1. ``self.fake_user_fn`` if explicitly set (programmatic).
+            2. ``config.fake_user.python_file`` if configured.
+            3. ``run_until_explicit_finish`` → ``default_fake_user``.
+            4. ``None`` otherwise.
+        """
+        # 1. Programmatic override
+        if self.fake_user_fn is not None:
+            return self.fake_user_fn
+
+        # 2. Config python_file
+        if opensage_session is not None:
+            cfg = getattr(opensage_session.config, "fake_user", None)
+            py_file = getattr(cfg, "python_file", None) if cfg else None
+            if py_file:
+                return load_fake_user_from_file(
+                    py_file,
+                    agent_dir=self.agent_dir,
+                )
+
+        # 3. run_until_explicit_finish (backward compat)
+        if self.run_until_explicit_finish:
+            if not self.continuation_prompt:
+                return default_fake_user
+            prompt = self.continuation_prompt
+
+            async def _continue_until_finished(session: Session) -> str | None:
+                if session and session.state:
+                    if session.state.get("task_finished", False):
+                        return None
+                return prompt
+
+            return _continue_until_finished
+
+        # 4. No fake user — single invocation
+        return None
 
     @abc.abstractmethod
     def evaluate(self) -> None:

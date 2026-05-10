@@ -773,7 +773,19 @@ def cli_web(
             agents_dir=agents_dir_parent
         )
 
-        # 4) Create our single-agent web server (rich endpoints, no agent reload)
+        # 4) Load fake-user function from config (if configured)
+        fake_user_fn = None
+        fake_user_cfg = getattr(opensage_session.config, "fake_user", None)
+        if fake_user_cfg and getattr(fake_user_cfg, "python_file", None):
+            from opensage.orchestration.fake_user import load_fake_user_from_file
+
+            fake_user_fn = load_fake_user_from_file(
+                fake_user_cfg.python_file,
+                agent_dir=agent_dir,
+            )
+            logger.info("Loaded fake_user from %s", fake_user_cfg.python_file)
+
+        # 5) Create our single-agent web server (rich endpoints, no agent reload)
         web_server = OpenSageWebServer(
             app_name=app_name,
             root_agent=root_agent,
@@ -786,6 +798,7 @@ def cli_web(
             eval_set_results_manager=eval_set_results_manager,
             url_prefix=None,
             plugins=plugins,
+            fake_user_fn=fake_user_fn,
         )
         # Pre-create or restore the ADK session using fixed session id.
         # Both paths go through agent_manager.spawn — for resume, the legacy

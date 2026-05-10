@@ -84,10 +84,10 @@ A small family of tools in `toolbox/general/agent_tools.py` encourage the model 
 | `plan` | Same shape, framed for longer-horizon planning. |
 | `complain` | Marker for a stuck/uncertain state, visible to operators. |
 | `note_suspicious_things` | Records an observation the agent wants to flag without committing to it yet. |
-| `critique` | **Calls a separate model** (the `flag_claims` profile, or inherited) with the recent conversation and returns structured feedback. |
-| `flag_unjustified_claims` | Asks the flag-claims model to enumerate recent claims that were not substantiated by evidence. |
+| `critique` | Calls a registered model (chosen by the agent via `model_name` parameter) with the recent conversation and returns critical feedback on progress, missed steps, and unjustified claims. |
+| `flag_unjustified_claims` | Sends conversation history to a registered model (chosen via `model_name`) to enumerate claims that were not substantiated by evidence. |
 
-The critique/flag-claims tools are the interesting ones: they are multi-agent in disguise. The root agent calls them as a tool, but under the hood they spin up a fresh LLM call with a different model and prompt, and return its verdict.
+The critique/flag-claims tools are multi-agent in disguise. The agent picks a model from the registry (see `get_available_models`) and passes it as an argument; under the hood the tool spins up a fresh LLM call with that model and a specialized prompt, and returns its verdict.
 
 ## ToolCombo as a Sequential Mini-Agent
 

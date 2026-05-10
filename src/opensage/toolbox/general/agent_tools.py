@@ -6,11 +6,7 @@ from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
 from opensage.session import get_opensage_session
-from opensage.utils.agent_utils import (
-    create_litellm_model,
-    get_model_from_agent,
-    get_opensage_session_id_from_context,
-)
+from opensage.utils.agent_utils import get_opensage_session_id_from_context
 
 logger = logging.getLogger(__name__)
 
@@ -57,29 +53,33 @@ async def plan(plan: str, tool_context: ToolContext):
     return "Planning done"
 
 
-async def critique(tool_context: ToolContext):
-    """
-    Call this to query another model as a consultant to help you solve the task, you should call this frequently to get an idea of how to solve the task.
+async def critique(model_name: str, tool_context: ToolContext):
+    """Consult another model for critical feedback on the current task progress.
+
+    Sends the conversation history and agent instruction to the specified model,
+    which returns an independent analysis of progress, missed steps, unjustified
+    claims, and suggested next actions. Use ``get_available_models`` to discover
+    valid model names.
+
+    Args:
+        model_name: Name of a registered model to use (e.g. "claude-opus-4-6").
 
     Returns:
-        dict with 'idea' containing the other model's suggestion
+        dict with 'idea' containing the consulting model's analysis, or an error.
     """
     try:
         opensage_session_id = get_opensage_session_id_from_context(tool_context)
-        session = get_opensage_session(opensage_session_id)
-        configured_model = session.config.llm.flag_claims_model
-        # Get session and current conversation history
+        opensage_session = get_opensage_session(opensage_session_id)
+        model = opensage_session.llms.get(model_name)
+
         invocation_context = tool_context._invocation_context
         session = invocation_context.session
         current_branch = getattr(invocation_context, "branch", None)
 
-        # Get current agent's task/instruction for context
         agent = invocation_context.agent
         agent_instruction = getattr(agent, "instruction", "")
 
         def _format_event_to_text(event) -> str:
-            """Format event to text, including all information (text, function_call, function_response)."""
-
             compaction = getattr(getattr(event, "actions", None), "compaction", None)
             if compaction:
                 compacted_content = getattr(compaction, "compacted_content", None)
@@ -118,7 +118,6 @@ async def critique(tool_context: ToolContext):
             event_branch = getattr(event, "branch", None)
             return event_branch is None or event_branch == current_branch
 
-        # Build conversation history summary for context
         events = session.events or []
         branch_events = [event for event in events if _is_branch_match(event)]
 
@@ -145,7 +144,6 @@ async def critique(tool_context: ToolContext):
             "\n".join(history_text) if history_text else "No recent history"
         )
 
-        # Construct prompt for the other model
         prompt = f"""You are being consulted by another AI agent who is stuck on a task.
 
 **Original Task**: {agent_instruction}
@@ -167,32 +165,12 @@ There are probably some context missing, the agent might not have all the inform
 Does the agent verify the result of the task carefully, considering all possible cases and edge cases?
 Keep your response concise and actionable."""
 
-        # Create LLM request
         llm_request = LlmRequest()
         llm_request.config = types.GenerateContentConfig()
         llm_request.contents = [
             types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
         ]
 
-        # Resolve model: use configured ``flag_claims_model`` if set, else fall
-        # back to the calling agent's own model object directly. No "inherit"
-        # sentinel — the fallback is the explicit semantics for an empty config.
-        if configured_model:
-            model = create_litellm_model(configured_model)
-            model_used = configured_model
-        else:
-            model = get_model_from_agent(agent)
-            if model is None:
-                return {
-                    "success": False,
-                    "error": (
-                        "flag_claims_model is not configured and the calling "
-                        "agent has no usable model to fall back to"
-                    ),
-                }
-            model_used = getattr(model, "model", "<caller-model>")
-
-        # Call model
         idea_parts = []
         async for llm_response in model.generate_content_async(llm_request):
             if llm_response.content and llm_response.content.parts:
@@ -205,7 +183,7 @@ Keep your response concise and actionable."""
         return {
             "success": True,
             "idea": idea,
-            "model_used": model_used,
+            "model_used": model_name,
         }
 
     except Exception as e:
@@ -216,37 +194,27 @@ Keep your response concise and actionable."""
         }
 
 
-async def flag_unjustified_claims(tool_context: ToolContext):
-    """
-    Flag the unjustified claims in the history, this is done by another model
+async def flag_unjustified_claims(model_name: str, tool_context: ToolContext):
+    """Analyze the conversation history and identify unjustified claims.
+
+    Sends all events to the specified model, which examines each statement for
+    unsupported factual assertions, opinions stated as facts, and unqualified
+    generalizations. Use ``get_available_models`` to discover valid model names.
+
+    Args:
+        model_name: Name of a registered model to use (e.g. "claude-opus-4-6").
 
     Returns:
-        A natural language analysis of unjustified claims found in the conversation
+        A natural language analysis of unjustified claims found in the conversation.
     """
-    # Get model name from config; fall back to caller agent's model directly.
     opensage_session_id = get_opensage_session_id_from_context(tool_context)
-    session = get_opensage_session(opensage_session_id)
-    configured_model = session.config.llm.flag_claims_model
+    opensage_session = get_opensage_session(opensage_session_id)
+    model = opensage_session.llms.get(model_name)
 
-    # Get events from tool context
     events = tool_context._invocation_context.session.events
     if not events:
         print("No events to analyze")
         return []
-
-    if configured_model:
-        model = create_litellm_model(configured_model)
-    else:
-        current_agent = tool_context._invocation_context.agent
-        model = get_model_from_agent(current_agent)
-        if model is None:
-            return {
-                "success": False,
-                "error": (
-                    "flag_claims_model is not configured and the calling "
-                    "agent has no usable model to fall back to"
-                ),
-            }
 
     # Prepare events text for analysis
     events_text = []

@@ -101,10 +101,45 @@ class MyEvaluation(Evaluation):
 | `_get_input_data_path(sample)` | Input data directory |
 | `_get_cache_dir(sample)` | Cache directory |
 | `_get_export_dir_in_sandbox(sample)` | Output dirs to export |
+| `_get_fake_user_fn(opensage_session)` | Return a fake-user callback for multi-turn interaction (see below) |
 | `_prepare_general_env()` | Setup shared across all samples |
 | `_before_initialize_hooks(session, task)` | Hooks before sandbox init |
 | `customized_modify_and_save_results(...)` | Post-processing |
 | `evaluate()` | Final evaluation and metrics |
+
+### Multi-Turn Interaction (Fake User)
+
+By default each benchmark sample runs a single invocation. To drive multi-turn conversations — where the agent receives follow-up messages after each invocation — configure a **fake-user callback**.
+
+A fake-user function has the signature `async (Session) -> str | None`. After each invocation completes, the function receives the refreshed Session and returns either a follow-up message (`str`) or `None` to stop.
+
+Three ways to provide one, checked in priority order:
+
+1. **`fake_user_fn` field** — set directly on the `Evaluation` subclass (programmatic):
+    ```python
+    @dataclass(kw_only=True)
+    class MyEvaluation(Evaluation):
+        async def my_fake_user(self, session):
+            if session.state.get("task_finished"):
+                return None
+            return "Continue."
+
+        def _get_fake_user_fn(self, opensage_session=None):
+            return self.my_fake_user
+    ```
+
+2. **`[fake_user]` config section** — point at a Python file in `config.toml`:
+    ```toml
+    [fake_user]
+    python_file = "my_fake_user.py"
+    ```
+    See the [`[fake_user]` reference](../../reference/configuration/fake-user.md) for details.
+
+3. **`run_until_explicit_finish`** — legacy field. Uses the built-in `default_fake_user` which sends a continuation prompt until `session.state["task_finished"]` is `True`. The agent must have the `finish_task` tool.
+    ```python
+    run_until_explicit_finish: bool = True
+    continuation_prompt: str | None = "Keep going."
+    ```
 
 ## 3. Add a Configuration Template
 

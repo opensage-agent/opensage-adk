@@ -6,7 +6,7 @@ This is the one section almost every agent overrides: it tells OpenSage-ADK whic
 
 ## Defining a Model
 
-Each profile lives under `[llm.model_configs.<profile>]`. The `main` profile is the one every agent uses for reasoning; `summarize` and `flag_claims` are optional and fall back to `main` if absent.
+Each profile lives under `[llm.model_configs.<profile>]`. The `main` profile is the one every agent uses for reasoning; `summarize` is optional and falls back to `main` if absent.
 
 ```toml title="config.toml"
 [llm.model_configs.main]

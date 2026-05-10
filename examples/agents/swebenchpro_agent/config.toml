@@ -38,10 +38,6 @@ compaction_percent = 50
 
 [subagent]
 
-# Flag claims model configuration
-[llm.model_configs.flag_claims]
-model_name = "inherit"
-
 [sandbox]
 backend = "native"
 

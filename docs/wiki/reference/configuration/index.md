@@ -66,6 +66,7 @@ password = "${NEO4J_PASSWORD}"
 - [`[mcp]`](./mcp.md): MCP service definitions.
 - [`[history]`](./history.md): tool-response handling and event compaction.
 - [`[plugins]`](./plugins.md): enabled plugins and discovery paths.
+- [`[fake_user]`](./fake-user.md): automated user-simulator callback for multi-turn interactions.
 - [`[agent_ensemble]`](./agent-ensemble.md): multi-model ensemble fields.
 - [`[neo4j]`](./neo4j.md): graph database connection.
 - [`[build]`](./build.md): build and run commands for target artifacts.

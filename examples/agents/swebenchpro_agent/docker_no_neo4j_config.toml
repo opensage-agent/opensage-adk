@@ -23,9 +23,6 @@ compaction_percent = 50
 
 [subagent]
 
-[llm.model_configs.flag_claims]
-model_name = "inherit"
-
 [sandbox]
 backend = "native"
 

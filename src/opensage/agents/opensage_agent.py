@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
+import traceback
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 import yaml
 from google.adk.agents.llm_agent import LlmAgent
@@ -17,6 +18,34 @@ from opensage.utils.project_info import PROJECT_PATH
 logger = logging.getLogger(__name__)
 
 _TOOLSET_SUMMARY_MARKER = "[[OPENSAGE_TOOLSET_SUMMARY]]"
+
+
+async def opensage_default_tool_error_handler(
+    tool: Any,
+    args: dict[str, Any],
+    tool_context: Any,
+    error: Exception,
+) -> dict[str, Any]:
+    """Convert otherwise-unhandled tool exceptions into model-visible results."""
+    return {
+        "success": False,
+        "error": (
+            f"Tool {getattr(tool, 'name', '<unknown>')!r} failed: "
+            f"{type(error).__name__}: {error}\n\nBacktrace:\n"
+            f"{traceback.format_exc()}"
+        ),
+    }
+
+
+def _append_default_tool_error_handler(
+    callback: Optional[Union[Callable[..., Any], List[Callable[..., Any]]]],
+) -> Union[Callable[..., Any], List[Callable[..., Any]]]:
+    if callback is None:
+        return opensage_default_tool_error_handler
+    callbacks = list(callback) if isinstance(callback, list) else [callback]
+    if opensage_default_tool_error_handler not in callbacks:
+        callbacks.append(opensage_default_tool_error_handler)
+    return callbacks
 
 
 class OpenSageMCPToolset(McpToolset):
@@ -302,7 +331,6 @@ class ToolLoader:
 
         # Prefer the first fenced code block.
         if lines[i].strip().startswith("```"):
-            fence = lines[i].strip()
             i += 1
             block = []
             while i < len(lines):
@@ -578,6 +606,11 @@ class OpenSageAgent(LlmAgent):
 
         kwargs["sub_agents"] = sub_agents
         kwargs["tools"] = tools
+
+        # Append default tool error handler
+        kwargs["on_tool_error_callback"] = _append_default_tool_error_handler(
+            kwargs.get("on_tool_error_callback")
+        )
 
         # Initialize the parent class first
         super().__init__(*args, **kwargs)

@@ -95,14 +95,28 @@ directory is `/workspace`.
 
 ## Session bootstrap (do this on the first turn of every session)
 
-1. Read `/workspace/.opensage/lessons.md` (use `view_file`). If it does
-   not exist, create it via `run_terminal_command` with this header:
+1. Read `/mem/long_term/index.md` (use `view_file`). This is the
+   knowledge store that persists across sessions.
+2. If `/mem/long_term/cross-cutting-paths.md` does not exist, create it:
+   ```
+   run_terminal_command("mkdir -p /mem/long_term && cat > /mem/long_term/cross-cutting-paths.md << 'EOF'
+   <!-- category: architecture -->
+   <!-- last-verified: YYYY-MM-DD -->
 
-       # Lessons — repo_maintainer_agent
-       <!-- short, concrete, testable entries; loaded into context every session -->
+   # Cross-Cutting Paths
 
-2. Treat the file's contents as authoritative durable context for every
-   task in this session.
+   End-to-end flows that traverse multiple modules. Each entry:
+
+   ### <path-name>
+   - **Trigger:** <what invokes this>
+   - **Sequence:** <module1.func1 → module2.func2 → ...>
+   - **Invariants:** <what must hold>
+   - **Past breakage:** <one-line note, if any>
+   EOF")
+   ```
+3. If `/workspace/.opensage/lessons.md` exists from a prior session,
+   review it once and port any high-value entries to `/mem/long_term/`.
+   Then ignore it — `/mem/long_term/` is the sole knowledge store.
 
 ## Design-before-action loop (mandatory for any non-trivial change)
 
@@ -142,26 +156,74 @@ inform the design.
   commit). Do NOT rewrite history (`reset --hard`, `commit --amend` on
   shared commits, `rebase -i`).
 
-## Lessons upkeep
+## Long-term knowledge management
 
-`/workspace/.opensage/lessons.md` is mounted from the host and persists
-across sessions. After finishing or abandoning a task, append a lesson
-using `str_replace_edit` (or `run_terminal_command` with `cat >>`).
+`/mem/long_term/` is mounted from the host at
+`/workspace/.opensage/knowledge/` (same directory, two paths via mount).
+Use `/mem/long_term/` for reading and writing knowledge files.
+For git operations, use the workspace path:
+  `cd /workspace && git add .opensage/knowledge/ && git commit -m "knowledge: <summary>"`
 
-Per-entry format:
+### Admission test — what to persist
 
-    ## <short title>
-    - _date_: YYYY-MM-DD — _category_: pitfall | project-fact | workflow
-    - **Why it matters:** 1 line
-    - **How to apply:** 1-2 lines
+Only store knowledge that would take a future agent **>30 minutes or
+>10 tool calls** to re-derive from scratch. Ask: "Is this reusable
+across ≥2 future tasks OR does it record a near-miss on a cross-cutting
+path?"
 
-Categories:
-- `pitfall` — something that bit you or would bite a future agent.
-- `project-fact` — non-obvious truth about this repo.
-- `workflow` — a recipe worth reusing.
+**Store:** non-obvious architectural constraints, cross-cutting paths,
+pitfalls that look-correct-but-break, debugging conclusions (root cause
++ ruled-out hypotheses), multi-step workflows error-prone to improvise.
 
-Keep entries terse. Re-read the file (`view_file`) before adding to
-avoid duplicates.
+**Do NOT store:** file paths findable by grep, function signatures
+readable by view_file, config values readable by cat, git history
+queryable by git log, anything in README/docs.
+
+### Entry format
+
+Each `.md` file in `/mem/long_term/`:
+```
+<!-- category: architecture | pitfall | invariant | debugging | workflow -->
+<!-- last-verified: YYYY-MM-DD -->
+
+# <Title>
+
+<Body — concise, ≤30 lines>
+```
+Exception: `cross-cutting-paths.md` is exempt from the 30-line limit.
+
+### Categories
+- `architecture` — cross-cutting paths, module boundaries, ownership
+- `pitfall` — looks correct but breaks in non-obvious ways
+- `invariant` — constraints not enforced by code
+- `debugging` — hard-won root cause + ruled-out hypotheses
+- `workflow` — multi-step recipe error-prone to improvise
+
+### Capacity & maintenance
+
+- **Soft cap:** index.md should not exceed ~30 entries. When
+  approaching, consolidate related entries or prune stale ones.
+- **Staleness:** when you touch code related to an existing entry,
+  verify the entry is still accurate. If stale, fix or delete it
+  immediately. Update `last-verified` date. No "maybe outdated" limbo.
+- **Anti-duplication:** before creating a new file, check `index.md`
+  and grep existing files for the same topic. Prefer updating an
+  existing entry over creating a near-duplicate.
+- **Index discipline:** each line in `index.md` must be specific enough
+  to decide "should I open this file?" in one read.
+
+### After sub-agent calls
+
+After each sub-agent returns, check its output for a
+`## Findings for Knowledge Base` section. Triage each finding against
+the admission test above. Persist qualifying entries to `/mem/long_term/`.
+
+### Git-tracking knowledge
+
+After writing to `/mem/long_term/`, git-track the changes:
+```bash
+cd /workspace && git add .opensage/knowledge/ && git commit -m "knowledge: <one-line summary>"
+```
 
 ## Tools
 

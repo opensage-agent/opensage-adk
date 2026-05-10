@@ -1,5 +1,8 @@
 # repo_maintainer agent configuration.
 #
+# INVARIANT: This agent always mounts MAINTAINED_PROJECT_PATH to /workspace.
+# All prompt references to /workspace depend on this binding.
+#
 # The host directory of the project being maintained is mounted into the
 # container at /workspace. It is resolved from the MAINTAINED_PROJECT_PATH
 # environment variable at session start. Example:
@@ -9,9 +12,9 @@
 #       --agent  examples/agents/repo_maintainer_agent \
 #       --config examples/agents/repo_maintainer_agent/config.toml
 #
-# The agent persists its lessons to ${MAINTAINED_PROJECT_PATH}/.opensage/lessons.md
-# on the host — the same file is visible inside the container at
-# /workspace/.opensage/lessons.md.
+# Long-term knowledge is persisted to ${MAINTAINED_PROJECT_PATH}/.opensage/knowledge/
+# on the host, mounted into the container at /mem/long_term/. This directory
+# should be git-tracked in the maintained project.
 
 DEFAULT_IMAGE = "ubuntu:22.04"
 TASK_NAME = "repo_maintainer"
@@ -20,11 +23,11 @@ MAX_HISTORY_SUMMARY_LENGTH = 240000
 
 task_name = "${TASK_NAME}"
 
-# Inject review-discipline guidance (cross-cutting paths verification) into
-# every agent's instruction at runtime. Resolved relative to this agent's
-# directory; overrides the framework default (long-term memory policy).
+# Inject merged review-discipline + knowledge read protocol into every
+# agent's instruction at runtime. Resolved relative to this agent's
+# directory; overrides the framework default.
 [auto_insert_prompt_file]
-agent_relative_path = "review_discipline.md"
+agent_relative_path = "auto_insert_review.md"
 
 [llm]
 [llm.model_configs.summarize]
@@ -47,8 +50,12 @@ compaction_percent = 50
 [sandbox]
 backend = "native"
 # Bind-mount the maintained project into /workspace (read-write).
-# The same path on the host is where .opensage/lessons.md is persisted.
-mount_host_paths = ["${MAINTAINED_PROJECT_PATH}:/workspace:rw"]
+# Also mount .opensage/knowledge/ to /mem/long_term/ so the framework's
+# long-term memory system writes directly to the repo (git-tracked).
+mount_host_paths = [
+    "${MAINTAINED_PROJECT_PATH}:/workspace:rw",
+    "${MAINTAINED_PROJECT_PATH}/.opensage/knowledge:/mem/long_term:rw",
+]
 
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"

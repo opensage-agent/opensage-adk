@@ -9,11 +9,8 @@ review (looking only at the file being edited) routinely passes fixes
 that look correct in isolation but break a path that traverses the
 same code from a different direction.
 
-This is the single biggest source of "the change reviewed clean but
-production broke" incidents. It happens because reviewers think
-**finding-driven** ("what does this fix change?") instead of
-**path-driven** ("which user-visible flows still need to work
-afterwards?").
+This is the single biggest source of "reviewed clean but production broke"
+incidents — reviewers think **finding-driven** instead of **path-driven**.
 
 ### Discovering paths in a repo
 
@@ -34,8 +31,8 @@ A cross-cutting path usually corresponds to one of:
 When you encounter one of these for the first time in a repo, name
 it, list the modules it crosses, and write down what "intact" looks
 like (the sequence of calls that must still be reachable end to end).
-Save it under `/workspace/.opensage/lessons.md` in a top-level
-section called `## Cross-cutting paths`. Each entry should be:
+Cross-cutting paths are stored in `/mem/long_term/cross-cutting-paths.md`.
+Each entry should be:
 
 ```
 ### <path-name>
@@ -46,9 +43,9 @@ section called `## Cross-cutting paths`. Each entry should be:
   if any>
 ```
 
-Re-read this section every time you take on a new task. The list
-grows as you find more paths; you do not start with a complete list,
-and that is fine.
+Re-read `/mem/long_term/cross-cutting-paths.md` every time you take
+on a new task. The list grows as you find more paths; you do not
+start with a complete list, and that is fine.
 
 ### Applying paths during the design loop
 
@@ -77,34 +74,38 @@ path-driven review explicitly:
   in the agreed list. State this explicitly in the audit trail
   message before mutating.
 
-### A concrete failure mode to remember
+### Failure mode to remember
 
-A localized fix wanted to prevent duplicate session ids by raising
-on disk-collision before writing. Reviewed locally inside one
-function, the change looked fine. But the project had a separate
-**resume** path that re-uses an existing session id by design — its
-adopt branch *required* the disk dir to already exist. The new
-raise unconditionally fired on every resume.
+A fix added a disk-collision guard that raised on duplicate session
+dirs. Locally correct — but the **resume** path re-uses existing
+dirs by design. Every resume crashed. The path-driven question
+("does resume still work?") catches this instantly; the
+finding-driven question ("is this guard correct?") misses it.
 
-The mistake was finding-driven review: the reviewer asked "is this
-local guard correct?" and the answer was yes. The path-driven
-question — "does the resume path still complete end to end?" —
-would have caught it in seconds, because the reviewer would have
-been forced to write `resume: BREAKS — adopt path expects existing
-dir`.
+## Knowledge Read Protocol
 
-If you cannot answer the path-driven question for a fix, you have
-not finished reviewing it.
+All agents can read `/mem/long_term/`. At the start of any task:
 
-### Lessons upkeep interaction
+1. Skim `/mem/long_term/index.md` for entries relevant to your scope.
+2. Read `/mem/long_term/cross-cutting-paths.md` for paths that may
+   be affected by the current task.
+3. Reference specific path names or knowledge entries in your output.
 
-When you discover a new cross-cutting path during a task, add it to
-the `## Cross-cutting paths` section of `lessons.md` BEFORE running
-your design loop. The proposer and critic will pick up the entry
-the next time they are invoked.
+**Do NOT write to `/mem/long_term/`** — only the root agent writes.
+Sub-agents are read-only consumers of the knowledge store.
 
-When a fix gets close to breaking a path (caught by the critic, or
-caught only after a try-and-revert), add a `### <fix-summary>`
-entry under the relevant path's `Past breakage` line. This is how
-the path list earns its weight over time: each entry has a real
-incident behind it, not just a hypothetical concern.
+## Findings for Knowledge Base
+
+If during your work you discover any of the following, append a
+section titled exactly `## Findings for Knowledge Base` at the end
+of your output so the root agent can triage and persist it:
+
+- A new cross-cutting path not yet in `cross-cutting-paths.md`
+- A non-obvious invariant or constraint
+- A pitfall or anti-pattern
+- A reusable workflow or recipe
+
+Format each finding as:
+- **type:** cross-cutting-path | architecture | pitfall | invariant | debugging | workflow
+- **content:** one-paragraph description
+- **evidence:** file:line or command that proves it

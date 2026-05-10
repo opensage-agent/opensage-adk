@@ -609,7 +609,10 @@ class OpenSageWebServer:
                         next_msg = await self.fake_user_fn(session_snapshot)
                         if next_msg is None:
                             break
-                        current_msg = next_msg
+                        current_msg = types.Content(
+                            role="user",
+                            parts=[types.Part.from_text(text=next_msg)],
+                        )
                         # Clear state_delta and invocation_id for follow-up turns.
                         state_delta = None
                         invocation_id = None

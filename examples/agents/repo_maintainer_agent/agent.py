@@ -13,6 +13,8 @@ no callback-based enforcement.
 
 from __future__ import annotations
 
+import os
+
 from google.adk.models.lite_llm import LiteLlm
 
 from opensage.agents.opensage_agent import OpenSageAgent
@@ -26,8 +28,14 @@ from opensage.toolbox.general.bash_tools_interface import (
 from opensage.toolbox.general.fileop import str_replace_edit, view_file
 from opensage.toolbox.general.orchestration_tools import (
     call_subagent,
+    continue_agent_instance,
+    create_subagent,
+    get_available_models,
     list_subagents,
+    send_message,
+    wait_for_subagent,
 )
+from opensage.toolbox.general.view_image import view_image
 
 _PROPOSER_INSTRUCTION = """
 You are **design_proposer** for a repository-maintenance agent.
@@ -171,9 +179,20 @@ avoid duplicates.
 
 
 def mk_agent(opensage_session_id: str) -> OpenSageAgent:
+    model = LiteLlm(
+        model="claude-opus-4-6",
+        api_key=os.getenv("LITELLM_API_KEY"),
+        base_url=os.getenv("LITELLM_BASE_URL") or "http://localhost:8082",
+        cache_control_injection_points=[
+            {"location": "message", "role": "system"},
+            {"location": "message", "index": -2},
+            {"location": "message", "index": -1},
+        ],
+    )
+
     proposer = OpenSageAgent(
         name="design_proposer",
-        model=LiteLlm(model="openai/gpt-5"),
+        model=model,
         description=(
             "Produces ≥2 design options (logic / verification / metrics / "
             "pros / cons) for a repo maintenance task. Read-only."
@@ -183,7 +202,7 @@ def mk_agent(opensage_session_id: str) -> OpenSageAgent:
     )
     critic = OpenSageAgent(
         name="design_critic",
-        model=LiteLlm(model="openai/gpt-5"),
+        model=model,
         description=(
             "Adversarially reviews design options. Flags issues in logic, "
             "verifiability, and metrics. Read-only."
@@ -194,7 +213,7 @@ def mk_agent(opensage_session_id: str) -> OpenSageAgent:
 
     return OpenSageAgent(
         name="repo_maintainer",
-        model=LiteLlm(model="openai/gpt-5"),
+        model=model,
         description=(
             "Long-running repo-maintenance agent. Drives a proposer+critic "
             "design-convergence loop before any mutation. Commit/revert "
@@ -203,16 +222,36 @@ def mk_agent(opensage_session_id: str) -> OpenSageAgent:
         instruction=_ROOT_INSTRUCTION,
         subagents=[proposer, critic],
         tools=[
+            # Reasoning
             think,
             complain,
+            # Orchestration
+            get_available_models,
+            create_subagent,
             call_subagent,
+            continue_agent_instance,
+            send_message,
+            wait_for_subagent,
             list_subagents,
+            # File ops
             view_file,
+            view_image,
             str_replace_edit,
+            # Terminal
             run_terminal_command,
             list_background_tasks,
             get_background_task_output,
             wait_for_background,
         ],
-        enabled_skills=None,
+        enabled_skills=[
+            "mmp",
+            "workflow",
+            "diagnose",
+            "triage",
+            "to-issues",
+            "tdd",
+            "improve-codebase-architecture",
+            "zoom-out",
+            "grill-with-docs",
+        ],
     )

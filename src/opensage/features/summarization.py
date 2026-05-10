@@ -834,9 +834,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     try:
         pinned = await _read_pinned_content(tool_context)
         if pinned:
-            end_ts_for_pin = (
-                window_events[-1].timestamp if window_events else 0
-            )
+            end_ts_for_pin = window_events[-1].timestamp if window_events else 0
             pinned_block = (
                 f"\n\n[[PINNED_CONTEXT (compaction_ts={end_ts_for_pin}; "
                 f"if multiple PINNED_CONTEXT blocks exist, ONLY the one "

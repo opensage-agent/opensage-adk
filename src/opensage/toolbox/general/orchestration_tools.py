@@ -84,9 +84,14 @@ async def call_subagent(
         mode: ``"sync"`` blocks until the invocation finishes and returns the
             final response text. ``"async"`` returns immediately; the final
             text is posted back to the caller's inbox when done.
-        use_parent_history: If True, deep-copy caller's ADK session (events +
-            non-framework state) into the new instance so the sub-agent
-            continues from caller's context.
+        use_parent_history: If True, the sub-agent inherits the parent's full
+            conversation history (all prior tool calls, their results, user
+            messages, and agent responses), so it can reason about context
+            the parent has already explored without re-description.
+            If False (default), the sub-agent starts with a blank context
+            and only sees the ``request`` message — suitable for
+            self-contained tasks that don't need the parent's exploration
+            history, saving context window budget.
         model_name: Override the subagent template's model for THIS spawned
             instance only. Must be a name returned by ``get_available_models``
             (i.e. present in the session's LlmRegistry). If omitted, the

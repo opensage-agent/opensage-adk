@@ -122,10 +122,12 @@ directory is `/workspace`.
 
 For every task that mutates the repo:
 
-1. Invoke `design_proposer` via `call_subagent("design_proposer", request=...)`
+1. Invoke `design_proposer` via
+   `call_subagent("design_proposer", request=..., use_parent_history=True)`
    with the task. Expect ≥ 2 options, each with `logic` / `verification` /
    `metrics` / `pros` / `cons`.
-2. Invoke `design_critic` via `call_subagent("design_critic", request=...)`
+2. Invoke `design_critic` via
+   `call_subagent("design_critic", request=..., use_parent_history=True)`
    with that proposer output.
 3. If the critic rejects or asks for revision, send the concerns back to
    `design_proposer` (another `call_subagent` invocation) and repeat.
@@ -133,10 +135,19 @@ For every task that mutates the repo:
    AND its `verification_ok` and `metrics_ok` are both true. Convergence
    covers three things: the **logic**, **how to verify it**, and the
    **evaluation metrics**. Anything less is not converged.
-5. Only after convergence may you use `str_replace_edit` or any
+5. **Report to user:** present the full design discussion process
+   (proposer rounds, critic objections, how they were resolved) and
+   the final converged design (option id + logic + verification +
+   metrics) in detail. Ask the user for approval to proceed.
+6. **Wait for user approval** before writing any code. Any clear
+   affirmative from the user = approval. Ambiguous or conditional
+   replies ("yes but change X first") are NOT approval — treat as
+   revision instructions. "No" → re-enter the design loop with the
+   user's feedback. "Abort" → abandon the task.
+7. Only after user approval may you use `str_replace_edit` or any
    `run_terminal_command` that mutates the repo (writes files, `git
    commit`, `git revert`, builds artifacts you intend to keep).
-6. Before mutating, restate the converged design (option id + the three
+8. Before mutating, restate the converged design (option id + the three
    parts) in one short message so the audit trail is in the transcript.
 
 While not converged you may still use read-only commands (`git status`,
@@ -155,6 +166,21 @@ inform the design.
 - To undo a published commit, use `git revert <sha>` (creates a new
   commit). Do NOT rewrite history (`reset --hard`, `commit --amend` on
   shared commits, `rebase -i`).
+- **Pre-commit gate (every commit, no exceptions):** before committing
+  any staged changes — code, knowledge, rollbacks, all:
+  1. `git add` the intended files.
+  2. Run `git diff --cached` and display the full staged diff to the user.
+  3. State the proposed commit message.
+  4. Wait for the user's explicit approval. Same semantics as the
+     pre-coding gate: clear affirmative only; ambiguous or conditional
+     replies are revision instructions, not approval.
+  5. On approval: `git commit`.
+  6. On rejection: `git reset HEAD` to unstage, then fix per user feedback.
+- Do NOT use `git commit -a`, `git commit --all`, `git commit -am`, or
+  any combined add+commit form. Always stage with `git add` first so
+  the pre-commit gate can show `git diff --cached`.
+- Each logical commit goes through this gate independently. Do not
+  batch unrelated changes into a single commit to reduce gate overhead.
 
 ## Long-term knowledge management
 
@@ -229,8 +255,8 @@ cd /workspace && git add .opensage/knowledge/ && git commit -m "knowledge: <one-
 
 - Reasoning: `think`, `complain`.
 - Design loop: `design_proposer`, `design_critic` (sub-agents, invoked
-  via `call_subagent(agent_name=..., request=...)`; use `list_subagents`
-  to verify they are registered).
+  via `call_subagent(agent_name=..., request=..., use_parent_history=True)`;
+  use `list_subagents` to verify they are registered).
 - Read / explore: `view_file`, `run_terminal_command` (read-only use
   before convergence).
 - Mutate (only after convergence): `str_replace_edit`,

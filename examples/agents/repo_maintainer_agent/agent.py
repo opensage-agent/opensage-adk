@@ -57,7 +57,11 @@ The proposal MUST contain:
 
 Hard rules:
 - ≥ 2 options, genuinely different (not cosmetic variants).
-- Do NOT run shell commands or edit files. Output the proposal only.
+- Do NOT edit files. You may use `view_file` and read-only
+  `run_terminal_command` (grep, cat, find, git log) to verify facts
+  about the codebase. Every claim about what code does, what files
+  import, or which modules reference a class MUST be backed by
+  evidence you actually read — never guess based on file names.
 - If the critic rejected earlier options, address each concern explicitly.
 """.strip()
 
@@ -83,8 +87,11 @@ WRONG or MISSING — not to bless things. For each option return:
 
 Hard rules:
 - Be adversarial. No rubber-stamping.
-- Flag any unjustified claim in `logic`.
-- Do NOT run shell commands or edit files.
+- Flag any unjustified claim in `logic`. If the proposer claims "file X
+  imports Y" or "only module A uses class B", verify it yourself with
+  `view_file` or `run_terminal_command` (grep, cat). Unverified
+  factual claims about the codebase are grounds for `needs_revision`.
+- Do NOT edit files.
 """.strip()
 
 
@@ -135,10 +142,17 @@ For every task that mutates the repo:
    AND its `verification_ok` and `metrics_ok` are both true. Convergence
    covers three things: the **logic**, **how to verify it**, and the
    **evaluation metrics**. Anything less is not converged.
-5. **Report to user:** present the full design discussion process
+5. **Report to user:** present (a) a summary of the discussion process
    (proposer rounds, critic objections, how they were resolved) and
-   the final converged design (option id + logic + verification +
-   metrics) in detail. Ask the user for approval to proceed.
+   (b) the final converged design in full detail. The design report
+   must be self-contained: assume the user has NOT read the
+   proposer/critic transcripts. For every change, state: which file
+   and what code is being changed, why (what problem it solves), and
+   how (show enough code/config snippets that the user can judge
+   correctness). Do NOT use shorthand that only makes sense if you
+   followed the discussion. A reader with zero context should
+   understand the entire plan from this report alone. Ask the user
+   for approval to proceed.
 6. **Wait for user approval** before writing any code. Any clear
    affirmative from the user = approval. Ambiguous or conditional
    replies ("yes but change X first") are NOT approval — treat as
@@ -149,6 +163,15 @@ For every task that mutates the repo:
    commit`, `git revert`, builds artifacts you intend to keep).
 8. Before mutating, restate the converged design (option id + the three
    parts) in one short message so the audit trail is in the transcript.
+9. **Write and run tests** as part of implementation — not as an
+   afterthought. For each change, write unit tests that verify the
+   core logic (use mocks for external deps like sandbox, LLM, etc.).
+   Place tests alongside existing test files following the repo's test
+   structure. Run them and confirm they pass BEFORE showing the diff
+   to the user.
+10. **Clean up** temporary test scaffolding. Only keep tests that
+    verify meaningful behavior and would catch real regressions. Delete
+    any ad-hoc debugging tests before committing.
 
 While not converged you may still use read-only commands (`git status`,
 `git log`, `grep`, `cat`, test runs that don't write artifacts) to
@@ -286,7 +309,15 @@ def mk_agent(opensage_session_id: str) -> OpenSageAgent:
             "pros / cons) for a repo maintenance task. Read-only."
         ),
         instruction=_PROPOSER_INSTRUCTION,
-        tools=[think],
+        tools=[
+            think, complain,
+            get_available_models, create_subagent, call_subagent,
+            continue_agent_instance, send_message, wait_for_subagent,
+            list_subagents,
+            view_file, view_image, str_replace_edit,
+            run_terminal_command, list_background_tasks,
+            get_background_task_output, wait_for_background,
+        ],
     )
     critic = OpenSageAgent(
         name="design_critic",
@@ -296,7 +327,15 @@ def mk_agent(opensage_session_id: str) -> OpenSageAgent:
             "verifiability, and metrics. Read-only."
         ),
         instruction=_CRITIC_INSTRUCTION,
-        tools=[think],
+        tools=[
+            think, complain,
+            get_available_models, create_subagent, call_subagent,
+            continue_agent_instance, send_message, wait_for_subagent,
+            list_subagents,
+            view_file, view_image, str_replace_edit,
+            run_terminal_command, list_background_tasks,
+            get_background_task_output, wait_for_background,
+        ],
     )
 
     return OpenSageAgent(

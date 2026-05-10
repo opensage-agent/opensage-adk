@@ -11,25 +11,27 @@ from typing import Optional, Type
 
 from opensage.sandbox.initializers.base import SandboxInitializer
 
-from .agentdocker_lite_sandbox import AgentDockerLiteSandbox
 from .base_sandbox import BaseSandbox
-from .k8s_sandbox import K8sSandbox
 from .local_sandbox import LocalSandbox
-from .native_docker_sandbox import NativeDockerSandbox
-from .opensandbox_sandbox import OpenSandboxSandbox
-from .remote_docker_sandbox import RemoteDockerSandbox
 
 logger = logging.getLogger(__name__)
 
-# Registry of available backends
-SANDBOX_BACKENDS = {
-    "native": NativeDockerSandbox,
-    "k8s": K8sSandbox,
-    "remotedocker": RemoteDockerSandbox,
-    "opensandbox": OpenSandboxSandbox,
-    "agentdocker-lite": AgentDockerLiteSandbox,
-    "local": LocalSandbox,
-}
+# Backend modules are imported lazily in get_backend_class() so that
+# ``import opensage`` works without optional deps like nitrobox or opensandbox.
+# Each entry: backend_name → (module_name, class_name).
+_BACKENDS = {
+    "native":           ("native_docker_sandbox",       "NativeDockerSandbox"),
+    "k8s":              ("k8s_sandbox",                 "K8sSandbox"),
+    "remotedocker":     ("remote_docker_sandbox",       "RemoteDockerSandbox"),
+    "opensandbox":      ("opensandbox_sandbox",         "OpenSandboxSandbox"),
+    "agentdocker-lite": ("agentdocker_lite_sandbox",    "AgentDockerLiteSandbox"),
+    "local":            ("local_sandbox",               "LocalSandbox"),
+}  # fmt: skip
+
+_LOADED: dict[str, type[BaseSandbox]] = {"local": LocalSandbox}
+
+# Backward-compatible dict — populated lazily by get_backend_class().
+SANDBOX_BACKENDS: dict[str, type[BaseSandbox]] = {"local": LocalSandbox}
 
 _BUILTIN_DIR = Path(__file__).resolve().parent / "initializers"
 _BUILTIN_PACKAGE = "opensage.sandbox.initializers"
@@ -156,6 +158,10 @@ def get_backend_class(backend_type: str, config=None) -> Type[BaseSandbox]:
     """
     Get the backend class for a given backend type.
 
+    The backend module is imported lazily on first use so that
+    ``import opensage`` works without optional dependencies like
+    nitrobox or opensandbox.
+
     Args:
       backend_type (str): The type of backend needed (e.g., 'native', 'k8s')
       config: Optional config to inject into backend (for remotedocker)
@@ -164,10 +170,28 @@ def get_backend_class(backend_type: str, config=None) -> Type[BaseSandbox]:
 
     Raises:
       ValueError: If backend type is not supported
+      ImportError: If the backend's dependencies are not installed
     """
-    backend_class = SANDBOX_BACKENDS.get(backend_type)
+    # Resolve from cache or lazy-import
+    backend_class = _LOADED.get(backend_type)
     if backend_class is None:
-        raise ValueError(f"Unsupported backend type: {backend_type}")
+        if backend_type not in _BACKENDS:
+            raise ValueError(
+                f"Unsupported backend type: {backend_type!r}. "
+                f"Known: {sorted(_BACKENDS.keys())}"
+            )
+        module_name, class_name = _BACKENDS[backend_type]
+        try:
+            mod = importlib.import_module(
+                f".{module_name}", package="opensage.sandbox"
+            )
+        except ImportError as e:
+            raise ImportError(
+                f"Sandbox backend {backend_type!r} is unavailable: {e}"
+            ) from e
+        backend_class = getattr(mod, class_name)
+        _LOADED[backend_type] = backend_class
+        SANDBOX_BACKENDS[backend_type] = backend_class
 
     # Inject config for remote docker backend
     if (

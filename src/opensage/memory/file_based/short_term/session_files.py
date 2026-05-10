@@ -93,6 +93,17 @@ def get_current_session_tool_outputs_dir(context) -> str:
     return os.path.join(get_current_session_mem_dir(context), "tool_outputs")
 
 
+def get_current_session_pinned_path(context) -> str:
+    """Return the path to pinned.md for the current session.
+
+    pinned.md holds task-specific information (credentials, exact URLs,
+    step-by-step procedures) that must survive history compaction verbatim.
+    Its content is embedded into compaction events so it is never lost to
+    LLM summarization.
+    """
+    return os.path.join(get_current_session_mem_dir(context), "pinned.md")
+
+
 def _compute_child_session_mem_dir(
     parent_invocation_context, *, child_agent_name: str, child_session_id: str
 ) -> str:
@@ -114,7 +125,7 @@ async def _ensure_file_memory_roots(invocation_context) -> None:
 async def _ensure_agent_mem_layout(
     invocation_context, agent_mem_dir: str, *, agent_name: str
 ) -> None:
-    """Create the current session folder and default TODO.md in main sandbox."""
+    """Create the current session folder, TODO.md, and pinned.md in main sandbox."""
     sandbox = _get_main_sandbox(invocation_context)
     await _ensure_file_memory_roots(invocation_context)
     await sandbox.arun_command_in_container(
@@ -125,14 +136,21 @@ async def _ensure_agent_mem_layout(
     _, exit_code = await sandbox.arun_command_in_container(
         f"test -f {shlex.quote(todo_path)}"
     )
-    if exit_code == 0:
-        return
-    todo_seed = (
-        f"# TODO for {agent_name}\n\n"
-        "- [ ] Capture the current task\n"
-        "- [ ] Update progress as work proceeds\n"
+    if exit_code != 0:
+        todo_seed = (
+            f"# TODO for {agent_name}\n\n"
+            "- [ ] Capture the current task\n"
+            "- [ ] Update progress as work proceeds\n"
+        )
+        await _write_text_to_main_sandbox(invocation_context, todo_path, todo_seed)
+
+    # Create pinned.md (compaction-safe memory) if it doesn't exist.
+    pinned_path = os.path.join(agent_mem_dir, "pinned.md")
+    _, exit_code = await sandbox.arun_command_in_container(
+        f"test -f {shlex.quote(pinned_path)}"
     )
-    await _write_text_to_main_sandbox(invocation_context, todo_path, todo_seed)
+    if exit_code != 0:
+        await _write_text_to_main_sandbox(invocation_context, pinned_path, "")
 
 
 async def _persist_traj_json(invocation_context, agent_mem_dir: str) -> None:

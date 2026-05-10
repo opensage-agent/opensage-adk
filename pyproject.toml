@@ -12,9 +12,7 @@ dependencies = [
     "pip",
     "google-adk<=1.25.1",
     "pandas==2.2.3",
-    "neomodel==5.4.3",
     "docker==7.1.0",
-    "paramiko>=3.0.0",
     "python-dotenv>=1.1.0",
     "tree-sitter-language-pack==1.6.2",
     "pyyaml==6.0.2",
@@ -33,8 +31,6 @@ dependencies = [
     "uvicorn>=0.34.0,<1.0.0",
     "python-magic>=0.4.27",
     "Pillow>=12.0.0",
-    "opensandbox>=0.1.5",
-    "nitrobox @ git+https://github.com/opensage-agent/nitrobox.git@main",
 ]
 
 [project.optional-dependencies]
@@ -66,8 +62,14 @@ agentbeats = [
     # `httpx` is used by the launcher to poll agent readiness.
     "httpx>=0.27.0",
 ]
+nitrobox = [
+    "nitrobox @ git+https://github.com/opensage-agent/nitrobox.git@main",
+]
+opensandbox = [
+    "opensandbox>=0.1.5",
+]
 full = [
-    "opensage[langfuse,cybergym,harbor,agentbeats]",
+    "opensage[langfuse,cybergym,harbor,agentbeats,nitrobox,opensandbox]",
 ]
 
 [project.scripts]

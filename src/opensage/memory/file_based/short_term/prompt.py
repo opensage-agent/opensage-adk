@@ -35,6 +35,7 @@ def build_file_runtime_memory_context(
         f"- Agent: `{agent_name}` | session_id: `{session_id}`\n"
         f"- Short-term memory dir (per-agent): `{agent_mem_dir}/`\n"
         f"  - notes: `{os.path.join(agent_mem_dir, 'TODO.md')}`\n"
+        f"  - pinned (compaction-safe): `{os.path.join(agent_mem_dir, 'pinned.md')}`\n"
         f"  - trajectory: `{os.path.join(agent_mem_dir, 'traj.json')}`\n"
         f"  - tool outputs: `{os.path.join(agent_mem_dir, 'tool_outputs')}/`\n"
         f"- Long-term memory dir (shared in this OpenSage session): `{long_term_dir}/`\n"

@@ -39,3 +39,25 @@ nowhere.
 
 Skipping this step is not "saving time" — it shifts cost onto every future
 agent that has to re-discover the same thing. Maintain the wiki.
+
+## Pinned Memory (compaction-safe)
+
+`pinned.md` in your short-term memory dir survives history compaction
+verbatim — its content is embedded into every compaction summary, so it
+is never lost to LLM summarization.
+
+**When to pin (do this IMMEDIATELY, same turn you receive the info):**
+- Credentials: usernames, passwords, API keys, tokens
+- Exact URLs: submission endpoints, API paths, webhook URLs
+- Literal format strings: flag formats like `FLAG{...}`, response templates
+- Step-by-step procedures with exact commands that must be followed verbatim
+- Any string you will need to reproduce character-perfectly later
+
+**When NOT to pin:**
+- General task context or strategy (use `TODO.md`)
+- Durable knowledge for future sessions (use `/mem/long_term/`)
+- Anything you can re-derive with a single tool call
+
+**How:** Write to `pinned.md` using `str_replace_edit` or
+`run_terminal_command`. Keep it under ~2000 characters — only exact
+operational info belongs here. To un-pin, empty the file.

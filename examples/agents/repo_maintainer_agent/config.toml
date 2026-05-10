@@ -63,7 +63,7 @@ initializer_timeout_sec = 1200
 [[model.available_models]]
 model = "claude-opus-4-6"
 api_key_env = "LITELLM_API_KEY"
-base_url = "http://localhost:8082"
+base_url = "LITELLM_BASE_URL"
 
 [plugins]
 enabled = [

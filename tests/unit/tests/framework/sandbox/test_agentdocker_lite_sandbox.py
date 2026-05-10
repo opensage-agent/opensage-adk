@@ -378,18 +378,23 @@ class TestAgentDockerLiteSandboxErrors:
     def test_non_root_uses_rootless(self):
         if os.geteuid() == 0:
             pytest.skip("Already root — cannot test rootless fallback")
+        pytest.importorskip("nitrobox")
         from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
-        # With agentdocker-lite, non-root auto-selects LandlockSandbox (rootless)
-        # This should not raise PermissionError; it will fail for missing image instead
+        # With agentdocker-lite, non-root auto-selects rootless isolation.
+        # Must not raise PermissionError; other errors (missing image) are acceptable.
         cfg = ContainerConfig(image="/nonexistent", working_dir="/workspace")
-        with pytest.raises((RuntimeError, FileNotFoundError, ValueError, OSError)):
+        try:
             AgentDockerLiteSandbox(
                 container_config=cfg,
                 opensage_session_id="test",
                 backend_type="agentdocker-lite",
                 sandbox_type="main",
             )
+        except PermissionError:
+            pytest.fail("Non-root must not raise PermissionError")
+        except (RuntimeError, FileNotFoundError, ValueError, OSError):
+            pass
 
     @needs_root
     def test_missing_image_raises(self):
@@ -409,6 +414,7 @@ class TestAgentDockerLiteSandboxErrors:
             )
 
     def test_wrong_backend_type_raises(self):
+        pytest.importorskip("nitrobox")
         from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
 
         cfg = ContainerConfig(image="/tmp", working_dir="/workspace")

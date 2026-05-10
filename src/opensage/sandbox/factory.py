@@ -182,9 +182,7 @@ def get_backend_class(backend_type: str, config=None) -> Type[BaseSandbox]:
             )
         module_name, class_name = _BACKENDS[backend_type]
         try:
-            mod = importlib.import_module(
-                f".{module_name}", package="opensage.sandbox"
-            )
+            mod = importlib.import_module(f".{module_name}", package="opensage.sandbox")
         except ImportError as e:
             raise ImportError(
                 f"Sandbox backend {backend_type!r} is unavailable: {e}"

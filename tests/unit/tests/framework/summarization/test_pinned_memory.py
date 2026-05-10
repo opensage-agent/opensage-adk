@@ -3,22 +3,15 @@
 Verifies that pinned.md content is correctly embedded into compaction
 results and survives future compaction cycles.
 """
+
 from __future__ import annotations
 
-import sys
-from types import ModuleType
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from google.adk.events.event import Event
 from google.adk.events.event_actions import EventActions, EventCompaction
 from google.genai import types
-
-# Stub out heavy optional deps that are unavailable in this test env.
-for _mod in ("nitrobox", "opensandbox", "tree_sitter_language_pack",
-             "neomodel"):
-    if _mod not in sys.modules:
-        sys.modules[_mod] = MagicMock()
 
 
 def _make_text_content(role: str, text: str) -> types.Content:
@@ -132,7 +125,9 @@ def test_pinned_content_embedded_in_compaction_event():
     compacted_content = _make_text_content("model", "Summary of conversation.")
 
     # Simulate what history_summarizer_callback does
-    pinned = "username: admin\npassword: x7!kQ9\nsubmit: https://ctf.example.com/api/submit"
+    pinned = (
+        "username: admin\npassword: x7!kQ9\nsubmit: https://ctf.example.com/api/submit"
+    )
     end_ts = 42.0
     pinned_block = (
         f"\n\n[[PINNED_CONTEXT (compaction_ts={end_ts}; "

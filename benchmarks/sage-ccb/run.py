@@ -9,6 +9,7 @@ import shutil
 import sys
 import tempfile
 import time
+import traceback
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -151,8 +152,64 @@ class SAGE_CCB_Bench(Evaluation):
         self._replace_template_variables_in_config(temp_config_path, template_variables)
         self._normalize_ctf_config(temp_config_path)
 
-        get_opensage_session(task.session_id, config_path=temp_config_path)
+        opensage_session = get_opensage_session(
+            task.session_id, config_path=temp_config_path
+        )
+        self._ensure_host_workspace_mount(task, opensage_session)
         shutil.rmtree(temp_dir, ignore_errors=True)
+
+    def _host_workspace_dir(self, task: EvaluationTask) -> Path:
+        return Path(task.output_dir).resolve() / "workspace_live"
+
+    def _ensure_host_workspace_mount(
+        self, task: EvaluationTask, opensage_session
+    ) -> None:
+        """Bind a host-owned live workspace into the main native sandbox.
+
+        The normal evaluator copies `/workspace` after the agent exits. If the
+        agent or sandbox command path crashes before that copy, solved
+        submissions can otherwise be lost during cleanup. For native Docker
+        runs, the live bind mount makes `/workspace/submissions` durable as soon
+        as the agent writes it.
+        """
+        sandbox_config = getattr(opensage_session.config, "sandbox", None)
+        backend = getattr(sandbox_config, "backend", None) if sandbox_config else None
+        if backend != "native":
+            logger.info(
+                "Skipping live /workspace bind mount for backend %s; "
+                "falling back to best-effort sandbox export.",
+                backend or "<unset>",
+            )
+            return
+
+        main_config = getattr(sandbox_config, "sandboxes", {}).get("main")
+        if main_config is None:
+            logger.warning(
+                "Cannot mount live workspace: main sandbox is not configured"
+            )
+            return
+
+        host_workspace = self._host_workspace_dir(task)
+        host_workspace.mkdir(parents=True, exist_ok=True)
+        try:
+            host_workspace.chmod(0o777)
+        except OSError as exc:
+            logger.warning("Failed to chmod live workspace %s: %s", host_workspace, exc)
+
+        mount_spec = f"{host_workspace}:/workspace:rw"
+        volumes = list(getattr(main_config, "volumes", []) or [])
+        volumes = [
+            spec
+            for spec in volumes
+            if not (
+                isinstance(spec, str)
+                and len(spec.split(":")) >= 2
+                and spec.split(":")[1] == "/workspace"
+            )
+        ]
+        volumes.append(mount_spec)
+        main_config.volumes = volumes
+        logger.warning("Mounted live SAGE-CCB workspace at %s", host_workspace)
 
     def _normalize_ctf_config(self, temp_config_path: Path) -> None:
         content = temp_config_path.read_text()
@@ -195,7 +252,7 @@ class SAGE_CCB_Bench(Evaluation):
         run_started = time.time()
         timeout_limit = parse_timeout(self.timeout)
         run_deadline = run_started + timeout_limit
-        suite_exit_reason = "finished"
+        suite_exit_reason = "task_error"
         session = None
 
         try:
@@ -223,6 +280,7 @@ class SAGE_CCB_Bench(Evaluation):
                     self._run_agent(task, agent),
                     timeout=remaining_timeout,
                 )
+                suite_exit_reason = "finished"
             except TimeoutError:
                 suite_exit_reason = "timeout"
                 logger.warning(
@@ -238,43 +296,61 @@ class SAGE_CCB_Bench(Evaluation):
                 suite_exit_reason=suite_exit_reason,
             )
 
-            try:
-                task.opensage_session.cleanup()
-                logger.warning("Cleanup completed for session: %s", task.session_id)
-            except Exception as cleanup_error:
-                logger.warning(
-                    "Cleanup failed for session %s: %s",
-                    task.session_id,
-                    cleanup_error,
-                )
-
             return output_info
         except Exception as exc:
             logger.exception("SAGE-CCB suite failed: %s", exc)
-            write_failed_run_metadata(
-                output_dir=output_path,
-                suite_prompt=task.first_user_message,
-                started_at=started_at,
-                finished_at=_utcnow_iso(),
-                duration_seconds=time.time() - run_started,
-                suite_exit_reason=(
-                    "timeout" if isinstance(exc, TimeoutError) else "task_error"
-                ),
-                error={
-                    "type": type(exc).__name__,
-                    "message": str(exc),
-                },
-                driver="opensage-ctf",
+            failure_exit_reason = (
+                "timeout"
+                if isinstance(exc, TimeoutError)
+                else suite_exit_reason
+                if suite_exit_reason != "finished"
+                else "task_error"
             )
+            error = {
+                "type": type(exc).__name__,
+                "message": str(exc),
+                "traceback": traceback.format_exc(),
+            }
+            session = session or await self._recover_session(task)
             try:
-                task.opensage_session.cleanup()
-            except Exception:
-                pass
+                await self._collect_outputs(
+                    task=task,
+                    session=session,
+                    started_at=started_at,
+                    duration_seconds=time.time() - run_started,
+                    suite_exit_reason=failure_exit_reason,
+                    error=error,
+                )
+            except Exception as collection_error:
+                logger.exception(
+                    "Failed to collect SAGE-CCB partial outputs after task error: %s",
+                    collection_error,
+                )
+                self._copy_host_workspace_snapshot(task)
+                raw_dir = write_failed_run_metadata(
+                    output_dir=output_path,
+                    suite_prompt=task.first_user_message,
+                    started_at=started_at,
+                    finished_at=_utcnow_iso(),
+                    duration_seconds=time.time() - run_started,
+                    suite_exit_reason=failure_exit_reason,
+                    error={
+                        **error,
+                        "collection_error": {
+                            "type": type(collection_error).__name__,
+                            "message": str(collection_error),
+                        },
+                    },
+                    driver="opensage-ctf",
+                )
+                self._archive_workspace_directly(task, raw_dir / "workspace")
             raise
         finally:
+            self._cleanup_opensage_session(task)
             stop_challenge_services(started_services)
             if task.initial_data_dir:
                 shutil.rmtree(task.initial_data_dir, ignore_errors=True)
+            self._cleanup_live_workspace_if_archived(task)
 
     async def _collect_outputs(
         self,
@@ -284,12 +360,34 @@ class SAGE_CCB_Bench(Evaluation):
         started_at: str,
         duration_seconds: float | None,
         suite_exit_reason: str,
+        error: dict[str, Any] | None = None,
     ) -> dict:
-        info = await super()._collect_outputs(task, session)
         output_path = Path(task.output_dir)
         sandbox_dir = output_path / "sandbox_output"
+        try:
+            info = await super()._collect_outputs(task, session)
+        except Exception as collection_error:
+            logger.warning(
+                "Base output collection failed for SAGE-CCB session %s; "
+                "continuing with live workspace snapshot: %s",
+                task.session_id,
+                collection_error,
+            )
+            info = {
+                "session": session.model_dump() if session else None,
+                "collection_error": {
+                    "type": type(collection_error).__name__,
+                    "message": str(collection_error),
+                },
+            }
+
+        self._copy_host_workspace_snapshot(task)
         finished_at = _utcnow_iso()
         session_trace = self._load_session_trace(output_path / "session_trace.json")
+        if session_trace is None:
+            session_trace = self._load_live_session_trace(
+                output_path / "live_events.jsonl"
+            )
 
         write_raw_run_artifacts(
             output_dir=output_path,
@@ -301,8 +399,92 @@ class SAGE_CCB_Bench(Evaluation):
             finished_at=finished_at,
             duration_seconds=duration_seconds,
             driver="opensage-ctf",
+            error=error,
         )
         return info
+
+    async def _recover_session(self, task: EvaluationTask):
+        try:
+            from opensage.orchestration.manager import DEFAULT_USER_ID
+
+            opensage_session = task.opensage_session
+            if not opensage_session:
+                return None
+            return await opensage_session.session_service.get_session(
+                app_name=opensage_session.agent_manager.app_name,
+                user_id=DEFAULT_USER_ID,
+                session_id=task.session_id,
+            )
+        except Exception as exc:
+            logger.warning("Failed to recover partial ADK session trace: %s", exc)
+            return None
+
+    def _copy_host_workspace_snapshot(self, task: EvaluationTask) -> bool:
+        host_workspace = self._host_workspace_dir(task)
+        if not host_workspace.exists():
+            return False
+
+        output_path = Path(task.output_dir)
+        sandbox_output = output_path / "sandbox_output"
+
+        target = sandbox_output / "workspace"
+        if target.exists() and any(target.iterdir()):
+            return False
+        if target.exists():
+            shutil.rmtree(target, ignore_errors=True)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(host_workspace, target, dirs_exist_ok=True)
+        logger.warning("Snapshotted live SAGE-CCB workspace to %s", target)
+        return True
+
+    def _archive_workspace_directly(self, task: EvaluationTask, target: Path) -> bool:
+        host_workspace = self._host_workspace_dir(task)
+        sandbox_workspace = Path(task.output_dir) / "sandbox_output" / "workspace"
+        if host_workspace.exists():
+            source = host_workspace
+        elif sandbox_workspace.exists():
+            source = sandbox_workspace
+        else:
+            return False
+
+        if target.exists():
+            shutil.rmtree(target, ignore_errors=True)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source, target, dirs_exist_ok=True)
+        logger.warning("Archived partial SAGE-CCB workspace directly to %s", target)
+        return True
+
+    def _cleanup_opensage_session(self, task: EvaluationTask) -> None:
+        try:
+            opensage_session = task.opensage_session
+        except Exception:
+            opensage_session = None
+        if not opensage_session:
+            return
+        try:
+            opensage_session.cleanup()
+            logger.warning("Cleanup completed for session: %s", task.session_id)
+        except Exception as cleanup_error:
+            logger.warning(
+                "Cleanup failed for session %s: %s",
+                task.session_id,
+                cleanup_error,
+            )
+
+    def _cleanup_live_workspace_if_archived(self, task: EvaluationTask) -> None:
+        host_workspace = self._host_workspace_dir(task)
+        raw_workspace = Path(task.output_dir) / "raw" / "workspace"
+        sandbox_workspace = Path(task.output_dir) / "sandbox_output" / "workspace"
+        if not host_workspace.exists() or not (
+            raw_workspace.exists() or sandbox_workspace.exists()
+        ):
+            return
+        try:
+            shutil.rmtree(host_workspace)
+        except Exception as exc:
+            logger.warning(
+                "Failed to remove live workspace %s: %s", host_workspace, exc
+            )
 
     def evaluate(self) -> dict[str, Any]:
         """Score raw artifacts and run the LLM judge.
@@ -343,6 +525,20 @@ class SAGE_CCB_Bench(Evaluation):
         if not path.exists():
             return None
         return json.loads(path.read_text())
+
+    def _load_live_session_trace(self, path: Path) -> dict[str, Any] | None:
+        if not path.exists():
+            return None
+        events = []
+        for raw_line in path.read_text(errors="replace").splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return {"events": events} if events else None
 
 
 if __name__ == "__main__":

@@ -18,11 +18,17 @@ Three patches are applied:
    Anthropic content blocks) and populates ``LlmResponse.grounding_metadata``
    so the search queries and result URLs are captured in the agent trajectory.
 
+4. ``_message_to_generate_content_response`` — Parses each returned tool call
+   independently.  If a provider returns malformed JSON for one tool call's
+   arguments, the bad call is dropped and recorded in response metadata instead
+   of crashing the whole agent turn.
+
 Apply once at startup via :func:`apply`.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
@@ -32,6 +38,7 @@ logger = logging.getLogger(__name__)
 _patched: bool = False
 _orig_generate_content_async = None
 _orig_model_response_to_generate_content_response = None
+_orig_message_to_generate_content_response = None
 _orig_transform_parsed_response = None
 
 
@@ -94,12 +101,15 @@ def apply() -> None:
     """Monkey-patch ``LiteLlm`` for web search support (idempotent)."""
     global _patched, _orig_generate_content_async
     global _orig_model_response_to_generate_content_response
+    global _orig_message_to_generate_content_response
     global _orig_transform_parsed_response
     if _patched:
         return
 
     from google.adk.models import lite_llm as _lite_llm_module
     from google.adk.models.lite_llm import LiteLlm
+    from google.adk.models.llm_response import LlmResponse
+    from google.genai import types
 
     # --- Patch 1: forward extra completion kwargs ---
 
@@ -167,6 +177,131 @@ def apply() -> None:
     _orig_model_response_to_generate_content_response = (
         _lite_llm_module._model_response_to_generate_content_response
     )
+    _orig_message_to_generate_content_response = (
+        _lite_llm_module._message_to_generate_content_response
+    )
+
+    def _get_value(obj: Any, key: str, default: Any = None) -> Any:
+        if isinstance(obj, dict):
+            return obj.get(key, default)
+        return getattr(obj, key, default)
+
+    def _preview_tool_args(raw_args: Any) -> str:
+        if isinstance(raw_args, str):
+            text = raw_args
+        else:
+            text = repr(raw_args)
+        text = text.replace("\n", "\\n")
+        if len(text) > 200:
+            return f"{text[:200]}..."
+        return text
+
+    def _parse_tool_call_args(
+        tool_call: Any,
+    ) -> tuple[dict[str, Any] | None, str | None]:
+        function = _get_value(tool_call, "function")
+        raw_args = _get_value(function, "arguments", "{}")
+
+        if raw_args in (None, ""):
+            return {}, None
+        if isinstance(raw_args, dict):
+            return raw_args, None
+        if not isinstance(raw_args, str):
+            return None, f"expected JSON string, got {type(raw_args).__name__}"
+
+        try:
+            parsed_args = json.loads(raw_args)
+        except json.JSONDecodeError as exc:
+            return None, str(exc)
+
+        if not isinstance(parsed_args, dict):
+            return None, f"expected JSON object, got {type(parsed_args).__name__}"
+
+        return parsed_args, None
+
+    def _patched_message_to_gcr(
+        message,
+        *,
+        is_partial: bool = False,
+        model_version: str = None,
+        thought_parts: Optional[List[types.Part]] = None,
+    ) -> LlmResponse:
+        _lite_llm_module._ensure_litellm_imported()
+
+        parts: List[types.Part] = []
+        if not thought_parts:
+            thought_parts = _lite_llm_module._convert_reasoning_value_to_parts(
+                _lite_llm_module._extract_reasoning_value(message)
+            )
+        if thought_parts:
+            parts.extend(thought_parts)
+
+        message_content, tool_calls = (
+            _lite_llm_module._split_message_content_and_tool_calls(message)
+        )
+        if isinstance(message_content, str) and message_content:
+            parts.append(types.Part.from_text(text=message_content))
+
+        malformed_tool_calls: List[Dict[str, str]] = []
+        if tool_calls:
+            for tool_call in tool_calls:
+                if _get_value(tool_call, "type") != "function":
+                    continue
+
+                function = _get_value(tool_call, "function")
+                tool_name = _get_value(function, "name")
+                tool_call_id = _get_value(tool_call, "id")
+                parsed_args, error = _parse_tool_call_args(tool_call)
+
+                if not isinstance(tool_name, str) or not tool_name:
+                    error = error or "missing function name"
+
+                if error is not None:
+                    raw_args = _get_value(function, "arguments", "")
+                    malformed_tool_calls.append(
+                        {
+                            "id": str(tool_call_id or ""),
+                            "name": str(tool_name or ""),
+                            "error": error,
+                            "arguments_preview": _preview_tool_args(raw_args),
+                        }
+                    )
+                    continue
+
+                part = types.Part.from_function_call(
+                    name=tool_name,
+                    args=parsed_args or {},
+                )
+                part.function_call.id = tool_call_id
+                parts.append(part)
+
+        custom_metadata = None
+        if malformed_tool_calls:
+            logger.warning(
+                "Skipping %d malformed LiteLLM tool call(s): %s",
+                len(malformed_tool_calls),
+                malformed_tool_calls,
+            )
+            custom_metadata = {"malformed_tool_calls": malformed_tool_calls}
+            if not parts:
+                parts.append(
+                    types.Part.from_text(
+                        text=(
+                            "The previous tool call could not be executed because "
+                            "its arguments were not valid JSON. Retry with complete "
+                            "JSON arguments."
+                        )
+                    )
+                )
+
+        return LlmResponse(
+            content=types.Content(role="model", parts=parts),
+            partial=is_partial,
+            model_version=model_version,
+            custom_metadata=custom_metadata,
+        )
+
+    _lite_llm_module._message_to_generate_content_response = _patched_message_to_gcr
 
     def _collect_server_tool_ids(content_blocks: List[Dict[str, Any]]) -> set:
         """Return the set of tool-call IDs that originated from server_tool_use blocks."""

@@ -6,11 +6,13 @@ from google.adk.flows.llm_flows.functions import handle_function_call_list_async
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 from google.adk.sessions.session import Session
 from google.adk.tools.base_tool import BaseTool
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset, SseConnectionParams
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
 from opensage.agents.opensage_agent import (
     OpenSageAgent,
+    OpenSageMCPToolset,
     opensage_default_tool_error_handler,
 )
 
@@ -81,3 +83,34 @@ async def test_default_tool_error_handler_prevents_exception_propagation() -> No
     assert function_response.id == "call-id"
     assert function_response.response["success"] is False
     assert "RuntimeError: injected failure" in function_response.response["error"]
+
+
+@pytest.mark.asyncio
+async def test_mcp_toolset_error_message_includes_name_and_url(monkeypatch) -> None:
+    captured: dict[str, str] = {}
+
+    async def fake_execute_with_session(
+        self,
+        coroutine_func,
+        error_message: str,
+        readonly_context=None,
+    ):
+        captured["error_message"] = error_message
+        raise ConnectionError(error_message)
+
+    monkeypatch.setattr(McpToolset, "_execute_with_session", fake_execute_with_session)
+
+    toolset = OpenSageMCPToolset(
+        name="test_mcp",
+        connection_params=SseConnectionParams(url="http://127.0.0.1:1234/sse"),
+    )
+
+    with pytest.raises(ConnectionError):
+        await toolset._execute_with_session(
+            lambda session: session.list_tools(),
+            "Failed to get tools from MCP server",
+        )
+
+    assert "Failed to get tools from MCP server" in captured["error_message"]
+    assert "name='test_mcp'" in captured["error_message"]
+    assert "url='http://127.0.0.1:1234/sse'" in captured["error_message"]

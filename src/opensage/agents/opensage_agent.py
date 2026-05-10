@@ -87,6 +87,39 @@ class OpenSageMCPToolset(McpToolset):
         super().__init__(tool_name_prefix=resolved_prefix, **kwargs)
         self.name = name
 
+    def _mcp_log_context(self) -> str:
+        connection_params = getattr(self, "_connection_params", None)
+        parts = [f"name={self.name!r}"]
+
+        url = getattr(connection_params, "url", None)
+        if url:
+            parts.append(f"url={url!r}")
+        else:
+            server_params = getattr(connection_params, "server_params", None)
+            command = getattr(connection_params, "command", None) or getattr(
+                server_params, "command", None
+            )
+            args = getattr(connection_params, "args", None) or getattr(
+                server_params, "args", None
+            )
+            if command:
+                parts.append(f"command={command!r}")
+            if args:
+                parts.append(f"args={args!r}")
+
+        return ", ".join(parts)
+
+    async def _execute_with_session(
+        self,
+        coroutine_func: Any,
+        error_message: str,
+        readonly_context: Optional[Any] = None,
+    ) -> Any:
+        enriched_message = f"{error_message} ({self._mcp_log_context()})"
+        return await super()._execute_with_session(
+            coroutine_func, enriched_message, readonly_context
+        )
+
 
 class ToolLoader:
     """Loads tools from local filesystem into sandboxes."""

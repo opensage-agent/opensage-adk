@@ -1,26 +1,55 @@
 """Tests for lazy sandbox backend imports in factory.py."""
+
 from __future__ import annotations
 
 import sys
-from types import ModuleType
+from contextlib import contextmanager
 from unittest.mock import MagicMock
 
-# Stub heavy optional deps unavailable in this test environment.
-for _mod in ("nitrobox", "opensandbox", "tree_sitter_language_pack",
-             "neomodel"):
-    if _mod not in sys.modules:
-        sys.modules[_mod] = MagicMock()
 
-from opensage.sandbox.factory import (
-    _BACKENDS,
-    _LOADED,
-    get_backend_class,
-)
+@contextmanager
+def _stub_optional_deps():
+    """Temporarily stub optional deps needed while importing the factory."""
+    module_names = (
+        "nitrobox",
+        "opensandbox",
+        "tree_sitter_language_pack",
+        "neomodel",
+    )
+    original_modules = {
+        name: sys.modules.get(name) for name in module_names if name in sys.modules
+    }
+    inserted_modules = []
+    try:
+        for name in module_names:
+            if name not in sys.modules:
+                sys.modules[name] = MagicMock()
+                inserted_modules.append(name)
+        yield
+    finally:
+        for name in inserted_modules:
+            sys.modules.pop(name, None)
+        for name, module in original_modules.items():
+            sys.modules[name] = module
+
+
+with _stub_optional_deps():
+    from opensage.sandbox.factory import (
+        _BACKENDS,
+        _LOADED,
+        get_backend_class,
+    )
 
 
 def test_registry_contains_all_backends():
-    expected = {"native", "k8s", "remotedocker", "opensandbox",
-                "agentdocker-lite", "local"}
+    expected = {
+        "native",
+        "k8s",
+        "remotedocker",
+        "opensandbox",
+        "agentdocker-lite",
+        "local",
+    }
     assert set(_BACKENDS.keys()) == expected
 
 
@@ -37,6 +66,7 @@ def test_local_backend_always_loaded():
 
 def test_unknown_backend_raises_valueerror():
     import pytest
+
     with pytest.raises(ValueError, match="Unsupported backend type"):
         get_backend_class("nonexistent")
 

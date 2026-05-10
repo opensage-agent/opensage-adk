@@ -246,9 +246,29 @@ class OpenSageSandboxManager:
         if not mount_specs:
             return
 
-        normalized_specs = [
-            self._normalize_mount_host_path_spec(spec) for spec in mount_specs
-        ]
+        normalized_specs = []
+        for spec in mount_specs:
+            parts = spec.split(":")
+            host_path = parts[0].strip() if parts else ""
+            if not host_path:
+                msg = (
+                    f"\n"
+                    f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                    f"!!!                                                     !!!\n"
+                    f"!!!  mount_host_paths: EMPTY HOST PATH DETECTED         !!!\n"
+                    f"!!!                                                     !!!\n"
+                    f"!!!  Entry: {spec!r:<45s} !!!\n"
+                    f"!!!                                                     !!!\n"
+                    f"!!!  A template variable (e.g. ${{HOST_LONG_TERM_MEM_DIR}}) !!!\n"
+                    f"!!!  was not set. This mount will be SKIPPED.            !!!\n"
+                    f"!!!                                                     !!!\n"
+                    f"!!!  Fix: export the env var or remove from config.      !!!\n"
+                    f"!!!                                                     !!!\n"
+                    f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                )
+                logger.error(msg)
+                continue
+            normalized_specs.append(self._normalize_mount_host_path_spec(spec))
         for sandbox_type, sandbox_config in config.sandbox.sandboxes.items():
             if not sandbox_config.volumes:
                 sandbox_config.volumes = []

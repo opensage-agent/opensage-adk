@@ -653,6 +653,22 @@ class OpenSageAgent(LlmAgent):
         # startup and are invoked via call_subagent / continue_agent_instance.
         self._subagents = subagents_list
 
+        # Inject subagent coordination policy when orchestration tools are present.
+        _orch_names = {
+            "call_subagent",
+            "create_subagent",
+            "continue_agent_instance",
+        }
+        if _orch_names & {getattr(t, "__name__", "") for t in tools}:
+            self.instruction = (self.instruction or "") + (
+                "\n\n## Subagent Coordination Policy\n"
+                "Do NOT poll or check on subagent progress in any way — not via "
+                "list_subagents, not via terminal commands (find, ls, cat), not "
+                "by any other means. Both sync and async subagents automatically "
+                "report results back to you when they finish. While waiting, "
+                "work on a different task or do nothing.\n"
+            )
+
         # Store enabled_skills for dependency collection
         self._enabled_skills = enabled_skills
         loader = ToolLoader(

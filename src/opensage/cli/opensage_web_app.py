@@ -205,6 +205,31 @@ class OpenSageWebServer:
             base_state=base_state,
         )
 
+    async def _get_session_or_reload(
+        self, *, app_name: str, user_id: str, session_id: str
+    ):
+        """Get session from memory, reloading from disk if it was evicted."""
+        session = await self.session_service.get_session(
+            app_name=app_name, user_id=user_id, session_id=session_id
+        )
+        if session is not None:
+            return session
+        manager = getattr(
+            getattr(self.session_service, "opensage_session", None),
+            "agent_manager",
+            None,
+        )
+        if manager is None:
+            return None
+        try:
+            await manager.ensure_loaded(session_id)
+        except Exception:
+            logger.debug("ensure_loaded failed for %s", session_id, exc_info=True)
+            return None
+        return await self.session_service.get_session(
+            app_name=app_name, user_id=user_id, session_id=session_id
+        )
+
     async def get_runner_async(self) -> Runner:
         if self._runner:
             return self._runner
@@ -276,15 +301,14 @@ class OpenSageWebServer:
         active_turn_task_by_session: dict[str, asyncio.Task] = {}
 
         def _register_active_turn(session_id: str, task: asyncio.Task) -> None:
-            # active = active_turn_task_by_session.get(session_id)
-            # if active and not active.done():
-            #     raise HTTPException(
-            #         status_code=409,
-            #         detail=(
-            #             "A turn is already running for this session. Stop it first."
-            #         ),
-            #     )
-
+            active = active_turn_task_by_session.get(session_id)
+            if active and not active.done():
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "A turn is already running for this session. Stop it first."
+                    ),
+                )
             active_turn_task_by_session[session_id] = task
 
         def _clear_active_turn(session_id: str, task: asyncio.Task) -> None:
@@ -372,6 +396,11 @@ class OpenSageWebServer:
         )
         async def get_session(app_name: str, user_id: str, session_id: str):
             if app_name != self.app_name:
+                logger.warning(
+                    "get_session 404: app_name mismatch: req=%r server=%r",
+                    app_name,
+                    self.app_name,
+                )
                 raise HTTPException(status_code=404, detail="App not found")
             # For sub-agent sessions, reload from traj.json to get latest events
             if session_id.startswith("subagent-"):
@@ -414,10 +443,22 @@ class OpenSageWebServer:
                             ).setdefault(user_id, {})[session_id] = persisted
                 except Exception as e:
                     logger.debug("Failed to reload subagent traj: %s", e)
-            session = await self.session_service.get_session(
+            session = await self._get_session_or_reload(
                 app_name=app_name, user_id=user_id, session_id=session_id
             )
             if not session:
+                known = list(
+                    self.session_service.sessions.get(app_name, {})
+                    .get(user_id, {})
+                    .keys()
+                )
+                logger.warning(
+                    "get_session 404: session not found: app=%r user=%r sid=%r known_sids=%r",
+                    app_name,
+                    user_id,
+                    session_id,
+                    known,
+                )
                 raise HTTPException(status_code=404, detail="Session not found")
             return session
 
@@ -519,7 +560,7 @@ class OpenSageWebServer:
 
             if app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
-            session = await self.session_service.get_session(
+            session = await self._get_session_or_reload(
                 app_name=app_name, user_id=user_id, session_id=session_id
             )
             if not session:
@@ -557,21 +598,38 @@ class OpenSageWebServer:
             invocation_id = req.invocation_id
 
             if app_name != self.app_name:
+                logger.warning(
+                    "run_sse 404: app_name mismatch: req=%r server=%r",
+                    app_name,
+                    self.app_name,
+                )
                 raise HTTPException(status_code=404, detail="App not found")
-            session = await self.session_service.get_session(
+            session = await self._get_session_or_reload(
                 app_name=app_name, user_id=user_id, session_id=session_id
             )
             if not session:
+                known = list(
+                    self.session_service.sessions.get(app_name, {})
+                    .get(user_id, {})
+                    .keys()
+                )
+                logger.warning(
+                    "run_sse 404: session not found: app=%r user=%r sid=%r known_sids=%r",
+                    app_name,
+                    user_id,
+                    session_id,
+                    known,
+                )
                 raise HTTPException(status_code=404, detail="Session not found")
+
+            handler_task = asyncio.current_task()
+            if handler_task is None:
+                raise HTTPException(status_code=500, detail="No active task context")
+            _register_active_turn(session_id, handler_task)
 
             async def event_generator():
                 nonlocal state_delta, invocation_id
-                current_task = asyncio.current_task()
-                if current_task is None:
-                    yield 'data: {"error": "No active task context"}\n\n'
-                    return
                 try:
-                    _register_active_turn(session_id, current_task)
                     mode = StreamingMode.SSE if streaming else StreamingMode.NONE
                     runner = await self.get_runner_async()
                     current_msg = new_message
@@ -624,7 +682,7 @@ class OpenSageWebServer:
                     logger.exception("Error in SSE generator: %s", e)
                     yield f'data: {{"error": "{str(e)}"}}\n\n'
                 finally:
-                    _clear_active_turn(session_id, current_task)
+                    _clear_active_turn(session_id, handler_task)
 
             return StreamingResponse(event_generator(), media_type="text/event-stream")
 

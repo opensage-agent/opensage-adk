@@ -35,6 +35,7 @@ from opensage.features.opensage_in_memory_session_service import (
     OpenSageInMemorySessionService,
 )
 from opensage.memory.file_based.short_term import build_root_session_state
+from opensage.memory.file_based.short_term.session_files import find_instance_dir
 from opensage.plugins import load_plugins
 from opensage.session import cleanup_opensage_session, get_opensage_session
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
@@ -239,26 +240,31 @@ async def _persist_web_session_snapshot_async(
     user_id: str,
     agent_dir: str,
     root_agent_name: str | None,
-    session_service: OpenSageInMemorySessionService,
     opensage_session,
 ) -> Path:
     """Persist ADK session + sandbox runtime metadata to local disk."""
+    from google.adk.sessions.session import Session
+
     agent_name = sanitize_agent_name(root_agent_name or "agent")
     store_dir = _session_store_dir_for_agent(
         session_id=session_id, agent_name=agent_name
     )
     store_dir.mkdir(parents=True, exist_ok=True)
 
-    adk_session = await session_service.get_session(
-        app_name=app_name, user_id=user_id, session_id=session_id
-    )
-    if adk_session is None:
+    instance_dir = find_instance_dir(opensage_session.opensage_session_id, session_id)
+    if instance_dir is None:
         raise click.ClickException(
-            f"Cannot persist session: ADK session not found ({session_id})"
+            f"Cannot persist session: host instance dir not found ({session_id})"
         )
+    traj_path = instance_dir / "traj.json"
+    if not traj_path.exists():
+        raise click.ClickException(
+            f"Cannot persist session: traj.json not found in {instance_dir}"
+        )
+    adk_session = Session.model_validate_json(traj_path.read_text(encoding="utf-8"))
 
     persisted_snapshot = _sanitize_adk_session_for_persistence(
-        adk_session, copy_before_mutating=True
+        adk_session, copy_before_mutating=False
     )
     session_snapshot_path = store_dir / "adk_session.json"
     session_snapshot_path.write_text(
@@ -877,11 +883,11 @@ def cli_web(
                         "Failed to clean up OpenSage session during web shutdown: %s",
                         session_id,
                     )
-            elif (
-                session_service is not None
-                and web_server is not None
-                and opensage_session is not None
-            ):
+            elif web_server is not None and opensage_session is not None:
+                # Block SIGINT/SIGTERM during persist so a second ctrl+c
+                # cannot interrupt the snapshot write.
+                prev_sigint = signal.signal(signal.SIGINT, signal.SIG_IGN)
+                prev_sigterm = signal.signal(signal.SIGTERM, signal.SIG_IGN)
                 try:
                     store_dir = asyncio.run(
                         _persist_web_session_snapshot_async(
@@ -890,7 +896,6 @@ def cli_web(
                             user_id=session_user_id,
                             agent_dir=agent_dir,
                             root_agent_name=getattr(root_agent, "name", "agent"),
-                            session_service=session_service,
                             opensage_session=opensage_session,
                         )
                     )
@@ -905,6 +910,9 @@ def cli_web(
                         "Failed to persist OpenSage web session snapshot during shutdown: %s",
                         session_id,
                     )
+                finally:
+                    signal.signal(signal.SIGINT, prev_sigint)
+                    signal.signal(signal.SIGTERM, prev_sigterm)
             else:
                 logger.warning(
                     "Skipping session snapshot for %s because web session state was not fully initialized.",

@@ -37,7 +37,6 @@ docker_remote_host = "192.168.1.100"
 [sandbox.sandboxes.main]
 image = "ubuntu:22.04"
 working_dir = "/workspace"
-host_gateway = false
 
 [sandbox.sandboxes.neo4j]
 image = "neo4j:5.11.0"

@@ -205,6 +205,32 @@ class OpenSageWebServer:
             base_state=base_state,
         )
 
+    def _get_agent_manager(self):
+        """Return the AgentManager if available, else None."""
+        return getattr(
+            getattr(self.session_service, "opensage_session", None),
+            "agent_manager",
+            None,
+        )
+
+    def _resolve_runtime_status(self, session_id: str) -> str | None:
+        """Query AgentManager for the live status of a subagent instance.
+
+        Returns ``"running"`` / ``"completed"`` based on in-memory state, or
+        ``None`` when the manager is unavailable (fall back to file inference).
+        """
+        manager = self._get_agent_manager()
+        if manager is None:
+            return None
+        inst = manager.get_instance(session_id)
+        if inst is None:
+            return "completed"
+        from opensage.orchestration.types import AgentInstanceState
+
+        if inst.state == AgentInstanceState.RUNNING:
+            return "running"
+        return "completed"
+
     async def _get_session_or_reload(
         self, *, app_name: str, user_id: str, session_id: str
     ):
@@ -903,6 +929,10 @@ class OpenSageWebServer:
                 subagents = [
                     a for a in tree.get("agents_flat", []) if a["name"] != root_name
                 ]
+                for agent in subagents:
+                    runtime = self._resolve_runtime_status(agent["session_id"])
+                    if runtime is not None:
+                        agent["status"] = runtime
                 return {"agents": subagents, "root": root_name}
 
             @app.get("/control/subagents/topology")
@@ -932,6 +962,17 @@ class OpenSageWebServer:
                         if len(query) > 40:
                             preview += "..."
                         label += f"\n({preview})"
+                    if is_root:
+                        status = "active"
+                    else:
+                        runtime = self._resolve_runtime_status(
+                            node.get("session_id", "")
+                        )
+                        status = (
+                            runtime
+                            if runtime is not None
+                            else node.get("status", "running")
+                        )
                     nodes.append(
                         {
                             "id": nid,
@@ -939,9 +980,7 @@ class OpenSageWebServer:
                             "name": node["name"],
                             "session_id": node.get("session_id", ""),
                             "query": query,
-                            "status": (
-                                "active" if is_root else node.get("status", "running")
-                            ),
+                            "status": status,
                             "type": "root" if is_root else "subagent",
                         }
                     )

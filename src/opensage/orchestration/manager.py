@@ -608,23 +608,22 @@ class AgentManager:
         return await rebuild_agent_from_definition(definition, self._opensage_session)
 
     async def _maybe_unload(self, instance: AgentInstance) -> None:
-        """Flush cursor, close runner, evict from in-memory maps.
+        """Flush cursor, evict from in-memory maps.
 
         Note: we do NOT dump the ADK session here. The BaseAgent.run_async
         patch already wrote the latest ``traj.json`` in its finally block, and
         writing again here would race with that write for no benefit.
+
+        We intentionally skip ``runner.close()`` because subagent toolsets are
+        shared references to the parent agent's toolset objects.  Calling
+        ``close()`` on the runner would tear down MCP connections that the
+        parent (and sibling subagents) are still using.
         """
         try:
             await instance.inbox.flush_cursor()
         except Exception:
             logger.exception(
                 "Failed to flush inbox cursor during unload for %s", instance.session_id
-            )
-        try:
-            await instance.runner.close()
-        except Exception:
-            logger.exception(
-                "Failed to close runner during unload for %s", instance.session_id
             )
         self._instances.pop(instance.session_id, None)
         try:

@@ -310,13 +310,28 @@ async def get_available_models(tool_context: ToolContext) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-_BASELINE_TOOLS_BY_NAME = {
-    "run_terminal_command": run_terminal_command,
-    "list_background_tasks": list_background_tasks,
-    "get_background_task_output": get_background_task_output,
-    "wait_for_background": wait_for_background,
-    "complain": complain,
-}
+_BASELINE_TOOLS_BY_NAME: Dict[str, Any] = {}
+
+
+def _get_baseline_tools() -> Dict[str, Any]:
+    if not _BASELINE_TOOLS_BY_NAME:
+        _BASELINE_TOOLS_BY_NAME.update(
+            {
+                "run_terminal_command": run_terminal_command,
+                "list_background_tasks": list_background_tasks,
+                "get_background_task_output": get_background_task_output,
+                "wait_for_background": wait_for_background,
+                "complain": complain,
+                "create_subagent": create_subagent,
+                "call_subagent": call_subagent,
+                "continue_agent_instance": continue_agent_instance,
+                "send_message": send_message,
+                "wait_for_subagent": wait_for_subagent,
+                "list_subagents": list_subagents,
+                "get_available_models": get_available_models,
+            }
+        )
+    return _BASELINE_TOOLS_BY_NAME
 
 
 async def create_subagent(
@@ -369,8 +384,10 @@ async def create_subagent(
                 "error": (
                     "tools_list must be non-empty. Baseline tools "
                     "(run_terminal_command, list_background_tasks, "
-                    "get_background_task_output, wait_for_background, complain) "
-                    "are injected automatically."
+                    "get_background_task_output, wait_for_background, complain, "
+                    "create_subagent, call_subagent, continue_agent_instance, "
+                    "send_message, wait_for_subagent, list_subagents, "
+                    "get_available_models) are injected automatically."
                 ),
             }
 
@@ -389,17 +406,18 @@ async def create_subagent(
         added_ids: set[int] = set()
 
         # Always inject baseline tools
-        for t in _BASELINE_TOOLS_BY_NAME.values():
+        baseline = _get_baseline_tools()
+        for t in baseline.values():
             if id(t) not in added_ids:
                 tools_to_add.append(t)
                 added_ids.add(id(t))
 
-        tool_names_final: list[str] = list(_BASELINE_TOOLS_BY_NAME.keys())
+        tool_names_final: list[str] = list(baseline.keys())
         injected_toolsets: set[str] = set()
         invalid: list[str] = []
 
         for requested in tools_list:
-            if requested in _BASELINE_TOOLS_BY_NAME:
+            if requested in baseline:
                 continue
             if requested in available_tools:
                 obj = available_tools[requested]
@@ -534,18 +552,14 @@ async def rebuild_agent_from_definition(
 
     snapshot = getattr(opensage_session.agent_manager, "_tool_snapshot", {}) or {}
 
-    # Baseline tools are unconditionally added via _BASELINE_TOOLS_BY_NAME.values()
-    # above. Non-baseline names are looked up in the startup tool snapshot
-    # (built by AgentManager.register_agent_tree). Names absent from both are
-    # logged and dropped — we deliberately do NOT mutate `instruction` to tell
-    # the LLM which tools went missing, since that adds prompt noise and
-    # subtly changes other behavior. The right fix for systematic dropping is
-    # making sure the snapshot covers everything an agent might be rebuilt
-    # with (i.e. fix register_agent_tree's coverage upstream).
-    tools_to_add: list[Any] = list(_BASELINE_TOOLS_BY_NAME.values())
+    # Baseline tools are unconditionally added. Non-baseline names are looked
+    # up in the startup tool snapshot (built by AgentManager.register_agent_tree).
+    # Names absent from both are logged and dropped.
+    baseline = _get_baseline_tools()
+    tools_to_add: list[Any] = list(baseline.values())
     dropped: list[str] = []
     for tname in tool_names:
-        if tname in _BASELINE_TOOLS_BY_NAME:
+        if tname in baseline:
             continue
         snap_obj = snapshot.get(tname)
         if snap_obj is not None:

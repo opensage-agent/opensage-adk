@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import traceback
+from datetime import timedelta
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 
@@ -9,6 +11,7 @@ import yaml
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.base_toolset import BaseToolset
+from google.adk.tools.mcp_tool.mcp_tool import MCPTool as _AdkMCPTool
 from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
 from pydantic import Field
 
@@ -16,6 +19,8 @@ from opensage.features.tool_combo import ToolCombo
 from opensage.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
+
+MCP_TOOL_CALL_TIMEOUT = timedelta(seconds=300)
 
 _TOOLSET_SUMMARY_MARKER = "[[OPENSAGE_TOOLSET_SUMMARY]]"
 
@@ -46,6 +51,60 @@ def _append_default_tool_error_handler(
     if opensage_default_tool_error_handler not in callbacks:
         callbacks.append(opensage_default_tool_error_handler)
     return callbacks
+
+
+class OpenSageMcpTool(_AdkMCPTool):
+    """Wraps ADK's MCPTool with per-call timeout and error resilience.
+
+    Fixes two ADK gaps:
+    - ``_run_async_impl``: passes ``read_timeout_seconds`` to
+      ``session.call_tool()`` so a stuck MCP server doesn't block forever.
+    - ``run_async``: catches all exceptions and converts them to an
+      ``{"error": ...}`` dict so the LLM can continue gracefully.
+    """
+
+    async def _run_async_impl(self, *, args, tool_context, credential):
+        from google.adk.agents.readonly_context import ReadonlyContext
+        from opentelemetry import propagate
+
+        auth_headers = await self._get_headers(tool_context, credential)
+        dynamic_headers = None
+        if self._header_provider:
+            dynamic_headers = self._header_provider(
+                ReadonlyContext(tool_context._invocation_context)
+            )
+
+        headers: Dict[str, str] = {}
+        if auth_headers:
+            headers.update(auth_headers)
+        if dynamic_headers:
+            headers.update(dynamic_headers)
+        final_headers = headers if headers else None
+
+        trace_carrier: Dict[str, str] = {}
+        propagate.get_global_textmap().inject(carrier=trace_carrier)
+        meta_trace_context = trace_carrier if trace_carrier else None
+
+        session = await self._mcp_session_manager.create_session(headers=final_headers)
+        resolved_callback = self._resolve_progress_callback(tool_context)
+
+        response = await session.call_tool(
+            self._mcp_tool.name,
+            arguments=args,
+            read_timeout_seconds=MCP_TOOL_CALL_TIMEOUT,
+            progress_callback=resolved_callback,
+            meta=meta_trace_context,
+        )
+        return response.model_dump(exclude_none=True, mode="json")
+
+    async def run_async(self, *, args: dict[str, Any], tool_context) -> Any:
+        try:
+            return await super().run_async(args=args, tool_context=tool_context)
+        except Exception as e:
+            logger.warning("MCP tool %s failed: %s", self.name, e, exc_info=True)
+            return {
+                "error": (f"MCP tool {self.name!r} failed: {type(e).__name__}: {e}")
+            }
 
 
 class OpenSageMCPToolset(McpToolset):
@@ -119,6 +178,37 @@ class OpenSageMCPToolset(McpToolset):
         return await super()._execute_with_session(
             coroutine_func, enriched_message, readonly_context
         )
+
+    async def get_tools(self, readonly_context=None):
+        try:
+            tools = await super().get_tools(readonly_context)
+        except (ConnectionError, TimeoutError, OSError) as e:
+            logger.warning(
+                "MCP server %s unreachable, returning empty tool list "
+                "for this turn (%s): %s",
+                self.name,
+                self._mcp_log_context(),
+                e,
+            )
+            return []
+
+        wrapped = []
+        for tool in tools:
+            if isinstance(tool, _AdkMCPTool) and not isinstance(tool, OpenSageMcpTool):
+                wrapped.append(
+                    OpenSageMcpTool(
+                        mcp_tool=tool.raw_mcp_tool,
+                        mcp_session_manager=tool._mcp_session_manager,
+                        auth_scheme=self._auth_scheme,
+                        auth_credential=self._auth_credential,
+                        require_confirmation=tool._require_confirmation,
+                        header_provider=tool._header_provider,
+                        progress_callback=getattr(tool, "_progress_callback", None),
+                    )
+                )
+            else:
+                wrapped.append(tool)
+        return wrapped
 
 
 class ToolLoader:

@@ -121,7 +121,7 @@ async def call_subagent(
             use_parent_history=use_parent_history,
             model_override=model_name,
         )
-        instance = await manager.ensure_loaded(new_sid)
+        instance = manager.ensure_loaded(new_sid)
         return await manager._invoke_instance(instance, request, mode, caller_sid)
     except KeyError as e:
         return {"success": False, "error": f"unknown_agent: {e}"}
@@ -149,7 +149,7 @@ async def continue_agent_instance(
     try:
         manager = _get_manager(tool_context)
         caller_sid = _get_caller_sid(tool_context)
-        instance = await manager.ensure_loaded(session_id)
+        instance = manager.ensure_loaded(session_id)
         return await manager._invoke_instance(instance, request, mode, caller_sid)
     except KeyError as e:
         return {"success": False, "error": f"unknown_session: {e}"}
@@ -209,7 +209,7 @@ async def wait_for_subagent(
         manager = _get_manager(tool_context)
         await manager.wait_for(session_id, timeout=timeout)
         inst = manager.get_instance(session_id)
-        state = inst.state.value if inst is not None else "unloaded"
+        state = inst.state.value if inst is not None else "unknown"
         return {"success": True, "session_id": session_id, "state": state}
     except asyncio.TimeoutError:
         return {"success": False, "error": "timeout", "session_id": session_id}
@@ -230,10 +230,6 @@ async def list_subagents(tool_context: ToolContext) -> Dict[str, Any]:
     and async subagents automatically report results back to you when they
     finish — do not poll.
     """
-    import json
-
-    from opensage.orchestration.persistence import instance_dir, read_metadata
-
     try:
         manager = _get_manager(tool_context)
         agents = [
@@ -248,31 +244,9 @@ async def list_subagents(tool_context: ToolContext) -> Dict[str, Any]:
                 "session_id": inst.session_id,
                 "agent_name": inst.agent_name,
                 "state": inst.state.value,
-                "loaded": True,
             }
             for inst in manager.list_instances()
         ]
-        # Also include on-disk but unloaded instances. Read agent_name from
-        # each instance's metadata.json so the LLM can distinguish them
-        # without first loading them.
-        loaded_sids = {inst.session_id for inst in manager.list_instances()}
-        osid = manager.opensage_session_id
-        for sid in manager.list_known_sids():
-            if sid in loaded_sids:
-                continue
-            try:
-                meta = read_metadata(instance_dir(osid, sid))
-                agent_name = meta.get("agent_name")
-            except (FileNotFoundError, json.JSONDecodeError, KeyError):
-                agent_name = None
-            instances.append(
-                {
-                    "session_id": sid,
-                    "agent_name": agent_name,
-                    "state": "sleeping",
-                    "loaded": False,
-                }
-            )
         return {"success": True, "agents": agents, "instances": instances}
     except Exception as e:
         logger.exception("list_subagents failed")

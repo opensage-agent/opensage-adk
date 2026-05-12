@@ -47,9 +47,7 @@ def _make_sleeping_instance(sid: str) -> AgentInstance:
     inst.user_id = "user"
     inst.inbox = MagicMock()
     inst.inbox.pop_all = AsyncMock(return_value=[])
-    inst.inbox.flush_cursor = AsyncMock()
     inst.runner = MagicMock()
-    inst.runner.close = AsyncMock()
     inst._task = None
     inst._done_event = asyncio.Event()
     inst._done_event.set()
@@ -62,7 +60,6 @@ async def test_wake_signal_no_double_invocation_when_invoke_races(
 ):
     """Wake handler holds RUNNING window; concurrent _invoke gets busy."""
     mgr = _make_manager(monkeypatch, tmp_path)
-    mgr._maybe_unload = AsyncMock()  # avoid disk side effects
 
     sid = "sid-race"
     instance = _make_sleeping_instance(sid)
@@ -79,50 +76,34 @@ async def test_wake_signal_no_double_invocation_when_invoke_races(
 
     monkeypatch.setattr(instance.inbox, "has_pending", gated_has_pending)
 
-    # 1. Start wake handler. It flips state to RUNNING synchronously, then
-    #    awaits has_pending() → blocks on `gate`.
     wake_task = asyncio.create_task(mgr._handle_wake_signal(sid))
     await has_pending_called.wait()
     assert instance.state == AgentInstanceState.RUNNING
 
-    # 2. While wake holds the window, a concurrent _invoke_instance arrives.
-    #    It must see RUNNING and return busy — NOT race past the check and
-    #    start a second invocation.
     invoke_result = await mgr._invoke_instance(instance, "request", "sync", "caller")
     assert invoke_result["success"] is False
     assert invoke_result["error"] == "busy"
     assert invoke_result["session_id"] == sid
 
-    # 3. Release the gate. Wake completes (no pending → rolls back to
-    #    SLEEPING and calls _maybe_unload).
     gate.set()
     await wake_task
     assert instance.state == AgentInstanceState.SLEEPING
     assert instance._done_event.is_set()
-    mgr._maybe_unload.assert_awaited_once_with(instance)
 
 
 @pytest.mark.asyncio
-async def test_burst_wake_signals_do_not_leak_ghost(monkeypatch, tmp_path):
-    """N spurious wake signals after eviction must not leave a SLEEPING ghost.
-
-    Folds [I5]: previously, signals 2..N would re-load an evicted instance
-    and early-return without unloading.
-    """
+async def test_burst_wake_signals_do_not_double_invoke(monkeypatch, tmp_path):
+    """N burst wake signals for a SLEEPING instance with no pending messages
+    all roll back to SLEEPING without error."""
     mgr = _make_manager(monkeypatch, tmp_path)
-    mgr._maybe_unload = AsyncMock()
 
-    sid = "sid-ghost"
+    sid = "sid-burst"
     instance = _make_sleeping_instance(sid)
     instance.inbox.has_pending = AsyncMock(return_value=False)
+    mgr._instances[sid] = instance
 
-    # Simulate ensure_loaded returning the instance each time.
-    mgr.ensure_loaded = AsyncMock(return_value=instance)
-
-    # Fire 5 wake signals back to back.
     for _ in range(5):
         await mgr._handle_wake_signal(sid)
 
-    # Each wake must have rolled back AND called _maybe_unload — no ghost.
     assert instance.state == AgentInstanceState.SLEEPING
-    assert mgr._maybe_unload.await_count == 5
+    assert instance._done_event.is_set()

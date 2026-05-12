@@ -10,6 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from opensage.orchestration.instance import AgentInstance
 from opensage.orchestration.manager import AgentManager
 from opensage.orchestration.persistence import (
     inbox_path,
@@ -17,6 +18,7 @@ from opensage.orchestration.persistence import (
     touch_inbox,
     write_metadata,
 )
+from opensage.orchestration.types import AgentInstanceState
 
 
 @dataclass
@@ -38,12 +40,29 @@ def _make_manager(monkeypatch, tmp_path):
     return AgentManager(op)  # type: ignore[arg-type]
 
 
-def _seed_instance_dir(mgr: AgentManager, sid: str) -> None:
-    """Create the on-disk directory + inbox file for a fake instance."""
+def _seed_instance(mgr: AgentManager, sid: str) -> None:
+    """Create on-disk dir + inbox AND register a stub in _instances."""
     d = instance_dir(mgr._opensage_session.opensage_session_id, sid)
     d.mkdir(parents=True, exist_ok=True)
     touch_inbox(d)
     write_metadata(d, {"session_id": sid, "agent_name": "stub"})
+    # Also register in _instances so _all_known_sids finds it.
+    from opensage.orchestration.inbox import Inbox
+
+    inst = AgentInstance.__new__(AgentInstance)
+    inst.session_id = sid
+    agent = MagicMock()
+    agent.description = "stub agent"
+    inst.agent = agent
+    inst.agent_name = "stub"
+    inst.state = AgentInstanceState.SLEEPING
+    inst.user_id = "user"
+    inst.inbox = Inbox(inbox_path(d))
+    inst.runner = MagicMock()
+    inst._task = None
+    inst._done_event = asyncio.Event()
+    inst._done_event.set()
+    mgr._instances[sid] = inst
 
 
 def _read_inbox_lines(mgr: AgentManager, sid: str) -> list[dict]:
@@ -60,7 +79,7 @@ def _read_inbox_lines(mgr: AgentManager, sid: str) -> list[dict]:
 @pytest.mark.asyncio
 async def test_send_to_single_writes_inbox_and_signals(monkeypatch, tmp_path):
     mgr = _make_manager(monkeypatch, tmp_path)
-    _seed_instance_dir(mgr, "sid-1")
+    _seed_instance(mgr, "sid-1")
 
     await mgr.send_message(from_sid="X", to_sid="sid-1", content="hello")
 
@@ -86,7 +105,7 @@ async def test_send_to_unknown_raises(monkeypatch, tmp_path):
 async def test_broadcast_pushes_to_all_known_except_sender(monkeypatch, tmp_path):
     mgr = _make_manager(monkeypatch, tmp_path)
     for sid in ["sid-A", "sid-B", "sid-C"]:
-        _seed_instance_dir(mgr, sid)
+        _seed_instance(mgr, sid)
 
     # sid-A is the sender; expect B and C to receive, A to be skipped
     await mgr.send_message(from_sid="sid-A", to_sid="*", content="all hands")
@@ -106,7 +125,7 @@ async def test_broadcast_pushes_to_all_known_except_sender(monkeypatch, tmp_path
 @pytest.mark.asyncio
 async def test_broadcast_with_no_targets_is_noop(monkeypatch, tmp_path):
     mgr = _make_manager(monkeypatch, tmp_path)
-    _seed_instance_dir(mgr, "only-self")
+    _seed_instance(mgr, "only-self")
 
     await mgr.send_message(from_sid="only-self", to_sid="*", content="hello?")
 

@@ -18,8 +18,8 @@ class Inbox:
     """A per-instance file-backed inbox.
 
     Stores peer messages (sent via ``send_message``) as JSON Lines. The cursor
-    (already-read byte offset) is kept in-memory and flushed to ``inbox.cursor``
-    only on ``flush_cursor()`` (typically at unload time).
+    (already-read byte offset) is kept in-memory only — instances are never
+    unloaded, so there is no need to persist the cursor to disk.
 
     Inbox stores ONLY peer messages. Requests delivered via ``call_subagent`` or
     ``continue_agent_instance`` bypass the inbox.
@@ -27,21 +27,11 @@ class Inbox:
 
     def __init__(self, jsonl_path: Path) -> None:
         self._path = Path(jsonl_path)
-        self._cursor_path = self._path.with_suffix(".cursor")
         self._path.parent.mkdir(parents=True, exist_ok=True)
         if not self._path.exists():
             self._path.touch()
         self._lock = asyncio.Lock()
-        self._cursor: int = self._read_cursor_from_disk()
-
-    # ---- helpers ----
-
-    def _read_cursor_from_disk(self) -> int:
-        try:
-            text = self._cursor_path.read_text(encoding="utf-8").strip()
-            return int(text) if text else 0
-        except (FileNotFoundError, ValueError):
-            return 0
+        self._cursor: int = 0
 
     # ---- static push (no instance required) ----
 
@@ -97,13 +87,6 @@ class Inbox:
             return size > self._cursor
         except FileNotFoundError:
             return False
-
-    async def flush_cursor(self) -> None:
-        """Write the in-memory cursor to disk (called at unload time)."""
-        async with self._lock:
-            await asyncio.to_thread(
-                self._cursor_path.write_text, str(self._cursor), "utf-8"
-            )
 
     @property
     def cursor(self) -> int:

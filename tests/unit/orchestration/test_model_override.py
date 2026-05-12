@@ -46,16 +46,22 @@ def _make_manager(tmp_path, monkeypatch, *, registry: LlmRegistry):
 @pytest.mark.asyncio
 async def test_spawn_persists_model_override(tmp_path, monkeypatch):
     """spawn(model_override="X") writes ``model_override: "X"`` to metadata.json."""
-    reg = LlmRegistry({})
+    override_model = LiteLlm(model="openai/override-model", api_key="k")
+    reg = LlmRegistry({"openai/override-model": override_model})
     mgr = _make_manager(tmp_path, monkeypatch, registry=reg)
 
-    # Stub the agent template so spawn can find it
+    # Stub Runner so spawn can build an in-memory instance.
+    monkeypatch.setattr(
+        "opensage.orchestration.manager.Runner",
+        lambda *a, **kw: MagicMock(),
+        raising=True,
+    )
+
     fake_agent = MagicMock()
     fake_agent.name = "worker"
     fake_agent.model = LiteLlm(model="openai/test-model", api_key="k")
     mgr._agents["worker"] = fake_agent
 
-    # Make session_service.create_session return a session-like object with state
     fake_session = MagicMock()
     fake_session.state = {
         "opensage_session_id": "osid-test",
@@ -74,10 +80,12 @@ async def test_spawn_persists_model_override(tmp_path, monkeypatch):
     )
     assert sid == "sid-1"
 
-    # Read metadata back from disk
     instance_dir = tmp_path / "osid-test" / "instances" / "sid-1"
     meta = read_metadata(instance_dir)
     assert meta["model_override"] == "openai/override-model"
+
+    # Verify the in-memory instance was also created
+    assert sid in mgr._instances
 
 
 @pytest.mark.asyncio
@@ -85,6 +93,12 @@ async def test_spawn_no_model_override_persists_none(tmp_path, monkeypatch):
     """Without model_override, metadata stores None."""
     reg = LlmRegistry({})
     mgr = _make_manager(tmp_path, monkeypatch, registry=reg)
+
+    monkeypatch.setattr(
+        "opensage.orchestration.manager.Runner",
+        lambda *a, **kw: MagicMock(),
+        raising=True,
+    )
 
     fake_agent = MagicMock()
     fake_agent.name = "worker"

@@ -231,31 +231,6 @@ class OpenSageWebServer:
             return "running"
         return "completed"
 
-    async def _get_session_or_reload(
-        self, *, app_name: str, user_id: str, session_id: str
-    ):
-        """Get session from memory, reloading from disk if it was evicted."""
-        session = await self.session_service.get_session(
-            app_name=app_name, user_id=user_id, session_id=session_id
-        )
-        if session is not None:
-            return session
-        manager = getattr(
-            getattr(self.session_service, "opensage_session", None),
-            "agent_manager",
-            None,
-        )
-        if manager is None:
-            return None
-        try:
-            await manager.ensure_loaded(session_id)
-        except Exception:
-            logger.debug("ensure_loaded failed for %s", session_id, exc_info=True)
-            return None
-        return await self.session_service.get_session(
-            app_name=app_name, user_id=user_id, session_id=session_id
-        )
-
     async def get_runner_async(self) -> Runner:
         if self._runner:
             return self._runner
@@ -469,7 +444,7 @@ class OpenSageWebServer:
                             ).setdefault(user_id, {})[session_id] = persisted
                 except Exception as e:
                     logger.debug("Failed to reload subagent traj: %s", e)
-            session = await self._get_session_or_reload(
+            session = await self.session_service.get_session(
                 app_name=app_name, user_id=user_id, session_id=session_id
             )
             if not session:
@@ -586,7 +561,7 @@ class OpenSageWebServer:
 
             if app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
-            session = await self._get_session_or_reload(
+            session = await self.session_service.get_session(
                 app_name=app_name, user_id=user_id, session_id=session_id
             )
             if not session:
@@ -630,7 +605,7 @@ class OpenSageWebServer:
                     self.app_name,
                 )
                 raise HTTPException(status_code=404, detail="App not found")
-            session = await self._get_session_or_reload(
+            session = await self.session_service.get_session(
                 app_name=app_name, user_id=user_id, session_id=session_id
             )
             if not session:

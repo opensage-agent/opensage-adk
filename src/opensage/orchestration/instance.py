@@ -20,9 +20,8 @@ if TYPE_CHECKING:
 class AgentInstance:
     """Tracks the full runtime state of one agent instance within AgentManager.
 
-    Only in-memory while RUNNING or immediately after (pre-unload). SLEEPING
-    instances can be either in memory or on disk; when purely on disk there is
-    no AgentInstance object for them.
+    Instances are kept in memory for their entire lifetime — created by
+    ``spawn`` or loaded eagerly in ``start`` (resume path).
     """
 
     session_id: str

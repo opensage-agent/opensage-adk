@@ -13,9 +13,7 @@ fake OpenSageAgent + fake Runner. They exercise:
 from __future__ import annotations
 
 import asyncio
-import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
@@ -25,9 +23,6 @@ from opensage.orchestration.manager import AgentManager
 from opensage.orchestration.persistence import (
     inbox_path,
     instance_dir,
-    save_adk_session,
-    touch_inbox,
-    write_metadata,
 )
 
 # ---------------------------------------------------------------------------
@@ -62,16 +57,13 @@ class _RecordingRunner:
 
 
 def _make_session_service(opensage_session_id: str):
-    """Build a minimal session_service with .inject_session/.evict + get_session."""
+    """Build a minimal session_service with .inject_session + get_session."""
     svc = AsyncMock()
 
     sessions: dict[str, Any] = {}
 
     def inject_session(sess):
         sessions[sess.id] = sess
-
-    def evict(sid):
-        sessions.pop(sid, None)
 
     async def get_session(*, app_name, user_id, session_id, config=None):
         return sessions.get(session_id)
@@ -93,7 +85,6 @@ def _make_session_service(opensage_session_id: str):
         session.events.append(event)
 
     svc.inject_session = inject_session
-    svc.evict = evict
     svc.get_session = get_session
     svc.create_session = create_session
     svc.append_event = append_event
@@ -119,7 +110,7 @@ async def manager(tmp_path, monkeypatch):
 
     mgr = AgentManager(op)  # type: ignore[arg-type]
 
-    # Replace the Runner factory so spawn/load uses our fake Runner.
+    # Replace the Runner factory so spawn uses our fake Runner.
     monkeypatch.setattr(
         "opensage.orchestration.manager.Runner",
         lambda *a, **kw: _RecordingRunner(),
@@ -148,7 +139,6 @@ async def manager(tmp_path, monkeypatch):
 async def test_concurrent_send_to_sleeping_processes_both_in_one_invocation(manager):
     """Two send_message calls to a SLEEPING instance both deliver; the
     instance wakes once and processes the combined batch."""
-    # Spawn (instance is on disk, not yet loaded)
     sid = await manager.spawn("worker")
 
     # Two concurrent sends — both push to inbox + put on wake_queue.
@@ -161,22 +151,14 @@ async def test_concurrent_send_to_sleeping_processes_both_in_one_invocation(mana
     for _ in range(50):
         await asyncio.sleep(0.02)
         inst = manager.get_instance(sid)
-        if inst is None:
-            # Already unloaded — invocation completed
-            break
+        if inst is not None and inst._task is None:
+            has_pending = await inst.inbox.has_pending()
+            if not has_pending:
+                break
 
-    # Inbox file is empty (both consumed).
-    p = inbox_path(instance_dir(manager._opensage_session.opensage_session_id, sid))
-    leftover = [
-        line for line in p.read_text(encoding="utf-8").splitlines() if line.strip()
-    ]
-    # All messages should have been popped by the invocation; cursor advanced.
-    # Either inbox is empty on disk, or cursor == file size (both messages read).
-    # Easier check: after a completed invocation, has_pending should be False.
-    # If still loaded, check directly:
     inst_after = manager.get_instance(sid)
-    if inst_after is not None:
-        assert not await inst_after.inbox.has_pending()
+    assert inst_after is not None
+    assert not await inst_after.inbox.has_pending()
 
 
 @pytest.mark.asyncio
@@ -189,31 +171,21 @@ async def test_send_to_unknown_session_raises(manager):
 @pytest.mark.asyncio
 async def test_post_invocation_re_signals_when_pending(manager, tmp_path):
     """If a peer message arrives during the invocation, finally re-signals
-    the dispatcher. We simulate this by manually pushing into the inbox after
-    the invocation starts."""
+    the dispatcher."""
     sid = await manager.spawn("worker")
 
-    # Send a single message; dispatcher will load + run the invocation.
     await manager.send_message(from_sid="A", to_sid=sid, content="first")
-
-    # Push a second message *directly* into the file before unload finalizes,
-    # then wait. The dispatcher loop's _post_invocation should observe pending.
-    # In practice, race-y to time precisely without coordination, so we just
-    # verify the queue mechanic works by sending two messages back-to-back.
     await manager.send_message(from_sid="B", to_sid=sid, content="second")
 
     # Allow time for dispatcher + post-invocation cycles.
     for _ in range(80):
         await asyncio.sleep(0.02)
+        inst = manager.get_instance(sid)
+        if inst is not None and inst._task is None:
+            has_pending = await inst.inbox.has_pending()
+            if not has_pending:
+                break
 
-    # Both should have been processed eventually.
-    p = inbox_path(instance_dir(manager._opensage_session.opensage_session_id, sid))
-    if p.exists():
-        # If unloaded, file may still contain raw lines but cursor file says all read
-        cursor_p = p.with_suffix(".cursor")
-        if cursor_p.exists():
-            file_size = p.stat().st_size
-            cursor = int(cursor_p.read_text() or "0")
-            assert cursor == file_size, (
-                f"cursor {cursor} != file_size {file_size} — messages remain unread"
-            )
+    inst = manager.get_instance(sid)
+    assert inst is not None
+    assert not await inst.inbox.has_pending()

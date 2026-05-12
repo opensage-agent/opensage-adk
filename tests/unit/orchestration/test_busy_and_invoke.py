@@ -81,9 +81,6 @@ async def test_invoke_returns_busy_when_running(monkeypatch, tmp_path):
 async def test_invoke_sync_returns_result_when_sleeping(monkeypatch, tmp_path):
     """SLEEPING -> sync invocation returns final text and transitions back."""
     mgr = _make_manager(monkeypatch, tmp_path)
-    # Avoid touching disk for save/unload
-    mgr._save_adk_session = AsyncMock()
-    mgr._maybe_unload = AsyncMock()
     inst = _make_instance(AgentInstanceState.SLEEPING)
 
     result = await mgr._invoke_instance(inst, "request", "sync", "caller")
@@ -99,8 +96,6 @@ async def test_invoke_sync_returns_result_when_sleeping(monkeypatch, tmp_path):
 async def test_invoke_async_starts_task_and_returns_immediately(monkeypatch, tmp_path):
     """SLEEPING -> async invocation returns running status without blocking."""
     mgr = _make_manager(monkeypatch, tmp_path)
-    mgr._save_adk_session = AsyncMock()
-    mgr._maybe_unload = AsyncMock()
     inst = _make_instance(AgentInstanceState.SLEEPING)
 
     result = await mgr._invoke_instance(inst, "request", "async", "caller")
@@ -117,8 +112,6 @@ async def test_invoke_async_starts_task_and_returns_immediately(monkeypatch, tmp
 async def test_invoke_sync_reports_runner_exception_as_failure(monkeypatch, tmp_path):
     """SLEEPING -> runner raises -> caller sees success=False with details."""
     mgr = _make_manager(monkeypatch, tmp_path)
-    mgr._save_adk_session = AsyncMock()
-    mgr._maybe_unload = AsyncMock()
     inst = _make_instance(AgentInstanceState.SLEEPING)
 
     async def _boom(*args, **kwargs):

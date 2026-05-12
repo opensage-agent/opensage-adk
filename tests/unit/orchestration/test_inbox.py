@@ -40,38 +40,6 @@ async def test_has_pending(tmp_path: Path):
 
 
 @pytest.mark.asyncio
-async def test_cursor_persistence_across_instances(tmp_path: Path):
-    """Cursor must be persisted via flush_cursor and restored on construction."""
-    path = tmp_path / "inbox.jsonl"
-    inbox1 = Inbox(path)
-    await inbox1.push(Message(from_sid="A", to_sid="B", content="one"))
-    await inbox1.push(Message(from_sid="A", to_sid="B", content="two"))
-    msgs = await inbox1.pop_all()
-    assert len(msgs) == 2
-    await inbox1.flush_cursor()
-
-    # Brand new Inbox over the same files: cursor is read from .cursor file
-    inbox2 = Inbox(path)
-    assert not await inbox2.has_pending()
-    assert await inbox2.pop_all() == []
-
-
-@pytest.mark.asyncio
-async def test_cursor_not_flushed_without_explicit_call(tmp_path: Path):
-    """If we don't flush, a fresh Inbox re-reads from cursor file (still 0)."""
-    path = tmp_path / "inbox.jsonl"
-    inbox1 = Inbox(path)
-    await inbox1.push(Message(from_sid="A", to_sid="B", content="one"))
-    await inbox1.pop_all()
-    # Do NOT flush_cursor
-
-    inbox2 = Inbox(path)
-    # The on-disk cursor is still 0 (or unset), so inbox2 re-reads.
-    msgs = await inbox2.pop_all()
-    assert len(msgs) == 1  # re-reads the not-yet-flushed data
-
-
-@pytest.mark.asyncio
 async def test_append_to_static(tmp_path: Path):
     """Inbox.append_to works without an Inbox object."""
     path = tmp_path / "inbox.jsonl"

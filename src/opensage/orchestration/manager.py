@@ -97,14 +97,8 @@ class AgentManager:
         # object and warn — first-wins is deterministic by walk order.
         self._tool_snapshot: dict[str, Any] = {}
 
-        # instances: session_id -> loaded AgentInstance (RUNNING or just-loaded)
+        # instances: session_id -> AgentInstance (kept for entire lifetime)
         self._instances: dict[str, AgentInstance] = {}
-
-        # Per-sid load locks. Ensures concurrent ensure_loaded(sid) calls don't
-        # build two AgentInstances for the same sid. Locks are kept indefinitely
-        # (one Lock per sid is negligible memory; deletion would race with new
-        # waiters).
-        self._load_locks: dict[str, asyncio.Lock] = {}
 
         # wake queue: dispatcher consumer reads from this
         self._wake_queue: asyncio.Queue[str] = asyncio.Queue()
@@ -117,11 +111,13 @@ class AgentManager:
     async def start(self) -> None:
         """Start the dispatcher background task.
 
-        Also resets every persisted inbox on disk: peer messages do NOT
-        survive across process restarts. Each new manager starts with empty
-        inboxes; cursors are recreated as instances are loaded.
+        Also resets every persisted inbox on disk (peer messages do NOT
+        survive across process restarts) and eagerly loads any on-disk
+        instances that aren't already in memory (e.g. subagents from a
+        previous session being resumed).
         """
         self._reset_all_inboxes()
+        await self._eager_load_from_disk()
         if self._dispatcher_task is not None:
             return
         self._dispatcher_task = asyncio.create_task(
@@ -131,11 +127,8 @@ class AgentManager:
     async def shutdown(self) -> None:
         """Cancel the dispatcher task and drop in-memory instances.
 
-        Does NOT flush inbox cursors or close runners: peer inboxes are
-        reset on next ``start`` (no cross-restart persistence), and runner
-        internals get released by GC at process exit. Production cleanup
-        does not call this — it's mostly used by tests to cleanly tear
-        down a manager between fixtures.
+        Runner internals get released by GC at process exit. Mostly used
+        by tests to cleanly tear down a manager between fixtures.
         """
         if self._dispatcher_task is not None and not self._dispatcher_task.done():
             self._dispatcher_task.cancel()
@@ -147,11 +140,10 @@ class AgentManager:
         self._instances.clear()
 
     def _reset_all_inboxes(self) -> None:
-        """Truncate every persisted inbox.jsonl and remove its .cursor file.
+        """Truncate every persisted inbox.jsonl on disk.
 
         Called from ``start`` so peer messages from a previous process don't
-        get re-consumed. Within-process unload+reload still uses
-        ``_maybe_unload``'s flush_cursor for cursor continuity.
+        get re-consumed.
         """
         root = instances_root(self._opensage_session.opensage_session_id)
         if not root.exists():
@@ -161,13 +153,27 @@ class AgentManager:
                 path.write_text("", encoding="utf-8")
             except Exception:
                 logger.exception("Failed to truncate inbox at %s", path)
-        for path in root.rglob("inbox.cursor"):
+
+    async def _eager_load_from_disk(self) -> None:
+        """Load any on-disk instances not already in ``_instances``.
+
+        This handles the resume case: the CLI spawns only the root agent
+        before calling ``start()``, so subagent instances from the previous
+        process must be loaded here.
+        """
+        on_disk = list_instance_sids(self._opensage_session.opensage_session_id)
+        for sid in on_disk:
+            if sid in self._instances:
+                continue
             try:
-                path.unlink()
-            except FileNotFoundError:
-                pass
+                await self._load_instance(sid)
+                logger.info("Eager-loaded instance %s from disk", sid)
             except Exception:
-                logger.exception("Failed to remove cursor at %s", path)
+                logger.exception(
+                    "Failed to eager-load instance %s; it will not be "
+                    "available in this session",
+                    sid,
+                )
 
     # ==================================================================
     # plugins
@@ -309,15 +315,13 @@ class AgentManager:
         session_id: Optional[str] = None,
         model_override: Optional[str] = None,
     ) -> str:
-        """Create a new instance of a registered agent and persist it to disk.
-
-        Does NOT start any invocation. Returns the new session_id.
+        """Create a new instance of a registered agent, persist to disk, and
+        register it in memory. Does NOT start any invocation. Returns the
+        new session_id.
 
         ``model_override``: name (registry key) of an LLM model to override the
         agent template's own model for this instance. Persisted in metadata.json
-        so it survives unload/reload. Validation against the LlmRegistry is the
-        caller's responsibility (typically done in ``call_subagent``); spawn
-        itself only stores the value.
+        so it survives process restarts.
         """
         agent = self._agents.get(agent_name)
         if agent is None:
@@ -328,7 +332,7 @@ class AgentManager:
 
         new_sid = session_id or str(uuid.uuid4())
         if new_sid in self._instances:
-            raise ValueError(f"session_id {new_sid} is already loaded")
+            raise ValueError(f"session_id {new_sid} is already in memory")
 
         # If the session already exists in the shared service (e.g. it was
         # just loaded from a legacy resume snapshot), adopt it instead of
@@ -398,6 +402,30 @@ class AgentManager:
         )
         touch_inbox(d)
         save_adk_session(d, adk_session)
+
+        # Build the in-memory AgentInstance immediately so no separate
+        # ensure_loaded / _load_instance round-trip is needed.
+        try:
+            inst_agent = agent.model_copy(deep=False)
+        except Exception:
+            inst_agent = copy.copy(agent)
+
+        if model_override:
+            inst_agent.model = self._opensage_session.llms.get(model_override)
+
+        inbox = Inbox(inbox_path(d))
+        runner = self._build_runner(inst_agent, inbox)
+
+        inst = AgentInstance(
+            session_id=new_sid,
+            agent=inst_agent,
+            agent_name=agent_name,
+            state=AgentInstanceState.SLEEPING,
+            inbox=inbox,
+            runner=runner,
+            user_id=DEFAULT_USER_ID,
+        )
+        self._instances[new_sid] = inst
 
         return new_sid
 
@@ -481,30 +509,30 @@ class AgentManager:
         return state, events
 
     # ==================================================================
-    # load / unload
+    # instance lookup
     # ==================================================================
 
-    async def ensure_loaded(self, session_id: str) -> AgentInstance:
-        """Return the in-memory AgentInstance, loading from disk if needed."""
-        # Fast path: already loaded, no lock needed.
-        inst = self._instances.get(session_id)
-        if inst is not None:
-            return inst
+    def ensure_loaded(self, session_id: str) -> AgentInstance:
+        """Return the in-memory AgentInstance.
 
-        # Slow path: serialize concurrent loads of the same sid so we don't
-        # build two AgentInstances for one session.
-        lock = self._load_locks.setdefault(session_id, asyncio.Lock())
-        async with lock:
-            # Double-check: another coroutine may have finished the load while
-            # we were waiting for the lock.
-            inst = self._instances.get(session_id)
-            if inst is not None:
-                return inst
-            return await self._load_instance(session_id)
+        All instances are kept in memory for their entire lifetime (created
+        by ``spawn`` or loaded eagerly in ``start``). This is a simple dict
+        lookup; raises ``KeyError`` if the sid is unknown.
+        """
+        inst = self._instances.get(session_id)
+        if inst is None:
+            raise KeyError(
+                f"No in-memory instance for session_id={session_id}. "
+                f"Known: {list(self._instances.keys())}"
+            )
+        return inst
+
+    # ==================================================================
+    # disk load (resume only — called by _eager_load_from_disk)
+    # ==================================================================
 
     async def _load_instance(self, session_id: str) -> AgentInstance:
-        """Build an AgentInstance from on-disk state. Caller must hold the
-        per-sid load lock."""
+        """Build an AgentInstance from on-disk state (resume path only)."""
         from opensage.memory.file_based.short_term.session_files import (
             find_instance_dir,
         )
@@ -516,12 +544,8 @@ class AgentManager:
         metadata = read_metadata(d)
         agent_name = metadata["agent_name"]
 
-        # Reuse the session already in the service (e.g., injected by resume,
-        # or by an earlier mutate-in-memory path). Only read disk + inject
-        # when nothing is there. This prevents the resume → _load_instance
-        # sequential overlap where a freshly injected (and possibly already
-        # mutated by a hook) session would be silently overwritten with the
-        # disk snapshot.
+        # Reuse the session already in the service (e.g., injected by resume).
+        # Only read disk + inject when nothing is there.
         session_service = self._opensage_session.session_service
         adk_session = await session_service.get_session(
             app_name=self._app_name,
@@ -547,17 +571,11 @@ class AgentManager:
             template = await self._rebuild_agent_from_definition(defn)
             self._agents[agent_name] = template
 
-        # Shallow clone so runtime mutations (from BaseAgent.run_async patch)
-        # don't leak across instances that share a template.
         try:
             agent = template.model_copy(deep=False)
         except Exception:
             agent = copy.copy(template)
 
-        # Apply per-instance model override (looked up in the session's
-        # LlmRegistry). model_override is None for instances using the
-        # template's own model; non-None means this instance was spawned with
-        # an explicit model selection.
         model_override = metadata.get("model_override")
         if model_override:
             try:
@@ -607,32 +625,6 @@ class AgentManager:
 
         return await rebuild_agent_from_definition(definition, self._opensage_session)
 
-    async def _maybe_unload(self, instance: AgentInstance) -> None:
-        """Flush cursor, evict from in-memory maps.
-
-        Note: we do NOT dump the ADK session here. The BaseAgent.run_async
-        patch already wrote the latest ``traj.json`` in its finally block, and
-        writing again here would race with that write for no benefit.
-
-        We intentionally skip ``runner.close()`` because subagent toolsets are
-        shared references to the parent agent's toolset objects.  Calling
-        ``close()`` on the runner would tear down MCP connections that the
-        parent (and sibling subagents) are still using.
-        """
-        try:
-            await instance.inbox.flush_cursor()
-        except Exception:
-            logger.exception(
-                "Failed to flush inbox cursor during unload for %s", instance.session_id
-            )
-        self._instances.pop(instance.session_id, None)
-        try:
-            self._opensage_session.session_service.evict(instance.session_id)
-        except Exception:
-            logger.exception(
-                "Failed to evict ADK session during unload for %s", instance.session_id
-            )
-
     # ==================================================================
     # dispatcher (wake on send_message)
     # ==================================================================
@@ -649,9 +641,8 @@ class AgentManager:
                 logger.exception("Dispatcher iteration failed")
 
     async def _handle_wake_signal(self, sid: str) -> None:
-        # Load if needed
         try:
-            instance = await self.ensure_loaded(sid)
+            instance = self.ensure_loaded(sid)
         except KeyError:
             logger.warning("Wake for unknown sid %s, ignoring", sid)
             return
@@ -665,13 +656,8 @@ class AgentManager:
         instance._done_event.clear()
 
         if not await instance.inbox.has_pending():
-            # Nothing to do — roll back state and unload if eligible.
-            # The unload here also handles the burst-N-wake-signals case
-            # ([I5]): without it, signals 2..N would re-load an evicted
-            # instance and leave it as a SLEEPING ghost in self._instances.
             instance.state = AgentInstanceState.SLEEPING
             instance._done_event.set()
-            await self._maybe_unload(instance)
             return
 
         msgs = await instance.inbox.pop_all()
@@ -704,7 +690,7 @@ class AgentManager:
             await self._release_and_post(instance)
 
     async def _post_invocation(self, instance: AgentInstance) -> None:
-        """After an invocation completes: re-wake if inbox has pending, else unload."""
+        """After an invocation completes: re-wake if inbox has pending messages."""
         try:
             has_pending = await instance.inbox.has_pending()
         except Exception:
@@ -712,11 +698,7 @@ class AgentManager:
             has_pending = False
 
         if has_pending and instance.state == AgentInstanceState.SLEEPING:
-            # Re-signal dispatcher; don't unload yet.
             await self._wake_queue.put(instance.session_id)
-        else:
-            if instance.state == AgentInstanceState.SLEEPING:
-                await self._maybe_unload(instance)
 
     def _release(self, instance: AgentInstance) -> None:
         """Reset state to SLEEPING + clear task + signal done. Sync, idempotent.
@@ -730,7 +712,7 @@ class AgentManager:
         instance._done_event.set()
 
     async def _release_and_post(self, instance: AgentInstance) -> None:
-        """Release running state then run post_invocation (re-wake or unload)."""
+        """Release running state then run post_invocation (re-wake if pending)."""
         self._release(instance)
         await self._post_invocation(instance)
 
@@ -786,10 +768,9 @@ class AgentManager:
     def _resolve_sender_identity(self, from_sid: str) -> tuple[str, str]:
         """Resolve ``(agent_name, description)`` for the sender of a message.
 
-        Tries loaded instances first, then the on-disk metadata.json. Returns
-        pseudo-names for synthetic sender ids (spawner, user). On failure
-        returns two empty strings rather than raising — messaging should not
-        fail just because identity lookup does.
+        All instances are in memory, so a dict lookup suffices. Returns
+        pseudo-names for synthetic sender ids (spawner, user). On miss
+        returns two empty strings rather than raising.
         """
         if from_sid == SPAWNER_SENDER_ID:
             return ("__spawner__", "Internal spawn trigger")
@@ -802,30 +783,11 @@ class AgentManager:
                 inst.agent_name or "",
                 getattr(inst.agent, "description", "") or "",
             )
-
-        try:
-            from opensage.memory.file_based.short_term.session_files import (
-                find_instance_dir,
-            )
-
-            d = find_instance_dir(self._opensage_session.opensage_session_id, from_sid)
-            if d is not None:
-                meta = read_metadata(d)
-                name = meta.get("agent_name", "") or ""
-                desc = ""
-                template = self._agents.get(name)
-                if template is not None:
-                    desc = getattr(template, "description", "") or ""
-                return (name, desc)
-        except Exception:
-            logger.exception("Failed to resolve sender identity for %s", from_sid)
         return ("", "")
 
     def _all_known_sids(self) -> list[str]:
-        """Union of in-memory instances and on-disk instance dirs."""
-        on_disk = set(list_instance_sids(self._opensage_session.opensage_session_id))
-        on_disk.update(self._instances.keys())
-        return sorted(on_disk)
+        """All instance session_ids (all are in memory)."""
+        return sorted(self._instances.keys())
 
     # ==================================================================
     # directed invocation (call_subagent / continue_agent_instance backends)
@@ -985,7 +947,6 @@ class AgentManager:
                 caller_sid,
             )
 
-        # Post-invocation: drain any leftovers or unload
         await self._post_invocation(instance)
 
     # ==================================================================
@@ -1007,7 +968,7 @@ class AgentManager:
         ``mode='async'`` returns immediately; the final text is posted back to
         ``caller_sid``'s inbox when done.
         """
-        instance = await self.ensure_loaded(session_id)
+        instance = self.ensure_loaded(session_id)
         return await self._invoke_instance(
             instance, request, mode, caller_sid, run_config=run_config
         )
@@ -1024,7 +985,7 @@ class AgentManager:
 
         Used by evaluation (live_events.jsonl) and web_server (streaming UI).
         """
-        instance = await self.ensure_loaded(session_id)
+        instance = self.ensure_loaded(session_id)
 
         # Atomic check+set
         if instance.state != AgentInstanceState.SLEEPING:
@@ -1077,44 +1038,16 @@ class AgentManager:
         """Wait until the instance is truly idle: SLEEPING, no active task,
         inbox empty.
 
-        Behavior:
-          - If the sid has no on-disk instance dir, raise KeyError.
-          - If on disk but not loaded, force-load so the dispatcher can pick
-            it up.
-          - Loop: return when the instance is unloaded (truly done) or stably
-            SLEEPING with empty inbox; otherwise wait for the next done
-            signal (or briefly poll while the dispatcher transitions a
-            SLEEPING-with-pending instance to RUNNING).
-
         Raises:
-            KeyError: session_id has no on-disk instance.
+            KeyError: session_id is not in memory.
             asyncio.TimeoutError: timed out before reaching idle.
         """
-        # If not in memory, distinguish "doesn't exist" from "exists on disk".
-        if session_id not in self._instances:
-            from opensage.memory.file_based.short_term.session_files import (
-                find_instance_dir,
-            )
-
-            d = find_instance_dir(
-                self._opensage_session.opensage_session_id, session_id
-            )
-            if d is None:
-                raise KeyError(f"No instance for session_id={session_id}")
-            # Force-load: ensure_loaded is concurrency-safe (per-sid lock)
-            # and makes the instance visible to the dispatcher.
-            await self.ensure_loaded(session_id)
+        inst = self.ensure_loaded(session_id)
 
         loop = asyncio.get_running_loop()
         deadline = None if timeout is None else loop.time() + timeout
 
         while True:
-            inst = self._instances.get(session_id)
-
-            # _post_invocation may have unloaded it: truly done.
-            if inst is None:
-                return
-
             # Active invocation: wait for it to finish, then re-check.
             if inst.state == AgentInstanceState.RUNNING or inst._task is not None:
                 remaining = (
@@ -1128,8 +1061,7 @@ class AgentManager:
                 return
 
             # SLEEPING + pending: dispatcher will transition to RUNNING
-            # shortly. Re-signal it (put_nowait is idempotent: the dispatcher
-            # bails if state is no longer SLEEPING) and yield briefly.
+            # shortly. Re-signal it and yield briefly.
             self._wake_queue.put_nowait(session_id)
             if deadline is not None and loop.time() >= deadline:
                 raise asyncio.TimeoutError()

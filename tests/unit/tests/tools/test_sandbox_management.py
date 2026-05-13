@@ -291,8 +291,8 @@ class TestCreateSandbox:
 
         new_sb = FakeSandbox(image="nginx:latest", working_dir="/app")
         mock_backend = MagicMock()
-        mock_backend.launch_all_sandboxes = AsyncMock(return_value={"target": new_sb})
-        mock_backend.initialize_all_sandboxes = AsyncMock(return_value={})
+        mock_backend.create_single_sandbox = AsyncMock(return_value=("target", new_sb))
+        mock_backend.initialize_single_sandbox = AsyncMock()
 
         with (
             _patch_session(session),
@@ -306,22 +306,24 @@ class TestCreateSandbox:
                 "nginx:latest",
                 ctx,
                 working_dir="/app",
-                network=True,
+                network="bridge",
             )
 
         assert result["success"] is True
         assert result["sandbox_type"] == "target"
         assert result["image"] == "nginx:latest"
-        assert result["network"] is True
+        assert result["network"] == "bridge"
         assert "target" in result["active_sandboxes"]
         # Verify the sandbox was registered in the manager
         assert "target" in mgr._sandboxes
-        # initialize_all_sandboxes must receive the FULL sandbox map so peer
+        # initialize_single_sandbox must receive the full sandbox map so peer
         # initializers (e.g. asserting 'main' is present) keep working.
-        init_call_args = mock_backend.initialize_all_sandboxes.call_args
-        init_map = init_call_args[0][0]
-        assert "main" in init_map
-        assert "target" in init_map
+        init_call_args = mock_backend.initialize_single_sandbox.call_args
+        assert init_call_args[0][0] == "target"
+        assert init_call_args[0][1] is new_sb
+        all_sb_map = init_call_args[0][2]
+        assert "main" in all_sb_map
+        assert "target" in all_sb_map
 
     @pytest.mark.asyncio
     async def test_create_injects_shared_volume_mounts(self):
@@ -340,8 +342,8 @@ class TestCreateSandbox:
 
         new_sb = FakeSandbox()
         mock_backend = MagicMock()
-        mock_backend.launch_all_sandboxes = AsyncMock(return_value={"target": new_sb})
-        mock_backend.initialize_all_sandboxes = AsyncMock(return_value={})
+        mock_backend.create_single_sandbox = AsyncMock(return_value=("target", new_sb))
+        mock_backend.initialize_single_sandbox = AsyncMock()
 
         with (
             _patch_session(session),
@@ -352,10 +354,9 @@ class TestCreateSandbox:
         ):
             await create_sandbox("target", "ubuntu:24.04", ctx)
 
-        # Pull the ContainerConfig that was passed to launch_all_sandboxes
-        launch_call = mock_backend.launch_all_sandboxes.call_args
-        configs = launch_call[1]["sandbox_configs"]
-        cfg = configs["target"]
+        # Pull the ContainerConfig that was passed to create_single_sandbox
+        create_call = mock_backend.create_single_sandbox.call_args
+        cfg = create_call[0][2]  # third positional arg is container_config
         assert "scripts-vol-abc:/sandbox_scripts:ro" in cfg.volumes
         assert "shared-vol-abc:/shared:rw" in cfg.volumes
         assert "tools-vol-abc:/bash_tools:rw" in cfg.volumes
@@ -370,8 +371,8 @@ class TestCreateSandbox:
 
         new_sb = FakeSandbox()
         mock_backend = MagicMock()
-        mock_backend.launch_all_sandboxes = AsyncMock(return_value={"target": new_sb})
-        mock_backend.initialize_all_sandboxes = AsyncMock(return_value={})
+        mock_backend.create_single_sandbox = AsyncMock(return_value=("target", new_sb))
+        mock_backend.initialize_single_sandbox = AsyncMock()
 
         prepare_mock = AsyncMock()
         with (
@@ -403,8 +404,9 @@ class TestCreateSandbox:
         ctx = _make_tool_context()
 
         mock_backend = MagicMock()
-        mock_backend.launch_all_sandboxes = AsyncMock(return_value={})
-        mock_backend.initialize_all_sandboxes = AsyncMock(return_value={})
+        mock_backend.create_single_sandbox = AsyncMock(
+            side_effect=RuntimeError("Failed to pull image")
+        )
 
         with (
             _patch_session(session),
@@ -416,7 +418,7 @@ class TestCreateSandbox:
             result = await create_sandbox("target", "bad:image", ctx)
 
         assert result["success"] is False
-        assert "Backend failed" in result["error"]
+        assert "Failed to pull image" in result["error"]
 
     @pytest.mark.asyncio
     async def test_create_with_volumes_and_env(self):
@@ -427,8 +429,8 @@ class TestCreateSandbox:
 
         new_sb = FakeSandbox()
         mock_backend = MagicMock()
-        mock_backend.launch_all_sandboxes = AsyncMock(return_value={"db": new_sb})
-        mock_backend.initialize_all_sandboxes = AsyncMock(return_value={})
+        mock_backend.create_single_sandbox = AsyncMock(return_value=("db", new_sb))
+        mock_backend.initialize_single_sandbox = AsyncMock()
 
         with (
             _patch_session(session),
@@ -462,7 +464,7 @@ class TestCreateSandbox:
         ctx = _make_tool_context()
 
         mock_backend = MagicMock()
-        mock_backend.launch_all_sandboxes = AsyncMock(
+        mock_backend.create_single_sandbox = AsyncMock(
             side_effect=RuntimeError("Docker daemon not reachable")
         )
 

@@ -652,6 +652,24 @@ class OpenSandboxSandbox(BaseSandbox):
         return {sandbox_type: None for sandbox_type, _ in init_entries}
 
     @classmethod
+    async def initialize_single_sandbox(
+        cls,
+        sandbox_type: str,
+        sandbox_instance: BaseSandbox,
+        all_sandboxes: dict[str, BaseSandbox],
+    ) -> None:
+        """Initialize a single sandbox, passing the full sandbox map for peer access."""
+
+        async def _init_one(instance: BaseSandbox) -> None:
+            await instance.async_initialize(all_sandboxes)
+
+        await cls._run_initializer_with_tracking(
+            sandbox_type,
+            sandbox_instance,
+            _init_one(sandbox_instance),
+        )
+
+    @classmethod
     def load_cache_manifest(cls, task_name: str, config) -> tuple[dict, Optional[str]]:
         """Load cache manifest for OpenSandbox backend."""
         manifest, _, shared_volume_backup = load_named_cache_manifest(

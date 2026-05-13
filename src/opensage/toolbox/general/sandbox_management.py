@@ -30,10 +30,11 @@ async def create_sandbox(
     image: str,
     tool_context: ToolContext,
     working_dir: str = "/workspace",
-    network: bool = False,
+    network: str = "",
     privileged: bool = False,
     volumes: str = "",
     environment: str = "",
+    ports: str = "",
 ) -> dict:
     """Create and start a new sandbox (container) in the current session.
 
@@ -46,10 +47,15 @@ async def create_sandbox(
             Must not collide with existing sandbox names in this session.
         image: Docker/OCI image to use (e.g. 'ubuntu:24.04', 'postgres:16').
         working_dir: Working directory inside the container.
-        network: Enable network access (bridge mode). Needed for client/server setups.
+        network: Network mode. Use 'bridge' for isolated networking, 'host' for
+            host networking, or a custom network name (e.g. 'ctfnet'). Empty
+            string means no network access.
         privileged: Run container in privileged mode. Use only when necessary.
         volumes: Comma-separated volume mounts (e.g. '/host/path:/container/path:ro').
         environment: Comma-separated env vars (e.g. 'KEY1=val1,KEY2=val2').
+        ports: Comma-separated port mappings as 'host_port:container_port'
+            (e.g. '8080:80,3306:3306'). Only works with bridge/custom networks,
+            not with host network mode.
     Returns:
         dict with status and sandbox info.
     """
@@ -79,13 +85,28 @@ async def create_sandbox(
                     k, v = pair.split("=", 1)
                     env_dict[k.strip()] = v.strip()
 
+        port_map = {}
+        if ports:
+            for mapping in ports.split(","):
+                mapping = mapping.strip()
+                if not mapping:
+                    continue
+                if ":" not in mapping:
+                    return {
+                        "success": False,
+                        "error": f"Invalid port mapping '{mapping}'. Use 'host_port:container_port'.",
+                    }
+                host_port, container_port = mapping.rsplit(":", 1)
+                port_map[container_port] = int(host_port)
+
         container_config = ContainerConfig(
             image=image,
             working_dir=working_dir,
-            network="bridge" if network else None,
+            network=network if network else None,
             privileged=privileged,
             volumes=vol_list,
             environment=env_dict,
+            ports=port_map,
         )
 
         # Inject the session's existing shared-volume mounts into the new
@@ -112,36 +133,13 @@ async def create_sandbox(
         backend_type = getattr(session.config.sandbox, "backend", "native")
         backend_class = get_backend_class(backend_type, session.config)
 
-        # Launch the new sandbox. The volume_id kwargs are passed for
-        # signature parity with the manager but are ignored by the native
-        # backend (mounts already injected into container_config.volumes
-        # above).
-        launch_kwargs: dict = {
-            "session_id": manager.opensage_session_id,
-            "sandbox_configs": {sandbox_type: container_config},
-        }
-        if manager._shared_volume_id:
-            launch_kwargs["shared_volume_id"] = manager._shared_volume_id
-        if manager._scripts_volume_id:
-            launch_kwargs["scripts_volume_id"] = manager._scripts_volume_id
-        if manager._tools_volume_id:
-            launch_kwargs["tools_volume_id"] = manager._tools_volume_id
-
-        sandbox_instances = await backend_class.launch_all_sandboxes(**launch_kwargs)
-
-        if sandbox_type not in sandbox_instances:
-            return {
-                "success": False,
-                "error": f"Backend failed to create sandbox '{sandbox_type}'",
-            }
-
-        sandbox_instance = sandbox_instances[sandbox_type]
+        _, sandbox_instance = await backend_class.create_single_sandbox(
+            manager.opensage_session_id, sandbox_type, container_config
+        )
         manager._sandboxes[sandbox_type] = sandbox_instance
 
-        # Initialize using the full sandbox map so initializers that reference
-        # peer sandboxes (e.g. asserting 'main' is present) keep working.
-        await backend_class.initialize_all_sandboxes(  # type: ignore[attr-defined]
-            manager._sandboxes, continue_on_error=True
+        await backend_class.initialize_single_sandbox(
+            sandbox_type, sandbox_instance, dict(manager._sandboxes)
         )
 
         # Run skill dependency installers for parity with attach_sandbox /

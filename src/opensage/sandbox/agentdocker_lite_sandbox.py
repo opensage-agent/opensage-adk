@@ -368,6 +368,37 @@ class AgentDockerLiteSandbox(BaseSandbox):
         )
         return {sandbox_type: None for sandbox_type, _ in init_entries}
 
+    @classmethod
+    async def initialize_single_sandbox(
+        cls,
+        sandbox_type: str,
+        sandbox_instance: "AgentDockerLiteSandbox",
+        all_sandboxes: dict[str, BaseSandbox],
+    ) -> None:
+        """Initialize a single sandbox, passing the full sandbox map for peer access."""
+
+        async def _init_one(instance: "AgentDockerLiteSandbox") -> None:
+            if getattr(instance, "_using_cached", False):
+                await instance.ensure_ready()
+            else:
+                await instance.async_initialize(all_sandboxes)
+
+        timeout_seconds = 3600
+        container_cfg = getattr(sandbox_instance, "container_config_obj", None)
+        if container_cfg and getattr(container_cfg, "extra", None):
+            try:
+                timeout_seconds = int(
+                    container_cfg.extra.get("initializer_timeout_sec", 3600)
+                )
+            except Exception:
+                timeout_seconds = 3600
+
+        await cls._run_initializer_with_tracking(
+            sandbox_type,
+            sandbox_instance,
+            asyncio.wait_for(_init_one(sandbox_instance), timeout=timeout_seconds),
+        )
+
     @staticmethod
     async def _run_initializer_with_tracking(
         sandbox_type: str,

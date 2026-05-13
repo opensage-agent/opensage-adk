@@ -1751,6 +1751,27 @@ class K8sSandbox(BaseSandbox):
                 await asyncio.gather(*tasks)
         return {sandbox_type: None for sandbox_type, _ in init_entries}
 
+    @classmethod
+    async def initialize_single_sandbox(
+        cls,
+        sandbox_type: str,
+        sandbox_instance: "K8sSandbox",
+        all_sandboxes: dict[str, BaseSandbox],
+    ) -> None:
+        """Initialize a single sandbox, passing the full sandbox map for peer access."""
+
+        async def _init_one(instance: "K8sSandbox") -> None:
+            if instance._using_cached:
+                await instance.ensure_ready()
+            else:
+                await instance.async_initialize(all_sandboxes)
+
+        await cls._run_initializer_with_tracking(
+            sandbox_type,
+            sandbox_instance,
+            _init_one(sandbox_instance),
+        )
+
     # ------------------------------------------------------------------
     # Cache loading
     # ------------------------------------------------------------------

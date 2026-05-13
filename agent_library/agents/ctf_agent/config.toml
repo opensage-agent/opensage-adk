@@ -52,7 +52,6 @@ BASE_IMAGE = "${DEFAULT_IMAGE}"
 [sandbox.sandboxes.gdb_mcp.extra]
 initializer_timeout_sec = 1800
 
-[llm]
 [history]
 max_tool_response_length = 20000
 
@@ -72,6 +71,12 @@ sse_port = "${PYGHIDRA_MCP_PORT}"
 
 [mcp.services.ghidra_mcp]
 sse_port = "${GHIDRA_MCP_PORT}"
+
+# [fake_user]
+# python_file = "fake_user.py"
+
+[model]
+models_python_file = "models.py"
 
 [plugins]
 enabled = [

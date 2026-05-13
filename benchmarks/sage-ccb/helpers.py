@@ -299,9 +299,12 @@ def load_sage_ccb_challenges(
         challenge_dir = (dataset_root / info["path"]).resolve()
         challenge_json = challenge_dir / "challenge.json"
         if not challenge_json.exists():
-            raise FileNotFoundError(
-                f"Missing challenge.json for {canonical_name}: {challenge_json}"
+            logger.warning(
+                "Skipping %s: missing challenge.json at %s",
+                canonical_name,
+                challenge_json,
             )
+            continue
         challenge_data = json.loads(challenge_json.read_text())
         server_name = challenge_data.get("box")
         port = challenge_data.get("internal_port")

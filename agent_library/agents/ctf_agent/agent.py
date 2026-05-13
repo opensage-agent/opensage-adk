@@ -1,7 +1,5 @@
 import os
 
-from google.adk.models.lite_llm import LiteLlm
-
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.benchmark_specific.cybergym.cybergym import critique
 from opensage.toolbox.binary.ghidra_mcp.get_toolset import (
@@ -29,23 +27,23 @@ from opensage.toolbox.general.orchestration_tools import (
     send_message,
     wait_for_subagent,
 )
+from opensage.toolbox.general.sandbox_management import (
+    create_sandbox,
+    exec_in_sandbox,
+    list_active_sandboxes,
+    stop_sandbox,
+)
 from opensage.toolbox.general.view_image import view_image
+
+from .models import DEFAULT_MODEL
 
 
 def mk_agent(opensage_session_id: str):
-    model = LiteLlm(
-        model="claude-opus-4-6",
-        api_key=os.getenv("LITELLM_API_KEY"),
-        base_url=os.getenv("LITELLM_BASE_URL") or "http://localhost:8082",
-        cache_control_injection_points=[
-            {"location": "message", "role": "system"},
-            {"location": "message", "index": -2},
-            {"location": "message", "index": -1},
-        ],
-    )
+    model = DEFAULT_MODEL
     gdb_toolset = get_gdb_toolset(opensage_session_id)
     ida_pro_toolset = get_ida_pro_toolset(opensage_session_id)
     pyghidra_toolset = get_pyghidra_toolset(opensage_session_id)
+    ghidra_toolset = get_ghidra_toolset(opensage_session_id)
 
     root_agent = OpenSageAgent(
         name="ctf_agent",
@@ -80,6 +78,12 @@ def mk_agent(opensage_session_id: str):
             # Binary Analysis Tools
             ida_pro_toolset,
             pyghidra_toolset,
+            ghidra_toolset,
+            # Sandbox Management
+            create_sandbox,
+            exec_in_sandbox,
+            list_active_sandboxes,
+            stop_sandbox,
         ],
         enabled_skills=["mmp", "workflow"],
     )

@@ -1,6 +1,6 @@
 # DevOps Engineering Agent
 
-**Source:** [`examples/agents/devops_gym_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/devops_gym_agent)
+**Source:** [`agent_library/agents/devops_gym_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/devops_gym_agent)
 
 ## What This Agent Does
 
@@ -22,7 +22,7 @@ It sits one step up from [`harbor_agent`](./harbor_agent.md): the tool palette i
 
 ## Agent Source
 
-```python title="examples/agents/devops_gym_agent/agent.py"
+```python title="agent_library/agents/devops_gym_agent/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (
@@ -59,14 +59,14 @@ def mk_agent(opensage_session_id, model=None):
     )
 ```
 
-See the [source](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/devops_gym_agent/agent.py) for the full `_SYSTEM_PROMPT` with per-task guidance (build, monitoring, issue-resolving, test-generation).
+See the [source](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/devops_gym_agent/agent.py) for the full `_SYSTEM_PROMPT` with per-task guidance (build, monitoring, issue-resolving, test-generation).
 
 ## Run It
 
 ```bash
 uv run opensage web \
-  --agent examples/agents/devops_gym_agent \
-  --config examples/agents/devops_gym_agent/config.toml \
+  --agent agent_library/agents/devops_gym_agent \
+  --config agent_library/agents/devops_gym_agent/config.toml \
   --port 8000
 ```
 

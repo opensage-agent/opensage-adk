@@ -1,6 +1,6 @@
 # CTF Agent
 
-**Source:** [`examples/agents/ctf_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/ctf_agent)
+**Source:** [`agent_library/agents/ctf_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/ctf_agent)
 
 ## What This Agent Does
 
@@ -17,7 +17,7 @@ The design choice that makes this work is **MCP-in-subagent**: rather than calli
 
 ## Agent Source
 
-```python title="examples/agents/ctf_agent/agent.py"
+```python title="agent_library/agents/ctf_agent/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.binary.ghidra_mcp.get_toolset import get_toolset as get_ghidra_toolset
 from opensage.toolbox.binary.ida_pro_mcp.get_toolset import get_toolset as get_ida_pro_toolset
@@ -80,8 +80,8 @@ def mk_agent(opensage_session_id):
 
 ```bash
 uv run opensage web \
-  --agent examples/agents/ctf_agent \
-  --config examples/agents/ctf_agent/config.toml \
+  --agent agent_library/agents/ctf_agent \
+  --config agent_library/agents/ctf_agent/config.toml \
   --port 8000
 ```
 

@@ -1,6 +1,6 @@
 # PoC Generation Agent — Static Tools
 
-**Source:** [`examples/agents/poc_agent_static_tools`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/poc_agent_static_tools)
+**Source:** [`agent_library/agents/poc_agent_static_tools`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/poc_agent_static_tools)
 
 ## What This Agent Does
 
@@ -19,7 +19,7 @@ For the dynamic counterpart (that adds GDB, fuzzing, coverage) see [PoC Generati
 
 ## Agent Source (Abbreviated)
 
-```python title="examples/agents/poc_agent_static_tools/agent.py"
+```python title="agent_library/agents/poc_agent_static_tools/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.benchmark_specific.cybergym.cybergym import (
     generate_poc_and_submit, run_poc_from_script,
@@ -62,14 +62,14 @@ def mk_agent(opensage_session_id):
     )
 ```
 
-See the [full prompt](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/poc_agent_static_tools/agent.py) for the end-to-end reasoning template and the "Dynamic Agent Usage (Very Important)" / "Ensemble Usage (Very Important)" rules.
+See the [full prompt](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/poc_agent_static_tools/agent.py) for the end-to-end reasoning template and the "Dynamic Agent Usage (Very Important)" / "Ensemble Usage (Very Important)" rules.
 
 ## Run It
 
 ```bash
 uv run opensage web \
-  --agent examples/agents/poc_agent_static_tools \
-  --config examples/agents/poc_agent_static_tools/config.toml \
+  --agent agent_library/agents/poc_agent_static_tools \
+  --config agent_library/agents/poc_agent_static_tools/config.toml \
   --port 8000
 ```
 

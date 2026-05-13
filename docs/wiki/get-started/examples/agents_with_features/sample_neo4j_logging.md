@@ -1,6 +1,6 @@
 # Agent with Neo4j Logging
 
-**Source:** [`examples/agents_with_features/sample_neo4j_logging`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_with_features/sample_neo4j_logging)
+**Source:** [`agent_library/agents_with_features/sample_neo4j_logging`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_with_features/sample_neo4j_logging)
 
 Runs a multi-agent calculation orchestrator while **persisting every agent interaction in a Neo4j graph**. Useful when you want a queryable trace of a session: who called whom, with what arguments, and what was returned.
 
@@ -8,7 +8,7 @@ The Neo4j container is declared under `[sandbox.sandboxes.neo4j]` in `config.tom
 
 ## Agent Source Code
 
-```python title="examples/agents_with_features/sample_neo4j_logging/agent.py"
+```python title="agent_library/agents_with_features/sample_neo4j_logging/agent.py"
 from __future__ import annotations
 
 from typing import Dict
@@ -77,8 +77,8 @@ def mk_agent(opensage_session_id: str):
 
 ```bash
 uv run opensage web \
-  --agent examples/agents_with_features/sample_neo4j_logging \
-  --config examples/agents_with_features/sample_neo4j_logging/config.toml \
+  --agent agent_library/agents_with_features/sample_neo4j_logging \
+  --config agent_library/agents_with_features/sample_neo4j_logging/config.toml \
   --port 8000
 ```
 

@@ -27,7 +27,7 @@ mount_host_paths = [
 
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"
-project_relative_dockerfile_path = "examples/agents/ctf_agent/main_sandbox/Dockerfile"
+project_relative_dockerfile_path = "agent_library/agents/ctf_agent/main_sandbox/Dockerfile"
 timeout = 600
 mcp_services = ["ida_pro_mcp", "pyghidra_mcp", "ghidra_mcp"]
 [sandbox.sandboxes.main.build_args]

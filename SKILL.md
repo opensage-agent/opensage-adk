@@ -477,7 +477,7 @@ Config files in `rl/slime/configs/*.yaml` tune `num-rollout`, `rollout-batch-siz
 | `poc_agent_dynamic_tools` | PoC generation (hybrid) | GDB MCP, fuzzing, coverage, Neo4j | Static first → fuzzing → debugger escalation; local verification via `run_poc_from_script` |
 | `patch_agent` | Scaffold template | `bash_tool_main` | Minimal `mk_agent()` stub for new agents |
 
-Each production agent ships with its `agent.py` and `config.toml(s)` under `examples/agents/` and can be launched with `uv run opensage web --agent examples/agents/<name>`.
+Each production agent ships with its `agent.py` and `config.toml(s)` under `agent_library/agents/` and can be launched with `uv run opensage web --agent agent_library/agents/<name>`.
 
 ## Best Practices
 

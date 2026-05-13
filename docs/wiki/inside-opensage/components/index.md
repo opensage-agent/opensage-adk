@@ -89,7 +89,7 @@ opensage-adk/
 │       ├── toolbox/         # Python tool wrappers / MCP toolsets
 │       ├── util_agents/     # Utility sub-agents (e.g. memory management)
 │       └── utils/           # Shared utilities
-├── examples/                # Example agents and configs
+├── agent_library/           # Example agents and configs
 ├── tests/                   # Unit/integration tests
 └── third_party/             # External benchmark/tool dependencies
 ```

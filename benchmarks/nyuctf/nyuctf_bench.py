@@ -37,9 +37,9 @@ class NYU_CTF_Bench(Evaluation):
     """OpenSage evaluation adapter for NYU_CTF_Bench."""
 
     dataset_path: str = ""
-    agent_dir: str = str(PROJECT_PATH / "examples" / "agents" / "ctf_agent")
+    agent_dir: str = str(PROJECT_PATH / "agent_library" / "agents" / "ctf_agent")
     config_template_path: str = str(
-        PROJECT_PATH / "examples" / "agents" / "ctf_agent" / "config.toml"
+        PROJECT_PATH / "agent_library" / "agents" / "ctf_agent" / "config.toml"
     )
 
     name: str = "nyuctf"

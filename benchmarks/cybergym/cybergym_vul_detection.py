@@ -256,7 +256,7 @@ class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
     export_dir_in_sandbox: str = "/tmp/"
-    agent_dir: str = str(find_path("examples", "agents", "vul_agent_static_tools"))
+    agent_dir: str = str(find_path("agent_library", "agents", "vul_agent_static_tools"))
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""

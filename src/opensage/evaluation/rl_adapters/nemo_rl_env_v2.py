@@ -315,7 +315,7 @@ class _AgentSession:
             from opensage.utils.project_info import PROJECT_PATH
 
             agent_module_path = (
-                PROJECT_PATH / "examples" / "agents" / "harbor_agent" / "agent.py"
+                PROJECT_PATH / "agent_library" / "agents" / "harbor_agent" / "agent.py"
             )
 
         spec = importlib.util.spec_from_file_location(

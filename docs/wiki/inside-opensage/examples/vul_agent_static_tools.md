@@ -1,6 +1,6 @@
 # Static Vulnerability Detection Agent
 
-**Source:** [`examples/agents/vul_agent_static_tools`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/vul_agent_static_tools)
+**Source:** [`agent_library/agents/vul_agent_static_tools`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/vul_agent_static_tools)
 
 ## What This Agent Does
 
@@ -21,7 +21,7 @@ No program is executed. No PoC is generated. The agent answers a single question
 
 ## Agent Source
 
-```python title="examples/agents/vul_agent_static_tools/agent.py"
+```python title="agent_library/agents/vul_agent_static_tools/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.session import get_opensage_session
 from opensage.toolbox.general.bash_tool import bash_tool_main
@@ -69,8 +69,8 @@ The repo ships two configs: `vul_detect_config.toml` for self-hosted runs and `c
 
 ```bash
 uv run opensage web \
-  --agent examples/agents/vul_agent_static_tools \
-  --config examples/agents/vul_agent_static_tools/vul_detect_config.toml \
+  --agent agent_library/agents/vul_agent_static_tools \
+  --config agent_library/agents/vul_agent_static_tools/vul_detect_config.toml \
   --port 8000
 ```
 

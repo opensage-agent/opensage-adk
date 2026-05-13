@@ -1,12 +1,12 @@
 # Agent with an SSE MCP Server
 
-**Source:** [`examples/agents_101/mcp_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_101/mcp_agent)
+**Source:** [`agent_library/agents_101/mcp_agent_sse`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_101/mcp_agent_sse)
 
 Connect an `OpenSageAgent` to an MCP server using SSE protocol. The example bundles an `fs_server.sh` helper that launches the official filesystem MCP server through `supergateway` on port `3001`.
 
 ## Agent Source Code
 
-```python title="examples/agents_101/mcp_agent/agent.py"
+```python title="agent_library/agents_101/mcp_agent_sse/agent.py"
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
 
@@ -24,7 +24,7 @@ root_agent = OpenSageAgent(
 )
 ```
 
-The bundled `fs_server.sh` script (see the [source repo](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_101/mcp_agent)) starts the MCP filesystem server and exposes it over SSE.
+The bundled `fs_server.sh` script (see the [source repo](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_101/mcp_agent_sse)) starts the MCP filesystem server and exposes it over SSE.
 
 ## Run It
 
@@ -33,7 +33,7 @@ Two processes are required: the MCP server and the agent.
 **Terminal 1**: launch the filesystem MCP server:
 
 ```bash
-cd examples/agents_101/mcp_agent
+cd agent_library/agents_101/mcp_agent_sse
 ./fs_server.sh
 ```
 
@@ -44,7 +44,7 @@ cd examples/agents_101/mcp_agent
 
 ```bash
 uv run opensage web \
-  --agent examples/agents_101/mcp_agent \
+  --agent agent_library/agents_101/mcp_agent_sse \
   --port 8000
 ```
 

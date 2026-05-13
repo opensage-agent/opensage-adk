@@ -1,17 +1,17 @@
 # Agent with a Custom MCP Server
 
-**Source:** [`examples/agents_101/mcp_server_tool`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_101/mcp_server_tool)
+**Source:** [`agent_library/agents_101/mcp_server_tool`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_101/mcp_server_tool)
 
 Combines a regular Python function tool with a **custom MCP server** exposed over streamable HTTP. Useful when you want to author the MCP server yourself (for example, to wrap an existing service).
 
 The example ships two files:
 
 - `agent.py`: the `OpenSageAgent` that connects to the MCP server.
-- [`my_mcp_server.py`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_101/mcp_server_tool/my_mcp_server.py): a minimal MCP server that exposes a `calculate_multiplication` tool via `StreamableHTTPSessionManager`.
+- [`my_mcp_server.py`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_101/mcp_server_tool/my_mcp_server.py): a minimal MCP server that exposes a `calculate_multiplication` tool via `StreamableHTTPSessionManager`.
 
 ## Agent Source Code
 
-```python title="examples/agents_101/mcp_server_tool/agent.py"
+```python title="agent_library/agents_101/mcp_server_tool/agent.py"
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.mcp_tool.mcp_toolset import (
     MCPToolset,
@@ -47,14 +47,14 @@ root_agent = OpenSageAgent(
 **Terminal 1**: start the custom MCP server on port `9998`:
 
 ```bash
-uv run python examples/agents_101/mcp_server_tool/my_mcp_server.py
+uv run python agent_library/agents_101/mcp_server_tool/my_mcp_server.py
 ```
 
 **Terminal 2**: run the agent:
 
 ```bash
 uv run opensage web \
-  --agent examples/agents_101/mcp_server_tool \
+  --agent agent_library/agents_101/mcp_server_tool \
   --port 8000
 ```
 

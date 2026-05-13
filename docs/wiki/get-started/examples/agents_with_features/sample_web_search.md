@@ -1,12 +1,12 @@
 # Agent with Web Search
 
-**Source:** [`examples/agents_with_features/sample_web_search`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_with_features/sample_web_search)
+**Source:** [`agent_library/agents_with_features/sample_web_search`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_with_features/sample_web_search)
 
 Adds `WebSearchTool` so the agent can answer questions that need **fresh information from the web**. The tool uses provider-side search (the LLM provider performs the search and returns grounded answers).
 
 ## Agent Source Code
 
-```python title="examples/agents_with_features/sample_web_search/agent.py"
+```python title="agent_library/agents_with_features/sample_web_search/agent.py"
 from google.adk.models.lite_llm import LiteLlm
 
 from opensage.agents.opensage_agent import OpenSageAgent
@@ -32,7 +32,7 @@ def mk_agent(opensage_session_id: str):
 
 Alternatively, you can also use **Gemini with built-in Google Search grounding** via ADK's `GoogleSearchTool`. Unlike `WebSearchTool`, this tool targets Google Gemini directly rather than routing through LiteLlm.
 
-```python title="examples/agents_with_features/sample_google_search/agent.py"
+```python title="agent_library/agents_with_features/sample_google_search/agent.py"
 from google.adk.models.google_llm import Gemini
 from google.adk.tools.google_search_tool import GoogleSearchTool
 
@@ -55,8 +55,8 @@ def mk_agent(opensage_session_id: str):
 
 ```bash
 uv run opensage web \
-  --agent examples/agents_with_features/sample_web_search \
-  --config examples/agents_with_features/sample_web_search/config.toml \
+  --agent agent_library/agents_with_features/sample_web_search \
+  --config agent_library/agents_with_features/sample_web_search/config.toml \
   --port 8000
 ```
 

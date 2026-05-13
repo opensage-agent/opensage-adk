@@ -30,7 +30,7 @@ backend = "native"
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"
 working_dir = "/workspace"
-project_relative_dockerfile_path = "examples/agents/devops_gym_agent/Dockerfile"
+project_relative_dockerfile_path = "agent_library/agents/devops_gym_agent/Dockerfile"
 timeout = 1200
 [sandbox.sandboxes.main.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"

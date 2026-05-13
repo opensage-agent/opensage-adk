@@ -1,12 +1,12 @@
 # Agent with Dynamic Sub-Agents
 
-**Source:** [`examples/agents_with_features/sample_dynamic_subagent`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_with_features/sample_dynamic_subagent)
+**Source:** [`agent_library/agents_with_features/sample_dynamic_subagent`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_with_features/sample_dynamic_subagent)
 
 Shows the **dynamic sub-agent** pattern: the root agent is given `create_subagent`, `list_active_agents`, and `call_subagent_as_tool` so it can spin up specialized sub-agents at runtime and delegate to them.
 
 ## Agent Source Code
 
-```python title="examples/agents_with_features/sample_dynamic_subagent/agent.py"
+```python title="agent_library/agents_with_features/sample_dynamic_subagent/agent.py"
 from typing import Any, Dict
 
 from google.adk.models.lite_llm import LiteLlm
@@ -65,14 +65,14 @@ def mk_agent(opensage_session_id: str):
     )
 ```
 
-> The body of each numeric tool has been abbreviated above; see the [repo](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_with_features/sample_dynamic_subagent) for the full implementation.
+> The body of each numeric tool has been abbreviated above; see the [repo](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_with_features/sample_dynamic_subagent) for the full implementation.
 
 ## Run It
 
 ```bash
 uv run opensage web \
-  --agent examples/agents_with_features/sample_dynamic_subagent \
-  --config examples/agents_with_features/sample_dynamic_subagent/config.toml \
+  --agent agent_library/agents_with_features/sample_dynamic_subagent \
+  --config agent_library/agents_with_features/sample_dynamic_subagent/config.toml \
   --port 8000
 ```
 

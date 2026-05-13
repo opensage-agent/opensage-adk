@@ -40,7 +40,7 @@ except ImportError:
 class SweBenchPro(Evaluation):
     dataset_path: str = "ScaleAI/SWE-bench_Pro"
     dataset_split: str = "test"
-    agent_dir: str = PROJECT_PATH / "examples/agents/swebenchpro_agent"
+    agent_dir: str = PROJECT_PATH / "agent_library/agents/swebenchpro_agent"
     config_template_path: str = str(Path(agent_dir) / "config.toml")
 
     # Optional override for output directory relative to project root

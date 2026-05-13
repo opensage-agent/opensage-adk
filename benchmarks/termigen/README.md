@@ -50,7 +50,7 @@ Common flags (all inherited from `HarborEvaluation`):
 
 - `--output_dir`: where to write per-task outputs (defaults to
   `evals/termigen/<timestamp>`)
-- `--agent_dir`: agent package; defaults to `examples/agents/harbor_agent`
+- `--agent_dir`: agent package; defaults to `agent_library/agents/harbor_agent`
 - `--max_workers`: parallel task runners (default 1)
 - `--start_idx` / `--end_idx`: slice the task list
 - `--skip_existing`: skip tasks whose output directory already exists

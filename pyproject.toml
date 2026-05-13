@@ -99,7 +99,7 @@ allow-direct-references = true
 [tool.hatch.build.targets.sdist]
 include = [
     "src/opensage",
-    "examples",
+    "agent_library",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -122,7 +122,7 @@ convention = "google"
 known-first-party = ["opensage", "tests"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"examples" = "opensage/examples"
+"agent_library" = "opensage/agent_library"
 "src/opensage/cli/assets/opensage_favicon.ico" = "opensage/cli/assets/opensage_favicon.ico"
 "src/opensage/cli/vendor/adk_browser" = "opensage/cli/vendor/adk_browser"
 "src/opensage/plugins/default/claude_code_hooks" = "opensage/plugins/default/claude_code_hooks"

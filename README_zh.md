@@ -146,13 +146,13 @@ uv run opensage web --agent /path/to/my_agent --port 8000
 
 ## :mag: 示例
 
-仓库提供了[示例](examples/)，涵盖基础 Agent、动态子 Agent、MCP 集成、Tool Combo、Web Search 和 Agent Ensemble。
+仓库提供了 [Agent Library 示例](agent_library/)，涵盖基础 Agent、动态子 Agent、MCP 集成、Tool Combo、Web Search 和 Agent Ensemble。
 
 | 目录 | 说明 |
 | --- | --- |
-| [`examples/agents_101/`](examples/agents_101/) | 最小 Agent 模式与入门示例 |
-| [`examples/agents_with_features/`](examples/agents_with_features/) | 按功能分类的示例，如动态子 Agent、Tool Combo 和 Web Search |
-| [`examples/agents/`](examples/agents/) | 更完整的 Agent 示例，覆盖更多工具与技能 |
+| [`agent_library/agents_101/`](agent_library/agents_101/) | 最小 Agent 模式与入门示例 |
+| [`agent_library/agents_with_features/`](agent_library/agents_with_features/) | 按功能分类的示例，如动态子 Agent、Tool Combo 和 Web Search |
+| [`agent_library/agents/`](agent_library/agents/) | 更完整的 Agent 示例，覆盖更多工具与技能 |
 
 ## :book: 文档
 

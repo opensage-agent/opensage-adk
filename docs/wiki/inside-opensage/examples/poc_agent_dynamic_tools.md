@@ -1,6 +1,6 @@
 # PoC Generation Agent — Dynamic Tools
 
-**Source:** [`examples/agents/poc_agent_dynamic_tools`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/poc_agent_dynamic_tools)
+**Source:** [`agent_library/agents/poc_agent_dynamic_tools`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/poc_agent_dynamic_tools)
 
 ## What This Agent Does
 
@@ -22,7 +22,7 @@ The prompt explicitly orders the tools: *static first, dynamic only when stuck*.
 
 ## Agent Source (Abbreviated)
 
-```python title="examples/agents/poc_agent_dynamic_tools/agent.py"
+```python title="agent_library/agents/poc_agent_dynamic_tools/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.session import get_opensage_session
 from opensage.toolbox.benchmark_specific.cybergym.cybergym import (
@@ -77,14 +77,14 @@ def mk_agent(opensage_session_id):
     )
 ```
 
-See the [source](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/poc_agent_dynamic_tools/agent.py) for the full prompt; it covers entrypoint reasoning (`LLVMFuzzerTestOneInput` discipline), background-task polling, when to escalate to the debugger, and the history-reset escape hatch.
+See the [source](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/poc_agent_dynamic_tools/agent.py) for the full prompt; it covers entrypoint reasoning (`LLVMFuzzerTestOneInput` discipline), background-task polling, when to escalate to the debugger, and the history-reset escape hatch.
 
 ## Run It
 
 ```bash
 uv run opensage web \
-  --agent examples/agents/poc_agent_dynamic_tools \
-  --config examples/agents/poc_agent_dynamic_tools/config.toml \
+  --agent agent_library/agents/poc_agent_dynamic_tools \
+  --config agent_library/agents/poc_agent_dynamic_tools/config.toml \
   --port 8000
 ```
 

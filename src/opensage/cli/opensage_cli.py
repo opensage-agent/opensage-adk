@@ -755,7 +755,7 @@ def cli_web(
 
         # 3) Use the ADK services owned by OpenSageSession (one set per environment).
         # Infer app name as the parent folder of the agent directory.
-        # Example: /.../examples/agents/debuger_agent -> app_name = "agents"
+        # Example: /.../agent_library/agents/debuger_agent -> app_name = "agents"
         raw_app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
         app_name = sanitize_agent_name(raw_app_name)
         session_service = opensage_session.session_service

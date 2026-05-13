@@ -9,8 +9,8 @@
 #
 #   MAINTAINED_PROJECT_PATH=/abs/path/to/my_repo \
 #     uv run opensage web \
-#       --agent  examples/agents/repo_maintainer_agent \
-#       --config examples/agents/repo_maintainer_agent/config.toml
+#       --agent  agent_library/agents/repo_maintainer_agent \
+#       --config agent_library/agents/repo_maintainer_agent/config.toml
 #
 # Long-term knowledge is persisted to ${MAINTAINED_PROJECT_PATH}/.opensage/knowledge/
 # on the host, mounted into the container at /mem/long_term/. This directory
@@ -56,7 +56,7 @@ mount_host_paths = [
 [sandbox.sandboxes.main]
 image = "${TASK_NAME}_main"
 working_dir = "/workspace"
-project_relative_dockerfile_path = "examples/agents/repo_maintainer_agent/Dockerfile"
+project_relative_dockerfile_path = "agent_library/agents/repo_maintainer_agent/Dockerfile"
 timeout = 1200
 [sandbox.sandboxes.main.build_args]
 BASE_IMAGE = "${DEFAULT_IMAGE}"

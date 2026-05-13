@@ -25,4 +25,4 @@ This section demonstrates some runnable agents using OpenSage-ADK.
 - [`sample_web_search`](./agents_with_features/sample_web_search.md): Provider-side web search via `WebSearchTool`, plus a Gemini + Google Search variant.
 
 
-The [`examples/`](https://github.com/opensage-agent/opensage-adk/tree/main/examples) directory ships runnable agents grouped by complexity. Use them as starting points when building your own.
+The [`agent_library/`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library) directory ships runnable agents grouped by complexity. Use them as starting points when building your own.

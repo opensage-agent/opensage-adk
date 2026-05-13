@@ -159,13 +159,13 @@ def agent():
 
     from google.adk.models.lite_llm import LiteLlm
 
-    # Add examples directory to Python path
-    examples_dir = os.path.join(
+    # Add agent library examples directory to Python path
+    agent_library_dir = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
-        "examples",
+        "agent_library",
         "agents_with_features",
     )
-    sys.path.insert(0, examples_dir)
+    sys.path.insert(0, agent_library_dir)
 
     # Import the agent module
     from sample_tool_combo import agent as agent_module

@@ -514,8 +514,8 @@ class Evaluation(abc.ABC):
         Expects agent_dir to contain agent.py with mk_agent function.
         Supports both relative and absolute paths.
 
-        Example: agent_dir = "examples/agents/poc_agent"
-                 -> will load from <cwd>/examples/agents/poc_agent/agent.py
+        Example: agent_dir = "agent_library/agents/poc_agent"
+                 -> will load from <cwd>/agent_library/agents/poc_agent/agent.py
 
         Args:
             agent_dir: Directory containing agent.py with mk_agent function.

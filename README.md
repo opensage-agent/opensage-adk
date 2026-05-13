@@ -155,13 +155,13 @@ Open the web UI at [http://localhost:8000](http://localhost:8000), chat with the
 
 ## :mag: Examples
 
-The repo includes [examples](examples/) from basic agents to dynamic sub-agents, MCP integrations, tool combos, web search, and agent ensembles.
+The repo includes [agent library examples](agent_library/) from basic agents to dynamic sub-agents, MCP integrations, tool combos, web search, and agent ensembles.
 
 | Directory | Description |
 | --- | --- |
-| [`examples/agents_101/`](examples/agents_101/) | Minimal agent patterns and starter examples |
-| [`examples/agents_with_features/`](examples/agents_with_features/) | Feature-focused demos such as dynamic sub-agents, tool combos, and web search |
-| [`examples/agents/`](examples/agents/) | More complete agent examples with various tools and skills |
+| [`agent_library/agents_101/`](agent_library/agents_101/) | Minimal agent patterns and starter examples |
+| [`agent_library/agents_with_features/`](agent_library/agents_with_features/) | Feature-focused demos such as dynamic sub-agents, tool combos, and web search |
+| [`agent_library/agents/`](agent_library/agents/) | More complete agent examples with various tools and skills |
 
 ## :book: Documentation
 

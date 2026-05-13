@@ -1,12 +1,12 @@
 # Agent with a Stdio MCP Server
 
-**Source:** [`examples/agents_101/mcp_agent_local`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_101/mcp_agent_local)
+**Source:** [`agent_library/agents_101/mcp_agent_stdio`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_101/mcp_agent_stdio)
 
 Same shape as [`mcp_agent_sse`](./mcp_agent_sse.md), but starts the MCP server **locally over stdio** instead of SSE. No sidecar process is needed; `MCPToolset` launches `npx @modelcontextprotocol/server-filesystem` as a child process when the agent starts.
 
 ## Agent Source Code
 
-```python title="examples/agents_101/mcp_agent_local/agent.py"
+```python title="agent_library/agents_101/mcp_agent_stdio/agent.py"
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.mcp_tool.mcp_toolset import (
     MCPToolset,
@@ -45,6 +45,6 @@ root_agent = OpenSageAgent(
 
 ```bash
 uv run opensage web \
-  --agent examples/agents_101/mcp_agent_local \
+  --agent agent_library/agents_101/mcp_agent_stdio \
   --port 8000
 ```

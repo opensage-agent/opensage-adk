@@ -1,12 +1,12 @@
 # Basic Agent with a Function Tool
 
-**Source:** [`examples/agents_101/sample_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_101/sample_agent)
+**Source:** [`agent_library/agents_101/sample_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_101/sample_agent)
 
 The simplest possible OpenSage agent: a single `OpenSageAgent` with one Python function tool. The function's signature and docstring become the tool schema automatically, so no extra registration code is needed.
 
 ## Agent Source Code
 
-```python title="examples/agents_101/sample_agent/agent.py"
+```python title="agent_library/agents_101/sample_agent/agent.py"
 from google.adk.models.lite_llm import LiteLlm
 from opensage.agents.opensage_agent import OpenSageAgent
 
@@ -44,7 +44,7 @@ root_agent = OpenSageAgent(
 
 ```bash
 uv run opensage web \
-  --agent examples/agents_101/sample_agent \
+  --agent agent_library/agents_101/sample_agent \
   --port 8000
 ```
 

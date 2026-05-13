@@ -19,7 +19,7 @@ python -m opensage.evaluations.<benchmark>.<module> <method> [options]
 ```bash
 python -m opensage.evaluations.cybergym.cybergym_vul_detection run \
   --dataset_path="org/dataset" \
-  --agent_dir="examples/agents/my_agent" \
+  --agent_dir="agent_library/agents/my_agent" \
   --max_workers=6 \
   --use_multiprocessing=true
 ```

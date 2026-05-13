@@ -31,7 +31,7 @@ class MyEvaluation(Evaluation):
 
     # Required fields
     dataset_path: str = "org/dataset_name"
-    agent_dir: str = "examples/agents/my_agent"
+    agent_dir: str = "agent_library/agents/my_agent"
 
     # Optional overrides
     max_llm_calls: int = 100
@@ -177,14 +177,14 @@ registered name is the lowercase class name:
 # Production run
 python -m opensage.evaluations.my_benchmark.my_evaluation run \
   --dataset_path="org/dataset" \
-  --agent_dir="examples/agents/my_agent" \
+  --agent_dir="agent_library/agents/my_agent" \
   --max_workers=6 \
   --output_dir="results/my_benchmark"
 
 # Debug run (single-threaded)
 python -m opensage.evaluations.my_benchmark.my_evaluation run_debug \
   --dataset_path="org/dataset" \
-  --agent_dir="examples/agents/my_agent"
+  --agent_dir="agent_library/agents/my_agent"
 ```
 
 **Python API:**
@@ -194,7 +194,7 @@ from opensage.evaluations import MyEvaluation
 
 eval = MyEvaluation(
     dataset_path="org/dataset",
-    agent_dir="examples/agents/my_agent",
+    agent_dir="agent_library/agents/my_agent",
     max_workers=6,
 )
 eval.run()       # production

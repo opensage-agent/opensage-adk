@@ -1,6 +1,6 @@
 # Dynamic Analysis / Debugger Agent
 
-**Source:** [`examples/agents/debugger_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/debugger_agent)
+**Source:** [`agent_library/agents/debugger_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/debugger_agent)
 
 ## What This Agent Does
 
@@ -20,7 +20,7 @@ The agent uses the **GDB MCP toolset** to drive breakpoints, step execution, and
 
 ## Agent Source
 
-```python title="examples/agents/debugger_agent/agent.py"
+```python title="agent_library/agents/debugger_agent/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.benchmark_specific.cybergym.cybergym import critique
 from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
@@ -77,14 +77,14 @@ def mk_agent(opensage_session_id):
     )
 ```
 
-See the [source](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/debugger_agent/agent.py) for the full, detailed system prompt.
+See the [source](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/debugger_agent/agent.py) for the full, detailed system prompt.
 
 ## Run It Standalone
 
 ```bash
 uv run opensage web \
-  --agent examples/agents/debugger_agent \
-  --config examples/agents/debugger_agent/config.toml \
+  --agent agent_library/agents/debugger_agent \
+  --config agent_library/agents/debugger_agent/config.toml \
   --port 8000
 ```
 

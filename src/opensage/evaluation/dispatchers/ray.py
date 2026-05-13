@@ -48,7 +48,7 @@ class EvalWorker:
         else:
             from opensage.utils.project_info import PROJECT_PATH
 
-            default_agents_dir = str(PROJECT_PATH / "examples" / "agents")
+            default_agents_dir = str(PROJECT_PATH / "agent_library" / "agents")
             if os.path.isdir(default_agents_dir) and default_agents_dir not in sys.path:
                 sys.path.insert(0, default_agents_dir)
 

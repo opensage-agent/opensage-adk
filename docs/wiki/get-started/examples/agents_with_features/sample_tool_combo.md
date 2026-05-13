@@ -1,12 +1,12 @@
 # Agent with Tool Combo
 
-**Source:** [`examples/agents_with_features/sample_tool_combo`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_with_features/sample_tool_combo)
+**Source:** [`agent_library/agents_with_features/sample_tool_combo`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_with_features/sample_tool_combo)
 
 Demonstrates the `ToolCombo` feature, which **chains several tools into one atomic "tool" call**. The `return_history` flag controls whether the caller LLM sees the intermediate steps.
 
 ## Agent Source Code
 
-```python title="examples/agents_with_features/sample_tool_combo/agent.py"
+```python title="agent_library/agents_with_features/sample_tool_combo/agent.py"
 from typing import Any, Dict
 
 from google.adk.models.lite_llm import LiteLlm
@@ -64,7 +64,7 @@ def mk_agent(opensage_session_id: str):
 
 ```bash
 uv run opensage web \
-  --agent examples/agents_with_features/sample_tool_combo \
-  --config examples/agents_with_features/sample_tool_combo/config.toml \
+  --agent agent_library/agents_with_features/sample_tool_combo \
+  --config agent_library/agents_with_features/sample_tool_combo/config.toml \
   --port 8000
 ```

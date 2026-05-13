@@ -1,6 +1,6 @@
 # Terminal Coding Agent (Harbor)
 
-**Source:** [`examples/agents/harbor_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/harbor_agent)
+**Source:** [`agent_library/agents/harbor_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/harbor_agent)
 
 ## What This Agent Does
 
@@ -17,7 +17,7 @@ The prompt leans heavily on two principles: *verify your work by running the cod
 
 ## Agent Source
 
-```python title="examples/agents/harbor_agent/agent.py"
+```python title="agent_library/agents/harbor_agent/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.bash_tools_interface import (
@@ -47,14 +47,14 @@ def mk_agent(opensage_session_id, model=None):
     )
 ```
 
-The full `SYSTEM_PROMPT` (Role / Environment / Verify / Review / Best Practices) lives in the [source file](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/harbor_agent/agent.py).
+The full `SYSTEM_PROMPT` (Role / Environment / Verify / Review / Best Practices) lives in the [source file](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/harbor_agent/agent.py).
 
 ## Run It
 
 ```bash
 uv run opensage web \
-  --agent examples/agents/harbor_agent \
-  --config examples/agents/harbor_agent/config.toml \
+  --agent agent_library/agents/harbor_agent \
+  --config agent_library/agents/harbor_agent/config.toml \
   --port 8000
 ```
 

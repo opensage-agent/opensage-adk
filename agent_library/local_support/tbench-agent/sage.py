@@ -559,7 +559,7 @@ class Sage(BaseInstalledAgent):
             system_prompt = SYSTEM_PROMPT_CODEX
 
         cmd = [
-            "/opt/sage/.venv/bin/python3", "/opt/sage/examples/local_support/local_cli.py",
+            "/opt/sage/.venv/bin/python3", "/opt/sage/agent_library/local_support/local_cli.py",
             "--prompt", instruction,
             "--instruction", system_prompt,
             "--model", self.model_name,

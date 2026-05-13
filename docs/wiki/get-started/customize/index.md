@@ -21,7 +21,7 @@ The `config.toml` file is the **place where you wire those capabilities together
 You do **not** need to write a `config.toml` to run an agent. Launch with just an `--agent` path and OpenSage-ADK will load the built-in default from [`src/opensage/templates/configs/default_config.toml`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/templates/configs/default_config.toml):
 
 ```bash
-uv run opensage web --agent examples/agents_101/sample_agent
+uv run opensage web --agent agent_library/agents_101/sample_agent
 ```
 
 That default gives you a working LLM client, a native sandbox, and basic history handling: enough to try the [Basic Agent](../examples/agents_101/sample_agent.md) example. Once you want to change the model, point at a different sandbox, or enable a feature, you write your own `config.toml` and override only the fields that differ from the default.

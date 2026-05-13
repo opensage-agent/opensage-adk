@@ -29,7 +29,7 @@ OpenSage/
 │       ├── toolbox/         # Python tool wrappers / MCP toolsets
 │       ├── util_agents/     # Utility sub-agents (e.g. memory management)
 │       └── utils/           # Shared utilities
-├── examples/                # Example agents and configs
+├── agent_library/           # Example agents and configs
 ├── tests/                   # Unit and integration tests
 └── third_party/             # External benchmark and tool dependencies
 ```

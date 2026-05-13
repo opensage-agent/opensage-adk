@@ -1,6 +1,6 @@
 # Issue-Fixing Agent (SWE-Bench Pro)
 
-**Source:** [`examples/agents/swebenchpro_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/swebenchpro_agent)
+**Source:** [`agent_library/agents/swebenchpro_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/swebenchpro_agent)
 
 ## What This Agent Does
 
@@ -21,7 +21,7 @@ Two things make this agent different from a vanilla coding agent:
 
 ## Solver Source (Abbreviated)
 
-```python title="examples/agents/swebenchpro_agent/agent.py"
+```python title="agent_library/agents/swebenchpro_agent/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.memory.database_based.long_term.search_tool import search_memory
 from opensage.toolbox.finish_task.finish_task import finish_task
@@ -69,7 +69,7 @@ def mk_agent(opensage_session_id, model=None, planner=None):
     )
 ```
 
-`mk_explore_agent` is a read-only variant with a shorter tool list (`view_file`, terminal commands only; no edits). See the [source](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/swebenchpro_agent/agent.py) for both prompts.
+`mk_explore_agent` is a read-only variant with a shorter tool list (`view_file`, terminal commands only; no edits). See the [source](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/swebenchpro_agent/agent.py) for both prompts.
 
 ## Run It
 
@@ -77,8 +77,8 @@ For standard SWE-Bench Pro evaluation the repo is mounted at `/app` and the agen
 
 ```bash
 uv run opensage web \
-  --agent examples/agents/swebenchpro_agent \
-  --config examples/agents/swebenchpro_agent/config.toml \
+  --agent agent_library/agents/swebenchpro_agent \
+  --config agent_library/agents/swebenchpro_agent/config.toml \
   --port 8000
 ```
 

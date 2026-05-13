@@ -51,7 +51,7 @@ class Client:
         """Initialize client.
 
         Args:
-            agent_name (str): Name of the agent (defined in opensage/agents/ or examples/agents/)
+            agent_name (str): Name of the agent (defined in opensage/agents/ or agent_library/agents/)
             benchmark_name (str): Name of the benchmark (defined in opensage/evaluations/)
             model_name (str | None): Optional model name to override the evaluation's default.
             **eval_kwargs: Extra keyword arguments passed to the Evaluation constructor
@@ -70,7 +70,7 @@ class Client:
     def _resolve_agent_dir(self) -> str:
         """Resolve agent directory from agent name.
 
-        Searches for agent in the installed package's examples/agents/ directory.
+        Searches for agent in the installed package's agent_library/agents/ directory.
 
         Returns:
             str: Absolute path to agent directory
@@ -80,7 +80,7 @@ class Client:
         """
         from opensage.utils.project_info import find_path
 
-        resolved = find_path("examples", "agents", self.agent_name)
+        resolved = find_path("agent_library", "agents", self.agent_name)
         if resolved.exists() and (resolved / "agent.py").exists():
             logger.info(f"Resolved agent directory: {resolved}")
             return str(resolved.resolve())

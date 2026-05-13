@@ -82,4 +82,4 @@ The run directory contains normal OpenSage task outputs plus a submission bundle
 
 - Challenge services are launched with `docker compose` and then attached to `ctfnet` so the benchmark sandbox can reach them.
 - The prompt instructs the agent to both print the candidate flag and write it to `/workspace/final_flag.txt`.
-- The default OpenSage agent target is `examples/agents/ctf_agent`, but `--agent_dir` can point to any compatible agent package.
+- The default OpenSage agent target is `agent_library/agents/ctf_agent`, but `--agent_dir` can point to any compatible agent package.

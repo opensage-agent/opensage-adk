@@ -69,7 +69,7 @@ SAGE_NO_DOCKER=1 uv run opensage --help
 
 echo "[*] Patch google adk"
 
-SRC="/opt/sage/examples/local_support/new_lite_llm.py"
+SRC="/opt/sage/agent_library/local_support/new_lite_llm.py"
 VER="$(./.venv/bin/python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
 DEST=".venv/lib/python${VER}/site-packages/google/adk/models/lite_llm.py"
 

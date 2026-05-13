@@ -1,6 +1,6 @@
 # Patch Generation Scaffold
 
-**Source:** [`examples/agents/patch_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents/patch_agent)
+**Source:** [`agent_library/agents/patch_agent`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents/patch_agent)
 
 ## What This Agent Does
 
@@ -10,7 +10,7 @@ Use this when you want the shortest possible starting point that still resembles
 
 ## Full Source
 
-```python title="examples/agents/patch_agent/agent.py"
+```python title="agent_library/agents/patch_agent/agent.py"
 from google.adk.models.lite_llm import LiteLlm
 
 from opensage.agents.opensage_agent import OpenSageAgent
@@ -35,7 +35,7 @@ That's the whole file. The name hints at an eventual vulnerability-patching work
 
 ```bash
 uv run opensage web \
-  --agent examples/agents/patch_agent \
+  --agent agent_library/agents/patch_agent \
   --port 8000
 ```
 

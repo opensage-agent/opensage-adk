@@ -102,7 +102,7 @@ print(' '.join(args))
     echo "  → EXTRA_TRAIN_ARGS=${EXTRA_TRAIN_ARGS}"
 fi
 
-AGENT_DIR="${OPENSAGE_DIR}/examples/agents/${AGENT}"
+AGENT_DIR="${OPENSAGE_DIR}/agent_library/agents/${AGENT}"
 for d in "$SLIME_DIR" "$OPENSAGE_DIR" "$AGENT_DIR"; do
     [[ -d "$d" ]] || { echo "ERROR: directory not found: $d"; exit 1; }
 done

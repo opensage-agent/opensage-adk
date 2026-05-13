@@ -102,7 +102,7 @@ Similarly, `doom_loop_detector_plugin` can **block tool execution entirely** in 
 **Agent-local plugins**: place under `{agent_dir}/plugins/`:
 
 ```
-examples/agents/my_agent/
+agent_library/agents/my_agent/
 ├── agent.py
 └── plugins/
     ├── my_custom_plugin.py     # ADK plugin

@@ -1,6 +1,6 @@
 # SAGE-CCB Benchmark
 
-This benchmark runs the CTF agent in `examples/agents/ctf_agent` and a Claude Code baseline against the SAGE-CCB challenge suite in `../sage-ccb`.
+This benchmark runs the CTF agent in `agent_library/agents/ctf_agent` and a Claude Code baseline against the SAGE-CCB challenge suite in `../sage-ccb`.
 
 Unlike per-challenge benchmark runners, SAGE-CCB is evaluated as one suite task: all selected challenge services are started at the same time, the agent receives one prompt containing the full challenge list, and scoring validates every reported flag after the run finishes.
 

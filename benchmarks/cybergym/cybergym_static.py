@@ -37,7 +37,7 @@ class CyberGym(Evaluation):
     # Evaluation override configs
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_split: str = "tasks"
-    agent_dir: str = str(find_path("examples", "agents", "poc_agent_static_tools"))
+    agent_dir: str = str(find_path("agent_library", "agents", "poc_agent_static_tools"))
     max_llm_calls: int = 300
     config_template_path: str = str(Path(agent_dir) / "config.toml")
     run_until_explicit_finish: bool = True

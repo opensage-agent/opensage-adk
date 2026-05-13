@@ -1,6 +1,6 @@
 # Agent with History Summarization
 
-**Source:** [`examples/agents_with_features/sample_summarization`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_with_features/sample_summarization)
+**Source:** [`agent_library/agents_with_features/sample_summarization`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_with_features/sample_summarization)
 
 Shows how to use `register_callback_to_all_agents` to attach **history-summarization and tool-response-summarization callbacks** across every agent in a tree. Long tool outputs are truncated/summarized to keep context size under control.
 
@@ -13,7 +13,7 @@ The tools deliberately return long strings (`"here is the sum: " * 100 + ...`) t
 
 ## Agent Source Code
 
-```python title="examples/agents_with_features/sample_summarization/agent.py"
+```python title="agent_library/agents_with_features/sample_summarization/agent.py"
 from __future__ import annotations
 
 import os
@@ -106,7 +106,7 @@ def mk_agent(opensage_session_id: str):
 
 ```bash
 uv run opensage web \
-  --agent examples/agents_with_features/sample_summarization \
-  --config examples/agents_with_features/sample_summarization/config.toml \
+  --agent agent_library/agents_with_features/sample_summarization \
+  --config agent_library/agents_with_features/sample_summarization/config.toml \
   --port 8000
 ```

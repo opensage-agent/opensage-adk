@@ -14,12 +14,12 @@ Usage:
     # Local tasks directory
     python -m benchmarks.harbor.harbor_evaluation run \\
         --dataset_path /path/to/harbor/tasks \\
-        --agent_dir examples/agents/harbor_agent
+        --agent_dir agent_library/agents/harbor_agent
 
     # Auto-download from harbor registry (requires: pip install harbor)
     python -m benchmarks.harbor.harbor_evaluation run \\
         --dataset_path swebench \\
-        --agent_dir examples/agents/harbor_agent
+        --agent_dir agent_library/agents/harbor_agent
 """
 
 import datetime
@@ -129,9 +129,9 @@ class HarborEvaluation(Evaluation):
 
     dataset_path: str = ""
     name: str = "harbor"
-    agent_dir: str = str(PROJECT_PATH / "examples/agents/harbor_agent")
+    agent_dir: str = str(PROJECT_PATH / "agent_library/agents/harbor_agent")
     config_template_path: str = str(
-        PROJECT_PATH / "examples/agents/harbor_agent/config.toml"
+        PROJECT_PATH / "agent_library/agents/harbor_agent/config.toml"
     )
     max_llm_calls: int = 200
     run_until_explicit_finish: bool = True

@@ -1,12 +1,12 @@
 # Agent with a Sub-Agent Tool
 
-**Source:** [`examples/agents_101/sample_agent_tool`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents_101/sample_agent_tool)
+**Source:** [`agent_library/agents_101/sample_agent_tool`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_101/sample_agent_tool)
 
 Demonstrates how to wrap a sub-agent as an `AgentTool` so the root agent can call it like any other tool. The sub-agent has its own model, instruction, and tool list; the root agent simply invokes it by name.
 
 ## Agent Source Code
 
-```python title="examples/agents_101/sample_agent_tool/agent.py"
+```python title="agent_library/agents_101/sample_agent_tool/agent.py"
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools.agent_tool import AgentTool
 
@@ -49,7 +49,7 @@ def mk_agent(opensage_session_id: str = None):
 
 ```bash
 uv run opensage web \
-  --agent examples/agents_101/sample_agent_tool \
+  --agent agent_library/agents_101/sample_agent_tool \
   --port 8000
 ```
 

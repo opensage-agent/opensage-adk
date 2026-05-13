@@ -133,9 +133,9 @@ class DevOpsGym(Evaluation):
 
     # Required fields from Evaluation base (provide defaults here)
     dataset_path: str = ""
-    agent_dir: str = str(PROJECT_PATH / "examples" / "agents" / "devops_gym_agent")
+    agent_dir: str = str(PROJECT_PATH / "agent_library" / "agents" / "devops_gym_agent")
     config_template_path: str = str(
-        PROJECT_PATH / "examples" / "agents" / "devops_gym_agent" / "config.toml"
+        PROJECT_PATH / "agent_library" / "agents" / "devops_gym_agent" / "config.toml"
     )
 
     name: str = "devopsgym"

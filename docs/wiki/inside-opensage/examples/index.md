@@ -4,7 +4,7 @@ icon: lucide/flask-conical
 
 # Production Agents
 
-The OpenSage team builds agents that target hard, real-world workloads: fixing bugs across a million lines of code, finding and triggering memory-safety vulnerabilities, solving CTF challenges, diagnosing runtime anomalies. All of them live under [`examples/agents/`](https://github.com/opensage-agent/opensage-adk/tree/main/examples/agents) in the repo, and every one ships with its `agent.py`, a matching `config.toml` (or several), and reproducible prompts.
+The OpenSage team builds agents that target hard, real-world workloads: fixing bugs across a million lines of code, finding and triggering memory-safety vulnerabilities, solving CTF challenges, diagnosing runtime anomalies. All of them live under [`agent_library/agents/`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents) in the repo, and every one ships with its `agent.py`, a matching `config.toml` (or several), and reproducible prompts.
 
 This section walks through those production agents one by one. Unlike the [small examples in *Get Started*](../../get-started/examples/index.md), which each demonstrate a single OpenSage feature, these agents **combine many features** into complete solutions. They are the clearest guide to how `OpenSageAgent`, dynamic sub-agents, ensembles, long-term memory, MCP toolsets, and bash-skill sandboxes compose into something that actually solves a benchmark.
 

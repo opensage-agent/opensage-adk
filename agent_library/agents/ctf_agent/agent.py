@@ -44,7 +44,6 @@ def mk_agent(opensage_session_id: str):
     gdb_toolset = get_gdb_toolset(opensage_session_id)
     ida_pro_toolset = get_ida_pro_toolset(opensage_session_id)
     pyghidra_toolset = get_pyghidra_toolset(opensage_session_id)
-    ghidra_toolset = get_ghidra_toolset(opensage_session_id)
 
     root_agent = OpenSageAgent(
         name="ctf_agent",
@@ -79,7 +78,6 @@ def mk_agent(opensage_session_id: str):
             # Binary Analysis Tools
             ida_pro_toolset,
             pyghidra_toolset,
-            ghidra_toolset,
             # Sandbox Management
             create_sandbox,
             exec_in_sandbox,

@@ -12,6 +12,7 @@ from opensage.toolbox.binary.pyghidra_mcp.get_toolset import (
     get_toolset as get_pyghidra_toolset,
 )
 from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
+from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import complain
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
@@ -84,6 +85,8 @@ def mk_agent(opensage_session_id: str):
             exec_in_sandbox,
             list_active_sandboxes,
             stop_sandbox,
+            # Task lifecycle
+            finish_task,
         ],
         enabled_skills=["mmp", "workflow"],
     )

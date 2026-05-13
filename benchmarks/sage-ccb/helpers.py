@@ -1246,11 +1246,15 @@ async def judge_sage_trajectory_with_llm(
         agent_trajectory=agent_trajectory,
         include_raw_session=False,
     )
-    model = LiteLlm(
-        model=model_name,
-        api_key=os.getenv("LITELLM_API_KEY"),
-        base_url=os.getenv("LITELLM_BASE_URL") or "http://localhost:8082",
-    )
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if anthropic_key:
+        model = LiteLlm(model=model_name, api_key=anthropic_key)
+    else:
+        model = LiteLlm(
+            model=model_name,
+            api_key=os.getenv("LITELLM_API_KEY"),
+            base_url=os.getenv("LITELLM_BASE_URL"),
+        )
 
     async def _call(user_message: str, *, strategy: str) -> _JudgeAttempt:
         llm_request = LlmRequest()

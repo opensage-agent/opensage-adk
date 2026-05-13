@@ -154,6 +154,39 @@ class _InMemoryExporter(export_lib.SpanExporter):
         self._spans.clear()
 
 
+class _SessionEventBus:
+    """Per-session pub/sub for live event broadcasting.
+
+    Allows multiple subscribers to receive events in real-time.
+    Used to support UI reconnection after page refresh.
+    """
+
+    def __init__(self):
+        self._subscribers: dict[str, list[asyncio.Queue]] = {}
+
+    def subscribe(self, session_id: str) -> asyncio.Queue:
+        q: asyncio.Queue = asyncio.Queue()
+        self._subscribers.setdefault(session_id, []).append(q)
+        return q
+
+    def unsubscribe(self, session_id: str, q: asyncio.Queue) -> None:
+        subs = self._subscribers.get(session_id)
+        if subs:
+            try:
+                subs.remove(q)
+            except ValueError:
+                pass
+            if not subs:
+                del self._subscribers[session_id]
+
+    def publish(self, session_id: str, event_json: str) -> None:
+        for q in self._subscribers.get(session_id, []):
+            try:
+                q.put_nowait(event_json)
+            except asyncio.QueueFull:
+                pass
+
+
 class OpenSageWebServer:
     """Single-agent FastAPI server reusing provided agent and services.
 
@@ -193,6 +226,7 @@ class OpenSageWebServer:
         self.url_prefix = url_prefix
         self._runner: Optional[Runner] = None
         self.fake_user_fn = fake_user_fn
+        self._event_bus = _SessionEventBus()
 
     def _build_root_session_state(
         self, base_state: Optional[dict[str, Any]] = None
@@ -362,6 +396,54 @@ class OpenSageWebServer:
             active.cancel("Stopped from Dev UI")
             logger.warning("Requested stop for active turn: session_id=%s", sid)
             return {"stopped": True, "running": True, "session_id": sid}
+
+        @app.get("/events/subscribe")
+        async def subscribe_events(
+            session_id: str = Query(default=None),
+            after_index: int = Query(default=0),
+        ) -> StreamingResponse:
+            """SSE endpoint for reconnecting to an active session's event stream.
+
+            On page refresh, the frontend can subscribe here to receive:
+            1. Any events generated since after_index (replay from history)
+            2. New events as they are generated in real-time (via event bus)
+            """
+            sid = session_id or self.fixed_session_id
+
+            async def _subscribe_generator():
+                session = await self.session_service.get_session(
+                    app_name=self.app_name, user_id="user", session_id=sid
+                )
+                if session and session.events:
+                    for evt in session.events[after_index:]:
+                        yield (
+                            "data: "
+                            + evt.model_dump_json(exclude_none=True, by_alias=True)
+                            + "\n\n"
+                        )
+
+                q = self._event_bus.subscribe(sid)
+                try:
+                    while True:
+                        active = active_turn_task_by_session.get(sid)
+                        if not active or active.done():
+                            # Check one last time for queued events
+                            while not q.empty():
+                                yield "data: " + q.get_nowait() + "\n\n"
+                            yield 'data: {"done": true}\n\n'
+                            break
+                        try:
+                            event_json = await asyncio.wait_for(q.get(), timeout=2.0)
+                            yield "data: " + event_json + "\n\n"
+                        except asyncio.TimeoutError:
+                            # Send keepalive comment to prevent connection timeout
+                            yield ": keepalive\n\n"
+                finally:
+                    self._event_bus.unsubscribe(sid, q)
+
+            return StreamingResponse(
+                _subscribe_generator(), media_type="text/event-stream"
+            )
 
         @app.get("/debug/trace/session/{session_id}")
         async def get_session_trace(session_id: str) -> Any:
@@ -649,13 +731,11 @@ class OpenSageWebServer:
                             )
                         ) as agen:
                             async for event in agen:
-                                yield (
-                                    "data: "
-                                    + event.model_dump_json(
-                                        exclude_none=True, by_alias=True
-                                    )
-                                    + "\n\n"
+                                event_json = event.model_dump_json(
+                                    exclude_none=True, by_alias=True
                                 )
+                                self._event_bus.publish(session_id, event_json)
+                                yield ("data: " + event_json + "\n\n")
 
                         # If no fake_user configured, single invocation only.
                         if not self.fake_user_fn:

@@ -123,6 +123,8 @@ class SAGE_CCB_Solo_Bench(Evaluation):
     remove_host_ports: bool = True
     timeout: str = DEFAULT_TIMEOUT
 
+    skip_services: bool = False
+
     judge_model: str = "claude-opus-4-6"
     judge_error_is_pass: bool = False
 
@@ -363,13 +365,14 @@ class SAGE_CCB_Solo_Bench(Evaluation):
         session = None
 
         try:
-            started_services = start_challenge_services(
-                [challenge],
-                network_name=self.network_name,
-                compose_output_dir=compose_dir,
-                remove_host_ports=self.remove_host_ports,
-                startup_deadline=run_deadline,
-            )
+            if not self.skip_services:
+                started_services = start_challenge_services(
+                    [challenge],
+                    network_name=self.network_name,
+                    compose_output_dir=compose_dir,
+                    remove_host_ports=self.remove_host_ports,
+                    startup_deadline=run_deadline,
+                )
 
             logger.info("Starting SAGE-CCB solo task: %s", challenge.canonical_name)
             self._before_generate_one_callback(task)
@@ -448,7 +451,8 @@ class SAGE_CCB_Solo_Bench(Evaluation):
             raise
         finally:
             self._cleanup_opensage_session(task)
-            stop_challenge_services(started_services)
+            if not self.skip_services:
+                stop_challenge_services(started_services)
             if task.initial_data_dir:
                 shutil.rmtree(task.initial_data_dir, ignore_errors=True)
             self._cleanup_live_workspace_if_archived(task)

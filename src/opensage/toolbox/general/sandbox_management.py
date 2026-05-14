@@ -1,4 +1,4 @@
-"""Sandbox management tools — create, execute, stop, and list sandboxes.
+"""Sandbox management tools — create, stop, and list sandboxes.
 
 These tools give the agent dynamic control over sandbox lifecycle,
 similar to VulClaw's spawn/exec/stop pattern but integrated with
@@ -14,15 +14,6 @@ from google.adk.tools import ToolContext
 from opensage.utils.agent_utils import get_opensage_session_from_context
 
 logger = logging.getLogger(__name__)
-
-# Output truncation limit (bytes)
-_MAX_OUTPUT = 50 * 1024
-
-
-def _truncate(text: str) -> str:
-    if len(text) > _MAX_OUTPUT:
-        return text[:_MAX_OUTPUT] + f"\n... [truncated, {len(text)} bytes total]"
-    return text
 
 
 async def create_sandbox(
@@ -175,48 +166,6 @@ async def create_sandbox(
     except Exception as e:
         logger.exception("Failed to create sandbox '%s': %s", sandbox_type, e)
         return {"success": False, "error": str(e)}
-
-
-async def exec_in_sandbox(
-    sandbox_type: str,
-    command: str,
-    tool_context: ToolContext,
-    timeout: int = 120,
-) -> str:
-    """Execute a command inside a sandbox.
-
-    Works with any sandbox in the current session — both pre-configured ones
-    (like 'main') and dynamically created ones (via create_sandbox).
-
-    Args:
-        sandbox_type: Name of the sandbox to execute in (e.g. 'main', 'target').
-        command: Shell command to execute.
-        timeout: Command timeout in seconds.
-    Returns:
-        Command output (stdout + stderr). Truncated at 50KB.
-    """
-    session = get_opensage_session_from_context(tool_context)
-    manager = session.sandboxes
-    sandboxes = manager.list_sandboxes()
-
-    if sandbox_type not in sandboxes:
-        return (
-            f"Error: sandbox '{sandbox_type}' not found. "
-            f"Active sandboxes: {list(sandboxes.keys())}"
-        )
-
-    try:
-        sandbox = manager.get_sandbox(sandbox_type)
-        output, exit_code = await sandbox.arun_command_in_container(
-            command, timeout=timeout
-        )
-        result = output or ""
-        if exit_code != 0:
-            result += f"\n[exit_code: {exit_code}]"
-        return _truncate(result) or "(no output)"
-    except Exception as e:
-        logger.exception("exec_in_sandbox('%s') failed: %s", sandbox_type, e)
-        return f"Error: {e}"
 
 
 def stop_sandbox(

@@ -54,10 +54,8 @@ class SAGE_CCB_Bench(Evaluation):
     """OpenSage evaluation adapter for the multi-challenge SAGE-CCB suite."""
 
     dataset_path: str = ""
-    agent_dir: str = str(PROJECT_PATH / "agent_library" / "agents" / "ctf_agent")
-    config_template_path: str = str(
-        PROJECT_PATH / "agent_library" / "agents" / "ctf_agent" / "config.toml"
-    )
+    agent_dir: str = ""
+    config_template_path: str = ""
 
     name: str = "sage-ccb"
     non_interactive: bool = True
@@ -90,6 +88,8 @@ class SAGE_CCB_Bench(Evaluation):
     judge_error_is_pass: bool = False
 
     def __post_init__(self) -> None:
+        if not self.agent_dir:
+            raise ValueError("--agent_dir is required")
         candidate_config_path = Path(self.agent_dir) / "config.toml"
         if candidate_config_path.exists():
             self.config_template_path = str(candidate_config_path.resolve())

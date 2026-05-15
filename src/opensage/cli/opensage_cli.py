@@ -453,6 +453,19 @@ def _resolve_review_session_dir(session_path: Optional[str]) -> Path:
     if exact_match.exists() and exact_match.is_dir():
         return exact_match
 
+    suffix_matches = [
+        p
+        for p in _SESSION_STORE_ROOT.iterdir()
+        if p.is_dir() and p.name.endswith(session_path)
+    ]
+    if len(suffix_matches) == 1:
+        return suffix_matches[0]
+    if len(suffix_matches) > 1:
+        raise click.ClickException(
+            f"Ambiguous session suffix {session_path!r}: "
+            + ", ".join(p.name for p in suffix_matches)
+        )
+
     raise click.ClickException(
         f"Session not found: {session_path} (looked under {_SESSION_STORE_ROOT})"
     )

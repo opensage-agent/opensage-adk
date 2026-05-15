@@ -272,8 +272,37 @@ class OpenSageWebServer:
             return "running"
         return "completed"
 
+    def _get_root_instance(self):
+        """Return the root AgentInstance if available, else None."""
+        manager = self._get_agent_manager()
+        if manager is None:
+            return None
+        return manager.get_instance(self.fixed_session_id)
+
+    def _mark_root_running(self) -> None:
+        inst = self._get_root_instance()
+        if inst is None:
+            return
+        from opensage.orchestration.types import AgentInstanceState
+
+        inst.state = AgentInstanceState.RUNNING
+        inst._done_event.clear()
+
+    def _mark_root_sleeping(self) -> None:
+        inst = self._get_root_instance()
+        if inst is None:
+            return
+        from opensage.orchestration.types import AgentInstanceState
+
+        inst.state = AgentInstanceState.SLEEPING
+        inst._done_event.set()
+
     async def get_runner_async(self) -> Runner:
         if self._runner:
+            return self._runner
+        inst = self._get_root_instance()
+        if inst is not None:
+            self._runner = inst.runner
             return self._runner
         agentic_app = App(
             name=self.app_name, root_agent=self.root_agent, plugins=self.plugins
@@ -666,6 +695,7 @@ class OpenSageWebServer:
             if current_task is None:
                 raise HTTPException(status_code=500, detail="No active task context")
             _register_active_turn(session_id, current_task)
+            self._mark_root_running()
             try:
                 async with Aclosing(
                     runner.run_async(
@@ -681,6 +711,7 @@ class OpenSageWebServer:
                     status_code=409, detail=f"Turn stopped: {cancelled}"
                 ) from cancelled
             finally:
+                self._mark_root_sleeping()
                 _clear_active_turn(session_id, current_task)
 
         @app.post("/run_sse")
@@ -725,6 +756,7 @@ class OpenSageWebServer:
 
             async def event_generator():
                 nonlocal state_delta, invocation_id
+                self._mark_root_running()
                 try:
                     mode = StreamingMode.SSE if streaming else StreamingMode.NONE
                     runner = await self.get_runner_async()
@@ -776,6 +808,7 @@ class OpenSageWebServer:
                     logger.exception("Error in SSE generator: %s", e)
                     yield f'data: {{"error": "{str(e)}"}}\n\n'
                 finally:
+                    self._mark_root_sleeping()
                     _clear_active_turn(session_id, handler_task)
 
             return StreamingResponse(event_generator(), media_type="text/event-stream")
@@ -834,6 +867,7 @@ class OpenSageWebServer:
                 await websocket.close(code=1011, reason="No active task context")
                 return
             _register_active_turn(session_id, current_task)
+            self._mark_root_running()
             try:
                 done, pending = await asyncio.wait(
                     tasks, return_when=asyncio.FIRST_EXCEPTION
@@ -848,6 +882,7 @@ class OpenSageWebServer:
                 logger.exception("Live error: %s", e)
                 await websocket.close(code=1011, reason=str(e)[:123])
             finally:
+                self._mark_root_sleeping()
                 _clear_active_turn(session_id, current_task)
                 for t in tasks:
                     t.cancel()

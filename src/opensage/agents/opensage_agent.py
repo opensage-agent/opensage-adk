@@ -13,9 +13,7 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.base_toolset import BaseToolset
 from google.adk.tools.mcp_tool.mcp_tool import MCPTool as _AdkMCPTool
 from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
-from pydantic import Field
 
-from opensage.features.tool_combo import ToolCombo
 from opensage.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
@@ -672,13 +670,10 @@ class ToolLoader:
 
 
 class OpenSageAgent(LlmAgent):
-    tool_combos: Optional[List[ToolCombo]] = Field(default=None)
-
     def __init__(
         self,
         *args,
-        tools: Optional[List] = None,  # TODO: this should be the initial tool list?
-        tool_combos: Optional[List[ToolCombo]] = None,
+        tools: Optional[List] = None,
         enabled_skills: Optional[Union[List[str], str]] = None,
         subagents: Optional[List["OpenSageAgent"]] = None,
         **kwargs,
@@ -703,6 +698,13 @@ class OpenSageAgent(LlmAgent):
         except ImportError:
             pass
 
+        # --- Ban ADK's sub_agents kwarg ---
+        if kwargs.get("sub_agents"):
+            raise ValueError(
+                "sub_agents is forbidden in OpenSageAgent. "
+                "Use subagents=[...] and call_subagent / continue_agent_instance instead."
+            )
+
         # --- Validate and stash subagents (OpenSage's own declaration field) ---
         subagents_list = list(subagents or [])
         for sa in subagents_list:
@@ -712,14 +714,6 @@ class OpenSageAgent(LlmAgent):
                     f"{type(sa).__name__}"
                 )
 
-        sub_agents = kwargs.get("sub_agents", [])
-        for combo in tool_combos or []:  # TODO: why tool combos for sub-agents?
-            if combo.return_history:
-                sub_agents.append(combo.sequential_agent)
-            else:
-                if combo.agent_tool not in tools:
-                    tools.append(combo.agent_tool)
-
         # Ensure all tools are safe and dict-shaped (including MCP-expanded tools).
         # We intentionally do this before calling the ADK LlmAgent constructor so the
         # runner always sees wrapped tools.
@@ -727,7 +721,6 @@ class OpenSageAgent(LlmAgent):
 
         tools = make_toollikes_safe_dict(tools)
 
-        kwargs["sub_agents"] = sub_agents
         kwargs["tools"] = tools
 
         # Append default tool error handler

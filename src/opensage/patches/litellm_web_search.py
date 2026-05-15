@@ -115,18 +115,35 @@ def apply() -> None:
 
     _orig_generate_content_async = LiteLlm.generate_content_async
 
+    _WEB_SEARCH_PROVIDERS = ("anthropic/", "claude-")
+
+    def _provider_supports_web_search(model_str: str) -> bool:
+        m = model_str.lower()
+        return any(m.startswith(p) for p in _WEB_SEARCH_PROVIDERS)
+
     async def _wrapped_generate_content_async(self, llm_request, stream=False):
         extra_kwargs = getattr(llm_request, "_extra_completion_kwargs", None)
         if extra_kwargs:
-            saved = self._additional_args
-            self._additional_args = {**saved, **extra_kwargs}
-            try:
+            effective_model = getattr(llm_request, "model", None) or self.model or ""
+            if not _provider_supports_web_search(effective_model):
+                extra_kwargs = {
+                    k: v for k, v in extra_kwargs.items() if k != "web_search_options"
+                }
+            if extra_kwargs:
+                saved = self._additional_args
+                self._additional_args = {**saved, **extra_kwargs}
+                try:
+                    async for resp in _orig_generate_content_async(
+                        self, llm_request, stream=stream
+                    ):
+                        yield resp
+                finally:
+                    self._additional_args = saved
+            else:
                 async for resp in _orig_generate_content_async(
                     self, llm_request, stream=stream
                 ):
                     yield resp
-            finally:
-                self._additional_args = saved
         else:
             async for resp in _orig_generate_content_async(
                 self, llm_request, stream=stream

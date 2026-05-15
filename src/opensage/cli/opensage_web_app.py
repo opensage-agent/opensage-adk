@@ -33,7 +33,6 @@ from fastapi.staticfiles import StaticFiles
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.live_request_queue import LiveRequest, LiveRequestQueue
 from google.adk.agents.run_config import RunConfig, StreamingMode
-from google.adk.apps.app import App
 from google.adk.cli import agent_graph
 from google.adk.cli.adk_web_server import (
     CreateSessionRequest,
@@ -280,20 +279,16 @@ class OpenSageWebServer:
         return manager.get_instance(self.fixed_session_id)
 
     def _mark_root_running(self) -> None:
-        inst = self._get_root_instance()
-        if inst is None:
-            return
         from opensage.orchestration.types import AgentInstanceState
 
+        inst = self._get_root_instance()
         inst.state = AgentInstanceState.RUNNING
         inst._done_event.clear()
 
     def _mark_root_sleeping(self) -> None:
-        inst = self._get_root_instance()
-        if inst is None:
-            return
         from opensage.orchestration.types import AgentInstanceState
 
+        inst = self._get_root_instance()
         inst.state = AgentInstanceState.SLEEPING
         inst._done_event.set()
 
@@ -301,19 +296,7 @@ class OpenSageWebServer:
         if self._runner:
             return self._runner
         inst = self._get_root_instance()
-        if inst is not None:
-            self._runner = inst.runner
-            return self._runner
-        agentic_app = App(
-            name=self.app_name, root_agent=self.root_agent, plugins=self.plugins
-        )
-        self._runner = Runner(
-            app=agentic_app,
-            artifact_service=self.artifact_service,
-            session_service=self.session_service,
-            memory_service=self.memory_service,
-            credential_service=self.credential_service,
-        )
+        self._runner = inst.runner
         return self._runner
 
     def get_fast_api_app(

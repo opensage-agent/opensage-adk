@@ -247,6 +247,13 @@ class OpenSageWebServer:
             None,
         )
 
+    def _resolve_agent_name(self, session_id: str) -> str:
+        manager = self._get_agent_manager()
+        if manager is None:
+            return ""
+        inst = manager.get_instance(session_id)
+        return inst.agent_name if inst else ""
+
     def _resolve_runtime_status(self, session_id: str) -> str | None:
         """Query AgentManager for the live status of a subagent instance.
 
@@ -407,8 +414,14 @@ class OpenSageWebServer:
             On page refresh, the frontend can subscribe here to receive:
             1. Any events generated since after_index (replay from history)
             2. New events as they are generated in real-time (via event bus)
+
+            For subagent sessions (prefixed with ``subagent-``), polls the
+            in-memory session service for new events instead of using the event
+            bus, and keeps streaming while the main session has an active turn.
             """
             sid = session_id or self.fixed_session_id
+
+            is_subagent = sid.startswith("subagent-")
 
             async def _subscribe_generator():
                 session = await self.session_service.get_session(
@@ -427,7 +440,6 @@ class OpenSageWebServer:
                     while True:
                         active = active_turn_task_by_session.get(sid)
                         if not active or active.done():
-                            # Check one last time for queued events
                             while not q.empty():
                                 yield "data: " + q.get_nowait() + "\n\n"
                             yield 'data: {"done": true}\n\n'
@@ -436,14 +448,49 @@ class OpenSageWebServer:
                             event_json = await asyncio.wait_for(q.get(), timeout=2.0)
                             yield "data: " + event_json + "\n\n"
                         except asyncio.TimeoutError:
-                            # Send keepalive comment to prevent connection timeout
                             yield ": keepalive\n\n"
                 finally:
                     self._event_bus.unsubscribe(sid, q)
 
-            return StreamingResponse(
-                _subscribe_generator(), media_type="text/event-stream"
+            async def _subagent_subscribe_generator():
+                real_sub_id = sid[len("subagent-") :]
+
+                total_sent = after_index
+
+                while True:
+                    session = await self.session_service.get_session(
+                        app_name=self.app_name,
+                        user_id="user",
+                        session_id=real_sub_id,
+                    )
+                    events = (session.events if session else None) or []
+                    new_events = events[total_sent:]
+                    for evt in new_events:
+                        yield (
+                            "data: "
+                            + evt.model_dump_json(exclude_none=True, by_alias=True)
+                            + "\n\n"
+                        )
+                        total_sent += 1
+
+                    parent_active = active_turn_task_by_session.get(
+                        self.fixed_session_id
+                    )
+                    if not parent_active or parent_active.done():
+                        yield 'data: {"done": true}\n\n'
+                        break
+
+                    if not new_events:
+                        yield ": keepalive\n\n"
+
+                    await asyncio.sleep(1.5)
+
+            gen = (
+                _subagent_subscribe_generator()
+                if is_subagent
+                else _subscribe_generator()
             )
+            return StreamingResponse(gen, media_type="text/event-stream")
 
         @app.get("/debug/trace/session/{session_id}")
         async def get_session_trace(session_id: str) -> Any:
@@ -485,47 +532,9 @@ class OpenSageWebServer:
                     self.app_name,
                 )
                 raise HTTPException(status_code=404, detail="App not found")
-            # For sub-agent sessions, reload from traj.json to get latest events
+            # For sub-agent sessions, look up by the real session id.
             if session_id.startswith("subagent-"):
-                child_session_id = session_id[len("subagent-") :]
-                try:
-                    from google.adk.sessions.session import Session as AdkSession
-
-                    from opensage.memory.file_based.short_term.session_files import (
-                        HOST_SESSION_ROOT,
-                        scan_host_instance_tree,
-                    )
-
-                    tree = scan_host_instance_tree(self.fixed_session_id)
-                    target = next(
-                        (
-                            a
-                            for a in tree.get("agents_flat", [])
-                            if a["session_id"] == child_session_id
-                        ),
-                        None,
-                    )
-                    if target and target["has_traj"]:
-                        traj_path = (
-                            HOST_SESSION_ROOT
-                            / self.fixed_session_id
-                            / "instances"
-                            / target["dir"]
-                            / "traj.json"
-                        )
-                        if traj_path.exists():
-                            persisted = AdkSession.model_validate_json(
-                                traj_path.read_text(encoding="utf-8")
-                            )
-                            persisted.id = session_id
-                            persisted.app_name = self.app_name
-                            persisted.user_id = user_id
-                            # Update in-memory session
-                            self.session_service.sessions.setdefault(
-                                self.app_name, {}
-                            ).setdefault(user_id, {})[session_id] = persisted
-                except Exception as e:
-                    logger.debug("Failed to reload subagent traj: %s", e)
+                session_id = session_id[len("subagent-") :]
             session = await self.session_service.get_session(
                 app_name=app_name, user_id=user_id, session_id=session_id
             )
@@ -1052,56 +1061,13 @@ class OpenSageWebServer:
                 subagent_session_id: str,
                 after_index: int = Query(default=0),
             ):
-                from google.adk.sessions.session import Session
-
-                from opensage.memory.file_based.short_term.session_files import (
-                    HOST_SESSION_ROOT,
-                    scan_host_instance_tree,
+                session = await self.session_service.get_session(
+                    app_name=self.app_name,
+                    user_id="user",
+                    session_id=subagent_session_id,
                 )
-
-                tree = scan_host_instance_tree(self.fixed_session_id)
-                target = next(
-                    (
-                        a
-                        for a in tree.get("agents_flat", [])
-                        if a["session_id"] == subagent_session_id
-                    ),
-                    None,
-                )
-                if not target or not target["has_traj"]:
-                    return {
-                        "agent_name": "",
-                        "subagent_session_id": subagent_session_id,
-                        "events": [],
-                        "total": 0,
-                    }
-                traj_path = (
-                    HOST_SESSION_ROOT
-                    / self.fixed_session_id
-                    / "instances"
-                    / target["dir"]
-                    / "traj.json"
-                )
-                if not traj_path.exists():
-                    return {
-                        "agent_name": "",
-                        "subagent_session_id": subagent_session_id,
-                        "events": [],
-                        "total": 0,
-                    }
-                try:
-                    child_session = Session.model_validate_json(
-                        traj_path.read_text(encoding="utf-8")
-                    )
-                except Exception:
-                    return {
-                        "agent_name": "",
-                        "subagent_session_id": subagent_session_id,
-                        "events": [],
-                        "total": 0,
-                    }
-
-                events = child_session.events or []
+                events = (session.events if session else None) or []
+                agent_name = self._resolve_agent_name(subagent_session_id)
                 filtered = []
                 for i, event in enumerate(events):
                     if i < after_index:
@@ -1121,7 +1087,7 @@ class OpenSageWebServer:
                     except Exception:
                         continue
                 return {
-                    "agent_name": target["name"],
+                    "agent_name": agent_name,
                     "subagent_session_id": subagent_session_id,
                     "events": filtered,
                     "total": len(events),
@@ -1129,73 +1095,22 @@ class OpenSageWebServer:
 
             @app.post("/control/subagents/{subagent_session_id}/load_session")
             async def load_subagent_session(subagent_session_id: str):
-                """Load a sub-agent's traj.json into session_service so Angular can render it natively."""
-                from google.adk.sessions.session import Session
-
-                from opensage.memory.file_based.short_term.session_files import (
-                    HOST_SESSION_ROOT,
-                    scan_host_instance_tree,
-                )
-
-                tree = scan_host_instance_tree(self.fixed_session_id)
-                target = next(
-                    (
-                        a
-                        for a in tree.get("agents_flat", [])
-                        if a["session_id"] == subagent_session_id
-                    ),
-                    None,
-                )
-                if not target or not target["has_traj"]:
-                    raise HTTPException(
-                        status_code=404,
-                        detail=(
-                            "No traj.json found for subagent session "
-                            f"'{subagent_session_id}'"
-                        ),
-                    )
-                traj_path = (
-                    HOST_SESSION_ROOT
-                    / self.fixed_session_id
-                    / "instances"
-                    / target["dir"]
-                    / "traj.json"
-                )
-                if not traj_path.exists():
-                    raise HTTPException(status_code=404, detail="traj.json not found")
-                persisted = Session.model_validate_json(
-                    traj_path.read_text(encoding="utf-8")
-                )
-                # Use the real child session id so same-name instances stay distinct.
-                sub_session_id = f"subagent-{subagent_session_id}"
-                persisted.id = sub_session_id
-                persisted.app_name = self.app_name
-                persisted.user_id = "user"
-                # Check if already loaded
-                existing = await self.session_service.get_session(
+                """Verify a sub-agent session exists in memory and return its metadata."""
+                session = await self.session_service.get_session(
                     app_name=self.app_name,
                     user_id="user",
-                    session_id=sub_session_id,
+                    session_id=subagent_session_id,
                 )
-                if existing:
-                    # Update events in place
-                    existing.events = persisted.events
-                else:
-                    await self.session_service.create_session(
-                        app_name=self.app_name,
-                        user_id="user",
-                        state=persisted.state or {},
-                        session_id=sub_session_id,
+                if not session:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Session '{subagent_session_id}' not found",
                     )
-                    # Inject the full session with events
-                    self.session_service.sessions.setdefault(
-                        self.app_name, {}
-                    ).setdefault("user", {})[sub_session_id] = persisted
                 return {
-                    "session_id": sub_session_id,
-                    "agent_name": target["name"],
+                    "session_id": subagent_session_id,
+                    "agent_name": self._resolve_agent_name(subagent_session_id),
                     "subagent_session_id": subagent_session_id,
-                    "event_count": len(persisted.events or []),
+                    "event_count": len(session.events or []),
                 }
 
             @app.post("/control/upload_to_sandbox")

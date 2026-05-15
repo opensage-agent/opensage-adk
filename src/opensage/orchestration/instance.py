@@ -31,6 +31,7 @@ class AgentInstance:
     inbox: Inbox
     runner: Runner
     user_id: str
+    parent_session_id: str | None = None
 
     _task: asyncio.Task | None = None
     _done_event: asyncio.Event = field(default_factory=asyncio.Event)

@@ -160,6 +160,11 @@ class OpenSageSession:
             return
         self._cleaned_up = True
 
+        try:
+            self.agent_manager.cancel_all_tasks()
+        except Exception:
+            logger.exception("agent task cancellation failed")
+
         if self.config.auto_cleanup:
             try:
                 self.sandboxes.cleanup()

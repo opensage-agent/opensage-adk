@@ -43,7 +43,6 @@ from google.adk.cli.adk_web_server import (
 )
 from google.adk.events.event import Event
 from google.adk.plugins.base_plugin import BasePlugin
-from google.adk.runners import Runner
 from google.adk.utils.context_utils import Aclosing
 from google.genai import types
 from opentelemetry import trace
@@ -153,39 +152,6 @@ class _InMemoryExporter(export_lib.SpanExporter):
         self._spans.clear()
 
 
-class _SessionEventBus:
-    """Per-session pub/sub for live event broadcasting.
-
-    Allows multiple subscribers to receive events in real-time.
-    Used to support UI reconnection after page refresh.
-    """
-
-    def __init__(self):
-        self._subscribers: dict[str, list[asyncio.Queue]] = {}
-
-    def subscribe(self, session_id: str) -> asyncio.Queue:
-        q: asyncio.Queue = asyncio.Queue()
-        self._subscribers.setdefault(session_id, []).append(q)
-        return q
-
-    def unsubscribe(self, session_id: str, q: asyncio.Queue) -> None:
-        subs = self._subscribers.get(session_id)
-        if subs:
-            try:
-                subs.remove(q)
-            except ValueError:
-                pass
-            if not subs:
-                del self._subscribers[session_id]
-
-    def publish(self, session_id: str, event_json: str) -> None:
-        for q in self._subscribers.get(session_id, []):
-            try:
-                q.put_nowait(event_json)
-            except asyncio.QueueFull:
-                pass
-
-
 class OpenSageWebServer:
     """Single-agent FastAPI server reusing provided agent and services.
 
@@ -223,9 +189,7 @@ class OpenSageWebServer:
         self.eval_set_results_manager = eval_set_results_manager
         self.plugins = plugins or []
         self.url_prefix = url_prefix
-        self._runner: Optional[Runner] = None
         self.fake_user_fn = fake_user_fn
-        self._event_bus = _SessionEventBus()
 
     def _build_root_session_state(
         self, base_state: Optional[dict[str, Any]] = None
@@ -277,27 +241,6 @@ class OpenSageWebServer:
         if manager is None:
             return None
         return manager.get_instance(self.fixed_session_id)
-
-    def _mark_root_running(self) -> None:
-        from opensage.orchestration.types import AgentInstanceState
-
-        inst = self._get_root_instance()
-        inst.state = AgentInstanceState.RUNNING
-        inst._done_event.clear()
-
-    def _mark_root_sleeping(self) -> None:
-        from opensage.orchestration.types import AgentInstanceState
-
-        inst = self._get_root_instance()
-        inst.state = AgentInstanceState.SLEEPING
-        inst._done_event.set()
-
-    async def get_runner_async(self) -> Runner:
-        if self._runner:
-            return self._runner
-        inst = self._get_root_instance()
-        self._runner = inst.runner
-        return self._runner
 
     def get_fast_api_app(
         self,
@@ -352,23 +295,6 @@ class OpenSageWebServer:
             )
 
         app = FastAPI(lifespan=lifespan)
-        active_turn_task_by_session: dict[str, asyncio.Task] = {}
-
-        def _register_active_turn(session_id: str, task: asyncio.Task) -> None:
-            active = active_turn_task_by_session.get(session_id)
-            if active and not active.done():
-                raise HTTPException(
-                    status_code=409,
-                    detail=(
-                        "A turn is already running for this session. Stop it first."
-                    ),
-                )
-            active_turn_task_by_session[session_id] = task
-
-        def _clear_active_turn(session_id: str, task: asyncio.Task) -> None:
-            active = active_turn_task_by_session.get(session_id)
-            if active is task:
-                active_turn_task_by_session.pop(session_id, None)
 
         if allow_origins:
             app.add_middleware(
@@ -400,12 +326,8 @@ class OpenSageWebServer:
             session_id: str = Query(default=None),
         ) -> dict[str, Any]:
             sid = session_id or self.fixed_session_id
-            if sid.startswith("subagent-"):
-                parent = active_turn_task_by_session.get(self.fixed_session_id)
-                running = bool(parent and not parent.done())
-            else:
-                active = active_turn_task_by_session.get(sid)
-                running = bool(active and not active.done())
+            real_id = sid[len("subagent-") :] if sid.startswith("subagent-") else sid
+            running = self._resolve_runtime_status(real_id) == "running"
             return {"running": running, "session_id": sid}
 
         @app.post("/control/stop_turn")
@@ -413,10 +335,11 @@ class OpenSageWebServer:
             session_id: str = Query(default=None),
         ) -> dict[str, Any]:
             sid = session_id or self.fixed_session_id
-            active = active_turn_task_by_session.get(sid)
-            if not active or active.done():
+            manager = self._get_agent_manager()
+            inst = manager.get_instance(sid) if manager else None
+            if not inst or not inst._task or inst._task.done():
                 return {"stopped": False, "running": False, "session_id": sid}
-            active.cancel("Stopped from Dev UI")
+            inst._task.cancel("Stopped from Dev UI")
             logger.warning("Requested stop for active turn: session_id=%s", sid)
             return {"stopped": True, "running": True, "session_id": sid}
 
@@ -425,59 +348,22 @@ class OpenSageWebServer:
             session_id: str = Query(default=None),
             after_index: int = Query(default=0),
         ) -> StreamingResponse:
-            """SSE endpoint for reconnecting to an active session's event stream.
+            """SSE endpoint: polls session events for any agent (root or subagent).
 
-            On page refresh, the frontend can subscribe here to receive:
-            1. Any events generated since after_index (replay from history)
-            2. New events as they are generated in real-time (via event bus)
-
-            For subagent sessions (prefixed with ``subagent-``), polls the
-            in-memory session service for new events instead of using the event
-            bus, and keeps streaming while the main session has an active turn.
+            Works regardless of who triggered the invocation (web server or
+            dispatcher). Terminates when the agent is SLEEPING with no pending
+            inbox messages.
             """
             sid = session_id or self.fixed_session_id
+            real_id = sid[len("subagent-") :] if sid.startswith("subagent-") else sid
 
-            is_subagent = sid.startswith("subagent-")
-
-            async def _subscribe_generator():
-                session = await self.session_service.get_session(
-                    app_name=self.app_name, user_id="user", session_id=sid
-                )
-                if session and session.events:
-                    for evt in session.events[after_index:]:
-                        yield (
-                            "data: "
-                            + evt.model_dump_json(exclude_none=True, by_alias=True)
-                            + "\n\n"
-                        )
-
-                q = self._event_bus.subscribe(sid)
-                try:
-                    while True:
-                        active = active_turn_task_by_session.get(sid)
-                        if not active or active.done():
-                            while not q.empty():
-                                yield "data: " + q.get_nowait() + "\n\n"
-                            yield 'data: {"done": true}\n\n'
-                            break
-                        try:
-                            event_json = await asyncio.wait_for(q.get(), timeout=2.0)
-                            yield "data: " + event_json + "\n\n"
-                        except asyncio.TimeoutError:
-                            yield ": keepalive\n\n"
-                finally:
-                    self._event_bus.unsubscribe(sid, q)
-
-            async def _subagent_subscribe_generator():
-                real_sub_id = sid[len("subagent-") :]
-
+            async def _poll_generator():
                 total_sent = after_index
-
                 while True:
                     session = await self.session_service.get_session(
                         app_name=self.app_name,
                         user_id="user",
-                        session_id=real_sub_id,
+                        session_id=real_id,
                     )
                     events = (session.events if session else None) or []
                     new_events = events[total_sent:]
@@ -489,24 +375,20 @@ class OpenSageWebServer:
                         )
                         total_sent += 1
 
-                    parent_active = active_turn_task_by_session.get(
-                        self.fixed_session_id
-                    )
-                    if not parent_active or parent_active.done():
-                        yield 'data: {"done": true}\n\n'
-                        break
+                    if self._resolve_runtime_status(real_id) != "running":
+                        manager = self._get_agent_manager()
+                        inst = manager.get_instance(real_id) if manager else None
+                        has_pending = await inst.inbox.has_pending() if inst else False
+                        if not has_pending:
+                            yield 'data: {"done": true}\n\n'
+                            break
 
                     if not new_events:
                         yield ": keepalive\n\n"
 
-                    await asyncio.sleep(1.5)
+                    await asyncio.sleep(0.1)
 
-            gen = (
-                _subagent_subscribe_generator()
-                if is_subagent
-                else _subscribe_generator()
-            )
-            return StreamingResponse(gen, media_type="text/event-stream")
+            return StreamingResponse(_poll_generator(), media_type="text/event-stream")
 
         @app.get("/debug/trace/session/{session_id}")
         async def get_session_trace(session_id: str) -> Any:
@@ -660,118 +542,72 @@ class OpenSageWebServer:
 
         @app.post("/run", response_model_exclude_none=True)
         async def run_agent(req: RunAgentRequest) -> list[Event]:
-            app_name = req.app_name
-            user_id = req.user_id
-            session_id = req.session_id
-            new_message = req.new_message
-            state_delta = req.state_delta
-
-            if app_name != self.app_name:
+            if req.app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
-            session = await self.session_service.get_session(
-                app_name=app_name, user_id=user_id, session_id=session_id
-            )
-            if not session:
-                raise HTTPException(status_code=404, detail="Session not found")
-            runner = await self.get_runner_async()
-            current_task = asyncio.current_task()
-            if current_task is None:
-                raise HTTPException(status_code=500, detail="No active task context")
-            _register_active_turn(session_id, current_task)
-            self._mark_root_running()
+            manager = self._get_agent_manager()
             try:
-                async with Aclosing(
-                    runner.run_async(
-                        user_id=user_id,
-                        session_id=session_id,
-                        new_message=new_message,
-                        state_delta=state_delta,
-                    )
-                ) as agen:
-                    return [event async for event in agen]
+                events = []
+                async for event in manager.run_turn_stream(
+                    session_id=req.session_id,
+                    request=req.new_message,
+                    state_delta=req.state_delta,
+                ):
+                    events.append(event)
+                return events
+            except RuntimeError as e:
+                raise HTTPException(status_code=409, detail=str(e)) from e
             except asyncio.CancelledError as cancelled:
                 raise HTTPException(
                     status_code=409, detail=f"Turn stopped: {cancelled}"
                 ) from cancelled
-            finally:
-                self._mark_root_sleeping()
-                _clear_active_turn(session_id, current_task)
 
         @app.post("/run_sse")
         async def run_agent_sse(req: RunAgentRequest) -> StreamingResponse:
-            app_name = req.app_name
-            user_id = req.user_id
             session_id = req.session_id
-            new_message = req.new_message
-            streaming = bool(req.streaming)
-            state_delta = req.state_delta
-            invocation_id = req.invocation_id
-
-            if app_name != self.app_name:
-                logger.warning(
-                    "run_sse 404: app_name mismatch: req=%r server=%r",
-                    app_name,
-                    self.app_name,
-                )
+            if req.app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
             session = await self.session_service.get_session(
-                app_name=app_name, user_id=user_id, session_id=session_id
+                app_name=req.app_name,
+                user_id=req.user_id,
+                session_id=session_id,
             )
             if not session:
-                known = list(
-                    self.session_service.sessions.get(app_name, {})
-                    .get(user_id, {})
-                    .keys()
-                )
-                logger.warning(
-                    "run_sse 404: session not found: app=%r user=%r sid=%r known_sids=%r",
-                    app_name,
-                    user_id,
-                    session_id,
-                    known,
-                )
                 raise HTTPException(status_code=404, detail="Session not found")
 
-            handler_task = asyncio.current_task()
-            if handler_task is None:
-                raise HTTPException(status_code=500, detail="No active task context")
-            _register_active_turn(session_id, handler_task)
+            manager = self._get_agent_manager()
 
             async def event_generator():
-                nonlocal state_delta, invocation_id
-                self._mark_root_running()
+                state_delta = req.state_delta
+                invocation_id = req.invocation_id
+                inst = manager.get_instance(session_id)
+                inst._task = asyncio.current_task()
                 try:
-                    mode = StreamingMode.SSE if streaming else StreamingMode.NONE
-                    runner = await self.get_runner_async()
-                    current_msg = new_message
+                    mode = StreamingMode.SSE if req.streaming else StreamingMode.NONE
+                    current_msg = req.new_message
 
                     while True:
-                        async with Aclosing(
-                            runner.run_async(
-                                user_id=user_id,
-                                session_id=session_id,
-                                new_message=current_msg,
-                                state_delta=state_delta,
-                                run_config=RunConfig(
-                                    streaming_mode=mode, max_llm_calls=0
-                                ),
-                                invocation_id=invocation_id,
-                            )
-                        ) as agen:
-                            async for event in agen:
-                                event_json = event.model_dump_json(
+                        async for event in manager.run_turn_stream(
+                            session_id,
+                            current_msg,
+                            state_delta=state_delta,
+                            run_config=RunConfig(streaming_mode=mode, max_llm_calls=0),
+                            invocation_id=invocation_id,
+                        ):
+                            yield (
+                                "data: "
+                                + event.model_dump_json(
                                     exclude_none=True, by_alias=True
                                 )
-                                self._event_bus.publish(session_id, event_json)
-                                yield ("data: " + event_json + "\n\n")
+                                + "\n\n"
+                            )
 
-                        # If no fake_user configured, single invocation only.
                         if not self.fake_user_fn:
                             break
 
-                        # Refresh session and ask fake user for next message.
                         session_snapshot = await self.session_service.get_session(
-                            app_name=app_name, user_id=user_id, session_id=session_id
+                            app_name=req.app_name,
+                            user_id=req.user_id,
+                            session_id=session_id,
                         )
                         next_msg = await self.fake_user_fn(session_snapshot)
                         if next_msg is None:
@@ -780,19 +616,19 @@ class OpenSageWebServer:
                             role="user",
                             parts=[types.Part.from_text(text=next_msg)],
                         )
-                        # Clear state_delta and invocation_id for follow-up turns.
                         state_delta = None
                         invocation_id = None
 
                 except asyncio.CancelledError:
                     yield 'data: {"stopped": true, "message": "Turn stopped by UI"}\n\n'
                     return
+                except RuntimeError as e:
+                    yield f'data: {{"error": "{e}"}}\n\n'
                 except Exception as e:
                     logger.exception("Error in SSE generator: %s", e)
-                    yield f'data: {{"error": "{str(e)}"}}\n\n'
+                    yield f'data: {{"error": "{e}"}}\n\n'
                 finally:
-                    self._mark_root_sleeping()
-                    _clear_active_turn(session_id, handler_task)
+                    inst._task = None
 
             return StreamingResponse(event_generator(), media_type="text/event-stream")
 
@@ -806,6 +642,8 @@ class OpenSageWebServer:
                 default=["TEXT", "AUDIO"]
             ),
         ):
+            from opensage.orchestration.types import AgentInstanceState
+
             await websocket.accept()
             if app_name != self.app_name:
                 await websocket.close(code=1002, reason="App not found")
@@ -817,10 +655,12 @@ class OpenSageWebServer:
                 await websocket.close(code=1002, reason="Session not found")
                 return
 
+            manager = self._get_agent_manager()
+            inst = manager.get_instance(session_id)
             live_request_queue = LiveRequestQueue()
 
             async def forward_events():
-                runner = await self.get_runner_async()
+                runner = inst.runner
                 async with Aclosing(
                     runner.run_live(
                         session=session, live_request_queue=live_request_queue
@@ -845,12 +685,9 @@ class OpenSageWebServer:
                 asyncio.create_task(forward_events()),
                 asyncio.create_task(process_messages()),
             ]
-            current_task = asyncio.current_task()
-            if current_task is None:
-                await websocket.close(code=1011, reason="No active task context")
-                return
-            _register_active_turn(session_id, current_task)
-            self._mark_root_running()
+            inst.state = AgentInstanceState.RUNNING
+            inst._done_event.clear()
+            inst._task = asyncio.current_task()
             try:
                 done, pending = await asyncio.wait(
                     tasks, return_when=asyncio.FIRST_EXCEPTION
@@ -865,8 +702,9 @@ class OpenSageWebServer:
                 logger.exception("Live error: %s", e)
                 await websocket.close(code=1011, reason=str(e)[:123])
             finally:
-                self._mark_root_sleeping()
-                _clear_active_turn(session_id, current_task)
+                inst.state = AgentInstanceState.SLEEPING
+                inst._done_event.set()
+                inst._task = None
                 for t in tasks:
                     t.cancel()
 

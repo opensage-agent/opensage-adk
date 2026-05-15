@@ -49,6 +49,8 @@ def _make_manager(session_service, app_name="test-app"):
     mgr.session_service = session_service
     mgr.app_name = app_name
     mgr.default_user_id = "user"
+    mgr.wait_for_children = AsyncMock(return_value=[])
+    mgr.get_instance = MagicMock(return_value=None)
     return mgr
 
 

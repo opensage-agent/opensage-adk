@@ -216,64 +216,116 @@ async def run_with_fake_user(
     current_message = first_message
     turn = 0
 
-    while True:
-        # Max-turns guard
-        if max_turns is not None and turn >= max_turns:
-            termination_reason = "max_turns"
-            break
+    # Prevent the dispatcher from auto-waking this instance between
+    # invocations — we drive it exclusively from this loop.
+    agent_manager.mark_externally_managed(session_id)
 
-        # Budget guard (check BEFORE invocation)
-        if remaining is not None and remaining <= 0:
-            termination_reason = "budget_exhausted"
-            break
+    try:
+        while True:
+            # Max-turns guard
+            if max_turns is not None and turn >= max_turns:
+                termination_reason = "max_turns"
+                break
 
-        # ── Run one invocation ──
-        run_config = RunConfig(
-            max_llm_calls=remaining if remaining is not None else 0,
-        )
+            # Budget guard (check BEFORE invocation)
+            if remaining is not None and remaining <= 0:
+                termination_reason = "budget_exhausted"
+                break
 
-        try:
-            async for event in agent_manager.run_turn_stream(
+            # ── Run one invocation ──
+            run_config = RunConfig(
+                max_llm_calls=remaining if remaining is not None else 0,
+            )
+
+            try:
+                async for event in agent_manager.run_turn_stream(
+                    session_id=session_id,
+                    request=current_message,
+                    run_config=run_config,
+                ):
+                    all_events.append(event)
+                    if event_callback:
+                        event_callback(event)
+            except LlmCallsLimitExceededError as exc:
+                logger.warning(
+                    "LLM-call budget exhausted for session %s: %s",
+                    session_id,
+                    exc,
+                )
+                termination_reason = "budget_exhausted"
+                if max_llm_calls is not None:
+                    remaining = 0
+                break
+
+            # ── Wait for async children to finish ──
+            # If the invocation spawned async subagents, wait for them to
+            # complete so their results land in the inbox, then re-invoke
+            # the agent to process those results before asking fake_user.
+            budget_blown = False
+            while True:
+                waited = await agent_manager.wait_for_children(session_id)
+                if not waited:
+                    break
+
+                inst = agent_manager.get_instance(session_id)
+                if inst is None or not await inst.inbox.has_pending():
+                    break
+
+                if remaining is not None and remaining <= 0:
+                    budget_blown = True
+                    break
+
+                logger.info(
+                    "Re-invoking %s to process %d async child result(s)",
+                    session_id,
+                    len(waited),
+                )
+                rc = RunConfig(
+                    max_llm_calls=remaining if remaining is not None else 0,
+                )
+                try:
+                    async for event in agent_manager.run_turn_stream(
+                        session_id=session_id,
+                        request="Your async sub-agents have completed. Process their results from your inbox.",
+                        run_config=rc,
+                    ):
+                        all_events.append(event)
+                        if event_callback:
+                            event_callback(event)
+                except LlmCallsLimitExceededError:
+                    budget_blown = True
+                    break
+
+            if budget_blown:
+                termination_reason = "budget_exhausted"
+                if max_llm_calls is not None:
+                    remaining = 0
+                break
+
+            # ── Post-invocation: refresh session, update budget ──
+            session_snapshot = await session_service.get_session(
+                app_name=app_name,
+                user_id=user_id,
                 session_id=session_id,
-                request=current_message,
-                run_config=run_config,
-            ):
-                all_events.append(event)
-                if event_callback:
-                    event_callback(event)
-        except LlmCallsLimitExceededError as exc:
-            logger.warning(
-                "LLM-call budget exhausted for session %s: %s",
-                session_id,
-                exc,
             )
-            termination_reason = "budget_exhausted"
-            if max_llm_calls is not None:
-                remaining = 0
-            break
 
-        # ── Post-invocation: refresh session, update budget ──
-        session_snapshot = await session_service.get_session(
-            app_name=app_name,
-            user_id=user_id,
-            session_id=session_id,
-        )
+            if remaining is not None and session_snapshot and session_snapshot.state:
+                used_this_turn = int(
+                    session_snapshot.state.get("_adk", {}).get("llm_calls_used", 0) or 0
+                )
+                remaining = max(0, remaining - used_this_turn)
 
-        if remaining is not None and session_snapshot and session_snapshot.state:
-            used_this_turn = int(
-                session_snapshot.state.get("_adk", {}).get("llm_calls_used", 0) or 0
-            )
-            remaining = max(0, remaining - used_this_turn)
+            # ── Ask the fake user ──
+            next_message = await fake_user(session_snapshot)
 
-        # ── Ask the fake user ──
-        next_message = await fake_user(session_snapshot)
+            if next_message is None:
+                termination_reason = "fake_user_stop"
+                break
 
-        if next_message is None:
-            termination_reason = "fake_user_stop"
-            break
-
-        current_message = next_message
-        turn += 1
+            current_message = next_message
+            turn += 1
+    finally:
+        agent_manager.unmark_externally_managed(session_id)
 
     # Final fallback: make sure we have a session snapshot
     if session_snapshot is None:

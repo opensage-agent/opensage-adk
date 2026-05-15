@@ -104,6 +104,11 @@ class AgentManager:
         self._wake_queue: asyncio.Queue[str] = asyncio.Queue()
         self._dispatcher_task: asyncio.Task | None = None
 
+        # Sessions driven by an external loop (e.g. run_with_fake_user).
+        # The dispatcher skips wake signals for these so the external driver
+        # has exclusive control over invocation timing.
+        self._externally_managed: set[str] = set()
+
     # ==================================================================
     # lifecycle
     # ==================================================================
@@ -424,6 +429,7 @@ class AgentManager:
             inbox=inbox,
             runner=runner,
             user_id=DEFAULT_USER_ID,
+            parent_session_id=parent_session_id,
         )
         self._instances[new_sid] = inst
 
@@ -597,6 +603,7 @@ class AgentManager:
             inbox=inbox,
             runner=runner,
             user_id=metadata.get("user_id", DEFAULT_USER_ID),
+            parent_session_id=metadata.get("parent_session_id"),
         )
         self._instances[session_id] = inst
         return inst
@@ -641,6 +648,9 @@ class AgentManager:
                 logger.exception("Dispatcher iteration failed")
 
     async def _handle_wake_signal(self, sid: str) -> None:
+        if sid in self._externally_managed:
+            return
+
         try:
             instance = self.ensure_loaded(sid)
         except KeyError:
@@ -976,10 +986,12 @@ class AgentManager:
     async def run_turn_stream(
         self,
         session_id: str,
-        request: str,
+        request: str | types.Content,
         *,
         caller_sid: str = USER_SENDER_ID,
         run_config: Optional[RunConfig] = None,
+        state_delta: Optional[dict[str, Any]] = None,
+        invocation_id: Optional[str] = None,
     ) -> AsyncIterator["Event"]:
         """External driver streaming entry: yield events as the invocation runs.
 
@@ -1009,6 +1021,8 @@ class AgentManager:
                 session_id=instance.session_id,
                 new_message=content,
                 run_config=run_config or RunConfig(),
+                state_delta=state_delta,
+                invocation_id=invocation_id,
             ):
                 yield event
         finally:
@@ -1067,6 +1081,51 @@ class AgentManager:
                 raise asyncio.TimeoutError()
             await asyncio.sleep(0.01)
 
+    # ==================================================================
+    # external-driver helpers (run_with_fake_user)
+    # ==================================================================
+
+    def mark_externally_managed(self, session_id: str) -> None:
+        """Prevent the dispatcher from auto-waking this instance."""
+        self._externally_managed.add(session_id)
+
+    def unmark_externally_managed(self, session_id: str) -> None:
+        self._externally_managed.discard(session_id)
+
+    def get_running_children(self, parent_sid: str) -> list[str]:
+        """Return session_ids of children that are currently RUNNING."""
+        result: list[str] = []
+        for inst in self._instances.values():
+            if inst.parent_session_id == parent_sid and (
+                inst.state == AgentInstanceState.RUNNING or inst._task is not None
+            ):
+                result.append(inst.session_id)
+        return result
+
+    async def wait_for_children(
+        self, parent_sid: str, timeout: float | None = None
+    ) -> list[str]:
+        """Wait for all running children of *parent_sid* to finish.
+
+        Returns the list of child session_ids that were waited on.
+        """
+        children = self.get_running_children(parent_sid)
+        for cid in children:
+            await self.wait_for(cid, timeout=timeout)
+        return children
+
+    # ==================================================================
+    # task cancellation (cleanup)
+    # ==================================================================
+
+    def cancel_all_tasks(self) -> None:
+        """Cancel all running instance tasks and the dispatcher (sync)."""
+        for inst in self._instances.values():
+            if inst._task is not None and not inst._task.done():
+                inst._task.cancel()
+        if self._dispatcher_task is not None and not self._dispatcher_task.done():
+            self._dispatcher_task.cancel()
+
 
 # ==================================================================
 # helpers
@@ -1115,19 +1174,31 @@ def _format_messages_block(messages: list[Message]) -> str:
 
 
 def _build_user_content(
-    inbox_msgs: list[Message], request: Optional[str] = None
+    inbox_msgs: list[Message],
+    request: Optional[str | types.Content] = None,
 ) -> types.Content:
-    """Build user Content from drained inbox messages, optionally appended
-    with a direct request (driver/user input). When ``request`` is None this
-    is a dispatcher-triggered peer invocation; otherwise it's a direct
-    invocation with peer context prepended."""
-    parts: list[str] = []
+    """Build user Content from drained inbox messages + a direct request.
+
+    ``request`` can be a plain string (evaluation / orchestration tools) or
+    a ``types.Content`` (web server forwarding the frontend message as-is).
+    When ``request`` is None this is a dispatcher-triggered peer invocation.
+    """
     block = _format_messages_block(inbox_msgs)
+
+    if isinstance(request, types.Content):
+        if not block:
+            return request
+        inbox_part = types.Part.from_text(text=block)
+        return types.Content(
+            role="user", parts=[inbox_part] + list(request.parts or [])
+        )
+
+    text_parts: list[str] = []
     if block:
-        parts.append(block)
+        text_parts.append(block)
     if request is not None:
-        parts.append(request)
-    text = "\n\n".join(parts)
+        text_parts.append(request)
+    text = "\n\n".join(text_parts)
     return types.Content(role="user", parts=[types.Part.from_text(text=text)])
 
 

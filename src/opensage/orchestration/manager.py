@@ -716,8 +716,14 @@ class AgentManager:
         Called from invocation finally blocks. Does NOT trigger post_invocation
         — most callers want it (use ``_release_and_post``), but the async-reply
         path delivers a result message between release and post.
+
+        If the instance was marked TERMINATING, transitions to TERMINATED
+        instead of SLEEPING so it is permanently shut down.
         """
-        instance.state = AgentInstanceState.SLEEPING
+        if instance.state == AgentInstanceState.TERMINATING:
+            instance.state = AgentInstanceState.TERMINATED
+        else:
+            instance.state = AgentInstanceState.SLEEPING
         instance._task = None
         instance._done_event.set()
 
@@ -741,9 +747,13 @@ class AgentManager:
         error: Optional[str] = None,
     ) -> None:
         """Send a message. ``to_sid='*'`` broadcasts to all known instances."""
+        _terminal = (AgentInstanceState.TERMINATING, AgentInstanceState.TERMINATED)
         if to_sid == "*":
             for sid in self._all_known_sids():
                 if sid == from_sid:
+                    continue
+                inst = self._instances.get(sid)
+                if inst and inst.state in _terminal:
                     continue
                 await self._send_one(from_sid, sid, content, kind, metadata, error)
         else:
@@ -758,6 +768,12 @@ class AgentManager:
         metadata: Optional[dict[str, Any]],
         error: Optional[str] = None,
     ) -> None:
+        inst = self._instances.get(to_sid)
+        if inst and inst.state in (
+            AgentInstanceState.TERMINATING,
+            AgentInstanceState.TERMINATED,
+        ):
+            raise KeyError(f"Instance {to_sid} is {inst.state.value}")
         d = instance_dir(self._opensage_session.opensage_session_id, to_sid)
         if not d.exists():
             raise KeyError(f"No instance dir for to_sid={to_sid}")
@@ -1044,6 +1060,33 @@ class AgentManager:
     def list_known_sids(self) -> list[str]:
         return self._all_known_sids()
 
+    async def terminate_instance(self, session_id: str) -> str:
+        """Mark an instance for permanent termination.
+
+        If SLEEPING → immediately TERMINATED.
+        If RUNNING  → TERMINATING; transitions to TERMINATED when the
+                       current invocation finishes.
+
+        Returns the new state value.
+
+        Raises:
+            KeyError: session_id not found.
+            RuntimeError: already TERMINATING or TERMINATED.
+        """
+        inst = self._instances.get(session_id)
+        if inst is None:
+            raise KeyError(f"No instance for session_id={session_id}")
+        if inst.state in (
+            AgentInstanceState.TERMINATING,
+            AgentInstanceState.TERMINATED,
+        ):
+            raise RuntimeError(f"Instance {session_id} is already {inst.state.value}")
+        if inst.state == AgentInstanceState.SLEEPING:
+            inst.state = AgentInstanceState.TERMINATED
+        else:
+            inst.state = AgentInstanceState.TERMINATING
+        return inst.state.value
+
     # ==================================================================
     # wait
     # ==================================================================
@@ -1157,9 +1200,8 @@ def _format_messages_block(messages: list[Message]) -> str:
         return ""
     lines: list[str] = ["[Incoming peer messages]", _PEER_MESSAGE_GUIDANCE, ""]
     for m in messages:
-        short_sid = m.from_sid[:8] if len(m.from_sid) > 8 else m.from_sid
         name = m.from_agent_name or "<unknown>"
-        header = f"- from {name} (sid: {short_sid})"
+        header = f"- from {name} (session_id: {m.from_sid})"
         if m.from_agent_description:
             header += f" — {m.from_agent_description}"
         lines.append(header)

@@ -24,6 +24,12 @@ class AgentInstanceState(Enum):
 
     RUNNING = "running"  # invocation in progress
     SLEEPING = "sleeping"  # no active invocation; may be loaded or on disk
+    TERMINATING = (
+        "terminating"  # marked for termination; waiting for invocation to finish
+    )
+    TERMINATED = (
+        "terminated"  # permanently shut down; invisible to peers, visible in UI
+    )
 
 
 @dataclass

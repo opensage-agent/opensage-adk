@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from google.adk.tools.base_toolset import BaseToolset
 from google.adk.tools.tool_context import ToolContext
 
-from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.agents.opensage_agent import OpenSageAgent, OpenSageMCPToolset
 from opensage.orchestration.persistence import save_agent_definition
 from opensage.toolbox.general.agent_tools import complain
 from opensage.toolbox.general.bash_tools_interface import (
@@ -41,6 +41,19 @@ logger = logging.getLogger("opensage." + __name__)
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+
+def _clone_mcp_toolset(toolset: OpenSageMCPToolset) -> OpenSageMCPToolset:
+    """Create a fresh MCP toolset with its own session/connection.
+
+    Each clone gets an independent MCPSessionManager, so subagents using
+    stateful MCP servers (GDB, IDA, Ghidra) don't interfere with each other.
+    """
+    return OpenSageMCPToolset(
+        name=toolset.name,
+        connection_params=toolset._connection_params,
+        tool_name_prefix=toolset.name,
+    )
 
 
 def _get_opensage_session(tool_context: ToolContext) -> "OpenSageSession":
@@ -142,9 +155,17 @@ async def continue_agent_instance(
     tool_context: ToolContext,
     mode: str = "sync",
 ) -> Dict[str, Any]:
-    """Send a new user message to an existing instance and run one invocation.
+    """Continue an existing sub-agent instance by sending it a follow-up message.
+
+    Use this instead of ``call_subagent`` when you already have a running or
+    previously-spawned instance and want to give it additional instructions,
+    ask follow-up questions, or tell it to keep working. The sub-agent retains
+    its full conversation history and state from prior invocations.
 
     Args:
+        session_id: The session_id returned by a prior ``call_subagent`` or
+            ``create_subagent`` call.
+        request: The follow-up message to send to the sub-agent.
         mode: ``"sync"`` blocks until done. ``"async"`` returns immediately;
             the result is posted to the caller's inbox and the caller is
             automatically woken up if it has ended its turn.
@@ -232,9 +253,8 @@ async def wait_for_subagent(
 async def list_subagents(tool_context: ToolContext) -> Dict[str, Any]:
     """List all registered agent definitions and all known instances.
 
-    You do NOT need to call this to check on subagent progress. Both sync
-    and async subagents automatically report results back to you when they
-    finish — do not poll.
+    Returns each instance's session_id, agent_name, and current state.
+    Terminated instances are excluded.
     """
     try:
         manager = _get_manager(tool_context)
@@ -245,6 +265,9 @@ async def list_subagents(tool_context: ToolContext) -> Dict[str, Any]:
             }
             for name, agent in manager.list_agents().items()
         ]
+        from opensage.orchestration.types import AgentInstanceState
+
+        _hidden = (AgentInstanceState.TERMINATING, AgentInstanceState.TERMINATED)
         instances = [
             {
                 "session_id": inst.session_id,
@@ -252,10 +275,46 @@ async def list_subagents(tool_context: ToolContext) -> Dict[str, Any]:
                 "state": inst.state.value,
             }
             for inst in manager.list_instances()
+            if inst.state not in _hidden
         ]
         return {"success": True, "agents": agents, "instances": instances}
     except Exception as e:
         logger.exception("list_subagents failed")
+        return {"success": False, "error": str(e)}
+
+
+# ---------------------------------------------------------------------------
+# Tool: terminate_subagent_forever
+# ---------------------------------------------------------------------------
+
+
+async def terminate_subagent_forever(
+    session_id: str,
+    tool_context: ToolContext,
+) -> Dict[str, Any]:
+    """Permanently terminate a subagent.
+
+    If the subagent is idle it is terminated immediately. If it is still
+    running, it is marked for termination and will transition to terminated
+    as soon as its current invocation finishes.
+
+    Once terminated the subagent is invisible to peers (hidden from
+    list_subagents, cannot receive send_message) but remains visible in
+    the UI topology.
+
+    Args:
+        session_id: The session_id of the subagent to terminate.
+    """
+    try:
+        manager = _get_manager(tool_context)
+        new_state = await manager.terminate_instance(session_id)
+        return {"success": True, "session_id": session_id, "state": new_state}
+    except KeyError as e:
+        return {"success": False, "error": f"not_found: {e}"}
+    except RuntimeError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        logger.exception("terminate_subagent_forever failed")
         return {"success": False, "error": str(e)}
 
 
@@ -317,9 +376,9 @@ def _get_baseline_tools() -> Dict[str, Any]:
 async def create_subagent(
     agent_name: str,
     instruction: str,
-    tools_list: List[str],
     model_name: str,
     tool_context: ToolContext,
+    tools_list: Optional[List[str]] = None,
     enabled_skills: Optional[List[str]] = None,
     description: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -328,10 +387,13 @@ async def create_subagent(
     Args:
         agent_name: Custom name for the agent. Will be canonical-sanitized.
         instruction: System prompt for the agent.
-        tools_list: List of Python tool names to assign (baseline tools are
-            injected automatically; see error message for the list).
         model_name: Required model identifier — must be a name returned by
             ``get_available_models``.
+        tools_list: List of Python tool names to assign. Defaults to ALL
+            tools available to the caller. Only specify this if you want to
+            intentionally restrict the sub-agent's toolset. Baseline tools
+            (run_terminal_command, orchestration tools, etc.) are always
+            injected automatically.
         enabled_skills: Bash-tools selection (None / ["all"] / list of paths).
         description: Optional description.
 
@@ -358,21 +420,11 @@ async def create_subagent(
         agent_name = sanitize_agent_name(requested_name)
         renamed = agent_name != requested_name
 
-        if not tools_list:
-            return {
-                "success": False,
-                "error": (
-                    "tools_list must be non-empty. Baseline tools "
-                    "(run_terminal_command, list_background_tasks, "
-                    "get_background_task_output, wait_for_background, complain, "
-                    "create_subagent, call_subagent, continue_agent_instance, "
-                    "send_message, wait_for_subagent, list_subagents, "
-                    "get_available_models) are injected automatically."
-                ),
-            }
-
         current_agent = tool_context._invocation_context.agent
         available_tools = extract_tools_from_agent(current_agent)
+
+        if tools_list is None:
+            tools_list = [n for n in available_tools if n not in _get_baseline_tools()]
 
         # Build prefix -> toolset mapping for MCP-style prefixed tool names.
         prefix_to_toolset_name: Dict[str, str] = {}
@@ -399,15 +451,17 @@ async def create_subagent(
         for requested in tools_list:
             if requested in baseline:
                 continue
+            if requested in tool_names_final:
+                continue
             if requested in available_tools:
                 obj = available_tools[requested]
-                if isinstance(obj, BaseToolset):
+                if isinstance(obj, OpenSageMCPToolset):
+                    obj = _clone_mcp_toolset(obj)
                     injected_toolsets.add(requested)
-                if id(obj) not in added_ids:
-                    tools_to_add.append(obj)
-                    added_ids.add(id(obj))
-                if requested not in tool_names_final:
-                    tool_names_final.append(requested)
+                elif isinstance(obj, BaseToolset):
+                    injected_toolsets.add(requested)
+                tools_to_add.append(obj)
+                tool_names_final.append(requested)
                 continue
             # Prefix match for MCP toolsets
             matched = None
@@ -417,9 +471,9 @@ async def create_subagent(
                     break
             if matched is not None and matched not in injected_toolsets:
                 obj = available_tools[matched]
-                if id(obj) not in added_ids:
-                    tools_to_add.append(obj)
-                    added_ids.add(id(obj))
+                if isinstance(obj, OpenSageMCPToolset):
+                    obj = _clone_mcp_toolset(obj)
+                tools_to_add.append(obj)
                 injected_toolsets.add(matched)
                 if matched not in tool_names_final:
                     tool_names_final.append(matched)
@@ -543,6 +597,8 @@ async def rebuild_agent_from_definition(
             continue
         snap_obj = snapshot.get(tname)
         if snap_obj is not None:
+            if isinstance(snap_obj, OpenSageMCPToolset):
+                snap_obj = _clone_mcp_toolset(snap_obj)
             tools_to_add.append(snap_obj)
         else:
             dropped.append(tname)

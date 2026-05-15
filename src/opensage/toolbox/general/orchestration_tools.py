@@ -82,8 +82,9 @@ async def call_subagent(
         agent_name: Name of a registered agent (static subagent or dynamic).
         request: Initial user message to kick off the invocation.
         mode: ``"sync"`` blocks until the invocation finishes and returns the
-            final response text. ``"async"`` returns immediately; the final
-            text is posted back to the caller's inbox when done.
+            final response text. ``"async"`` returns immediately; when the
+            subagent finishes, its result is posted to the caller's inbox and
+            the caller is automatically woken up if it has ended its turn.
         use_parent_history: If True, the sub-agent inherits the parent's full
             conversation history (all prior tool calls, their results, user
             messages, and agent responses), so it can reason about context
@@ -142,6 +143,11 @@ async def continue_agent_instance(
     mode: str = "sync",
 ) -> Dict[str, Any]:
     """Send a new user message to an existing instance and run one invocation.
+
+    Args:
+        mode: ``"sync"`` blocks until done. ``"async"`` returns immediately;
+            the result is posted to the caller's inbox and the caller is
+            automatically woken up if it has ended its turn.
 
     If the instance is currently RUNNING, returns ``{"success": False,
     "error": "busy", ...}`` — the caller decides to retry / spawn new / give up.

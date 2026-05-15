@@ -388,8 +388,12 @@ class OpenSageWebServer:
             session_id: str = Query(default=None),
         ) -> dict[str, Any]:
             sid = session_id or self.fixed_session_id
-            active = active_turn_task_by_session.get(sid)
-            running = bool(active and not active.done())
+            if sid.startswith("subagent-"):
+                parent = active_turn_task_by_session.get(self.fixed_session_id)
+                running = bool(parent and not parent.done())
+            else:
+                active = active_turn_task_by_session.get(sid)
+                running = bool(active and not active.done())
             return {"running": running, "session_id": sid}
 
         @app.post("/control/stop_turn")
@@ -1095,7 +1099,12 @@ class OpenSageWebServer:
 
             @app.post("/control/subagents/{subagent_session_id}/load_session")
             async def load_subagent_session(subagent_session_id: str):
-                """Verify a sub-agent session exists in memory and return its metadata."""
+                """Verify a sub-agent session exists in memory and return its metadata.
+
+                Returns session_id with ``subagent-`` prefix so downstream
+                endpoints (turn_state, subscribe, get_session) can distinguish
+                subagent requests from regular sessions.
+                """
                 session = await self.session_service.get_session(
                     app_name=self.app_name,
                     user_id="user",
@@ -1106,8 +1115,9 @@ class OpenSageWebServer:
                         status_code=404,
                         detail=f"Session '{subagent_session_id}' not found",
                     )
+                prefixed_id = f"subagent-{subagent_session_id}"
                 return {
-                    "session_id": subagent_session_id,
+                    "session_id": prefixed_id,
                     "agent_name": self._resolve_agent_name(subagent_session_id),
                     "subagent_session_id": subagent_session_id,
                     "event_count": len(session.events or []),

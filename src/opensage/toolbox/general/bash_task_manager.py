@@ -63,11 +63,18 @@ class Task:
 
 
 class BashTaskManager:
-    """Manages background bash tasks for a session."""
+    """Manages background bash tasks for a session.
+
+    When a completion watcher is active (see ``start_completion_watcher``),
+    finishing background tasks automatically post their results to the
+    owning agent's inbox via ``AgentManager.send_message``, waking the
+    agent if it is sleeping.
+    """
 
     def __init__(self):
         # Storage for tasks: task_id -> Task
         self.tasks: Dict[str, Task] = {}
+        self._watcher_tasks: Dict[str, asyncio.Task] = {}
 
     @staticmethod
     def _heredoc_delimiter(task_id: str, *, purpose: str) -> str:
@@ -377,3 +384,60 @@ fi
         else:
             logger.warning(f"Failed to kill task {task_id} (PID {pid}): {output}")
             return False
+
+    def start_completion_watcher(
+        self,
+        task_id: str,
+        sandbox,
+        agent_manager: Any,
+        caller_sid: str,
+    ) -> None:
+        """Spawn an asyncio task that polls until *task_id* finishes, then
+        delivers the result to *caller_sid*'s inbox via ``send_message``.
+        """
+
+        async def _watch():
+            task = self.tasks.get(task_id)
+            if not task:
+                return
+            pid = task.pid
+            try:
+                while True:
+                    _, exit_code = await asyncio.to_thread(
+                        sandbox.run_command_in_container, f"kill -0 {pid}"
+                    )
+                    if exit_code != 0:
+                        ec = await self.get_task_exit_code_async(sandbox, task_id)
+                        if ec is not None:
+                            task.exit_code = ec
+                            task.status = TaskStatus.COMPLETED
+                        else:
+                            task.status = TaskStatus.UNKNOWN
+                        break
+                    await asyncio.sleep(2)
+
+                output = await self.get_task_output_async(sandbox, task_id)
+                status = task.status.value
+                exit_code_val = task.exit_code
+                summary = (
+                    f"Background task {task_id} finished "
+                    f"(status={status}, exit_code={exit_code_val}).\n"
+                    f"Command: {task.command}\n"
+                    f"Output:\n{output}"
+                )
+                await agent_manager.send_message(
+                    from_sid=caller_sid,
+                    to_sid=caller_sid,
+                    content=summary,
+                    kind="background_task_result",
+                    metadata={"task_id": task_id, "exit_code": exit_code_val},
+                )
+            except asyncio.CancelledError:
+                return
+            except Exception:
+                logger.exception("Completion watcher failed for task %s", task_id)
+            finally:
+                self._watcher_tasks.pop(task_id, None)
+
+        t = asyncio.create_task(_watch())
+        self._watcher_tasks[task_id] = t

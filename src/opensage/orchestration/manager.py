@@ -113,21 +113,17 @@ class AgentManager:
     # lifecycle
     # ==================================================================
 
-    async def start(self, *, readonly: bool = False) -> None:
+    async def start(self) -> None:
         """Start the dispatcher background task.
 
         Also resets every persisted inbox on disk (peer messages do NOT
         survive across process restarts) and eagerly loads any on-disk
         instances that aren't already in memory (e.g. subagents from a
         previous session being resumed).
-
-        When *readonly* is True, skip inbox reset and dispatcher startup
-        — only load instances from disk.  Used by the review command.
         """
-        if not readonly:
-            self._reset_all_inboxes()
+        self._reset_all_inboxes()
         await self._eager_load_from_disk()
-        if readonly or self._dispatcher_task is not None:
+        if self._dispatcher_task is not None:
             return
         self._dispatcher_task = asyncio.create_task(
             self._dispatcher_loop(), name="AgentManager.dispatcher"

@@ -868,58 +868,100 @@ class OpenSageWebServer:
 
             @app.get("/control/subagents/topology")
             async def get_subagent_topology():
+                from opensage.memory.file_based.short_term.session_files import (
+                    scan_host_instance_tree,
+                )
+
                 manager = self._get_agent_manager()
-                if not manager:
-                    return {"nodes": [], "edges": []}
 
-                instances = manager.list_instances()
-                if not instances:
-                    return {"nodes": [], "edges": []}
-
-                by_sid: dict[str, "AgentInstance"] = {
-                    inst.session_id: inst for inst in instances
-                }
+                if manager:
+                    instances = manager.list_instances()
+                else:
+                    instances = None
 
                 root_sid = self.fixed_session_id
-                root_inst = by_sid.get(root_sid)
-                if not root_inst:
+
+                if instances:
+                    by_sid: dict[str, "AgentInstance"] = {
+                        inst.session_id: inst for inst in instances
+                    }
+                    root_inst = by_sid.get(root_sid)
+                    if not root_inst:
+                        return {"nodes": [], "edges": []}
+
+                    nodes: list[dict] = []
+                    edges: list[dict] = []
+                    for inst in instances:
+                        is_root = inst.session_id == root_sid
+                        instr = getattr(inst.agent, "instruction", "")
+                        preview_text = ""
+                        if not callable(instr):
+                            preview_text = (instr or "")[:80].strip()
+
+                        label = inst.agent_name
+                        label += f"\n[{inst.session_id}]"
+                        if preview_text and not is_root:
+                            short = preview_text[:40].replace("\n", " ")
+                            if len(preview_text) > 40:
+                                short += "..."
+                            label += f"\n({short})"
+
+                        status = "active" if is_root else inst.state.value
+                        nodes.append(
+                            {
+                                "id": inst.session_id,
+                                "label": label,
+                                "name": inst.agent_name,
+                                "session_id": inst.session_id,
+                                "query": preview_text,
+                                "status": status,
+                                "type": "root" if is_root else "subagent",
+                            }
+                        )
+                        if inst.parent_session_id:
+                            edges.append(
+                                {"from": inst.parent_session_id, "to": inst.session_id}
+                            )
+                    return {"nodes": nodes, "edges": edges}
+
+                tree = scan_host_instance_tree(root_sid)
+                agents_flat = tree.get("agents_flat", [])
+                if not agents_flat:
                     return {"nodes": [], "edges": []}
 
-                nodes: list[dict] = []
-                edges: list[dict] = []
+                root_name = tree["root"]["name"] if tree.get("root") else ""
+                name_to_sid: dict[str, str] = {
+                    a["name"]: a["session_id"] for a in agents_flat
+                }
 
-                for inst in instances:
-                    is_root = inst.session_id == root_sid
-                    instr = getattr(inst.agent, "instruction", "")
-                    preview_text = ""
-                    if not callable(instr):
-                        preview_text = (instr or "")[:80].strip()
-
-                    label = inst.agent_name
-                    label += f"\n[{inst.session_id}]"
-                    if preview_text and not is_root:
-                        short = preview_text[:40].replace("\n", " ")
-                        if len(preview_text) > 40:
+                nodes = []
+                edges = []
+                for a in agents_flat:
+                    is_root = a["name"] == root_name and not a.get("parent_name")
+                    label = a["name"] + f"\n[{a['session_id']}]"
+                    query = a.get("query", "")
+                    if query and not is_root:
+                        short = query[:40].replace("\n", " ")
+                        if len(query) > 40:
                             short += "..."
                         label += f"\n({short})"
 
-                    status = "active" if is_root else inst.state.value
-
                     nodes.append(
                         {
-                            "id": inst.session_id,
+                            "id": a["session_id"],
                             "label": label,
-                            "name": inst.agent_name,
-                            "session_id": inst.session_id,
-                            "query": preview_text,
-                            "status": status,
+                            "name": a["name"],
+                            "session_id": a["session_id"],
+                            "query": query,
+                            "status": a.get("status", "completed"),
                             "type": "root" if is_root else "subagent",
                         }
                     )
-                    if inst.parent_session_id:
-                        edges.append(
-                            {"from": inst.parent_session_id, "to": inst.session_id}
-                        )
+                    parent_name = a.get("parent_name")
+                    if parent_name:
+                        parent_sid = name_to_sid.get(parent_name)
+                        if parent_sid:
+                            edges.append({"from": parent_sid, "to": a["session_id"]})
 
                 return {"nodes": nodes, "edges": edges}
 

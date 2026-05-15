@@ -412,6 +412,52 @@ def _resolve_saved_session_dir(resume_from: Optional[str]) -> Path:
     )
 
 
+def _is_reviewable_session_dir(path: Path) -> bool:
+    """A directory is reviewable if it has instances/ with at least one traj.json."""
+    inst = path / "instances"
+    if not inst.is_dir():
+        return False
+    return any(inst.rglob("traj.json"))
+
+
+def _resolve_review_session_dir(session_path: Optional[str]) -> Path:
+    """Resolve a session directory for review (no metadata.json required)."""
+    if not session_path:
+        if not _SESSION_STORE_ROOT.exists():
+            raise click.ClickException(
+                f"No sessions found under {_SESSION_STORE_ROOT}."
+            )
+        dirs = [
+            p
+            for p in _SESSION_STORE_ROOT.iterdir()
+            if p.is_dir() and _is_reviewable_session_dir(p)
+        ]
+        if not dirs:
+            raise click.ClickException(
+                f"No reviewable sessions found under {_SESSION_STORE_ROOT}."
+            )
+        return max(dirs, key=lambda p: p.stat().st_mtime)
+
+    candidate = Path(session_path).expanduser()
+    if candidate.is_absolute():
+        resolved = candidate.resolve()
+        if not resolved.exists():
+            raise click.ClickException(f"Session directory not found: {resolved}")
+        if not resolved.is_dir():
+            raise click.ClickException(f"Session path must be a directory: {resolved}")
+        return resolved
+
+    if not _SESSION_STORE_ROOT.exists():
+        raise click.ClickException(f"No sessions found under {_SESSION_STORE_ROOT}.")
+    exact_match = (_SESSION_STORE_ROOT / session_path).resolve()
+    if exact_match.exists() and exact_match.is_dir():
+        return exact_match
+
+    raise click.ClickException(
+        f"Session not found: {session_path} (looked under {_SESSION_STORE_ROOT})"
+    )
+
+
 def _verify_agent_module(agent_dir: str) -> None:
     """Best-effort precheck to load agent module early.
 
@@ -774,13 +820,6 @@ def cli_web(
 
 @main.command("review")
 @click.option(
-    "--agent",
-    "agent_dir",
-    type=click.Path(exists=True, dir_okay=True, file_okay=False, resolve_path=True),
-    required=False,
-    help="Path to the agent folder (must contain agent files).",
-)
-@click.option(
     "--host",
     type=str,
     default="127.0.0.1",
@@ -805,123 +844,81 @@ def cli_web(
 )
 @click.argument("session_path", required=False, default=None)
 def cli_review(
-    agent_dir: Optional[str],
     host: str,
     port: int,
     log_level: str,
     session_path: Optional[str],
 ):
-    """Read-only session viewer. Like resume but without Docker/sandbox connections.
+    """Read-only session viewer — no LLM, no sandbox, no core services.
 
-    SESSION_PATH can be a saved session directory name, a session id suffix, or
-    an absolute path. If omitted, opens the most recent saved session.
+    SESSION_PATH is a session directory under ~/.local/opensage/sessions/
+    (name, suffix, or absolute path).  If omitted, opens the most recent one.
     """
     logging.basicConfig(level=getattr(logging, log_level.upper()))
 
-    store_dir = _resolve_saved_session_dir(session_path)
-    metadata_path = store_dir / "metadata.json"
-    if not metadata_path.exists():
-        raise click.ClickException(f"Session metadata not found: {metadata_path}")
-    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-    session_id = metadata.get("session_id") or store_dir.name
+    from google.adk.agents.base_agent import BaseAgent as _BaseAgent
+    from google.adk.sessions.session import Session
 
-    resolved_config_file = (
-        metadata.get("resolved_config_file") or "resolved_config.toml"
-    )
-    resolved_config_path = store_dir / resolved_config_file
-    resumed_agent_dir = metadata.get("agent_dir", "")
-    agent_dir = agent_dir or resumed_agent_dir
-    if not agent_dir:
-        raise click.ClickException("Cannot determine agent directory. Pass --agent.")
+    from opensage.orchestration.persistence import sanitize_adk_session
 
-    config_path = (
-        str(resolved_config_path)
-        if resolved_config_path.exists()
-        else _resolve_config_path(None, agent_dir)
-    )
+    store_dir = _resolve_review_session_dir(session_path)
+    session_id = store_dir.name
+
+    inst_root = store_dir / "instances"
+    if not inst_root.exists():
+        raise click.ClickException(
+            f"No instances/ directory found in {store_dir}. Nothing to review."
+        )
 
     click.secho(f"Review mode — session {session_id}", fg="cyan")
-    click.secho("Sandboxes will NOT be attached (read-only viewer).", fg="yellow")
+    click.secho("Read-only viewer (no LLM, no sandbox).", fg="yellow")
 
-    opensage_session = get_opensage_session(
-        opensage_session_id=session_id,
-        config_path=config_path,
-        agent_dir=agent_dir or None,
-    )
-    opensage_session.config.auto_cleanup = True
+    session_service = OpenSageInMemorySessionService()
+    artifact_service = InMemoryArtifactService()
+    memory_service = InMemoryMemoryService()
+    credential_service = InMemoryCredentialService()
 
-    mk_agent = _load_mk_agent_from_dir(agent_dir)
-    root_agent = mk_agent(opensage_session_id=session_id)
-    enabled_plugins = []
-    if opensage_session and getattr(opensage_session, "config", None):
-        plugins_cfg = getattr(opensage_session.config, "plugins", None)
-        enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
-        extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
-    plugins = load_plugins(
-        enabled_plugins, agent_dir=agent_dir, extra_plugin_dirs=extra_plugin_dirs
-    )
+    app_name = "app"
+    root_agent_name = "agent"
+    loaded = 0
+    for traj_path in inst_root.rglob("traj.json"):
+        inst_dir = traj_path.parent
+        inst_meta_path = inst_dir / "metadata.json"
+        if inst_meta_path.exists():
+            inst_meta = json.loads(inst_meta_path.read_text(encoding="utf-8"))
+            sid = inst_meta.get("session_id", inst_dir.name)
+            if inst_meta.get("parent_session_id") is None:
+                root_agent_name = inst_meta.get("agent_name", root_agent_name)
+                app_name = inst_meta.get("app_name", app_name)
+        else:
+            sid = inst_dir.name
 
-    raw_app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
-    app_name = sanitize_agent_name(raw_app_name)
-    session_service = opensage_session.session_service
+        session = Session.model_validate_json(traj_path.read_text(encoding="utf-8"))
+        session = sanitize_adk_session(session, copy=False)
+        session.id = sid
+        session.app_name = app_name
+        session.user_id = "user"
+        session_service.inject_session(session)
+        loaded += 1
 
-    opensage_session.agent_manager.set_app_name(app_name)
-    opensage_session.agent_manager.set_base_plugins(plugins)
-    opensage_session.agent_manager.register_agent_tree(root_agent)
+    click.secho(f"Loaded {loaded} session(s) from instances/.", fg="cyan")
 
-    agents_dir_parent = os.path.dirname(agent_dir) or "."
-    eval_sets_manager = LocalEvalSetsManager(agents_dir=agents_dir_parent)
-    eval_set_results_manager = LocalEvalSetResultsManager(agents_dir=agents_dir_parent)
+    stub_agent = _BaseAgent(name=root_agent_name)
 
     web_server = OpenSageWebServer(
         app_name=app_name,
-        root_agent=root_agent,
+        root_agent=stub_agent,
         fixed_session_id=session_id,
         session_service=session_service,
-        artifact_service=opensage_session.artifact_service,
-        memory_service=opensage_session.memory_service,
-        credential_service=opensage_session.credential_service,
-        eval_sets_manager=eval_sets_manager,
-        eval_set_results_manager=eval_set_results_manager,
-        url_prefix=None,
-        plugins=plugins,
+        artifact_service=artifact_service,
+        memory_service=memory_service,
+        credential_service=credential_service,
         fake_user_fn=None,
     )
 
-    snapshot_path = store_dir / "adk_session.json"
-    if snapshot_path.exists():
-        _, session_user_id = asyncio.run(
-            _load_adk_session_into_service_async(
-                session_service=session_service,
-                snapshot_path=snapshot_path,
-                session_id=session_id,
-                target_app_name=web_server.app_name,
-                target_user_id="user",
-                root_agent=root_agent,
-            )
-        )
-    else:
-        click.secho(
-            f"Warning: adk_session.json not found in {store_dir}; "
-            "session history will be empty.",
-            fg="yellow",
-        )
-
-    asyncio.run(
-        opensage_session.agent_manager.spawn(
-            agent_name=root_agent.name,
-            session_id=session_id,
-            parent_session_id=None,
-        )
-    )
-
-    @contextlib.asynccontextmanager
-    async def _lifespan(app):
-        await opensage_session.agent_manager.start(readonly=True)
-        yield
-
     app = web_server.get_fast_api_app(
-        allow_origins=None, enable_dev_ui=True, lifespan=_lifespan
+        allow_origins=None,
+        enable_dev_ui=True,
     )
 
     config = uvicorn.Config(

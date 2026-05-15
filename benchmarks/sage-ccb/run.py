@@ -346,6 +346,7 @@ class SAGE_CCB_Bench(Evaluation):
                 self._archive_workspace_directly(task, raw_dir / "workspace")
             raise
         finally:
+            self._persist_session_snapshot(task)
             self._cleanup_opensage_session(task)
             stop_challenge_services(started_services)
             if task.initial_data_dir:
@@ -453,6 +454,25 @@ class SAGE_CCB_Bench(Evaluation):
         shutil.copytree(source, target, dirs_exist_ok=True)
         logger.warning("Archived partial SAGE-CCB workspace directly to %s", target)
         return True
+
+    def _persist_session_snapshot(self, task: EvaluationTask) -> None:
+        try:
+            opensage_session = task.opensage_session
+        except Exception:
+            return
+        if not opensage_session:
+            return
+        try:
+            from opensage.orchestration.persistence import persist_session_snapshot
+
+            persist_session_snapshot(
+                opensage_session=opensage_session,
+                agent_dir=self.agent_dir,
+            )
+        except Exception as exc:
+            logger.warning(
+                "Snapshot persist failed for session %s: %s", task.session_id, exc
+            )
 
     def _cleanup_opensage_session(self, task: EvaluationTask) -> None:
         try:

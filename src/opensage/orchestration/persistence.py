@@ -154,3 +154,130 @@ def load_agent_definition(
     except Exception:
         logger.exception("Failed to load agent definition: %s", p)
         return None
+
+
+# ------------------------------------------------------------------
+# Session snapshot (shared by CLI web and benchmark runner)
+# ------------------------------------------------------------------
+
+
+def _drop_unmatched_function_call_events(events: list) -> list:
+    matched_response_ids: set[str] = set()
+    for event in events:
+        parts = getattr(getattr(event, "content", None), "parts", None) or []
+        for part in parts:
+            fr = getattr(part, "function_response", None)
+            if fr and getattr(fr, "id", None):
+                matched_response_ids.add(fr.id)
+
+    sanitized = []
+    for event in events:
+        parts = getattr(getattr(event, "content", None), "parts", None) or []
+        if not parts:
+            sanitized.append(event)
+            continue
+        kept = []
+        removed_any = False
+        for part in parts:
+            fc = getattr(part, "function_call", None)
+            if fc and getattr(fc, "id", None) and fc.id not in matched_response_ids:
+                removed_any = True
+                continue
+            kept.append(part)
+        if not removed_any:
+            sanitized.append(event)
+        elif kept:
+            e = event.model_copy(deep=True)
+            e.content.parts = kept
+            sanitized.append(e)
+    return sanitized
+
+
+def sanitize_adk_session(session: "Session", *, copy: bool = True) -> "Session":
+    target = session.model_copy(deep=True) if copy else session
+    target.events = _drop_unmatched_function_call_events(target.events or [])
+    if target.events:
+        ts = getattr(target.events[-1], "timestamp", None)
+        if ts is not None:
+            target.last_update_time = ts
+    return target
+
+
+def collect_sandbox_runtime_metadata(opensage_session) -> dict:
+    backend = (
+        getattr(getattr(opensage_session, "config", None), "sandbox", None)
+        and opensage_session.config.sandbox.backend
+    ) or "native"
+    sandboxes = {}
+    for sandbox_type, sandbox in opensage_session.sandboxes.list_sandboxes().items():
+        entry = {"backend": backend}
+        for attr in ("container_id", "pod_name", "container_name"):
+            val = getattr(sandbox, attr, None)
+            if val:
+                entry[attr] = val
+        sandboxes[sandbox_type] = entry
+    return {"backend": backend, "sandboxes": sandboxes}
+
+
+def persist_session_snapshot(
+    *,
+    opensage_session,
+    agent_dir: str,
+    app_name: str | None = None,
+    user_id: str = "user",
+    root_agent_name: str | None = None,
+) -> Path:
+    """Write session snapshot (metadata + adk_session + config) to the session dir.
+
+    Works for both web and evaluation sessions — writes into the same
+    ``~/.local/opensage/sessions/{session_id}/`` directory that already
+    holds ``instances/`` and ``agents/``.
+    """
+    import time
+
+    from google.adk.sessions.session import Session
+
+    from opensage.memory.file_based.short_term.session_files import find_instance_dir
+    from opensage.utils.agent_utils import sanitize_agent_name
+
+    session_id = opensage_session.opensage_session_id
+    store_dir = instances_root(session_id).parent
+    store_dir.mkdir(parents=True, exist_ok=True)
+
+    inst_dir = find_instance_dir(session_id, session_id)
+    if inst_dir is None:
+        raise RuntimeError(
+            f"Cannot persist session: instance dir not found ({session_id})"
+        )
+    traj_path = inst_dir / "traj.json"
+    if not traj_path.exists():
+        raise RuntimeError(f"Cannot persist session: traj.json not found in {inst_dir}")
+    adk_session = Session.model_validate_json(traj_path.read_text(encoding="utf-8"))
+    snapshot = sanitize_adk_session(adk_session, copy=False)
+
+    (store_dir / "adk_session.json").write_text(
+        snapshot.model_dump_json(indent=2, exclude_none=True), encoding="utf-8"
+    )
+
+    resolved_config_path = store_dir / "resolved_config.toml"
+    opensage_session.config.save_to_toml(str(resolved_config_path))
+
+    agent_name = sanitize_agent_name(root_agent_name or "agent")
+    if not app_name:
+        app_name = getattr(opensage_session.agent_manager, "app_name", "app")
+    metadata = {
+        "session_id": session_id,
+        "agent_name": agent_name,
+        "agent_dir": str(Path(agent_dir).expanduser().resolve()),
+        "app_name": app_name,
+        "user_id": user_id,
+        "saved_at_unix": int(time.time()),
+        "resolved_config_file": resolved_config_path.name,
+        "runtime": collect_sandbox_runtime_metadata(opensage_session),
+    }
+    (store_dir / "metadata.json").write_text(
+        json.dumps(metadata, indent=2), encoding="utf-8"
+    )
+
+    logger.info("Persisted session snapshot to %s", store_dir)
+    return store_dir

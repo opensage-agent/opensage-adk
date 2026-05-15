@@ -140,63 +140,44 @@ async def edit_file(
     # We use a python script to handle file IO cleanly to avoid shell escaping issues
     # and to handle newlines correctly.
 
-    script = textwrap.dedent(f"""
-        import sys
-        import base64
-        import os
+    content_b64 = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+    script = textwrap.dedent(f"""\
+import sys
+import base64
+import os
 
-        path = "{path}"
+path = "{path}"
+content_b64 = "{content_b64}"
+new_content = base64.b64decode(content_b64).decode('utf-8')
+start = {start_line}
+end = {end_line}
 
-        # Decode content
-        content_b64 = "{base64.b64encode(content.encode("utf-8")).decode("utf-8")}"
-        new_content = base64.b64decode(content_b64).decode('utf-8')
+if not os.path.exists(path):
+    print(f"Error: File {{path}} not found")
+    sys.exit(1)
 
-        start = {start_line}
-        end = {end_line}
+with open(path, 'r') as f:
+    lines = f.readlines()
 
-        if not os.path.exists(path):
-            print(f"Error: File {{path}} not found")
-            sys.exit(1)
+if start < 1:
+    print(f"Error: Start line {{start}} must be >= 1")
+    sys.exit(1)
 
-        with open(path, 'r') as f:
-            lines = f.readlines()
+idx_start = start - 1
+idx_end = end
 
-        # Validate bounds
-        # start is 1-indexed
-        if start < 1:
-             print(f"Error: Start line {{start}} must be >= 1")
-             sys.exit(1)
+if idx_start > len(lines):
+    print(f"Error: Start line {{start}} is beyond EOF ({{len(lines)}} lines)")
+    sys.exit(1)
 
-        # Convert to 0-indexed slice
-        idx_start = start - 1
-        idx_end = end # slice is exclusive, but end_line is inclusive, so end (idx) match
+replacement_lines = new_content.splitlines(keepends=True)
+lines[idx_start:idx_end] = replacement_lines
 
-        # If start is beyond end of file, we append?
-        # Standard behavior: if start > len, maybe just append?
-        # Let's enforce bounds strictly for safety/clarity unless it gets annoying.
-        if idx_start > len(lines):
-             print(f"Error: Start line {{start}} is beyond EOF ({{len(lines)}} lines)")
-             sys.exit(1)
+with open(path, 'w') as f:
+    f.writelines(lines)
 
-        # Prepare new lines
-        # Determine if we need to add a newline to the new content chunks
-        # Usually user provides a block. We split it into lines.
-        replacement_lines = new_content.splitlines(keepends=True)
-
-        # If the input string didn't have a trailing newline but we are inserting as lines,
-        # we might want to ensure consistency.
-        # But `splitlines(keepends=True)` keeps \n if present.
-        # If user sends "a\nb", we get ["a\n", "b"].
-        # If we insert "b" into middle of file, it merges with next line if no \n.
-        # Let's trust the user's content exactly.
-
-        lines[idx_start:idx_end] = replacement_lines
-
-        with open(path, 'w') as f:
-            f.writelines(lines)
-
-        print(f"Successfully edited {{path}} (Replaced lines {{start}}-{{end}})")
-    """)
+print(f"Successfully edited {{path}} (Replaced lines {{start}}-{{end}})")
+""")
 
     return await _run_python_script(sandbox, script, "edit_file")
 

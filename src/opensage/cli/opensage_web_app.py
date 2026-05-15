@@ -853,67 +853,74 @@ class OpenSageWebServer:
                 subagents = [
                     a for a in tree.get("agents_flat", []) if a["name"] != root_name
                 ]
+                manager = self._get_agent_manager()
                 for agent in subagents:
                     runtime = self._resolve_runtime_status(agent["session_id"])
                     if runtime is not None:
                         agent["status"] = runtime
+                    if manager:
+                        inst = manager.get_instance(agent["session_id"])
+                        if inst:
+                            instr = getattr(inst.agent, "instruction", "")
+                            if not callable(instr):
+                                agent["query"] = (instr or "")[:80].strip()
                 return {"agents": subagents, "root": root_name}
 
             @app.get("/control/subagents/topology")
             async def get_subagent_topology():
-                from opensage.memory.file_based.short_term.session_files import (
-                    scan_host_instance_tree,
-                )
+                manager = self._get_agent_manager()
+                if not manager:
+                    return {"nodes": [], "edges": []}
 
-                tree = scan_host_instance_tree(self.fixed_session_id)
-                root = tree.get("root")
-                if not root:
+                instances = manager.list_instances()
+                if not instances:
+                    return {"nodes": [], "edges": []}
+
+                by_sid: dict[str, "AgentInstance"] = {
+                    inst.session_id: inst for inst in instances
+                }
+
+                root_sid = self.fixed_session_id
+                root_inst = by_sid.get(root_sid)
+                if not root_inst:
                     return {"nodes": [], "edges": []}
 
                 nodes: list[dict] = []
                 edges: list[dict] = []
 
-                def _walk(node, parent_id=None):
-                    nid = node.get("session_id") or node["name"]
-                    is_root = parent_id is None
-                    query = node.get("query", "")
-                    # Build label: name + precise session id + query preview.
-                    label = node["name"]
-                    if node.get("session_id"):
-                        label += f"\n[{node['session_id']}]"
-                    if query and not is_root:
-                        preview = query[:40].replace("\n", " ")
-                        if len(query) > 40:
-                            preview += "..."
-                        label += f"\n({preview})"
-                    if is_root:
-                        status = "active"
-                    else:
-                        runtime = self._resolve_runtime_status(
-                            node.get("session_id", "")
-                        )
-                        status = (
-                            runtime
-                            if runtime is not None
-                            else node.get("status", "running")
-                        )
+                for inst in instances:
+                    is_root = inst.session_id == root_sid
+                    instr = getattr(inst.agent, "instruction", "")
+                    preview_text = ""
+                    if not callable(instr):
+                        preview_text = (instr or "")[:80].strip()
+
+                    label = inst.agent_name
+                    label += f"\n[{inst.session_id}]"
+                    if preview_text and not is_root:
+                        short = preview_text[:40].replace("\n", " ")
+                        if len(preview_text) > 40:
+                            short += "..."
+                        label += f"\n({short})"
+
+                    status = "active" if is_root else inst.state.value
+
                     nodes.append(
                         {
-                            "id": nid,
+                            "id": inst.session_id,
                             "label": label,
-                            "name": node["name"],
-                            "session_id": node.get("session_id", ""),
-                            "query": query,
+                            "name": inst.agent_name,
+                            "session_id": inst.session_id,
+                            "query": preview_text,
                             "status": status,
                             "type": "root" if is_root else "subagent",
                         }
                     )
-                    if parent_id is not None:
-                        edges.append({"from": parent_id, "to": nid})
-                    for child in node.get("children", []):
-                        _walk(child, parent_id=nid)
+                    if inst.parent_session_id:
+                        edges.append(
+                            {"from": inst.parent_session_id, "to": inst.session_id}
+                        )
 
-                _walk(root)
                 return {"nodes": nodes, "edges": edges}
 
             @app.get("/control/subagents/{subagent_session_id}/events")

@@ -59,7 +59,13 @@ def _inject_runtime_blocks(
     if not hasattr(agent, "instruction"):
         return None
     original_instruction = getattr(agent, "instruction", "") or ""
-    stripped_instruction = strip_runtime_memory_context(original_instruction)
+    # instruction may be a callable (bypasses ADK template substitution);
+    # unwrap it to get the string for runtime block injection.
+    if callable(original_instruction):
+        _text = original_instruction(None)
+    else:
+        _text = original_instruction
+    stripped_instruction = strip_runtime_memory_context(_text)
     runtime_context = build_file_runtime_memory_context(
         session_id=session_id,
         agent_name=getattr(agent, "name", "agent"),
@@ -72,7 +78,12 @@ def _inject_runtime_blocks(
             f"{auto_insert_content.rstrip()}\n"
             f"{AUTO_INSERT_PROMPT_END}"
         )
-    agent.instruction = "\n\n".join(parts)
+    final_text = "\n\n".join(parts)
+    # Keep instruction as callable to bypass ADK template substitution.
+    if callable(original_instruction):
+        agent.instruction = lambda ctx, _t=final_text: _t
+    else:
+        agent.instruction = final_text
     return original_instruction
 
 

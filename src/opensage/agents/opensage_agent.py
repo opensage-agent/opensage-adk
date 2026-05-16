@@ -828,6 +828,13 @@ class OpenSageAgent(LlmAgent):
         else:
             logger.info("No dynamically loaded tool descriptions found")
 
+        # Wrap instruction as a callable to bypass ADK's inject_session_state,
+        # which treats {identifier} patterns as state variable placeholders.
+        # Model-generated instructions may contain literal braces (e.g. flags).
+        if isinstance(self.instruction, str):
+            _frozen = self.instruction
+            self.instruction = lambda ctx: _frozen
+
     @staticmethod
     def _build_toolset_summary(tools: List[Any]) -> str:
         """Build a short, synchronous toolset summary for the agent system prompt.

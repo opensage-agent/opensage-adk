@@ -494,6 +494,17 @@ async def create_subagent(
         # rejected unknown names, so this lookup must succeed.
         resolved_model = opensage_session.llms.get(model_name)
 
+        # Clamp enabled_skills to the caller's (root's) enabled_skills so
+        # subagents never list skills that aren't present in the sandbox.
+        caller_skills = getattr(current_agent, "_enabled_skills", None)
+        if enabled_skills is not None and caller_skills is not None:
+            if isinstance(caller_skills, list) and caller_skills != ["all"]:
+                caller_set = set(caller_skills)
+                if enabled_skills == ["all"] or enabled_skills == "all":
+                    enabled_skills = list(caller_set)
+                elif isinstance(enabled_skills, list):
+                    enabled_skills = [s for s in enabled_skills if s in caller_set]
+
         # Skills guardrail in instruction
         enabled_repr = "None" if enabled_skills is None else repr(enabled_skills)
         full_instruction = instruction + (

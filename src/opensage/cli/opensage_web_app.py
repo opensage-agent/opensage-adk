@@ -864,6 +864,9 @@ class OpenSageWebServer:
                             instr = getattr(inst.agent, "instruction", "")
                             if not callable(instr):
                                 agent["query"] = (instr or "")[:80].strip()
+                            agent_model = getattr(inst.agent, "model", None)
+                            if agent_model:
+                                agent["model"] = getattr(agent_model, "model", "")
                 return {"agents": subagents, "root": root_name}
 
             @app.get("/control/subagents/topology")
@@ -907,6 +910,10 @@ class OpenSageWebServer:
                             label += f"\n({short})"
 
                         status = "active" if is_root else inst.state.value
+                        model_name = ""
+                        agent_model = getattr(inst.agent, "model", None)
+                        if agent_model:
+                            model_name = getattr(agent_model, "model", "")
                         nodes.append(
                             {
                                 "id": inst.session_id,
@@ -916,6 +923,7 @@ class OpenSageWebServer:
                                 "query": preview_text,
                                 "status": status,
                                 "type": "root" if is_root else "subagent",
+                                "model": model_name,
                             }
                         )
                         if inst.parent_session_id:

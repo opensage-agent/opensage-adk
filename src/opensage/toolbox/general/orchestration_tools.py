@@ -202,6 +202,7 @@ async def send_message(
     Fire-and-forget: does not wait for a response. The recipient picks up the
     message at its next tool boundary (if RUNNING) or on its next wake-up (if
     SLEEPING).
+
     """
     try:
         manager = _get_manager(tool_context)

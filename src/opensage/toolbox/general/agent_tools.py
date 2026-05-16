@@ -194,6 +194,149 @@ Keep your response concise and actionable."""
         }
 
 
+async def log_finding(finding: str, tool_context: ToolContext):
+    """Log a finding or dead end to the shared findings.md (visible to ALL agents in this session).
+
+    WHEN TO CALL:
+    - You ruled out an attack vector or approach (state the assumption that failed)
+    - You discovered an exploitation gadget or bypass technique for a step
+    - You identified a key step in the attack chain (e.g. "SSRF in /api/fetch
+      can reach internal services", "auth bypass via type confusion in login")
+
+    WHEN NOT TO CALL:
+    - Routine recon facts like open ports, service versions, credentials (use pinned.md)
+    - Status updates or progress reports (use send_message instead)
+    - Speculative ideas you haven't verified yet
+    - Intermediate command output (just keep working)
+
+    After appending, the tool runs an automatic contradiction check against all
+    prior findings. If a contradiction is detected, it is also written to
+    findings.md so that other agents see it on their next read.
+
+    Args:
+        finding: A concise, self-contained statement. For dead ends, include
+            the key assumption, e.g.:
+            "DNS rebinding ruled out — CoreDNS is not the only resolver,
+            target also accepts resolution via /etc/hosts"
+
+    Returns:
+        dict with "logged" (bool) and "contradictions" (str or None).
+        If contradictions are found, they describe which findings conflict and why.
+    """
+    import shlex
+
+    from opensage.memory.file_based.short_term.session_files import (
+        MEM_AGENT_DIR_KEY,
+        SHORT_TERM_MEM_ROOT,
+    )
+    from opensage.utils.agent_utils import get_sandbox_from_context
+
+    try:
+        opensage_session_id = get_opensage_session_id_from_context(tool_context)
+        opensage_session = get_opensage_session(opensage_session_id)
+        sandbox = get_sandbox_from_context(tool_context, "main")
+
+        # Find root agent's memory dir (findings.md lives there)
+        invocation_context = tool_context._invocation_context
+        session = invocation_context.session
+        state = getattr(session, "state", None) or {}
+        agent_mem_dir = state.get(MEM_AGENT_DIR_KEY, "")
+
+        if not agent_mem_dir or not agent_mem_dir.startswith(SHORT_TERM_MEM_ROOT):
+            return {"logged": False, "error": "no valid memory dir for this session"}
+
+        # Walk up to root: root dir is directly under SHORT_TERM_MEM_ROOT
+        # e.g. /mem/short_term/ctf_agent__<root_sid>/subagent__<child_sid>/
+        # Root is: /mem/short_term/ctf_agent__<root_sid>/
+        parts = agent_mem_dir.replace(SHORT_TERM_MEM_ROOT + "/", "").split("/")
+        root_dir = f"{SHORT_TERM_MEM_ROOT}/{parts[0]}"
+        findings_path = f"{root_dir}/findings.md"
+
+        # Append the new finding
+        import datetime
+
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+        entry = f"\n- [{timestamp}] {finding}\n"
+
+        write_output, write_exit = await sandbox.arun_command_in_container(
+            f"mkdir -p {shlex.quote(root_dir)} && "
+            f"printf %s {shlex.quote(entry)} >> {shlex.quote(findings_path)}"
+        )
+        if write_exit != 0:
+            return {"logged": False, "error": f"write failed: {write_output}"}
+
+        # Read all findings
+        all_findings, exit_code = await sandbox.arun_command_in_container(
+            f"cat {shlex.quote(findings_path)} 2>/dev/null"
+        )
+        if exit_code != 0 or not all_findings.strip():
+            return {"logged": True, "contradictions": None}
+
+        # If fewer than 2 findings, no contradiction check needed
+        lines = [l.strip() for l in all_findings.strip().split("\n") if l.strip()]
+        if len(lines) < 2:
+            return {"logged": True, "contradictions": None}
+
+        # Use a model to check for contradictions
+        critique_model_name = getattr(
+            opensage_session.config.llm, "summarize_model", None
+        )
+        if critique_model_name:
+            from opensage.utils.agent_utils import create_litellm_model
+
+            model = create_litellm_model(critique_model_name)
+        else:
+            names = opensage_session.llms.list_names()
+            if not names:
+                return {"logged": True, "contradictions": None}
+            model = opensage_session.llms.get(names[0])
+
+        prompt = (
+            "Below is a list of findings and dead ends recorded by an AI agent "
+            "working on a security challenge. Check if any findings CONTRADICT "
+            "each other — specifically, does a later finding invalidate the "
+            "assumption behind an earlier dead end?\n\n"
+            f"Findings:\n{all_findings}\n\n"
+            "If you find contradictions, state:\n"
+            "- Which two findings conflict\n"
+            "- Why they contradict\n"
+            "- What the agent should reconsider\n\n"
+            "If no contradictions exist, reply exactly: NO_CONTRADICTIONS\n"
+            "Be concise."
+        )
+
+        llm_request = LlmRequest()
+        llm_request.config = types.GenerateContentConfig()
+        llm_request.contents = [
+            types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
+        ]
+
+        result_parts = []
+        async for resp in model.generate_content_async(llm_request):
+            if resp.content and resp.content.parts:
+                for p in resp.content.parts:
+                    if p.text:
+                        result_parts.append(p.text)
+
+        result_text = "".join(result_parts).strip()
+
+        if "NO_CONTRADICTIONS" in result_text:
+            return {"logged": True, "contradictions": None}
+        else:
+            # Append contradiction to findings.md so all agents can see it
+            contradiction_entry = (
+                f"\n- [{timestamp}] \u26a0\ufe0f CONTRADICTION: {result_text}\n"
+            )
+            await sandbox.arun_command_in_container(
+                f"printf %s {shlex.quote(contradiction_entry)} >> {shlex.quote(findings_path)}"
+            )
+            return {"logged": True, "contradictions": result_text}
+
+    except Exception as e:
+        logger.exception("log_finding failed: %s", e)
+        return {"logged": False, "error": str(e)}
+
+
 async def audit_assumptions(model_name: str, tool_context: ToolContext):
     """Audit the confidence level of all assumptions driving the current work.
 

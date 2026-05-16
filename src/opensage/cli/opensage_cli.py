@@ -848,6 +848,322 @@ def cli_web(
                 )
 
 
+@main.command("run")
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=False, dir_okay=False, file_okay=True, resolve_path=True),
+    required=False,
+    default=None,
+    help="Path to OpenSage TOML config.",
+)
+@click.option(
+    "--agent",
+    "agent_dir",
+    type=click.Path(exists=True, dir_okay=True, file_okay=False, resolve_path=True),
+    required=False,
+    help="Path to the agent folder (must contain agent files).",
+)
+@click.option(
+    "--log_level",
+    type=click.Choice(
+        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
+    ),
+    default="INFO",
+    show_default=True,
+    help="Logging level.",
+)
+@click.option(
+    "--auto_cleanup",
+    type=bool,
+    default=False,
+    show_default=True,
+    help="Whether to cleanup sandboxes on process exit.",
+)
+@click.option(
+    "--resume",
+    is_flag=True,
+    default=False,
+    help="Resume from the most recently saved session.",
+)
+@click.option(
+    "--resume-from",
+    "resume_from",
+    type=str,
+    default=None,
+    help="Resume from a specific saved session.",
+)
+@click.option(
+    "--prompt",
+    "prompt",
+    type=str,
+    default=None,
+    help="Send a single prompt, run to completion, then exit (non-interactive).",
+)
+def cli_run(
+    config_path: Optional[str],
+    agent_dir: str,
+    log_level: str,
+    auto_cleanup: bool,
+    resume: bool,
+    resume_from: Optional[str],
+    prompt: Optional[str],
+):
+    """Run an agent interactively in the terminal (no web UI)."""
+    from google.genai import types
+
+    session_id: str | None = None
+    opensage_session = None
+    root_agent = None
+    session_user_id = "user"
+    resume_requested = resume or bool(resume_from)
+
+    def _cli_signal_handler(signum, _frame):
+        if signum == signal.SIGINT:
+            raise KeyboardInterrupt
+        raise SystemExit(128 + signum)
+
+    try:
+        logging.basicConfig(level=getattr(logging, log_level.upper()))
+        if not resume_requested and not agent_dir:
+            raise click.ClickException("Missing required option '--agent'.")
+        if not resume_requested:
+            config_path = _resolve_config_path(config_path, agent_dir)
+
+        resume_metadata = None
+        resume_store_dir: Path | None = None
+        if resume_requested:
+            resume_store_dir = _resolve_saved_session_dir(resume_from)
+            resume_session_id = resume_store_dir.name
+            click.secho(f"Resuming from session: {resume_session_id}", fg="cyan")
+            session_id, resume_metadata, resumed_agent_dir = asyncio.run(
+                _resume_environment_async(
+                    resume_dir=resume_store_dir, config_path=config_path or ""
+                )
+            )
+            if resumed_agent_dir:
+                if (
+                    agent_dir
+                    and Path(agent_dir).resolve() != Path(resumed_agent_dir).resolve()
+                ):
+                    logger.warning(
+                        "CLI --agent (%s) differs from resumed agent_dir (%s); using resumed.",
+                        agent_dir,
+                        resumed_agent_dir,
+                    )
+                agent_dir = resumed_agent_dir
+            elif not agent_dir:
+                raise click.ClickException(
+                    "Resume metadata does not contain agent_dir; please pass --agent."
+                )
+        else:
+            session_id = asyncio.run(
+                _prepare_environment_async(config_path=config_path, agent_dir=agent_dir)
+            )
+        click.secho(f"OpenSage session prepared: {session_id}", fg="green")
+        opensage_session = get_opensage_session(session_id)
+        opensage_session.config.auto_cleanup = auto_cleanup
+
+        mk_agent = _load_mk_agent_from_dir(agent_dir)
+        root_agent = mk_agent(opensage_session_id=session_id)
+        enabled_plugins = []
+        if opensage_session and getattr(opensage_session, "config", None):
+            plugins_cfg = getattr(opensage_session.config, "plugins", None)
+            enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
+            extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
+        plugins = load_plugins(
+            enabled_plugins, agent_dir=agent_dir, extra_plugin_dirs=extra_plugin_dirs
+        )
+
+        raw_app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
+        app_name = sanitize_agent_name(raw_app_name)
+        session_service = opensage_session.session_service
+
+        opensage_session.agent_manager.set_app_name(app_name)
+        opensage_session.agent_manager.set_base_plugins(plugins)
+        opensage_session.agent_manager.register_agent_tree(root_agent)
+
+        fake_user_fn = None
+        fake_user_cfg = getattr(opensage_session.config, "fake_user", None)
+        if fake_user_cfg and getattr(fake_user_cfg, "python_file", None):
+            from opensage.orchestration.fake_user import load_fake_user_from_file
+
+            fake_user_fn = load_fake_user_from_file(
+                fake_user_cfg.python_file,
+                agent_dir=agent_dir,
+            )
+            logger.info("Loaded fake_user from %s", fake_user_cfg.python_file)
+
+        if resume_metadata:
+            snapshot_path = (
+                resume_store_dir or _session_store_dir(session_id)
+            ) / "adk_session.json"
+            _, restored_user_id = asyncio.run(
+                _load_adk_session_into_service_async(
+                    session_service=session_service,
+                    snapshot_path=snapshot_path,
+                    session_id=session_id,
+                    target_app_name=app_name,
+                    target_user_id="user",
+                    root_agent=root_agent,
+                )
+            )
+            session_user_id = restored_user_id
+        else:
+            session_user_id = "user"
+
+        asyncio.run(
+            opensage_session.agent_manager.spawn(
+                agent_name=root_agent.name,
+                session_id=session_id,
+                parent_session_id=None,
+            )
+        )
+
+        def _print_event(event):
+            if not event.content or not event.content.parts:
+                return
+            text = "".join(part.text or "" for part in event.content.parts)
+            fn_calls = [
+                part.function_call for part in event.content.parts if part.function_call
+            ]
+            if text:
+                click.echo(click.style(f"[{event.author}]: ", fg="cyan") + text)
+            for fc in fn_calls:
+                click.echo(
+                    click.style(f"[{event.author}] ", fg="yellow")
+                    + f"→ {fc.name}({dict(fc.args) if fc.args else ''})"
+                )
+
+        async def _run_turn_and_print(manager, msg):
+            async for event in manager.run_turn_stream(session_id, msg):
+                _print_event(event)
+
+        async def _drain_inbox_loop(manager):
+            """Poll inbox while user is typing; run turn when messages arrive."""
+            instance = manager.get_instance(session_id)
+            while True:
+                await asyncio.sleep(0.5)
+                if not instance or instance.state.value != "sleeping":
+                    continue
+                if not await instance.inbox.has_pending():
+                    continue
+                click.echo(
+                    click.style("[system]: ", fg="yellow")
+                    + "inbox message received, processing..."
+                )
+                await _run_turn_and_print(manager, "")
+                if fake_user_fn:
+                    while True:
+                        snap = await session_service.get_session(
+                            app_name=app_name,
+                            user_id=session_user_id,
+                            session_id=session_id,
+                        )
+                        next_msg = await fake_user_fn(snap)
+                        if next_msg is None:
+                            break
+                        click.echo(
+                            click.style("[fake_user]: ", fg="magenta") + next_msg
+                        )
+                        await _run_turn_and_print(
+                            manager,
+                            types.Content(
+                                role="user",
+                                parts=[types.Part(text=next_msg)],
+                            ),
+                        )
+
+        async def _run_turn_with_fake_user(manager, msg):
+            """Run one turn, then loop fake_user if configured."""
+            current_msg = msg
+            while True:
+                await _run_turn_and_print(manager, current_msg)
+                if not fake_user_fn:
+                    break
+                session_snapshot = await session_service.get_session(
+                    app_name=app_name,
+                    user_id=session_user_id,
+                    session_id=session_id,
+                )
+                next_msg = await fake_user_fn(session_snapshot)
+                if next_msg is None:
+                    break
+                click.echo(click.style("[fake_user]: ", fg="magenta") + next_msg)
+                current_msg = types.Content(
+                    role="user",
+                    parts=[types.Part(text=next_msg)],
+                )
+
+        async def _main_loop():
+            manager = opensage_session.agent_manager
+            manager.mark_externally_managed(session_id)
+            await manager.start()
+            inbox_task = asyncio.create_task(
+                _drain_inbox_loop(manager), name="cli-inbox-poll"
+            )
+            try:
+                if prompt:
+                    click.echo(click.style("[user]: ", fg="green") + prompt)
+                    await _run_turn_with_fake_user(manager, prompt)
+                else:
+                    click.secho(
+                        f"Running agent {root_agent.name}, type 'exit' to quit.",
+                        fg="green",
+                    )
+                    while True:
+                        try:
+                            query = await asyncio.get_event_loop().run_in_executor(
+                                None, lambda: input("[user]: ")
+                            )
+                        except EOFError:
+                            break
+                        if not query or not query.strip():
+                            continue
+                        if query.strip() == "exit":
+                            break
+                        await _run_turn_with_fake_user(manager, query)
+            finally:
+                inbox_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await inbox_task
+                manager.unmark_externally_managed(session_id)
+                await manager.shutdown()
+
+        signal.signal(signal.SIGINT, _cli_signal_handler)
+        signal.signal(signal.SIGTERM, _cli_signal_handler)
+        asyncio.run(_main_loop())
+
+    except (KeyboardInterrupt, SystemExit):
+        click.secho("\nShutting down...", fg="yellow")
+    finally:
+        if session_id is not None:
+            if auto_cleanup:
+                try:
+                    cleanup_opensage_session(session_id)
+                except Exception:
+                    logger.exception("Failed to clean up session: %s", session_id)
+            elif opensage_session is not None:
+                prev_sigint = signal.signal(signal.SIGINT, signal.SIG_IGN)
+                prev_sigterm = signal.signal(signal.SIGTERM, signal.SIG_IGN)
+                try:
+                    store_dir = _persist_session_snapshot(
+                        opensage_session=opensage_session,
+                        agent_dir=agent_dir,
+                        app_name=app_name,
+                        user_id=session_user_id,
+                        root_agent_name=getattr(root_agent, "name", "agent"),
+                    )
+                    click.secho(f"Session snapshot saved to {store_dir}", fg="yellow")
+                except Exception:
+                    logger.exception(
+                        "Failed to persist session snapshot: %s", session_id
+                    )
+                finally:
+                    signal.signal(signal.SIGINT, prev_sigint)
+                    signal.signal(signal.SIGTERM, prev_sigterm)
+
+
 @main.command("review")
 @click.option(
     "--host",

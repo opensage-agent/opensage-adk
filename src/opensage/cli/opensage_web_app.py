@@ -220,20 +220,15 @@ class OpenSageWebServer:
     def _resolve_runtime_status(self, session_id: str) -> str | None:
         """Query AgentManager for the live status of a subagent instance.
 
-        Returns ``"running"`` / ``"completed"`` based on in-memory state, or
-        ``None`` when the manager is unavailable (fall back to file inference).
+        Returns the state value string, or None when manager is unavailable.
         """
         manager = self._get_agent_manager()
         if manager is None:
             return None
         inst = manager.get_instance(session_id)
         if inst is None:
-            return "completed"
-        from opensage.orchestration.types import AgentInstanceState
-
-        if inst.state == AgentInstanceState.RUNNING:
-            return "running"
-        return "completed"
+            return "sleeping"
+        return inst.state.value
 
     def _get_root_instance(self):
         """Return the root AgentInstance if available, else None."""

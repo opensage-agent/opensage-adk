@@ -8,9 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from opensage.toolbox.general.sandbox_management import (
-    _truncate,
     create_sandbox,
-    exec_in_sandbox,
     list_active_sandboxes,
     stop_sandbox,
 )
@@ -103,22 +101,6 @@ def _patch_session(session):
 # ---------------------------------------------------------------------------
 
 
-class TestTruncate:
-    def test_short_text_unchanged(self):
-        assert _truncate("hello") == "hello"
-
-    def test_long_text_truncated(self):
-        text = "x" * 100_000
-        result = _truncate(text)
-        assert len(result) < len(text)
-        assert "truncated" in result
-        assert "100000 bytes total" in result
-
-    def test_exact_boundary(self):
-        text = "a" * (50 * 1024)
-        assert _truncate(text) == text  # exactly at limit, no truncation
-
-
 # ---------------------------------------------------------------------------
 # list_active_sandboxes
 # ---------------------------------------------------------------------------
@@ -167,67 +149,6 @@ class TestListActiveSandboxes:
 
         assert result["sandboxes"]["x"]["image"] == "real:img"
         assert result["sandboxes"]["x"]["working_dir"] == "/real"
-
-
-# ---------------------------------------------------------------------------
-# exec_in_sandbox
-# ---------------------------------------------------------------------------
-
-
-class TestExecInSandbox:
-    @pytest.mark.asyncio
-    async def test_success(self):
-        sb = FakeSandbox()
-        sb.set_run_result("hello world\n", 0)
-        mgr = FakeManager({"main": sb})
-        session = FakeSession(mgr)
-        ctx = _make_tool_context()
-        with _patch_session(session):
-            result = await exec_in_sandbox("main", "echo hello world", ctx)
-        assert "hello world" in result
-
-    @pytest.mark.asyncio
-    async def test_nonzero_exit(self):
-        sb = FakeSandbox()
-        sb.set_run_result("not found", 127)
-        mgr = FakeManager({"main": sb})
-        session = FakeSession(mgr)
-        ctx = _make_tool_context()
-        with _patch_session(session):
-            result = await exec_in_sandbox("main", "bad_cmd", ctx)
-        assert "[exit_code: 127]" in result
-
-    @pytest.mark.asyncio
-    async def test_sandbox_not_found(self):
-        mgr = FakeManager({"main": FakeSandbox()})
-        session = FakeSession(mgr)
-        ctx = _make_tool_context()
-        with _patch_session(session):
-            result = await exec_in_sandbox("nonexistent", "echo hi", ctx)
-        assert "not found" in result
-        assert "main" in result  # lists active sandboxes
-
-    @pytest.mark.asyncio
-    async def test_empty_output(self):
-        sb = FakeSandbox()
-        sb.set_run_result("", 0)
-        mgr = FakeManager({"main": sb})
-        session = FakeSession(mgr)
-        ctx = _make_tool_context()
-        with _patch_session(session):
-            result = await exec_in_sandbox("main", "true", ctx)
-        assert result == "(no output)"
-
-    @pytest.mark.asyncio
-    async def test_output_truncation(self):
-        sb = FakeSandbox()
-        sb.set_run_result("x" * 100_000, 0)
-        mgr = FakeManager({"main": sb})
-        session = FakeSession(mgr)
-        ctx = _make_tool_context()
-        with _patch_session(session):
-            result = await exec_in_sandbox("main", "generate_lots", ctx)
-        assert "truncated" in result
 
 
 # ---------------------------------------------------------------------------

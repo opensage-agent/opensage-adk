@@ -393,6 +393,23 @@ def _resolve_saved_session_dir(resume_from: Optional[str]) -> Path:
             f"No saved sessions found under {_SESSION_STORE_ROOT}."
         )
 
+    # Suffix match: find dirs whose name ends with the given string
+    suffix_matches = [
+        p
+        for p in _SESSION_STORE_ROOT.iterdir()
+        if _is_saved_session_dir(p) and p.name.endswith(resume_from)
+    ]
+
+    if len(suffix_matches) == 1:
+        return suffix_matches[0]
+
+    if len(suffix_matches) > 1:
+        names = ", ".join(sorted(p.name for p in suffix_matches))
+        raise click.ClickException(
+            f"Multiple saved sessions match '{resume_from}': {names}"
+        )
+
+    # Exact directory name (no suffix match found)
     exact_match = (_SESSION_STORE_ROOT / resume_from).resolve()
     if exact_match.exists():
         if not exact_match.is_dir():

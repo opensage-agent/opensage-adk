@@ -875,16 +875,12 @@ def cli_review(
     from opensage.orchestration.persistence import sanitize_adk_session
 
     store_dir = _resolve_review_session_dir(session_path)
-    session_id = store_dir.name
 
     inst_root = store_dir / "instances"
     if not inst_root.exists():
         raise click.ClickException(
             f"No instances/ directory found in {store_dir}. Nothing to review."
         )
-
-    click.secho(f"Review mode — session {session_id}", fg="cyan")
-    click.secho("Read-only viewer (no LLM, no sandbox).", fg="yellow")
 
     session_service = OpenSageInMemorySessionService()
     artifact_service = InMemoryArtifactService()
@@ -893,6 +889,7 @@ def cli_review(
 
     app_name = "app"
     root_agent_name = "agent"
+    root_session_id = None
     loaded = 0
     for traj_path in inst_root.rglob("traj.json"):
         inst_dir = traj_path.parent
@@ -903,6 +900,7 @@ def cli_review(
             if inst_meta.get("parent_session_id") is None:
                 root_agent_name = inst_meta.get("agent_name", root_agent_name)
                 app_name = inst_meta.get("app_name", app_name)
+                root_session_id = sid
         else:
             sid = inst_dir.name
 
@@ -914,6 +912,10 @@ def cli_review(
         session_service.inject_session(session)
         loaded += 1
 
+    session_id = root_session_id or store_dir.name
+
+    click.secho(f"Review mode — session {session_id}", fg="cyan")
+    click.secho("Read-only viewer (no LLM, no sandbox).", fg="yellow")
     click.secho(f"Loaded {loaded} session(s) from instances/.", fg="cyan")
 
     stub_agent = _BaseAgent(name=root_agent_name)

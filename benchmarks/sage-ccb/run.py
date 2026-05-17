@@ -86,6 +86,9 @@ class SAGE_CCB_Bench(Evaluation):
 
     judge_model: str = "claude-opus-4-6"
     judge_error_is_pass: bool = False
+    skip_services: bool = False
+    extra_files: str | None = None
+    extra_prompt: str | None = None
 
     def __post_init__(self) -> None:
         if not self.agent_dir:
@@ -132,10 +135,29 @@ class SAGE_CCB_Bench(Evaluation):
         challenges = self._sample_challenges(sample)
         staged_dir = Path(tempfile.mkdtemp(prefix="opensage_sage_ccb_"))
         stage_challenge_suite(challenges, staged_dir)
+        if self.extra_files:
+            for entry in self.extra_files.split(","):
+                entry = entry.strip()
+                if not entry:
+                    continue
+                src = Path(entry).expanduser().resolve()
+                if not src.exists():
+                    logger.warning("extra_files: %s does not exist, skipping", src)
+                    continue
+                for challenge in challenges:
+                    dest = staged_dir / "challenges" / challenge.canonical_name
+                    dest.mkdir(parents=True, exist_ok=True)
+                    if src.is_dir():
+                        shutil.copytree(src, dest / src.name, dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(src, dest / src.name)
+        prompt = build_suite_prompt(challenges)
+        if self.extra_prompt:
+            prompt += "\n" + self.extra_prompt + "\n"
         return EvaluationTask(
             id=self.name,
             sample=sample,
-            first_user_message=build_suite_prompt(challenges),
+            first_user_message=prompt,
             output_dir=str(Path(self.output_dir)),
             initial_data_dir=str(staged_dir),
             export_dir_in_sandbox="/workspace",
@@ -153,7 +175,7 @@ class SAGE_CCB_Bench(Evaluation):
         self._normalize_ctf_config(temp_config_path)
 
         opensage_session = get_opensage_session(
-            task.session_id, config_path=temp_config_path
+            task.session_id, config_path=temp_config_path, agent_dir=self.agent_dir
         )
         self._ensure_host_workspace_mount(task, opensage_session)
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -256,13 +278,14 @@ class SAGE_CCB_Bench(Evaluation):
         session = None
 
         try:
-            started_services = start_challenge_services(
-                challenges,
-                network_name=self.network_name,
-                compose_output_dir=compose_dir,
-                remove_host_ports=self.remove_host_ports,
-                startup_deadline=run_deadline,
-            )
+            if not self.skip_services:
+                started_services = start_challenge_services(
+                    challenges,
+                    network_name=self.network_name,
+                    compose_output_dir=compose_dir,
+                    remove_host_ports=self.remove_host_ports,
+                    startup_deadline=run_deadline,
+                )
 
             logger.info("Starting SAGE-CCB suite task %s", task.id)
             self._before_generate_one_callback(task)
@@ -348,7 +371,8 @@ class SAGE_CCB_Bench(Evaluation):
         finally:
             self._persist_session_snapshot(task)
             self._cleanup_opensage_session(task)
-            stop_challenge_services(started_services)
+            if not self.skip_services:
+                stop_challenge_services(started_services)
             if task.initial_data_dir:
                 shutil.rmtree(task.initial_data_dir, ignore_errors=True)
             self._cleanup_live_workspace_if_archived(task)

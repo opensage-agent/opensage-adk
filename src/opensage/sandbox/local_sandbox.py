@@ -177,6 +177,10 @@ class LocalSandbox(BaseSandbox):
         return result_map
 
     @classmethod
+    def prepare_attach_config(cls, container_config, **kwargs) -> None:
+        pass
+
+    @classmethod
     def checkpoint(cls) -> str:
         raise NotImplementedError("Checkpoint is not implemented for LocalSandbox")
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import re
 
-from opensage.memory.file_based.long_term import LONG_TERM_KNOWLEDGE_PATH
+from opensage.memory.file_based.long_term import get_long_term_knowledge_path
 
 RUNTIME_MEMORY_CONTEXT_START = "[[OPENSAGE_RUNTIME_MEMORY_CONTEXT]]"
 RUNTIME_MEMORY_CONTEXT_END = "[[/OPENSAGE_RUNTIME_MEMORY_CONTEXT]]"
@@ -30,7 +30,7 @@ def build_file_runtime_memory_context(
     user-configurable ``auto_insert_prompt_file`` and is injected as a
     separate block.
     """
-    long_term_dir = os.path.dirname(LONG_TERM_KNOWLEDGE_PATH)
+    long_term_dir = os.path.dirname(get_long_term_knowledge_path())
     facts = (
         f"- Agent: `{agent_name}` | session_id: `{session_id}`\n"
         f"- Short-term memory dir (per-agent): `{agent_mem_dir}/`\n"

@@ -5,6 +5,7 @@ from typing import Optional
 from google.adk.tools.tool_context import ToolContext
 
 from opensage.sandbox.base_sandbox import BaseSandbox
+from opensage.sandbox.sandbox_paths import get_sandbox_scripts
 from opensage.session.neo4j_client import AsyncNeo4jClient
 from opensage.toolbox.coverage.llvm_cov import parse_llvm_coverage_json
 from opensage.toolbox.sandbox_requirements import requires_sandbox
@@ -125,7 +126,7 @@ async def run_coverage(testcase_path: str, *, tool_context: ToolContext) -> dict
     msg, err = await cov_sandbox.arun_command_in_container(
         [
             "bash",
-            "/sandbox_scripts/coverage/export_cov.sh",
+            f"{get_sandbox_scripts()}/coverage/export_cov.sh",
             f"/out/{target_binary}",
             saved_testcase_path,
             os.path.dirname(saved_testcase_path),
@@ -182,7 +183,7 @@ async def show_coverage(
     msg, err = await cov_sandbox.arun_command_in_container(
         [
             "bash",
-            "/sandbox_scripts/coverage/show_cov.sh",
+            f"{get_sandbox_scripts()}/coverage/show_cov.sh",
             f"/out/{target_binary}",
             profdata_path,
             name_regex,

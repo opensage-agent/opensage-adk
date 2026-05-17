@@ -1054,11 +1054,13 @@ class OpenSageWebServer:
                         ),
                     )
 
+                from opensage.sandbox.sandbox_paths import get_shared as _get_shared
+
                 filename = Path(file.filename).name
                 resolved_target_path = (
                     target_path.strip()
                     if target_path and target_path.strip()
-                    else f"/shared/uploads/{filename}"
+                    else f"{_get_shared()}/uploads/{filename}"
                 )
                 if resolved_target_path.endswith("/"):
                     resolved_target_path = f"{resolved_target_path}{filename}"

@@ -12,6 +12,7 @@ import time
 import networkx as nx
 
 from opensage.sandbox.base_sandbox import BaseSandbox
+from opensage.sandbox.sandbox_paths import get_sandbox_scripts
 from opensage.session.joern_client import JoernClient
 from opensage.utils.merge_joern_codeql import (
     import_joern_callgraph,
@@ -84,8 +85,9 @@ class JoernInitializer(SandboxInitializer):
           RuntimeError: Raised when this operation fails."""
 
         t0 = time.monotonic()
+        scripts = get_sandbox_scripts()
         msg, err = self.run_command_in_container(
-            ["bash", "/sandbox_scripts/callgraph/init.sh"],
+            ["bash", f"{scripts}/callgraph/init.sh"],
             timeout=3600,
         )
         elapsed = time.monotonic() - t0
@@ -98,7 +100,7 @@ class JoernInitializer(SandboxInitializer):
         msg, err = self.run_command_in_container(
             [
                 "bash",
-                "/sandbox_scripts/callgraph/run_joern.sh",
+                f"{scripts}/callgraph/run_joern.sh",
                 opensage_session.config.src_dir_in_sandbox,
             ],
             timeout=3600,

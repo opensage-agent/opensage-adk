@@ -59,6 +59,11 @@ class OpenSageSession:
         else:
             self.config = OpenSageConfig.create_default()
 
+        # Apply sandbox path configuration (mem_root, shared, etc.)
+        from opensage.sandbox.sandbox_paths import configure_from_config
+
+        configure_from_config(self.config)
+
         # Initialize session-specific managers
         from .opensage_neo4j_client_manager import OpenSageNeo4jClientManager
         from .opensage_sandbox_manager import OpenSageSandboxManager

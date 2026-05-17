@@ -551,7 +551,7 @@ class ToolLoader:
     def generate_system_prompt_part(
         tools_metadata: List[Dict[str, Any]],
         sandbox_name: Optional[str] = None,
-        remote_root: str = "/bash_tools",
+        remote_root: str | None = None,
     ) -> tuple[str, Set[str]]:
         """Generate system prompt from tool metadata.
 
@@ -560,6 +560,11 @@ class ToolLoader:
             - prompt_text: The generated prompt text
             - required_sandboxes: Set of sandbox types required by the tools
         """
+        if remote_root is None:
+            from opensage.sandbox.sandbox_paths import get_bash_tools
+
+            remote_root = get_bash_tools()
+
         lines = []
         required_sandboxes: Set[str] = set()
 

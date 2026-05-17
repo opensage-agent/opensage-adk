@@ -18,6 +18,7 @@ from .config_dataclass import (
     OpenSageConfig,
     OpenSandboxConfig,
     SandboxConfig,
+    SandboxPathsConfig,
     load_config_from_toml,
 )
 
@@ -26,6 +27,7 @@ __all__ = [
     "Neo4jConfig",
     "ContainerConfig",
     "SandboxConfig",
+    "SandboxPathsConfig",
     "OpenSandboxConfig",
     "ModelConfig",
     "ModelEntry",

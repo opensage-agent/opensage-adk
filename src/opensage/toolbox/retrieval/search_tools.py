@@ -4,6 +4,7 @@ import shlex
 
 from google.adk.tools.tool_context import ToolContext
 
+from opensage.sandbox.sandbox_paths import get_src
 from opensage.toolbox.sandbox_requirements import requires_sandbox
 from opensage.utils.agent_utils import (
     get_neo4j_client_from_context,
@@ -41,9 +42,8 @@ async def grep_tool(expression: str, *, tool_context: ToolContext) -> dict:
 
     # Use head to limit output and prevent broken pipe issues
     # The || true ensures the command always exits with code 0 even if grep finds nothing
-    grep_command = (
-        f"grep -rniE {escaped_expression} -- /src 2>/dev/null | head -150 || true"
-    )
+    src_dir = get_src()
+    grep_command = f"grep -rniE {escaped_expression} -- {shlex.quote(src_dir)} 2>/dev/null | head -150 || true"
 
     output = ""
     try:

@@ -9,6 +9,7 @@ import time
 
 from opensage.sandbox.base_sandbox import BaseSandbox
 from opensage.sandbox.initializers.base import SandboxInitializer
+from opensage.sandbox.sandbox_paths import get_sandbox_scripts, get_shared
 from opensage.utils.merge_joern_codeql import insert_codeql_results_to_cpg
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ class CodeQLInitializer(SandboxInitializer):
             msg, err = self.run_command_in_container(
                 [
                     "bash",
-                    "/sandbox_scripts/callgraph/run_codeql.sh",
+                    f"{get_sandbox_scripts()}/callgraph/run_codeql.sh",
                     opensage_session.config.build.compile_command,
                 ],
                 timeout=3600,
@@ -66,7 +67,7 @@ class CodeQLInitializer(SandboxInitializer):
             with tempfile.TemporaryDirectory() as tmpdir:
                 for res_file in ["results.csv", "fp_accesses.csv", "expr_calls.csv"]:
                     self.copy_file_from_container(
-                        f"/shared/out/callgraph/{res_file}",
+                        f"{get_shared()}/out/callgraph/{res_file}",
                         os.path.join(tmpdir, res_file),
                     )
 

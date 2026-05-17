@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.sandbox_paths import get_sandbox_scripts
 
 from .base import SandboxInitializer
 
@@ -23,7 +24,7 @@ class CoverageInitializer(SandboxInitializer):
         )
 
         msg, err = self.run_command_in_container(
-            command=["bash", "/sandbox_scripts/ossfuzz/compile_coverage.sh"],
+            command=["bash", f"{get_sandbox_scripts()}/ossfuzz/compile_coverage.sh"],
             timeout=3600,
         )
 

@@ -227,7 +227,7 @@ async def log_finding(finding: str, tool_context: ToolContext):
 
     from opensage.memory.file_based.short_term.session_files import (
         MEM_AGENT_DIR_KEY,
-        SHORT_TERM_MEM_ROOT,
+        _short_term_root,
     )
     from opensage.utils.agent_utils import get_sandbox_from_context
 
@@ -242,14 +242,15 @@ async def log_finding(finding: str, tool_context: ToolContext):
         state = getattr(session, "state", None) or {}
         agent_mem_dir = state.get(MEM_AGENT_DIR_KEY, "")
 
-        if not agent_mem_dir or not agent_mem_dir.startswith(SHORT_TERM_MEM_ROOT):
+        st_root = _short_term_root()
+        if not agent_mem_dir or not agent_mem_dir.startswith(st_root):
             return {"logged": False, "error": "no valid memory dir for this session"}
 
-        # Walk up to root: root dir is directly under SHORT_TERM_MEM_ROOT
+        # Walk up to root: root dir is directly under short_term_root
         # e.g. /mem/short_term/ctf_agent__<root_sid>/subagent__<child_sid>/
         # Root is: /mem/short_term/ctf_agent__<root_sid>/
-        parts = agent_mem_dir.replace(SHORT_TERM_MEM_ROOT + "/", "").split("/")
-        root_dir = f"{SHORT_TERM_MEM_ROOT}/{parts[0]}"
+        parts = agent_mem_dir.replace(st_root + "/", "").split("/")
+        root_dir = f"{st_root}/{parts[0]}"
         findings_path = f"{root_dir}/findings.md"
 
         # Append the new finding

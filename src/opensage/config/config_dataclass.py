@@ -190,6 +190,21 @@ class ContainerConfig:
 
 
 @dataclass
+class SandboxPathsConfig:
+    """Configurable paths inside the sandbox (or host, for local backend).
+
+    Docker backends mount volumes at these paths inside the container.
+    The local backend can override them to point at host directories.
+    """
+
+    mem_root: str = "/mem"
+    shared: str = "/shared"
+    bash_tools: str = "/bash_tools"
+    sandbox_scripts: str = "/sandbox_scripts"
+    src: str = "/src"
+
+
+@dataclass
 class SandboxConfig:
     """Configuration for different sandbox types."""
 
@@ -201,6 +216,7 @@ class SandboxConfig:
     # "<abs_host_path>:<abs_container_path>:<ro|rw>" entries.
     mount_host_paths: List[str] = field(default_factory=list)
     backend: str = "native"
+    paths: SandboxPathsConfig = field(default_factory=SandboxPathsConfig)
     opensandbox: Optional["OpenSandboxConfig"] = None
     # Global tolerations applied to all k8s pods (init/chmod/session). If set,
     # overrides/augments any per-container tolerations in ContainerConfig.extra.

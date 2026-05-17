@@ -17,9 +17,19 @@ from opensage.utils.agent_utils import sanitize_agent_name
 
 logger = logging.getLogger(__name__)
 
-MEM_ROOT_DIR = "/mem"
-SHORT_TERM_MEM_ROOT = os.path.join(MEM_ROOT_DIR, "short_term")
 MEM_AGENT_DIR_KEY = "_mem_agent_dir"
+
+
+def _mem_root() -> str:
+    """Return the configured mem_root (sandbox-side path)."""
+    from opensage.sandbox.sandbox_paths import get_mem_root
+
+    return get_mem_root()
+
+
+def _short_term_root(mem_root: str | None = None) -> str:
+    return os.path.join(mem_root or _mem_root(), "short_term")
+
 
 # Host-side instance directory.
 HOST_SESSION_ROOT = Path.home() / ".local" / "opensage" / "sessions"
@@ -36,10 +46,12 @@ def _build_session_dir_name(agent_name: str, session_id: str) -> str:
     return f"{sanitize_agent_name(agent_name)}__{session_id}"
 
 
-def compute_root_session_mem_dir(*, agent_name: str, session_id: str) -> str:
+def compute_root_session_mem_dir(
+    *, agent_name: str, session_id: str, mem_root: str | None = None
+) -> str:
     """Compute the root short-term memory directory inside the sandbox."""
     return os.path.join(
-        SHORT_TERM_MEM_ROOT,
+        _short_term_root(mem_root),
         _build_session_dir_name(agent_name, session_id),
     )
 
@@ -73,11 +85,7 @@ def _compute_agent_mem_dir(invocation_context) -> str:
     if not isinstance(state, dict):
         raise ValueError("Session state must be a dict to resolve memory directory")
     existing = state.get(MEM_AGENT_DIR_KEY)
-    if (
-        isinstance(existing, str)
-        and existing
-        and existing.startswith(SHORT_TERM_MEM_ROOT)
-    ):
+    if isinstance(existing, str) and existing:
         return existing
     raise ValueError("Session memory directory missing from session.state")
 
@@ -117,7 +125,7 @@ async def _ensure_file_memory_roots(invocation_context) -> None:
     """Create shared file-memory roots in the main sandbox."""
     sandbox = _get_main_sandbox(invocation_context)
     await sandbox.arun_command_in_container(
-        f"mkdir -p {shlex.quote(SHORT_TERM_MEM_ROOT)}"
+        f"mkdir -p {shlex.quote(_short_term_root())}"
     )
     await ensure_long_term_knowledge_store(invocation_context)
 

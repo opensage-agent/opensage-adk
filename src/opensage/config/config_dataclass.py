@@ -592,6 +592,14 @@ class OpenSageConfig:
             ),
         )
 
+        # Resolve relative sandbox paths against the config file's directory
+        if config.sandbox and config.sandbox.paths:
+            paths = config.sandbox.paths
+            for field in ("mem_root", "shared", "bash_tools", "sandbox_scripts", "src"):
+                val = getattr(paths, field, None)
+                if val and not os.path.isabs(val):
+                    setattr(paths, field, str(Path.cwd() / val))
+
         # Set parent config references to enable dynamic host resolution
         if config.neo4j:
             config.neo4j._parent_config = config

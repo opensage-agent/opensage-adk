@@ -1188,17 +1188,28 @@ def cli_run(
     show_default=True,
     help="Logging level for the server.",
 )
+@click.option(
+    "--live",
+    is_flag=True,
+    default=False,
+    help="Live mode: poll traj.json files for updates (for watching running agents).",
+)
 @click.argument("session_path", required=False, default=None)
 def cli_review(
     host: str,
     port: int,
     log_level: str,
+    live: bool,
     session_path: Optional[str],
 ):
     """Read-only session viewer — no LLM, no sandbox, no core services.
 
     SESSION_PATH is a session directory under ~/.local/opensage/sessions/
     (name, suffix, or absolute path).  If omitted, opens the most recent one.
+
+    With --live, the viewer polls traj.json files every few seconds and
+    updates the UI with new events. Use this to watch a running agent
+    started with `opensage run`.
     """
     logging.basicConfig(level=getattr(logging, log_level.upper()))
 
@@ -1223,31 +1234,37 @@ def cli_review(
     app_name = "app"
     root_agent_name = "agent"
     root_session_id = None
-    loaded = 0
-    for traj_path in inst_root.rglob("traj.json"):
-        inst_dir = traj_path.parent
-        inst_meta_path = inst_dir / "metadata.json"
-        if inst_meta_path.exists():
-            inst_meta = json.loads(inst_meta_path.read_text(encoding="utf-8"))
-            sid = inst_meta.get("session_id", inst_dir.name)
-            if inst_meta.get("parent_session_id") is None:
-                root_agent_name = inst_meta.get("agent_name", root_agent_name)
-                app_name = inst_meta.get("app_name", app_name)
-                root_session_id = sid
-        else:
-            sid = inst_dir.name
 
-        session = Session.model_validate_json(traj_path.read_text(encoding="utf-8"))
-        session = sanitize_adk_session(session, copy=False)
-        session.id = sid
-        session.app_name = app_name
-        session.user_id = "user"
-        session_service.inject_session(session)
-        loaded += 1
+    def _load_all_sessions():
+        nonlocal app_name, root_agent_name, root_session_id
+        loaded = 0
+        for traj_path in inst_root.rglob("traj.json"):
+            inst_dir = traj_path.parent
+            inst_meta_path = inst_dir / "metadata.json"
+            if inst_meta_path.exists():
+                inst_meta = json.loads(inst_meta_path.read_text(encoding="utf-8"))
+                sid = inst_meta.get("session_id", inst_dir.name)
+                if inst_meta.get("parent_session_id") is None:
+                    root_agent_name = inst_meta.get("agent_name", root_agent_name)
+                    app_name = inst_meta.get("app_name", app_name)
+                    root_session_id = sid
+            else:
+                sid = inst_dir.name
 
+            session = Session.model_validate_json(traj_path.read_text(encoding="utf-8"))
+            session = sanitize_adk_session(session, copy=False)
+            session.id = sid
+            session.app_name = app_name
+            session.user_id = "user"
+            session_service.inject_session(session)
+            loaded += 1
+        return loaded
+
+    loaded = _load_all_sessions()
     session_id = root_session_id or store_dir.name
 
-    click.secho(f"Review mode — session {session_id}", fg="cyan")
+    mode_label = "Live" if live else "Review"
+    click.secho(f"{mode_label} mode — session {session_id}", fg="cyan")
     click.secho("Read-only viewer (no LLM, no sandbox).", fg="yellow")
     click.secho(f"Loaded {loaded} session(s) from instances/.", fg="cyan")
 
@@ -1269,6 +1286,21 @@ def cli_review(
         enable_dev_ui=True,
     )
 
+    if live:
+        import threading
+
+        def _poll_loop():
+            while True:
+                time.sleep(3)
+                try:
+                    _load_all_sessions()
+                except Exception:
+                    pass
+
+        poller = threading.Thread(target=_poll_loop, daemon=True)
+        poller.start()
+        click.secho("Live polling enabled (3s interval).", fg="yellow")
+
     config = uvicorn.Config(
         app,
         host=host,
@@ -1276,7 +1308,7 @@ def cli_review(
         log_level=log_level.lower(),
     )
     click.secho(
-        f"Review UI at http://{host}:{port} (session: {session_id})",
+        f"{mode_label} UI at http://{host}:{port} (session: {session_id})",
         fg="green",
     )
     server = uvicorn.Server(config)

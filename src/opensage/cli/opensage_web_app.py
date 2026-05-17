@@ -611,6 +611,17 @@ class OpenSageWebServer:
                             role="user",
                             parts=[types.Part.from_text(text=next_msg)],
                         )
+                        fake_user_event = Event(
+                            author="fake_user",
+                            content=current_msg,
+                        )
+                        yield (
+                            "data: "
+                            + fake_user_event.model_dump_json(
+                                exclude_none=True, by_alias=True
+                            )
+                            + "\n\n"
+                        )
                         state_delta = None
                         invocation_id = None
 

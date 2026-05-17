@@ -9,7 +9,6 @@ from datetime import datetime
 from typing import List, Optional, Set
 
 from google.adk.agents.base_agent import BaseAgent
-from google.adk.apps.llm_event_summarizer import LlmEventSummarizer
 from google.adk.events.event import Event
 from google.adk.events.event_actions import EventActions, EventCompaction
 from google.adk.models.lite_llm import LiteLlm
@@ -22,9 +21,7 @@ from opensage.memory.file_based.short_term import (
 )
 from opensage.utils.agent_utils import (
     create_litellm_model,
-    discover_all_agents,
     get_opensage_session_id_from_context,
-    register_callback_to_all_agents,
     save_content_to_sandbox_file,
 )
 
@@ -578,20 +575,19 @@ class OpenSageFullEventSummarizer:
         )
 
 
-async def history_summarizer_callback(tool, args, tool_context, tool_response):
+async def history_compaction_before_model(callback_context, llm_request):
+    """Run history compaction as a before_model_callback.
+
+    Triggered once before each LLM call.  At this point all tool responses
+    from the previous round are already appended to the session, so the
+    budget check sees the true context size.
     """
-    Compaction-based history summarization:
-    - Decide a stable window (older events) to compact based on thresholds
-    - Create a compaction Event via LlmEventSummarizer
-    - Append compaction event; do not delete/overwrite original events
-    - Neo4j: record summary node and link to the original window
-    """
-    # Import here to avoid circular import
     from opensage.session import get_opensage_session
 
-    session = tool_context._invocation_context.session
-    agent = tool_context._invocation_context.agent
-    current_branch = tool_context._invocation_context.branch
+    inv_ctx = callback_context._invocation_context
+    session = inv_ctx.session
+    agent = inv_ctx.agent
+    current_branch = inv_ctx.branch
     if not hasattr(agent, "canonical_model"):
         logger.warning("Agent has no model, skipping history compaction")
         return None
@@ -600,7 +596,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     if len(events) < 2:
         return None
 
-    opensage_session_id = get_opensage_session_id_from_context(tool_context)
+    opensage_session_id = get_opensage_session_id_from_context(callback_context)
     opensage_session = get_opensage_session(opensage_session_id)
     comp_cfg = getattr(opensage_session.config.history, "events_compaction", None)
 
@@ -609,7 +605,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     )
     compaction_percent = getattr(comp_cfg, "compaction_percent", 50) if comp_cfg else 50
 
-    # Trigger check: use consumption-side folded view of current branch full history
     try:
         from google.adk.flows.llm_flows.contents import (
             _get_contents as _adk_get_contents,
@@ -656,7 +651,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     )
     effective_budget = None
     if budget_chars is not None:
-        # Mirror legacy behavior: subtract tool response threshold to reserve headroom
         try:
             tool_resp_budget = int(
                 getattr(opensage_session.config.history, "max_tool_response_length", 0)
@@ -679,7 +673,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
             f"{total_chars} > {effective_budget}"
         )
 
-    # Determine last compaction boundary for windowing
     last_compaction_end_ts: float = float("-inf")
     for ev in reversed(events):
         if getattr(ev, "actions", None) and getattr(ev.actions, "compaction", None):
@@ -690,7 +683,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
                 last_compaction_end_ts = max(last_compaction_end_ts, comp.end_timestamp)
             break
 
-    # Candidates: after last end ts, same branch, exclude compaction events
     candidates: List[Event] = []
     for ev in events:
         if current_branch and ev.branch and ev.branch != current_branch:
@@ -713,9 +705,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         )
         return None
 
-    # Build a maximal legal prefix window [0..k) that guarantees pairing:
-    # - Within the chosen prefix, every function_call id must have a matching
-    #   function_response id, and vice versa.
     k = 0
     pending_calls: Set[str] = set()
     pending_resps: Set[str] = set()
@@ -735,7 +724,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
                 if fr and getattr(fr, "id", None):
                     resp_ids.append(fr.id)
 
-        # Update pending with calls first
         for cid in call_ids:
             seen_calls.add(cid)
             if cid in pending_resps:
@@ -743,7 +731,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
             else:
                 pending_calls.add(cid)
 
-        # Then update with responses
         for rid in resp_ids:
             seen_resps.add(rid)
             if rid in pending_calls:
@@ -751,7 +738,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
             else:
                 pending_resps.add(rid)
 
-        # If no pending on both sides, prefix [0..i] is legal
         if not pending_calls and not pending_resps:
             k = i + 1
 
@@ -765,7 +751,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         )
         return None
 
-    # Choose summarization model
     model_name = getattr(opensage_session.config.llm, "summarize_model", None)
     if model_name:
         summarizer_model = create_litellm_model(model_name)
@@ -773,7 +758,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         summarizer_model = agent.canonical_model
 
     summarizer = OpenSageFullEventSummarizer(model=summarizer_model)
-    # Build folded full-history context text for the summarizer (current branch)
     folded_context_text: Optional[str] = None
     if _adk_get_contents is not None:
         try:
@@ -789,9 +773,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         except Exception as _e:
             logger.warning(f"Failed to build folded context text: {_e}")
 
-    # Build quota info for the summary
     quota_info = None
-    inv_ctx = tool_context._invocation_context
     try:
         limit = int(
             getattr(getattr(inv_ctx, "run_config", None), "max_llm_calls", 0) or 0
@@ -823,16 +805,8 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         logger.info("No compaction generated by model, skipping compaction")
         return None
 
-    # Embed pinned.md content into the compaction result so it survives
-    # future compaction cycles (compaction events are excluded from
-    # candidate windows).  The [[PINNED_CONTEXT]] marker with a
-    # compaction_ts lets the agent identify the most recent version when
-    # multiple compaction events exist.
-    # NOTE: compacted_content has role="model" but the pinned block is
-    # user/system-provided — the clear delimiters mitigate any semantic
-    # mismatch.
     try:
-        pinned = await _read_pinned_content(tool_context)
+        pinned = await _read_pinned_content(callback_context)
         if pinned:
             end_ts_for_pin = window_events[-1].timestamp if window_events else 0
             pinned_block = (
@@ -863,29 +837,27 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         author="user", actions=actions, invocation_id=Event.new_id()
     )
 
-    # Attach current branch to compaction event
     compaction_event.branch = current_branch
-    # Use current invocation_id for traceability if available
     compaction_event.invocation_id = getattr(
-        tool_context._invocation_context,
+        inv_ctx,
         "invocation_id",
         compaction_event.invocation_id,
     )
-    session_service = tool_context._invocation_context.session_service
+    session_service = inv_ctx.session_service
     await session_service.append_event(session=session, event=compaction_event)
     try:
         from opensage.memory.file_based.short_term import (
             persist_traj_json_for_invocation,
         )
 
-        await persist_traj_json_for_invocation(tool_context._invocation_context)
+        await persist_traj_json_for_invocation(inv_ctx)
     except Exception as persist_error:
         logger.warning(
             "Failed to persist traj.json after compaction: %s", persist_error
         )
 
     logger.info(
-        f"History compaction appended. Window size={len(window_events)}; "
+        f"History compaction (before_model) appended. Window size={len(window_events)}; "
         f"inv_id={compaction_event.invocation_id}"
     )
     return None

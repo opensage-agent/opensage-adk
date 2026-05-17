@@ -1052,7 +1052,11 @@ def cli_run(
                     click.style("[system]: ", fg="yellow")
                     + "inbox message received, processing..."
                 )
-                await _run_turn_and_print(manager, "")
+                try:
+                    await _run_turn_and_print(manager, "")
+                except Exception:
+                    logger.exception("Error during inbox-triggered turn")
+                    continue
                 if fake_user_fn:
                     while True:
                         snap = await session_service.get_session(
@@ -1066,13 +1070,17 @@ def cli_run(
                         click.echo(
                             click.style("[fake_user]: ", fg="magenta") + next_msg
                         )
-                        await _run_turn_and_print(
-                            manager,
-                            types.Content(
-                                role="user",
-                                parts=[types.Part(text=next_msg)],
-                            ),
-                        )
+                        try:
+                            await _run_turn_and_print(
+                                manager,
+                                types.Content(
+                                    role="user",
+                                    parts=[types.Part(text=next_msg)],
+                                ),
+                            )
+                        except Exception:
+                            logger.exception("Error during fake_user turn")
+                            break
 
         async def _run_turn_with_fake_user(manager, msg):
             """Run one turn, then loop fake_user if configured."""
@@ -1125,7 +1133,7 @@ def cli_run(
                         await _run_turn_with_fake_user(manager, query)
             finally:
                 inbox_task.cancel()
-                with contextlib.suppress(asyncio.CancelledError):
+                with contextlib.suppress(asyncio.CancelledError, Exception):
                     await inbox_task
                 manager.unmark_externally_managed(session_id)
                 await manager.shutdown()

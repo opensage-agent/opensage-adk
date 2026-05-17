@@ -24,6 +24,57 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("opensage." + __name__)
 
+_MAX_INCOMING_MESSAGES_CHARS = 5000
+
+
+def _truncate_incoming_messages(
+    formatted: str, limit: int, saved_path: str | None
+) -> str:
+    if len(formatted) <= limit:
+        return formatted
+    header_end = formatted.find("\n\n")
+    if header_end == -1:
+        header_end = 0
+    file_note = ""
+    if saved_path:
+        file_note = f"\nFull incoming messages saved to: {saved_path}\n"
+    header = formatted[: header_end + 2] if header_end else ""
+    overhead = 150 + len(file_note)
+    remaining = limit - len(header) - overhead
+    if remaining < 200:
+        return formatted[:limit]
+    truncated = (
+        formatted[: header_end + 2 + remaining] if header_end else formatted[:remaining]
+    )
+    truncated += (
+        f"\n\n... [truncated: {len(formatted)} total chars, "
+        f"showing first {limit} — full messages were too large for context]"
+        f"{file_note}"
+    )
+    return truncated
+
+
+async def _save_full_messages(tool_context: "ToolContext", content: str) -> str | None:
+    """Save the full incoming messages to a file in the sandbox, return the path."""
+    try:
+        from opensage.memory.file_based.short_term import (
+            get_current_session_tool_outputs_dir,
+        )
+        from opensage.utils.agent_utils import save_content_to_sandbox_file
+
+        output_dir = get_current_session_tool_outputs_dir(tool_context)
+        return await save_content_to_sandbox_file(
+            context=tool_context,
+            content=content,
+            tool_name="incoming_messages",
+            output_dir=output_dir,
+            file_id=tool_context.function_call_id,
+            file_extension=".log",
+        )
+    except Exception:
+        logger.exception("InboxDeliveryPlugin: failed to save full incoming messages")
+        return None
+
 
 class InboxDeliveryPlugin(BasePlugin):
     """Delivers pending inbox messages on every tool boundary."""
@@ -55,19 +106,22 @@ class InboxDeliveryPlugin(BasePlugin):
 
         formatted = _format_messages_block(messages)
 
-        # Tool results from any OpenSageAgent are guaranteed to be dicts because
-        # ``OpenSageAgent.__init__`` runs ``make_toollikes_safe_dict`` over every
-        # tool, which wraps non-dict returns into ``{"result": value}`` before
-        # the runner ever sees them. So in practice ``result`` is always a dict
-        # here. Anything else means a tool slipped past normalization (third-
-        # party plugin / direct injection) — log and skip rather than silently
-        # changing its return shape.
+        if len(formatted) > _MAX_INCOMING_MESSAGES_CHARS:
+            saved_path = await _save_full_messages(tool_context, formatted)
+            logger.warning(
+                "InboxDeliveryPlugin: truncating _incoming_messages from %d to %d chars"
+                " (full saved to %s)",
+                len(formatted),
+                _MAX_INCOMING_MESSAGES_CHARS,
+                saved_path,
+            )
+            formatted = _truncate_incoming_messages(
+                formatted, _MAX_INCOMING_MESSAGES_CHARS, saved_path
+            )
+
         if isinstance(result, dict):
             result["_incoming_messages"] = formatted
-            return None  # mutate in place, don't override
-        # Defensive fallback: cursor was already advanced by pop_all so these
-        # messages would be silently dropped. Log loudly to surface the bug
-        # and let the caller fix the broken normalization.
+            return None
         logger.error(
             "InboxDeliveryPlugin: tool %r returned non-dict (%s); %d inbox "
             "message(s) dropped because tool result shape cannot carry them. "

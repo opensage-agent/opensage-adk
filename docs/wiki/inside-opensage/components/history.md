@@ -27,7 +27,7 @@ The full output is always persisted to `/workspace/.tool_outputs/<id>` inside th
 
 ### Compaction (Whole-Event-Log)
 
-`history_summarizer_callback` sums the character counts of all folded events. If the total exceeds `max_history_summary_length`, `OpenSageFullEventSummarizer` (in `features/summarization.py`) kicks in:
+`history_compaction_before_model` (in `features/summarization.py`) sums the character counts of all folded events before each LLM call. If the total exceeds `max_history_summary_length`, `OpenSageFullEventSummarizer` kicks in:
 
 1. Find the last compaction boundary.
 2. From events *after* that boundary, take the first `compaction_percent` (default `50`) as the compaction window.

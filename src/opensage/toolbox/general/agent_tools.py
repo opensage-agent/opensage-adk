@@ -236,49 +236,40 @@ async def log_finding(finding: str, tool_context: ToolContext):
         opensage_session = get_opensage_session(opensage_session_id)
         sandbox = get_sandbox_from_context(tool_context, "main")
 
-        # Find root agent's memory dir (findings.md lives there)
-        invocation_context = tool_context._invocation_context
-        session = invocation_context.session
-        state = getattr(session, "state", None) or {}
-        agent_mem_dir = state.get(MEM_AGENT_DIR_KEY, "")
-
-        st_root = _short_term_root()
-        if not agent_mem_dir or not agent_mem_dir.startswith(st_root):
-            return {"logged": False, "error": "no valid memory dir for this session"}
-
-        # Walk up to root: root dir is directly under short_term_root
-        # e.g. /mem/short_term/ctf_agent__<root_sid>/subagent__<child_sid>/
-        # Root is: /mem/short_term/ctf_agent__<root_sid>/
-        parts = agent_mem_dir.replace(st_root + "/", "").split("/")
-        root_dir = f"{st_root}/{parts[0]}"
+        root_dir = "/shared"
         findings_path = f"{root_dir}/findings.md"
 
-        # Append the new finding
         import datetime
 
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
         entry = f"\n- [{timestamp}] {finding}\n"
+        lock_path = f"{findings_path}.lock"
 
-        write_output, write_exit = await sandbox.arun_command_in_container(
-            f"mkdir -p {shlex.quote(root_dir)} && "
-            f"printf %s {shlex.quote(entry)} >> {shlex.quote(findings_path)}"
-        )
-        if write_exit != 0:
-            return {"logged": False, "error": f"write failed: {write_output}"}
+        # Ensure directory exists
+        await sandbox.arun_command_in_container(f"mkdir -p {shlex.quote(root_dir)}")
 
-        # Read all findings
-        all_findings, exit_code = await sandbox.arun_command_in_container(
+        # Acquire file lock — serializes all log_finding calls so that
+        # dedup and contradiction checks see the latest state.
+        lock_cmd = (
+            f"exec 9>{shlex.quote(lock_path)} && flock 9 && "
+            # --- critical section start ---
             f"cat {shlex.quote(findings_path)} 2>/dev/null"
         )
-        if exit_code != 0 or not all_findings.strip():
+        all_findings, exit_code = await sandbox.arun_command_in_container(
+            f"bash -c {shlex.quote(lock_cmd)}"
+        )
+
+        # For the first finding, just append and return
+        lines = [
+            l.strip() for l in (all_findings or "").strip().split("\n") if l.strip()
+        ]
+        if len(lines) < 1:
+            await sandbox.arun_command_in_container(
+                f"bash -c {shlex.quote(f'exec 9>{lock_path} && flock 9 && printf %s {shlex.quote(entry)} >> {shlex.quote(findings_path)}')}"
+            )
             return {"logged": True, "contradictions": None}
 
-        # If fewer than 2 findings, no contradiction check needed
-        lines = [l.strip() for l in all_findings.strip().split("\n") if l.strip()]
-        if len(lines) < 2:
-            return {"logged": True, "contradictions": None}
-
-        # Use a model to check for contradictions
+        # Use a model to check for duplicates, contradictions, completions
         critique_model_name = getattr(
             opensage_session.config.llm, "summarize_model", None
         )
@@ -289,21 +280,35 @@ async def log_finding(finding: str, tool_context: ToolContext):
         else:
             names = opensage_session.llms.list_names()
             if not names:
+                await sandbox.arun_command_in_container(
+                    f"bash -c {shlex.quote(f'exec 9>{lock_path} && flock 9 && printf %s {shlex.quote(entry)} >> {shlex.quote(findings_path)}')}"
+                )
                 return {"logged": True, "contradictions": None}
             model = opensage_session.llms.get(names[0])
 
         prompt = (
-            "Below is a list of findings and dead ends recorded by an AI agent "
-            "working on a security challenge. Check if any findings CONTRADICT "
-            "each other — specifically, does a later finding invalidate the "
-            "assumption behind an earlier dead end?\n\n"
-            f"Findings:\n{all_findings}\n\n"
-            "If you find contradictions, state:\n"
-            "- Which two findings conflict\n"
-            "- Why they contradict\n"
-            "- What the agent should reconsider\n\n"
-            "If no contradictions exist, reply exactly: NO_CONTRADICTIONS\n"
-            "Be concise."
+            "Below is a list of existing findings, followed by a NEW finding "
+            "to be added. Perform three checks:\n\n"
+            "1. DUPLICATE: Is the NEW finding substantively the same as any "
+            "existing finding? (Same discovery, same evidence, even if worded "
+            "differently.) If yes, reply: DUPLICATE_OF: [timestamp]\n\n"
+            "2. CONTRADICTION: Does the NEW finding invalidate the ASSUMPTION "
+            "behind an earlier DEAD END?\n\n"
+            "3. COMPLETION: Does the NEW finding provide a genuinely missing "
+            "piece identified in an earlier PARTIAL entry? A finding that merely "
+            "confirms or adds evidence to an existing finding is NOT a completion "
+            "— that is just consistent. Only flag COMPLETION when a specific gap "
+            "from a PARTIAL is now filled.\n\n"
+            f"Existing findings:\n{all_findings}\n\n"
+            f"NEW finding:\n{finding}\n\n"
+            "IMPORTANT: Prior ⚠️ CONTRADICTION/COMPLETION analyses are already "
+            "recorded in existing findings. Do NOT repeat them. Only report "
+            "NEW interactions involving the NEW finding. Keep each to 2-3 "
+            "sentences max. Do not provide general strategy advice.\n\n"
+            "Reply with one of:\n"
+            "- DUPLICATE_OF: [timestamp] (if duplicate)\n"
+            "- Your contradiction/completion analysis (if found)\n"
+            "- NO_CONTRADICTIONS (if nothing found)"
         )
 
         llm_request = LlmRequest()
@@ -321,17 +326,45 @@ async def log_finding(finding: str, tool_context: ToolContext):
 
         result_text = "".join(result_parts).strip()
 
+        # Handle duplicate — don't append, don't broadcast
+        if "DUPLICATE_OF" in result_text:
+            return {"logged": False, "duplicate": True, "reason": result_text}
+
+        # Not a duplicate — append finding (with lock)
+        append_cmd = f"exec 9>{lock_path} && flock 9 && printf %s {shlex.quote(entry)} >> {shlex.quote(findings_path)}"
+
         if "NO_CONTRADICTIONS" in result_text:
-            return {"logged": True, "contradictions": None}
+            await sandbox.arun_command_in_container(
+                f"bash -c {shlex.quote(append_cmd)}"
+            )
+            contradictions = None
         else:
-            # Append contradiction to findings.md so all agents can see it
+            # Append finding + contradiction together (atomic under lock)
             contradiction_entry = (
                 f"\n- [{timestamp}] \u26a0\ufe0f CONTRADICTION: {result_text}\n"
             )
+            combined = entry + contradiction_entry
+            combined_cmd = f"exec 9>{lock_path} && flock 9 && printf %s {shlex.quote(combined)} >> {shlex.quote(findings_path)}"
             await sandbox.arun_command_in_container(
-                f"printf %s {shlex.quote(contradiction_entry)} >> {shlex.quote(findings_path)}"
+                f"bash -c {shlex.quote(combined_cmd)}"
             )
-            return {"logged": True, "contradictions": result_text}
+            contradictions = result_text
+
+        # Broadcast the finding to all peer agents so they don't need to
+        # poll findings.md.  Use fire-and-forget via the agent manager.
+        try:
+            manager = opensage_session.agent_manager
+            from_sid = tool_context._invocation_context.session.id
+            broadcast_msg = f"[log_finding] {finding}"
+            if contradictions:
+                broadcast_msg += f"\n[contradiction] {contradictions}"
+            await manager.send_message(
+                from_sid=from_sid, to_sid="*", content=broadcast_msg, kind="text"
+            )
+        except Exception:
+            pass  # best-effort broadcast; don't fail the log
+
+        return {"logged": True, "contradictions": contradictions}
 
     except Exception as e:
         logger.exception("log_finding failed: %s", e)

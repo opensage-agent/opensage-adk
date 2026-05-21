@@ -42,7 +42,6 @@ class Task:
     wrapper_file: str
     status: TaskStatus = TaskStatus.RUNNING
     exit_code: Optional[int] = None
-    owner_session_id: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Return a JSON-serializable representation of this task."""
@@ -60,7 +59,6 @@ class Task:
             "cmd_file": self.cmd_file,
             "wrapper_file": self.wrapper_file,
             "exit_code": self.exit_code,
-            "owner_session_id": self.owner_session_id,
         }
 
 
@@ -397,11 +395,6 @@ fi
         """Spawn an asyncio task that polls until *task_id* finishes, then
         delivers the result to *caller_sid*'s inbox via ``send_message``.
         """
-        task = self.tasks.get(task_id)
-        if not task:
-            return
-        task.owner_session_id = caller_sid
-
         existing = self._watcher_tasks.get(task_id)
         if existing is not None and not existing.done():
             return
@@ -451,43 +444,3 @@ fi
 
         t = asyncio.create_task(_watch())
         self._watcher_tasks[task_id] = t
-
-    def get_active_watcher_task_ids(self, owner_matches=None) -> list[str]:
-        """Return task ids with live completion watchers.
-
-        Background task completion is reported through these watcher tasks. A
-        sandbox process may outlive the Python process, but without a live
-        watcher there is no in-process signal to keep terminal orchestration
-        alive for it.
-        """
-        active: list[str] = []
-        for task_id, task in self.tasks.items():
-            if owner_matches is not None and not owner_matches(task.owner_session_id):
-                continue
-            watcher = self._watcher_tasks.get(task_id)
-            if watcher is not None and not watcher.done():
-                active.append(task_id)
-        return sorted(active)
-
-    async def wait_for_watcher_tasks(
-        self, task_ids: list[str], timeout: float | None = None
-    ) -> None:
-        """Wait for live completion watchers among *task_ids*."""
-        watchers = [
-            watcher
-            for task_id in task_ids
-            if (watcher := self._watcher_tasks.get(task_id)) is not None
-            and not watcher.done()
-        ]
-        if not watchers:
-            return
-        done, pending = await asyncio.wait(watchers, timeout=timeout)
-        for watcher in done:
-            try:
-                watcher.result()
-            except asyncio.CancelledError:
-                pass
-            except Exception:
-                logger.exception("Completion watcher failed")
-        if pending:
-            raise asyncio.TimeoutError()

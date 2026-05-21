@@ -97,16 +97,15 @@ from google.adk.models import BaseLlm
 from google.adk.models.lite_llm import LiteLlm
 
 import opensage
-from opensage.agents import MemoryManagement
-from opensage.agents import OpenSageAgent
+from opensage.agents.opensage_agent import MemoryManagement, OpenSageAgent
 
 
 def mk_agent(
-    session_id: str,
+    opensage_session_id: str,
     model: Optional[BaseLlm] = None,
 ):
     # Link to the session created by OpenSage (sandboxes/config/neo4j live here).
-    session = opensage.get_session(session_id)
+    opensage_session_id = opensage.get_opensage_session(opensage_session_id)
 
     if model is None:
         model = LiteLlm(

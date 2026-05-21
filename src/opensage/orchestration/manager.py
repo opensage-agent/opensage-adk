@@ -960,10 +960,11 @@ class AgentManager:
         """
         while True:
             children = await self.wait_for_children(instance.session_id)
+            bg_tasks = await self.wait_for_background_tasks(instance.session_id)
             has_pending = await instance.inbox.has_pending()
 
             if not has_pending:
-                if not children:
+                if not children and not bg_tasks:
                     break
                 continue
 
@@ -1230,6 +1231,47 @@ class AgentManager:
         for cid in children:
             await self.wait_for(cid, timeout=timeout)
         return children
+
+    def _descendant_session_ids(self, parent_sid: str) -> set[str]:
+        descendants: set[str] = set()
+        frontier = [parent_sid]
+        while frontier:
+            current = frontier.pop()
+            for inst in self._instances.values():
+                if inst.parent_session_id != current:
+                    continue
+                if inst.session_id in descendants:
+                    continue
+                descendants.add(inst.session_id)
+                frontier.append(inst.session_id)
+        return descendants
+
+    def get_active_background_tasks(self, parent_sid: str) -> list[str]:
+        """Return live background task ids owned by parent or descendants."""
+        task_manager = getattr(self._opensage_session, "bash_tasks", None)
+        if task_manager is None:
+            return []
+        get_active = getattr(task_manager, "get_active_watcher_task_ids", None)
+        if get_active is None:
+            return []
+
+        owners = self._descendant_session_ids(parent_sid)
+        owners.add(parent_sid)
+        return get_active(lambda owner_sid: owner_sid in owners)
+
+    async def wait_for_background_tasks(
+        self, parent_sid: str, timeout: float | None = None
+    ) -> list[str]:
+        """Wait for live background task watchers owned by parent/descendants."""
+        task_ids = self.get_active_background_tasks(parent_sid)
+        if not task_ids:
+            return []
+        task_manager = getattr(self._opensage_session, "bash_tasks", None)
+        wait_for = getattr(task_manager, "wait_for_watcher_tasks", None)
+        if wait_for is None:
+            return []
+        await wait_for(task_ids, timeout=timeout)
+        return task_ids
 
     # ==================================================================
     # task cancellation (cleanup)

@@ -322,6 +322,9 @@ async def _process_terminal_async_child_results(
     )
 
     while True:
+        running_children: list[str] = []
+        background_tasks: list[str] = []
+
         if hasattr(manager, "get_active_children"):
             running_children = await manager.get_active_children(session_id)
         else:
@@ -333,6 +336,15 @@ async def _process_terminal_async_child_results(
                 notify(f"waiting for {count} async {label}...")
             await manager.wait_for_children(session_id)
 
+        if hasattr(manager, "get_active_background_tasks"):
+            background_tasks = manager.get_active_background_tasks(session_id)
+        if background_tasks:
+            if notify:
+                count = len(background_tasks)
+                label = "background task" if count == 1 else "background tasks"
+                notify(f"waiting for {count} {label}...")
+            await manager.wait_for_background_tasks(session_id)
+
         instance = manager.get_instance(session_id)
         has_pending = (
             instance is not None
@@ -340,7 +352,7 @@ async def _process_terminal_async_child_results(
             and await instance.inbox.has_pending()
         )
         if not has_pending:
-            if not running_children:
+            if not running_children and not background_tasks:
                 break
             continue
 

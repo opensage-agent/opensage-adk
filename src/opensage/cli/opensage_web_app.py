@@ -32,7 +32,6 @@ from fastapi.responses import (
 from fastapi.staticfiles import StaticFiles
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.live_request_queue import LiveRequest, LiveRequestQueue
-from google.adk.agents.run_config import RunConfig, StreamingMode
 from google.adk.cli import agent_graph
 from google.adk.cli.adk_web_server import (
     CreateSessionRequest,
@@ -52,6 +51,7 @@ from pydantic import ValidationError
 from starlette.types import Lifespan
 
 from opensage.memory.file_based.short_term import build_root_session_state
+from opensage.orchestration.types import AgentInstanceState
 
 logger = logging.getLogger("opensage." + __name__)
 
@@ -175,9 +175,7 @@ class OpenSageWebServer:
         eval_set_results_manager=None,
         plugins: Optional[list[BasePlugin]] = None,
         url_prefix: Optional[str] = None,
-        fake_user_fn=None,
     ):
-        # Use the app_name provided by CLI (parent folder of --agent) to match ADK's expectation.
         self.app_name = app_name
         self.root_agent = root_agent
         self.fixed_session_id = fixed_session_id
@@ -189,7 +187,6 @@ class OpenSageWebServer:
         self.eval_set_results_manager = eval_set_results_manager
         self.plugins = plugins or []
         self.url_prefix = url_prefix
-        self.fake_user_fn = fake_user_fn
 
     def _build_root_session_state(
         self, base_state: Optional[dict[str, Any]] = None
@@ -535,108 +532,28 @@ class OpenSageWebServer:
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-        @app.post("/run", response_model_exclude_none=True)
-        async def run_agent(req: RunAgentRequest) -> list[Event]:
+        @app.post("/run")
+        async def run_agent(req: RunAgentRequest):
             if req.app_name != self.app_name:
                 raise HTTPException(status_code=404, detail="App not found")
             manager = self._get_agent_manager()
-            try:
-                events = []
-                async for event in manager.run_turn_stream(
-                    session_id=req.session_id,
-                    request=req.new_message,
-                    state_delta=req.state_delta,
-                ):
-                    events.append(event)
-                return events
-            except RuntimeError as e:
-                raise HTTPException(status_code=409, detail=str(e)) from e
-            except asyncio.CancelledError as cancelled:
+            inst = manager.get_instance(req.session_id)
+            if inst and inst.state != AgentInstanceState.SLEEPING:
                 raise HTTPException(
-                    status_code=409, detail=f"Turn stopped: {cancelled}"
-                ) from cancelled
-
-        @app.post("/run_sse")
-        async def run_agent_sse(req: RunAgentRequest) -> StreamingResponse:
-            session_id = req.session_id
-            if req.app_name != self.app_name:
-                raise HTTPException(status_code=404, detail="App not found")
-            session = await self.session_service.get_session(
-                app_name=req.app_name,
-                user_id=req.user_id,
-                session_id=session_id,
+                    status_code=409,
+                    detail=f"Instance {req.session_id} is busy ({inst.state.value})",
+                )
+            msg = req.new_message
+            if msg is not None and hasattr(msg, "parts") and msg.parts:
+                text = "".join(p.text or "" for p in msg.parts)
+            else:
+                text = str(msg) if msg else ""
+            await manager.send_message(
+                from_sid="__user__",
+                to_sid=req.session_id,
+                content=text,
             )
-            if not session:
-                raise HTTPException(status_code=404, detail="Session not found")
-
-            manager = self._get_agent_manager()
-
-            async def event_generator():
-                state_delta = req.state_delta
-                invocation_id = req.invocation_id
-                inst = manager.get_instance(session_id)
-                inst._task = asyncio.current_task()
-                try:
-                    mode = StreamingMode.SSE if req.streaming else StreamingMode.NONE
-                    current_msg = req.new_message
-
-                    while True:
-                        async for event in manager.run_turn_stream(
-                            session_id,
-                            current_msg,
-                            state_delta=state_delta,
-                            run_config=RunConfig(streaming_mode=mode, max_llm_calls=0),
-                            invocation_id=invocation_id,
-                        ):
-                            yield (
-                                "data: "
-                                + event.model_dump_json(
-                                    exclude_none=True, by_alias=True
-                                )
-                                + "\n\n"
-                            )
-
-                        if not self.fake_user_fn:
-                            break
-
-                        session_snapshot = await self.session_service.get_session(
-                            app_name=req.app_name,
-                            user_id=req.user_id,
-                            session_id=session_id,
-                        )
-                        next_msg = await self.fake_user_fn(session_snapshot)
-                        if next_msg is None:
-                            break
-                        current_msg = types.Content(
-                            role="user",
-                            parts=[types.Part.from_text(text=next_msg)],
-                        )
-                        fake_user_event = Event(
-                            author="fake_user",
-                            content=current_msg,
-                        )
-                        yield (
-                            "data: "
-                            + fake_user_event.model_dump_json(
-                                exclude_none=True, by_alias=True
-                            )
-                            + "\n\n"
-                        )
-                        state_delta = None
-                        invocation_id = None
-
-                except asyncio.CancelledError:
-                    yield 'data: {"stopped": true, "message": "Turn stopped by UI"}\n\n'
-                    return
-                except RuntimeError as e:
-                    yield f'data: {{"error": "{e}"}}\n\n'
-                except Exception as e:
-                    logger.exception("Error in SSE generator: %s", e)
-                    yield f'data: {{"error": "{e}"}}\n\n'
-                finally:
-                    inst._task = None
-
-            return StreamingResponse(event_generator(), media_type="text/event-stream")
+            return {"ok": True}
 
         @app.websocket("/run_live")
         async def run_agent_live(

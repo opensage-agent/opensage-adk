@@ -32,10 +32,8 @@ from tqdm import tqdm
 from opensage import get_opensage_session
 from opensage.orchestration.fake_user import (
     FakeUserFn,
-    FakeUserRunResult,
     default_fake_user,
     load_fake_user_from_file,
-    run_with_fake_user,
 )
 from opensage.plugins import load_plugins
 from opensage.session.opensage_session import OpenSageSession
@@ -47,11 +45,6 @@ from opensage.utils.project_info import PROJECT_PATH, SRC_PATH
 litellm.disable_streaming_logging = True
 
 logger = logging.getLogger(__name__)
-
-
-async def _no_followup(_session: "Session") -> None:
-    """Trivial fake-user that never sends a follow-up (single invocation)."""
-    return None
 
 
 # Registry for Evaluation subclasses
@@ -965,16 +958,8 @@ class Evaluation(abc.ABC):
         Returns:
             Session: ADK Session object with execution history
         """
-        # 2. Use ADK services owned by the OpenSageSession (one set per environment).
-        # user_id MUST match what AgentManager.spawn writes (DEFAULT_USER_ID),
-        # otherwise session_service.get_session() always returns None and cost
-        # accounting / completion checks silently see empty data.
-        from opensage.orchestration.manager import DEFAULT_USER_ID
-
-        user_id = DEFAULT_USER_ID
         app_name = Path(self.agent_dir).resolve().parent.name
         opensage_session = task.opensage_session
-        session_service = opensage_session.session_service
         enabled_plugins = []
         plugin_params = {}
         if opensage_session and getattr(opensage_session, "config", None):
@@ -999,7 +984,7 @@ class Evaluation(abc.ABC):
         # tools (call_subagent, continue_agent_instance, send_message) can
         # resolve names during the evaluation run. Start the dispatcher so
         # peer-messaging signals are processed. AgentManager owns the Runner
-        # and all instance dirs — eval drives it through ``run_turn_stream``.
+        # and all instance dirs — eval drives it through ``send_message``.
         opensage_session.agent_manager.set_app_name(app_name)
         opensage_session.agent_manager.set_base_plugins(plugins)
         opensage_session.agent_manager.register_agent_tree(agent)
@@ -1013,37 +998,77 @@ class Evaluation(abc.ABC):
             parent_session_id=None,
         )
 
-        # Build the fake-user callback (None = single invocation).
+        manager = opensage_session.agent_manager
+        instance = manager.get_instance(task.session_id)
+
         fake_user_callback = self._get_fake_user_fn(opensage_session)
+        if fake_user_callback:
+            instance.fake_user_fn = fake_user_callback
+        effective_budget = self.max_llm_calls if self.max_llm_calls > 0 else None
+        if effective_budget is not None:
+            instance.max_llm_calls = effective_budget
 
         _live_trace = Path(task.output_dir) / "live_events.jsonl"
         _live_trace.parent.mkdir(parents=True, exist_ok=True)
+        all_events: list = []
+        seen = 0
 
-        def _event_callback(event):
-            logger.warning(event.model_dump_json(exclude_none=True))
-            with open(_live_trace, "a") as _f:
-                _f.write(event.model_dump_json(exclude_none=True) + "\n")
+        async def _poll_events():
+            nonlocal seen
+            while True:
+                s = await manager.session_service.get_session(
+                    app_name=app_name,
+                    user_id=manager.default_user_id,
+                    session_id=task.session_id,
+                )
+                events = s.events if s else []
+                for evt in events[seen:]:
+                    all_events.append(evt)
+                    logger.warning(evt.model_dump_json(exclude_none=True))
+                    with open(_live_trace, "a") as _f:
+                        _f.write(evt.model_dump_json(exclude_none=True) + "\n")
+                seen = len(events)
+                await asyncio.sleep(0.1)
 
-        result: FakeUserRunResult = await run_with_fake_user(
-            agent_manager=opensage_session.agent_manager,
-            session_id=task.session_id,
-            first_message=task.first_user_message,
-            fake_user=fake_user_callback or _no_followup,
-            max_llm_calls=self.max_llm_calls if self.max_llm_calls > 0 else None,
-            event_callback=_event_callback,
+        await manager.send_message(
+            from_sid="__user__",
+            to_sid=task.session_id,
+            content=task.first_user_message,
         )
 
-        session = result.session
-        # Overwrite session.events with the driver's complete collection —
-        # session.events from session_service may be truncated by
-        # summarization / compaction.
+        poll_task = asyncio.create_task(_poll_events())
+        try:
+            await manager.wait_until_idle(task.session_id, timeout=7200)
+        finally:
+            poll_task.cancel()
+            try:
+                await poll_task
+            except asyncio.CancelledError:
+                pass
+
+        s = await manager.session_service.get_session(
+            app_name=app_name,
+            user_id=manager.default_user_id,
+            session_id=task.session_id,
+        )
+        events = s.events if s else []
+        for evt in events[seen:]:
+            all_events.append(evt)
+            logger.warning(evt.model_dump_json(exclude_none=True))
+            with open(_live_trace, "a") as _f:
+                _f.write(evt.model_dump_json(exclude_none=True) + "\n")
+
+        session = await manager.session_service.get_session(
+            app_name=app_name,
+            user_id=manager.default_user_id,
+            session_id=task.session_id,
+        )
         if session:
-            session.events = result.events
+            session.events = all_events
 
         logger.warning(f"Agent execution completed for session: {task.session_id}")
 
-        # Calculate and save cost information
-        self._save_cost_info(task, session, num_llm_calls=result.llm_calls_used)
+        self._save_cost_info(task, session, num_llm_calls=instance._llm_calls_used)
 
         return session
 

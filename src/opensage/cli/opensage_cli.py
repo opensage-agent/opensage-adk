@@ -9,7 +9,7 @@ import signal
 import sys
 import time
 from pathlib import Path
-from typing import Awaitable, Callable, Optional
+from typing import Optional
 
 import click
 import uvicorn
@@ -298,70 +298,6 @@ async def _load_adk_session_into_service_async(
         session_id
     ] = persisted
     return app_name, user_id
-
-
-async def _process_terminal_async_child_results(
-    *,
-    manager,
-    session_id: str,
-    run_turn_and_print: Callable[[object, str], Awaitable[None]],
-    notify: Callable[[str], None] | None = None,
-) -> int:
-    """Wait for async subagents and reinvoke the root to consume their results.
-
-    ``opensage run`` marks the root instance as externally managed, so the
-    dispatcher intentionally does not auto-wake it when async subagents post
-    results to its inbox. The terminal driver must therefore do the same
-    bookkeeping as the fake-user/evaluation driver: wait for async children,
-    then run another root turn so inbox results are processed before one-shot
-    terminal mode exits.
-    """
-    processed_turns = 0
-    process_message = (
-        "Your async sub-agents have completed. Process their results from your inbox."
-    )
-
-    while True:
-        running_children: list[str] = []
-        background_tasks: list[str] = []
-
-        if hasattr(manager, "get_active_children"):
-            running_children = await manager.get_active_children(session_id)
-        else:
-            running_children = manager.get_running_children(session_id)
-        if running_children:
-            if notify:
-                count = len(running_children)
-                label = "sub-agent" if count == 1 else "sub-agents"
-                notify(f"waiting for {count} async {label}...")
-            await manager.wait_for_children(session_id)
-
-        if hasattr(manager, "get_active_background_tasks"):
-            background_tasks = manager.get_active_background_tasks(session_id)
-        if background_tasks:
-            if notify:
-                count = len(background_tasks)
-                label = "background task" if count == 1 else "background tasks"
-                notify(f"waiting for {count} {label}...")
-            await manager.wait_for_background_tasks(session_id)
-
-        instance = manager.get_instance(session_id)
-        has_pending = (
-            instance is not None
-            and getattr(instance, "inbox", None) is not None
-            and await instance.inbox.has_pending()
-        )
-        if not has_pending:
-            if not running_children and not background_tasks:
-                break
-            continue
-
-        if notify:
-            notify("processing async sub-agent result(s)...")
-        await run_turn_and_print(manager, process_message)
-        processed_turns += 1
-
-    return processed_turns
 
 
 async def _resume_environment_async(
@@ -799,7 +735,6 @@ def cli_web(
             eval_set_results_manager=eval_set_results_manager,
             url_prefix=None,
             plugins=plugins,
-            fake_user_fn=fake_user_fn,
         )
         # Pre-create or restore the ADK session using fixed session id.
         # Both paths go through agent_manager.spawn — for resume, the legacy
@@ -830,6 +765,11 @@ def cli_web(
                 parent_session_id=None,
             )
         )
+
+        if fake_user_fn:
+            inst = opensage_session.agent_manager.get_instance(session_id)
+            if inst:
+                inst.fake_user_fn = fake_user_fn
 
         # Lifespan owns the dispatcher task. Anything that creates persistent
         # event-loop state (Tasks/Queues) must run here so it lives on
@@ -1099,103 +1039,38 @@ def cli_run(
                     + f"→ {fc.name}({dict(fc.args) if fc.args else ''})"
                 )
 
-        async def _run_turn_and_print(manager, msg):
-            async for event in manager.run_turn_stream(session_id, msg):
-                _print_event(event)
-
-        def _notify_system(message: str) -> None:
-            click.echo(click.style("[system]: ", fg="yellow") + message)
-
-        async def _drain_inbox_loop(manager):
-            """Poll inbox while user is typing; run turn when messages arrive."""
-            instance = manager.get_instance(session_id)
+        async def _poll_and_print_events(manager):
+            seen = 0
             while True:
-                await asyncio.sleep(0.5)
-                if not instance or instance.state.value != "sleeping":
-                    continue
-                if not await instance.inbox.has_pending():
-                    continue
-                _notify_system("inbox message received, processing...")
-                try:
-                    await _run_turn_and_print(manager, "")
-                    await _process_terminal_async_child_results(
-                        manager=manager,
-                        session_id=session_id,
-                        run_turn_and_print=_run_turn_and_print,
-                        notify=_notify_system,
-                    )
-                except Exception:
-                    logger.exception("Error during inbox-triggered turn")
-                    continue
-                if fake_user_fn:
-                    while True:
-                        snap = await session_service.get_session(
-                            app_name=app_name,
-                            user_id=session_user_id,
-                            session_id=session_id,
-                        )
-                        next_msg = await fake_user_fn(snap)
-                        if next_msg is None:
-                            break
-                        click.echo(
-                            click.style("[fake_user]: ", fg="magenta") + next_msg
-                        )
-                        try:
-                            await _run_turn_and_print(
-                                manager,
-                                types.Content(
-                                    role="user",
-                                    parts=[types.Part(text=next_msg)],
-                                ),
-                            )
-                            await _process_terminal_async_child_results(
-                                manager=manager,
-                                session_id=session_id,
-                                run_turn_and_print=_run_turn_and_print,
-                                notify=_notify_system,
-                            )
-                        except Exception:
-                            logger.exception("Error during fake_user turn")
-                            break
-
-        async def _run_turn_with_fake_user(manager, msg):
-            """Run one turn, then loop fake_user if configured."""
-            current_msg = msg
-            while True:
-                await _run_turn_and_print(manager, current_msg)
-                await _process_terminal_async_child_results(
-                    manager=manager,
-                    session_id=session_id,
-                    run_turn_and_print=_run_turn_and_print,
-                    notify=_notify_system,
-                )
-                if not fake_user_fn:
-                    break
-                session_snapshot = await session_service.get_session(
+                session = await manager.session_service.get_session(
                     app_name=app_name,
-                    user_id=session_user_id,
+                    user_id="user",
                     session_id=session_id,
                 )
-                next_msg = await fake_user_fn(session_snapshot)
-                if next_msg is None:
-                    break
-                click.echo(click.style("[fake_user]: ", fg="magenta") + next_msg)
-                current_msg = types.Content(
-                    role="user",
-                    parts=[types.Part(text=next_msg)],
-                )
+                events = session.events if session else []
+                for evt in events[seen:]:
+                    _print_event(evt)
+                seen = len(events)
+                await asyncio.sleep(0.1)
 
         async def _main_loop():
             manager = opensage_session.agent_manager
-            manager.mark_externally_managed(session_id)
             await manager.start()
-            inbox_task = asyncio.create_task(
-                _drain_inbox_loop(manager), name="cli-inbox-poll"
-            )
+
+            instance = manager.get_instance(session_id)
+            if instance and fake_user_fn:
+                instance.fake_user_fn = fake_user_fn
+
+            poll_task = asyncio.create_task(_poll_and_print_events(manager))
             try:
                 if prompt:
                     click.echo(click.style("[user]: ", fg="green") + prompt)
-                    await _run_turn_with_fake_user(manager, prompt)
+                    await manager.send_message(
+                        from_sid="__user__",
+                        to_sid=session_id,
+                        content=prompt,
+                    )
+                    await manager.wait_until_idle(session_id)
                 else:
                     click.secho(
                         f"Running agent {root_agent.name}, type 'exit' to quit.",
@@ -1212,12 +1087,14 @@ def cli_run(
                             continue
                         if query.strip() == "exit":
                             break
-                        await _run_turn_with_fake_user(manager, query)
+                        await manager.send_message(
+                            from_sid="__user__",
+                            to_sid=session_id,
+                            content=query,
+                        )
+                        await manager.wait_until_idle(session_id)
             finally:
-                inbox_task.cancel()
-                with contextlib.suppress(asyncio.CancelledError, Exception):
-                    await inbox_task
-                manager.unmark_externally_managed(session_id)
+                poll_task.cancel()
                 await manager.shutdown()
 
         signal.signal(signal.SIGINT, _cli_signal_handler)
@@ -1368,7 +1245,6 @@ def cli_review(
         artifact_service=artifact_service,
         memory_service=memory_service,
         credential_service=credential_service,
-        fake_user_fn=None,
     )
 
     app = web_server.get_fast_api_app(

@@ -49,10 +49,6 @@ SPAWNER_SENDER_ID = "__spawner__"
 # initial user message to the root.
 USER_SENDER_ID = "__user__"
 
-ASYNC_CHILD_PROCESS_MESSAGE = (
-    "Your async sub-agents have completed. Process their results from your inbox."
-)
-
 
 class AgentManager:
     """Manages agent definitions, instances, messaging, and lifecycle within an
@@ -107,11 +103,6 @@ class AgentManager:
         # wake queue: dispatcher consumer reads from this
         self._wake_queue: asyncio.Queue[str] = asyncio.Queue()
         self._dispatcher_task: asyncio.Task | None = None
-
-        # Sessions driven by an external loop (e.g. run_with_fake_user).
-        # The dispatcher skips wake signals for these so the external driver
-        # has exclusive control over invocation timing.
-        self._externally_managed: set[str] = set()
 
     # ==================================================================
     # lifecycle
@@ -652,18 +643,12 @@ class AgentManager:
                 logger.exception("Dispatcher iteration failed")
 
     async def _handle_wake_signal(self, sid: str) -> None:
-        if sid in self._externally_managed:
-            return
-
         try:
             instance = self.ensure_loaded(sid)
         except KeyError:
             logger.warning("Wake for unknown sid %s, ignoring", sid)
             return
 
-        # Atomic transition: flip state to RUNNING BEFORE any await so a
-        # concurrent _invoke_instance can't sneak through the SLEEPING check
-        # while we're awaiting has_pending().
         if instance.state != AgentInstanceState.SLEEPING:
             return
         instance.state = AgentInstanceState.RUNNING
@@ -674,34 +659,19 @@ class AgentManager:
             instance._done_event.set()
             return
 
-        msgs = await instance.inbox.pop_all()
-        content = _build_user_content(msgs)
+        async def _run_dispatcher_turn():
+            try:
+                async for _event in self._run_turn_loop(instance):
+                    pass
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                logger.exception("Dispatcher turn for %s raised", sid)
 
         instance._task = asyncio.create_task(
-            self._run_peer_invocation(instance, content),
-            name=f"peer-inv-{sid[:8]}",
+            _run_dispatcher_turn(),
+            name=f"dispatch-{sid[:8]}",
         )
-
-    async def _run_peer_invocation(
-        self, instance: AgentInstance, content: types.Content
-    ) -> None:
-        """Background task: run one invocation triggered by peer messages."""
-        try:
-            async for _event in instance.runner.run_async(
-                user_id=instance.user_id,
-                session_id=instance.session_id,
-                new_message=content,
-            ):
-                pass
-        except asyncio.CancelledError:
-            raise
-        except Exception:
-            logger.exception(
-                "Peer invocation for %s raised; continuing with SLEEPING state",
-                instance.session_id,
-            )
-        finally:
-            await self._release_and_post(instance)
 
     async def _post_invocation(self, instance: AgentInstance) -> None:
         """After an invocation completes: re-wake if inbox has pending messages."""
@@ -778,13 +748,9 @@ class AgentManager:
             AgentInstanceState.TERMINATED,
         ):
             raise KeyError(f"Instance {to_sid} is {inst.state.value}")
-        if inst is not None:
-            target_inbox_path = inst.inbox.path
-        else:
-            d = instance_dir(self._opensage_session.opensage_session_id, to_sid)
-            if not d.exists():
-                raise KeyError(f"No instance dir for to_sid={to_sid}")
-            target_inbox_path = inbox_path(d)
+        d = instance_dir(self._opensage_session.opensage_session_id, to_sid)
+        if not d.exists():
+            raise KeyError(f"No instance dir for to_sid={to_sid}")
         from_name, from_desc = self._resolve_sender_identity(from_sid)
         msg = Message(
             from_sid=from_sid,
@@ -796,7 +762,7 @@ class AgentManager:
             from_agent_description=from_desc,
             error=error,
         )
-        await Inbox.append_to(target_inbox_path, msg)
+        await Inbox.append_to(inbox_path(d), msg)
         await self._wake_queue.put(to_sid)
 
     def _resolve_sender_identity(self, from_sid: str) -> tuple[str, str]:
@@ -901,12 +867,15 @@ class AgentManager:
         """
         final_text = ""
         try:
-            final_text = await self._run_instance_turn_collect_text(
-                instance, content, run_config
-            )
-            final_text = await self._drain_async_child_results_for_instance(
-                instance, final_text, run_config
-            )
+            async for event in instance.runner.run_async(
+                user_id=instance.user_id,
+                session_id=instance.session_id,
+                new_message=content,
+                run_config=run_config or RunConfig(),
+            ):
+                text = _extract_final_text(event)
+                if text is not None:
+                    final_text = text
             return {"success": True, "result": final_text}
         except asyncio.CancelledError:
             raise
@@ -924,59 +893,6 @@ class AgentManager:
         finally:
             await self._release_and_post(instance)
 
-    async def _run_instance_turn_collect_text(
-        self,
-        instance: AgentInstance,
-        content: types.Content,
-        run_config: Optional[RunConfig],
-    ) -> str:
-        """Run one runner turn for an already-RUNNING instance."""
-        final_text = ""
-        async for event in instance.runner.run_async(
-            user_id=instance.user_id,
-            session_id=instance.session_id,
-            new_message=content,
-            run_config=run_config or RunConfig(),
-        ):
-            text = _extract_final_text(event)
-            if text is not None:
-                final_text = text
-        return final_text
-
-    async def _drain_async_child_results_for_instance(
-        self,
-        instance: AgentInstance,
-        final_text: str,
-        run_config: Optional[RunConfig],
-    ) -> str:
-        """Process async child results before this invocation is considered done.
-
-        A subagent can itself spawn ``mode="async"`` children. If the subagent
-        returns to its caller before those descendants finish, the caller sees a
-        placeholder response such as "I'm waiting..." and external one-shot
-        drivers have no direct child left to wait on. Keep the current instance
-        RUNNING, wait for its direct async children, then re-run it on its inbox
-        results until both children and inbox are idle.
-        """
-        while True:
-            children = await self.wait_for_children(instance.session_id)
-            bg_tasks = await self.wait_for_background_tasks(instance.session_id)
-            has_pending = await instance.inbox.has_pending()
-
-            if not has_pending:
-                if not children and not bg_tasks:
-                    break
-                continue
-
-            msgs = await instance.inbox.pop_all()
-            content = _build_user_content(msgs, ASYNC_CHILD_PROCESS_MESSAGE)
-            next_text = await self._run_instance_turn_collect_text(
-                instance, content, run_config
-            )
-            final_text = next_text
-
-        return final_text
-
     async def _run_invocation_async_reply(
         self,
         instance: AgentInstance,
@@ -993,41 +909,45 @@ class AgentManager:
         final_text = ""
         error_str: Optional[str] = None
         try:
-            try:
-                final_text = await self._run_instance_turn_collect_text(
-                    instance, content, run_config
-                )
-                final_text = await self._drain_async_child_results_for_instance(
-                    instance, final_text, run_config
-                )
-            except asyncio.CancelledError:
-                raise
-            except Exception as e:
-                logger.exception("Async invocation for %s raised", instance.session_id)
-                error_str = f"{type(e).__name__}: {e}"
-
-            # Deliver the result (or error) back to the caller's inbox before
-            # marking this child idle. External drivers waiting on the child
-            # then cannot observe a "done but result not posted yet" gap.
-            try:
-                d = instance_dir(self._opensage_session.opensage_session_id, caller_sid)
-                if d.exists():
-                    await self.send_message(
-                        from_sid=instance.session_id,
-                        to_sid=caller_sid,
-                        content=final_text,
-                        kind="error" if error_str is not None else "result",
-                        error=error_str,
-                    )
-            except Exception:
-                logger.exception(
-                    "Failed to post async result from %s to %s",
-                    instance.session_id,
-                    caller_sid,
-                )
+            async for event in instance.runner.run_async(
+                user_id=instance.user_id,
+                session_id=instance.session_id,
+                new_message=content,
+                run_config=run_config or RunConfig(),
+            ):
+                text = _extract_final_text(event)
+                if text is not None:
+                    final_text = text
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            logger.exception("Async invocation for %s raised", instance.session_id)
+            error_str = f"{type(e).__name__}: {e}"
         finally:
+            # Release state before delivering reply: send_message may itself
+            # trigger a wake on the caller, and we want this instance to
+            # already be SLEEPING by then. _post_invocation runs at the end.
             self._release(instance)
-            await self._post_invocation(instance)
+
+        # Deliver the result (or error) back to the caller's inbox
+        try:
+            d = instance_dir(self._opensage_session.opensage_session_id, caller_sid)
+            if d.exists():
+                await self.send_message(
+                    from_sid=instance.session_id,
+                    to_sid=caller_sid,
+                    content=final_text,
+                    kind="error" if error_str is not None else "result",
+                    error=error_str,
+                )
+        except Exception:
+            logger.exception(
+                "Failed to post async result from %s to %s",
+                instance.session_id,
+                caller_sid,
+            )
+
+        await self._post_invocation(instance)
 
     # ==================================================================
     # external driver entrypoints (evaluation, web_server)
@@ -1053,48 +973,100 @@ class AgentManager:
             instance, request, mode, caller_sid, run_config=run_config
         )
 
-    async def run_turn_stream(
+    async def _run_turn_loop(
         self,
-        session_id: str,
-        request: str | types.Content,
+        instance: AgentInstance,
         *,
-        caller_sid: str = USER_SENDER_ID,
+        request: str | types.Content | None = None,
         run_config: Optional[RunConfig] = None,
         state_delta: Optional[dict[str, Any]] = None,
         invocation_id: Optional[str] = None,
     ) -> AsyncIterator["Event"]:
-        """External driver streaming entry: yield events as the invocation runs.
-
-        Used by evaluation (live_events.jsonl) and web_server (streaming UI).
+        """Core loop: run invocations + fake_user. Caller must have already
+        set state=RUNNING and cleared _done_event.
         """
-        instance = self.ensure_loaded(session_id)
+        from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 
-        # Atomic check+set
-        if instance.state != AgentInstanceState.SLEEPING:
-            raise RuntimeError(
-                f"Instance {session_id} is busy ({instance.state.value})"
-            )
-        instance.state = AgentInstanceState.RUNNING
-        instance._done_event.clear()
-
+        session_id = instance.session_id
         try:
-            inbox_msgs = await instance.inbox.pop_all()
-        except Exception:
-            logger.exception("Failed to drain inbox for %s", session_id)
-            inbox_msgs = []
+            current_msg: str | types.Content | None = request
+            current_state_delta = state_delta
+            current_invocation_id = invocation_id
+            first_iteration = True
 
-        content = _build_user_content(inbox_msgs, request)
+            while True:
+                if (
+                    instance.max_turns is not None
+                    and instance._turns_used >= instance.max_turns
+                ):
+                    break
 
-        try:
-            async for event in instance.runner.run_async(
-                user_id=instance.user_id,
-                session_id=instance.session_id,
-                new_message=content,
-                run_config=run_config or RunConfig(),
-                state_delta=state_delta,
-                invocation_id=invocation_id,
-            ):
-                yield event
+                try:
+                    inbox_msgs = await instance.inbox.pop_all()
+                except Exception:
+                    logger.exception("Failed to drain inbox for %s", session_id)
+                    inbox_msgs = []
+
+                content = _build_user_content(inbox_msgs, current_msg)
+
+                effective_rc = run_config if first_iteration else None
+
+                try:
+                    async for event in instance.runner.run_async(
+                        user_id=instance.user_id,
+                        session_id=instance.session_id,
+                        new_message=content,
+                        run_config=effective_rc or RunConfig(),
+                        state_delta=current_state_delta,
+                        invocation_id=current_invocation_id,
+                    ):
+                        yield event
+                except LlmCallsLimitExceededError:
+                    logger.warning(
+                        "LLM-call budget exhausted for session %s", session_id
+                    )
+                    break
+
+                instance._turns_used += 1
+                first_iteration = False
+                current_state_delta = None
+                current_invocation_id = None
+
+                session = await self.session_service.get_session(
+                    app_name=self._app_name,
+                    user_id=instance.user_id,
+                    session_id=session_id,
+                )
+                used_this_turn = (
+                    int(
+                        (session.state or {}).get("_adk", {}).get("llm_calls_used", 0)
+                        or 0
+                    )
+                    if session
+                    else 0
+                )
+                instance._llm_calls_used += used_this_turn
+
+                if (
+                    instance.max_llm_calls is not None
+                    and instance._llm_calls_used >= instance.max_llm_calls
+                ):
+                    break
+
+                if not instance.fake_user_fn:
+                    break
+
+                next_msg = await instance.fake_user_fn(session)
+                if next_msg is None:
+                    break
+
+                current_msg = types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=next_msg)],
+                )
+                from google.adk.events.event import Event
+
+                yield Event(author="fake_user", content=current_msg)
         finally:
             await self._release_and_post(instance)
 
@@ -1178,16 +1150,71 @@ class AgentManager:
                 raise asyncio.TimeoutError()
             await asyncio.sleep(0.01)
 
-    # ==================================================================
-    # external-driver helpers (run_with_fake_user)
-    # ==================================================================
+    def _has_active_watchers(self) -> bool:
+        btm = getattr(self._opensage_session, "bash_tasks", None)
+        if btm is None:
+            return False
+        return any(not t.done() for t in btm._watcher_tasks.values())
 
-    def mark_externally_managed(self, session_id: str) -> None:
-        """Prevent the dispatcher from auto-waking this instance."""
-        self._externally_managed.add(session_id)
+    async def _wait_watchers(self) -> None:
+        btm = getattr(self._opensage_session, "bash_tasks", None)
+        if btm is None:
+            return
+        active = [t for t in btm._watcher_tasks.values() if not t.done()]
+        if active:
+            await asyncio.wait(active, return_when=asyncio.FIRST_COMPLETED)
 
-    def unmark_externally_managed(self, session_id: str) -> None:
-        self._externally_managed.discard(session_id)
+    async def wait_until_idle(
+        self, session_id: str, *, timeout: float | None = None
+    ) -> None:
+        """Wait until the entire agent tree is stable: all instances SLEEPING,
+        no active tasks, all inboxes empty.
+
+        Used by evaluation to wait for the full fake_user loop to complete.
+        """
+        loop = asyncio.get_running_loop()
+        deadline = None if timeout is None else loop.time() + timeout
+
+        while True:
+            busy = [
+                inst
+                for inst in self._instances.values()
+                if inst.state == AgentInstanceState.RUNNING or inst._task is not None
+            ]
+            if busy:
+                remaining = (
+                    None if deadline is None else max(0.0, deadline - loop.time())
+                )
+                done_events = [inst._done_event.wait() for inst in busy]
+                await asyncio.wait_for(asyncio.gather(*done_events), timeout=remaining)
+                await asyncio.sleep(0.05)
+                continue
+
+            has_pending = False
+            for inst in self._instances.values():
+                if await inst.inbox.has_pending():
+                    has_pending = True
+                    break
+
+            if not has_pending:
+                if not self._has_active_watchers():
+                    return
+                remaining = (
+                    None if deadline is None else max(0.0, deadline - loop.time())
+                )
+                try:
+                    await asyncio.wait_for(self._wait_watchers(), timeout=remaining)
+                except asyncio.TimeoutError:
+                    raise asyncio.TimeoutError(
+                        f"wait_until_idle timed out for {session_id}"
+                    )
+                continue
+
+            if deadline is not None and loop.time() >= deadline:
+                raise asyncio.TimeoutError(
+                    f"wait_until_idle timed out for {session_id}"
+                )
+            await asyncio.sleep(0.1)
 
     def get_running_children(self, parent_sid: str) -> list[str]:
         """Return session_ids of children that are currently RUNNING."""
@@ -1199,79 +1226,17 @@ class AgentManager:
                 result.append(inst.session_id)
         return result
 
-    async def get_active_children(self, parent_sid: str) -> list[str]:
-        """Return direct children that are running or still have inbox work."""
-        result: list[str] = []
-        for inst in self._instances.values():
-            if inst.parent_session_id != parent_sid:
-                continue
-            if inst.state in (
-                AgentInstanceState.TERMINATING,
-                AgentInstanceState.TERMINATED,
-            ):
-                continue
-            if inst.state == AgentInstanceState.RUNNING or inst._task is not None:
-                result.append(inst.session_id)
-                continue
-            try:
-                if await inst.inbox.has_pending():
-                    result.append(inst.session_id)
-            except Exception:
-                logger.exception("has_pending failed for child %s", inst.session_id)
-        return result
-
     async def wait_for_children(
         self, parent_sid: str, timeout: float | None = None
     ) -> list[str]:
-        """Wait for active direct children of *parent_sid* to become idle.
+        """Wait for all running children of *parent_sid* to finish.
 
         Returns the list of child session_ids that were waited on.
         """
-        children = await self.get_active_children(parent_sid)
+        children = self.get_running_children(parent_sid)
         for cid in children:
             await self.wait_for(cid, timeout=timeout)
         return children
-
-    def _descendant_session_ids(self, parent_sid: str) -> set[str]:
-        descendants: set[str] = set()
-        frontier = [parent_sid]
-        while frontier:
-            current = frontier.pop()
-            for inst in self._instances.values():
-                if inst.parent_session_id != current:
-                    continue
-                if inst.session_id in descendants:
-                    continue
-                descendants.add(inst.session_id)
-                frontier.append(inst.session_id)
-        return descendants
-
-    def get_active_background_tasks(self, parent_sid: str) -> list[str]:
-        """Return live background task ids owned by parent or descendants."""
-        task_manager = getattr(self._opensage_session, "bash_tasks", None)
-        if task_manager is None:
-            return []
-        get_active = getattr(task_manager, "get_active_watcher_task_ids", None)
-        if get_active is None:
-            return []
-
-        owners = self._descendant_session_ids(parent_sid)
-        owners.add(parent_sid)
-        return get_active(lambda owner_sid: owner_sid in owners)
-
-    async def wait_for_background_tasks(
-        self, parent_sid: str, timeout: float | None = None
-    ) -> list[str]:
-        """Wait for live background task watchers owned by parent/descendants."""
-        task_ids = self.get_active_background_tasks(parent_sid)
-        if not task_ids:
-            return []
-        task_manager = getattr(self._opensage_session, "bash_tasks", None)
-        wait_for = getattr(task_manager, "wait_for_watcher_tasks", None)
-        if wait_for is None:
-            return []
-        await wait_for(task_ids, timeout=timeout)
-        return task_ids
 
     # ==================================================================
     # task cancellation (cleanup)
@@ -1340,20 +1305,26 @@ def _build_user_content(
     ``request`` can be a plain string (evaluation / orchestration tools) or
     a ``types.Content`` (web server forwarding the frontend message as-is).
     When ``request`` is None this is a dispatcher-triggered peer invocation.
-    """
-    block = _format_messages_block(inbox_msgs)
 
-    if isinstance(request, types.Content):
-        if not block:
-            return request
-        inbox_part = types.Part.from_text(text=block)
-        return types.Content(
-            role="user", parts=[inbox_part] + list(request.parts or [])
-        )
+    Messages from ``__user__`` are treated as direct user text (no peer
+    guidance wrapping). All other inbox messages get peer formatting.
+    """
+    user_msgs = [m for m in inbox_msgs if m.from_sid == USER_SENDER_ID]
+    peer_msgs = [m for m in inbox_msgs if m.from_sid != USER_SENDER_ID]
+    block = _format_messages_block(peer_msgs)
 
     text_parts: list[str] = []
     if block:
         text_parts.append(block)
+    for m in user_msgs:
+        text_parts.append(m.content)
+    if isinstance(request, types.Content):
+        if not text_parts:
+            return request
+        prefix_part = types.Part.from_text(text="\n\n".join(text_parts))
+        return types.Content(
+            role="user", parts=[prefix_part] + list(request.parts or [])
+        )
     if request is not None:
         text_parts.append(request)
     text = "\n\n".join(text_parts)

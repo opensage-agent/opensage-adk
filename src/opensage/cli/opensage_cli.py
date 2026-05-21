@@ -9,7 +9,7 @@ import signal
 import sys
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Awaitable, Callable, Optional
 
 import click
 import uvicorn
@@ -298,6 +298,58 @@ async def _load_adk_session_into_service_async(
         session_id
     ] = persisted
     return app_name, user_id
+
+
+async def _process_terminal_async_child_results(
+    *,
+    manager,
+    session_id: str,
+    run_turn_and_print: Callable[[object, str], Awaitable[None]],
+    notify: Callable[[str], None] | None = None,
+) -> int:
+    """Wait for async subagents and reinvoke the root to consume their results.
+
+    ``opensage run`` marks the root instance as externally managed, so the
+    dispatcher intentionally does not auto-wake it when async subagents post
+    results to its inbox. The terminal driver must therefore do the same
+    bookkeeping as the fake-user/evaluation driver: wait for async children,
+    then run another root turn so inbox results are processed before one-shot
+    terminal mode exits.
+    """
+    processed_turns = 0
+    process_message = (
+        "Your async sub-agents have completed. Process their results from your inbox."
+    )
+
+    while True:
+        if hasattr(manager, "get_active_children"):
+            running_children = await manager.get_active_children(session_id)
+        else:
+            running_children = manager.get_running_children(session_id)
+        if running_children:
+            if notify:
+                count = len(running_children)
+                label = "sub-agent" if count == 1 else "sub-agents"
+                notify(f"waiting for {count} async {label}...")
+            await manager.wait_for_children(session_id)
+
+        instance = manager.get_instance(session_id)
+        has_pending = (
+            instance is not None
+            and getattr(instance, "inbox", None) is not None
+            and await instance.inbox.has_pending()
+        )
+        if not has_pending:
+            if not running_children:
+                break
+            continue
+
+        if notify:
+            notify("processing async sub-agent result(s)...")
+        await run_turn_and_print(manager, process_message)
+        processed_turns += 1
+
+    return processed_turns
 
 
 async def _resume_environment_async(
@@ -1039,6 +1091,9 @@ def cli_run(
             async for event in manager.run_turn_stream(session_id, msg):
                 _print_event(event)
 
+        def _notify_system(message: str) -> None:
+            click.echo(click.style("[system]: ", fg="yellow") + message)
+
         async def _drain_inbox_loop(manager):
             """Poll inbox while user is typing; run turn when messages arrive."""
             instance = manager.get_instance(session_id)
@@ -1048,12 +1103,15 @@ def cli_run(
                     continue
                 if not await instance.inbox.has_pending():
                     continue
-                click.echo(
-                    click.style("[system]: ", fg="yellow")
-                    + "inbox message received, processing..."
-                )
+                _notify_system("inbox message received, processing...")
                 try:
                     await _run_turn_and_print(manager, "")
+                    await _process_terminal_async_child_results(
+                        manager=manager,
+                        session_id=session_id,
+                        run_turn_and_print=_run_turn_and_print,
+                        notify=_notify_system,
+                    )
                 except Exception:
                     logger.exception("Error during inbox-triggered turn")
                     continue
@@ -1078,6 +1136,12 @@ def cli_run(
                                     parts=[types.Part(text=next_msg)],
                                 ),
                             )
+                            await _process_terminal_async_child_results(
+                                manager=manager,
+                                session_id=session_id,
+                                run_turn_and_print=_run_turn_and_print,
+                                notify=_notify_system,
+                            )
                         except Exception:
                             logger.exception("Error during fake_user turn")
                             break
@@ -1087,6 +1151,12 @@ def cli_run(
             current_msg = msg
             while True:
                 await _run_turn_and_print(manager, current_msg)
+                await _process_terminal_async_child_results(
+                    manager=manager,
+                    session_id=session_id,
+                    run_turn_and_print=_run_turn_and_print,
+                    notify=_notify_system,
+                )
                 if not fake_user_fn:
                     break
                 session_snapshot = await session_service.get_session(

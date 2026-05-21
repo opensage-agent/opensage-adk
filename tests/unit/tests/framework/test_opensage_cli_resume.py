@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from types import SimpleNamespace
 
 import click
 import pytest
@@ -102,3 +103,51 @@ def test_resolve_saved_session_dir_accepts_absolute_path(tmp_path: Path) -> None
     )
 
     assert opensage_cli._resolve_saved_session_dir(str(store_dir)) == store_dir
+
+
+@pytest.mark.asyncio
+async def test_terminal_async_child_results_are_processed() -> None:
+    class _Inbox:
+        def __init__(self) -> None:
+            self.pending = False
+
+        async def has_pending(self) -> bool:
+            return self.pending
+
+    class _Manager:
+        def __init__(self) -> None:
+            self.inbox = _Inbox()
+            self.wait_calls = 0
+            self.children = ["child-1"]
+
+        def get_running_children(self, session_id: str) -> list[str]:
+            return list(self.children)
+
+        async def wait_for_children(self, session_id: str) -> list[str]:
+            self.wait_calls += 1
+            waited = list(self.children)
+            self.children = []
+            self.inbox.pending = True
+            return waited
+
+        def get_instance(self, session_id: str):
+            return SimpleNamespace(inbox=self.inbox)
+
+    manager = _Manager()
+    turns: list[str] = []
+
+    async def _run_turn_and_print(_manager, msg: str) -> None:
+        turns.append(msg)
+        manager.inbox.pending = False
+
+    processed = await opensage_cli._process_terminal_async_child_results(
+        manager=manager,
+        session_id="root",
+        run_turn_and_print=_run_turn_and_print,
+    )
+
+    assert processed == 1
+    assert manager.wait_calls == 1
+    assert turns == [
+        "Your async sub-agents have completed. Process their results from your inbox."
+    ]

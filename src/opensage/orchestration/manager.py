@@ -49,6 +49,10 @@ SPAWNER_SENDER_ID = "__spawner__"
 # initial user message to the root.
 USER_SENDER_ID = "__user__"
 
+ASYNC_CHILD_PROCESS_MESSAGE = (
+    "Your async sub-agents have completed. Process their results from your inbox."
+)
+
 
 class AgentManager:
     """Manages agent definitions, instances, messaging, and lifecycle within an
@@ -774,9 +778,13 @@ class AgentManager:
             AgentInstanceState.TERMINATED,
         ):
             raise KeyError(f"Instance {to_sid} is {inst.state.value}")
-        d = instance_dir(self._opensage_session.opensage_session_id, to_sid)
-        if not d.exists():
-            raise KeyError(f"No instance dir for to_sid={to_sid}")
+        if inst is not None:
+            target_inbox_path = inst.inbox.path
+        else:
+            d = instance_dir(self._opensage_session.opensage_session_id, to_sid)
+            if not d.exists():
+                raise KeyError(f"No instance dir for to_sid={to_sid}")
+            target_inbox_path = inbox_path(d)
         from_name, from_desc = self._resolve_sender_identity(from_sid)
         msg = Message(
             from_sid=from_sid,
@@ -788,7 +796,7 @@ class AgentManager:
             from_agent_description=from_desc,
             error=error,
         )
-        await Inbox.append_to(inbox_path(d), msg)
+        await Inbox.append_to(target_inbox_path, msg)
         await self._wake_queue.put(to_sid)
 
     def _resolve_sender_identity(self, from_sid: str) -> tuple[str, str]:
@@ -893,15 +901,12 @@ class AgentManager:
         """
         final_text = ""
         try:
-            async for event in instance.runner.run_async(
-                user_id=instance.user_id,
-                session_id=instance.session_id,
-                new_message=content,
-                run_config=run_config or RunConfig(),
-            ):
-                text = _extract_final_text(event)
-                if text is not None:
-                    final_text = text
+            final_text = await self._run_instance_turn_collect_text(
+                instance, content, run_config
+            )
+            final_text = await self._drain_async_child_results_for_instance(
+                instance, final_text, run_config
+            )
             return {"success": True, "result": final_text}
         except asyncio.CancelledError:
             raise
@@ -919,6 +924,58 @@ class AgentManager:
         finally:
             await self._release_and_post(instance)
 
+    async def _run_instance_turn_collect_text(
+        self,
+        instance: AgentInstance,
+        content: types.Content,
+        run_config: Optional[RunConfig],
+    ) -> str:
+        """Run one runner turn for an already-RUNNING instance."""
+        final_text = ""
+        async for event in instance.runner.run_async(
+            user_id=instance.user_id,
+            session_id=instance.session_id,
+            new_message=content,
+            run_config=run_config or RunConfig(),
+        ):
+            text = _extract_final_text(event)
+            if text is not None:
+                final_text = text
+        return final_text
+
+    async def _drain_async_child_results_for_instance(
+        self,
+        instance: AgentInstance,
+        final_text: str,
+        run_config: Optional[RunConfig],
+    ) -> str:
+        """Process async child results before this invocation is considered done.
+
+        A subagent can itself spawn ``mode="async"`` children. If the subagent
+        returns to its caller before those descendants finish, the caller sees a
+        placeholder response such as "I'm waiting..." and external one-shot
+        drivers have no direct child left to wait on. Keep the current instance
+        RUNNING, wait for its direct async children, then re-run it on its inbox
+        results until both children and inbox are idle.
+        """
+        while True:
+            children = await self.wait_for_children(instance.session_id)
+            has_pending = await instance.inbox.has_pending()
+
+            if not has_pending:
+                if not children:
+                    break
+                continue
+
+            msgs = await instance.inbox.pop_all()
+            content = _build_user_content(msgs, ASYNC_CHILD_PROCESS_MESSAGE)
+            next_text = await self._run_instance_turn_collect_text(
+                instance, content, run_config
+            )
+            final_text = next_text
+
+        return final_text
+
     async def _run_invocation_async_reply(
         self,
         instance: AgentInstance,
@@ -935,45 +992,41 @@ class AgentManager:
         final_text = ""
         error_str: Optional[str] = None
         try:
-            async for event in instance.runner.run_async(
-                user_id=instance.user_id,
-                session_id=instance.session_id,
-                new_message=content,
-                run_config=run_config or RunConfig(),
-            ):
-                text = _extract_final_text(event)
-                if text is not None:
-                    final_text = text
-        except asyncio.CancelledError:
-            raise
-        except Exception as e:
-            logger.exception("Async invocation for %s raised", instance.session_id)
-            error_str = f"{type(e).__name__}: {e}"
-        finally:
-            # Release state before delivering reply: send_message may itself
-            # trigger a wake on the caller, and we want this instance to
-            # already be SLEEPING by then. _post_invocation runs at the end.
-            self._release(instance)
-
-        # Deliver the result (or error) back to the caller's inbox
-        try:
-            d = instance_dir(self._opensage_session.opensage_session_id, caller_sid)
-            if d.exists():
-                await self.send_message(
-                    from_sid=instance.session_id,
-                    to_sid=caller_sid,
-                    content=final_text,
-                    kind="error" if error_str is not None else "result",
-                    error=error_str,
+            try:
+                final_text = await self._run_instance_turn_collect_text(
+                    instance, content, run_config
                 )
-        except Exception:
-            logger.exception(
-                "Failed to post async result from %s to %s",
-                instance.session_id,
-                caller_sid,
-            )
+                final_text = await self._drain_async_child_results_for_instance(
+                    instance, final_text, run_config
+                )
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:
+                logger.exception("Async invocation for %s raised", instance.session_id)
+                error_str = f"{type(e).__name__}: {e}"
 
-        await self._post_invocation(instance)
+            # Deliver the result (or error) back to the caller's inbox before
+            # marking this child idle. External drivers waiting on the child
+            # then cannot observe a "done but result not posted yet" gap.
+            try:
+                d = instance_dir(self._opensage_session.opensage_session_id, caller_sid)
+                if d.exists():
+                    await self.send_message(
+                        from_sid=instance.session_id,
+                        to_sid=caller_sid,
+                        content=final_text,
+                        kind="error" if error_str is not None else "result",
+                        error=error_str,
+                    )
+            except Exception:
+                logger.exception(
+                    "Failed to post async result from %s to %s",
+                    instance.session_id,
+                    caller_sid,
+                )
+        finally:
+            self._release(instance)
+            await self._post_invocation(instance)
 
     # ==================================================================
     # external driver entrypoints (evaluation, web_server)
@@ -1145,14 +1198,35 @@ class AgentManager:
                 result.append(inst.session_id)
         return result
 
+    async def get_active_children(self, parent_sid: str) -> list[str]:
+        """Return direct children that are running or still have inbox work."""
+        result: list[str] = []
+        for inst in self._instances.values():
+            if inst.parent_session_id != parent_sid:
+                continue
+            if inst.state in (
+                AgentInstanceState.TERMINATING,
+                AgentInstanceState.TERMINATED,
+            ):
+                continue
+            if inst.state == AgentInstanceState.RUNNING or inst._task is not None:
+                result.append(inst.session_id)
+                continue
+            try:
+                if await inst.inbox.has_pending():
+                    result.append(inst.session_id)
+            except Exception:
+                logger.exception("has_pending failed for child %s", inst.session_id)
+        return result
+
     async def wait_for_children(
         self, parent_sid: str, timeout: float | None = None
     ) -> list[str]:
-        """Wait for all running children of *parent_sid* to finish.
+        """Wait for active direct children of *parent_sid* to become idle.
 
         Returns the list of child session_ids that were waited on.
         """
-        children = self.get_running_children(parent_sid)
+        children = await self.get_active_children(parent_sid)
         for cid in children:
             await self.wait_for(cid, timeout=timeout)
         return children

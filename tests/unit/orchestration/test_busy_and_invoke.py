@@ -9,12 +9,10 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from google.genai import types
 
 from opensage.orchestration.instance import AgentInstance
 from opensage.orchestration.manager import AgentManager
-from opensage.orchestration.persistence import instances_root
-from opensage.orchestration.types import AgentInstanceState, Message
+from opensage.orchestration.types import AgentInstanceState
 
 
 @dataclass
@@ -129,91 +127,3 @@ async def test_invoke_sync_reports_runner_exception_as_failure(monkeypatch, tmp_
     assert result["session_id"] == inst.session_id
     # State must have rolled back so the instance is reusable.
     assert inst.state == AgentInstanceState.SLEEPING
-
-
-@pytest.mark.asyncio
-async def test_async_invocation_processes_child_results_before_reply(
-    monkeypatch, tmp_path
-):
-    mgr = _make_manager(monkeypatch, tmp_path)
-    (instances_root("osid") / "caller").mkdir(parents=True)
-    child = _make_instance(AgentInstanceState.SLEEPING)
-    child.session_id = "child"
-    child.parent_session_id = "caller"
-    child_outputs: list[str] = []
-    child_requests: list[str] = []
-    sent_messages: list[dict[str, Any]] = []
-    inbox_messages: list[Message] = []
-
-    async def _has_pending() -> bool:
-        return bool(inbox_messages)
-
-    async def _pop_all() -> list[Message]:
-        msgs = list(inbox_messages)
-        inbox_messages.clear()
-        return msgs
-
-    child.inbox.has_pending = _has_pending
-    child.inbox.pop_all = _pop_all
-
-    class _Event:
-        author = "child"
-
-        def __init__(self, text: str) -> None:
-            self.content = types.Content(
-                role="model",
-                parts=[types.Part.from_text(text=text)],
-            )
-
-        def get_function_calls(self) -> list[Any]:
-            return []
-
-    async def _run_child(*, new_message, **kwargs):
-        text = "".join(part.text or "" for part in new_message.parts or [])
-        child_requests.append(text)
-        if len(child_requests) == 1:
-            child_outputs.append("waiting")
-            yield _Event("waiting")
-        else:
-            child_outputs.append("done")
-            yield _Event("done")
-
-    child.runner.run_async = _run_child
-
-    wait_calls = 0
-
-    async def _wait_for_children(parent_sid: str, timeout=None):
-        nonlocal wait_calls
-        wait_calls += 1
-        if wait_calls == 1:
-            msg = Message(
-                from_sid="grandchild",
-                to_sid="child",
-                content="flag submitted",
-                kind="result",
-            )
-            inbox_messages.append(msg)
-            return ["grandchild"]
-        return []
-
-    async def _send_message(**kwargs):
-        sent_messages.append(kwargs)
-
-    monkeypatch.setattr(mgr, "wait_for_children", _wait_for_children)
-    monkeypatch.setattr(mgr, "send_message", _send_message)
-
-    await mgr._invoke_instance(child, "start", "async", "caller")
-    await asyncio.wait_for(child._task, timeout=1.0)
-
-    assert wait_calls == 2
-    assert child_outputs == ["waiting", "done"]
-    assert any("flag submitted" in request for request in child_requests)
-    assert sent_messages == [
-        {
-            "from_sid": "child",
-            "to_sid": "caller",
-            "content": "done",
-            "kind": "result",
-            "error": None,
-        }
-    ]

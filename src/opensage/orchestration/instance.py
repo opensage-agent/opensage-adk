@@ -33,6 +33,15 @@ class AgentInstance:
     user_id: str
     parent_session_id: str | None = None
 
+    # Optional non-interactive driver controls populated by CLI/evaluation code.
+    # Keep defaults here so manager._run_turn_loop can safely consult them for
+    # plain ``opensage run --prompt`` sessions.
+    fake_user_fn: object | None = None
+    max_turns: int | None = None
+    max_llm_calls: int | None = None
+    _turns_used: int = 0
+    _llm_calls_used: int = 0
+
     _task: asyncio.Task | None = None
     _done_event: asyncio.Event = field(default_factory=asyncio.Event)
 

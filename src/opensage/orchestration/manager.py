@@ -995,12 +995,6 @@ class AgentManager:
             first_iteration = True
 
             while True:
-                if (
-                    instance.max_turns is not None
-                    and instance._turns_used >= instance.max_turns
-                ):
-                    break
-
                 try:
                     inbox_msgs = await instance.inbox.pop_all()
                 except Exception:
@@ -1027,7 +1021,6 @@ class AgentManager:
                     )
                     break
 
-                instance._turns_used += 1
                 first_iteration = False
                 current_state_delta = None
                 current_invocation_id = None

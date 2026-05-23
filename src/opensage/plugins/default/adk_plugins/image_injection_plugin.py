@@ -30,7 +30,7 @@ MAX_BATCH_DIMENSION = 2000
 # Anthropic rejects any single image whose source exceeds 5 MB (base64-decoded
 # bytes). Dimension checks alone let lossless PNGs through — a 2000x2000
 # screenshot can easily be >5 MB — so we gate on raw byte length too.
-MAX_IMAGE_BYTES = 5 * 1024 * 1024
+MAX_IMAGE_BYTES = 3.74 * 1024 * 1024
 
 
 # https://github.com/google/adk-python/issues/2096#issuecomment-3106556493

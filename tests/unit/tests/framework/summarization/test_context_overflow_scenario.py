@@ -7,27 +7,31 @@ compaction ran in ``after_tool_callback`` inside ``asyncio.gather`` — it
 raced on parallel tool calls and couldn't see the current (giant) tool
 responses because they hadn't been appended to the session yet.
 
-The fix has two parts:
+The fix has three parts:
 1. InboxDeliveryPlugin now truncates _incoming_messages to a limit and
    saves the full content to a file.
-2. Compaction moved to ``before_model_callback`` — fires once before
-   the next LLM call, after all tool responses are in the session.
+2. Compaction moved to ``on_event_callback`` — fires after each event is
+   appended, so ``session.events`` is already compacted when
+   ``_ContentLlmRequestProcessor`` builds ``llm_request.contents``.
+3. Emergency truncation remains in ``before_model_callback`` as a
+   last-resort safety net.
 
-These tests verify both parts work correctly under the original failure
+These tests verify all parts work correctly under the original failure
 conditions.
 """
 
 from __future__ import annotations
 
 import types as _types
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from google.adk.events.event import Event
 from google.genai import types
 
-from opensage.features.summarization import history_compaction_before_model
+from opensage.features.summarization import (
+    history_compaction_on_event,
+)
 from opensage.orchestration.plugins.inbox_delivery import (
     _MAX_INCOMING_MESSAGES_CHARS,
     InboxDeliveryPlugin,
@@ -103,7 +107,8 @@ class _FakeOpenSageSession:
         )
 
 
-def _make_callback_context(events):
+def _make_invocation_context(events):
+    """Create a fake InvocationContext for on_event_callback tests."""
     session = MagicMock()
     session.events = events
     session.state = {"opensage_session_id": "test-sid"}
@@ -120,11 +125,8 @@ def _make_callback_context(events):
     inv_ctx.session_service = AsyncMock()
     inv_ctx.run_config = None
     inv_ctx._invocation_cost_manager = None
-
-    ctx = MagicMock()
-    ctx._invocation_context = inv_ctx
-    ctx.state = session.state
-    return ctx
+    inv_ctx.state = session.state
+    return inv_ctx
 
 
 # ---------------------------------------------------------------------------
@@ -346,7 +348,7 @@ class TestParallelToolCallInbox:
 
 
 # ---------------------------------------------------------------------------
-# Part 3: before_model compaction sees full session including giant responses
+# Part 3: on_event compaction sees full session including giant responses
 # ---------------------------------------------------------------------------
 
 
@@ -357,8 +359,8 @@ class TestCompactionSeesFullSession:
     appended yet. So it either didn't trigger or triggered with a stale
     budget check.
 
-    With before_model_callback, all tool responses are already in
-    session.events when compaction runs.
+    With on_event_callback, each event is already in session.events when
+    compaction runs.
     """
 
     @pytest.mark.asyncio
@@ -369,8 +371,6 @@ class TestCompactionSeesFullSession:
             _text_event("user", "start monitoring", 1.0),
             _text_event("agent", "launching agents", 2.0),
             _text_event("user", "check status", 3.0),
-            # Three tool responses from parallel tool calls.
-            # First one carries truncated _incoming_messages (post-fix).
             _fr_event_with_incoming(
                 output="task started",
                 incoming="[truncated to 5K]" + "x" * 4900,
@@ -379,7 +379,8 @@ class TestCompactionSeesFullSession:
             _text_event("agent", "status update", 5.0),
             _text_event("user", "continue", 6.0),
         ]
-        ctx = _make_callback_context(events)
+        inv_ctx = _make_invocation_context(events)
+        trigger_event = events[-1]
 
         fake_summarizer = AsyncMock()
         fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -409,28 +410,23 @@ class TestCompactionSeesFullSession:
                 new_callable=AsyncMock,
             ),
         ):
-            result = await history_compaction_before_model(ctx, MagicMock())
+            await history_compaction_on_event(inv_ctx, trigger_event)
 
-        assert result is None
-        ctx._invocation_context.session_service.append_event.assert_awaited_once()
-        appended = (
-            ctx._invocation_context.session_service.append_event.call_args.kwargs[
-                "event"
-            ]
-        )
+        inv_ctx.session_service.append_event.assert_awaited_once()
+        appended = inv_ctx.session_service.append_event.call_args.kwargs["event"]
         assert appended.actions.compaction is not None
 
     @pytest.mark.asyncio
     async def test_compaction_fires_exactly_once(self):
-        """The old bug produced 3 duplicate compactions from 3 parallel
-        after_tool_callbacks.  before_model fires once."""
+        """on_event_callback fires per event; verify a single call
+        produces exactly one compaction."""
         events = [
             _text_event("user", "x" * 5000, 1.0),
             _text_event("agent", "x" * 5000, 2.0),
             _text_event("user", "x" * 5000, 3.0),
             _text_event("agent", "x" * 5000, 4.0),
         ]
-        ctx = _make_callback_context(events)
+        inv_ctx = _make_invocation_context(events)
 
         fake_summarizer = AsyncMock()
         fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -460,11 +456,10 @@ class TestCompactionSeesFullSession:
                 new_callable=AsyncMock,
             ),
         ):
-            # Call once — this is what before_model_callback does
-            await history_compaction_before_model(ctx, MagicMock())
+            await history_compaction_on_event(inv_ctx, events[-1])
 
         assert fake_summarizer.maybe_summarize_events.await_count == 1
-        assert ctx._invocation_context.session_service.append_event.await_count == 1
+        assert inv_ctx.session_service.append_event.await_count == 1
 
 
 # ---------------------------------------------------------------------------
@@ -481,13 +476,13 @@ class TestEndToEndOverflowScenario:
        800K chars to inbox
     3. InboxDeliveryPlugin pops the message and attaches to one tool result
     4. Tool responses are gathered and appended to session
-    5. Before next LLM call, compaction runs
+    5. on_event_callback fires compaction after each appended event
 
-    Pre-fix: step 3 injected 800K chars, step 5 was after_tool_callback
-    (raced, couldn't see responses). Context overflowed.
+    Pre-fix: step 3 injected 800K chars, compaction ran in
+    after_tool_callback (raced, couldn't see responses). Context overflowed.
 
     Post-fix: step 3 truncates to 5K and saves full to file, step 5 is
-    before_model_callback (fires once, sees everything).
+    on_event_callback (fires after each event is in the session).
     """
 
     @pytest.mark.asyncio
@@ -495,7 +490,6 @@ class TestEndToEndOverflowScenario:
         from opensage.orchestration.inbox import Inbox
         from opensage.orchestration.types import Message
 
-        # --- Step 1-2: Background task completes with giant output ---
         giant_log = "LOG LINE\n" * 100_000  # ~900K chars
 
         inbox = MagicMock(spec=Inbox)
@@ -517,7 +511,6 @@ class TestEndToEndOverflowScenario:
             ]
         )
 
-        # --- Step 3: InboxDeliveryPlugin processes the message ---
         plugin = InboxDeliveryPlugin(inbox)
         tool_result = {"output": "3 tasks running"}
 
@@ -533,18 +526,15 @@ class TestEndToEndOverflowScenario:
                 result=tool_result,
             )
 
-        # Verify truncation happened
         incoming = tool_result["_incoming_messages"]
         assert len(incoming) < _MAX_INCOMING_MESSAGES_CHARS + 500
         assert "truncated:" in incoming
         assert "incoming_messages_fc1.log" in incoming
 
-        # --- Step 4: Simulate tool responses appended to session ---
         # Build session as it would look after runners.py append_event
         events = [
             _text_event("user", "check status and monitor", 1.0),
             _text_event("agent", "I'll check all tasks", 2.0),
-            # Model response with 3 function calls (already appended)
             Event(
                 invocation_id="inv-1",
                 author="host_schedule_agent",
@@ -574,7 +564,6 @@ class TestEndToEndOverflowScenario:
                     ],
                 ),
             ),
-            # Gathered function responses (already appended by runners.py)
             Event(
                 invocation_id="inv-1",
                 author="user",
@@ -613,16 +602,13 @@ class TestEndToEndOverflowScenario:
         for ev in events:
             ev.branch = None
 
-        # --- Step 5: before_model_callback fires ---
-        ctx = _make_callback_context(events)
+        inv_ctx = _make_invocation_context(events)
 
         fake_summarizer = AsyncMock()
         fake_summarizer.maybe_summarize_events = AsyncMock(
             return_value=_text_content("model", "COMPACTED_HISTORY")
         )
 
-        # Budget: max_history=300000, tool_resp=20000 => effective=280000
-        # This is the actual config from host_schedule_agent/config.toml
         with (
             patch(
                 "opensage.features.summarization.get_opensage_session_id_from_context",
@@ -648,19 +634,16 @@ class TestEndToEndOverflowScenario:
                 new_callable=AsyncMock,
             ),
         ):
-            result = await history_compaction_before_model(ctx, MagicMock())
+            await history_compaction_on_event(inv_ctx, events[-1])
 
         # Compaction should NOT trigger because total chars are now small
         # (truncated _incoming_messages keeps things under 280K budget)
-        # With the old bug, 800K _incoming_messages would push us way over
-        assert result is None
 
     @pytest.mark.asyncio
     async def test_pre_fix_scenario_would_have_overflowed(self):
-        """Demonstrate that without truncation, the same scenario exceeds
-        the budget and triggers compaction — meaning the old code would
-        have sent 800K+ chars to the LLM."""
-        giant_text = "x" * 200_000  # un-truncated background output
+        """Without truncation, the same scenario exceeds the budget
+        and triggers compaction."""
+        giant_text = "x" * 200_000
 
         events = [
             _text_event("user", "check status", 1.0),
@@ -668,7 +651,7 @@ class TestEndToEndOverflowScenario:
             _text_event("user", giant_text, 3.0),
             _text_event("agent", giant_text, 4.0),
         ]
-        ctx = _make_callback_context(events)
+        inv_ctx = _make_invocation_context(events)
 
         fake_summarizer = AsyncMock()
         fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -700,7 +683,111 @@ class TestEndToEndOverflowScenario:
                 new_callable=AsyncMock,
             ),
         ):
-            await history_compaction_before_model(ctx, MagicMock())
+            await history_compaction_on_event(inv_ctx, events[-1])
 
-        # 800K chars exceeds the 280K effective budget — compaction fires
-        ctx._invocation_context.session_service.append_event.assert_awaited_once()
+        inv_ctx.session_service.append_event.assert_awaited_once()
+
+
+# ---------------------------------------------------------------------------
+# Part 6: on_event_callback compaction
+# ---------------------------------------------------------------------------
+
+
+class TestOnEventCompaction:
+    """Compaction via on_event_callback fires after each event is appended
+    to the session, so session.events is already compacted when
+    _ContentLlmRequestProcessor later builds llm_request.contents.
+    """
+
+    @pytest.mark.asyncio
+    async def test_compaction_triggers_on_event(self):
+        """Regular event triggers compaction when over budget."""
+        events = [
+            _text_event("user", "x" * 5000, 1.0),
+            _text_event("agent", "x" * 5000, 2.0),
+            _text_event("user", "x" * 5000, 3.0),
+            _text_event("agent", "x" * 5000, 4.0),
+        ]
+        inv_ctx = _make_invocation_context(events)
+        trigger_event = events[-1]
+
+        fake_summarizer = AsyncMock()
+        fake_summarizer.maybe_summarize_events = AsyncMock(
+            return_value=_text_content("model", "SUM")
+        )
+
+        with (
+            patch(
+                "opensage.features.summarization.get_opensage_session_id_from_context",
+                return_value="sid",
+            ),
+            patch(
+                "opensage.session.get_opensage_session",
+                return_value=_FakeOpenSageSession(budget=100, pct=100),
+            ),
+            patch(
+                "opensage.features.summarization.OpenSageFullEventSummarizer",
+                return_value=fake_summarizer,
+            ),
+            patch(
+                "opensage.features.summarization._read_pinned_content",
+                new_callable=AsyncMock,
+                return_value=None,
+            ),
+            patch(
+                "opensage.memory.file_based.short_term.persist_traj_json_for_invocation",
+                new_callable=AsyncMock,
+            ),
+        ):
+            await history_compaction_on_event(inv_ctx, trigger_event)
+
+        inv_ctx.session_service.append_event.assert_awaited_once()
+        appended = inv_ctx.session_service.append_event.call_args.kwargs["event"]
+        assert appended.actions.compaction is not None
+
+    @pytest.mark.asyncio
+    async def test_compaction_event_skipped(self):
+        """Compaction events must not trigger recursive compaction."""
+        from google.adk.events.event_actions import EventActions, EventCompaction
+
+        compaction_event = Event(
+            invocation_id="inv-compact",
+            author="user",
+            timestamp=5.0,
+            actions=EventActions(
+                compaction=EventCompaction(
+                    start_timestamp=1.0,
+                    end_timestamp=4.0,
+                    compacted_content=_text_content("model", "SUMMARY"),
+                )
+            ),
+        )
+
+        inv_ctx = _make_invocation_context([])
+        result = await history_compaction_on_event(inv_ctx, compaction_event)
+        assert result is None
+        inv_ctx.session_service.append_event.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_no_compaction_under_budget(self):
+        """Events under budget should not trigger compaction."""
+        events = [
+            _text_event("user", "hello", 1.0),
+            _text_event("agent", "hi", 2.0),
+        ]
+        inv_ctx = _make_invocation_context(events)
+        trigger_event = events[-1]
+
+        with (
+            patch(
+                "opensage.features.summarization.get_opensage_session_id_from_context",
+                return_value="sid",
+            ),
+            patch(
+                "opensage.session.get_opensage_session",
+                return_value=_FakeOpenSageSession(budget=300_000),
+            ),
+        ):
+            await history_compaction_on_event(inv_ctx, trigger_event)
+
+        inv_ctx.session_service.append_event.assert_not_awaited()

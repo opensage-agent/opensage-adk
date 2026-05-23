@@ -27,7 +27,7 @@ The full output is always persisted to `/workspace/.tool_outputs/<id>` inside th
 
 ### Compaction (Whole-Event-Log)
 
-`history_compaction_before_model` (in `features/summarization.py`) sums the character counts of all folded events before each LLM call. If the total exceeds `max_history_summary_length`, `OpenSageFullEventSummarizer` kicks in:
+`history_compaction_on_event` (in `features/summarization.py`) fires via the plugin's `on_event_callback` after each event is appended to the session. It sums the character counts of all folded events and, if the total exceeds `max_history_summary_length`, `OpenSageFullEventSummarizer` kicks in:
 
 1. Find the last compaction boundary.
 2. From events *after* that boundary, take the first `compaction_percent` (default `50`) as the compaction window.
@@ -35,20 +35,23 @@ The full output is always persisted to `/workspace/.tool_outputs/<id>` inside th
 4. Ask the LLM to summarize that window, with recent context and quota warnings injected into the prompt.
 5. Replace the window with a single `Event` of type `EventCompaction`. The agent keeps the summary; the originals are still on disk / in the Neo4j session log for debugging.
 
-Windows of ≤2 events are skipped: not worth the LLM round-trip.
+Windows of ≤2 events are always skipped. Because compaction runs in `on_event_callback` (before `_ContentLlmRequestProcessor` builds `llm_request.contents`), there is no timing gap — the next LLM call sees already-compacted history.
 
 ## Plugin Hooks
 
-Both summarizers attach to **`after_tool_callback`**, the ADK lifecycle hook that fires right after a tool returns. Registration order matters:
+The tool-response summarizer attaches to **`after_tool_callback`**. History compaction runs in **`on_event_callback`**, which fires after each event is appended to the session — before the next LLM call's contents are built:
 
 ```
 after_tool_callback pipeline:
   tool_response_summarizer_plugin   # truncate single response
-  history_summarizer_plugin         # compact whole log if over budget
+  inbox_delivery_plugin             # deliver pending inbox messages
   quota_after_tool_plugin           # append _quota_info dict
+
+on_event_callback pipeline:
+  history_summarizer_plugin         # compact whole log if over budget
 ```
 
-Each plugin mutates the same response dict before the next sees it. By the time the LLM is next called, the response it is looking at may have been summarized, the history behind it may have been compacted, and an `_quota_info` field may have been appended.
+Each `after_tool_callback` plugin mutates the same response dict before the next sees it. When `on_event_callback` fires, the event is already in `session.events`, so the budget check sees the true context size. Because compaction modifies `session.events` *before* `_ContentLlmRequestProcessor` builds `llm_request.contents`, the next LLM call sees already-compacted history with no timing gap.
 
 ## Quota Countdown
 

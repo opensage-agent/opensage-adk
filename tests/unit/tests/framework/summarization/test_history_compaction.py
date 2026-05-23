@@ -1,4 +1,4 @@
-"""Tests for history_compaction_before_model.
+"""Tests for history_compaction_on_event.
 
 Exercises the budget check, candidate windowing, function-call pairing,
 pinned-content embedding, and the compaction event that gets appended.
@@ -14,7 +14,7 @@ from google.adk.events.event import Event
 from google.adk.events.event_actions import EventActions, EventCompaction
 from google.genai import types
 
-from opensage.features.summarization import history_compaction_before_model
+from opensage.features.summarization import history_compaction_on_event
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -124,7 +124,7 @@ class _FakeOpenSageSession:
         )
 
 
-def _make_callback_context(events, branch=None, has_model=True):
+def _make_invocation_context(events, branch=None, has_model=True):
     session = MagicMock()
     session.events = events
     session.state = {"opensage_session_id": "test-sid"}
@@ -144,11 +144,8 @@ def _make_callback_context(events, branch=None, has_model=True):
     inv_ctx.session_service = AsyncMock()
     inv_ctx.run_config = None
     inv_ctx._invocation_cost_manager = None
-
-    ctx = MagicMock()
-    ctx._invocation_context = inv_ctx
-    ctx.state = session.state
-    return ctx
+    inv_ctx.state = session.state
+    return inv_ctx
 
 
 # ---------------------------------------------------------------------------
@@ -158,20 +155,21 @@ def _make_callback_context(events, branch=None, has_model=True):
 
 @pytest.mark.asyncio
 async def test_returns_none_when_no_canonical_model():
-    ctx = _make_callback_context([], has_model=False)
-    result = await history_compaction_before_model(ctx, MagicMock())
+    ev = _text_event("user", "hello", 1.0)
+    inv_ctx = _make_invocation_context([ev], has_model=False)
+    result = await history_compaction_on_event(inv_ctx, ev)
     assert result is None
 
 
 @pytest.mark.asyncio
 async def test_returns_none_when_fewer_than_two_events():
     ev = _text_event("user", "hello", 1.0)
-    ctx = _make_callback_context([ev])
+    inv_ctx = _make_invocation_context([ev])
     with patch(
         "opensage.features.summarization.get_opensage_session_id_from_context",
         return_value="sid",
     ):
-        result = await history_compaction_before_model(ctx, MagicMock())
+        result = await history_compaction_on_event(inv_ctx, ev)
     assert result is None
 
 
@@ -181,7 +179,7 @@ async def test_returns_none_when_no_compaction_config():
         _text_event("user", "hello", 1.0),
         _text_event("agent", "world", 2.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_session = MagicMock()
     fake_session.config.history.events_compaction = None
@@ -196,7 +194,7 @@ async def test_returns_none_when_no_compaction_config():
             return_value=fake_session,
         ),
     ):
-        result = await history_compaction_before_model(ctx, MagicMock())
+        result = await history_compaction_on_event(inv_ctx, events[-1])
     assert result is None
 
 
@@ -212,7 +210,7 @@ async def test_no_compaction_when_under_budget():
         _text_event("agent", "reply", 2.0),
         _text_event("user", "more", 3.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     with (
         patch(
@@ -224,7 +222,7 @@ async def test_no_compaction_when_under_budget():
             return_value=_FakeOpenSageSession(budget=999999),
         ),
     ):
-        result = await history_compaction_before_model(ctx, MagicMock())
+        result = await history_compaction_on_event(inv_ctx, events[-1])
     assert result is None
 
 
@@ -239,7 +237,7 @@ async def test_compaction_triggers_when_over_budget():
         _text_event("user", long_text, 5.0),
         _text_event("agent", long_text, 6.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -267,14 +265,13 @@ async def test_compaction_triggers_when_over_budget():
         patch(
             "opensage.memory.file_based.short_term.persist_traj_json_for_invocation",
             new_callable=AsyncMock,
-        ) as mock_persist,
+        ),
     ):
-        result = await history_compaction_before_model(ctx, MagicMock())
+        result = await history_compaction_on_event(inv_ctx, events[-1])
 
     assert result is None
-    session_service = ctx._invocation_context.session_service
-    session_service.append_event.assert_awaited_once()
-    appended_event = session_service.append_event.call_args.kwargs["event"]
+    inv_ctx.session_service.append_event.assert_awaited_once()
+    appended_event = inv_ctx.session_service.append_event.call_args.kwargs["event"]
     assert appended_event.actions is not None
     assert appended_event.actions.compaction is not None
     assert (
@@ -297,7 +294,7 @@ async def test_effective_budget_subtracts_tool_response_length():
         _text_event("user", text, 3.0),
         _text_event("agent", text, 4.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     # budget=1000, tool_resp_len=200 => effective=800
     # total chars = 4*300 = 1200 > 800, should trigger
@@ -329,10 +326,9 @@ async def test_effective_budget_subtracts_tool_response_length():
             new_callable=AsyncMock,
         ),
     ):
-        await history_compaction_before_model(ctx, MagicMock())
+        await history_compaction_on_event(inv_ctx, events[-1])
 
-    session_service = ctx._invocation_context.session_service
-    session_service.append_event.assert_awaited_once()
+    inv_ctx.session_service.append_event.assert_awaited_once()
 
 
 # ---------------------------------------------------------------------------
@@ -349,7 +345,7 @@ async def test_excludes_compaction_events_from_candidates():
         _text_event("agent", long_text, 3.0),
         _text_event("user", long_text, 4.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -379,7 +375,8 @@ async def test_excludes_compaction_events_from_candidates():
             new_callable=AsyncMock,
         ),
     ):
-        await history_compaction_before_model(ctx, MagicMock())
+        # Trigger with a non-compaction event
+        await history_compaction_on_event(inv_ctx, events[-1])
 
     # Verify: summarizer received 3 candidate events (not the compaction event)
     call_args = fake_summarizer.maybe_summarize_events.call_args
@@ -400,7 +397,7 @@ async def test_candidates_only_after_last_compaction_boundary():
         _text_event("agent", long_text, 4.0),
         _text_event("user", long_text, 5.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -430,7 +427,7 @@ async def test_candidates_only_after_last_compaction_boundary():
             new_callable=AsyncMock,
         ),
     ):
-        await history_compaction_before_model(ctx, MagicMock())
+        await history_compaction_on_event(inv_ctx, events[-1])
 
     call_args = fake_summarizer.maybe_summarize_events.call_args
     window_events = call_args.kwargs["events"]
@@ -457,7 +454,7 @@ async def test_window_respects_function_call_pairing():
         # No response for call-2 — window must not include it
         _text_event("user", long_text, 6.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -487,7 +484,7 @@ async def test_window_respects_function_call_pairing():
             new_callable=AsyncMock,
         ),
     ):
-        await history_compaction_before_model(ctx, MagicMock())
+        await history_compaction_on_event(inv_ctx, events[-1])
 
     call_args = fake_summarizer.maybe_summarize_events.call_args
     window_events = call_args.kwargs["events"]
@@ -506,7 +503,7 @@ async def test_window_too_small_returns_none():
         _fc_event("call-1", "tool_a", 2.0),
         # No response — window can only be [ev0] which is <= 2
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     with (
         patch(
@@ -518,7 +515,7 @@ async def test_window_too_small_returns_none():
             return_value=_FakeOpenSageSession(budget=100, pct=100),
         ),
     ):
-        result = await history_compaction_before_model(ctx, MagicMock())
+        result = await history_compaction_on_event(inv_ctx, events[-1])
     assert result is None
 
 
@@ -535,7 +532,7 @@ async def test_compaction_event_has_correct_timestamps():
         _text_event("agent", long_text, 20.0),
         _text_event("user", long_text, 30.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -565,11 +562,9 @@ async def test_compaction_event_has_correct_timestamps():
             new_callable=AsyncMock,
         ),
     ):
-        await history_compaction_before_model(ctx, MagicMock())
+        await history_compaction_on_event(inv_ctx, events[-1])
 
-    appended_event = (
-        ctx._invocation_context.session_service.append_event.call_args.kwargs["event"]
-    )
+    appended_event = inv_ctx.session_service.append_event.call_args.kwargs["event"]
     comp = appended_event.actions.compaction
     assert comp.start_timestamp == 10.0
     assert comp.end_timestamp == 30.0
@@ -585,7 +580,7 @@ async def test_compaction_event_carries_branch():
         _text_event("agent", long_text, 2.0, branch="b1"),
         _text_event("user", long_text, 3.0, branch="b1"),
     ]
-    ctx = _make_callback_context(events, branch="b1")
+    inv_ctx = _make_invocation_context(events, branch="b1")
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -615,11 +610,9 @@ async def test_compaction_event_carries_branch():
             new_callable=AsyncMock,
         ),
     ):
-        await history_compaction_before_model(ctx, MagicMock())
+        await history_compaction_on_event(inv_ctx, events[-1])
 
-    appended_event = (
-        ctx._invocation_context.session_service.append_event.call_args.kwargs["event"]
-    )
+    appended_event = inv_ctx.session_service.append_event.call_args.kwargs["event"]
     assert appended_event.branch == "b1"
 
 
@@ -636,7 +629,7 @@ async def test_pinned_content_embedded_in_compaction():
         _text_event("agent", long_text, 2.0),
         _text_event("user", long_text, 3.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -666,11 +659,9 @@ async def test_pinned_content_embedded_in_compaction():
             new_callable=AsyncMock,
         ),
     ):
-        await history_compaction_before_model(ctx, MagicMock())
+        await history_compaction_on_event(inv_ctx, events[-1])
 
-    appended = ctx._invocation_context.session_service.append_event.call_args.kwargs[
-        "event"
-    ]
+    appended = inv_ctx.session_service.append_event.call_args.kwargs["event"]
     all_text = "\n".join(
         p.text for p in appended.actions.compaction.compacted_content.parts if p.text
     )
@@ -687,7 +678,7 @@ async def test_pinned_read_failure_does_not_block_compaction():
         _text_event("agent", long_text, 2.0),
         _text_event("user", long_text, 3.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -717,13 +708,10 @@ async def test_pinned_read_failure_does_not_block_compaction():
             new_callable=AsyncMock,
         ),
     ):
-        await history_compaction_before_model(ctx, MagicMock())
+        await history_compaction_on_event(inv_ctx, events[-1])
 
-    # Compaction still appended despite pinned failure
-    ctx._invocation_context.session_service.append_event.assert_awaited_once()
-    appended = ctx._invocation_context.session_service.append_event.call_args.kwargs[
-        "event"
-    ]
+    inv_ctx.session_service.append_event.assert_awaited_once()
+    appended = inv_ctx.session_service.append_event.call_args.kwargs["event"]
     all_text = "\n".join(
         p.text for p in appended.actions.compaction.compacted_content.parts if p.text
     )
@@ -744,7 +732,7 @@ async def test_no_compaction_when_summarizer_returns_none():
         _text_event("agent", long_text, 2.0),
         _text_event("user", long_text, 3.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(return_value=None)
@@ -763,10 +751,10 @@ async def test_no_compaction_when_summarizer_returns_none():
             return_value=fake_summarizer,
         ),
     ):
-        result = await history_compaction_before_model(ctx, MagicMock())
+        result = await history_compaction_on_event(inv_ctx, events[-1])
 
     assert result is None
-    ctx._invocation_context.session_service.append_event.assert_not_awaited()
+    inv_ctx.session_service.append_event.assert_not_awaited()
 
 
 # ---------------------------------------------------------------------------
@@ -785,7 +773,7 @@ async def test_compaction_percent_controls_window():
         _text_event("user", long_text, 5.0),
         _text_event("agent", long_text, 6.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -816,7 +804,7 @@ async def test_compaction_percent_controls_window():
             new_callable=AsyncMock,
         ),
     ):
-        await history_compaction_before_model(ctx, MagicMock())
+        await history_compaction_on_event(inv_ctx, events[-1])
 
     call_args = fake_summarizer.maybe_summarize_events.call_args
     window_events = call_args.kwargs["events"]
@@ -836,7 +824,7 @@ async def test_persist_traj_failure_does_not_crash():
         _text_event("agent", long_text, 2.0),
         _text_event("user", long_text, 3.0),
     ]
-    ctx = _make_callback_context(events)
+    inv_ctx = _make_invocation_context(events)
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -867,10 +855,10 @@ async def test_persist_traj_failure_does_not_crash():
             side_effect=Exception("disk full"),
         ),
     ):
-        result = await history_compaction_before_model(ctx, MagicMock())
+        result = await history_compaction_on_event(inv_ctx, events[-1])
 
     assert result is None
-    ctx._invocation_context.session_service.append_event.assert_awaited_once()
+    inv_ctx.session_service.append_event.assert_awaited_once()
 
 
 # ---------------------------------------------------------------------------
@@ -887,7 +875,7 @@ async def test_filters_events_by_branch():
         _text_event("user", long_text, 3.0, branch="b1"),
         _text_event("agent", long_text, 4.0, branch="b1"),
     ]
-    ctx = _make_callback_context(events, branch="b1")
+    inv_ctx = _make_invocation_context(events, branch="b1")
 
     fake_summarizer = AsyncMock()
     fake_summarizer.maybe_summarize_events = AsyncMock(
@@ -917,7 +905,7 @@ async def test_filters_events_by_branch():
             new_callable=AsyncMock,
         ),
     ):
-        await history_compaction_before_model(ctx, MagicMock())
+        await history_compaction_on_event(inv_ctx, events[-1])
 
     call_args = fake_summarizer.maybe_summarize_events.call_args
     window_events = call_args.kwargs["events"]

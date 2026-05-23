@@ -28,21 +28,24 @@ from opensage.utils.agent_utils import (
 logger = logging.getLogger(__name__)
 
 
-async def _read_pinned_content(tool_context) -> Optional[str]:
+async def _read_pinned_content(context) -> Optional[str]:
     """Read pinned.md from the agent's short-term memory dir in the sandbox.
 
     Returns the file content as a string, or None if the file is empty,
     missing, or unreadable.  Failures are logged and swallowed — pinned
     content is best-effort and must never block compaction.
+
+    Accepts ToolContext, CallbackContext, or InvocationContext.
     """
     try:
-        pinned_path = get_current_session_pinned_path(tool_context)
+        pinned_path = get_current_session_pinned_path(context)
     except Exception:
         return None
     try:
         from opensage.memory.file_based.short_term.sandbox_io import _get_main_sandbox
 
-        sandbox = _get_main_sandbox(tool_context._invocation_context)
+        inv_ctx = getattr(context, "_invocation_context", context)
+        sandbox = _get_main_sandbox(inv_ctx)
         output, exit_code = await sandbox.arun_command_in_container(
             f"cat {shlex.quote(pinned_path)} 2>/dev/null"
         )
@@ -575,16 +578,15 @@ class OpenSageFullEventSummarizer:
         )
 
 
-async def history_compaction_before_model(callback_context, llm_request):
-    """Run history compaction as a before_model_callback.
+async def _history_compaction_core(inv_ctx) -> None:
+    """Shared compaction logic used by both on_event and before_model hooks.
 
-    Triggered once before each LLM call.  At this point all tool responses
-    from the previous round are already appended to the session, so the
-    budget check sees the true context size.
+    Checks the session's folded-view character count against the configured
+    budget.  When over budget, selects a compaction window, asks the LLM to
+    summarize it, and appends an EventCompaction to the session.
     """
     from opensage.session import get_opensage_session
 
-    inv_ctx = callback_context._invocation_context
     session = inv_ctx.session
     agent = inv_ctx.agent
     current_branch = inv_ctx.branch
@@ -596,7 +598,7 @@ async def history_compaction_before_model(callback_context, llm_request):
     if len(events) < 2:
         return None
 
-    opensage_session_id = get_opensage_session_id_from_context(callback_context)
+    opensage_session_id = get_opensage_session_id_from_context(inv_ctx)
     opensage_session = get_opensage_session(opensage_session_id)
     comp_cfg = getattr(opensage_session.config.history, "events_compaction", None)
 
@@ -745,9 +747,14 @@ async def history_compaction_before_model(callback_context, llm_request):
         return None
     window_events: List[Event] = candidates[:k]
 
+    # NOTE: when only 1-2 candidate events remain after a prior compaction,
+    # this skips compaction even if those events are very large.  This is
+    # acceptable because on_event_callback compacts *before* the contents
+    # are built, so there is no timing gap that would cause overflow.
     if len(window_events) <= 2:
         logger.info(
-            f"No compaction triggered by actual events in window: {len(window_events)}"
+            "Skipping compaction: window too small (%d events)",
+            len(window_events),
         )
         return None
 
@@ -806,7 +813,7 @@ async def history_compaction_before_model(callback_context, llm_request):
         return None
 
     try:
-        pinned = await _read_pinned_content(callback_context)
+        pinned = await _read_pinned_content(inv_ctx)
         if pinned:
             end_ts_for_pin = window_events[-1].timestamp if window_events else 0
             pinned_block = (
@@ -857,10 +864,22 @@ async def history_compaction_before_model(callback_context, llm_request):
         )
 
     logger.info(
-        f"History compaction (before_model) appended. Window size={len(window_events)}; "
+        f"History compaction appended. Window size={len(window_events)}; "
         f"inv_id={compaction_event.invocation_id}"
     )
     return None
+
+
+async def history_compaction_on_event(invocation_context, event) -> None:
+    """Run history compaction in on_event_callback.
+
+    Fires after each event is appended to the session.  Compacting here
+    means session.events is already trimmed when _ContentLlmRequestProcessor
+    builds llm_request.contents for the next LLM call — no timing gap.
+    """
+    if getattr(event, "actions", None) and getattr(event.actions, "compaction", None):
+        return None
+    return await _history_compaction_core(invocation_context)
 
 
 async def quota_after_tool_callback(tool, args, tool_context, tool_response):

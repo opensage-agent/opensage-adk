@@ -124,7 +124,7 @@ def test_pinned_content_embedded_in_compaction_event():
     """Pinned content appended to compacted_content is character-perfect."""
     compacted_content = _make_text_content("model", "Summary of conversation.")
 
-    # Simulate what history_compaction_before_model does
+    # Simulate what _history_compaction_core does
     pinned = (
         "username: admin\npassword: x7!kQ9\nsubmit: https://ctf.example.com/api/submit"
     )
@@ -187,7 +187,7 @@ def test_pinned_survives_compaction_exclusion():
         actions=EventActions(compaction=compaction),
     )
 
-    # Simulate candidate selection logic from history_compaction_before_model:
+    # Simulate candidate selection logic from _history_compaction_core:
     # compaction events are excluded
     events = [compaction_event]
     candidates = []

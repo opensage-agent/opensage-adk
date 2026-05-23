@@ -7,28 +7,26 @@ from google.adk.plugins.base_plugin import BasePlugin
 from opensage.features import summarization
 
 if TYPE_CHECKING:
-    from google.adk.agents.callback_context import CallbackContext
-    from google.adk.models.llm_request import LlmRequest
-    from google.adk.models.llm_response import LlmResponse
+    from google.adk.agents.invocation_context import InvocationContext
+    from google.adk.events.event import Event
 
 
 class HistorySummarizerPlugin(BasePlugin):
-    """Runs history compaction once before each LLM call.
+    """Runs history compaction after each event is appended to the session.
 
-    At this point all tool responses from the previous round are already
-    appended to the session, so the budget check sees the true context size.
+    Compaction in ``on_event_callback`` modifies ``session.events`` before
+    ``_ContentLlmRequestProcessor`` builds ``llm_request.contents``, so the
+    next LLM call sees already-compacted history — no timing gap.
     """
 
     def __init__(self) -> None:
         super().__init__(name="history_summarizer")
 
-    async def before_model_callback(
+    async def on_event_callback(
         self,
         *,
-        callback_context: "CallbackContext",
-        llm_request: "LlmRequest",
-    ) -> Optional["LlmResponse"]:
-        await summarization.history_compaction_before_model(
-            callback_context, llm_request
-        )
+        invocation_context: "InvocationContext",
+        event: "Event",
+    ) -> Optional["Event"]:
+        await summarization.history_compaction_on_event(invocation_context, event)
         return None

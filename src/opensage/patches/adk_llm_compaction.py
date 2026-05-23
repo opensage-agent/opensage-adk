@@ -52,7 +52,29 @@ def apply() -> None:
                 # On any malformed compaction payload, skip it
                 continue
 
-        # 1) Sort markers by end time (stable)
+        # 1a) Subsumption: drop markers whose range is fully covered by
+        #     a later (more recent) marker.  This prevents old compaction
+        #     summaries from accumulating when new compactions expand their
+        #     start_timestamp to cover all prior ranges.
+        if len(markers) > 1:
+            kept = []
+            for i_m, m in enumerate(markers):
+                subsumed = False
+                for j_m, other in enumerate(markers):
+                    if i_m == j_m:
+                        continue
+                    if (
+                        other["start"] <= m["start"]
+                        and other["end"] >= m["end"]
+                        and j_m > i_m
+                    ):
+                        subsumed = True
+                        break
+                if not subsumed:
+                    kept.append(m)
+            markers = kept
+
+        # 1b) Sort markers by end time (stable)
         markers.sort(key=lambda m: m["end"])
 
         # 2) Single forward pass to build output with exact (start, end] replacement

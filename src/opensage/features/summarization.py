@@ -834,6 +834,15 @@ async def _history_compaction_core(inv_ctx) -> None:
 
     start_ts = window_events[0].timestamp
     end_ts = window_events[-1].timestamp
+    # Expand start_ts to cover all prior compaction ranges so the new
+    # compaction subsumes them (prevents summary accumulation).
+    for ev in events:
+        if current_branch and ev.branch and ev.branch != current_branch:
+            continue
+        comp = getattr(getattr(ev, "actions", None), "compaction", None)
+        if comp and getattr(comp, "start_timestamp", None) is not None:
+            if comp.start_timestamp < start_ts:
+                start_ts = comp.start_timestamp
     compaction = EventCompaction(
         start_timestamp=start_ts,
         end_timestamp=end_ts,

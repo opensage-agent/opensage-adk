@@ -913,3 +913,131 @@ async def test_filters_events_by_branch():
     assert len(window_events) == 3
     for ev in window_events:
         assert ev.branch == "b1"
+
+
+# ---------------------------------------------------------------------------
+# Tests: compaction subsumption (death-spiral prevention)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_new_compaction_subsumes_old_start_timestamp():
+    """New compaction's start_timestamp expands to cover prior compactions."""
+    long_text = "x" * 5000
+    events = [
+        _text_event("user", long_text, 1.0),
+        _text_event("agent", long_text, 2.0),
+        # Prior compaction covering [1.0, 2.0]
+        _compaction_event(1.0, 2.0),
+        _text_event("user", long_text, 3.0),
+        _text_event("agent", long_text, 4.0),
+        _text_event("user", long_text, 5.0),
+    ]
+    inv_ctx = _make_invocation_context(events)
+
+    appended_event = None
+
+    async def capture_append(*, session, event):
+        nonlocal appended_event
+        appended_event = event
+
+    inv_ctx.session_service.append_event = AsyncMock(side_effect=capture_append)
+
+    fake_summarizer = AsyncMock()
+    fake_summarizer.maybe_summarize_events = AsyncMock(
+        return_value=_text_content("model", "SUM")
+    )
+
+    with (
+        patch(
+            "opensage.features.summarization.get_opensage_session_id_from_context",
+            return_value="sid",
+        ),
+        patch(
+            "opensage.session.get_opensage_session",
+            return_value=_FakeOpenSageSession(budget=100, pct=100),
+        ),
+        patch(
+            "opensage.features.summarization.OpenSageFullEventSummarizer",
+            return_value=fake_summarizer,
+        ),
+        patch(
+            "opensage.features.summarization._read_pinned_content",
+            new_callable=AsyncMock,
+            return_value=None,
+        ),
+        patch(
+            "opensage.memory.file_based.short_term.persist_traj_json_for_invocation",
+            new_callable=AsyncMock,
+        ),
+    ):
+        await history_compaction_on_event(inv_ctx, events[-1])
+
+    assert appended_event is not None
+    comp = appended_event.actions.compaction
+    # start_timestamp should expand to cover the old compaction's start (1.0)
+    assert comp.start_timestamp == 1.0
+    # end_timestamp is the last candidate event
+    assert comp.end_timestamp == 5.0
+
+
+@pytest.mark.asyncio
+async def test_new_compaction_subsumes_multiple_old():
+    """With multiple prior compactions, start_timestamp covers the earliest."""
+    long_text = "x" * 5000
+    events = [
+        _text_event("user", long_text, 1.0),
+        _text_event("agent", long_text, 2.0),
+        _compaction_event(1.0, 2.0),
+        _text_event("user", long_text, 3.0),
+        _text_event("agent", long_text, 4.0),
+        _compaction_event(3.0, 4.0),
+        _text_event("user", long_text, 5.0),
+        _text_event("agent", long_text, 6.0),
+        _text_event("user", long_text, 7.0),
+    ]
+    inv_ctx = _make_invocation_context(events)
+
+    appended_event = None
+
+    async def capture_append(*, session, event):
+        nonlocal appended_event
+        appended_event = event
+
+    inv_ctx.session_service.append_event = AsyncMock(side_effect=capture_append)
+
+    fake_summarizer = AsyncMock()
+    fake_summarizer.maybe_summarize_events = AsyncMock(
+        return_value=_text_content("model", "SUM")
+    )
+
+    with (
+        patch(
+            "opensage.features.summarization.get_opensage_session_id_from_context",
+            return_value="sid",
+        ),
+        patch(
+            "opensage.session.get_opensage_session",
+            return_value=_FakeOpenSageSession(budget=100, pct=100),
+        ),
+        patch(
+            "opensage.features.summarization.OpenSageFullEventSummarizer",
+            return_value=fake_summarizer,
+        ),
+        patch(
+            "opensage.features.summarization._read_pinned_content",
+            new_callable=AsyncMock,
+            return_value=None,
+        ),
+        patch(
+            "opensage.memory.file_based.short_term.persist_traj_json_for_invocation",
+            new_callable=AsyncMock,
+        ),
+    ):
+        await history_compaction_on_event(inv_ctx, events[-1])
+
+    assert appended_event is not None
+    comp = appended_event.actions.compaction
+    # Should cover earliest compaction start (1.0)
+    assert comp.start_timestamp == 1.0
+    assert comp.end_timestamp == 7.0

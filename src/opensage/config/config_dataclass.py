@@ -144,6 +144,7 @@ class ContainerConfig:
     privileged: bool = False
     security_opt: List[str] = field(default_factory=list)
     cap_add: List[str] = field(default_factory=list)
+    devices: List[str] = field(default_factory=list)  # e.g., ["/dev/kvm"]
     gpus: Optional[str] = None  # e.g., "all" or "device=GPU-UUID"
     shm_size: Optional[str] = None
     mem_limit: Optional[str] = None

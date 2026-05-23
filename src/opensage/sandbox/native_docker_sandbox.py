@@ -395,6 +395,8 @@ class NativeDockerSandbox(BaseSandbox):
             run_kwargs["security_opt"] = self.container_config_obj.security_opt
         if self.container_config_obj.cap_add:
             run_kwargs["cap_add"] = self.container_config_obj.cap_add
+        if self.container_config_obj.devices:
+            run_kwargs["devices"] = self.container_config_obj.devices
         if self.container_config_obj.gpus is not None:
             run_kwargs["device_requests"] = (
                 [docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])]

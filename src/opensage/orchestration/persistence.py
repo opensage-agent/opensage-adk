@@ -111,6 +111,185 @@ def inbox_path(dir_: Path) -> Path:
     return dir_ / "inbox.jsonl"
 
 
+def scan_instance_tree(
+    instances_root_path: str | Path, root_session_id: str | None = None
+) -> dict:
+    """Scan an ``instances/`` directory and return a UI-friendly topology.
+
+    This is used by read-only review mode, where the selected session directory
+    may be outside the default OpenSage session store and no AgentManager is
+    running.
+    """
+    instances_root_path = Path(instances_root_path)
+    if not instances_root_path.exists():
+        return {"root": None, "agents_flat": []}
+
+    def _read_metadata(directory: Path) -> dict[str, Any]:
+        metadata = read_metadata(directory)
+        name = metadata.get("agent_name")
+        if not isinstance(name, str) or not name:
+            raise ValueError(f"metadata.json in {directory} has no valid agent_name")
+        return metadata
+
+    def _extract_query(traj_path: Path) -> str:
+        try:
+            data = json.loads(traj_path.read_text(encoding="utf-8"))
+            for ev in data.get("events", []):
+                content = ev.get("content") or {}
+                if content.get("role") != "user":
+                    continue
+                for part in content.get("parts") or []:
+                    text = part.get("text", "")
+                    if text:
+                        return text.strip()[:80]
+                break
+        except Exception:
+            pass
+        return ""
+
+    def _infer_status(traj_path: Path) -> str:
+        if not traj_path.exists():
+            return "running"
+        try:
+            data = json.loads(traj_path.read_text(encoding="utf-8"))
+            events = data.get("events") or []
+            if not events:
+                return "running"
+
+            last_event = events[-1] or {}
+            if last_event.get("author") == "user":
+                return "running"
+
+            content = last_event.get("content") or {}
+            parts = content.get("parts") or []
+            if last_event.get("partial") is True:
+                return "running"
+
+            if any(
+                isinstance(part, dict) and part.get("function_call") for part in parts
+            ):
+                return "running"
+            if any(
+                isinstance(part, dict) and part.get("function_response")
+                for part in parts
+            ):
+                return "running"
+            if (
+                parts
+                and isinstance(parts[-1], dict)
+                and parts[-1].get("code_execution_result") is not None
+            ):
+                return "running"
+
+            return "completed"
+        except Exception:
+            pass
+        return "running"
+
+    def _is_instance_dir(directory: Path) -> bool:
+        return (directory / "metadata.json").exists()
+
+    def _nearest_parent_sid(directory: Path, instance_dirs: set[Path]) -> str | None:
+        parent = directory.parent
+        while parent != instances_root_path and instances_root_path in parent.parents:
+            if parent in instance_dirs:
+                return parent.name
+            parent = parent.parent
+        if parent in instance_dirs:
+            return parent.name
+        return None
+
+    instance_dirs = {
+        path
+        for path in instances_root_path.rglob("*")
+        if path.is_dir() and _is_instance_dir(path)
+    }
+    if not instance_dirs:
+        return {"root": None, "agents_flat": []}
+
+    records: dict[str, dict[str, Any]] = {}
+    for directory in sorted(
+        instance_dirs, key=lambda p: str(p.relative_to(instances_root_path))
+    ):
+        metadata = _read_metadata(directory)
+        session_id = metadata.get("session_id") or directory.name
+        if not isinstance(session_id, str) or not session_id:
+            session_id = directory.name
+
+        traj_path = directory / "traj.json"
+        parent_session_id = metadata.get("parent_session_id")
+        if not isinstance(parent_session_id, str) or not parent_session_id:
+            parent_session_id = _nearest_parent_sid(directory, instance_dirs)
+
+        records[session_id] = {
+            "name": metadata["agent_name"],
+            "session_id": session_id,
+            "dir": str(directory.relative_to(instances_root_path)),
+            "has_traj": traj_path.exists(),
+            "status": _infer_status(traj_path),
+            "query": _extract_query(traj_path) if traj_path.exists() else "",
+            "parent_session_id": parent_session_id,
+            "children": [],
+        }
+
+    for record in records.values():
+        parent_sid = record.get("parent_session_id")
+        if parent_sid and parent_sid in records and parent_sid != record["session_id"]:
+            records[parent_sid]["children"].append(record)
+
+    for record in records.values():
+        record["children"].sort(key=lambda item: item["dir"])
+
+    root_node = records.get(root_session_id or "")
+    if root_node is None:
+        roots = [
+            record
+            for record in records.values()
+            if not record.get("parent_session_id")
+            or record.get("parent_session_id") not in records
+        ]
+        if not roots:
+            roots = list(records.values())
+        root_node = sorted(roots, key=lambda item: item["dir"])[0]
+
+    agents_flat: list[dict[str, Any]] = []
+
+    def _flatten(
+        node: dict[str, Any],
+        parent_name: str = "",
+        parent_session_id: str = "",
+        seen: set[str] | None = None,
+    ) -> None:
+        if seen is None:
+            seen = set()
+        session_id = node["session_id"]
+        if session_id in seen:
+            return
+        seen.add(session_id)
+        agents_flat.append(
+            {
+                "name": node["name"],
+                "session_id": session_id,
+                "dir": node["dir"],
+                "parent_name": parent_name,
+                "parent_session_id": parent_session_id,
+                "has_traj": node["has_traj"],
+                "query": node.get("query", ""),
+                "status": node.get("status", "running"),
+            }
+        )
+        for child in node.get("children", []):
+            _flatten(
+                child,
+                parent_name=node["name"],
+                parent_session_id=session_id,
+                seen=seen,
+            )
+
+    _flatten(root_node)
+    return {"root": root_node, "agents_flat": agents_flat}
+
+
 def list_instance_sids(opensage_session_id: str) -> list[str]:
     """Recursively walk ``instances/`` and return every instance's session_id.
 

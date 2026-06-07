@@ -175,6 +175,7 @@ class OpenSageWebServer:
         eval_set_results_manager=None,
         plugins: Optional[list[BasePlugin]] = None,
         url_prefix: Optional[str] = None,
+        review_instances_root: Optional[Path] = None,
     ):
         self.app_name = app_name
         self.root_agent = root_agent
@@ -187,6 +188,7 @@ class OpenSageWebServer:
         self.eval_set_results_manager = eval_set_results_manager
         self.plugins = plugins or []
         self.url_prefix = url_prefix
+        self.review_instances_root = review_instances_root
 
     def _build_root_session_state(
         self, base_state: Optional[dict[str, Any]] = None
@@ -233,6 +235,16 @@ class OpenSageWebServer:
         if manager is None:
             return None
         return manager.get_instance(self.fixed_session_id)
+
+    def _scan_review_instance_tree(self) -> dict[str, Any] | None:
+        if self.review_instances_root is None:
+            return None
+        from opensage.orchestration.persistence import scan_instance_tree
+
+        return scan_instance_tree(
+            self.review_instances_root,
+            root_session_id=self.fixed_session_id,
+        )
 
     def get_fast_api_app(
         self,
@@ -766,11 +778,13 @@ class OpenSageWebServer:
 
             @app.get("/control/subagents")
             async def list_subagents():
-                from opensage.memory.file_based.short_term.session_files import (
-                    scan_host_instance_tree,
-                )
+                tree = self._scan_review_instance_tree()
+                if tree is None:
+                    from opensage.memory.file_based.short_term.session_files import (
+                        scan_host_instance_tree,
+                    )
 
-                tree = scan_host_instance_tree(self.fixed_session_id)
+                    tree = scan_host_instance_tree(self.fixed_session_id)
                 root = tree.get("root")
                 root_name = root["name"] if root else ""
                 subagents = [
@@ -794,10 +808,6 @@ class OpenSageWebServer:
 
             @app.get("/control/subagents/topology")
             async def get_subagent_topology():
-                from opensage.memory.file_based.short_term.session_files import (
-                    scan_host_instance_tree,
-                )
-
                 manager = self._get_agent_manager()
 
                 if manager:
@@ -808,9 +818,7 @@ class OpenSageWebServer:
                 root_sid = self.fixed_session_id
 
                 if instances:
-                    by_sid: dict[str, "AgentInstance"] = {
-                        inst.session_id: inst for inst in instances
-                    }
+                    by_sid = {inst.session_id: inst for inst in instances}
                     root_inst = by_sid.get(root_sid)
                     if not root_inst:
                         return {"nodes": [], "edges": []}
@@ -855,16 +863,18 @@ class OpenSageWebServer:
                             )
                     return {"nodes": nodes, "edges": edges}
 
-                tree = scan_host_instance_tree(root_sid)
+                tree = self._scan_review_instance_tree()
+                if tree is None:
+                    from opensage.memory.file_based.short_term.session_files import (
+                        scan_host_instance_tree,
+                    )
+
+                    tree = scan_host_instance_tree(root_sid)
                 agents_flat = tree.get("agents_flat", [])
                 if not agents_flat:
                     return {"nodes": [], "edges": []}
 
                 root_name = tree["root"]["name"] if tree.get("root") else ""
-                name_to_sid: dict[str, str] = {
-                    a["name"]: a["session_id"] for a in agents_flat
-                }
-
                 nodes = []
                 edges = []
                 for a in agents_flat:
@@ -888,11 +898,20 @@ class OpenSageWebServer:
                             "type": "root" if is_root else "subagent",
                         }
                     )
-                    parent_name = a.get("parent_name")
-                    if parent_name:
-                        parent_sid = name_to_sid.get(parent_name)
-                        if parent_sid:
-                            edges.append({"from": parent_sid, "to": a["session_id"]})
+                    parent_sid = a.get("parent_session_id")
+                    if not parent_sid:
+                        parent_name = a.get("parent_name")
+                        if parent_name:
+                            parent_sid = next(
+                                (
+                                    x["session_id"]
+                                    for x in agents_flat
+                                    if x.get("name") == parent_name
+                                ),
+                                None,
+                            )
+                    if parent_sid:
+                        edges.append({"from": parent_sid, "to": a["session_id"]})
 
                 return {"nodes": nodes, "edges": edges}
 

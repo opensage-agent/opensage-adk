@@ -1204,20 +1204,34 @@ def cli_review(
 
     def _load_all_sessions():
         nonlocal app_name, root_agent_name, root_session_id
+        entries = []
+        next_app_name = app_name
+        next_root_agent_name = root_agent_name
+        next_root_session_id = root_session_id
+
         loaded = 0
         for traj_path in inst_root.rglob("traj.json"):
             inst_dir = traj_path.parent
             inst_meta_path = inst_dir / "metadata.json"
+            inst_meta = {}
             if inst_meta_path.exists():
                 inst_meta = json.loads(inst_meta_path.read_text(encoding="utf-8"))
                 sid = inst_meta.get("session_id", inst_dir.name)
                 if inst_meta.get("parent_session_id") is None:
-                    root_agent_name = inst_meta.get("agent_name", root_agent_name)
-                    app_name = inst_meta.get("app_name", app_name)
-                    root_session_id = sid
+                    next_root_agent_name = inst_meta.get(
+                        "agent_name", next_root_agent_name
+                    )
+                    next_app_name = inst_meta.get("app_name", next_app_name)
+                    next_root_session_id = sid
             else:
                 sid = inst_dir.name
+            entries.append((traj_path, sid))
 
+        app_name = next_app_name
+        root_agent_name = next_root_agent_name
+        root_session_id = next_root_session_id
+
+        for traj_path, sid in entries:
             session = Session.model_validate_json(traj_path.read_text(encoding="utf-8"))
             session = sanitize_adk_session(session, copy=False)
             session.id = sid
@@ -1245,6 +1259,7 @@ def cli_review(
         artifact_service=artifact_service,
         memory_service=memory_service,
         credential_service=credential_service,
+        review_instances_root=inst_root,
     )
 
     app = web_server.get_fast_api_app(

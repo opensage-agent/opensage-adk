@@ -11,6 +11,20 @@ from opensage.utils.agent_utils import get_opensage_session_id_from_context
 logger = logging.getLogger(__name__)
 
 
+def _budgeted_model_responses(model, llm_request, opensage_session, tool_context):
+    from opensage.llm.budget import generate_content_with_budget
+
+    session_id = getattr(
+        getattr(tool_context._invocation_context, "session", None), "id", None
+    )
+    return generate_content_with_budget(
+        model,
+        llm_request,
+        budget_manager=opensage_session.budget,
+        session_id=session_id,
+    )
+
+
 async def complain(complaint: str, tool_context: ToolContext):
     """
     If you have a complaint, you should call this tool to complain about it. E.g., if a tool is hard to use, if a file or folder is supposed to be there but is not, etc. We will take your complaint into consideration and improve the tooling.
@@ -172,7 +186,9 @@ Keep your response concise and actionable."""
         ]
 
         idea_parts = []
-        async for llm_response in model.generate_content_async(llm_request):
+        async for llm_response in _budgeted_model_responses(
+            model, llm_request, opensage_session, tool_context
+        ):
             if llm_response.content and llm_response.content.parts:
                 for part in llm_response.content.parts:
                     if part.text:
@@ -318,7 +334,9 @@ async def log_finding(finding: str, tool_context: ToolContext):
         ]
 
         result_parts = []
-        async for resp in model.generate_content_async(llm_request):
+        async for resp in _budgeted_model_responses(
+            model, llm_request, opensage_session, tool_context
+        ):
             if resp.content and resp.content.parts:
                 for p in resp.content.parts:
                     if p.text:
@@ -510,7 +528,9 @@ Be ruthlessly honest. The purpose is to catch silent failure modes before they w
 
     try:
         idea_parts = []
-        async for llm_response in model.generate_content_async(llm_request):
+        async for llm_response in _budgeted_model_responses(
+            model, llm_request, opensage_session, tool_context
+        ):
             if llm_response.content and llm_response.content.parts:
                 for part in llm_response.content.parts:
                     if part.text:
@@ -654,7 +674,9 @@ REASONING: one-sentence explanation of what evidence supports or undermines this
 
     try:
         resp_parts = []
-        async for llm_response in model.generate_content_async(llm_request):
+        async for llm_response in _budgeted_model_responses(
+            model, llm_request, opensage_session, tool_context
+        ):
             if llm_response.content and llm_response.content.parts:
                 for part in llm_response.content.parts:
                     if part.text:

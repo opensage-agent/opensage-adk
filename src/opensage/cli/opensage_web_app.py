@@ -209,6 +209,13 @@ class OpenSageWebServer:
             None,
         )
 
+    def _budget_state(self) -> dict[str, Any] | None:
+        opensage_session = getattr(self.session_service, "opensage_session", None)
+        budget = getattr(opensage_session, "budget", None)
+        if budget is None:
+            return None
+        return budget.to_dict()
+
     def _resolve_agent_name(self, session_id: str) -> str:
         manager = self._get_agent_manager()
         if manager is None:
@@ -333,6 +340,10 @@ class OpenSageWebServer:
             real_id = sid[len("subagent-") :] if sid.startswith("subagent-") else sid
             running = self._resolve_runtime_status(real_id) == "running"
             return {"running": running, "session_id": sid}
+
+        @app.get("/control/budget")
+        async def get_budget_state() -> dict[str, Any]:
+            return self._budget_state() or {}
 
         @app.post("/control/stop_turn")
         async def stop_current_turn(

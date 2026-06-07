@@ -346,6 +346,20 @@ class ModelEntry:
 
 
 @dataclass
+class ModelPrice:
+    """Custom runtime budget price for one model.
+
+    Prices are USD per 1M tokens. ``cached_per_million`` defaults to the
+    prompt price when omitted.
+    """
+
+    model: str
+    prompt_per_million: float
+    completion_per_million: float
+    cached_per_million: Optional[float] = None
+
+
+@dataclass
 class ModelRegistryConfig:
     """Model registry configuration (corresponds to the ``[model]`` TOML section).
 
@@ -362,6 +376,10 @@ class ModelRegistryConfig:
 
     available_models: List[ModelEntry] = field(default_factory=list)
     models_python_file: Optional[str] = None
+    # Runtime budget shared by every model call in one OpenSage session.
+    # 0 or omitted means unlimited.
+    budget: float = 0.0
+    prices: List[ModelPrice] = field(default_factory=list)
 
     # When set, ``Evaluation._prepare_agent`` walks the agent tree and
     # replaces every LlmAgent.model with the registered model under this

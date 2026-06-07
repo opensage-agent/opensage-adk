@@ -132,10 +132,23 @@ def _group_invocation_rounds(events: List[Event], branch: Optional[str]) -> List
     return ordered
 
 
-async def _get_summary_async(model, llm_request):
+async def _get_summary_async(
+    model, llm_request, opensage_session=None, session_id=None
+):
     """Get summary from model asynchronously."""
+    if opensage_session is not None:
+        from opensage.llm.budget import generate_content_with_budget
+
+        response_iter = generate_content_with_budget(
+            model,
+            llm_request,
+            budget_manager=opensage_session.budget,
+            session_id=session_id,
+        )
+    else:
+        response_iter = model.generate_content_async(llm_request)
     summary_parts = []
-    async for llm_response in model.generate_content_async(llm_request):
+    async for llm_response in response_iter:
         if llm_response.content and llm_response.content.parts:
             for part in llm_response.content.parts:
                 if getattr(part, "text", None):
@@ -301,7 +314,6 @@ Here is a brief preview:
     llm_request.config = types.GenerateContentConfig()
 
     # Build recent context window (up to last 10 events).
-    recent_context_lines: List[str] = []
     try:
         session = getattr(tool_context._invocation_context, "session", None)
         events: List[Event] = list(getattr(session, "events", []) or [])
@@ -356,7 +368,12 @@ Here is a brief preview:
     ]
 
     try:
-        summary = await _get_summary_async(model, llm_request)
+        summary = await _get_summary_async(
+            model,
+            llm_request,
+            opensage_session=opensage_session,
+            session_id=getattr(tool_context._invocation_context.session, "id", None),
+        )
     except Exception as e:
         logger.exception(f"Error summarizing tool response: {e}")
         summary = raw[:1000] + ("..." if len(raw) > 1000 else "")
@@ -430,8 +447,10 @@ You can use `grep`, `cat`, or other commands to search or view the full content 
 class OpenSageFullEventSummarizer:
     """Summarizer including text, tool calls/responses, and previous compaction text."""
 
-    def __init__(self, model: LiteLlm):
+    def __init__(self, model: LiteLlm, opensage_session=None, session_id=None):
         self._model = model
+        self._opensage_session = opensage_session
+        self._session_id = session_id
 
     def _format_event_to_text(self, event: Event) -> List[str]:
         lines: List[str] = []
@@ -565,7 +584,12 @@ class OpenSageFullEventSummarizer:
         ]
 
         try:
-            summary_text = await _get_summary_async(self._model, llm_request)
+            summary_text = await _get_summary_async(
+                self._model,
+                llm_request,
+                opensage_session=self._opensage_session,
+                session_id=self._session_id,
+            )
         except Exception as e:
             logger.exception(f"Error generating compaction summary: {e}")
             return None
@@ -764,7 +788,11 @@ async def _history_compaction_core(inv_ctx) -> None:
     else:
         summarizer_model = agent.canonical_model
 
-    summarizer = OpenSageFullEventSummarizer(model=summarizer_model)
+    summarizer = OpenSageFullEventSummarizer(
+        model=summarizer_model,
+        opensage_session=opensage_session,
+        session_id=getattr(session, "id", None),
+    )
     folded_context_text: Optional[str] = None
     if _adk_get_contents is not None:
         try:

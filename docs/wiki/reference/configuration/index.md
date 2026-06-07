@@ -62,6 +62,7 @@ password = "${NEO4J_PASSWORD}"
 ## Sections
 
 - [`[llm]`](./llm.md): model profiles and sampling parameters.
+- `[model]`: model registry settings and the session-wide runtime budget.
 - [`[sandbox]`](./sandbox.md): execution environments, per-sandbox container and build fields.
 - [`[mcp]`](./mcp.md): MCP service definitions.
 - [`[history]`](./history.md): tool-response handling and event compaction.

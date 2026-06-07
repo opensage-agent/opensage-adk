@@ -43,6 +43,7 @@ if TYPE_CHECKING:
         ModelRegistryConfig,
         OpenSageConfig,
     )
+    from opensage.llm.budget import BudgetManager
 
 logger = logging.getLogger("opensage." + __name__)
 
@@ -50,11 +51,19 @@ logger = logging.getLogger("opensage." + __name__)
 class LlmRegistry:
     """Read-only registry of named ``BaseLlm`` instances available in this session."""
 
-    def __init__(self, models: dict[str, BaseLlm]) -> None:
+    def __init__(
+        self,
+        models: dict[str, BaseLlm],
+        *,
+        budget_manager: Optional["BudgetManager"] = None,
+    ) -> None:
         # Stored by ``BaseLlm.model`` (the provider id). Instances are SHARED:
         # ``get(name)`` returns the same Python object every time. Multiple
         # AgentInstances using the same model share state — see module docstring.
-        self._models: dict[str, BaseLlm] = dict(models)
+        self._budget_manager = budget_manager
+        self._models: dict[str, BaseLlm] = {}
+        for name, model in dict(models).items():
+            self._models[name] = self._maybe_wrap(model)
 
     # ---- public API ----
 
@@ -99,7 +108,14 @@ class LlmRegistry:
                 "Cannot use root agent's model as registry fallback: "
                 "model has no usable .model attribute"
             )
-        self._models[name] = root_model
+        self._models[name] = self._maybe_wrap(root_model)
+
+    def _maybe_wrap(self, model: BaseLlm) -> BaseLlm:
+        if self._budget_manager is None:
+            return model
+        from opensage.llm.budget import wrap_llm_with_budget
+
+        return wrap_llm_with_budget(model, self._budget_manager)
 
     # ---- construction ----
 
@@ -109,6 +125,7 @@ class LlmRegistry:
         config: "OpenSageConfig",
         *,
         agent_dir: Optional[str] = None,
+        budget_manager: Optional["BudgetManager"] = None,
     ) -> "LlmRegistry":
         """Build a registry from ``config.model``.
 
@@ -127,7 +144,7 @@ class LlmRegistry:
         """
         model_cfg = getattr(config, "model", None)
         if model_cfg is None:
-            return cls({})
+            return cls({}, budget_manager=budget_manager)
 
         toml_entries = list(model_cfg.available_models or [])
         py_path = (model_cfg.models_python_file or "").strip() or None
@@ -139,10 +156,16 @@ class LlmRegistry:
             )
 
         if py_path:
-            return cls(_load_from_python_file(py_path, agent_dir=agent_dir))
+            return cls(
+                _load_from_python_file(py_path, agent_dir=agent_dir),
+                budget_manager=budget_manager,
+            )
         if toml_entries:
-            return cls(_load_from_toml_entries(toml_entries))
-        return cls({})
+            return cls(
+                _load_from_toml_entries(toml_entries),
+                budget_manager=budget_manager,
+            )
+        return cls({}, budget_manager=budget_manager)
 
 
 # ---- helpers ----

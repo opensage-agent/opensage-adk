@@ -11,6 +11,7 @@ from google.adk.models.llm_request import LlmRequest
 from google.adk.tools import ToolContext
 from google.genai import types
 
+from opensage.llm.budget import generate_content_with_budget
 from opensage.session import get_opensage_session
 from opensage.toolbox.sandbox_requirements import requires_sandbox
 from opensage.utils.agent_utils import (
@@ -276,7 +277,15 @@ Keep your response concise and actionable."""
 
         # Call model
         idea_parts = []
-        async for llm_response in model.generate_content_async(llm_request):
+        session_id = getattr(
+            getattr(tool_context._invocation_context, "session", None), "id", None
+        )
+        async for llm_response in generate_content_with_budget(
+            model,
+            llm_request,
+            budget_manager=opensage_session.budget,
+            session_id=session_id,
+        ):
             if llm_response.content and llm_response.content.parts:
                 for part in llm_response.content.parts:
                     if part.text:

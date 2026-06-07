@@ -54,6 +54,7 @@ auto_cleanup = true
 
 # --- Section-based configuration ---
 [llm]             # Language models (step 1)
+[model]           # Model registry + runtime budget
 [sandbox]         # Execution environments (step 2)
 [mcp]             # MCP tool services (step 3)
 [history]         # Tool response + event compaction (step 4)

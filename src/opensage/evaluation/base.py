@@ -381,13 +381,13 @@ class Evaluation(abc.ABC):
 
         # Collect all dataclass fields
         params = {}
-        for field in fields(self):
-            value = getattr(self, field.name)
+        for dataclass_field in fields(self):
+            value = getattr(self, dataclass_field.name)
             # Convert Path objects to strings
             if isinstance(value, Path):
-                params[field.name] = str(value)
+                params[dataclass_field.name] = str(value)
             elif value is not None:
-                params[field.name] = value
+                params[dataclass_field.name] = value
 
         # Add timestamp
         params["timestamp"] = datetime.datetime.now().isoformat()
@@ -463,16 +463,24 @@ class Evaluation(abc.ABC):
 
         # Determine model name for logging
         model_name = "agent_default"
+        budget_state = None
         if task.opensage_session:
+            budget = getattr(task.opensage_session, "budget", None)
+            if budget is not None:
+                budget_state = budget.to_dict()
             replace_name = task.opensage_session.config.model.evaluation_replace_all_models_with_model_name
             if replace_name:
                 model_name = replace_name
 
+        estimated_cost = (
+            budget_state.get("spent_cost") if isinstance(budget_state, dict) else None
+        )
         cost_info = {
             "session_id": task.session_id,
             "task_name": task.id,
             "model": model_name,
             "timestamp": datetime.datetime.now().isoformat(),
+            "estimated_cost": estimated_cost,
             "token_usage": {
                 "total_input_tokens": total_input_tokens,
                 "total_output_tokens": total_output_tokens,
@@ -480,6 +488,7 @@ class Evaluation(abc.ABC):
                 "total_tokens": total_input_tokens + total_output_tokens,
             },
             "num_llm_calls": num_llm_calls,
+            "budget": budget_state,
         }
 
         logger.warning("=" * 80)
@@ -490,6 +499,8 @@ class Evaluation(abc.ABC):
         logger.warning(f"  Output tokens: {total_output_tokens:,}")
         logger.warning(f"  Cached tokens: {total_cached_tokens:,}")
         logger.warning(f"  Total tokens: {total_input_tokens + total_output_tokens:,}")
+        if estimated_cost is not None:
+            logger.warning(f"  Estimated cost: ${float(estimated_cost):.6f}")
         logger.warning("=" * 80)
 
         # Ensure output directory exists

@@ -177,6 +177,20 @@ enabled = []
 # [model]
 # models_python_file = "models.py"
 
+[model]
+# Session-wide runtime model-call budget in USD. 0 means unlimited.
+budget = 0.0
+
+# Optional custom pricing for models that LiteLLM's cost calculator does not know.
+# Prices are USD per 1M tokens and match the model string used in calls.
+# cached_per_million defaults to prompt_per_million when omitted.
+#
+# [[model.prices]]
+# model = "custom/provider-model"
+# prompt_per_million = 3.0
+# completion_per_million = 15.0
+# cached_per_million = 0.3
+
 [build]
 poc_dir = "${POC_DIR}"
 compile_command = "${COMPILE_COMMAND}"

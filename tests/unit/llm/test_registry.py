@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import textwrap
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from google.adk.models.base_llm import BaseLlm
+from google.adk.models.llm_response import LlmResponse
+from google.genai import types
 
 from opensage.config.config_dataclass import (
     ModelEntry,
@@ -13,6 +17,11 @@ from opensage.config.config_dataclass import (
     OpenSageConfig,
 )
 from opensage.llm import LlmRegistry
+from opensage.llm.budget import (
+    _BUDGET_MANAGED_REQUEST_ATTR,
+    BudgetManager,
+    generate_content_with_budget,
+)
 
 
 def _make_config(
@@ -149,7 +158,7 @@ def test_py_source_loads_models(tmp_path, monkeypatch):
 
 
 def test_py_relative_path_uses_agent_dir(tmp_path, monkeypatch):
-    py_path = _write_py_file(
+    _write_py_file(
         tmp_path,
         """
         from google.adk.models.lite_llm import LiteLlm
@@ -263,3 +272,74 @@ def test_get_returns_same_instance_each_call(monkeypatch):
     a = reg.get("openai/share")
     b = reg.get("openai/share")
     assert a is b
+
+
+class _FakeLlm(BaseLlm):
+    async def generate_content_async(self, llm_request, stream=False):
+        yield LlmResponse(
+            content=types.Content(
+                role="model", parts=[types.Part.from_text(text="ok")]
+            ),
+            usage_metadata=types.GenerateContentResponseUsageMetadata(
+                prompt_token_count=10,
+                candidates_token_count=5,
+                total_token_count=15,
+            ),
+        )
+
+
+@pytest.mark.asyncio
+async def test_registry_budget_wrapper_charges_direct_model_calls(monkeypatch):
+    def fake_cost_per_token(**kwargs):
+        assert kwargs["model"] == "local/test"
+        assert kwargs["prompt_tokens"] == 10
+        assert kwargs["completion_tokens"] == 5
+        return 0.01, 0.01
+
+    monkeypatch.setattr("litellm.cost_calculator.cost_per_token", fake_cost_per_token)
+    budget = BudgetManager(configured_budget=1.0)
+    reg = LlmRegistry(
+        {"local/test": _FakeLlm(model="local/test")}, budget_manager=budget
+    )
+
+    responses = [
+        response
+        async for response in reg.get("local/test").generate_content_async(object())
+    ]
+
+    assert len(responses) == 1
+    assert budget.spent_cost == pytest.approx(0.02)
+
+
+@pytest.mark.asyncio
+async def test_generate_content_with_budget_does_not_double_charge_registry_model(
+    monkeypatch,
+):
+    def fake_cost_per_token(**kwargs):
+        assert kwargs["model"] == "local/test"
+        assert kwargs["prompt_tokens"] == 10
+        assert kwargs["completion_tokens"] == 5
+        return 0.01, 0.01
+
+    monkeypatch.setattr("litellm.cost_calculator.cost_per_token", fake_cost_per_token)
+    budget = BudgetManager(configured_budget=1.0)
+    reg = LlmRegistry(
+        {"local/test": _FakeLlm(model="local/test")}, budget_manager=budget
+    )
+    llm_request = SimpleNamespace()
+
+    responses = [
+        response
+        async for response in generate_content_with_budget(
+            reg.get("local/test"),
+            llm_request,
+            budget_manager=budget,
+            session_id="agent-1",
+        )
+    ]
+
+    assert len(responses) == 1
+    assert budget.spent_cost == pytest.approx(0.02)
+    assert budget.per_model_usage["local/test"].calls == 1
+    assert budget.per_agent_instance_usage["agent-1"].calls == 1
+    assert not hasattr(llm_request, _BUDGET_MANAGED_REQUEST_ATTR)

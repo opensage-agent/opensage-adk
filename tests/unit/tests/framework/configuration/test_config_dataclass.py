@@ -341,10 +341,20 @@ network = "agent_net"
         toml_content = """
 MAIN_MODEL = "test/model"
 
+[llm]
 [llm.model_configs.summarize]
 model_name = "${MAIN_MODEL}"
 temperature = 0.3
 max_tokens = 2048
+
+[model]
+budget = 5.0
+
+[[model.prices]]
+model = "test/model"
+prompt_per_million = 3.0
+completion_per_million = 15.0
+cached_per_million = 0.3
 """
 
         with open(self.test_config_path, "w") as f:
@@ -353,6 +363,12 @@ max_tokens = 2048
         config = OpenSageConfig.from_toml(str(self.test_config_path))
 
         assert config.llm is not None
+        assert config.model.budget == 5.0
+        assert len(config.model.prices) == 1
+        assert config.model.prices[0].model == "test/model"
+        assert config.model.prices[0].prompt_per_million == 3.0
+        assert config.model.prices[0].completion_per_million == 15.0
+        assert config.model.prices[0].cached_per_million == 0.3
         assert config.llm.summarize_model == "test/model"
 
         summary_config = config.llm.get_model_config("summarize")

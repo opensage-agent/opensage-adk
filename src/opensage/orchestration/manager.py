@@ -605,7 +605,16 @@ class AgentManager:
 
     def _build_runner(self, agent: "OpenSageAgent", inbox: Inbox) -> Runner:
         """Construct a Runner for one instance, with InboxDeliveryPlugin added."""
-        plugins = list(self._base_plugins) + [InboxDeliveryPlugin(inbox)]
+        plugins = []
+        budget = getattr(self._opensage_session, "budget", None)
+        if budget is not None:
+            from opensage.plugins.default.adk_plugins.runtime_budget_plugin import (
+                RuntimeBudgetPlugin,
+            )
+
+            plugins.append(RuntimeBudgetPlugin(budget))
+        plugins.extend(list(self._base_plugins))
+        plugins.append(InboxDeliveryPlugin(inbox))
         return Runner(
             app_name=self._app_name,
             agent=agent,
@@ -1019,6 +1028,11 @@ class AgentManager:
                     logger.warning(
                         "LLM-call budget exhausted for session %s", session_id
                     )
+                    break
+
+                budget = getattr(self._opensage_session, "budget", None)
+                if budget is not None and budget.budget_exhausted:
+                    logger.warning("LLM budget exhausted for session %s", session_id)
                     break
 
                 first_iteration = False

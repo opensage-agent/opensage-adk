@@ -64,6 +64,15 @@ class OpenSageSession:
 
         configure_from_config(self.config)
 
+        # Shared runtime LLM budget for this OpenSage session.
+        from opensage.llm.budget import BudgetManager
+
+        model_cfg = getattr(self.config, "model", None)
+        self.budget = BudgetManager(
+            configured_budget=getattr(model_cfg, "budget", 0.0) if model_cfg else 0.0,
+            model_prices=getattr(model_cfg, "prices", None) if model_cfg else None,
+        )
+
         # Initialize session-specific managers
         from .opensage_neo4j_client_manager import OpenSageNeo4jClientManager
         from .opensage_sandbox_manager import OpenSageSandboxManager
@@ -95,7 +104,11 @@ class OpenSageSession:
         # ----- LlmRegistry (eager-loaded model pool for LLM-driven subagents) -----
         from ..llm import LlmRegistry
 
-        self.llms = LlmRegistry.from_config(self.config, agent_dir=agent_dir)
+        self.llms = LlmRegistry.from_config(
+            self.config,
+            agent_dir=agent_dir,
+            budget_manager=self.budget,
+        )
 
         # ----- AgentManager (new orchestration layer) -----
         from ..orchestration.manager import AgentManager
@@ -147,6 +160,7 @@ class OpenSageSession:
             "config_status": "loaded",
             "active_agents": len(self.agent_manager.list_instances()),
             "active_sandboxes": sandbox_stats["total_sandboxes"],
+            "budget": self.budget.to_dict(),
         }
 
     def cleanup(self) -> None:

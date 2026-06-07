@@ -817,8 +817,21 @@ class OpenSageWebServer:
                                 agent["model"] = getattr(agent_model, "model", "")
                 return {"agents": subagents, "root": root_name}
 
+            _last_good_topology: dict = {"nodes": [], "edges": []}
+
             @app.get("/control/subagents/topology")
             async def get_subagent_topology():
+                nonlocal _last_good_topology
+                try:
+                    result = _build_topology()
+                    if result.get("nodes"):
+                        _last_good_topology = result
+                    return result
+                except Exception:
+                    logger.exception("topology endpoint failed")
+                    return _last_good_topology
+
+            def _build_topology():
                 manager = self._get_agent_manager()
 
                 if manager:

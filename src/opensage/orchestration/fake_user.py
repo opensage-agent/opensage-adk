@@ -86,11 +86,9 @@ _DEFAULT_CONTINUATION_PROMPT = (
     "I approve you to continue, if you think the task is "
     "complete, you should call the finish_task tool, and "
     "then summarize the task and the result without calling "
-    "any other tool. If you haven't submitted a poc that "
-    "triggers the vulnerability, the task is not finished, "
-    "continue and try harder, do not respond to this message "
+    "any other tool. Do not respond to this message "
     "in natural language, start calling appropriate tools to "
-    "complete the task. DO NOT respond to this message."
+    "complete the task."
 )
 
 

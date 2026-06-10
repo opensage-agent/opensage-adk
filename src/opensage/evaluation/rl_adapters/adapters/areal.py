@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ArealAdapter(BaseAdapter):
+class ArealAdapter(BaseAdapter, framework="areal"):
     """Adapter for AReaL RL framework integration.
 
     This adapter accepts an ADK-compatible model (ArealLlm) from AReaL,

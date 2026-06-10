@@ -38,7 +38,7 @@ from .base import BaseAdapter
 logger = logging.getLogger(__name__)
 
 
-class MilesAdapter(BaseAdapter):
+class MilesAdapter(BaseAdapter, framework="miles"):
     """Adapter for Miles RL framework integration.
 
     Key difference from SlimeAdapter:

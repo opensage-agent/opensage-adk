@@ -26,7 +26,33 @@ class BaseAdapter(ABC):
     - Converting framework-specific sample to dict format for Evaluation
     - Calling Evaluation._create_task() and _generate_one()
     - Updating the sample with results in framework-expected format
+
+    Subclasses register themselves via the ``framework`` class keyword::
+
+        class SlimeAdapter(BaseAdapter, framework="slime"):
+            ...
     """
+
+    _registry: dict[str, type["BaseAdapter"]] = {}
+
+    def __init_subclass__(cls, framework: str = "", **kwargs):
+        super().__init_subclass__(**kwargs)
+        if framework:
+            BaseAdapter._registry[framework] = cls
+
+    @classmethod
+    def get(cls, framework: str) -> type["BaseAdapter"]:
+        """Look up adapter class by framework name.
+
+        Raises:
+            ValueError: If framework is not registered
+        """
+        if framework not in cls._registry:
+            registered = list(cls._registry.keys())
+            raise ValueError(
+                f"Unsupported framework: {framework}. Registered: {registered}"
+            )
+        return cls._registry[framework]
 
     def __init__(
         self,

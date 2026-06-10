@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any
 
 from opensage.session import cleanup_opensage_session, get_opensage_session
 
-from .adapters import ArealAdapter, BaseAdapter, MilesAdapter, SlimeAdapter
+from .adapters import BaseAdapter
 from .benchmark_interface import BenchmarkInterface
 
 if TYPE_CHECKING:
@@ -190,46 +190,24 @@ class RLSession:
         """Get or create adapter for specified framework.
 
         Args:
-            framework (str): Framework name ("slime", "verl", "areal", etc.)
+            framework (str): Framework name ("slime", "areal", "miles", etc.)
         Returns:
             BaseAdapter: Framework-specific adapter
 
         Raises:
-            ValueError: If framework is not supported
+            ValueError: If framework is not registered
         """
         if framework not in self._adapters:
-            # Create a temporary dummy session for adapter initialization
-            # The actual session with proper config will be created by
-            # Evaluation._register_opensage_session() when needed
-            from opensage.session import OpenSageSession
-
             dummy_session = type(
                 "DummySession", (), {"opensage_session_id": self.session_id}
             )()
 
-            if framework == "slime":
-                self._adapters[framework] = SlimeAdapter(
-                    opensage_session=dummy_session,
-                    evaluation=self.client._evaluation,
-                    benchmark=self.client._benchmark,
-                )
-            elif framework == "verl":
-                # TODO: Implement VerlAdapter
-                raise NotImplementedError("verl adapter not yet implemented")
-            elif framework == "areal":
-                self._adapters[framework] = ArealAdapter(
-                    opensage_session=dummy_session,
-                    evaluation=self.client._evaluation,
-                    benchmark=self.client._benchmark,
-                )
-            elif framework == "miles":
-                self._adapters[framework] = MilesAdapter(
-                    opensage_session=dummy_session,
-                    evaluation=self.client._evaluation,
-                    benchmark=self.client._benchmark,
-                )
-            else:
-                raise ValueError(f"Unsupported framework: {framework}")
+            adapter_cls = BaseAdapter.get(framework)
+            self._adapters[framework] = adapter_cls(
+                opensage_session=dummy_session,
+                evaluation=self.client._evaluation,
+                benchmark=self.client._benchmark,
+            )
 
         return self._adapters[framework]
 

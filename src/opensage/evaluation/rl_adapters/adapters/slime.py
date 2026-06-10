@@ -73,7 +73,7 @@ def _schema_to_openai_dict(schema) -> dict:
     return schema_dict
 
 
-class SlimeAdapter(BaseAdapter):
+class SlimeAdapter(BaseAdapter, framework="slime"):
     """Adapter for slime RL framework integration.
 
     Handles the translation between slime's Sample format and OpenSage's

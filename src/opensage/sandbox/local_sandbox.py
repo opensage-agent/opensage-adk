@@ -37,6 +37,11 @@ class LocalSandbox(BaseSandbox):
         os.makedirs(os.path.dirname(container_path), exist_ok=True)
         shutil.copyfile(local_path, container_path)
 
+    def copy_directory_to_container(self, src_path: str, dst_path: str):
+        if os.path.exists(dst_path):
+            shutil.rmtree(dst_path)
+        shutil.copytree(src_path, dst_path)
+
     def extract_file_from_container(self, filepath: str) -> str:
         with open(filepath, "r") as f:
             return f.read()

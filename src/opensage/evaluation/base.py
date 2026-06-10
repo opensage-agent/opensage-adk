@@ -370,6 +370,9 @@ class Evaluation(abc.ABC):
         logging.getLogger().addHandler(master_handler)
         logger.info(f"Master log handler created: {master_log}")
 
+        if self.use_sandbox_cache and self.sandbox_cache_dir is None:
+            self.sandbox_cache_dir = str(Path(self.output_dir) / ".sandbox_cache")
+
         # Log and save evaluation parameters
         self._log_and_save_parameters()
 

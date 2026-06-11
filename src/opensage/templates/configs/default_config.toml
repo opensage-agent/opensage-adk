@@ -59,6 +59,10 @@ request_working_directory = ""
 # Main sandbox configuration
 [sandbox.sandboxes.main]
 image = "${DEFAULT_IMAGE}_main"
+# Dockerfile path fields are mutually exclusive. Use
+# `agent_relative_dockerfile_path` for Dockerfiles shipped inside an agent dir,
+# `project_relative_dockerfile_path` for OpenSage repo paths, or
+# `absolute_dockerfile_path` for already-resolved paths.
 project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/main/Dockerfile"
 timeout = 300
 [sandbox.sandboxes.main.build_args]

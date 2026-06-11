@@ -167,7 +167,10 @@ class ContainerConfig:
     project_relative_dockerfile_path: Optional[str] = (
         None  # Path to Dockerfile relative to project root
     )
-    absolute_dockerfile_path: Optional[str] = None
+    agent_relative_dockerfile_path: Optional[str] = (
+        None  # Path to Dockerfile relative to the agent directory
+    )
+    absolute_dockerfile_path: Optional[str] = None  # Path to Dockerfile as given
     build_args: Dict[str, str] = field(
         default_factory=dict
     )  # Build arguments for Docker build
@@ -669,6 +672,26 @@ class OpenSageConfig:
             # Sandbox ports: only allow int/None or {host, port}.
             sandboxes_data = sandbox_data.get("sandboxes") or {}
             for sandbox_name, sandbox_cfg in sandboxes_data.items():
+                dockerfile_fields = [
+                    "absolute_dockerfile_path",
+                    "agent_relative_dockerfile_path",
+                    "project_relative_dockerfile_path",
+                ]
+                for field in dockerfile_fields:
+                    if sandbox_cfg.get(field) == "":
+                        sandbox_cfg[field] = None
+                configured_dockerfile_fields = [
+                    field for field in dockerfile_fields if sandbox_cfg.get(field)
+                ]
+                if len(configured_dockerfile_fields) > 1:
+                    raise ValueError(
+                        f"Sandbox '{sandbox_name}' configures multiple Dockerfile "
+                        f"path fields: {', '.join(configured_dockerfile_fields)}. "
+                        "Use exactly one of absolute_dockerfile_path, "
+                        "agent_relative_dockerfile_path, or "
+                        "project_relative_dockerfile_path."
+                    )
+
                 ports_data = sandbox_cfg.get("ports")
                 if not isinstance(ports_data, dict):
                     continue

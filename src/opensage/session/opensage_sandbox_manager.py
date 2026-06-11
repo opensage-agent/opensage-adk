@@ -83,6 +83,52 @@ class OpenSageSandboxManager:
         """
         return self._sandboxes.copy()
 
+    def _resolve_dockerfile_path_config(
+        self, sandbox_type: str, container_config
+    ) -> None:
+        """Validate Dockerfile path config and resolve agent-relative paths.
+
+        Dockerfile path fields are intentionally mutually exclusive. Agent-relative
+        paths are converted to absolute paths before backend launch so existing
+        Docker backends do not need to know about agent_dir.
+        """
+        fields = [
+            "absolute_dockerfile_path",
+            "agent_relative_dockerfile_path",
+            "project_relative_dockerfile_path",
+        ]
+        configured_fields = [
+            field for field in fields if getattr(container_config, field, None)
+        ]
+        if len(configured_fields) > 1:
+            raise ValueError(
+                f"Sandbox '{sandbox_type}' configures multiple Dockerfile path "
+                f"fields: {', '.join(configured_fields)}. Use exactly one of "
+                "absolute_dockerfile_path, agent_relative_dockerfile_path, or "
+                "project_relative_dockerfile_path."
+            )
+
+        rel_path = getattr(container_config, "agent_relative_dockerfile_path", None)
+        if not rel_path:
+            return
+        if not self._session.agent_dir:
+            raise ValueError(
+                f"Sandbox '{sandbox_type}' uses agent_relative_dockerfile_path "
+                "but this OpenSageSession has no agent_dir."
+            )
+
+        dockerfile_path = Path(rel_path)
+        if dockerfile_path.is_absolute():
+            raise ValueError(
+                f"Sandbox '{sandbox_type}' agent_relative_dockerfile_path must be "
+                f"relative, got absolute path: {rel_path}"
+            )
+
+        container_config.absolute_dockerfile_path = str(
+            (Path(self._session.agent_dir) / dockerfile_path).resolve()
+        )
+        container_config.agent_relative_dockerfile_path = None
+
     def remove_sandbox(self, sandbox_type: str) -> bool:
         """Remove and cleanup a specific sandbox.
 
@@ -396,6 +442,7 @@ class OpenSageSandboxManager:
             for sandbox_type, container_config in config.sandbox.sandboxes.items():
                 # If types specified, only include those types
                 if sandbox_types is None or sandbox_type in sandbox_types:
+                    self._resolve_dockerfile_path_config(sandbox_type, container_config)
                     sandbox_configs[sandbox_type] = container_config
 
             if not sandbox_configs:

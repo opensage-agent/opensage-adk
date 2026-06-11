@@ -57,11 +57,19 @@ def build_image_from_dockerfile(
     Returns:
         DockerBuildResult: DockerBuildResult with build status and details
     """
-    if (
-        not (config.project_relative_dockerfile_path or config.absolute_dockerfile_path)
-        and not config.image
-    ):
+    has_dockerfile = (
+        config.absolute_dockerfile_path
+        or config.agent_relative_dockerfile_path
+        or config.project_relative_dockerfile_path
+    )
+    if not has_dockerfile and not config.image:
         return None
+
+    if config.agent_relative_dockerfile_path:
+        raise ValueError(
+            "agent_relative_dockerfile_path must be resolved against agent_dir "
+            "before building Docker images."
+        )
 
     # Use absolute path if provided, otherwise use project-relative path
     if config.absolute_dockerfile_path:
@@ -177,9 +185,16 @@ def ensure_docker_image(config: ContainerConfig) -> tuple[bool, Optional[str]]:
     # If pull failed, try building from dockerfile
     logger.warning(f"Failed to pull {config.image}")
 
-    if config.absolute_dockerfile_path or config.project_relative_dockerfile_path:
+    has_dockerfile = (
+        config.absolute_dockerfile_path
+        or config.agent_relative_dockerfile_path
+        or config.project_relative_dockerfile_path
+    )
+    if has_dockerfile:
         dockerfile_path = (
-            config.absolute_dockerfile_path or config.project_relative_dockerfile_path
+            config.absolute_dockerfile_path
+            or config.agent_relative_dockerfile_path
+            or config.project_relative_dockerfile_path
         )
         logger.info(
             f"Attempting to build {config.image} from dockerfile {dockerfile_path}..."

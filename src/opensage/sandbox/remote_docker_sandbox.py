@@ -497,7 +497,12 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         if cls.can_pull_image(config.image):
             return True, None
 
-        if config.absolute_dockerfile_path or config.project_relative_dockerfile_path:
+        has_dockerfile = (
+            config.absolute_dockerfile_path
+            or config.agent_relative_dockerfile_path
+            or config.project_relative_dockerfile_path
+        )
+        if has_dockerfile:
             build_result = cls.build_image_from_dockerfile(config)
 
             if build_result is None:
@@ -516,10 +521,18 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         from opensage.utils.project_info import PROJECT_PATH
 
         has_dockerfile = (
-            config.project_relative_dockerfile_path or config.absolute_dockerfile_path
+            config.absolute_dockerfile_path
+            or config.agent_relative_dockerfile_path
+            or config.project_relative_dockerfile_path
         )
         if not has_dockerfile or not config.image:
             return None
+
+        if config.agent_relative_dockerfile_path:
+            raise ValueError(
+                "agent_relative_dockerfile_path must be resolved against agent_dir "
+                "before building Docker images."
+            )
 
         if config.absolute_dockerfile_path:
             dockerfile_path = Path(config.absolute_dockerfile_path)

@@ -336,6 +336,45 @@ network = "agent_net"
 
         assert config.sandbox.sandboxes["main"].network == "agent_net"
 
+    def test_load_agent_relative_dockerfile_path_from_toml(self):
+        """Test loading an agent-relative Dockerfile path."""
+        toml_content = """
+[sandbox]
+backend = "native"
+
+[sandbox.sandboxes.main]
+image = "test-image"
+agent_relative_dockerfile_path = "main_sandbox/Dockerfile"
+"""
+
+        with open(self.test_config_path, "w") as f:
+            f.write(toml_content)
+
+        config = OpenSageConfig.from_toml(str(self.test_config_path))
+
+        assert (
+            config.sandbox.sandboxes["main"].agent_relative_dockerfile_path
+            == "main_sandbox/Dockerfile"
+        )
+
+    def test_dockerfile_path_fields_are_mutually_exclusive(self):
+        """Test Dockerfile path fields cannot be configured together."""
+        toml_content = """
+[sandbox]
+backend = "native"
+
+[sandbox.sandboxes.main]
+image = "test-image"
+absolute_dockerfile_path = "/tmp/Dockerfile"
+agent_relative_dockerfile_path = "main_sandbox/Dockerfile"
+"""
+
+        with open(self.test_config_path, "w") as f:
+            f.write(toml_content)
+
+        with pytest.raises(ValueError, match="multiple Dockerfile path fields"):
+            OpenSageConfig.from_toml(str(self.test_config_path))
+
     def test_load_llm_config_from_toml(self):
         """Test loading LLM configuration from TOML."""
         toml_content = """

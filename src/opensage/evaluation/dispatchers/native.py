@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import TYPE_CHECKING
 
 from tqdm import tqdm
@@ -39,6 +38,8 @@ class NativeDispatcher(BaseDispatcher):
 
     def _run_single_thread(self, evaluation: Evaluation) -> None:
         """Generate samples sequentially in a single thread."""
+        from opensage.evaluation.base import _run_sample_in_process
+
         evaluation.dataset = evaluation._get_dataset()
         results = []
         failed_samples = []
@@ -48,8 +49,7 @@ class NativeDispatcher(BaseDispatcher):
         ):
             task_name = evaluation._get_task_id(sample)
             try:
-                task = evaluation._create_task(sample)
-                result = asyncio.run(evaluation._generate_one(task))
+                result = _run_sample_in_process(evaluation, sample)
                 results.append(result)
                 logger.info(f"✓ Task {task_name} completed")
             except Exception as e:

@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import json
 import logging
 import re
 import shutil
 import tempfile
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 from pathlib import Path
-from random import shuffle
 from typing import Any
 
 import datasets
@@ -26,6 +27,7 @@ from .helpers import (
     judge_trajectory_sync,
     load_dataset,
     make_transcript_payload,
+    parse_time_limit,
     run_command,
 )
 
@@ -42,21 +44,21 @@ class NYU_CTF_Bench(Evaluation):
 
     name: str = "nyuctf"
     max_workers: int = 1
-    max_llm_calls: int = 150
+    max_llm_calls: int = 0
     run_until_explicit_finish: bool = False
 
-    split: str = "test"
     challenge_name: str | None = None
     dataset_json: str | None = None
-    repository_dir: str | None = None
+    bench_dir: str | None = None
     max_challenges: int | None = None
     network_name: str = "ctfnet"
+    time_limit: str = "12h"
+    budget: float = 0
 
-    submission_agent: str = "opensage-ctf"
-    submission_model: str = "claude-opus-4-6"
-    submission_link: str = "https://www.opensage-agent.ai"
-    submission_comment: str = "pass@1"
-    judge_model: str = "claude-opus-4-6"
+    submission_agent: str = field(default="sagectf", init=False)
+    submission_model: str = field(default="gpt-5.5", init=False)
+    submission_link: str = field(default="https://www.opensage-agent.ai", init=False)
+    submission_comment: str = field(default="pass@1", init=False)
 
     def __post_init__(self) -> None:
         if not self.agent_dir:
@@ -71,10 +73,13 @@ class NYU_CTF_Bench(Evaluation):
             else None
         )
         self._repository_dir_path = (
-            Path(self.repository_dir).expanduser().resolve()
-            if self.repository_dir
-            else None
+            Path(self.bench_dir).expanduser().resolve() if self.bench_dir else None
         )
+        self._run_time_limit_seconds = parse_time_limit(self.time_limit)
+        self.budget = float(self.budget)
+        if self.budget <= 0:
+            raise ValueError("budget must be positive")
+        self._active_task_deadline: float | None = None
         super().__post_init__()
 
     def _register_opensage_session(self, task: EvaluationTask):
@@ -94,8 +99,24 @@ class NYU_CTF_Bench(Evaluation):
         self._replace_template_variables_in_config(temp_config_path, template_variables)
         self._normalize_nyuctf_config(temp_config_path, config_template)
 
-        get_opensage_session(task.session_id, config_path=temp_config_path)
+        opensage_session = get_opensage_session(
+            task.session_id,
+            config_path=temp_config_path,
+            agent_dir=self.agent_dir,
+        )
+        self._apply_per_challenge_budget(opensage_session)
         shutil.rmtree(temp_dir, ignore_errors=True)
+
+    def _apply_per_challenge_budget(self, opensage_session) -> None:
+        budget = float(self.budget)
+        opensage_session.config.model.budget = budget
+        opensage_session.budget.configured_budget = budget
+        opensage_session.budget.budget_exhausted = (
+            opensage_session.budget.spent_cost >= budget
+        )
+        opensage_session.budget.exhausted_reason = (
+            "budget_exhausted" if opensage_session.budget.budget_exhausted else None
+        )
 
     def _normalize_nyuctf_config(
         self, temp_config_path: Path, source_config_path: Path
@@ -145,7 +166,6 @@ class NYU_CTF_Bench(Evaluation):
 
     def _get_dataset(self) -> datasets.Dataset:
         _, challenges = load_dataset(
-            split=self.split,
             challenge_name=self.challenge_name,
             dataset_json=self._dataset_json_path,
             repository_dir=self._repository_dir_path,
@@ -244,8 +264,10 @@ class NYU_CTF_Bench(Evaluation):
         task: EvaluationTask,
         challenge: LoadedChallenge,
         exc: BaseException,
+        *,
+        exit_reason: str = "task_error",
     ) -> None:
-        """Record an agent-side failure as a fully-scored (but unsolved) task.
+        """Record an agent-side failure as a fully-scored task.
 
         This keeps the resume mechanism honest: the task has a score.json,
         so the next run will not blindly re-attempt it. The transcript dump
@@ -267,27 +289,17 @@ class NYU_CTF_Bench(Evaluation):
             except ValueError:
                 duration_seconds = None
 
-        score: dict[str, Any] = {
-            "canonical_name": challenge.canonical_name,
-            "split": challenge.split,
-            "solved": False,
-            "flag_correct": False,
-            "matched_flag": None,
-            "exit_reason": "task_error",
-            "error_type": type(exc).__name__,
-            "error": str(exc),
-            "judge_pass": False,
-            "judge_reason": "not_run",
-            "judge_findings": [],
-            "server_name": challenge.server_name,
-            "port": challenge.port,
-            "started_at": started_at,
-            "finished_at": finished_at,
-            "duration_seconds": duration_seconds,
-        }
+        score = self._score_task(
+            task,
+            challenge,
+            runner_exit_reason=exit_reason,
+            error=exc,
+            finished_at=finished_at,
+            duration_seconds=duration_seconds,
+        )
         (output_path / "score.json").write_text(json.dumps(score, indent=2) + "\n")
 
-        session_trace = self._load_session_trace(output_path / "session_trace.json")
+        session_trace = self._load_session_trace_for_scoring(output_path)
         transcript_payload = make_transcript_payload(
             challenge=challenge,
             score=score,
@@ -308,20 +320,27 @@ class NYU_CTF_Bench(Evaluation):
     async def _generate_one(self, task: EvaluationTask) -> dict:
         challenge = LoadedChallenge.from_sample(task.sample)
         self._log_task_banner(challenge)
-        self._ensure_network_exists()
         task.sample["_benchmark_started_at"] = datetime.datetime.now(
             datetime.UTC
         ).isoformat()
+        deadline = time.time() + self._run_time_limit_seconds
+        self._active_task_deadline = deadline
 
         # Phase 1 — challenge environment startup. Failures here are usually
         # infrastructure-side (docker compose, network setup) and likely to
         # succeed on a future attempt, so we wipe any partial output and let
         # the resume mechanism retry the task on the next run.
         try:
-            self._start_challenge(challenge)
-        except Exception:
+            self._ensure_network_exists(deadline=deadline)
+            self._start_challenge(challenge, deadline=deadline)
+        except Exception as exc:
             if task.initial_data_dir:
                 shutil.rmtree(task.initial_data_dir, ignore_errors=True)
+            if isinstance(exc, TimeoutError):
+                self._record_failed_task(task, challenge, exc, exit_reason="timeout")
+                self._active_task_deadline = None
+                raise
+            self._active_task_deadline = None
             self._cleanup_failed_task_start(task)
             raise
 
@@ -333,17 +352,33 @@ class NYU_CTF_Bench(Evaluation):
         try:
             return await super()._generate_one(task)
         except Exception as exc:
-            self._record_failed_task(task, challenge, exc)
+            exit_reason = "timeout" if isinstance(exc, TimeoutError) else "task_error"
+            self._record_failed_task(task, challenge, exc, exit_reason=exit_reason)
             raise
         finally:
-            # The challenge service lifecycle is outside OpenSage's sandbox manager,
-            # so we must always tear it down even if the agent crashes mid-run.
-            self._stop_challenge(challenge)
+            self._active_task_deadline = None
             if task.initial_data_dir:
                 shutil.rmtree(task.initial_data_dir, ignore_errors=True)
             # Still useful for KeyboardInterrupt and other BaseException paths
             # that bypass _record_failed_task — those should remain retryable.
             self._cleanup_incomplete_task(task)
+
+    async def _run_agent(self, task: EvaluationTask, agent) -> Session:
+        deadline = self._active_task_deadline
+        if deadline is None:
+            return await super()._run_agent(task, agent)
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            raise TimeoutError(f"NYU CTF task {task.id} timed out before agent run")
+        try:
+            return await asyncio.wait_for(
+                super()._run_agent(task, agent),
+                timeout=max(1, int(remaining)),
+            )
+        except TimeoutError as exc:
+            raise TimeoutError(
+                f"NYU CTF task {task.id} timed out after {self.time_limit}"
+            ) from exc
 
     def _get_task_id(self, sample: dict) -> str:
         return str(sample["canonical_name"])
@@ -368,7 +403,7 @@ class NYU_CTF_Bench(Evaluation):
         info = await super()._collect_outputs(task, session)
         challenge = LoadedChallenge.from_sample(task.sample)
         prompt = build_challenge_prompt(challenge)
-        score = self._score_task(task, challenge, prompt)
+        score = self._score_task(task, challenge)
         info["score"] = score
 
         output_path = Path(task.output_dir)
@@ -388,18 +423,40 @@ class NYU_CTF_Bench(Evaluation):
         )
         return info
 
-    def _ensure_network_exists(self) -> None:
+    def _ensure_network_exists(self, *, deadline: float | None = None) -> None:
         inspect = run_command(
             ["docker", "network", "inspect", self.network_name],
             check=False,
+            timeout=self._seconds_remaining(deadline) if deadline is not None else None,
         )
         if inspect.returncode != 0:
-            run_command(["docker", "network", "create", self.network_name])
+            run_command(
+                ["docker", "network", "create", self.network_name],
+                timeout=self._seconds_remaining(deadline)
+                if deadline is not None
+                else None,
+            )
 
-    def _start_challenge(self, challenge: LoadedChallenge) -> None:
+    def _seconds_remaining(self, deadline: float) -> int:
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            raise TimeoutError("NYU CTF task timed out")
+        return max(1, int(remaining))
+
+    def _start_challenge(
+        self, challenge: LoadedChallenge, *, deadline: float | None = None
+    ) -> bool:
         if not challenge.compose:
-            return
+            return False
         compose_file = challenge.challenge_dir / "docker-compose.yml"
+        timeout = self._seconds_remaining(deadline) if deadline is not None else None
+        if self._compose_container_ids(
+            compose_file,
+            challenge.challenge_dir,
+            deadline=deadline,
+        ):
+            self._connect_challenge_containers_to_network(challenge, deadline=deadline)
+            return False
         run_command(
             [
                 "docker",
@@ -409,15 +466,18 @@ class NYU_CTF_Bench(Evaluation):
                 "up",
                 "-d",
                 "--force-recreate",
+                "--build",
             ],
             cwd=challenge.challenge_dir,
+            timeout=timeout,
         )
         logger.info(
             "Starting challenge %s with compose: %s",
             challenge.canonical_name,
             compose_file,
         )
-        self._connect_challenge_containers_to_network(challenge)
+        self._connect_challenge_containers_to_network(challenge, deadline=deadline)
+        return True
 
     def _stop_challenge(self, challenge: LoadedChallenge) -> None:
         if not challenge.compose:
@@ -430,7 +490,7 @@ class NYU_CTF_Bench(Evaluation):
         )
 
     def _connect_challenge_containers_to_network(
-        self, challenge: LoadedChallenge
+        self, challenge: LoadedChallenge, *, deadline: float | None = None
     ) -> None:
         """Attach compose containers to the shared benchmark network.
 
@@ -440,74 +500,168 @@ class NYU_CTF_Bench(Evaluation):
         """
         compose_file = challenge.challenge_dir / "docker-compose.yml"
         container_ids = self._compose_container_ids(
-            compose_file, challenge.challenge_dir
+            compose_file,
+            challenge.challenge_dir,
+            deadline=deadline,
         )
         if not container_ids:
             return
 
-        aliased = False
-        if challenge.server_name:
-            preferred = run_command(
-                [
-                    "docker",
-                    "compose",
-                    "-f",
-                    str(compose_file),
-                    "ps",
-                    "-q",
-                    challenge.server_name,
-                ],
-                cwd=challenge.challenge_dir,
-                check=False,
-            )
-            for container_id in preferred.stdout.split():
-                self._connect_container(container_id, alias=challenge.server_name)
-                aliased = True
-
+        aliased = self._any_container_has_network_alias(
+            container_ids, challenge.server_name, deadline=deadline
+        )
         for container_id in container_ids:
             self._connect_container(
                 container_id,
                 alias=challenge.server_name
                 if challenge.server_name and not aliased
                 else None,
+                deadline=deadline,
             )
             aliased = aliased or bool(challenge.server_name)
 
-    def _compose_container_ids(self, compose_file: Path, cwd: Path) -> list[str]:
+    def _any_container_has_network_alias(
+        self,
+        container_ids: list[str],
+        alias: str | None,
+        *,
+        deadline: float | None = None,
+    ) -> bool:
+        if not alias:
+            return False
+        for container_id in container_ids:
+            connected, aliases = self._container_network_state(
+                container_id, deadline=deadline
+            )
+            if connected and alias in aliases:
+                return True
+        return False
+
+    def _compose_container_ids(
+        self, compose_file: Path, cwd: Path, *, deadline: float | None = None
+    ) -> list[str]:
         result = run_command(
             ["docker", "compose", "-f", str(compose_file), "ps", "-q"],
             cwd=cwd,
             check=False,
+            timeout=self._seconds_remaining(deadline) if deadline is not None else None,
         )
         return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
-    def _connect_container(self, container_id: str, alias: str | None = None) -> None:
+    def _connect_container(
+        self,
+        container_id: str,
+        alias: str | None = None,
+        *,
+        deadline: float | None = None,
+    ) -> None:
+        connected, aliases = self._container_network_state(
+            container_id, deadline=deadline
+        )
+        if connected and (not alias or alias in aliases):
+            return
+        if connected and alias and alias not in aliases:
+            run_command(
+                ["docker", "network", "disconnect", self.network_name, container_id],
+                check=False,
+                timeout=self._seconds_remaining(deadline)
+                if deadline is not None
+                else None,
+            )
+
         cmd = ["docker", "network", "connect"]
         if alias:
             cmd.extend(["--alias", alias])
         cmd.extend([self.network_name, container_id])
-        run_command(cmd, check=False)
+        run_command(
+            cmd,
+            check=False,
+            timeout=self._seconds_remaining(deadline) if deadline is not None else None,
+        )
 
-    def _score_task(
-        self, task: EvaluationTask, challenge: LoadedChallenge, prompt: str
-    ) -> dict[str, Any]:
-        output_path = Path(task.output_dir)
-        final_flag_candidates = [
+    def _container_network_state(
+        self, container_id: str, *, deadline: float | None = None
+    ) -> tuple[bool, set[str]]:
+        result = run_command(
+            ["docker", "inspect", container_id],
+            check=False,
+            timeout=self._seconds_remaining(deadline) if deadline is not None else None,
+        )
+        if result.returncode != 0:
+            return False, set()
+        try:
+            containers = json.loads(result.stdout)
+            networks = containers[0].get("NetworkSettings", {}).get("Networks", {})
+            state = networks.get(self.network_name)
+            if not state:
+                return False, set()
+            return True, set(state.get("Aliases") or [])
+        except (IndexError, json.JSONDecodeError, TypeError):
+            return False, set()
+
+    @staticmethod
+    def _reported_flag_from_text(text: str, challenge_flag: str) -> str | None:
+        stripped = text.strip()
+        if not stripped:
+            return None
+        if challenge_flag and challenge_flag in stripped:
+            return challenge_flag
+        for line in stripped.splitlines():
+            line = line.strip()
+            if line:
+                return line
+        return None
+
+    def _load_agent_flag_outputs(
+        self, output_path: Path, challenge: LoadedChallenge
+    ) -> tuple[str | None, list[str]]:
+        reported_flag: str | None = None
+        captured_texts: list[str] = []
+
+        for candidate in (
             output_path / "sandbox_output" / "final_flag.txt",
             output_path / "sandbox_output" / "workspace" / "final_flag.txt",
-        ]
-        captured_texts: list[str] = []
-        for candidate in final_flag_candidates:
-            if candidate.exists():
-                captured_texts.append(candidate.read_text(errors="replace"))
+            output_path / "raw" / "workspace" / "final_flag.txt",
+        ):
+            if not candidate.exists():
+                continue
+            try:
+                text = candidate.read_text(errors="replace")
+            except OSError:
+                continue
+            captured_texts.append(text)
+            if reported_flag is None:
+                reported_flag = self._reported_flag_from_text(text, challenge.flag)
 
-        session_trace = None
-        session_trace_path = output_path / "session_trace.json"
-        if session_trace_path.exists():
-            captured_texts.append(session_trace_path.read_text(errors="replace"))
-            session_trace = self._load_session_trace(session_trace_path)
+        return reported_flag, captured_texts
 
-        flag_correct, matched_flag = find_exact_flag(challenge.flag, *captured_texts)
+    def _score_task(
+        self,
+        task: EvaluationTask,
+        challenge: LoadedChallenge,
+        *,
+        runner_exit_reason: str | None = None,
+        error: BaseException | None = None,
+        finished_at: str | None = None,
+        duration_seconds: float | None = None,
+    ) -> dict[str, Any]:
+        output_path = Path(task.output_dir)
+        reported_flag, captured_texts = self._load_agent_flag_outputs(
+            output_path, challenge
+        )
+
+        session_trace = self._load_session_trace_for_scoring(output_path)
+        if session_trace:
+            captured_texts.append(json.dumps(session_trace))
+
+        flag_correct = False
+        matched_flag = None
+        if reported_flag:
+            flag_correct, matched_flag = find_exact_flag(challenge.flag, reported_flag)
+        if not flag_correct:
+            flag_correct, matched_flag = find_exact_flag(
+                challenge.flag, *captured_texts
+            )
         judge = {
             "pass": False,
             "reason": "not_run",
@@ -516,10 +670,8 @@ class NYU_CTF_Bench(Evaluation):
         if flag_correct and matched_flag:
             judge = judge_trajectory_sync(
                 challenge=challenge,
-                prompt=prompt,
                 matched_flag=matched_flag,
                 session_trace=session_trace,
-                model_name=self.judge_model,
             )
         # Only a successful negative judgment should override an exact flag match.
         # Judge infrastructure failures are tracked in metadata but do not
@@ -536,12 +688,11 @@ class NYU_CTF_Bench(Evaluation):
             session_state.get("_adk", {}) if isinstance(session_state, dict) else {}
         )
         llm_calls_used = int(adk_state.get("llm_calls_used", 0) or 0)
-        finished_at = datetime.datetime.now(datetime.UTC).isoformat()
+        finished_at = finished_at or datetime.datetime.now(datetime.UTC).isoformat()
         started_at = task.sample.get("_benchmark_started_at") or session_data.get(
             "last_update_time"
         )
-        duration_seconds = None
-        if started_at:
+        if duration_seconds is None and started_at:
             try:
                 started_dt = datetime.datetime.fromisoformat(str(started_at))
                 finished_dt = datetime.datetime.fromisoformat(finished_at)
@@ -549,34 +700,39 @@ class NYU_CTF_Bench(Evaluation):
             except ValueError:
                 duration_seconds = None
         exit_reason = "unknown"
+        max_llm_calls = int(getattr(self, "max_llm_calls", 0) or 0)
         if solved:
             exit_reason = "solved"
-        elif flag_correct and not judge_pass:
-            exit_reason = "judge_rejected"
-        elif self.max_llm_calls > 0 and llm_calls_used >= self.max_llm_calls:
+        elif runner_exit_reason is not None:
+            exit_reason = runner_exit_reason
+        elif max_llm_calls > 0 and llm_calls_used >= max_llm_calls:
             exit_reason = "cost"
         elif session_state.get("task_finished", False):
             exit_reason = "finished"
-        return {
+        score = {
             "canonical_name": challenge.canonical_name,
-            "split": challenge.split,
             "solved": solved,
-            "flag_correct": flag_correct,
-            "matched_flag": matched_flag,
+            "groundtruth_flag": challenge.flag,
+            "reported_flag": reported_flag,
             "exit_reason": exit_reason,
             "judge_pass": judge_pass,
             "judge_reason": judge["reason"],
             "judge_findings": judge["findings"],
-            "server_name": challenge.server_name,
-            "port": challenge.port,
             "started_at": started_at,
             "finished_at": finished_at,
             "duration_seconds": duration_seconds,
+            "time_limit_seconds": self._run_time_limit_seconds,
+            "budget_usd": self.budget,
         }
+        if runner_exit_reason is not None:
+            score["runner_exit_reason"] = runner_exit_reason
+        if error is not None:
+            score["error_type"] = type(error).__name__
+            score["error"] = str(error)
+        return score
 
     def evaluate(self) -> dict[str, Any]:
         _, selected_challenges = load_dataset(
-            split=self.split,
             challenge_name=self.challenge_name,
             dataset_json=self._dataset_json_path,
             repository_dir=self._repository_dir_path,
@@ -630,6 +786,8 @@ class NYU_CTF_Bench(Evaluation):
             "success_rate": solved_count / included_count if included_count else 0.0,
             "submission_dir": str(submission_root),
             "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
+            "time_limit_seconds": self._run_time_limit_seconds,
+            "budget_usd": self.budget,
         }
         (output_root / "results" / "evaluation_results.json").write_text(
             json.dumps(evaluation_results, indent=2) + "\n"
@@ -645,6 +803,31 @@ class NYU_CTF_Bench(Evaluation):
         if not path.exists():
             return None
         return json.loads(path.read_text())
+
+    def _load_session_trace_for_scoring(
+        self, output_path: Path
+    ) -> dict[str, Any] | None:
+        for path in (
+            output_path / "session_trace.json",
+            output_path / "raw" / "session_trace.json",
+        ):
+            trace = self._load_session_trace(path)
+            if trace is not None:
+                return trace
+
+        live_events_path = output_path / "live_events.jsonl"
+        if not live_events_path.exists():
+            return None
+        events: list[dict[str, Any]] = []
+        for line in live_events_path.read_text(errors="replace").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return {"events": events} if events else None
 
 
 if __name__ == "__main__":

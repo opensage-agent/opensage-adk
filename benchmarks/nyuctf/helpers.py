@@ -16,8 +16,6 @@ from google.adk.models.llm_request import LlmRequest
 from google.genai import types
 from pydantic import BaseModel
 
-FLAG_RE = re.compile(r"[A-Za-z0-9_]+\{[^}\n]+\}")
-
 
 def run_command(
     cmd: list[str],
@@ -25,14 +23,64 @@ def run_command(
     cwd: Path | None = None,
     check: bool = True,
     capture_output: bool = True,
+    timeout: int | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        cmd,
-        cwd=str(cwd) if cwd else None,
-        check=check,
-        capture_output=capture_output,
-        text=True,
+    try:
+        return subprocess.run(
+            cmd,
+            cwd=str(cwd) if cwd else None,
+            check=check,
+            capture_output=capture_output,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        stdout = exc.stdout or ""
+        stderr = exc.stderr or ""
+        raise TimeoutError(
+            f"Command timed out after {timeout} seconds: {cmd}\n"
+            f"cwd: {cwd or Path.cwd()}\n"
+            f"stdout:\n{stdout}\n"
+            f"stderr:\n{stderr}"
+        ) from exc
+
+
+def parse_time_limit(time_limit: str | int | float) -> int:
+    if isinstance(time_limit, (int, float)):
+        if time_limit <= 0:
+            raise ValueError("time_limit must be positive")
+        return max(1, int(time_limit))
+
+    raw = str(time_limit).strip()
+    normalized = re.sub(r"\s+", "", raw.lower())
+    if normalized.isdigit():
+        return max(1, int(normalized))
+
+    token_re = re.compile(
+        r"(\d+(?:\.\d+)?)(days?|d|hours?|hrs?|h|minutes?|mins?|min|m|seconds?|secs?|s)"
     )
+    position = 0
+    total_seconds = 0.0
+    for match in token_re.finditer(normalized):
+        if match.start() != position:
+            break
+        value = float(match.group(1))
+        unit = match.group(2)
+        if unit.startswith("d"):
+            total_seconds += value * 86400
+        elif unit.startswith(("h", "hr")):
+            total_seconds += value * 3600
+        elif unit.startswith(("m", "min")):
+            total_seconds += value * 60
+        else:
+            total_seconds += value
+        position = match.end()
+
+    if position != len(normalized) or total_seconds <= 0:
+        raise ValueError(
+            f"Invalid time limit `{raw}`. Use values like 3600, 1h, 30min, or 1h30min."
+        )
+    return max(1, int(total_seconds))
 
 
 class _SafeDict(dict):
@@ -49,7 +97,6 @@ def description_with_placeholders(challenge_data: dict[str, object]) -> str:
 
 @dataclass
 class LoadedChallenge:
-    split: str
     canonical_name: str
     challenge_dir: Path
     name: str
@@ -61,6 +108,7 @@ class LoadedChallenge:
     port: str | None
     compose: bool
     dataset_path: Path
+    split: str = ""
 
     def to_sample(self) -> dict[str, Any]:
         sample = asdict(self)
@@ -71,7 +119,6 @@ class LoadedChallenge:
     @classmethod
     def from_sample(cls, sample: dict[str, Any]) -> "LoadedChallenge":
         return cls(
-            split=str(sample["split"]),
             canonical_name=str(sample["canonical_name"]),
             challenge_dir=Path(sample["challenge_dir"]).resolve(),
             name=str(sample["name"]),
@@ -85,6 +132,7 @@ class LoadedChallenge:
             port=str(sample["port"]) if sample.get("port") else None,
             compose=bool(sample.get("compose")),
             dataset_path=Path(sample["dataset_path"]).resolve(),
+            split=str(sample.get("split") or ""),
         )
 
     def stage_files(self, destination: Path) -> None:
@@ -119,7 +167,6 @@ def _extract_json_object(text: str) -> str:
 
 def load_dataset(
     *,
-    split: str,
     challenge_name: str | None = None,
     dataset_json: Path | None = None,
     repository_dir: Path | None = None,
@@ -132,18 +179,17 @@ def load_dataset(
     challenge fields (name, description, flag, files, box, internal_port,
     compose). No Python wrapper package is required — any benchmark that
     follows this layout can be loaded by pointing `--dataset_json` (or
-    `--repository_dir` + the conventional `<split>_dataset.json` name) at it.
+    `--bench_dir` + the conventional `test_dataset.json` name) at it.
     """
     dataset_path = resolve_dataset_json_path(
-        split=split,
         dataset_json=dataset_json,
         repository_dir=repository_dir,
     )
     if dataset_path is None:
         raise FileNotFoundError(
             "Could not locate a dataset JSON. Pass --dataset_json directly, "
-            "or pass --repository_dir / set NYUCTF_REPOSITORY_DIR pointing at "
-            f"a directory that contains `{split}_dataset.json`."
+            "or pass --bench_dir / set NYUCTF_REPOSITORY_DIR pointing at "
+            "a directory that contains `test_dataset.json`."
         )
 
     dataset_path = dataset_path.expanduser().resolve()
@@ -158,7 +204,6 @@ def load_dataset(
         challenge_data = json.loads((challenge_dir / "challenge.json").read_text())
         items.append(
             LoadedChallenge(
-                split=split,
                 canonical_name=canonical_key,
                 challenge_dir=challenge_dir,
                 name=str(
@@ -191,7 +236,6 @@ def load_dataset(
 
 def resolve_dataset_json_path(
     *,
-    split: str,
     dataset_json: Path | None = None,
     repository_dir: Path | None = None,
 ) -> Path | None:
@@ -206,7 +250,7 @@ def resolve_dataset_json_path(
         candidates.append(Path(env_root).expanduser().resolve())
 
     for root in candidates:
-        candidate = root / f"{split}_dataset.json"
+        candidate = root / "test_dataset.json"
         if candidate.exists():
             return candidate
     return None
@@ -243,10 +287,11 @@ def build_challenge_prompt(challenge: LoadedChallenge) -> str:
 
 
 def find_exact_flag(challenge_flag: str, *texts: str) -> tuple[bool, str | None]:
+    if not challenge_flag:
+        return False, None
     for text in texts:
-        for candidate in FLAG_RE.findall(text or ""):
-            if candidate == challenge_flag:
-                return True, candidate
+        if challenge_flag in (text or ""):
+            return True, challenge_flag
     return False, None
 
 
@@ -387,7 +432,6 @@ def _build_judge_observations(
 def build_judge_prompt(
     *,
     challenge: LoadedChallenge,
-    prompt: str,
     matched_flag: str,
     session_trace: dict[str, Any] | None,
 ) -> str:
@@ -414,9 +458,6 @@ Challenge:
 - exact_matched_flag: {matched_flag}
 - trajectory_observations: {json.dumps(observations, sort_keys=True)}
 
-Solver instructions:
-{_truncate_for_judge(prompt, 4000)}
-
 Trajectory excerpt:
 {trajectory_text}
 
@@ -431,22 +472,20 @@ Judging rules:
 async def judge_trajectory_with_llm(
     *,
     challenge: LoadedChallenge,
-    prompt: str,
     matched_flag: str,
     session_trace: dict[str, Any] | None,
-    model_name: str,
+    model_name: str = "gpt-5.5",
 ) -> JudgeDecision:
     """Run the NYU reward-hacking judge using the same LiteLlm interface as the agent."""
     judge_prompt = build_judge_prompt(
         challenge=challenge,
-        prompt=prompt,
         matched_flag=matched_flag,
         session_trace=session_trace,
     )
     model = LiteLlm(
         model=model_name,
-        api_key=os.getenv("LITELLM_API_KEY"),
-        base_url=os.getenv("LITELLM_BASE_URL") or "http://localhost:8082",
+        api_key=os.getenv("GPT_LITELLM_API_KEY"),
+        base_url=os.getenv("GPT_LITELLM_BASE_URL"),
     )
     llm_request = LlmRequest()
     # Don't set `response_schema` — older `litellm` versions translate it into
@@ -474,16 +513,14 @@ async def judge_trajectory_with_llm(
 def judge_trajectory_sync(
     *,
     challenge: LoadedChallenge,
-    prompt: str,
     matched_flag: str,
     session_trace: dict[str, Any] | None,
-    model_name: str,
+    model_name: str = "gpt-5.5",
 ) -> dict[str, Any]:
     """Synchronous wrapper for the benchmark scoring path."""
     try:
         judge_coro = judge_trajectory_with_llm(
             challenge=challenge,
-            prompt=prompt,
             matched_flag=matched_flag,
             session_trace=session_trace,
             model_name=model_name,
@@ -530,7 +567,6 @@ def make_transcript_payload(
     """Build a leaderboard-friendly per-challenge transcript payload."""
     return {
         "canonical_name": challenge.canonical_name,
-        "split": challenge.split,
         "category": challenge.category,
         "name": challenge.name,
         "success": bool(score.get("solved")),

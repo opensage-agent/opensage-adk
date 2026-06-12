@@ -1,37 +1,30 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import tempfile
+import time
 from pathlib import Path
+from types import SimpleNamespace
 
 from benchmarks.nyuctf.helpers import (
     LoadedChallenge,
     build_challenge_prompt,
     build_judge_prompt,
     extract_trace_entries,
-    find_exact_flag,
     judge_trajectory_sync,
     judge_trajectory_with_llm,
     load_dataset,
+    parse_time_limit,
     resolve_dataset_json_path,
 )
-from benchmarks.nyuctf.nyuctf_bench import NYU_CTF_Bench
-
-
-def test_find_exact_flag_matches_only_exact_candidate() -> None:
-    solved, candidate = find_exact_flag(
-        "flag{correct}",
-        "prefix flag{wrong} suffix",
-        "flag{correct}",
-    )
-    assert solved is True
-    assert candidate == "flag{correct}"
+from benchmarks.nyuctf.sagectf import NYU_CTF_Bench
+from opensage.llm.budget import BudgetManager
 
 
 def test_build_challenge_prompt_mentions_workspace_flag_file() -> None:
     challenge = LoadedChallenge(
-        split="test",
         canonical_name="2021f-rev-maze",
         challenge_dir=Path("/tmp/maze"),
         name="Maze",
@@ -125,7 +118,6 @@ def test_load_dataset_reads_explicit_dataset_json(tmp_path: Path) -> None:
     )
 
     dataset_path, challenges = load_dataset(
-        split="test",
         dataset_json=dataset_json,
         repository_dir=tmp_path / "missing_repo",
     )
@@ -133,6 +125,17 @@ def test_load_dataset_reads_explicit_dataset_json(tmp_path: Path) -> None:
     assert len(challenges) == 1
     assert challenges[0].canonical_name == "2021f-rev-maze"
     assert challenges[0].description == "Connect to maze:31337"
+
+
+def test_nyuctf_sagectf_hides_submission_metadata_options() -> None:
+    hidden = {
+        "submission_agent",
+        "submission_model",
+        "submission_link",
+        "submission_comment",
+    }
+
+    assert hidden.isdisjoint(inspect.signature(NYU_CTF_Bench).parameters)
 
 
 def test_resolve_dataset_json_path_prefers_explicit_dataset_json(
@@ -152,7 +155,6 @@ def test_resolve_dataset_json_path_prefers_explicit_dataset_json(
 
     assert (
         resolve_dataset_json_path(
-            split="test",
             dataset_json=explicit_dataset,
             repository_dir=repository_dir,
         )
@@ -174,7 +176,7 @@ def test_resolve_dataset_json_path_prefers_repository_dir_over_env(
     monkeypatch.setenv("NYUCTF_REPOSITORY_DIR", str(env_dir))
 
     assert (
-        resolve_dataset_json_path(split="test", repository_dir=repository_dir)
+        resolve_dataset_json_path(repository_dir=repository_dir)
         == repository_dataset.resolve()
     )
 
@@ -188,12 +190,11 @@ def test_resolve_dataset_json_path_uses_env_repository(
     env_dataset.write_text("{}")
     monkeypatch.setenv("NYUCTF_REPOSITORY_DIR", str(env_dir))
 
-    assert resolve_dataset_json_path(split="test") == env_dataset.resolve()
+    assert resolve_dataset_json_path() == env_dataset.resolve()
 
 
 def test_build_judge_prompt_includes_trajectory_and_flag() -> None:
     challenge = LoadedChallenge(
-        split="test",
         canonical_name="2021q-web-no_pass_needed",
         challenge_dir=Path("/tmp/no-pass-needed"),
         name="no-pass-needed",
@@ -229,7 +230,6 @@ def test_build_judge_prompt_includes_trajectory_and_flag() -> None:
 
     prompt = build_judge_prompt(
         challenge=challenge,
-        prompt="You are solving an NYU CTF Bench challenge.",
         matched_flag="flag{correct}",
         session_trace=session_trace,
     )
@@ -259,7 +259,6 @@ def test_judge_trajectory_sync_uses_llm_result(monkeypatch) -> None:
     )
 
     challenge = LoadedChallenge(
-        split="test",
         canonical_name="2021q-web-no_pass_needed",
         challenge_dir=Path("/tmp/no-pass-needed"),
         name="no-pass-needed",
@@ -275,7 +274,6 @@ def test_judge_trajectory_sync_uses_llm_result(monkeypatch) -> None:
 
     result = judge_trajectory_sync(
         challenge=challenge,
-        prompt="prompt",
         matched_flag="flag{correct}",
         session_trace=None,
         model_name="judge-model",
@@ -300,7 +298,6 @@ def test_judge_trajectory_sync_works_inside_running_loop(monkeypatch) -> None:
     )
 
     challenge = LoadedChallenge(
-        split="test",
         canonical_name="2021q-web-no_pass_needed",
         challenge_dir=Path("/tmp/no-pass-needed"),
         name="no-pass-needed",
@@ -317,7 +314,6 @@ def test_judge_trajectory_sync_works_inside_running_loop(monkeypatch) -> None:
     async def _call_wrapper() -> dict[str, object]:
         return judge_trajectory_sync(
             challenge=challenge,
-            prompt="prompt",
             matched_flag="flag{correct}",
             session_trace=None,
             model_name="judge-model",
@@ -348,12 +344,11 @@ def test_judge_trajectory_with_llm_respects_litellm_env(monkeypatch) -> None:
             captured["llm_request"] = llm_request
             yield _Response()
 
-    monkeypatch.setenv("LITELLM_API_KEY", "test-key")
-    monkeypatch.setenv("LITELLM_BASE_URL", "http://judge-proxy:8082")
+    monkeypatch.setenv("GPT_LITELLM_API_KEY", "test-key")
+    monkeypatch.setenv("GPT_LITELLM_BASE_URL", "http://judge-proxy:8082")
     monkeypatch.setattr("benchmarks.nyuctf.helpers.LiteLlm", _FakeLiteLlm)
 
     challenge = LoadedChallenge(
-        split="test",
         canonical_name="2021q-web-no_pass_needed",
         challenge_dir=Path("/tmp/no-pass-needed"),
         name="no-pass-needed",
@@ -370,7 +365,6 @@ def test_judge_trajectory_with_llm_respects_litellm_env(monkeypatch) -> None:
     decision = asyncio.run(
         judge_trajectory_with_llm(
             challenge=challenge,
-            prompt="prompt",
             matched_flag="flag{correct}",
             session_trace=None,
             model_name="claude-opus-4-6",
@@ -387,13 +381,15 @@ def test_score_task_allows_correct_flag_when_judge_errors(
     bench = object.__new__(NYU_CTF_Bench)
     bench.judge_model = "judge-model"
     bench.max_llm_calls = 0
+    bench._run_time_limit_seconds = parse_time_limit(NYU_CTF_Bench.time_limit)
+    bench.budget = 100.0
     bench._load_json_file = lambda _: {
         "session": {"state": {"_adk": {"llm_calls_used": 0}, "task_finished": True}}
     }
     bench._load_session_trace = lambda _: None
 
     monkeypatch.setattr(
-        "benchmarks.nyuctf.nyuctf_bench.judge_trajectory_sync",
+        "benchmarks.nyuctf.sagectf.judge_trajectory_sync",
         lambda **_: {
             "pass": False,
             "reason": "judge_error",
@@ -417,7 +413,6 @@ def test_score_task_allows_correct_flag_when_judge_errors(
         },
     )()
     challenge = LoadedChallenge(
-        split="test",
         canonical_name="2021q-web-no_pass_needed",
         challenge_dir=Path("/tmp/no-pass-needed"),
         name="no-pass-needed",
@@ -431,8 +426,7 @@ def test_score_task_allows_correct_flag_when_judge_errors(
         dataset_path=Path("/tmp/test_dataset.json"),
     )
 
-    score = bench._score_task(task, challenge, "prompt")
-    assert score["flag_correct"] is True
+    score = bench._score_task(task, challenge)
     assert score["judge_reason"] == "judge_error"
     assert score["judge_pass"] is True
     assert score["solved"] is True
@@ -445,13 +439,15 @@ def test_score_task_rejects_correct_flag_when_judge_returns_negative(
     bench = object.__new__(NYU_CTF_Bench)
     bench.judge_model = "judge-model"
     bench.max_llm_calls = 0
+    bench._run_time_limit_seconds = parse_time_limit(NYU_CTF_Bench.time_limit)
+    bench.budget = 100.0
     bench._load_json_file = lambda _: {
         "session": {"state": {"_adk": {"llm_calls_used": 0}, "task_finished": True}}
     }
     bench._load_session_trace = lambda _: None
 
     monkeypatch.setattr(
-        "benchmarks.nyuctf.nyuctf_bench.judge_trajectory_sync",
+        "benchmarks.nyuctf.sagectf.judge_trajectory_sync",
         lambda **_: {
             "pass": False,
             "reason": "external_source",
@@ -475,7 +471,6 @@ def test_score_task_rejects_correct_flag_when_judge_returns_negative(
         },
     )()
     challenge = LoadedChallenge(
-        split="test",
         canonical_name="2021q-web-no_pass_needed",
         challenge_dir=Path("/tmp/no-pass-needed"),
         name="no-pass-needed",
@@ -489,12 +484,11 @@ def test_score_task_rejects_correct_flag_when_judge_returns_negative(
         dataset_path=Path("/tmp/test_dataset.json"),
     )
 
-    score = bench._score_task(task, challenge, "prompt")
-    assert score["flag_correct"] is True
+    score = bench._score_task(task, challenge)
     assert score["judge_reason"] == "external_source"
     assert score["judge_pass"] is False
     assert score["solved"] is False
-    assert score["exit_reason"] == "judge_rejected"
+    assert score["exit_reason"] == "finished"
 
 
 def test_filter_pending_task_skips_existing_task_entries(tmp_path: Path) -> None:
@@ -533,43 +527,65 @@ def test_filter_pending_task_ignores_results_and_pycache_dirs(
     assert [sample["canonical_name"] for sample in pending] == ["chal_b"]
 
 
+def test_per_challenge_budget_updates_session_config_and_manager() -> None:
+    bench = object.__new__(NYU_CTF_Bench)
+    bench.budget = 100.0
+    opensage_session = type(
+        "OpenSageSession",
+        (),
+        {
+            "config": type(
+                "Config", (), {"model": type("Model", (), {"budget": 0.0})()}
+            )(),
+            "budget": BudgetManager(configured_budget=0.0),
+        },
+    )()
+
+    bench._apply_per_challenge_budget(opensage_session)
+
+    assert opensage_session.config.model.budget == 100.0
+    assert opensage_session.budget.configured_budget == 100.0
+    assert opensage_session.budget.budget_exhausted is False
+
+
+def _nyuctf_task(tmp_path: Path, *, task_output: Path | None = None):
+    output_dir = task_output or (tmp_path / "2021f-for-no_time_to_register")
+    initial_data_dir = tempfile.mkdtemp(dir=tmp_path)
+    return SimpleNamespace(
+        id="2021f-for-no_time_to_register",
+        sample={
+            "canonical_name": "2021f-for-no_time_to_register",
+            "challenge_dir": str(tmp_path),
+            "name": "No Time to Register",
+            "category": "forensics",
+            "description": "desc",
+            "files": [],
+            "flag": "flag{correct}",
+            "server_name": "forensics.chal.csaw.io",
+            "port": "5000",
+            "compose": True,
+            "dataset_path": str(tmp_path / "dataset.json"),
+        },
+        output_dir=str(output_dir),
+        initial_data_dir=initial_data_dir,
+    )
+
+
 def test_generate_one_cleans_output_dir_when_startup_fails(tmp_path: Path) -> None:
     bench = object.__new__(NYU_CTF_Bench)
-    bench._ensure_network_exists = lambda: None
+    bench._run_time_limit_seconds = parse_time_limit(NYU_CTF_Bench.time_limit)
+    bench.budget = 100.0
+    bench._ensure_network_exists = lambda **_: None
     bench._log_task_banner = lambda challenge: None
-    bench._start_challenge = lambda challenge: (_ for _ in ()).throw(
+    bench._start_challenge = lambda challenge, **_: (_ for _ in ()).throw(
         RuntimeError("compose failed")
     )
-    bench._stop_challenge = lambda challenge: None
 
     task_output = tmp_path / "2021f-for-no_time_to_register"
     task_output.mkdir(parents=True)
     (task_output / "execution_debug.log").write_text("partial\n")
 
-    initial_data_dir = tempfile.mkdtemp(dir=tmp_path)
-    task = type(
-        "Task",
-        (),
-        {
-            "id": "2021f-for-no_time_to_register",
-            "sample": {
-                "split": "test",
-                "canonical_name": "2021f-for-no_time_to_register",
-                "challenge_dir": str(tmp_path),
-                "name": "No Time to Register",
-                "category": "forensics",
-                "description": "desc",
-                "files": [],
-                "flag": "flag{correct}",
-                "server_name": "forensics.chal.csaw.io",
-                "port": "5000",
-                "compose": True,
-                "dataset_path": str(tmp_path / "dataset.json"),
-            },
-            "output_dir": str(task_output),
-            "initial_data_dir": initial_data_dir,
-        },
-    )()
+    task = _nyuctf_task(tmp_path, task_output=task_output)
 
     try:
         asyncio.run(bench._generate_one(task))
@@ -579,4 +595,210 @@ def test_generate_one_cleans_output_dir_when_startup_fails(tmp_path: Path) -> No
         raise AssertionError("Expected startup failure to propagate")
 
     assert not task_output.exists()
-    assert not Path(initial_data_dir).exists()
+    assert not Path(task.initial_data_dir).exists()
+
+
+def test_generate_one_records_startup_timeout(tmp_path: Path) -> None:
+    bench = object.__new__(NYU_CTF_Bench)
+    bench.time_limit = "1s"
+    bench._run_time_limit_seconds = 1
+    bench.budget = 100.0
+    bench._ensure_network_exists = lambda **_: None
+    bench._log_task_banner = lambda challenge: None
+    bench._start_challenge = lambda challenge, **_: (_ for _ in ()).throw(
+        TimeoutError("startup timed out")
+    )
+    bench._load_session_trace = lambda path: None
+
+    task = _nyuctf_task(tmp_path)
+
+    try:
+        asyncio.run(bench._generate_one(task))
+    except TimeoutError:
+        pass
+    else:
+        raise AssertionError("Expected startup timeout to propagate")
+
+    score = json.loads((Path(task.output_dir) / "score.json").read_text())
+    assert score["exit_reason"] == "timeout"
+    assert score["time_limit_seconds"] == 1
+    assert score["budget_usd"] == 100.0
+    assert Path(task.output_dir).exists()
+    assert not Path(task.initial_data_dir).exists()
+
+
+def test_generate_one_records_agent_timeout(tmp_path: Path, monkeypatch) -> None:
+    bench = object.__new__(NYU_CTF_Bench)
+    bench.time_limit = "1s"
+    bench._run_time_limit_seconds = 1
+    bench.budget = 100.0
+    bench._ensure_network_exists = lambda **_: None
+    bench._log_task_banner = lambda challenge: None
+    bench._start_challenge = lambda challenge, **_: None
+    bench._load_session_trace = lambda path: None
+
+    async def _base_generate_one(self, task):
+        raise TimeoutError("agent timed out")
+
+    monkeypatch.setattr(
+        "opensage.evaluation.base.Evaluation._generate_one",
+        _base_generate_one,
+    )
+
+    task = _nyuctf_task(tmp_path)
+
+    try:
+        asyncio.run(bench._generate_one(task))
+    except TimeoutError:
+        pass
+    else:
+        raise AssertionError("Expected agent timeout to propagate")
+
+    score = json.loads((Path(task.output_dir) / "score.json").read_text())
+    assert score["exit_reason"] == "timeout"
+    assert score["time_limit_seconds"] == 1
+    assert score["budget_usd"] == 100.0
+    assert not Path(task.initial_data_dir).exists()
+
+
+def test_generate_one_keeps_runner_started_service_running(
+    tmp_path: Path, monkeypatch
+) -> None:
+    bench = object.__new__(NYU_CTF_Bench)
+    bench.time_limit = "1s"
+    bench._run_time_limit_seconds = 1
+    bench.budget = 100.0
+    bench._ensure_network_exists = lambda **_: None
+    bench._log_task_banner = lambda challenge: None
+    bench._start_challenge = lambda challenge, **_: True
+    bench._stop_challenge = lambda challenge: (_ for _ in ()).throw(
+        AssertionError("runner-started services should remain running")
+    )
+    bench._load_session_trace = lambda path: None
+
+    async def _base_generate_one(self, task):
+        raise TimeoutError("agent timed out")
+
+    monkeypatch.setattr(
+        "opensage.evaluation.base.Evaluation._generate_one",
+        _base_generate_one,
+    )
+
+    task = _nyuctf_task(tmp_path)
+
+    try:
+        asyncio.run(bench._generate_one(task))
+    except TimeoutError:
+        pass
+    else:
+        raise AssertionError("Expected agent timeout to propagate")
+
+
+def test_nyuctf_sagectf_keeps_existing_challenge_service_running(
+    tmp_path: Path, monkeypatch
+) -> None:
+    challenge = LoadedChallenge.from_sample(_nyuctf_task(tmp_path).sample)
+    (challenge.challenge_dir / "docker-compose.yml").write_text("services: {}\n")
+    bench = object.__new__(NYU_CTF_Bench)
+    bench.network_name = "ctfnet"
+    calls = []
+
+    def fake_run_command(cmd, **kwargs):
+        calls.append(cmd)
+        if (
+            cmd[:4]
+            == [
+                "docker",
+                "compose",
+                "-f",
+                str(challenge.challenge_dir / "docker-compose.yml"),
+            ]
+            and "ps" in cmd
+        ):
+            return SimpleNamespace(
+                returncode=0, stdout="existing-container\n", stderr=""
+            )
+        if "up" in cmd or "down" in cmd:
+            raise AssertionError("existing service should not be recreated or stopped")
+        if cmd[:2] == ["docker", "inspect"]:
+            return SimpleNamespace(
+                returncode=0,
+                stdout=json.dumps(
+                    [
+                        {
+                            "NetworkSettings": {
+                                "Networks": {
+                                    "ctfnet": {
+                                        "Aliases": [challenge.server_name],
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                ),
+                stderr="",
+            )
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("benchmarks.nyuctf.sagectf.run_command", fake_run_command)
+
+    assert bench._start_challenge(challenge, deadline=time.time() + 60) is False
+
+
+def test_record_failed_task_scores_live_events_before_marking_timeout(
+    tmp_path: Path, monkeypatch
+) -> None:
+    bench = object.__new__(NYU_CTF_Bench)
+    bench._run_time_limit_seconds = 1
+    bench.budget = 100.0
+    bench._load_json_file = lambda _: {}
+
+    monkeypatch.setattr(
+        "benchmarks.nyuctf.sagectf.judge_trajectory_sync",
+        lambda **_: {"pass": True, "reason": "ok", "findings": []},
+    )
+
+    task = _nyuctf_task(tmp_path)
+    task.sample["_benchmark_started_at"] = "2026-04-15T00:00:00+00:00"
+    output_dir = Path(task.output_dir)
+    output_dir.mkdir(parents=True)
+    (output_dir / "live_events.jsonl").write_text(
+        json.dumps(
+            {
+                "author": "ctf_agent",
+                "content": {
+                    "parts": [
+                        {
+                            "text": (
+                                "Solved with provided service and wrote "
+                                "/workspace/final_flag.txt: flag{correct}"
+                            )
+                        }
+                    ]
+                },
+            }
+        )
+        + "\n"
+    )
+
+    challenge = LoadedChallenge.from_sample(task.sample)
+
+    bench._record_failed_task(
+        task,
+        challenge,
+        TimeoutError("agent timed out"),
+        exit_reason="timeout",
+    )
+
+    score = json.loads((output_dir / "score.json").read_text())
+    transcript = json.loads(
+        (
+            output_dir / "submission_trajectory" / f"{challenge.canonical_name}.json"
+        ).read_text()
+    )
+
+    assert score["solved"] is True
+    assert score["exit_reason"] == "solved"
+    assert score["runner_exit_reason"] == "timeout"
+    assert transcript["success"] is True
+    assert transcript["raw_session_trace"]["events"][0]["author"] == "ctf_agent"

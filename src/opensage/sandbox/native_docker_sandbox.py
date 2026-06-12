@@ -955,8 +955,8 @@ class NativeDockerSandbox(BaseSandbox):
 
                     with tempfile.TemporaryDirectory() as temp_extract_dir:
                         try:
-                            with tarfile.open(tar_file, "r:gz") as tar:
-                                tar.extractall(temp_extract_dir)
+                            with tarfile.open(tar_file, "r:*") as tar:
+                                tar.extractall(temp_extract_dir, filter="data")
                             logger.info(
                                 f"Extracted {tar_file.name} to temporary directory"
                             )
@@ -978,8 +978,8 @@ class NativeDockerSandbox(BaseSandbox):
 
                 with tempfile.TemporaryDirectory() as temp_extract_dir:
                     try:
-                        with tarfile.open(source_path, "r:gz") as tar:
-                            tar.extractall(temp_extract_dir)
+                        with tarfile.open(source_path, "r:*") as tar:
+                            tar.extractall(temp_extract_dir, filter="data")
                         logger.info(
                             f"Extracted {source_path.name} to temporary directory"
                         )

@@ -1,85 +1,113 @@
-# NYU CTF Bench
+# NYU CTF Benchmark
 
-This package adds an evaluation for [NYU_CTF_Bench](https://github.com/NYU-LLM-CTF/NYU_CTF_Bench) and exports leaderboard-ready artifacts for [leaderboard_submissions](https://github.com/NYU-LLM-CTF/leaderboard_submissions).
-
-The OpenSage evaluation driver ships in this directory.
-
-## Layout
-
-```
-benchmarks/nyuctf/
-├── README.md
-├── __init__.py
-├── helpers.py       # dataset loading, prompts, scoring, and judge helpers
-└── nyuctf_bench.py  # OpenSage evaluation driver
-```
+Run NYU_CTF_Bench challenges with either the OpenSage SageCTF agent or standalone Claude Code / Codex baselines.
 
 ## Prerequisites
 
-Clone the forked [NYU_CTF_Bench](https://github.com/ziyue-pan/NYU_CTF_Bench) repository — only the dataset itself is needed; the bundled `nyuctf` Python package is not required, the loader reads `<repo>/test_dataset.json` and each `challenge.json` directly.
-
-Then, create the shared Docker network used by the benchmarked agent and the challenge services:
+Clone the forked benchmark repository:
 
 ```bash
-docker network create ctfnet
+git clone https://github.com/ziyue-pan/NYU_CTF_Bench
 ```
 
-You can either pass `--repository_dir /path/to/NYU_CTF_Bench` to each command below, or set it once via environment:
+After cloning, enter the repository and pull the large objects:
 
 ```bash
-export NYUCTF_REPOSITORY_DIR=/path/to/NYU_CTF_Bench
+cd NYU_CTF_Bench
+git lfs pull
 ```
 
-Any benchmark following the same layout (a top-level dataset JSON of `canonical_name → {path}` plus per-challenge `challenge.json` files) can be loaded by passing `--dataset_json /path/to/<name>_dataset.json` instead.
+## SageCTF
 
-### Run a single challenge
+Run
 
 ```bash
-uv run python -m benchmarks.nyuctf.nyuctf_bench run_debug --repository_dir /path/to/NYU_CTF_Bench \
-  --challenge_name 2021f-rev-maze
+uv run python -m benchmarks.nyuctf.sagectf run \
+  --bench_dir /path/to/NYU_CTF_Bench \
+  --agent_dir /path/to/agent_dir \
+  --output_dir evals/nyuctf
 ```
 
-### Run a batch with the default bundled agent
-
-```bash
-uv run python -m benchmarks.nyuctf.nyuctf_bench run --repository_dir /path/to/NYU_CTF_Bench --output_dir /path/to/output_dir
-```
-
-You can also specity the following arguments to customize the run:
-
-- `--repository_dir`: local checkout of a benchmark repo; the loader picks up `<repo>/<split>_dataset.json`
-- `--dataset_json`: explicit dataset JSON path; takes precedence over `--repository_dir`
-- `--output_dir`: output directory for the batch run (defaults to `evals/nyu_ctf_bench/<timestamp>`)
-- `--max_workers`: default to 1 (current NYU_CTF_Bench challenges have race conditions on ports)
-- `--submission_agent`: submission agent for the batch run (defaults to `opensage-ctf`)
-- `--submission_model`: submission model for the batch run
-
-> [!IMPORTANT]
-> You can resume the batch run by running the same command again with the same `--output_dir`. OpenSage will skip challenges whose output directories are already present, so only missing ones will be scheduled for evaluation.
-
-## Output layout
-
-The run directory contains normal OpenSage task outputs plus a submission bundle:
+Useful options:
 
 ```text
-/<output_dir>/
-├── <challenge_name>/
-│   ├── score.json                <- per-challenge score
-│   ├── session_trace.json
-│   ├── sandbox_output/
-│   └── submission_trajectory/
-│       └── <challenge_name>.json
-└── results/
-    ├── evaluation_results.json
-    └── leaderboard_submission/
-        ├── summary.json
-        └── <challenge_name>.json
+--max_workers 1
+--time_limit 12h
+--budget 100
 ```
 
-`results/leaderboard_submission/summary.json` follows the NYU_CTF_Bench submission format, and the per-challenge trajectory JSON files are written directly into `results/leaderboard_submission/`.
+Benchmark-related options:
 
-## Notes
+```text
+--challenge_name 2021f-rev-maze
+--dataset_json /path/to/test_dataset.json
+--challenge_name id1,id2
+--max_challenges N
+```
 
-- Challenge services are launched with `docker compose` and then attached to `ctfnet` so the benchmark sandbox can reach them.
-- The prompt instructs the agent to both print the candidate flag and write it to `/workspace/final_flag.txt`.
-- The default OpenSage agent target is `agent_library/agents/ctf_agent`, but `--agent_dir` can point to any compatible agent package.
+Each challenge writes `score.json`, `session_trace.json`, `sandbox_output/`, and `submission_trajectory/<challenge_name>.json` under its output directory. Batch runs also write `results/evaluation_results.json` and `results/leaderboard_submission/`.
+
+## Baseline: Claude Code
+
+Prepare the Claude image credentials:
+
+```bash
+cp benchmarks/nyuctf/claude-image/.env.template benchmarks/nyuctf/claude-image/.env
+```
+
+Run a batch:
+
+```bash
+uv run python -m benchmarks.nyuctf.baseline run \
+  --agent claude-code \
+  --bench_dir /path/to/NYU_CTF_Bench \
+  --time_limit 6h \
+  --budget 100 \
+  --output_dir evals/nyuctf-claude
+```
+
+Useful options:
+
+```text
+--time_limit 6h
+--budget 100
+--max_workers 1
+--dataset_json /path/to/test_dataset.json
+--challenge_name 2021f-rev-maze
+--max_challenges N
+```
+
+The Claude Code baseline builds from `benchmarks/nyuctf/claude-image`, defaults to `claude-opus-4-8`, uses reasoning effort `high`, and applies a `100` USD per-challenge budget. The image starts the gdb, IDA, and pyghidra MCP services before invoking Claude Code.
+
+## Baseline: Codex
+
+Prepare the Codex image credentials and config:
+
+```bash
+cp benchmarks/nyuctf/codex-image/auth.json.template benchmarks/nyuctf/codex-image/auth.json
+cp benchmarks/nyuctf/codex-image/config.toml.template benchmarks/nyuctf/codex-image/config.toml
+```
+
+Run a batch:
+
+```bash
+uv run python -m benchmarks.nyuctf.baseline run \
+  --agent codex \
+  --bench_dir /path/to/NYU_CTF_Bench \
+  --time_limit 6h \
+  --budget 100 \
+  --output_dir evals/nyuctf-codex
+```
+
+Useful options:
+
+```text
+--time_limit 6h
+--budget 100
+--max_workers 1
+--dataset_json /path/to/test_dataset.json
+--challenge_name 2021f-rev-maze
+--max_challenges N
+```
+
+The Codex baseline builds from `benchmarks/nyuctf/codex-image`, defaults to `gpt-5.5`, uses reasoning effort `high`, and applies a `100` USD per-challenge budget. The runner copies `auth.json` and `config.toml` into `/root/.codex/` inside each Codex container before start; the entrypoint starts the custom gdb SSE MCP server and connects it through `mcp-remote`, while IDA and pyghidra are registered through their streamable HTTP `/mcp` endpoints. Codex budget control is enforced by the runner from streamed usage/cost data; `--time_limit` is also enforced by the runner and kills the process/container when exceeded.

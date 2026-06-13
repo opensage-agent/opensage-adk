@@ -4,7 +4,6 @@ import asyncio
 import datetime
 import json
 import logging
-import re
 import shutil
 import tempfile
 import time
@@ -14,11 +13,11 @@ from typing import Any
 
 import datasets
 import fire
+import toml
 from google.adk.sessions import Session
 
 from opensage import get_opensage_session
 from opensage.evaluation.base import Evaluation, EvaluationTask
-from opensage.utils.project_info import PROJECT_PATH
 
 from .helpers import (
     LoadedChallenge,
@@ -85,10 +84,9 @@ class NYU_CTF_Bench(Evaluation):
     def _register_opensage_session(self, task: EvaluationTask):
         """Register a task session using a normalized per-run config copy.
 
-        NYU benchmark runs often point at an external agent repo. That repo's
-        config can contain Dockerfile paths that are only meaningful relative to
-        the agent repo root, so we rewrite those paths in a temporary copy
-        before handing the config to OpenSage.
+        NYU benchmark runs need every agent sandbox attached to the challenge
+        network, so we rewrite a temporary config copy before handing it to
+        OpenSage.
         """
         config_template = Path(self.config_template_path).resolve()
         temp_dir = tempfile.mkdtemp(prefix=f"opensage_{task.session_id}_")
@@ -97,7 +95,7 @@ class NYU_CTF_Bench(Evaluation):
 
         template_variables = self._get_config_template_variables(task)
         self._replace_template_variables_in_config(temp_config_path, template_variables)
-        self._normalize_nyuctf_config(temp_config_path, config_template)
+        self._normalize_nyuctf_config(temp_config_path)
 
         opensage_session = get_opensage_session(
             task.session_id,
@@ -118,51 +116,18 @@ class NYU_CTF_Bench(Evaluation):
             "budget_exhausted" if opensage_session.budget.budget_exhausted else None
         )
 
-    def _normalize_nyuctf_config(
-        self, temp_config_path: Path, source_config_path: Path
+    def _normalize_nyuctf_config(self, temp_config_path: Path) -> None:
+        """Rewrite sandbox networks for NYU benchmark runs."""
+        config = toml.loads(temp_config_path.read_text())
+        self._ensure_network_in_sandbox_configs(config, self.network_name)
+        temp_config_path.write_text(toml.dumps(config))
+
+    def _ensure_network_in_sandbox_configs(
+        self, config: dict[str, Any], network_name: str
     ) -> None:
-        """Rewrite agent config paths and networks for NYU benchmark runs."""
-        content = temp_config_path.read_text()
-        source_repo_root = source_config_path.parent.parent
-
-        def replace_absolute_dockerfile(match: re.Match[str]) -> str:
-            raw_value = match.group(1)
-            dockerfile_path = Path(raw_value)
-            if dockerfile_path.is_absolute():
-                return match.group(0)
-            resolved = (source_repo_root / dockerfile_path).resolve()
-            return f'absolute_dockerfile_path = "{resolved}"'
-
-        content = re.sub(
-            r'^absolute_dockerfile_path = "([^"]+)"$',
-            replace_absolute_dockerfile,
-            content,
-            flags=re.MULTILINE,
-        )
-
-        # Ensure the agent sandboxes can reach NYU challenge services on ctfnet.
-        content = self._ensure_network_in_section(
-            content, "sandbox.sandboxes.main", self.network_name
-        )
-        content = self._ensure_network_in_section(
-            content, "sandbox.sandboxes.gdb_mcp", self.network_name
-        )
-        temp_config_path.write_text(content)
-
-    def _ensure_network_in_section(
-        self, content: str, section_name: str, network_name: str
-    ) -> str:
-        pattern = rf"(?ms)(^\[{re.escape(section_name)}\]\n)(.*?)(?=^\[|\Z)"
-        match = re.search(pattern, content)
-        if not match:
-            return content
-
-        header, body = match.group(1), match.group(2)
-        if re.search(r'^network\s*=\s*".*"$', body, flags=re.MULTILINE):
-            return content
-
-        updated_section = f'{header}network = "{network_name}"\n{body}'
-        return content[: match.start()] + updated_section + content[match.end() :]
+        sandboxes = config.get("sandbox", {}).get("sandboxes", {})
+        for sandbox_config in sandboxes.values():
+            sandbox_config.setdefault("network", network_name)
 
     def _get_dataset(self) -> datasets.Dataset:
         _, challenges = load_dataset(

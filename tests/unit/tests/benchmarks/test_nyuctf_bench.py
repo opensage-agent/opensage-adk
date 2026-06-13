@@ -46,6 +46,31 @@ def test_build_challenge_prompt_mentions_workspace_flag_file() -> None:
     )
 
 
+def test_nyuctf_network_injected_for_all_sandbox_configs() -> None:
+    bench = object.__new__(NYU_CTF_Bench)
+    config = {
+        "sandbox": {
+            "sandboxes": {
+                "main": {
+                    "image": "main",
+                    "build_args": {"BASE_IMAGE": "ubuntu:22.04"},
+                },
+                "tools": {"network": "existing", "image": "tools"},
+                "extra": {"image": "extra"},
+            }
+        },
+        "model": {"models_python_file": "models.py"},
+    }
+
+    bench._ensure_network_in_sandbox_configs(config, "ctfnet")
+
+    sandboxes = config["sandbox"]["sandboxes"]
+    assert sandboxes["main"]["network"] == "ctfnet"
+    assert sandboxes["main"]["build_args"] == {"BASE_IMAGE": "ubuntu:22.04"}
+    assert sandboxes["tools"]["network"] == "existing"
+    assert sandboxes["extra"]["network"] == "ctfnet"
+
+
 def test_extract_trace_entries_handles_text_and_tools() -> None:
     session_trace = {
         "events": [

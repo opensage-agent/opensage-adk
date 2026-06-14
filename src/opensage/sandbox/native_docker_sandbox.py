@@ -410,6 +410,8 @@ class NativeDockerSandbox(BaseSandbox):
             run_kwargs["security_opt"] = self.container_config_obj.security_opt
         if self.container_config_obj.cap_add:
             run_kwargs["cap_add"] = self.container_config_obj.cap_add
+        if self.container_config_obj.cap_drop:
+            run_kwargs["cap_drop"] = self.container_config_obj.cap_drop
         if self.container_config_obj.devices:
             run_kwargs["devices"] = self.container_config_obj.devices
         if self.container_config_obj.gpus is not None:
@@ -423,8 +425,9 @@ class NativeDockerSandbox(BaseSandbox):
         if self.container_config_obj.mem_limit is not None:
             run_kwargs["mem_limit"] = self.container_config_obj.mem_limit
         if self.container_config_obj.cpus is not None:
-            # docker SDK uses nano_cpus or cpuset; keep simple mapping to cpus via host_config is complex; skip if not trivial
-            run_kwargs["cpuset_cpus"] = str(self.container_config_obj.cpus)
+            run_kwargs["nano_cpus"] = int(
+                float(self.container_config_obj.cpus) * 1_000_000_000
+            )
 
         # Volumes: list of binds "host:cont[:mode]"
         if self.container_config_obj.volumes:

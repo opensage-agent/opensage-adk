@@ -1052,7 +1052,10 @@ class Evaluation(abc.ABC):
 
         poll_task = asyncio.create_task(_poll_events())
         try:
-            await manager.wait_until_idle(task.session_id, timeout=7200)
+            await manager.wait_until_idle(
+                task.session_id,
+                timeout=self._get_agent_timeout(task),
+            )
         finally:
             poll_task.cancel()
             try:
@@ -1320,6 +1323,10 @@ class Evaluation(abc.ABC):
         Args:
             task (EvaluationTask): EvaluationTask instance with all task data"""
         pass
+
+    def _get_agent_timeout(self, task: EvaluationTask) -> float | None:
+        """Get the maximum time to wait for agent execution to become idle."""
+        return 7200
 
     def _get_fake_user_fn(self, opensage_session=None) -> FakeUserFn | None:
         """Return the fake-user callback for multi-turn interaction.

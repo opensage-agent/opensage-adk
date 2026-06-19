@@ -1172,15 +1172,36 @@ class AgentManager:
             await asyncio.wait(active, return_when=asyncio.FIRST_COMPLETED)
 
     async def wait_until_idle(
-        self, session_id: str, *, timeout: float | None = None
-    ) -> None:
+        self,
+        session_id: str,
+        *,
+        timeout: float | None = None,
+        stop_on_timeout: bool = False,
+    ) -> bool:
         """Wait until the entire agent tree is stable: all instances SLEEPING,
         no active tasks, all inboxes empty.
 
         Used by evaluation to wait for the full fake_user loop to complete.
+
+        Returns:
+            True if the tree reached idle. If ``stop_on_timeout`` is true,
+            returns False after cancelling running instances and waiting for
+            their finally blocks to run.
+
+        Raises:
+            asyncio.TimeoutError: timed out before reaching idle when
+            ``stop_on_timeout`` is false.
         """
         loop = asyncio.get_running_loop()
         deadline = None if timeout is None else loop.time() + timeout
+
+        async def _handle_timeout() -> bool:
+            if not stop_on_timeout:
+                raise asyncio.TimeoutError(
+                    f"wait_until_idle timed out for {session_id}"
+                )
+            await self._stop_instances_for_timeout()
+            return False
 
         while True:
             busy = [
@@ -1193,7 +1214,12 @@ class AgentManager:
                     None if deadline is None else max(0.0, deadline - loop.time())
                 )
                 done_events = [inst._done_event.wait() for inst in busy]
-                await asyncio.wait_for(asyncio.gather(*done_events), timeout=remaining)
+                try:
+                    await asyncio.wait_for(
+                        asyncio.gather(*done_events), timeout=remaining
+                    )
+                except asyncio.TimeoutError:
+                    return await _handle_timeout()
                 await asyncio.sleep(0.05)
                 continue
 
@@ -1205,23 +1231,59 @@ class AgentManager:
 
             if not has_pending:
                 if not self._has_active_watchers():
-                    return
+                    return True
                 remaining = (
                     None if deadline is None else max(0.0, deadline - loop.time())
                 )
                 try:
                     await asyncio.wait_for(self._wait_watchers(), timeout=remaining)
                 except asyncio.TimeoutError:
-                    raise asyncio.TimeoutError(
-                        f"wait_until_idle timed out for {session_id}"
-                    )
+                    return await _handle_timeout()
                 continue
 
             if deadline is not None and loop.time() >= deadline:
-                raise asyncio.TimeoutError(
-                    f"wait_until_idle timed out for {session_id}"
-                )
+                return await _handle_timeout()
             await asyncio.sleep(0.1)
+
+    async def _stop_instances_for_timeout(self) -> None:
+        """Stop all agent instances after an evaluation timeout.
+
+        This cancels active instance tasks and awaits them so ADK/OpenSage
+        finally blocks can persist state and release instance lifecycle flags
+        before evaluation collects outputs and cleans up sandboxes.
+        """
+        tasks: list[asyncio.Task] = []
+        for inst in self._instances.values():
+            if inst._task is not None and not inst._task.done():
+                inst.state = AgentInstanceState.TERMINATING
+                tasks.append(inst._task)
+                inst._task.cancel()
+            elif inst.state in (
+                AgentInstanceState.RUNNING,
+                AgentInstanceState.SLEEPING,
+            ):
+                inst.state = AgentInstanceState.TERMINATED
+                inst._task = None
+                inst._done_event.set()
+
+        btm = getattr(self._opensage_session, "bash_tasks", None)
+        if btm is not None:
+            for watcher in list(btm._watcher_tasks.values()):
+                if not watcher.done():
+                    tasks.append(watcher)
+                    watcher.cancel()
+
+        if tasks:
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for result in results:
+                if isinstance(result, Exception):
+                    logger.warning("Agent task stopped after timeout: %r", result)
+
+        for inst in self._instances.values():
+            if inst.state == AgentInstanceState.TERMINATING:
+                inst.state = AgentInstanceState.TERMINATED
+                inst._task = None
+                inst._done_event.set()
 
     def get_running_children(self, parent_sid: str) -> list[str]:
         """Return session_ids of children that are currently RUNNING."""

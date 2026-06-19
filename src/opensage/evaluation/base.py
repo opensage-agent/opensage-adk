@@ -481,6 +481,18 @@ class Evaluation(abc.ABC):
         estimated_cost = (
             budget_state.get("spent_cost") if isinstance(budget_state, dict) else None
         )
+
+        effective_num_llm_calls = num_llm_calls
+        if isinstance(budget_state, dict):
+            per_model_usage = budget_state.get("per_model_usage")
+            if isinstance(per_model_usage, dict):
+                budget_calls = 0
+                for usage in per_model_usage.values():
+                    if isinstance(usage, dict):
+                        budget_calls += int(usage.get("calls") or 0)
+                if budget_calls:
+                    effective_num_llm_calls = budget_calls
+
         cost_info = {
             "session_id": task.session_id,
             "task_name": task.id,
@@ -493,14 +505,14 @@ class Evaluation(abc.ABC):
                 "total_cached_tokens": total_cached_tokens,
                 "total_tokens": total_input_tokens + total_output_tokens,
             },
-            "num_llm_calls": num_llm_calls,
+            "num_llm_calls": effective_num_llm_calls,
             "budget": budget_state,
         }
 
         logger.warning("=" * 80)
         logger.warning(f"Cost info for session {task.session_id}:")
         logger.warning(f"  Model: {model_name}")
-        logger.warning(f"  LLM calls: {num_llm_calls}")
+        logger.warning(f"  LLM calls: {effective_num_llm_calls}")
         logger.warning(f"  Input tokens: {total_input_tokens:,}")
         logger.warning(f"  Output tokens: {total_output_tokens:,}")
         logger.warning(f"  Cached tokens: {total_cached_tokens:,}")
@@ -1057,13 +1069,16 @@ class Evaluation(abc.ABC):
         task.run_timed_out = False
         try:
             timeout_s = self._get_agent_timeout(task)
-            try:
-                await manager.wait_until_idle(task.session_id, timeout=timeout_s)
-            except asyncio.TimeoutError:
+            completed = await manager.wait_until_idle(
+                task.session_id,
+                timeout=timeout_s,
+                stop_on_timeout=True,
+            )
+            if not completed:
                 task.run_timed_out = True
                 logger.warning(
                     "Agent execution timed out after %s seconds for task %s; "
-                    "returning current session for output collection",
+                    "stopped agent and returning current session for output collection",
                     timeout_s,
                     task.id,
                 )

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import os
+import posixpath
 import re
+import shlex
 from typing import Any, Dict, List, Optional, Set
 
 from google.adk.agents.base_agent import BaseAgent
@@ -17,6 +19,8 @@ from opensage.config.config_dataclass import OpenSageConfig
 from opensage.session.joern_client import JoernClient
 
 _AGENT_NAME_FALLBACK = "agent"
+_SANDBOX_WRITE_CHUNK_SIZE = 8192
+_SAFE_FILENAME_PART_RE = re.compile(r"[^A-Za-z0-9_.-]+")
 
 
 def sanitize_agent_name(name: str) -> str:
@@ -182,6 +186,72 @@ def get_sandbox_from_context(
     return opensage_session.sandboxes.get_sandbox(sandbox_type)
 
 
+def _sanitize_filename_part(raw: str | None, fallback: str) -> str:
+    cleaned = _SAFE_FILENAME_PART_RE.sub("_", str(raw or "").strip()).strip("._-")
+    return cleaned or fallback
+
+
+def _sanitize_file_extension(raw: str | None) -> str:
+    if not isinstance(raw, str) or not raw.startswith("."):
+        return ".txt"
+    suffix = _SAFE_FILENAME_PART_RE.sub("_", raw[1:].strip()).strip("._-")
+    return f".{suffix}" if suffix else ".txt"
+
+
+async def _write_text_file_in_sandbox(
+    sandbox: Any,
+    path: str,
+    content: str,
+    *,
+    timeout: int = 30,
+) -> tuple[bool, str]:
+    parent_dir = posixpath.dirname(path) or "."
+    quoted_parent = shlex.quote(parent_dir)
+    quoted_path = shlex.quote(path)
+
+    output, exit_code = await sandbox.arun_command_in_container(
+        f"mkdir -p {quoted_parent} && rm -f {quoted_path} && : > {quoted_path}",
+        timeout=timeout,
+    )
+    if exit_code != 0:
+        return False, f"create failed ({exit_code}): {output.strip()}"
+
+    for start in range(0, len(content), _SANDBOX_WRITE_CHUNK_SIZE):
+        chunk = content[start : start + _SANDBOX_WRITE_CHUNK_SIZE]
+        output, exit_code = await sandbox.arun_command_in_container(
+            f"printf %s {shlex.quote(chunk)} >> {quoted_path}",
+            timeout=timeout,
+        )
+        if exit_code != 0:
+            return False, f"write failed ({exit_code}): {output.strip()}"
+
+    output, exit_code = await sandbox.arun_command_in_container(
+        f"chmod 0644 {quoted_path}", timeout=timeout
+    )
+    if exit_code != 0:
+        return False, f"chmod failed ({exit_code}): {output.strip()}"
+
+    output, exit_code = await sandbox.arun_command_in_container(
+        f"test -f {quoted_path} && wc -c < {quoted_path}", timeout=10
+    )
+    if exit_code != 0:
+        return False, f"verify failed ({exit_code}): {output.strip()}"
+
+    try:
+        actual_size = int(output.strip().splitlines()[-1])
+    except (IndexError, ValueError):
+        return False, f"verify returned non-byte-count output: {output.strip()}"
+
+    expected_size = len(content.encode("utf-8"))
+    if actual_size != expected_size:
+        return (
+            False,
+            f"verify byte count mismatch: expected {expected_size}, got {actual_size}",
+        )
+
+    return True, f"{actual_size} bytes"
+
+
 async def save_content_to_sandbox_file(
     context: "InvocationContext | ToolContext",
     content: str,
@@ -222,39 +292,30 @@ async def save_content_to_sandbox_file(
         )
 
         sandbox = get_sandbox_from_context(context, sandbox_type)
-        resolved_file_id = file_id or uuid.uuid4().hex[:8]
-        resolved_extension = (
-            file_extension
-            if isinstance(file_extension, str) and file_extension.startswith(".")
-            else ".txt"
+        safe_tool_name = _sanitize_filename_part(tool_name, "tool")
+        resolved_file_id = _sanitize_filename_part(file_id, uuid.uuid4().hex[:8])
+        resolved_extension = _sanitize_file_extension(file_extension)
+        output_file = (
+            f"{output_dir.rstrip('/')}/"
+            f"{safe_tool_name}_{resolved_file_id}{resolved_extension}"
         )
-        output_file = f"{output_dir}/{tool_name}_{resolved_file_id}{resolved_extension}"
 
         logger.warning(f"[save_content_to_sandbox_file] Target file: {output_file}")
 
-        # Create directory if not exists
-        mkdir_result = await sandbox.arun_command_in_container(
-            f"mkdir -p {output_dir}", timeout=10
-        )
-        logger.warning(f"[save_content_to_sandbox_file] mkdir result: {mkdir_result}")
+        saved, detail = await _write_text_file_in_sandbox(sandbox, output_file, content)
+        if not saved:
+            logger.error(
+                "[save_content_to_sandbox_file] FAILED to save content to %s: %s",
+                output_file,
+                detail,
+            )
+            return None
 
-        # Use heredoc to write content safely
-        write_result = await sandbox.arun_command_in_container(
-            f"cat > {output_file} << 'OPENSAGE_SAVE_EOF'\n{content}\nOPENSAGE_SAVE_EOF",
-            timeout=30,
-        )
-        logger.warning(f"[save_content_to_sandbox_file] write result: {write_result}")
-
-        # Verify file was created
-        verify_result = await sandbox.arun_command_in_container(
-            f"ls -la {output_file} && wc -c {output_file}",
-            timeout=10,
-        )
         logger.warning(
-            f"[save_content_to_sandbox_file] File verification: {verify_result}"
+            "[save_content_to_sandbox_file] SUCCESS saved to %s (%s)",
+            output_file,
+            detail,
         )
-
-        logger.warning(f"[save_content_to_sandbox_file] SUCCESS saved to {output_file}")
         return output_file
 
     except Exception as e:

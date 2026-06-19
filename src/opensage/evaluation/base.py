@@ -210,6 +210,9 @@ class EvaluationTask:
     model: str | BaseLlm | None = None
     """Optional model override (BaseLlm instance or string model name)"""
 
+    run_timed_out: bool = False
+    """Whether agent execution hit the evaluation timeout."""
+
     @property
     def opensage_session(self) -> OpenSageSession:
         """Get or create OpenSage session for this task."""
@@ -1051,11 +1054,19 @@ class Evaluation(abc.ABC):
         )
 
         poll_task = asyncio.create_task(_poll_events())
+        task.run_timed_out = False
         try:
-            await manager.wait_until_idle(
-                task.session_id,
-                timeout=self._get_agent_timeout(task),
-            )
+            timeout_s = self._get_agent_timeout(task)
+            try:
+                await manager.wait_until_idle(task.session_id, timeout=timeout_s)
+            except asyncio.TimeoutError:
+                task.run_timed_out = True
+                logger.warning(
+                    "Agent execution timed out after %s seconds for task %s; "
+                    "returning current session for output collection",
+                    timeout_s,
+                    task.id,
+                )
         finally:
             poll_task.cancel()
             try:
@@ -1083,7 +1094,10 @@ class Evaluation(abc.ABC):
         if session:
             session.events = all_events
 
-        logger.warning(f"Agent execution completed for session: {task.session_id}")
+        if task.run_timed_out:
+            logger.warning(f"Agent execution timed out for session: {task.session_id}")
+        else:
+            logger.warning(f"Agent execution completed for session: {task.session_id}")
 
         self._save_cost_info(task, session, num_llm_calls=instance._llm_calls_used)
 

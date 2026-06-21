@@ -8,7 +8,7 @@ icon: lucide/container
 
 The OpenSage-ADK sandbox system provides isolated execution environments through a pluggable backend architecture. It is built on two independent concepts:
 
-- **Sandbox Backends** are execution engines that manage where and how containers run (`native`; `remotedocker`, `opensandbox`, `agentdocker-lite`, `local`, and `k8s` are all currently under development)
+- **Sandbox Backends** are execution engines that manage where and how containers run (`native`; `podman`, `remotedocker`, `opensandbox`, `agentdocker-lite`, `local`, and `k8s` are all currently under development)
 - **Sandbox Initializers** are functional types that define what gets installed inside a container (main, neo4j, joern, gdb_mcp, etc.)
 
 For the TOML configuration reference (fields, backends, per-sandbox settings), see [Sandbox Configuration](../../reference/configuration/sandbox.md).
@@ -22,6 +22,7 @@ Backends determine **where and how** containers are executed.
 | Backend | Description | Use Case |
 |---------|-------------|----------|
 | **native** | Local Docker daemon | Development, testing |
+| **podman** | Local Podman with Docker-compatible API socket (**under development**) | Podman-based local execution |
 | **remotedocker** | Remote Docker via SSH/TCP (**under development**) | Under development |
 | **opensandbox** | OpenSandbox-managed remote execution backend (**under development**) | Under development |
 | **agentdocker-lite** | Namespace sandbox backend built on `agentdocker-lite` (**under development**) | Under development |
@@ -38,6 +39,10 @@ backend = "native"  # other backend values are currently under development
 ### Native Docker Backend
 
 The default backend. Sandboxes run as local Docker containers on the current machine. Typical use cases: local development, integration tests, and standard single-machine execution.
+
+### Podman Backend
+
+The `podman` backend uses the local `podman` CLI for image and volume operations, and Podman's Docker-compatible API socket for container exec and file archive operations. Start the socket with `systemctl --user enable --now podman.socket`, or set `PODMAN_DOCKER_HOST` to the socket URL.
 
 ### Remote Docker Backend
 

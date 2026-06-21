@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 # Each entry: backend_name → (module_name, class_name).
 _BACKENDS = {
     "native":           ("native_docker_sandbox",       "NativeDockerSandbox"),
+    "podman":           ("podman_sandbox",              "PodmanSandbox"),
     "k8s":              ("k8s_sandbox",                 "K8sSandbox"),
     "remotedocker":     ("remote_docker_sandbox",       "RemoteDockerSandbox"),
     "opensandbox":      ("opensandbox_sandbox",         "OpenSandboxSandbox"),

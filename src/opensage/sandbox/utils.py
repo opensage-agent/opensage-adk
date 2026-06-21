@@ -10,11 +10,11 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-def image_exists_locally(image_name: str) -> bool:
-    """Check if Docker image exists locally."""
+def image_exists_locally(image_name: str, container_cli: str = "docker") -> bool:
+    """Check if a local container image exists."""
     try:
         result = subprocess.run(
-            ["docker", "images", "-q", image_name],
+            [container_cli, "images", "-q", image_name],
             capture_output=True,
             text=True,
             check=False,
@@ -24,11 +24,14 @@ def image_exists_locally(image_name: str) -> bool:
         return False
 
 
-def can_pull_image(image_name: str) -> bool:
-    """Try to pull Docker image and return success status."""
+def can_pull_image(image_name: str, container_cli: str = "docker") -> bool:
+    """Try to pull a container image and return success status."""
     try:
         result = subprocess.run(
-            ["docker", "pull", image_name], capture_output=True, text=True, check=False
+            [container_cli, "pull", image_name],
+            capture_output=True,
+            text=True,
+            check=False,
         )
         return result.returncode == 0
     except Exception:

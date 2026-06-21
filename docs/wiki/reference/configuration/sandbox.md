@@ -21,6 +21,7 @@ Fields directly under `[sandbox]`.
 | Backend | Status | Description |
 |---------|--------|-------------|
 | `native` | Stable | Local Docker backend |
+| `podman` | Under development | Local Podman backend using Podman's Docker-compatible API socket |
 | `remotedocker` | Under development | Remote Docker daemon over SSH/TCP |
 | `opensandbox` | Under development | OpenSandbox-managed execution backend |
 | `agentdocker-lite` | Under development | Namespace-based lightweight local isolation |
@@ -45,7 +46,7 @@ Each sandbox is configured under `[sandbox.sandboxes.<name>]`. Common built-in n
 
 | Field | Type | Description | Default |
 |-------|------|-------------|---------|
-| `image` | `string` | Docker image name/tag | `None` |
+| `image` | `string` | Container image name/tag | `None` |
 | `container_id` | `string` | Connect to existing container (instead of creating new) | `None` |
 | `timeout` | `integer` | Container operation timeout in seconds | `300` |
 | `project_relative_dockerfile_path` | `string` | Path to Dockerfile relative to project root | `None` |
@@ -67,7 +68,7 @@ Each sandbox is configured under `[sandbox.sandboxes.<name>]`. Common built-in n
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `build_args` | `dict[string, string]` | Docker build arguments |
+| `build_args` | `dict[string, string]` | Container image build arguments |
 | `using_cached` | `boolean` | Whether to use cached image (internal flag) |
 
 ### Environment, Volumes, and Ports
@@ -76,7 +77,7 @@ Each sandbox is configured under `[sandbox.sandboxes.<name>]`. Common built-in n
 |-------|------|-------------|
 | `environment` | `dict[string, any]` | Environment variables |
 | `volumes` | `list[string]` | Volume mounts in format `"/host:/container:ro"` |
-| `mounts` | `list[string]` | Docker mount specifications |
+| `mounts` | `list[string]` | Docker-compatible mount specifications |
 | `ports` | `dict[string, int\|string]` | Port mappings in format `{"port/tcp" = host_port}` |
 | `docker_args` | `list[string]` | Raw arguments passed through to Docker CLI |
 | `extra` | `dict[string, any]` | Additional custom configuration (e.g., `initializer_timeout_sec`) |
@@ -90,3 +91,6 @@ Each sandbox is configured under `[sandbox.sandboxes.<name>]`. Common built-in n
 
 !!! note "`network`"
     Omit `network` to use Docker's default networking behavior. Set `network = "agent_net"` to attach the container to an existing Docker network named `agent_net`.
+
+!!! note "`podman` backend"
+    The `podman` backend requires the `podman` CLI and Podman's Docker-compatible API socket. Start the socket with `systemctl --user enable --now podman.socket`, or set `PODMAN_DOCKER_HOST` to the socket URL. When `network` is omitted, rootless Podman sandboxes default to `slirp4netns`.

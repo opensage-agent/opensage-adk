@@ -46,16 +46,20 @@ class DockerBuildResult:
 
 def build_image_from_dockerfile(
     config: ContainerConfig,
-) -> DockerBuildResult:
-    """Build Docker image from a direct Dockerfile.
+    *,
+    container_cli: str = "docker",
+    build_extra_args: tuple[str, ...] = ("--load",),
+    build_progress_arg: str | None = "--progress=plain",
+) -> DockerBuildResult | None:
+    """Build container image from a direct Dockerfile.
 
     Args:
         dockerfile_path: Path to the Dockerfile
         image_name: Name and tag for the built image (e.g., 'myapp:latest')
         build_context: Directory to use as build context. If None, uses dockerfile directory
-        build_args: Build-time variables for Docker build (--build-arg)
+        build_args: Build-time variables for image build (--build-arg)
     Returns:
-        DockerBuildResult: DockerBuildResult with build status and details
+        DockerBuildResult: Build status and details
     """
     has_dockerfile = (
         config.absolute_dockerfile_path
@@ -100,10 +104,13 @@ def build_image_from_dockerfile(
     build_context = build_context.resolve()
 
     try:
-        # Prepare docker build command
-        # --load ensures the image is loaded into the local daemon (required for buildx)
-        # --progress=plain streams line-oriented output suitable for piping/logging.
-        cmd = ["docker", "build", "--progress=plain", "--load", "-t", image_name]
+        # Prepare image build command. Docker keeps --load for buildx; Podman
+        # does not need it and can override build_extra_args.
+        cmd = [container_cli, "build"]
+        if build_progress_arg:
+            cmd.append(build_progress_arg)
+        cmd.extend(build_extra_args)
+        cmd.extend(["-t", image_name])
 
         # Add build args if provided
         if build_args:
@@ -132,7 +139,7 @@ def build_image_from_dockerfile(
             for line in proc.stdout:
                 line = line.rstrip("\n")
                 output_lines.append(line)
-                logger.info("[docker build %s] %s", image_name, line)
+                logger.info("[%s build %s] %s", container_cli, image_name, line)
             returncode = proc.wait()
             output = "\n".join(output_lines)
 
@@ -145,7 +152,9 @@ def build_image_from_dockerfile(
                     success=False,
                     image_name=image_name,
                     build_output=output,
-                    error_message=f"docker build exited with code {returncode}",
+                    error_message=(
+                        f"{container_cli} build exited with code {returncode}"
+                    ),
                 )
 
         finally:
@@ -161,8 +170,14 @@ def build_image_from_dockerfile(
         )
 
 
-def ensure_docker_image(config: ContainerConfig) -> tuple[bool, Optional[str]]:
-    """Ensure Docker image is available, using dockerfile fallback if needed.
+def ensure_docker_image(
+    config: ContainerConfig,
+    *,
+    container_cli: str = "docker",
+    build_extra_args: tuple[str, ...] = ("--load",),
+    build_progress_arg: str | None = "--progress=plain",
+) -> tuple[bool, Optional[str]]:
+    """Ensure container image is available, using dockerfile fallback if needed.
 
     Args:
         config (ContainerConfig): ContainerConfig with image name and optional dockerfile config
@@ -173,12 +188,12 @@ def ensure_docker_image(config: ContainerConfig) -> tuple[bool, Optional[str]]:
         return False, "No image specified in ContainerConfig"
 
     # Check if image exists locally
-    if image_exists_locally(config.image):
+    if image_exists_locally(config.image, container_cli=container_cli):
         return True, None
 
     # Try to pull image
     logger.info(f"Image {config.image} not found locally, attempting to pull...")
-    if can_pull_image(config.image):
+    if can_pull_image(config.image, container_cli=container_cli):
         logger.info(f"Successfully pulled {config.image}")
         return True, None
 
@@ -200,7 +215,12 @@ def ensure_docker_image(config: ContainerConfig) -> tuple[bool, Optional[str]]:
             f"Attempting to build {config.image} from dockerfile {dockerfile_path}..."
         )
 
-        build_result = build_image_from_dockerfile(config)
+        build_result = build_image_from_dockerfile(
+            config,
+            container_cli=container_cli,
+            build_extra_args=build_extra_args,
+            build_progress_arg=build_progress_arg,
+        )
 
         if build_result is None:
             return False, "Dockerfile configuration incomplete"
@@ -222,6 +242,10 @@ class NativeDockerSandbox(BaseSandbox):
     """Native Docker sandbox implementation using direct Docker API."""
 
     backend_type = "native"
+    _container_cli = "docker"
+    _build_extra_args = ("--load",)
+    _build_progress_arg = "--progress=plain"
+    _default_network: str | None = None
     _HELPER_IMAGE_CANDIDATES = (
         "alpine:latest",
         "busybox:latest",
@@ -257,7 +281,7 @@ class NativeDockerSandbox(BaseSandbox):
         super().__init__(container_config, session_id, self.backend_type, sandbox_type)
 
         # Initialize Docker client with configuration
-        self.client = docker.from_env(timeout=self.container_config_obj.timeout)
+        self.client = self._get_client(timeout=self.container_config_obj.timeout)
 
         # Connect to existing container or create new one
         if container_config.container_id:
@@ -278,7 +302,7 @@ class NativeDockerSandbox(BaseSandbox):
                         "Fallback to create new container failed: no image specified in ContainerConfig"
                     )
                 # Ensure Docker image is available (with dockerfile build if needed)
-                success, error_message = ensure_docker_image(container_config)
+                success, error_message = self._ensure_image(container_config)
                 if not success:
                     raise RuntimeError(
                         f"Failed to obtain Docker image: {error_message}"
@@ -287,7 +311,7 @@ class NativeDockerSandbox(BaseSandbox):
                 self.container_id = self._get_container()
         else:
             # Ensure Docker image is available (with dockerfile build if needed)
-            success, error_message = ensure_docker_image(container_config)
+            success, error_message = self._ensure_image(container_config)
             if not success:
                 raise RuntimeError(f"Failed to obtain Docker image: {error_message}")
             # Create and start container
@@ -295,6 +319,30 @@ class NativeDockerSandbox(BaseSandbox):
 
         # Detect available shell in container
         self._detected_shell = None  # Will be set on first use
+
+    @classmethod
+    def _get_client(cls, timeout: int | None = None) -> docker.DockerClient:
+        """Return the Docker-compatible client used by this backend."""
+        if timeout is None:
+            return docker.from_env()
+        return docker.from_env(timeout=timeout)
+
+    @classmethod
+    def _image_exists_locally(cls, image_name: str) -> bool:
+        return image_exists_locally(image_name, container_cli=cls._container_cli)
+
+    @classmethod
+    def _can_pull_image(cls, image_name: str) -> bool:
+        return can_pull_image(image_name, container_cli=cls._container_cli)
+
+    @classmethod
+    def _ensure_image(cls, config: ContainerConfig) -> tuple[bool, Optional[str]]:
+        return ensure_docker_image(
+            config,
+            container_cli=cls._container_cli,
+            build_extra_args=cls._build_extra_args,
+            build_progress_arg=cls._build_progress_arg,
+        )
 
     @classmethod
     def _get_helper_image(cls) -> str:
@@ -310,7 +358,7 @@ class NativeDockerSandbox(BaseSandbox):
             return cls._cached_helper_image
 
         for candidate in cls._HELPER_IMAGE_CANDIDATES:
-            if image_exists_locally(candidate) or can_pull_image(candidate):
+            if cls._image_exists_locally(candidate) or cls._can_pull_image(candidate):
                 cls._cached_helper_image = candidate
                 return candidate
 
@@ -404,6 +452,8 @@ class NativeDockerSandbox(BaseSandbox):
             run_kwargs["user"] = self.container_config_obj.user
         if self.container_config_obj.network:
             run_kwargs["network"] = self.container_config_obj.network
+        elif self._default_network:
+            run_kwargs["network"] = self._default_network
         if self.container_config_obj.privileged:
             run_kwargs["privileged"] = True
         if self.container_config_obj.security_opt:
@@ -882,7 +932,7 @@ class NativeDockerSandbox(BaseSandbox):
         import tarfile as _tarfile
 
         helper_name = f"vol_helper_{volume_name}"
-        client = docker.from_env()
+        client = cls._get_client()
         container = None
         try:
             helper_image = cls._get_helper_image()
@@ -930,7 +980,7 @@ class NativeDockerSandbox(BaseSandbox):
         try:
             # Create Docker volume
             subprocess.run(
-                ["docker", "volume", "create", volume_name],
+                [cls._container_cli, "volume", "create", volume_name],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -1081,7 +1131,7 @@ class NativeDockerSandbox(BaseSandbox):
             # 4. Set permissions to 777 on data volume to ensure write access
             chmod_result = subprocess.run(
                 [
-                    "docker",
+                    cls._container_cli,
                     "run",
                     "--rm",
                     "-v",
@@ -1108,7 +1158,7 @@ class NativeDockerSandbox(BaseSandbox):
             # executable/writeable across sandboxes.
             chmod_result = subprocess.run(
                 [
-                    "docker",
+                    cls._container_cli,
                     "run",
                     "--rm",
                     "-v",
@@ -1138,17 +1188,17 @@ class NativeDockerSandbox(BaseSandbox):
             # Clean up any created volumes on failure
             try:
                 subprocess.run(
-                    ["docker", "volume", "rm", scripts_volume_name],
+                    [cls._container_cli, "volume", "rm", scripts_volume_name],
                     capture_output=True,
                     check=False,
                 )
                 subprocess.run(
-                    ["docker", "volume", "rm", data_volume_name],
+                    [cls._container_cli, "volume", "rm", data_volume_name],
                     capture_output=True,
                     check=False,
                 )
                 subprocess.run(
-                    ["docker", "volume", "rm", tools_volume_name],
+                    [cls._container_cli, "volume", "rm", tools_volume_name],
                     capture_output=True,
                     check=False,
                 )
@@ -1173,7 +1223,7 @@ class NativeDockerSandbox(BaseSandbox):
             if volume_id:
                 try:
                     result = subprocess.run(
-                        ["docker", "volume", "rm", volume_id],
+                        [cls._container_cli, "volume", "rm", volume_id],
                         capture_output=True,
                         text=True,
                         check=False,
@@ -1479,8 +1529,11 @@ class NativeDockerSandbox(BaseSandbox):
                 # Create a placeholder container to hold the IP:7777
                 # This ensures no other process takes it before we launch real sandboxes
                 try:
-                    client = docker.from_env(timeout=3600)
+                    client = cls._get_client(timeout=3600)
                     helper_image = cls._get_helper_image()
+                    placeholder_kwargs: dict[str, Any] = {}
+                    if cls._default_network:
+                        placeholder_kwargs["network"] = cls._default_network
                     placeholder_container = client.containers.run(
                         helper_image,
                         command=["sh", "-c", "sleep infinity"],
@@ -1488,6 +1541,7 @@ class NativeDockerSandbox(BaseSandbox):
                         name=f"opensage_placeholder_{str(uuid.uuid4())}",
                         ports={"7777/tcp": (test_ip, 7777)},
                         remove=True,
+                        **placeholder_kwargs,
                     )
                     placeholder_container_id = placeholder_container.id
                     logger.info(
@@ -1662,9 +1716,9 @@ class NativeDockerSandbox(BaseSandbox):
         manifest: dict,
     ) -> SandboxCacheInfo:
         """Resolve cache for native Docker: check local image or pull."""
-        if image_exists_locally(cached_image_name):
+        if cls._image_exists_locally(cached_image_name):
             return SandboxCacheInfo(found=True, image=cached_image_name)
-        if can_pull_image(cached_image_name):
+        if cls._can_pull_image(cached_image_name):
             logger.info(f"Successfully pulled cached image: {cached_image_name}")
             return SandboxCacheInfo(found=True, image=cached_image_name)
         return SandboxCacheInfo(found=False)
@@ -1726,7 +1780,7 @@ class NativeDockerSandbox(BaseSandbox):
                     )
 
                     backup_cmd = [
-                        "docker",
+                        cls._container_cli,
                         "run",
                         "--rm",
                         "-v",
@@ -1766,7 +1820,7 @@ class NativeDockerSandbox(BaseSandbox):
                     cache_results["errors"].append(error_msg)
 
             # 2. Commit each sandbox container to an image
-            client = docker.from_env(timeout=3600)
+            client = cls._get_client(timeout=3600)
 
             for sandbox_type, sandbox_instance in sandbox_instances.items():
                 try:

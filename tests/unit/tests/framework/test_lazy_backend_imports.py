@@ -44,6 +44,7 @@ with _stub_optional_deps():
 def test_registry_contains_all_backends():
     expected = {
         "native",
+        "podman",
         "k8s",
         "remotedocker",
         "opensandbox",
@@ -74,6 +75,11 @@ def test_unknown_backend_raises_valueerror():
 def test_native_backend_resolves():
     cls = get_backend_class("native")
     assert cls.__name__ == "NativeDockerSandbox"
+
+
+def test_podman_backend_resolves():
+    cls = get_backend_class("podman")
+    assert cls.__name__ == "PodmanSandbox"
 
 
 def test_backend_cached_after_first_resolve():

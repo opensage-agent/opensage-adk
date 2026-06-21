@@ -120,10 +120,10 @@ class Neo4jConfig:
 
 @dataclass
 class ContainerConfig:
-    """Lightweight config for Docker-backed sandboxes.
+    """Lightweight config for container-backed sandboxes.
 
     This is an internal convenience type to keep sandbox code tidy and typed.
-    It intentionally mirrors common docker SDK/run options that we may support.
+    It intentionally mirrors common Docker-compatible run options that we may support.
     Any unsupported fields can be kept in extra for forward-compat.
     """
 
@@ -149,7 +149,7 @@ class ContainerConfig:
     gpus: Optional[str] = None  # e.g., "all" or "device=GPU-UUID"
     shm_size: Optional[str] = None
     mem_limit: Optional[str] = None
-    # Docker CPU quota, equivalent to `docker run --cpus N`.
+    # Docker-compatible CPU quota, equivalent to `docker run --cpus N`.
     cpus: Optional[str] = None
     user: Optional[str] = None
     working_dir: Optional[str] = None
@@ -162,7 +162,7 @@ class ContainerConfig:
     )  # ["type=bind,source=...,target=..."]
     ports: Dict[str, Union[int, None, Dict[str, Any]]] = field(default_factory=dict)
 
-    # Raw args passthrough for docker CLI (where applicable)
+    # Raw args passthrough for Docker-compatible CLI backends (where applicable)
     docker_args: List[str] = field(default_factory=list)
 
     # Build configuration
@@ -175,7 +175,7 @@ class ContainerConfig:
     absolute_dockerfile_path: Optional[str] = None  # Path to Dockerfile as given
     build_args: Dict[str, str] = field(
         default_factory=dict
-    )  # Build arguments for Docker build
+    )  # Build arguments for container image build
 
     # Command override - if None, defaults to "bash"; if empty string, uses Dockerfile's default CMD
     command: Optional[str] = None
@@ -199,7 +199,7 @@ class ContainerConfig:
 class SandboxPathsConfig:
     """Configurable paths inside the sandbox (or host, for local backend).
 
-    Docker backends mount volumes at these paths inside the container.
+    Container backends mount volumes at these paths inside the container.
     The local backend can override them to point at host directories.
     """
 

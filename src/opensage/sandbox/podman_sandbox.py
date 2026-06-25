@@ -6,8 +6,10 @@ Podman's Docker-compatible API socket for container exec/archive operations.
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
+import subprocess
 from pathlib import Path
 
 import docker
@@ -17,6 +19,8 @@ from opensage.sandbox.native_docker_sandbox import (
     NativeDockerSandbox,
     ensure_docker_image,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _podman_pull_image_name(image: str) -> str:
@@ -61,6 +65,49 @@ class PodmanSandbox(NativeDockerSandbox):
         if shutil.which(self._container_cli) is None:
             raise RuntimeError("Podman backend requires the 'podman' CLI on PATH.")
         super().__init__(container_config, session_id, backend_type, sandbox_type)
+
+    @classmethod
+    def _docker_cp_to_volume(
+        cls, volume_name: str, source_dir: str, label: str = ""
+    ) -> None:
+        """Populate a Podman volume without Docker SDK ``put_archive``.
+
+        Rootless Podman's archive copier can try to lchown the mounted volume
+        root when copying to /target, which fails with "lchown /: invalid
+        argument". Use a helper container with a read-only host bind mount
+        instead.
+        """
+        source_path = Path(source_dir).resolve()
+        helper_image = cls._get_helper_image()
+        cmd = [
+            cls._container_cli,
+            "run",
+            "--rm",
+            "-v",
+            f"{source_path}:/src:ro",
+            "-v",
+            f"{volume_name}:/target",
+            helper_image,
+            "sh",
+            "-c",
+            "cp -a /src/. /target/",
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            detail = "\n".join(
+                part for part in (result.stdout.strip(), result.stderr.strip()) if part
+            )
+            raise RuntimeError(
+                f"Failed to copy {label or source_dir} to Podman volume "
+                f"{volume_name}: {detail}"
+            )
+
+        logger.info(
+            "Successfully copied %s to Podman volume %s",
+            label or source_dir,
+            volume_name,
+        )
 
     @classmethod
     def _find_podman_docker_host(cls) -> str | None:

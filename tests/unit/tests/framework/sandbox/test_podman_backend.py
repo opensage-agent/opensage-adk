@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
 
 from opensage.config import ContainerConfig
 
@@ -129,3 +132,76 @@ def test_podman_ensure_image_falls_back_with_original_name(monkeypatch):
     assert PodmanSandbox._ensure_image(config) == (False, "missing")
     assert fallback_images == ["jefzda/sweap-images:tag"]
     assert config.image == "jefzda/sweap-images:tag"
+
+
+def test_podman_copy_to_volume_uses_helper_container_cp(monkeypatch, tmp_path):
+    import opensage.sandbox.podman_sandbox as podman_sandbox
+    from opensage.sandbox.podman_sandbox import PodmanSandbox
+
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    (source_dir / "file.txt").write_text("data")
+    run_calls = []
+
+    monkeypatch.setattr(
+        PodmanSandbox,
+        "_get_helper_image",
+        classmethod(lambda _cls: "docker.io/library/alpine:latest"),
+    )
+
+    def fake_run(cmd, *, capture_output, text):
+        run_calls.append((cmd, capture_output, text))
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(podman_sandbox.subprocess, "run", fake_run)
+
+    PodmanSandbox._docker_cp_to_volume("test_volume", str(source_dir), label="fixture")
+
+    assert run_calls == [
+        (
+            [
+                "podman",
+                "run",
+                "--rm",
+                "-v",
+                f"{source_dir.resolve()}:/src:ro",
+                "-v",
+                "test_volume:/target",
+                "docker.io/library/alpine:latest",
+                "sh",
+                "-c",
+                "cp -a /src/. /target/",
+            ],
+            True,
+            True,
+        )
+    ]
+
+
+def test_podman_copy_to_volume_reports_helper_failure(monkeypatch, tmp_path):
+    import opensage.sandbox.podman_sandbox as podman_sandbox
+    from opensage.sandbox.podman_sandbox import PodmanSandbox
+
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+
+    monkeypatch.setattr(
+        PodmanSandbox,
+        "_get_helper_image",
+        classmethod(lambda _cls: "docker.io/library/alpine:latest"),
+    )
+    monkeypatch.setattr(
+        podman_sandbox.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            returncode=125,
+            stdout="helper stdout",
+            stderr="helper stderr",
+        ),
+    )
+
+    with pytest.raises(RuntimeError, match="test_volume") as exc_info:
+        PodmanSandbox._docker_cp_to_volume("test_volume", str(source_dir))
+
+    assert "helper stdout" in str(exc_info.value)
+    assert "helper stderr" in str(exc_info.value)

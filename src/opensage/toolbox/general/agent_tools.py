@@ -76,7 +76,7 @@ async def critique(model_name: str, tool_context: ToolContext):
     valid model names.
 
     Args:
-        model_name: Name of a registered model to use (e.g. "claude-opus-4-6").
+        model_name: Name of a registered model to use (e.g. "claude-opus-4-8").
 
     Returns:
         dict with 'idea' containing the consulting model's analysis, or an error.
@@ -406,7 +406,7 @@ async def audit_assumptions(model_name: str, tool_context: ToolContext):
     Use ``get_available_models`` to discover valid model names.
 
     Args:
-        model_name: Name of a registered model to use (e.g. "claude-opus-4-6").
+        model_name: Name of a registered model to use (e.g. "claude-opus-4-8").
 
     Returns:
         A structured confidence audit of the agent's current working assumptions.
@@ -558,7 +558,7 @@ async def validate_claim(model_name: str, claim: str, tool_context: ToolContext)
     Use ``get_available_models`` to discover valid model names.
 
     Args:
-        model_name: Name of a registered model to use (e.g. "claude-opus-4-6").
+        model_name: Name of a registered model to use (e.g. "claude-opus-4-8").
         claim: The specific progress statement you want to validate, e.g.
             "The binary has a stack buffer overflow in parse_input at offset 0x40".
 

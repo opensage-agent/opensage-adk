@@ -25,6 +25,7 @@ from .helpers import (
     DEFAULT_TASK_LIST,
     DEFAULT_TIME_LIMIT,
     LoadedCybenchTask,
+    build_benchmark_summary,
     build_task_prompt,
     docker_safe_name,
     ensure_docker_network,
@@ -37,8 +38,7 @@ from .helpers import (
     stage_cybench_task,
     start_cybench_service,
     task_output_dir_name,
-    write_benchmark_report,
-    write_raw_run_artifacts,
+    write_run_artifacts,
 )
 
 logger = logging.getLogger(__name__)
@@ -368,7 +368,9 @@ class CyBench(Evaluation):
                 started_service = start_cybench_service(
                     cybench_task,
                     network_name=self.network_name,
-                    compose_output_dir=output_path / "compose",
+                    compose_output_dir=Path(
+                        tempfile.mkdtemp(prefix="cybench_compose_")
+                    ),
                     remove_host_ports=self.remove_host_ports,
                     rebuild_images=self.rebuild_service_images,
                     startup_deadline=deadline,
@@ -464,6 +466,10 @@ class CyBench(Evaluation):
         cybench_task = LoadedCybenchTask.from_sample(task.sample)
         run_info = task.sample.get("_cybench_run", {})
         exit_reason = str(run_info.get("exit_reason") or "finished")
+        # The evaluation base now stops the agent on time-limit and returns
+        # normally (no TimeoutError), signalling via task.run_timed_out instead.
+        if getattr(task, "run_timed_out", False):
+            exit_reason = "timeout"
         result = await self._write_cybench_outputs(
             task=task,
             cybench_task=cybench_task,
@@ -529,27 +535,22 @@ class CyBench(Evaluation):
                 output_path / "live_events.jsonl"
             )
 
-        write_raw_run_artifacts(
+        write_run_artifacts(
             output_dir=output_path,
-            sandbox_dir=output_path / "sandbox_output",
             prompt=task.first_user_message,
-            session_id=task.session_id,
             session_trace=session_trace,
-            exit_reason=exit_reason,
-            started_at=started_at,
-            finished_at=finished_at,
-            duration_seconds=duration_seconds,
-            serve_started=serve_started,
-            serve_health_checked=serve_health_checked,
-            agent_started=agent_started,
-            time_limit_seconds=self._run_time_limit_seconds,
-            budget_usd=self.budget,
-            error=error,
         )
         score = score_task(
             output_dir=output_path,
             task=cybench_task,
-            prompt=task.first_user_message,
+            run_info={
+                "exit_reason": exit_reason,
+                "started_at": started_at,
+                "finished_at": finished_at,
+                "duration_seconds": duration_seconds,
+                "time_limit_seconds": self._run_time_limit_seconds,
+                "budget_usd": self.budget,
+            },
         )
         return {"score": score}
 
@@ -573,7 +574,7 @@ class CyBench(Evaluation):
         host_workspace = self._host_workspace_dir(task)
         if not host_workspace.exists():
             return False
-        target = Path(task.output_dir) / "sandbox_output" / "workspace"
+        target = Path(task.output_dir) / "raw"
         if target.exists() and any(target.iterdir()):
             return False
         if target.exists():
@@ -616,8 +617,8 @@ class CyBench(Evaluation):
 
     def _cleanup_live_workspace_if_archived(self, task: EvaluationTask) -> None:
         host_workspace = self._host_workspace_dir(task)
-        raw_workspace = Path(task.output_dir) / "raw" / "workspace"
-        if host_workspace.exists() and raw_workspace.exists():
+        archived_workspace = Path(task.output_dir) / "raw"
+        if host_workspace.exists() and archived_workspace.exists():
             shutil.rmtree(host_workspace, ignore_errors=True)
 
     def _get_task_id(self, sample: dict) -> str:
@@ -631,7 +632,9 @@ class CyBench(Evaluation):
         )
 
     def _get_export_dir_in_sandbox(self, sample: dict) -> str | None:
-        return "/workspace"
+        # The live /workspace is bind-mounted to the host and snapshotted into raw/
+        # directly, so the framework's container-copy export is redundant here.
+        return None
 
     def _get_config_template_variables(self, task: EvaluationTask) -> dict:
         template = {
@@ -686,23 +689,13 @@ class CyBench(Evaluation):
             scores.append(score)
 
         finished_at = _utcnow_iso()
-        task_list_path = (
-            self._task_list_path
-            or (Path(self._cybench_dir_path) / self.task_list).resolve()
-        )
-        return write_benchmark_report(
-            output_dir=output_root,
+        return build_benchmark_summary(
             tasks=tasks,
             scores=scores,
-            agent_dir=Path(self.agent_dir).expanduser().resolve(),
-            cybench_dir=self._cybench_dir_path,
-            task_list_path=task_list_path,
             time_limit_seconds=self._run_time_limit_seconds,
             budget_usd=self.budget,
             started_at=self._run_started_at,
             finished_at=finished_at,
-            challenge_name=self.challenge_name,
-            max_challenges=self.max_challenges,
         )
 
 

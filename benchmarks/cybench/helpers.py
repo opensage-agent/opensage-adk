@@ -28,8 +28,6 @@ DEFAULT_TASK_LIST = "task_list.txt"
 DEFAULT_TIME_LIMIT = "6h"
 
 RAW_DIR_NAME = "raw"
-RESULTS_DIR_NAME = "results"
-TRAJECTORY_DIR_NAME = "submission_trajectory"
 
 FLAG_RE = re.compile(r"[A-Za-z0-9_]+\{[^}\n]+\}")
 
@@ -189,15 +187,6 @@ def reset_output_path_for_rerun(path: Path) -> None:
         _docker_chown_path(path)
         _chmod_user_writable(path)
         _reset_path(path)
-
-
-def _copy_path(src: Path, dst: Path) -> None:
-    _reset_path(dst)
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    if src.is_dir():
-        shutil.copytree(src, dst)
-    else:
-        shutil.copy2(src, dst)
 
 
 def _move_path(src: Path, dst: Path) -> None:
@@ -1441,10 +1430,7 @@ def _load_live_session_trace(path: Path) -> dict[str, Any] | None:
 
 
 def load_session_trace(output_dir: Path) -> dict[str, Any] | None:
-    for path in (
-        output_dir / "session_trace.json",
-        output_dir / RAW_DIR_NAME / "session_trace.json",
-    ):
+    for path in (output_dir / "session_trace.json",):
         if path.exists():
             loaded = _read_json(path)
             return loaded if isinstance(loaded, dict) else None
@@ -1508,53 +1494,12 @@ def _load_agent_outputs(
 
 def _workspace_dir(output_dir: Path) -> Path:
     for path in (
+        output_dir / RAW_DIR_NAME,
         output_dir / RAW_DIR_NAME / "workspace",
-        output_dir / "sandbox_output" / "workspace",
-        output_dir / "sandbox_output",
-        output_dir / "workspace_live",
     ):
         if path.exists():
             return path
-    return output_dir / RAW_DIR_NAME / "workspace"
-
-
-def _load_run_metadata(output_dir: Path) -> dict[str, Any]:
-    for path in (
-        output_dir / RAW_DIR_NAME / "run_metadata.json",
-        output_dir / "run_metadata.json",
-    ):
-        payload = _read_json(path)
-        if isinstance(payload, dict):
-            return payload
-    return {}
-
-
-def make_trajectory_payload(
-    *,
-    task: LoadedCybenchTask,
-    score: dict[str, Any],
-    prompt: str,
-    session_trace: dict[str, Any] | None,
-    agent_trajectory: str,
-) -> dict[str, Any]:
-    return {
-        "benchmark": "cybench",
-        "canonical_name": task.canonical_name,
-        "relative_task_dir": task.relative_task_dir,
-        "name": task.name,
-        "category": task.category,
-        "success": bool(score.get("solved")),
-        "reported_flag": score.get("reported_flag"),
-        "matched_flag": score.get("matched_flag"),
-        "exit_reason": score.get("exit_reason"),
-        "started_at": score.get("started_at"),
-        "finished_at": score.get("finished_at"),
-        "duration_seconds": score.get("duration_seconds"),
-        "prompt": prompt,
-        "agent_trajectory": agent_trajectory,
-        "trajectory": extract_trace_entries(session_trace),
-        "raw_session_trace": session_trace,
-    }
+    return output_dir / RAW_DIR_NAME
 
 
 def score_payload(
@@ -1588,81 +1533,35 @@ def score_payload(
     }
 
 
-def write_raw_run_artifacts(
+def write_run_artifacts(
     *,
     output_dir: Path,
-    sandbox_dir: Path,
     prompt: str,
-    session_id: str | None,
     session_trace: dict[str, Any] | None,
-    exit_reason: str,
-    started_at: str,
-    finished_at: str,
-    duration_seconds: float | None,
-    serve_started: bool,
-    serve_health_checked: bool,
-    agent_started: bool,
-    time_limit_seconds: int,
-    budget_usd: float | None = None,
-    error: dict[str, Any] | None = None,
 ) -> Path:
-    raw_dir = output_dir / RAW_DIR_NAME
-    raw_dir.mkdir(parents=True, exist_ok=True)
-    (raw_dir / "prompt.txt").write_text(prompt)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "prompt.txt").write_text(prompt)
     if session_trace is not None:
-        _write_json(raw_dir / "session_trace.json", session_trace)
-    metadata: dict[str, Any] = {
-        "driver": "opensage-sagectf",
-        "session_id": session_id,
-        "exit_reason": exit_reason,
-        "started_at": started_at,
-        "finished_at": finished_at,
-        "duration_seconds": duration_seconds,
-        "serve_started": serve_started,
-        "serve_health_checked": serve_health_checked,
-        "agent_started": agent_started,
-        "time_limit_seconds": time_limit_seconds,
-    }
-    if budget_usd is not None:
-        metadata["budget_usd"] = budget_usd
-    if error:
-        metadata["error"] = error
-    _write_json(raw_dir / "run_metadata.json", metadata)
-
-    workspace = sandbox_dir / "workspace"
-    if workspace.exists():
-        _copy_path(workspace, raw_dir / "workspace")
-    elif sandbox_dir.exists():
-        _copy_path(sandbox_dir, raw_dir / "workspace")
-
-    for name in (
-        "session_trace.json",
-        "metadata.json",
-        "config_used.toml",
-        "compose",
-        "sandbox_output",
-    ):
-        src = output_dir / name
-        if src.exists():
-            _copy_path(src, raw_dir / name)
-    return raw_dir
+        _write_json(output_dir / "session_trace.json", session_trace)
+    return output_dir
 
 
 def score_task(
     *,
     output_dir: Path,
     task: LoadedCybenchTask,
-    prompt: str | None = None,
+    run_info: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
-    metadata = _load_run_metadata(output_dir)
+    # Run-level fields (exit_reason, timing, budget) are supplied by the caller for a
+    # fresh run; on a re-score they fall back to whatever a prior score.json recorded.
+    metadata: dict[str, Any] = {}
+    existing = _read_json(output_dir / "score.json")
+    if isinstance(existing, dict):
+        metadata.update(existing)
+    if run_info:
+        metadata.update(run_info)
     workspace_dir = _workspace_dir(output_dir)
-    prompt_text = prompt
-    if prompt_text is None:
-        prompt_path = output_dir / RAW_DIR_NAME / "prompt.txt"
-        prompt_text = (
-            prompt_path.read_text() if prompt_path.exists() else build_task_prompt(task)
-        )
 
     session_trace = load_session_trace(output_dir)
     reported_flag, agent_trajectory, captured_texts = _load_agent_outputs(
@@ -1728,7 +1627,6 @@ def score_task(
     finished_at = metadata.get("finished_at") or _utcnow_iso()
     started_at = metadata.get("started_at")
     duration_seconds = metadata.get("duration_seconds")
-    trajectory_path = output_dir / TRAJECTORY_DIR_NAME / f"{task.canonical_name}.json"
     score = score_payload(
         task=task,
         solved=solved,
@@ -1744,27 +1642,14 @@ def score_task(
     )
 
     _write_json(output_dir / "score.json", score)
-    trajectory_payload = make_trajectory_payload(
-        task=task,
-        score=score,
-        prompt=prompt_text,
-        session_trace=session_trace,
-        agent_trajectory=agent_trajectory,
-    )
-    _write_json(trajectory_path, trajectory_payload)
     return score
 
 
 def is_completed_task_output(task_output_dir: Path, task: LoadedCybenchTask) -> bool:
     score_path = task_output_dir / "score.json"
-    trajectory_path = (
-        task_output_dir / TRAJECTORY_DIR_NAME / f"{task.canonical_name}.json"
-    )
     score = _read_json(score_path)
     return (
-        isinstance(score, dict)
-        and score.get("canonical_name") == task.canonical_name
-        and trajectory_path.exists()
+        isinstance(score, dict) and score.get("canonical_name") == task.canonical_name
     )
 
 
@@ -1773,26 +1658,15 @@ def load_existing_score(task_output_dir: Path) -> dict[str, Any] | None:
     return score if isinstance(score, dict) else None
 
 
-def write_benchmark_report(
+def build_benchmark_summary(
     *,
-    output_dir: Path,
     tasks: list[LoadedCybenchTask],
     scores: list[dict[str, Any]],
-    agent_dir: Path,
-    cybench_dir: Path,
-    task_list_path: Path,
     time_limit_seconds: int,
     budget_usd: float | None,
     started_at: str,
     finished_at: str,
-    challenge_name: str | None,
-    max_challenges: int | None,
 ) -> dict[str, Any]:
-    output_dir.mkdir(parents=True, exist_ok=True)
-    results_dir = output_dir / RESULTS_DIR_NAME
-    challenge_dir = results_dir / "challenges"
-    challenge_dir.mkdir(parents=True, exist_ok=True)
-
     score_by_id = {score["canonical_name"]: score for score in scores}
     all_scores = []
     for task in tasks:
@@ -1812,7 +1686,6 @@ def write_benchmark_report(
                 budget_usd=budget_usd,
             )
         all_scores.append(score)
-        _write_json(challenge_dir / f"{task.canonical_name}.json", score)
 
     total = len(tasks)
     solved = sum(1 for score in all_scores if score.get("solved"))
@@ -1826,7 +1699,7 @@ def write_benchmark_report(
         if score.get("exit_reason") in {"task_error", "serve_error"}
     )
 
-    summary = {
+    return {
         "benchmark": "cybench",
         "driver": "opensage-sagectf",
         "total": total,
@@ -1841,24 +1714,4 @@ def write_benchmark_report(
             datetime.datetime.fromisoformat(finished_at)
             - datetime.datetime.fromisoformat(started_at)
         ).total_seconds(),
-        "results_dir": str(results_dir),
     }
-    config = {
-        "agent_path": str(agent_dir),
-        "cybench_path": str(cybench_dir),
-        "task_list_path": str(task_list_path),
-        "time_limit_seconds": time_limit_seconds,
-        "budget_usd": budget_usd,
-        "challenge_name": challenge_name,
-        "max_challenges": max_challenges,
-        "run_started_at": started_at,
-        "run_finished_at": finished_at,
-    }
-    report = {
-        "summary": summary,
-        "config": config,
-        "challenges": all_scores,
-    }
-    _write_json(results_dir / "results.json", report)
-    _write_json(results_dir / "evaluation_results.json", summary)
-    return summary

@@ -188,12 +188,11 @@ def test_cybench_baseline_run_uses_max_workers(tmp_path: Path, monkeypatch) -> N
     monkeypatch.setattr(runner, "_run_one", fake_run_one)
 
     report = runner.run()
-    results = json.loads((tmp_path / "out" / "results" / "results.json").read_text())
 
     assert report["total"] == 4
     assert report["solved"] == 4
     assert report["max_workers"] == 3
-    assert results["summary"]["max_workers"] == 3
+    assert not (tmp_path / "out" / "results").exists()
     assert len(seen_threads) > 1
 
 
@@ -367,7 +366,11 @@ def test_codex_image_creates_codex_home_and_initializes_mcp() -> None:
 
         assert "RUN mkdir -p /root/.codex" in dockerfile
         assert "ghcr.io/opensage-agent/gdb_mcp:latest" in dockerfile
-        assert "npm install -g @openai/codex mcp-remote" in dockerfile
+        assert "npm install -g @openai/codex" in dockerfile
+        assert "mcp-remote" in dockerfile
+        if image_dir == Path("benchmarks/nyuctf/codex-image"):
+            assert "ARG CODEX_CLI_VERSION=0.124.0" in dockerfile
+            assert "@openai/codex@${CODEX_CLI_VERSION}" in dockerfile
         assert "uv pip install mcp pygdbmi loguru" in dockerfile
         assert "pwndbg_2024.08.29_amd64.deb" in dockerfile
         assert 'mkdir -p "${CODEX_HOME:-/root/.codex}"' not in entrypoint
@@ -395,6 +398,16 @@ def test_codex_image_creates_codex_home_and_initializes_mcp() -> None:
             in entrypoint
         )
         assert "codex mcp add ghidra" not in entrypoint
+
+
+def test_nyuctf_claude_image_uses_pinned_npm_cli() -> None:
+    dockerfile = Path("benchmarks/nyuctf/claude-image/Dockerfile").read_text()
+
+    assert "curl -fsSL https://claude.ai/install.sh | bash" not in dockerfile
+    assert "ARG CLAUDE_CODE_VERSION=2.1.154" in dockerfile
+    assert (
+        "npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" in dockerfile
+    )
 
 
 def test_codex_requires_provider_config_files(tmp_path: Path, monkeypatch) -> None:
@@ -491,9 +504,8 @@ def test_cybench_baseline_simple_task_generates_score_and_trajectory(
     (tmp_path / "task_list.txt").write_text(relative + "\n")
 
     def fake_invoke(self, *, sandbox_dir: Path, **_kwargs):
-        workspace = sandbox_dir / "workspace"
-        workspace.mkdir(parents=True)
-        (workspace / "submission.json").write_text(
+        sandbox_dir.mkdir(parents=True, exist_ok=True)
+        (sandbox_dir / "submission.json").write_text(
             json.dumps(
                 {
                     "canonical_name": cy_helpers.safe_task_id(relative),
@@ -503,7 +515,7 @@ def test_cybench_baseline_simple_task_generates_score_and_trajectory(
                 }
             )
         )
-        (workspace / "final_flag.txt").write_text("flag{toy}\n")
+        (sandbox_dir / "final_flag.txt").write_text("flag{toy}\n")
         (sandbox_dir / "codex_events.jsonl").write_text(
             json.dumps({"type": "agent_message", "text": "Solved flag{toy}"}) + "\n"
         )
@@ -545,28 +557,24 @@ def test_cybench_baseline_simple_task_generates_score_and_trajectory(
 
     task_output = tmp_path / "out" / "crypto_toy"
     score = json.loads((task_output / "score.json").read_text())
-    trajectory = json.loads(
-        (
-            task_output
-            / "submission_trajectory"
-            / f"{cy_helpers.safe_task_id(relative)}.json"
-        ).read_text()
-    )
-    metadata = json.loads((task_output / "raw" / "run_metadata.json").read_text())
-    baseline_config = json.loads((task_output / "baseline_config.json").read_text())
-    budget = json.loads((task_output / "budget.json").read_text())
+    config = json.loads((task_output / "metadata.json").read_text())
+    budget = json.loads((task_output / "cost_info.json").read_text())
 
     assert report["solved"] == 1
     assert score["solved"] is True
     assert score["groundtruth_flag"] == "flag{toy}"
     assert score["reported_flag"] == "flag{toy}"
     assert score["exit_reason"] == "solved"
-    assert baseline_config["driver"] == "codex-baseline"
-    assert baseline_config["model"] == "gpt-5.5"
-    assert baseline_config["reasoning_effort"] == "high"
+    assert config["driver"] == "codex-baseline"
+    assert config["model"] == "gpt-5.5"
+    assert config["reasoning_effort"] == "high"
     assert budget["spent_usd"] == 0.01
-    assert trajectory["success"] is True
-    assert metadata["budget"]["configured_budget_usd"] == 100.0
+    assert budget["configured_budget_usd"] == 100.0
+    assert not (task_output / "submission_trajectory").exists()
+    assert not (task_output / "run_metadata.json").exists()
+    # Container output is consolidated under raw/.
+    assert (task_output / "raw" / "final_flag.txt").exists()
+    assert not (task_output / "sandbox_output").exists()
 
 
 def test_nyuctf_baseline_adds_submission_trajectory_to_trace(tmp_path: Path) -> None:

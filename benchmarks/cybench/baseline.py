@@ -36,6 +36,10 @@ DEFAULT_IMAGE_TAGS: dict[Provider, str] = {
     "claude": "opensage-cybench-claude:latest",
     "codex": "opensage-cybench-codex:latest",
 }
+# On time-limit, stop the agent container gracefully (SIGTERM, then SIGKILL after
+# this grace window) so the CLI can flush its final token-usage summary, instead
+# of an immediate `docker kill` (SIGKILL) which loses cost accounting.
+STOP_GRACE_SECONDS = 30
 
 
 def _utcnow_iso() -> str:
@@ -52,22 +56,6 @@ def _read_json(path: Path) -> Any:
         return json.loads(path.read_text(errors="replace"))
     except Exception:
         return None
-
-
-def _reset_path(path: Path) -> None:
-    if path.is_dir():
-        shutil.rmtree(path)
-    elif path.exists():
-        path.unlink()
-
-
-def _copy_path(src: Path, dst: Path) -> None:
-    _reset_path(dst)
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    if src.is_dir():
-        shutil.copytree(src, dst)
-    else:
-        shutil.copy2(src, dst)
 
 
 def _quote(value: str | Path) -> str:
@@ -653,22 +641,16 @@ class CyBenchBaseline:
             if index in scores_by_index
         ]
         finished_at = _utcnow_iso()
-        summary = self._write_report(
-            output_dir=Path(self.output_dir),
+        summary = helpers.build_benchmark_summary(
             tasks=tasks,
             scores=scores,
-            agent_dir=Path(__file__).resolve().parent,
-            cybench_dir=self._cybench_dir,
-            task_list_path=self._task_list_path or Path(self.task_list),
             time_limit_seconds=self._time_limit_seconds,
             budget_usd=self.budget,
             started_at=started_at,
             finished_at=finished_at,
-            challenge_name=self.challenge_name,
-            max_challenges=self.max_challenges,
         )
+        summary["driver"] = f"{self.provider}-baseline"
         summary["max_workers"] = self.max_workers
-        self._update_report_parallelism(Path(self.output_dir), self.max_workers)
         return summary
 
     def _prepare_parallel_run(self) -> None:
@@ -688,56 +670,17 @@ class CyBenchBaseline:
             )
             scores.append(score)
         now = _utcnow_iso()
-        summary = self._write_report(
-            output_dir=Path(self.output_dir),
+        summary = helpers.build_benchmark_summary(
             tasks=tasks,
             scores=scores,
-            agent_dir=Path(__file__).resolve().parent,
-            cybench_dir=self._cybench_dir,
-            task_list_path=self._task_list_path or Path(self.task_list),
             time_limit_seconds=self._time_limit_seconds,
             budget_usd=self.budget,
             started_at=now,
             finished_at=now,
-            challenge_name=self.challenge_name,
-            max_challenges=self.max_challenges,
         )
+        summary["driver"] = f"{self.provider}-baseline"
         summary["max_workers"] = self.max_workers
-        self._update_report_parallelism(Path(self.output_dir), self.max_workers)
         return summary
-
-    def _write_report(self, **kwargs: Any) -> dict[str, Any]:
-        summary = helpers.write_benchmark_report(**kwargs)
-        output_dir = Path(kwargs["output_dir"])
-        driver = f"{self.provider}-baseline"
-        for path in (
-            output_dir / "results" / "evaluation_results.json",
-            output_dir / "results" / "results.json",
-        ):
-            payload = _read_json(path)
-            if not isinstance(payload, dict):
-                continue
-            if "summary" in payload and isinstance(payload["summary"], dict):
-                payload["summary"]["driver"] = driver
-            else:
-                payload["driver"] = driver
-            _write_json(path, payload)
-        summary["driver"] = driver
-        return summary
-
-    def _update_report_parallelism(self, output_dir: Path, max_workers: int) -> None:
-        for path in (
-            output_dir / "results" / "evaluation_results.json",
-            output_dir / "results" / "results.json",
-        ):
-            payload = _read_json(path)
-            if not isinstance(payload, dict):
-                continue
-            if isinstance(payload.get("summary"), dict):
-                payload["summary"]["max_workers"] = max_workers
-            else:
-                payload["max_workers"] = max_workers
-            _write_json(path, payload)
 
     def _load_tasks(self) -> list[helpers.LoadedCybenchTask]:
         if self._selected_tasks_cache is None:
@@ -758,14 +701,10 @@ class CyBenchBaseline:
         self, task: helpers.LoadedCybenchTask, output_dir: Path
     ) -> dict[str, Any]:
         output_dir.mkdir(parents=True, exist_ok=True)
-        sandbox_dir = output_dir / "sandbox_output"
+        sandbox_dir = output_dir / "raw"
         sandbox_dir.mkdir(parents=True, exist_ok=True)
         staged_dir = Path(tempfile.mkdtemp(prefix=f"cybench_{task.canonical_name}_"))
-        started_service = None
-        serve_started = not task.has_service
-        serve_health_checked = not task.has_service
         prompt = helpers.build_task_prompt(task)
-        error: dict[str, Any] | None = None
         try:
             deadline = time.time() + self._time_limit_seconds
             generated_prompt = helpers.stage_cybench_task(
@@ -783,17 +722,15 @@ class CyBenchBaseline:
             if self.execution_mode == "docker" or task.has_service:
                 helpers.ensure_docker_network(self.network_name)
             if task.has_service and not self.skip_services:
-                started_service = helpers.start_cybench_service(
+                helpers.start_cybench_service(
                     task,
                     network_name=self.network_name,
-                    compose_output_dir=output_dir / "compose",
+                    compose_output_dir=Path(
+                        tempfile.mkdtemp(prefix="cybench_compose_")
+                    ),
                     remove_host_ports=self.remove_host_ports,
                     rebuild_images=self.rebuild_service_images,
                     startup_deadline=deadline,
-                )
-                serve_started = bool(started_service and started_service.serve_started)
-                serve_health_checked = bool(
-                    started_service and started_service.health_checked
                 )
             result = self._invoke_agent(
                 prompt_path=sandbox_dir / "prompt.txt",
@@ -807,7 +744,6 @@ class CyBenchBaseline:
             logger.exception(
                 "CyBench %s baseline failed for %s", self.provider, task.canonical_name
             )
-            error = {"type": type(exc).__name__, "message": str(exc)}
             now = _utcnow_iso()
             result = ProcessResult(
                 exit_code=1,
@@ -827,35 +763,27 @@ class CyBenchBaseline:
         session_trace = jsonl_to_session_trace(
             sandbox_dir / self._stream_filename(), provider=self.provider
         )
-        helpers.write_raw_run_artifacts(
+        helpers.write_run_artifacts(
             output_dir=output_dir,
-            sandbox_dir=sandbox_dir,
             prompt=prompt,
-            session_id=None,
             session_trace=session_trace,
-            exit_reason=result.exit_reason,
-            started_at=result.started_at,
-            finished_at=result.finished_at,
-            duration_seconds=result.duration_seconds,
-            serve_started=serve_started,
-            serve_health_checked=serve_health_checked,
-            agent_started=result.exit_reason != "task_error",
-            time_limit_seconds=self._time_limit_seconds,
-            budget_usd=self.budget,
-            error=error,
         )
         self._write_baseline_artifacts(
             output_dir=output_dir,
-            sandbox_dir=sandbox_dir,
-            prompt=prompt,
             session_trace=session_trace,
             result=result,
-            error=error,
         )
         helpers.score_task(
             output_dir=output_dir,
             task=task,
-            prompt=prompt,
+            run_info={
+                "exit_reason": result.exit_reason,
+                "started_at": result.started_at,
+                "finished_at": result.finished_at,
+                "duration_seconds": result.duration_seconds,
+                "time_limit_seconds": self._time_limit_seconds,
+                "budget_usd": self.budget,
+            },
         )
         return self._augment_score(output_dir / "score.json", result)
 
@@ -910,7 +838,7 @@ class CyBenchBaseline:
                     network_name=network_name,
                 )
             kill_callback = lambda: subprocess.run(
-                ["docker", "kill", container_name],
+                ["docker", "stop", "--time", str(STOP_GRACE_SECONDS), container_name],
                 check=False,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
@@ -1036,7 +964,7 @@ class CyBenchBaseline:
         if self.provider == "claude":
             return (
                 "set -o pipefail; "
-                "claude --print "
+                "exec claude --print "
                 f"--model {_quote(self.model)} "
                 f"--effort {_quote(self.reasoning_effort)} "
                 f"--max-budget-usd {_quote(str(self.budget))} "
@@ -1048,7 +976,7 @@ class CyBenchBaseline:
             )
         return (
             "set -o pipefail; "
-            "codex exec --json "
+            "exec codex exec --json "
             f"--model {_quote(self.model)} "
             f"--config model_reasoning_effort={_quote(json.dumps(self.reasoning_effort))} "
             "--sandbox danger-full-access "
@@ -1135,43 +1063,14 @@ class CyBenchBaseline:
         self,
         *,
         output_dir: Path,
-        sandbox_dir: Path,
-        prompt: str,
         session_trace: dict[str, Any],
         result: ProcessResult,
-        error: dict[str, Any] | None,
     ) -> None:
         config = self._baseline_config()
         budget = result.budget.to_dict()
-        _write_json(output_dir / "baseline_config.json", config)
-        _write_json(output_dir / "budget.json", budget)
-        _write_json(
-            output_dir / f"{self.provider}_exit_code.json",
-            {"exit_code": result.exit_code},
-        )
+        _write_json(output_dir / "metadata.json", config)
+        _write_json(output_dir / "cost_info.json", budget)
         _write_json(output_dir / "session_trace.json", session_trace)
-        raw_dir = output_dir / "raw"
-        raw_metadata = _read_json(raw_dir / "run_metadata.json") or {}
-        raw_metadata.update(
-            {
-                **config,
-                "budget": budget,
-                "budget_spent_usd": budget["spent_usd"],
-                "budget_source": budget["source"],
-                "budget_is_estimate": budget["is_estimate"],
-                "budget_exhausted": budget["budget_exhausted"],
-            }
-        )
-        if error:
-            raw_metadata["error"] = error
-        _write_json(raw_dir / "run_metadata.json", raw_metadata)
-        _write_json(raw_dir / "baseline_config.json", config)
-        _write_json(raw_dir / "budget.json", budget)
-        _write_json(
-            raw_dir / f"{self.provider}_exit_code.json", {"exit_code": result.exit_code}
-        )
-        if sandbox_dir.exists() and not (raw_dir / "workspace").exists():
-            _copy_path(sandbox_dir, raw_dir / "workspace")
 
     def _augment_score(self, score_path: Path, result: ProcessResult) -> dict[str, Any]:
         score = _read_json(score_path)

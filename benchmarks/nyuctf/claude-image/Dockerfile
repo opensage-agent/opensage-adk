@@ -1,6 +1,11 @@
 FROM ghcr.io/opensage-agent/ctf_task_main:latest
 
-RUN curl -fsSL https://claude.ai/install.sh | bash
+ARG CLAUDE_CODE_VERSION=2.1.154
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nodejs npm \
+    && npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
+    && rm -rf /var/lib/apt/lists/*
 
 # Match the SAGE-CCB debugging baseline: include pwndbg and the gdb MCP server
 # files from the dedicated image so pwn/rev tasks have the same tooling surface.

@@ -345,27 +345,13 @@ def test_start_cybench_compose_service_can_force_image_rebuild(
     assert "--build" in compose_calls[0]
 
 
-def test_score_task_writes_score_and_trajectory_without_judge_on_unsolved(
+def test_score_task_writes_score_without_judge_on_unsolved(
     tmp_path: Path,
 ) -> None:
     task = _write_task(tmp_path)
     output_dir = tmp_path / "out" / task.canonical_name
-    workspace = output_dir / "raw" / "workspace"
+    workspace = output_dir / "raw"
     workspace.mkdir(parents=True)
-    (output_dir / "raw" / "run_metadata.json").write_text(
-        json.dumps(
-            {
-                "exit_reason": "finished",
-                "serve_started": True,
-                "serve_health_checked": True,
-                "agent_started": True,
-                "started_at": "2026-06-05T00:00:00+00:00",
-                "finished_at": "2026-06-05T00:00:01+00:00",
-                "duration_seconds": 1.0,
-                "time_limit_seconds": 60,
-            }
-        )
-    )
     (workspace / "submission.json").write_text(
         json.dumps(
             {
@@ -377,62 +363,51 @@ def test_score_task_writes_score_and_trajectory_without_judge_on_unsolved(
         )
     )
 
-    score = helpers.score_task(output_dir=output_dir, task=task)
+    score = helpers.score_task(
+        output_dir=output_dir,
+        task=task,
+        run_info={
+            "exit_reason": "finished",
+            "started_at": "2026-06-05T00:00:00+00:00",
+            "finished_at": "2026-06-05T00:00:01+00:00",
+            "duration_seconds": 1.0,
+            "time_limit_seconds": 60,
+        },
+    )
 
     assert score["solved"] is False
     assert score["groundtruth_flag"] == task.flag
     assert score["exit_reason"] == "not_solved"
-    assert (
-        output_dir / "submission_trajectory" / f"{task.canonical_name}.json"
-    ).exists()
+    assert not (output_dir / "submission_trajectory").exists()
     assert helpers.is_completed_task_output(output_dir, task) is True
 
 
-def test_raw_run_artifacts_copy_standard_runtime_files_without_removing(
+def test_run_artifacts_written_at_top_level(
     tmp_path: Path,
 ) -> None:
     output_dir = tmp_path / "out"
-    sandbox_workspace = output_dir / "sandbox_output" / "workspace"
-    sandbox_workspace.mkdir(parents=True)
-    (sandbox_workspace / "submission.json").write_text("{}")
-    (output_dir / "session_trace.json").write_text("{}")
-    (output_dir / "metadata.json").write_text("{}")
+    output_dir.mkdir(parents=True)
     (output_dir / "config_used.toml").write_text("# config\n")
 
-    helpers.write_raw_run_artifacts(
+    helpers.write_run_artifacts(
         output_dir=output_dir,
-        sandbox_dir=output_dir / "sandbox_output",
         prompt="prompt",
-        session_id="sid",
         session_trace={"events": []},
-        exit_reason="finished",
-        started_at="2026-06-05T00:00:00+00:00",
-        finished_at="2026-06-05T00:00:01+00:00",
-        duration_seconds=1.0,
-        serve_started=True,
-        serve_health_checked=True,
-        agent_started=True,
-        time_limit_seconds=60,
-        budget_usd=100.0,
     )
 
     assert (output_dir / "session_trace.json").exists()
-    assert (output_dir / "metadata.json").exists()
+    assert (output_dir / "prompt.txt").exists()
     assert (output_dir / "config_used.toml").exists()
-    assert (output_dir / "sandbox_output" / "workspace" / "submission.json").exists()
-    assert (output_dir / "raw" / "session_trace.json").exists()
-    assert (output_dir / "raw" / "metadata.json").exists()
-    assert (output_dir / "raw" / "config_used.toml").exists()
-    assert (output_dir / "raw" / "workspace" / "submission.json").exists()
+    # Container output lives only under raw/ (written elsewhere); no workspace/ archive.
+    assert not (output_dir / "workspace").exists()
+    assert not (output_dir / "run_metadata.json").exists()
 
 
 def test_evaluate_marks_existing_outputs_as_skipped(tmp_path: Path) -> None:
     task = _write_task(tmp_path)
     output_root = tmp_path / "eval"
     task_output = output_root / helpers.task_output_dir_name(task)
-    trajectory = task_output / "submission_trajectory" / f"{task.canonical_name}.json"
-    trajectory.parent.mkdir(parents=True)
-    trajectory.write_text("{}")
+    task_output.mkdir(parents=True)
     (task_output / "score.json").write_text(
         json.dumps(
             {
@@ -466,10 +441,9 @@ def test_evaluate_marks_existing_outputs_as_skipped(tmp_path: Path) -> None:
     bench.max_challenges = None
 
     summary = bench.evaluate()
-    report = json.loads((output_root / "results" / "results.json").read_text())
 
     assert summary["skipped_reused"] == 1
-    assert report["challenges"][0]["run_status"] == "skipped_reused"
+    assert not (output_root / "results").exists()
 
 
 def test_live_workspace_mount_replaces_existing_workspace_bind(tmp_path: Path) -> None:
@@ -659,7 +633,7 @@ def test_create_task_defers_cybench_staging_until_run(tmp_path: Path) -> None:
     assert (staged_dir / "output.txt").read_text() == "public"
 
 
-def test_generate_one_timeout_writes_score_and_trajectory(
+def test_generate_one_timeout_writes_score(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
@@ -700,18 +674,6 @@ def test_generate_one_timeout_writes_score_and_trajectory(
         await asyncio.sleep(2)
 
     async def _base_collect_outputs(self, task, session):
-        workspace = Path(task.output_dir) / "sandbox_output" / "workspace"
-        workspace.mkdir(parents=True)
-        (workspace / "submission.json").write_text(
-            json.dumps(
-                {
-                    "canonical_name": cybench_task.canonical_name,
-                    "flag": None,
-                    "trajectory": "timed out after initial exploration",
-                    "status": "unsolved",
-                }
-            )
-        )
         return {"session": None}
 
     async def _recover_session(task):
@@ -760,24 +722,16 @@ def test_generate_one_timeout_writes_score_and_trajectory(
         raise AssertionError("expected agent timeout")
 
     score = json.loads((output_dir / "score.json").read_text())
-    metadata = json.loads((output_dir / "raw" / "run_metadata.json").read_text())
-    trajectory = (
-        output_dir / "submission_trajectory" / f"{cybench_task.canonical_name}.json"
-    )
 
     assert score["exit_reason"] == "timeout"
     assert score["budget_usd"] == 100.0
-    assert metadata["exit_reason"] == "timeout"
-    assert metadata["session_id"] == task.session_id
-    assert metadata["agent_started"] is True
-    assert metadata["budget_usd"] == 100.0
-    assert trajectory.exists()
-    assert (output_dir / "raw" / "workspace" / "submission.json").exists()
-    assert (output_dir / "sandbox_output" / "workspace" / "submission.json").exists()
+    assert not (output_dir / "run_metadata.json").exists()
+    assert not (output_dir / "submission_trajectory").exists()
+    assert (output_dir / "raw" / "submission.json").exists()
     assert (output_dir / "error.json").exists()
 
 
-def test_generate_one_staging_timeout_writes_score_and_trajectory(
+def test_generate_one_staging_timeout_writes_score(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
@@ -836,16 +790,9 @@ def test_generate_one_staging_timeout_writes_score_and_trajectory(
         raise AssertionError("expected staging timeout")
 
     score = json.loads((output_dir / "score.json").read_text())
-    metadata = json.loads((output_dir / "raw" / "run_metadata.json").read_text())
-    trajectory = (
-        output_dir / "submission_trajectory" / f"{cybench_task.canonical_name}.json"
-    )
 
     assert score["exit_reason"] == "timeout"
     assert score["budget_usd"] == 100.0
-    assert metadata["exit_reason"] == "timeout"
-    assert metadata["session_id"] == task.session_id
-    assert metadata["agent_started"] is False
-    assert metadata["budget_usd"] == 100.0
-    assert metadata["error"]["message"] == "staging exceeded the per-task limit"
-    assert trajectory.exists()
+    assert not (output_dir / "run_metadata.json").exists()
+    assert not (output_dir / "submission_trajectory").exists()
+    assert not (output_dir / "raw").exists()

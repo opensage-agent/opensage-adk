@@ -10,7 +10,6 @@ from types import SimpleNamespace
 
 from benchmarks.nyuctf.helpers import (
     LoadedChallenge,
-    build_challenge_prompt,
     build_judge_prompt,
     extract_trace_entries,
     judge_trajectory_sync,
@@ -21,29 +20,6 @@ from benchmarks.nyuctf.helpers import (
 )
 from benchmarks.nyuctf.sagectf import NYU_CTF_Bench
 from opensage.llm.budget import BudgetManager
-
-
-def test_build_challenge_prompt_mentions_workspace_flag_file() -> None:
-    challenge = LoadedChallenge(
-        canonical_name="2021f-rev-maze",
-        challenge_dir=Path("/tmp/maze"),
-        name="Maze",
-        category="rev",
-        description="Solve it.",
-        files=["maze.bin"],
-        flag="flag{correct}",
-        server_name="maze",
-        port="31337",
-        compose=True,
-        dataset_path=Path("/tmp/test_dataset.json"),
-    )
-    prompt = build_challenge_prompt(challenge)
-    assert "/workspace/final_flag.txt" in prompt
-    assert "maze:31337" in prompt
-    assert (
-        "Do not retrieve flags or challenge source code from online code repositories."
-        in prompt
-    )
 
 
 def test_nyuctf_network_injected_for_all_sandbox_configs() -> None:
@@ -423,10 +399,8 @@ def test_score_task_allows_correct_flag_when_judge_errors(
     )
 
     output_dir = tmp_path / "run"
-    (output_dir / "sandbox_output" / "workspace").mkdir(parents=True)
-    (output_dir / "sandbox_output" / "workspace" / "final_flag.txt").write_text(
-        "flag{correct}\n"
-    )
+    (output_dir / "raw" / "workspace").mkdir(parents=True)
+    (output_dir / "raw" / "workspace" / "final_flag.txt").write_text("flag{correct}\n")
     (output_dir / "session_trace.json").write_text("{}")
 
     task = type(
@@ -481,10 +455,8 @@ def test_score_task_rejects_correct_flag_when_judge_returns_negative(
     )
 
     output_dir = tmp_path / "run"
-    (output_dir / "sandbox_output" / "workspace").mkdir(parents=True)
-    (output_dir / "sandbox_output" / "workspace" / "final_flag.txt").write_text(
-        "flag{correct}\n"
-    )
+    (output_dir / "raw" / "workspace").mkdir(parents=True)
+    (output_dir / "raw" / "workspace" / "final_flag.txt").write_text("flag{correct}\n")
     (output_dir / "session_trace.json").write_text("{}")
 
     task = type(
@@ -516,12 +488,16 @@ def test_score_task_rejects_correct_flag_when_judge_returns_negative(
     assert score["exit_reason"] == "finished"
 
 
-def test_filter_pending_task_skips_existing_task_entries(tmp_path: Path) -> None:
+def test_filter_pending_task_skips_completed_task_entries(tmp_path: Path) -> None:
     bench = object.__new__(NYU_CTF_Bench)
     bench.output_dir = str(tmp_path / "existing_run")
     bench.skip_existing = False
 
-    (Path(bench.output_dir) / "chal_a").mkdir(parents=True)
+    # chal_a completed (has score.json) -> skipped.
+    completed = Path(bench.output_dir) / "chal_a"
+    completed.mkdir(parents=True)
+    (completed / "score.json").write_text("{}")
+    # chal_b started but crashed (no score.json) -> retried.
     (Path(bench.output_dir) / "chal_b").mkdir(parents=True)
 
     samples = [
@@ -530,7 +506,7 @@ def test_filter_pending_task_skips_existing_task_entries(tmp_path: Path) -> None
         {"canonical_name": "chal_c"},
     ]
     pending = bench._filter_pending_task(samples)
-    assert [sample["canonical_name"] for sample in pending] == ["chal_c"]
+    assert [sample["canonical_name"] for sample in pending] == ["chal_b", "chal_c"]
 
 
 def test_filter_pending_task_ignores_results_and_pycache_dirs(
@@ -542,7 +518,9 @@ def test_filter_pending_task_ignores_results_and_pycache_dirs(
 
     (Path(bench.output_dir) / "results").mkdir(parents=True)
     (Path(bench.output_dir) / "__pycache__").mkdir(parents=True)
-    (Path(bench.output_dir) / "chal_a").mkdir(parents=True)
+    completed = Path(bench.output_dir) / "chal_a"
+    completed.mkdir(parents=True)
+    (completed / "score.json").write_text("{}")
 
     samples = [
         {"canonical_name": "chal_a"},
@@ -816,14 +794,8 @@ def test_record_failed_task_scores_live_events_before_marking_timeout(
     )
 
     score = json.loads((output_dir / "score.json").read_text())
-    transcript = json.loads(
-        (
-            output_dir / "submission_trajectory" / f"{challenge.canonical_name}.json"
-        ).read_text()
-    )
 
     assert score["solved"] is True
     assert score["exit_reason"] == "solved"
     assert score["runner_exit_reason"] == "timeout"
-    assert transcript["success"] is True
-    assert transcript["raw_session_trace"]["events"][0]["author"] == "ctf_agent"
+    assert not (output_dir / "submission_trajectory").exists()

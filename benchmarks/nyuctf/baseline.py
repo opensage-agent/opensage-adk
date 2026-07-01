@@ -39,6 +39,10 @@ DEFAULT_IMAGE_TAGS: dict[Provider, str] = {
 }
 DEFAULT_TIME_LIMIT = "6h"
 DEFAULT_BUDGET_USD = 100.0
+# On time-limit, stop the agent container gracefully (SIGTERM, then SIGKILL after
+# this grace window) so the CLI can flush its final token-usage summary, instead
+# of an immediate `docker kill` (SIGKILL) which loses cost accounting.
+STOP_GRACE_SECONDS = 30
 
 
 def _utcnow_iso() -> str:
@@ -55,30 +59,6 @@ def _read_json(path: Path) -> Any:
         return json.loads(path.read_text(errors="replace"))
     except Exception:
         return None
-
-
-def _reset_path(path: Path) -> None:
-    if path.is_dir():
-        shutil.rmtree(path)
-    elif path.exists():
-        path.unlink()
-
-
-def _copy_path(src: Path, dst: Path) -> None:
-    _reset_path(dst)
-    if src.is_symlink():
-        return
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    if src.is_dir():
-        shutil.copytree(
-            src,
-            dst,
-            ignore=lambda directory, names: [
-                name for name in names if (Path(directory) / name).is_symlink()
-            ],
-        )
-    else:
-        shutil.copy2(src, dst)
 
 
 def _quote(value: str | Path) -> str:
@@ -696,7 +676,6 @@ class NYUCTFBaseline:
                         future.result()
         summary = self.evaluate()
         summary["max_workers"] = self.max_workers
-        self._update_report_parallelism(Path(self.output_dir), self.max_workers)
         return summary
 
     def _prepare_parallel_run(self) -> None:
@@ -721,22 +700,7 @@ class NYUCTFBaseline:
         bench.budget = self.budget
         summary = bench.evaluate()
         summary["max_workers"] = self.max_workers
-        self._update_report_parallelism(Path(self.output_dir), self.max_workers)
         return summary
-
-    def _update_report_parallelism(self, output_dir: Path, max_workers: int) -> None:
-        for path in (
-            output_dir / "results" / "evaluation_results.json",
-            output_dir / "results" / "results.json",
-        ):
-            payload = _read_json(path)
-            if not isinstance(payload, dict):
-                continue
-            if isinstance(payload.get("summary"), dict):
-                payload["summary"]["max_workers"] = max_workers
-            else:
-                payload["max_workers"] = max_workers
-            _write_json(path, payload)
 
     def _load_challenges(self) -> tuple[Path, list[helpers.LoadedChallenge]]:
         dataset_path, challenges = helpers.load_dataset(
@@ -754,13 +718,13 @@ class NYUCTFBaseline:
         self, challenge: helpers.LoadedChallenge, output_dir: Path
     ) -> dict[str, Any]:
         output_dir.mkdir(parents=True, exist_ok=True)
-        sandbox_dir = output_dir / "sandbox_output"
+        sandbox_dir = output_dir / "raw"
         sandbox_dir.mkdir(parents=True, exist_ok=True)
         staged_dir = Path(
             tempfile.mkdtemp(prefix=f"nyuctf_{challenge.canonical_name}_")
         )
         prompt = self._prompt(challenge)
-        error: dict[str, Any] | None = None
+        (output_dir / "prompt.txt").write_text(prompt)
         try:
             challenge.stage_files(staged_dir)
             (sandbox_dir / "prompt.txt").write_text(prompt)
@@ -782,7 +746,6 @@ class NYUCTFBaseline:
                 self.provider,
                 challenge.canonical_name,
             )
-            error = {"type": type(exc).__name__, "message": str(exc)}
             now = _utcnow_iso()
             result = ProcessResult(
                 exit_code=1,
@@ -809,24 +772,10 @@ class NYUCTFBaseline:
         )
         self._write_artifacts(
             output_dir=output_dir,
-            sandbox_dir=sandbox_dir,
-            prompt=prompt,
             session_trace=session_trace,
             result=result,
-            challenge=challenge,
-            error=error,
         )
         score = self._score(output_dir, challenge, prompt, result)
-        trajectory = helpers.make_transcript_payload(
-            challenge=challenge,
-            score=score,
-            session_trace=session_trace,
-            prompt=prompt,
-        )
-        _write_json(
-            output_dir / "submission_trajectory" / f"{challenge.canonical_name}.json",
-            trajectory,
-        )
         return score
 
     def _augment_trace_with_submission(
@@ -896,7 +845,13 @@ class NYUCTFBaseline:
             output_dir=str(output_dir),
             sample={"_benchmark_started_at": result.started_at},
         )
-        score = bench._score_task(task, challenge)
+        score = bench._score_task(
+            task,
+            challenge,
+            runner_exit_reason=result.exit_reason,
+            finished_at=result.finished_at,
+            duration_seconds=result.duration_seconds,
+        )
         _write_json(output_dir / "score.json", score)
         return score
 
@@ -950,7 +905,7 @@ class NYUCTFBaseline:
                     network_name=network_name,
                 )
             kill_callback = lambda: subprocess.run(
-                ["docker", "kill", container_name],
+                ["docker", "stop", "--time", str(STOP_GRACE_SECONDS), container_name],
                 check=False,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
@@ -1076,7 +1031,7 @@ class NYUCTFBaseline:
         if self.provider == "claude":
             return (
                 "set -o pipefail; "
-                "claude --print "
+                "exec claude --print "
                 f"--model {_quote(self.model)} "
                 f"--effort {_quote(self.reasoning_effort)} "
                 f"--max-budget-usd {_quote(str(self.budget))} "
@@ -1088,7 +1043,7 @@ class NYUCTFBaseline:
             )
         return (
             "set -o pipefail; "
-            "codex exec --json "
+            "exec codex exec --json "
             f"--model {_quote(self.model)} "
             f"--config model_reasoning_effort={_quote(json.dumps(self.reasoning_effort))} "
             "--sandbox danger-full-access "
@@ -1103,61 +1058,14 @@ class NYUCTFBaseline:
         self,
         *,
         output_dir: Path,
-        sandbox_dir: Path,
-        prompt: str,
         session_trace: dict[str, Any],
         result: ProcessResult,
-        challenge: helpers.LoadedChallenge,
-        error: dict[str, Any] | None,
     ) -> None:
         config = self._baseline_config()
         budget = result.budget.to_dict()
         _write_json(output_dir / "session_trace.json", session_trace)
-        _write_json(output_dir / "baseline_config.json", config)
-        _write_json(output_dir / "budget.json", budget)
-        _write_json(
-            output_dir / f"{self.provider}_exit_code.json",
-            {"exit_code": result.exit_code},
-        )
-        _write_json(
-            output_dir / "metadata.json",
-            {
-                "session": {
-                    "last_update_time": result.started_at,
-                    "state": {
-                        "_adk": {"llm_calls_used": 0},
-                        "task_finished": result.exit_reason == "finished",
-                    },
-                }
-            },
-        )
-        raw_dir = output_dir / "raw"
-        raw_dir.mkdir(parents=True, exist_ok=True)
-        (raw_dir / "prompt.txt").write_text(prompt)
-        _write_json(raw_dir / "session_trace.json", session_trace)
-        _write_json(raw_dir / "baseline_config.json", config)
-        _write_json(raw_dir / "budget.json", budget)
-        metadata = {
-            **config,
-            "challenge": challenge.canonical_name,
-            "exit_reason": result.exit_reason,
-            "started_at": result.started_at,
-            "finished_at": result.finished_at,
-            "duration_seconds": result.duration_seconds,
-            "budget": budget,
-            "budget_spent_usd": budget["spent_usd"],
-            "budget_source": budget["source"],
-            "budget_is_estimate": budget["is_estimate"],
-            "budget_exhausted": budget["budget_exhausted"],
-            "time_limit_seconds": self._time_limit_seconds,
-            "server_name": challenge.server_name,
-            "port": challenge.port,
-        }
-        if error:
-            metadata["error"] = error
-        _write_json(raw_dir / "run_metadata.json", metadata)
-        if sandbox_dir.exists():
-            _copy_path(sandbox_dir, raw_dir / "workspace")
+        _write_json(output_dir / "metadata.json", config)
+        _write_json(output_dir / "cost_info.json", budget)
 
     def _baseline_config(self) -> dict[str, Any]:
         return {

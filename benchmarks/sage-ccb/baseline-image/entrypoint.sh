@@ -5,7 +5,7 @@ set -euo pipefail
 # MCP Server 1: gdb-mcp
 # =====================
 cd /app
-uv run python /app/gdb_mcp/gdb_mcp_server.py > /root/gdb-mcp.log 2>&1 &
+PYTHONPATH=/app uv run python -m gdb_mcp.gdb_mcp_server > /root/gdb-mcp.log 2>&1 &
 cd /workspace
 
 # ========================

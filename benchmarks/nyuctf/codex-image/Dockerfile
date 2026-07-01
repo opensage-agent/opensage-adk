@@ -1,8 +1,11 @@
 FROM ghcr.io/opensage-agent/ctf_task_main:latest
 
+ARG CODEX_CLI_VERSION=0.124.0
+ARG MCP_REMOTE_VERSION=latest
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends nodejs npm \
-    && npm install -g @openai/codex mcp-remote \
+    && npm install -g @openai/codex@${CODEX_CLI_VERSION} mcp-remote@${MCP_REMOTE_VERSION} \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://github.com/pwndbg/pwndbg/releases/download/2024.08.29/pwndbg_2024.08.29_amd64.deb \

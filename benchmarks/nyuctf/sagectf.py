@@ -22,10 +22,10 @@ from opensage.evaluation.base import Evaluation, EvaluationTask
 from .helpers import (
     LoadedChallenge,
     build_challenge_prompt,
+    consolidate_sandbox_output_to_raw,
     find_exact_flag,
     judge_trajectory_sync,
     load_dataset,
-    make_transcript_payload,
     parse_time_limit,
     run_command,
 )
@@ -150,10 +150,10 @@ class NYU_CTF_Bench(Evaluation):
     def _filter_pending_task(
         self, samples: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
-        """Keep only challenges that do not already have an output entry.
+        """Keep only challenges that do not already have a completed score.
 
         Reusing an existing `output_dir` acts like "continue from last run":
-        any challenge with a corresponding directory entry is skipped.
+        any challenge with a corresponding score.json is skipped.
         """
         output_root = Path(self.output_dir)
         if not output_root.exists():
@@ -162,7 +162,9 @@ class NYU_CTF_Bench(Evaluation):
         existing = {
             path.name
             for path in output_root.iterdir()
-            if path.is_dir() and path.name not in ("results", "__pycache__")
+            if path.is_dir()
+            and path.name not in ("results", "__pycache__")
+            and (path / "score.json").exists()
         }
 
         return [
@@ -213,8 +215,9 @@ class NYU_CTF_Bench(Evaluation):
     def _cleanup_incomplete_task(self, task: EvaluationTask) -> None:
         """Remove task output directory if score.json was not generated.
 
-        This ensures failed tasks are retried on the next run, since the
-        resume mechanism skips tasks whose output directory already exists.
+        This keeps partial output tidy. The resume mechanism itself skips
+        tasks only when score.json exists, so incomplete directories are
+        retried even if cleanup did not run.
         """
         output_path = Path(task.output_dir)
         if output_path.exists() and not (output_path / "score.json").exists():
@@ -235,13 +238,13 @@ class NYU_CTF_Bench(Evaluation):
         """Record an agent-side failure as a fully-scored task.
 
         This keeps the resume mechanism honest: the task has a score.json,
-        so the next run will not blindly re-attempt it. The transcript dump
-        is best-effort — if the run died before a session trace was written,
-        we still emit a transcript with an empty trajectory so aggregation
-        code that depends on submission_trajectory/* doesn't miss the task.
+        so the next run will not blindly re-attempt it. The leaderboard
+        transcript is rebuilt from score.json at finalize time, so no
+        per-task transcript needs to be emitted here.
         """
         output_path = Path(task.output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
+        (output_path / "prompt.txt").write_text(build_challenge_prompt(challenge))
 
         finished_at = datetime.datetime.now(datetime.UTC).isoformat()
         started_at = task.sample.get("_benchmark_started_at")
@@ -263,21 +266,8 @@ class NYU_CTF_Bench(Evaluation):
             duration_seconds=duration_seconds,
         )
         (output_path / "score.json").write_text(json.dumps(score, indent=2) + "\n")
-
-        session_trace = self._load_session_trace_for_scoring(output_path)
-        transcript_payload = make_transcript_payload(
-            challenge=challenge,
-            score=score,
-            session_trace=session_trace,
-            prompt=build_challenge_prompt(challenge),
-        )
-        transcript_dir = output_path / "submission_trajectory"
-        transcript_dir.mkdir(parents=True, exist_ok=True)
-        (transcript_dir / f"{challenge.canonical_name}.json").write_text(
-            json.dumps(transcript_payload, indent=2) + "\n"
-        )
         logger.warning(
-            "Task %s failed with %s; recorded as task_error (score.json + transcript written)",
+            "Task %s failed with %s; recorded as task_error (score.json written)",
             task.id,
             type(exc).__name__,
         )
@@ -366,26 +356,22 @@ class NYU_CTF_Bench(Evaluation):
 
     async def _collect_outputs(self, task: EvaluationTask, session: Session) -> dict:
         info = await super()._collect_outputs(task, session)
+        output_path = Path(task.output_dir)
+        consolidate_sandbox_output_to_raw(output_path)
         challenge = LoadedChallenge.from_sample(task.sample)
-        prompt = build_challenge_prompt(challenge)
-        score = self._score_task(task, challenge)
+        (output_path / "prompt.txt").write_text(build_challenge_prompt(challenge))
+        # The evaluation base now stops the agent on time-limit and returns
+        # normally (no TimeoutError), signalling via task.run_timed_out instead.
+        score = self._score_task(
+            task,
+            challenge,
+            runner_exit_reason="timeout"
+            if getattr(task, "run_timed_out", False)
+            else None,
+        )
         info["score"] = score
 
-        output_path = Path(task.output_dir)
         (output_path / "score.json").write_text(json.dumps(score, indent=2) + "\n")
-
-        session_trace = self._load_session_trace(output_path / "session_trace.json")
-        transcript_payload = make_transcript_payload(
-            challenge=challenge,
-            score=score,
-            session_trace=session_trace,
-            prompt=prompt,
-        )
-        transcript_dir = output_path / "submission_trajectory"
-        transcript_dir.mkdir(parents=True, exist_ok=True)
-        (transcript_dir / f"{challenge.canonical_name}.json").write_text(
-            json.dumps(transcript_payload, indent=2) + "\n"
-        )
         return info
 
     def _ensure_network_exists(self, *, deadline: float | None = None) -> None:
@@ -584,8 +570,7 @@ class NYU_CTF_Bench(Evaluation):
         captured_texts: list[str] = []
 
         for candidate in (
-            output_path / "sandbox_output" / "final_flag.txt",
-            output_path / "sandbox_output" / "workspace" / "final_flag.txt",
+            output_path / "raw" / "final_flag.txt",
             output_path / "raw" / "workspace" / "final_flag.txt",
         ):
             if not candidate.exists():
@@ -706,58 +691,24 @@ class NYU_CTF_Bench(Evaluation):
             selected_challenges = selected_challenges[: self.max_challenges]
 
         output_root = Path(self.output_dir)
-        results_map: dict[str, bool] = {}
-        transcript_root = output_root / "results" / "leaderboard_submission"
-        transcript_root.mkdir(parents=True, exist_ok=True)
-
         solved_count = 0
         included_count = 0
         for challenge in selected_challenges:
             task_dir = output_root / challenge.canonical_name
             score = self._load_json_file(task_dir / "score.json")
-            source_json = (
-                task_dir / "submission_trajectory" / f"{challenge.canonical_name}.json"
-            )
-            if not score or not source_json.exists():
+            if not score:
                 continue
-
             included_count += 1
-            solved = bool(score.get("solved"))
-            solved_count += int(solved)
-            results_map[challenge.canonical_name] = solved
+            solved_count += int(bool(score.get("solved")))
 
-            shutil.copy2(source_json, transcript_root / source_json.name)
-
-        summary = {
-            "metadata": {
-                "agent": self.submission_agent,
-                "comment": self.submission_comment,
-                "model": self.submission_model,
-                "link": self.submission_link,
-                "date": datetime.datetime.now(datetime.UTC).strftime("%Y/%m/%d"),
-            },
-            "results": results_map,
-        }
-
-        submission_root = output_root / "results" / "leaderboard_submission"
-        submission_root.mkdir(parents=True, exist_ok=True)
-        (submission_root / "summary.json").write_text(
-            json.dumps(summary, indent=2, sort_keys=True) + "\n"
-        )
-
-        evaluation_results = {
+        return {
             "total": included_count,
             "solved": solved_count,
             "success_rate": solved_count / included_count if included_count else 0.0,
-            "submission_dir": str(submission_root),
             "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
             "time_limit_seconds": self._run_time_limit_seconds,
             "budget_usd": self.budget,
         }
-        (output_root / "results" / "evaluation_results.json").write_text(
-            json.dumps(evaluation_results, indent=2) + "\n"
-        )
-        return evaluation_results
 
     def _load_json_file(self, path: Path) -> dict[str, Any]:
         if not path.exists():
@@ -772,10 +723,7 @@ class NYU_CTF_Bench(Evaluation):
     def _load_session_trace_for_scoring(
         self, output_path: Path
     ) -> dict[str, Any] | None:
-        for path in (
-            output_path / "session_trace.json",
-            output_path / "raw" / "session_trace.json",
-        ):
+        for path in (output_path / "session_trace.json",):
             trace = self._load_session_trace(path)
             if trace is not None:
                 return trace

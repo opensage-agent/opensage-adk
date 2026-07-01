@@ -1176,15 +1176,10 @@ class Evaluation(abc.ABC):
                 except Exception as e:
                     logger.warning(f"Failed to copy {src_path}: {e}. Skipping.")
 
-        # 2. Export Neo4j history database
-        await self._export_neo4j_database(
-            opensage_session, output_path / "neo4j_history"
-        )
-
-        # 3. Export session trace
+        # 2. Export session trace
         self._export_session_trace(session, output_path / "session_trace.json")
 
-        # 4. Save metadata
+        # 3. Save metadata
         info = {
             "session": session.model_dump() if session else None,
         }
@@ -1193,46 +1188,6 @@ class Evaluation(abc.ABC):
 
         logger.warning(f"Outputs collected to {output_path}")
         return info
-
-    async def _export_neo4j_database(
-        self, opensage_session: OpenSageSession, output_path: Path
-    ) -> None:
-        # TODO: Should implement the export in the session management, not in evaluations
-        """Export Neo4j history database files.
-
-        Args:
-            opensage_session (OpenSageSession): OpenSage session instance
-            output_path (Path): Local path to save database files"""
-        output_path.mkdir(parents=True, exist_ok=True)
-
-        try:
-            # Get Neo4j sandbox
-            neo4j_sandbox = opensage_session.sandboxes.get_sandbox("neo4j")
-
-            # Get database name from Neo4j client manager (reuse naming logic)
-            database_name = opensage_session.neo4j._get_database_name_for_type(
-                "history"
-            )
-
-            # Create tar archive in container
-            tar_path_in_container = f"/tmp/{database_name}.tar.gz"
-            tar_command = (
-                f"tar -czf {tar_path_in_container} -C /data/databases {database_name}"
-            )
-
-            await neo4j_sandbox.arun_command_in_container(tar_command)
-
-            # Copy tar file from container
-            await neo4j_sandbox.acopy_file_from_container(
-                src_path=tar_path_in_container,
-                dst_path=str(output_path / f"{database_name}.tar.gz"),
-            )
-
-            logger.warning(
-                f"Neo4j database exported to {output_path}/{database_name}.tar.gz"
-            )
-        except Exception as e:
-            logger.warning(f"Failed to export Neo4j database: {e}")
 
     def _export_session_trace(self, session: Session, output_path: Path) -> None:
         # TODO: Should implement the export in the session management, not in evaluations

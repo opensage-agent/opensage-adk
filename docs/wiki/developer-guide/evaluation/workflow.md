@@ -78,8 +78,8 @@ Produces an `EvaluationTask` with a unique `session_id`, the original `sample` d
 ### 5.2 Create OpenSage-ADK Session
 
 ```python
-session = opensage.get_session(
-    session_id=task.session_id,
+session = opensage.get_opensage_session(
+    task.session_id,
     config_path=self.config_path,
 )
 ```
@@ -172,7 +172,7 @@ Results are saved as JSON to `evals/{agent_id}/{benchmark}/results/{task_id}.jso
 ### 5.8 Cleanup
 
 ```python
-opensage.cleanup_session(task.session_id)
+opensage.cleanup_opensage_session(task.session_id)
 ```
 
 Stops sandbox containers, removes shared volumes, and frees Docker resources.

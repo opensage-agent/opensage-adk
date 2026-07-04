@@ -4,7 +4,7 @@ icon: lucide/package-check
 
 # opensage dependency-check
 
-> Full flag reference: [`opensage dependency-check --help`](../generated/cli/opensage-dependency-check.md)
+Run `uv run opensage dependency-check --help` for the current flag reference.
 
 Checks whether external dependencies required by specific OpenSage-ADK features are installed.
 

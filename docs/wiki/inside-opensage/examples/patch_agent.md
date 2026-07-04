@@ -48,8 +48,8 @@ No config file is shipped; the agent picks up the built-in default from `src/ope
     - `view_file`, `str_replace_edit`: file ops ([imports](../../reference/configuration/index.md)).
     - `run_terminal_command` + friends: bash access.
     - `finish_task`: explicit termination.
-    - `create_subagent`, `call_subagent_as_tool`, `list_active_agents`: dynamic sub-agents.
-    - `agent_ensemble`, `get_available_models`: fan-out to multiple models.
+    - `create_subagent`, `call_subagent`, `list_subagents`: dynamic sub-agents.
+    - `get_available_models`: delegate to a specific model via `call_subagent(model_name=...)`.
 3. **Add a `config.toml`** if the default sandbox/LLM/history settings are not enough.
 4. **Enable skills** (`enabled_skills=["retrieval", …]`) if you want the bundled bash-tool scripts.
 

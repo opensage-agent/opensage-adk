@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from opensage.toolbox.coverage.llvm_cov import parse_llvm_coverage_json
+from opensage.bash_tools.coverage.common_utils.llvm_cov import parse_llvm_coverage_json
 from opensage.utils.project_info import PROJECT_PATH
 
 

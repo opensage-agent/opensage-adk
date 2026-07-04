@@ -1,6 +1,6 @@
 """Monkey-patch LiteLlm to support server-side web search.
 
-Three patches are applied:
+Four patches are applied:
 
 1. ``LiteLlm.generate_content_async`` — Tools like ``WebSearchTool`` set
    ``llm_request._extra_completion_kwargs`` during ``process_llm_request``.

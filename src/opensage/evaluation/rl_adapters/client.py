@@ -2,7 +2,7 @@
 OpenSage Client for RL Framework Integration.
 
 This module provides the client class for integrating OpenSage agents
-with RL frameworks like slime, verl, areal, etc.
+with RL frameworks like slime, AReaL, Miles, etc.
 
 The Client handles:
 - Agent loading and configuration
@@ -52,7 +52,7 @@ class Client:
 
         Args:
             agent_name (str): Name of the agent (defined in opensage/agents/ or agent_library/agents/)
-            benchmark_name (str): Name of the benchmark (defined in opensage/evaluations/)
+            benchmark_name (str): Name of the benchmark registered under opensage.evaluation.
             model_name (str | None): Optional model name to override the evaluation's default.
             **eval_kwargs: Extra keyword arguments passed to the Evaluation constructor
                 (e.g., dataset_path for HarborEvaluation)."""
@@ -270,30 +270,18 @@ class RLSession:
             model_name=model_name,
         )
 
-    # Future framework methods (placeholders)
     async def verl_generate(
         self,
         args: Any,
         sample: Any,
         sampling_params: dict[str, Any],
     ) -> Any:
-        """Generate using OpenSage agent for verl rollout.
-
-                Args:
-                    args (Any): Rollout arguments from verl
-                    sample (Any): Sample object
-                    sampling_params (dict[str, Any]): Sampling parameters
+        """Placeholder for a future verl rollout adapter.
 
         Raises:
-          RuntimeError: Raised when this operation fails.
-                Returns:
-                    Any: Updated sample object
+            NotImplementedError: verl integration is not implemented or registered.
         """
-        if self._closed:
-            raise RuntimeError("Session has been closed")
-
-        adapter = self._get_adapter("verl")
-        return await adapter.generate(args, sample, sampling_params)
+        raise NotImplementedError("verl integration is not implemented")
 
     async def areal_generate(
         self,
@@ -363,7 +351,7 @@ def create(
 
     Args:
         agent_name (str): Name of the agent defined in opensage/agents/ directory
-        benchmark_name (str): Name of the benchmark defined in opensage/evaluations/ directory
+        benchmark_name (str): Name of the benchmark registered under opensage.evaluation.
         model_name (str | None): Optional model name to override the evaluation's default.
         **eval_kwargs: Extra keyword arguments passed to the Evaluation constructor
             (e.g., dataset_path for HarborEvaluation).

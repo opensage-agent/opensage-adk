@@ -108,11 +108,11 @@ from typing import Optional
 from google.adk.models.lite_llm import LiteLlm
 
 import opensage
-from opensage.agents import MemoryManagement, OpenSageAgent
+from opensage.agents import OpenSageAgent
 
 
 def mk_agent(session_id: str, model=None):
-    session = opensage.get_session(session_id)
+    session = opensage.get_opensage_session(session_id)
 
     if model is None:
         model = LiteLlm(
@@ -126,9 +126,8 @@ def mk_agent(session_id: str, model=None):
         model=model,
         instruction="You are a helpful assistant.",
         enabled_skills="all",
-        memory_management=MemoryManagement.FILE,
         tools=[],
-        sub_agents=[],
+        subagents=[],
     )
 ```
 

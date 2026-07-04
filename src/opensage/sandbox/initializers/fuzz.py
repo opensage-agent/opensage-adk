@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import re
 
-from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.base_sandbox import BaseSandbox
 from opensage.utils.project_info import PROJECT_PATH
 
 from .base import SandboxInitializer

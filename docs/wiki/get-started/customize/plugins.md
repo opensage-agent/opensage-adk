@@ -18,10 +18,10 @@ enabled = [
 
 ## Passing kwargs to a Plugin
 
-Some plugins accept configuration. Pass kwargs by name under `[plugins.adk_plugin_params.<plugin_name>]`:
+Some plugins accept configuration. Pass kwargs by name under `[plugins.params.<plugin_name>]`:
 
 ```toml title="config.toml"
-[plugins.adk_plugin_params.doom_loop_detector_plugin]
+[plugins.params.doom_loop_detector_plugin]
 threshold = 5
 ```
 

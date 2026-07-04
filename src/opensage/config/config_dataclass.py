@@ -556,7 +556,7 @@ class MCPConfig:
 
 @dataclass
 class OpenSageConfig:
-    """Complete SecAgentFramework configuration."""
+    """Complete OpenSage-ADK configuration."""
 
     neo4j: Neo4jConfig = None
     sandbox: SandboxConfig = None

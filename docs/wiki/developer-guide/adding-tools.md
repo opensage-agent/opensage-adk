@@ -215,7 +215,7 @@ main, fuzz
 
 Tools are automatically discovered from:
 - `src/opensage/bash_tools/` (built-in tools)
-- `~/.local/opensage-adk/bash_tools/` (user-local skills/extensions)
+- `~/.local/opensage/bash_tools/` (user-local skills/extensions)
 
 The framework scans these directories for `SKILL.md` files and loads them automatically.
 
@@ -224,9 +224,8 @@ The framework scans these directories for `SKILL.md` files and loads them automa
 Agents can restrict which skills are available by setting `enabled_skills`:
 
 - `None`: load **no** skills
-- `"all"` / `["all"]`: load **only top-level** skills (`<root>/*/SKILL.md`)
-- `List[str]`: treat each entry as a **prefix allowlist** under the skill root
-  (e.g. `"fuzz"` loads all skills under `fuzz/`; `"fuzz/run-fuzzing-campaign"` loads just that subtree)
+- `"all"`: load **only top-level** skills (`<root>/*/SKILL.md`); nested skills are not loaded by this mode
+- `List[str]`: each entry must be a relative path to a skill directory under the skill root. The loader recursively loads `SKILL.md` files below that directory, so `"fuzz"` loads the `fuzz/` subtree and `"fuzz/run-fuzzing-campaign"` loads only that nested subtree.
 
 ### Per-Skill Dependency Installers (deps/install.sh)
 
@@ -247,28 +246,33 @@ Installers are run during sandbox initialization (best-effort) and are only run 
 
 ## Creating an MCP Toolset
 
-MCP toolsets are created via Python functions that return `MCPToolset` instances:
+MCP toolsets are created via Python functions that return `OpenSageMCPToolset` instances:
 
 ```python
 # Example: src/opensage/toolbox/debugger/gdb_mcp/get_toolset.py
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, SseConnectionParams
-from opensage.toolbox.decorators import requires_sandbox, safe_tool_execution
+from google.adk.tools.mcp_tool.mcp_toolset import SseConnectionParams
+
+from opensage.agents.opensage_agent import OpenSageMCPToolset
+from opensage.toolbox.sandbox_requirements import requires_sandbox
 from opensage.utils.agent_utils import get_mcp_url_from_session_id
 
-@safe_tool_execution
+
 @requires_sandbox("gdb_mcp")
-def get_toolset(session_id: str) -> MCPToolset:
-    """Create MCPToolset with GDB MCP server running in Docker container.
+def get_toolset(opensage_session_id: str) -> OpenSageMCPToolset:
+    """Create a named MCP toolset for the GDB MCP server.
 
     Args:
-        session_id: Shared session ID for session-based management
+        opensage_session_id: OpenSage session ID used to resolve the MCP SSE URL.
 
     Returns:
-        MCPToolset connected to GDB MCP server
+        OpenSageMCPToolset connected to the GDB MCP server over SSE.
     """
-    url = get_mcp_url_from_session_id("gdb_mcp", session_id)
-    mcp_toolset = MCPToolset(connection_params=SseConnectionParams(url=url))
-    return mcp_toolset
+    url = get_mcp_url_from_session_id("gdb_mcp", opensage_session_id)
+    return OpenSageMCPToolset(
+        name="gdb_mcp",
+        connection_params=SseConnectionParams(url=url),
+        tool_name_prefix="gdb_mcp",
+    )
 ```
 
 The function should:

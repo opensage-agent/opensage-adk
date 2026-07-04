@@ -25,7 +25,7 @@ _BACKENDS = {
     "k8s":              ("k8s_sandbox",                 "K8sSandbox"),
     "remotedocker":     ("remote_docker_sandbox",       "RemoteDockerSandbox"),
     "opensandbox":      ("opensandbox_sandbox",         "OpenSandboxSandbox"),
-    "agentdocker-lite": ("agentdocker_lite_sandbox",    "AgentDockerLiteSandbox"),
+    "nitrobox":         ("nitrobox_sandbox",           "NitroboxSandbox"),
     "local":            ("local_sandbox",               "LocalSandbox"),
 }  # fmt: skip
 

@@ -22,19 +22,17 @@ The agent uses the **GDB MCP toolset** to drive breakpoints, step execution, and
 
 ```python title="agent_library/agents/debugger_agent/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.toolbox.benchmark_specific.cybergym.cybergym import critique
 from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
 from opensage.toolbox.general.agent_tools import (
-    agent_ensemble, complain,
-    get_available_agents_for_ensemble, get_available_models,
+    complain, critique,
     note_suspicious_things, think,
 )
 from opensage.toolbox.general.bash_tools_interface import (
-    get_background_task_output, list_available_scripts,
+    get_background_task_output,
     list_background_tasks, run_terminal_command,
 )
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool, create_subagent, list_active_agents,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent, create_subagent, get_available_models, list_subagents,
 )
 
 def mk_agent(opensage_session_id):
@@ -70,8 +68,8 @@ def mk_agent(opensage_session_id):
         tools=[
             complain,
             gdb_toolset,
-            list_available_scripts, list_background_tasks, run_terminal_command,
-            create_subagent, call_subagent_as_tool, list_active_agents,
+            list_background_tasks, run_terminal_command,
+            create_subagent, call_subagent, list_subagents,
             critique,
         ],
     )
@@ -90,7 +88,7 @@ uv run opensage web \
 
 ## Run It as a Sub-Agent
 
-The typical deployment is to have a parent agent (e.g. [PoC Generation Agent — Dynamic Tools](./poc_agent_dynamic_tools.md)) call this as a sub-agent via `call_subagent_as_tool`. The parent provides the vulnerable program path, the PoC file, and the expected behavior; this agent returns its findings.
+The typical deployment is to have a parent agent (e.g. [PoC Generation Agent — Dynamic Tools](./poc_agent_dynamic_tools.md)) call this as a sub-agent via `call_subagent`. The parent provides the vulnerable program path, the PoC file, and the expected behavior; this agent returns its findings.
 
 ## Prerequisites
 

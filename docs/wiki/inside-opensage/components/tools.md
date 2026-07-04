@@ -1,6 +1,6 @@
 # Tools
 
-Tools are the **verbs** your agent can use. OpenSage-ADK accepts tools in several shapes (plain Python functions, ADK `AgentTool`/`BaseToolset` instances, MCP toolsets, `ToolCombo` sequences, and bash-scripted "skills") and normalizes them into one uniform list before the LLM sees anything.
+Tools are the **verbs** your agent can use. OpenSage-ADK accepts tools in several shapes (plain Python functions, ADK `BaseToolset` instances, MCP toolsets, and bash-scripted "skills") and normalizes them into one uniform list before the model sees anything.
 
 Source:
 
@@ -13,11 +13,11 @@ Source:
 
 | Shape | Example | What it is |
 |---|---|---|
-| **Python function** | `calculate_add` | Sync or async function. Signature + docstring become the tool schema automatically. |
-| **`AgentTool`** | `AgentTool(agent=calculation_agent)` | Another agent exposed as a tool. See [Multi-Agent](./multi-agent.md). |
-| **`BaseToolset`** | `GoogleSearchToolset()` | A batch of related tools that get expanded into individual entries. |
+| **Python function** | `calculate_add` | Sync or async function. Signature and docstring become the tool schema automatically. |
+| **`BaseToolset`** | `GoogleSearchToolset()` | A batch of related tools that expand into individual entries. |
 | **`MCPToolset` / `OpenSageMCPToolset`** | `get_gdb_toolset(session_id)` | A live MCP server connection; tools are discovered over the protocol. |
-| **`ToolCombo`** | `ToolCombo(tool_sequences=[a, b, c])` | A chain wrapped as one atomic tool. See [Multi-Agent -> ToolCombo](./multi-agent.md#toolcombo-as-a-sequential-mini-agent). |
+
+To attach another agent, declare it through `subagents=[...]` and call it with `call_subagent` rather than wrapping it in `AgentTool`. `OpenSageAgent` rejects an `AgentTool` placed in `tools=`. See [Multi-Agent](./multi-agent.md).
 
 ## Normalization: One Pipe in Front of the LLM
 
@@ -63,7 +63,7 @@ Control which skills an agent sees via `enabled_skills` on `OpenSageAgent`:
 
 `ToolLoader` (in `opensage_agent.py`) reads each matching `SKILL.md` and generates a preamble inserted into the agent's system prompt, so the model knows what each skill directory offers without you repeating yourself in the instruction.
 
-Built-in skill categories: `retrieval`, `static_analysis`, `coverage`, `fuzz`, `neo4j`, `mmp`, `new_tool_creator`, `swe_agent`.
+Built-in skill categories: `retrieval`, `static_analysis`, `coverage`, `fuzz`, `neo4j`, `mmp`, `new_tool_creator`, `diagnose`.
 
 ## MCP Integration
 
@@ -86,10 +86,10 @@ The general-purpose utility tools live under `src/opensage/toolbox/general/`:
 - **`bash_tools_interface.py`**: `run_terminal_command`, `list_available_scripts`, `list_background_tasks`, `get_background_task_output`. The surface through which bash skills are invoked, including long-running background tasks.
 - **`fileop.py`**: `view_file`, `str_replace_edit`. LLM-friendly file read / edit primitives.
 - **`web_search_tool.py`**: `WebSearchTool()`. Provider-side web search (Anthropic, OpenAI, xAI).
-- **`agent_tools.py`**: `think`, `complain`, `critique`, `flag_unjustified_claims`, `note_suspicious_things`, plus `agent_ensemble` / `get_available_models`. See [Multi-Agent -> Self-reflection](./multi-agent.md#lightweight-self-reflection-tools).
-- **`dynamic_subagent.py`**: `create_subagent`, `call_subagent_as_tool`, `list_active_agents`. See [Multi-Agent -> Dynamic sub-agents](./multi-agent.md#dynamic-sub-agents).
+- **`agent_tools.py`**: `think`, `plan`, `complain`, `note_suspicious_things`, `log_finding`, `critique`, `audit_assumptions`, `validate_claim`. See [Multi-Agent: Self-Reflection Tools](./multi-agent.md#self-reflection-tools).
+- **`orchestration_tools.py`**: `create_subagent`, `call_subagent`, `list_subagents`, `get_available_models`. See [Multi-Agent: Creating Sub-Agents Dynamically](./multi-agent.md#creating-sub-agents-dynamically).
 
-Specialized categories under `toolbox/`: `retrieval/` (grep, Joern-backed search), `static_analysis/` (Joern CPG queries), `debugger/` (GDB MCP factory), `binary/` (Ghidra, IDA Pro, pyghidra MCP factories), `fuzzing/`, `coverage/`, `neo4j/`, `benchmark_specific/` (CyberGym, etc.), `finish_task/`.
+Framework-level Python tools under `toolbox/`: `general/` (agent utilities, shell interfaces, file operations), `debugger/` (GDB/PDB MCP factories), `binary/` (Ghidra, IDA Pro, pyghidra MCP factories), and `finish_task/`. Domain workflows such as retrieval, static analysis, fuzzing, coverage, Neo4j, and MMP live under `src/opensage/bash_tools/` or benchmark-owned modules instead of `toolbox/`.
 
 ## Related References
 

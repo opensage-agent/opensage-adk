@@ -4,7 +4,7 @@ icon: lucide/monitor-check
 
 # WebUI Reference
 
-> Full flag reference: [`opensage web --help`](../generated/cli/opensage-web.md)
+Run `uv run opensage web --help` for the current flag reference.
 
 The `opensage web` command starts an interactive web UI for developing and debugging agents.
 
@@ -52,7 +52,7 @@ Options:
 ```
 
 
-The curated subset below covers what users hit first. See the [full `--help`](../generated/cli/opensage-web.md) for everything.
+The curated subset below covers what users hit first. Run `uv run opensage web --help` for the full local help output.
 
 ### Starting a Session
 

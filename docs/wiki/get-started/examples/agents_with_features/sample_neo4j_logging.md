@@ -14,14 +14,13 @@ from __future__ import annotations
 from typing import Dict
 
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    list_subagents,
 )
 
 
@@ -45,28 +44,28 @@ def calculate_area_and_perimeter(
 geometry_calculator = OpenSageAgent(
     name="geometry_calculator",
     description="Calculates geometric properties like area and perimeter of shapes.",
-    model=LiteLlm(model="openai/gpt-5.4"),
+    model=LiteLlm(model="openai/gpt-5.5"),
     instruction="You specialize in calculating geometric properties.",
     tools=[calculate_area_and_perimeter],
 )
-
-geometry_tool = AgentTool(agent=geometry_calculator)
 
 
 def mk_agent(opensage_session_id: str):
     return OpenSageAgent(
         name="calculation_orchestrator",
         description="Main agent that coordinates calculations with Neo4j history logging.",
-        model=LiteLlm(model="openai/gpt-5.4"),
+        model=LiteLlm(model="openai/gpt-5.5"),
         instruction="""
-        You are a calculation orchestrator. Formulate the final answer as a
-        single number inside <final_answer>...</final_answer> tags.
+        You are a calculation orchestrator. Delegate geometric calculations to
+        the `geometry_calculator` sub-agent via the `call_subagent` tool.
+        Formulate the final answer as a single number inside
+        <final_answer>...</final_answer> tags.
         """,
+        subagents=[geometry_calculator],
         tools=[
-            geometry_tool,
-            call_subagent_as_tool,
+            call_subagent,
             create_subagent,
-            list_active_agents,
+            list_subagents,
             add_numbers,
             multiply_numbers,
         ],

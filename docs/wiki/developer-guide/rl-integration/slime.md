@@ -102,7 +102,7 @@ python opensage_mock.py \
     --local_dir /root/opensage_data \
     --dataset_path opensage/secodeplt \
     --dataset_split train \
-    --task_subset_file /root/opensage/src/opensage/evaluations/secodeplt/metadata/successful_task_list.txt \
+    --task_subset_file /root/opensage/benchmarks/secodeplt/metadata/successful_task_list.txt \
     --output_filename secodeplt_tasks.jsonl
 ```
 
@@ -199,7 +199,7 @@ TBD.
 | SLIME | `examples/opensage/run_qwen3_4B{_debug}.sh` | Launch scripts (ray job submit) |
 | OpenSage | `rl/slime/train.sh` | Launcher: env setup, Docker cleanup, delegation to SLIME |
 | OpenSage | `rl/slime/configs/*.yaml` | Training hyperparameter configs (`--slime-config`) |
-| OpenSage | `src/opensage/rl_integration/` | `SlimeLlm`, `SlimeAdapter`, `Client`, `BenchmarkInterface` |
+| OpenSage | `src/opensage/evaluation/rl_adapters/` | `SlimeLlm`, `SlimeAdapter`, `Client`, `BenchmarkInterface` |
 
 For architecture and data-flow details, see [AReaL Training](areal.md).
 

@@ -4,13 +4,13 @@ from unittest.mock import MagicMock
 import pytest
 import pytest_asyncio
 
-from opensage.session import OpenSageSession, get_opensage_session
-from opensage.session.neo4j_client import AsyncNeo4jClient
-from opensage.toolbox.static_analysis.cpg import (
+from benchmarks.common_tools.static_analysis import (
     get_callee,
     get_caller,
     search_function,
 )
+from opensage.session import OpenSageSession, get_opensage_session
+from opensage.session.neo4j_client import AsyncNeo4jClient
 from opensage.utils.project_info import PROJECT_PATH
 from tests.unit.utils.utils import fix_neo4j_client
 

@@ -8,7 +8,7 @@ icon: lucide/container
 
 The OpenSage-ADK sandbox system provides isolated execution environments through a pluggable backend architecture. It is built on two independent concepts:
 
-- **Sandbox Backends** are execution engines that manage where and how containers run (`native`; `podman`, `remotedocker`, `opensandbox`, `agentdocker-lite`, `local`, and `k8s` are all currently under development)
+- **Sandbox Backends** are execution engines that manage where and how containers run (`native`; `podman`, `remotedocker`, `opensandbox`, `nitrobox`, `local`, and `k8s` are all currently under development)
 - **Sandbox Initializers** are functional types that define what gets installed inside a container (main, neo4j, joern, gdb_mcp, etc.)
 
 For the TOML configuration reference (fields, backends, per-sandbox settings), see [Sandbox Configuration](../../reference/configuration/sandbox.md).
@@ -25,7 +25,7 @@ Backends determine **where and how** containers are executed.
 | **podman** | Local Podman with Docker-compatible API socket (**under development**) | Podman-based local execution |
 | **remotedocker** | Remote Docker via SSH/TCP (**under development**) | Under development |
 | **opensandbox** | OpenSandbox-managed remote execution backend (**under development**) | Under development |
-| **agentdocker-lite** | Namespace sandbox backend built on `agentdocker-lite` (**under development**) | Under development |
+| **nitrobox** | Namespace sandbox backend built on `nitrobox` (**under development**) | Under development |
 | **local** | No containers (direct execution on the host; **under development**) | Under development |
 | **k8s** | Kubernetes cluster backend (**under development**) | Under development |
 
@@ -101,13 +101,13 @@ The `opensandbox` backend is currently **under development**. It uses OpenSandbo
 backend = "opensandbox"
 ```
 
-### AgentDocker-Lite Backend
+### Nitrobox Backend
 
-The `agentdocker-lite` backend is currently **under development**. It is a lightweight local isolation backend built on Linux namespaces/cgroups rather than a full Docker daemon.
+The `nitrobox` backend is currently **under development**. It is a lightweight local isolation backend built on Linux namespaces/cgroups rather than a full Docker daemon.
 
 ```toml
 [sandbox]
-backend = "agentdocker-lite"
+backend = "nitrobox"
 ```
 
 ### Local Backend

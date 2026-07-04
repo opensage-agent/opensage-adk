@@ -25,7 +25,6 @@ Fields defined at the top level of the TOML file, outside any `[section]`.
 |-------|------|-------------|---------|
 | `task_name` | `string` | Name identifier for the current task/session | `None` |
 | `src_dir_in_sandbox` | `string` | Path to source code directory within sandbox containers | `"/shared/code"` |
-| `agent_storage_path` | `string` | Path where dynamically created agents are stored | `None` |
 | `default_host` | `string` | Default hostname for services (Neo4j, MCP) | `None` → `127.0.0.1` |
 | `auto_cleanup` | `boolean` | Clean up resources when the session ends | `true` |
 
@@ -62,13 +61,12 @@ password = "${NEO4J_PASSWORD}"
 ## Sections
 
 - [`[llm]`](./llm.md): model profiles and sampling parameters.
-- `[model]`: model registry settings and the session-wide runtime budget.
+- [`[model]`](./model.md): model registry settings and the session-wide runtime budget.
 - [`[sandbox]`](./sandbox.md): execution environments, per-sandbox container and build fields.
 - [`[mcp]`](./mcp.md): MCP service definitions.
 - [`[history]`](./history.md): tool-response handling and event compaction.
 - [`[plugins]`](./plugins.md): enabled plugins and discovery paths.
 - [`[fake_user]`](./fake-user.md): automated user-simulator callback for multi-turn interactions.
-- [`[agent_ensemble]`](./agent-ensemble.md): multi-model ensemble fields.
 - [`[neo4j]`](./neo4j.md): graph database connection.
 - [`[build]`](./build.md): build and run commands for target artifacts.
 

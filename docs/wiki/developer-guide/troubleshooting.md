@@ -21,14 +21,14 @@ uv run pytest --cov=src/opensage tests/
 
 ## Debugging with the Web UI
 
-The web UI is the primary debugging tool. Start it with the agent and config you want to inspect, and (optionally) enable Neo4j logging to capture every event for later analysis:
+The web UI is the primary debugging tool. Start it with the agent and config you want to inspect, and raise the log level to capture more detail:
 
 ```bash
 uv run opensage web \
   --config /path/to/config.toml \
   --agent /path/to/agent_dir \
   --port 8080 \
-  --neo4j_logging  # optional
+  --log_level DEBUG
 ```
 
 For the full flag reference, see [WebUI Reference](../reference/opensage-web.md).

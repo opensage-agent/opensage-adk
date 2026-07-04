@@ -6,7 +6,7 @@ import asyncio
 import logging
 import shlex
 
-from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.base_sandbox import BaseSandbox
 from opensage.sandbox.initializers.base import SandboxInitializer
 from opensage.sandbox.sandbox_paths import get_shared
 

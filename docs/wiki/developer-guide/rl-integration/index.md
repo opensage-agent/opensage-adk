@@ -4,7 +4,7 @@ icon: lucide/graduation-cap
 
 # RL Training Integration
 
-OpenSage-ADK exposes evaluation benchmarks as RL rollout targets. Two integrations currently ship:
+OpenSage-ADK exposes evaluation benchmarks as RL rollout targets. This guide covers two integrations, AReaL and slime. A third adapter, `miles`, is registered in `src/opensage/evaluation/rl_adapters/adapters/` but does not yet have a dedicated guide.
 
 | Framework | Rollout Engine | Trainer | Benchmark Coverage |
 |---|---|---|---|

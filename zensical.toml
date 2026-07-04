@@ -40,9 +40,8 @@ nav = [
             { "Step 3: Add MCP Tools" = "get-started/customize/mcp.md" },
             { "Step 4: Tune Memory & History" = "get-started/customize/history.md" },
             { "Step 5: Turn on Plugins" = "get-started/customize/plugins.md" },
-            { "Step 6: Agent Ensembles" = "get-started/customize/agent-ensemble.md" },
-            { "Step 7: Neo4j Logging" = "get-started/customize/neo4j.md" },
-            { "Step 8: Extra Building" = "get-started/customize/build.md" },
+            { "Step 6: Neo4j Logging" = "get-started/customize/neo4j.md" },
+            { "Step 7: Extra Building" = "get-started/customize/build.md" },
             { "Complete Example" = "get-started/customize/complete-example.md" }
         ] },
         { "Agent Examples" = [
@@ -55,9 +54,8 @@ nav = [
                 { "Agent with a Custom MCP Server" = "get-started/examples/agents_101/mcp_server_tool.md" },
             ] },
             { "Agents With Features" = [
-                { "Agent Ensemble" = "get-started/examples/agents_with_features/sample_agent_ensemble.md" },
+                { "Multi-Model Delegation" = "get-started/examples/agents_with_features/sample_agent_ensemble.md" },
                 { "Dynamic Sub-Agents" = "get-started/examples/agents_with_features/sample_dynamic_subagent.md" },
-                { "Tool Combo" = "get-started/examples/agents_with_features/sample_tool_combo.md" },
                 { "History Summarization" = "get-started/examples/agents_with_features/sample_summarization.md" },
                 { "Neo4j Logging" = "get-started/examples/agents_with_features/sample_neo4j_logging.md" },
                 { "Web Search" = "get-started/examples/agents_with_features/sample_web_search.md" },
@@ -86,7 +84,6 @@ nav = [
             { "PoC Generation — Static" = "inside-opensage/examples/poc_agent_static_tools.md" },
             { "PoC Generation — Dynamic" = "inside-opensage/examples/poc_agent_dynamic_tools.md" },
             { "Debugger Agent" = "inside-opensage/examples/debugger_agent.md" },
-            { "CTF Agent" = "inside-opensage/examples/ctf_agent.md" },
             { "Patch Scaffold" = "inside-opensage/examples/patch_agent.md" },
             { "Fuzzing Agent" = "inside-opensage/examples/fuzzing_agent.md" },
         ] },
@@ -121,11 +118,11 @@ nav = [
         { "Configuration Reference" = [
             { "Overview" = "reference/configuration/index.md" },
             { "[llm]" = "reference/configuration/llm.md" },
+            { "[model]" = "reference/configuration/model.md" },
             { "[sandbox]" = "reference/configuration/sandbox.md" },
             { "[mcp]" = "reference/configuration/mcp.md" },
             { "[history]" = "reference/configuration/history.md" },
             { "[plugins]" = "reference/configuration/plugins.md" },
-            { "[agent_ensemble]" = "reference/configuration/agent-ensemble.md" },
             { "[neo4j]" = "reference/configuration/neo4j.md" },
             { "[build]" = "reference/configuration/build.md" },
         ] },

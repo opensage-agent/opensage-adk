@@ -39,7 +39,7 @@ from opensage.plugins import load_plugins
 from opensage.session.opensage_session import OpenSageSession
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
 from opensage.utils.bash_tools_staging import compute_bash_tools_top_roots
-from opensage.utils.project_info import PROJECT_PATH, SRC_PATH
+from opensage.utils.project_info import PROJECT_PATH
 
 # TODO: incompatibility between litellm and multiple async event loops
 litellm.disable_streaming_logging = True
@@ -60,11 +60,6 @@ def get_evaluation_class(name: str) -> type[Evaluation] | None:
         type[Evaluation] | None: Evaluation subclass or None if not found
     """
     return _EVALUATION_REGISTRY.get(name.lower())
-
-
-def list_evaluations() -> list[str]:
-    """List all registered evaluation names."""
-    return list(_EVALUATION_REGISTRY.keys())
 
 
 def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dict:

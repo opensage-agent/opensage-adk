@@ -49,7 +49,7 @@ except Exception as _patch_err:
     )
 
 # Export version
-__version__ = "1.0.0"
+__version__ = "0.1.0"
 
 # Primary session interface
 # For backward compatibility and advanced usage

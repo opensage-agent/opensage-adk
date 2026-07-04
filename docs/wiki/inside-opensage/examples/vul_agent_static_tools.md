@@ -16,35 +16,28 @@ No program is executed. No PoC is generated. The agent answers a single question
 ## Key Design
 
 - **Joern-backed retrieval.** `search_function`, `get_caller`, `get_callee`, and `neo4j_query` hit a Joern-generated code-property graph stored in Neo4j. This gives exact, query-able call edges rather than LLM-guessed "probably called from".
-- **Tight toolset.** No `finish_task`, no `create_subagent`, no ensemble helpers; this agent is expected to be *called as a tool* by a higher-level orchestrator, which provides those primitives.
-- **Configurable ensemble models.** Although it does not orchestrate ensembles itself, `mk_agent` mutates the session config to publish `available_models_for_ensemble`, so a parent agent can fan out to multiple models when using this agent as one member of an ensemble.
+- **Tight toolset.** No `finish_task` and no `create_subagent`. A higher-level orchestrator calls this agent as a sub-agent and provides those primitives.
 
 ## Agent Source
 
 ```python title="agent_library/agents/vul_agent_static_tools/agent.py"
+from google.adk.models.lite_llm import LiteLlm
+
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.session import get_opensage_session
 from opensage.toolbox.general.bash_tool import bash_tool_main
-from opensage.toolbox.retrieval.search_tools import (
+from benchmarks.common_tools.retrieval import (
     get_line_around_linenum_in_file, grep_tool, list_functions_in_file,
 )
-from opensage.toolbox.static_analysis.cpg import (
+from benchmarks.common_tools.static_analysis import (
     get_callee, get_caller, neo4j_query, search_function,
 )
 
 def mk_agent(opensage_session_id="vulnerability-detection-agent-session"):
     opensage_session = get_opensage_session(opensage_session_id)
-    config = opensage_session.config
-    config.subagent.available_models_for_ensemble = [
-        "anthropic/claude-opus-4-7",
-        "openai/o4-mini",
-        "openai/gpt-5",
-    ]
-    opensage_session.config = config
-
     return OpenSageAgent(
         name="vulnerability_detection_agent",
-        model=LiteLlm(model="anthropic/claude-opus-4-7"),
+        model=LiteLlm(model="anthropic/claude-sonnet-4-5-20250929"),
         description="find vulnerabilities existing in this function.",
         instruction="""
         You are an expert in vulnerability research. Given a function, detect if any

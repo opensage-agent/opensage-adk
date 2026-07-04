@@ -1,13 +1,13 @@
-"""Namespace sandbox backend — thin adapter over agentdocker-lite.
+"""Namespace sandbox backend — thin adapter over nitrobox.
 
 Delegates all isolation (namespaces, overlayfs/btrfs, cgroups, seccomp,
-persistent shell) to the ``agentdocker_lite`` package while implementing
+persistent shell) to the ``nitrobox`` package while implementing
 the OpenSage :class:`BaseSandbox` interface.
 
 Configuration::
 
     [sandbox]
-    backend = "agentdocker-lite"
+    backend = "nitrobox"
 
     [sandbox.sandboxes.main]
     image = "/base-images/ubuntu-22.04"   # rootfs dir or Docker image
@@ -15,7 +15,7 @@ Configuration::
 
     [sandbox.sandboxes.main.extra]
     fs_backend = "btrfs"                  # "overlayfs" (default) or "btrfs"
-    env_base_dir = "/tmp/opensage_ns"       # workspace base directory
+    env_base_dir = "/tmp/nitrobox"          # workspace base directory
     cpu_max = "50000 100000"              # cgroup cpu.max
     memory_max = "536870912"              # cgroup memory.max (512 MB)
     pids_max = "256"                      # cgroup pids.max
@@ -24,6 +24,7 @@ Configuration::
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import shutil
@@ -45,7 +46,7 @@ def _container_config_to_sandbox_config(
     session_id: str | None = None,
     sandbox_type: str | None = None,
 ) -> tuple[_SandboxConfig, str]:
-    """Convert OpenSage ContainerConfig → agentdocker-lite SandboxConfig.
+    """Convert OpenSage ContainerConfig → nitrobox SandboxConfig.
 
     Returns (sandbox_config, sandbox_name).
     """
@@ -59,7 +60,7 @@ def _container_config_to_sandbox_config(
         environment={k: str(v) for k, v in (cc.environment or {}).items()},
         volumes=list(cc.volumes or []),
         fs_backend=extra.get("fs_backend", "overlayfs"),
-        env_base_dir=extra.get("env_base_dir", "/tmp/opensage_ns"),
+        env_base_dir=extra.get("env_base_dir", "/tmp/nitrobox"),
         rootfs_cache_dir=extra.get("rootfs_cache_dir", "/tmp/opensage_rootfs_cache"),
         cpu_max=extra.get("cpu_max"),
         memory_max=extra.get("memory_max"),
@@ -68,15 +69,15 @@ def _container_config_to_sandbox_config(
     return cfg, name
 
 
-class AgentDockerLiteSandbox(BaseSandbox):
-    """OpenSage adapter over ``agentdocker_lite.Sandbox``.
+class NitroboxSandbox(BaseSandbox):
+    """OpenSage adapter over ``nitrobox.Sandbox``.
 
     Translates :class:`ContainerConfig` to :class:`SandboxConfig` and
-    delegates sandbox operations to the underlying agentdocker-lite instance.
+    delegates sandbox operations to the underlying nitrobox instance.
     """
 
-    backend_type = "agentdocker-lite"
-    DEFAULT_ENV_BASE_DIR = "/tmp/agentdocker_lite"
+    backend_type = "nitrobox"
+    DEFAULT_ENV_BASE_DIR = "/tmp/nitrobox"
 
     def __init__(
         self,
@@ -85,8 +86,8 @@ class AgentDockerLiteSandbox(BaseSandbox):
         backend_type: str = None,
         sandbox_type: str = None,
     ):
-        assert backend_type == "agentdocker-lite", (
-            f"AgentDockerLiteSandbox requires backend_type='agentdocker-lite', got {backend_type!r}"
+        assert backend_type == "nitrobox", (
+            f"NitroboxSandbox requires backend_type='nitrobox', got {backend_type!r}"
         )
         super().__init__(
             container_config, opensage_session_id, backend_type, sandbox_type
@@ -99,7 +100,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
         self._inner = _make_sandbox(cfg, name)
         elapsed_ms = (time.monotonic() - t0) * 1000
         logger.info(
-            "AgentDockerLiteSandbox ready (%.1fms): name=%s fs=%s rootfs=%s",
+            "NitroboxSandbox ready (%.1fms): name=%s fs=%s rootfs=%s",
             elapsed_ms,
             name,
             cfg.fs_backend,
@@ -112,7 +113,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
     def _rootfs(self) -> Path:
         return self._inner.rootfs
 
-    # -- agentdocker-lite API pass-through ---------------------------------- #
+    # -- nitrobox API pass-through ---------------------------------- #
 
     def save_as_image(self, image_name: str) -> None:
         """Save current sandbox state as a Docker image."""
@@ -174,7 +175,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
         logger.info("Deleted sandbox env (%.1fms): %s", elapsed_ms, self._rootfs)
 
     def __del__(self):
-        pass  # agentdocker-lite handles its own __del__
+        pass  # nitrobox handles its own __del__
 
     # ------------------------------------------------------------------ #
     #  Class methods — shared volume management                          #
@@ -235,7 +236,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
     @classmethod
     async def create_single_sandbox(
         cls, session_id: str, sandbox_type: str, container_config: ContainerConfig
-    ) -> tuple[str, "AgentDockerLiteSandbox"]:
+    ) -> tuple[str, "NitroboxSandbox"]:
         from opensage.sandbox.factory import create_sandbox_class, get_initializer_class
 
         t0 = time.monotonic()
@@ -264,7 +265,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
         tools_volume_id: str = None,
     ) -> dict:
         t0 = time.monotonic()
-        sandbox_instances: dict[str, AgentDockerLiteSandbox] = {}
+        sandbox_instances: dict[str, NitroboxSandbox] = {}
 
         for sandbox_type, config in sandbox_configs.items():
             extra_volumes: list[str] = []
@@ -295,7 +296,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
 
         elapsed_ms = (time.monotonic() - t0) * 1000
         logger.info(
-            "Launched %d agentdocker-lite sandboxes (%.1fms): %s",
+            "Launched %d nitrobox sandboxes (%.1fms): %s",
             len(sandbox_instances),
             elapsed_ms,
             list(sandbox_instances.keys()),
@@ -317,7 +318,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
 
         for sandbox_type, sandbox_instance in sandbox_instances.items():
 
-            async def _init_one(instance: "AgentDockerLiteSandbox") -> None:
+            async def _init_one(instance: "NitroboxSandbox") -> None:
                 if getattr(instance, "_using_cached", False):
                     await instance.ensure_ready()
                 else:
@@ -372,12 +373,12 @@ class AgentDockerLiteSandbox(BaseSandbox):
     async def initialize_single_sandbox(
         cls,
         sandbox_type: str,
-        sandbox_instance: "AgentDockerLiteSandbox",
+        sandbox_instance: "NitroboxSandbox",
         all_sandboxes: dict[str, BaseSandbox],
     ) -> None:
         """Initialize a single sandbox, passing the full sandbox map for peer access."""
 
-        async def _init_one(instance: "AgentDockerLiteSandbox") -> None:
+        async def _init_one(instance: "NitroboxSandbox") -> None:
             if getattr(instance, "_using_cached", False):
                 await instance.ensure_ready()
             else:
@@ -402,7 +403,7 @@ class AgentDockerLiteSandbox(BaseSandbox):
     @staticmethod
     async def _run_initializer_with_tracking(
         sandbox_type: str,
-        sandbox_instance: "AgentDockerLiteSandbox",
+        sandbox_instance: "NitroboxSandbox",
         init_coro: Awaitable[None],
     ) -> None:
         t0 = time.monotonic()
@@ -475,19 +476,49 @@ class AgentDockerLiteSandbox(BaseSandbox):
         with both ``docker run`` and ``SandboxConfig(image=...)``.
         """
         t0 = time.monotonic()
-        results: dict[str, str] = {}
+        cache_dir_path = Path(cache_dir)
+        cache_results = {
+            "backend": cls.backend_type,
+            "task_name": task_name,
+            "cache_dir": str(cache_dir_path),
+            "shared_volume_backup": None,
+            "cached_images": {},
+            "errors": [],
+        }
+        cache_dir_path.mkdir(parents=True, exist_ok=True)
 
         for sandbox_type, instance in sandbox_instances.items():
             image_name = f"{task_name}_sandbox_{sandbox_type}:cached"
             try:
                 instance.save_as_image(image_name)
-                results[sandbox_type] = image_name
+                cache_results["cached_images"][sandbox_type] = {
+                    "image_name": image_name,
+                    "image_id": image_name,
+                    "container_id": getattr(instance, "container_id", None),
+                }
             except Exception as e:
-                logger.warning("Failed to cache %s: %s", sandbox_type, e)
+                error = f"Failed to cache {sandbox_type}: {e}"
+                logger.warning(error)
+                cache_results["errors"].append(error)
+
+        manifest_data = {
+            "task_name": task_name,
+            "cache_dir": str(cache_dir_path),
+            "shared_volume_backup": cache_results["shared_volume_backup"],
+            "sandboxes": cache_results["cached_images"],
+        }
+        manifest_path = cache_dir_path / "nitrobox_cache_manifest.json"
+        with manifest_path.open("w", encoding="utf-8") as manifest_file:
+            json.dump(manifest_data, manifest_file, indent=2)
+        cache_results["metadata_path"] = str(manifest_path)
 
         elapsed_ms = (time.monotonic() - t0) * 1000
-        logger.info("Cache complete (%.1fms): %d sandboxes", elapsed_ms, len(results))
-        return results
+        logger.info(
+            "Cache complete (%.1fms): %d sandboxes",
+            elapsed_ms,
+            len(cache_results["cached_images"]),
+        )
+        return cache_results
 
     @classmethod
     def delete_shared_volumes(
@@ -503,14 +534,10 @@ class AgentDockerLiteSandbox(BaseSandbox):
 
     @classmethod
     def checkpoint(cls) -> str:
-        """Checkpoint is not supported for agentdocker-lite backend."""
-        raise NotImplementedError(
-            "Checkpoint is not implemented for AgentDockerLiteSandbox"
-        )
+        """Checkpoint is not supported for nitrobox backend."""
+        raise NotImplementedError("Checkpoint is not implemented for NitroboxSandbox")
 
     @classmethod
     def restore(cls) -> str:
-        """Restore is not supported for agentdocker-lite backend."""
-        raise NotImplementedError(
-            "Restore is not implemented for AgentDockerLiteSandbox"
-        )
+        """Restore is not supported for nitrobox backend."""
+        raise NotImplementedError("Restore is not implemented for NitroboxSandbox")

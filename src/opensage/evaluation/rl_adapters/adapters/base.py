@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class BaseAdapter(ABC):
     """Abstract base adapter for RL framework integration.
 
-    Each RL framework (slime, verl, areal, etc.) should have its own
+    Each RL framework (slime, AReaL, Miles, etc.) should have its own
     adapter that implements this interface.
 
     The adapter is responsible for:
@@ -90,13 +90,15 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    async def generate(
-        self,
-        args: Any,
-        sample: Any,
-        sampling_params: dict[str, Any],
-    ) -> Any:
+    async def generate(self, *args: Any, **kwargs: Any) -> Any:
         """Generate response using the Evaluation.
+
+        The public signature is framework-specific and is exposed through the
+        corresponding ``RLSession`` helper:
+
+        - slime: ``generate(args, sample, sampling_params)``
+        - AReaL: ``generate(data, model, **kwargs)``
+        - Miles: ``generate(base_url=..., prompt=..., metadata=..., ...)``
 
         This method should:
         1. Convert sample to dict using convert_to_sample_dict()
@@ -105,9 +107,8 @@ class BaseAdapter(ABC):
         4. Update sample with results using update_sample_success/error()
 
         Args:
-            args (Any): Framework-specific arguments
-            sample (Any): Framework-specific sample object
-            sampling_params (dict[str, Any]): Sampling parameters
+            *args: Framework-specific positional arguments
+            **kwargs: Framework-specific keyword arguments
         Returns:
             Any: Updated sample object in framework-expected format
         """

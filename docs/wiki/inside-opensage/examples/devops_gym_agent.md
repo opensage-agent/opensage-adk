@@ -11,12 +11,12 @@
 - **Issue resolving**: generate patches that fix GitHub-style issues.
 - **Test generation**: write tests that reproduce the bug and validate the fix.
 
-It sits one step up from [`harbor_agent`](./harbor_agent.md): the tool palette is the same terminal + file-ops set, but the agent now has access to **multi-agent orchestration primitives** (ensembles, dynamic sub-agents) and a **`think`** tool for explicit planning. No debugger sidecars, no graph-database memory; the premise of DevOps-Gym is that the raw Linux terminal plus a planning loop is enough.
+It sits one step up from [`harbor_agent`](./harbor_agent.md): the tool palette is the same terminal + file-ops set, but the agent now has access to **dynamic sub-agent orchestration primitives** (`create_subagent` / `call_subagent` / `list_subagents`) and a **`think`** tool for explicit planning. No debugger sidecars, no graph-database memory; the premise of DevOps-Gym is that the raw Linux terminal plus a planning loop is enough.
 
 ## Key Design
 
 - **`think` as a first-class tool.** The workflow in the system prompt explicitly tells the agent to plan before acting.
-- **`agent_ensemble_pairwise` for deadlock.** When stuck after several attempts, the agent is instructed to consult a pairwise ensemble for a fresh perspective.
+- **Fresh-perspective sub-agent for deadlock.** When stuck after several attempts, the agent is instructed to spin up a fresh sub-agent (`create_subagent` + `call_subagent`), optionally on a different model, for an unbiased second pass.
 - **Pattern-specific completion.** For monitoring tasks, the agent writes a canonical `/workspace/monitor_result.txt` with the anomaly pattern and the reason: a contract the evaluator reads.
 - **No evaluation scripts.** The prompt explicitly forbids reading or executing grading scripts in the environment.
 
@@ -26,22 +26,20 @@ It sits one step up from [`harbor_agent`](./harbor_agent.md): the tool palette i
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (
-    agent_ensemble, agent_ensemble_pairwise,
-    complain, get_available_agents_for_ensemble, get_available_models,
-    think,
+    complain, think,
 )
 from opensage.toolbox.general.bash_tools_interface import (
-    get_background_task_output, list_available_scripts,
+    get_background_task_output,
     list_background_tasks, run_terminal_command,
 )
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool, create_subagent, list_active_agents,
-)
 from opensage.toolbox.general.fileop import str_replace_edit, view_file
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent, create_subagent, get_available_models, list_subagents,
+)
 
 def mk_agent(opensage_session_id, model=None):
     if model is None:
-        model = LiteLlm(model="openai/gpt-5.4")
+        model = LiteLlm(model="openai/gpt-5.5")
     return OpenSageAgent(
         name="devops_gym_agent",
         model=model,
@@ -51,10 +49,9 @@ def mk_agent(opensage_session_id, model=None):
             think, complain,
             view_file, str_replace_edit,
             run_terminal_command,
-            list_background_tasks, get_background_task_output, list_available_scripts,
-            agent_ensemble, agent_ensemble_pairwise,
-            get_available_agents_for_ensemble, get_available_models,
-            create_subagent, list_active_agents, call_subagent_as_tool,
+            list_background_tasks, get_background_task_output,
+            get_available_models,
+            create_subagent, list_subagents, call_subagent,
         ],
     )
 ```

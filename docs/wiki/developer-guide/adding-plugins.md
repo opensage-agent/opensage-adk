@@ -54,10 +54,9 @@ enabled = [
 | `build_verifier_plugin`           | after_tool     | Intercepts `finish_task` and runs build verification; blocks completion if build fails        |
 | `tool_response_summarizer_plugin` | after_tool     | Summarizes tool responses exceeding `max_tool_response_length` via LLM. **Modifies `result`** |
 | `history_summarizer_plugin`       | after_tool     | Compacts conversation history when it exceeds budget                                          |
-| `memory_observer_plugin`          | after_tool     | Persists valuable tool results to Neo4j (async). Requires `[memory] enabled = true`           |
 | `quota_after_tool_plugin`         | after_tool     | Appends remaining LLM call quota to tool responses                                            |
-| `message_board_diff_plugin`       | after_tool     | Appends unread message board diffs in ensemble runs                                           |
-| `parts_from_tool`                 | after_tool     | Injects image/multimodal `types.Part` from tool results into next LLM request                 |
+| `runtime_budget_plugin`           | before + after model | Enforces and records session-level LLM budget usage                                      |
+| `image_injection_plugin`          | after_tool + before_model + on_event | Collects image parts from tool results and injects them into model requests |
 
 **Claude Code hooks** (`default/claude_code_hooks/`):
 
@@ -180,11 +179,10 @@ src/opensage/plugins/
     │   ├── doom_loop_detector_plugin.py
     │   ├── read_before_edit_plugin.py
     │   ├── history_summarizer_plugin.py
-    │   ├── memory_observer_plugin.py
-    │   ├── message_board_diff_plugin.py
+    │   ├── image_injection_plugin.py
     │   ├── quota_after_tool_plugin.py
-    │   ├── tool_response_summarizer_plugin.py
-    │   └── parts_from_tool.py
+    │   ├── runtime_budget_plugin.py
+    │   └── tool_response_summarizer_plugin.py
     └── claude_code_hooks/          # Default JSON hooks
         ├── careful_edit.json
         ├── test_output_review.json

@@ -1,5 +1,5 @@
 """
-SecAgentFramework Configuration Management
+OpenSage-ADK Configuration Management
 
 Provides centralized configuration management with per-session support.
 """

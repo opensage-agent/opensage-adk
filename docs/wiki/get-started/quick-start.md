@@ -66,12 +66,11 @@ The `agent.py` file contains a `mk_agent()` factory function that returns your r
 
 ```python title="agent.py"
 import os
-from typing import Optional
 
 from google.adk.models.lite_llm import LiteLlm
 
 import opensage
-from opensage.agents import MemoryManagement, OpenSageAgent
+from opensage.agents import OpenSageAgent
 
 
 def mk_agent(opensage_session_id: str, model=None):
@@ -89,9 +88,8 @@ def mk_agent(opensage_session_id: str, model=None):
         model=model,
         instruction="You are a helpful assistant.",
         enabled_skills="all",
-        memory_management=MemoryManagement.FILE,
         tools=[],
-        sub_agents=[],
+        subagents=[],
     )
 ```
 
@@ -129,7 +127,7 @@ The [Customize Agents](customize/index.md) section is the place to shape an agen
 - [MCP Tools](customize/mcp.md): wire in external tool servers over SSE, stdio, or streamable HTTP.
 - [History](customize/history.md): keep long runs from overflowing the context window.
 - [Plugins](customize/plugins.md): opt in to doom-loop detection, summarization, quota tracking, build verification.
-- [Agent Ensembles](customize/agent-ensemble.md), [Neo4j Logging](customize/neo4j.md), [Extra Build](customize/build.md): advanced sections for multi-model fan-out, graph memory, and target compilation.
+- [Neo4j Logging](customize/neo4j.md), [Extra Build](customize/build.md): advanced sections for graph memory and target compilation.
 
 If you want a single file that uses most of these at once, see the [complete example](customize/complete-example.md).
 
@@ -165,7 +163,7 @@ The [Reference](../reference/opensage-cli.md) section is the place for exact fie
 
 - [CLI Reference](../reference/opensage-cli.md), [`opensage web`](../reference/opensage-web.md), [`dependency-check`](../reference/dependency-check.md).
 - [Configuration Reference](../reference/configuration/index.md): every supported field, section by section.
-- [Troubleshooting](../reference/troubleshooting.md).
+- [Troubleshooting](../developer-guide/troubleshooting.md).
 
 ### Get Involved
 

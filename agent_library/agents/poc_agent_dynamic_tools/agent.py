@@ -8,13 +8,13 @@ from dotenv import load_dotenv
 from google.adk.agents.llm_agent import ToolUnion
 from google.adk.models.lite_llm import LiteLlm
 
-from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.session import get_opensage_session
-from opensage.toolbox.benchmark_specific.cybergym.cybergym import (
+from benchmarks.cybergym.tools import (
     critique,
     generate_poc_and_submit,
     run_poc_from_script,
 )
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.session import get_opensage_session
 from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (
@@ -34,21 +34,6 @@ from opensage.toolbox.general.orchestration_tools import (
     get_available_models,
     list_subagents,
 )
-
-# from opensage.toolbox.retrieval.search_tools import (
-#     get_line_around_linenum_in_file,
-#     list_functions_in_file,
-#     search_symbol_definition,
-# )
-# from opensage.toolbox.static_analysis.cpg import (
-#     get_call_paths_to_function,
-#     get_callee,
-#     get_caller,
-#     joern_query,
-#     joern_slice,
-#     neo4j_query,
-#     search_function,
-# )
 
 
 def mk_agent(opensage_session_id: str):
@@ -111,16 +96,6 @@ You should pay absolute attention to the entrypoint LLVMFuzzerTestOneInput and s
             create_subagent,
             list_subagents,
             call_subagent,
-            # neo4j_query,
-            # joern_slice,
-            # joern_query,
-            # search_symbol_definition,
-            # search_function,
-            # get_caller,
-            # get_callee,
-            # get_call_paths_to_function,
-            # list_functions_in_file,
-            # get_line_around_linenum_in_file,
             finish_task,
             generate_poc_and_submit,
             run_poc_from_script,

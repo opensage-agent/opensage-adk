@@ -25,22 +25,20 @@ The prompt explicitly orders the tools: *static first, dynamic only when stuck*.
 ```python title="agent_library/agents/poc_agent_dynamic_tools/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
 from opensage.session import get_opensage_session
-from opensage.toolbox.benchmark_specific.cybergym.cybergym import (
+from benchmarks.cybergym.tools import (
     critique, generate_poc_and_submit, run_poc_from_script,
 )
 from opensage.toolbox.debugger.gdb_mcp.get_toolset import get_toolset as get_gdb_toolset
 from opensage.toolbox.finish_task.finish_task import finish_task
 from opensage.toolbox.general.agent_tools import (
-    agent_ensemble, agent_ensemble_pairwise, complain,
-    get_available_agents_for_ensemble, get_available_models,
-    note_suspicious_things, think,
+    complain, note_suspicious_things, think,
 )
 from opensage.toolbox.general.bash_tools_interface import (
-    get_background_task_output, list_available_scripts,
+    get_background_task_output,
     list_background_tasks, run_terminal_command,
 )
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool, create_subagent, list_active_agents,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent, create_subagent, get_available_models, list_subagents,
 )
 
 def mk_agent(opensage_session_id):
@@ -61,13 +59,12 @@ def mk_agent(opensage_session_id):
         model=model,
         instruction=POC_DYNAMIC_PROMPT,
         tools=[
-            agent_ensemble, agent_ensemble_pairwise,
-            get_available_agents_for_ensemble, get_available_models,
-            create_subagent, list_active_agents, call_subagent_as_tool,
+            get_available_models,
+            create_subagent, list_subagents, call_subagent,
             finish_task, generate_poc_and_submit, run_poc_from_script,
             critique, complain,
             list_background_tasks, get_background_task_output,
-            run_terminal_command, list_available_scripts,
+            run_terminal_command,
             gdb_toolset,
         ],
         enabled_skills=[

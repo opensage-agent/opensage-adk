@@ -8,7 +8,7 @@ Field reference for the `[plugins]` section. For how to use it, see the [Plugins
 |-------|------|-------------|---------|
 | `enabled` | `list[string]` | List of enabled plugin names (or regex patterns) | `[]` |
 | `extra_plugin_dirs` | `list[string]` | Additional directories to search for plugins | `[]` |
-| `adk_plugin_params` | `dict[string, dict]` | Per-ADK-plugin constructor kwargs, keyed by plugin name | `{}` |
+| `params` | `dict[string, dict]` | Per-plugin constructor kwargs, keyed by plugin name. Set as `[plugins.params.<plugin_name>]` in TOML. | `{}` |
 
 ## Default Plugin Discovery Paths
 

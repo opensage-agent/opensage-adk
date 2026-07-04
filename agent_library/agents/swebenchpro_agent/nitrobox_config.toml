@@ -27,7 +27,7 @@ compaction_percent = 50
 [subagent]
 
 [sandbox]
-backend = "agentdocker-lite"
+backend = "nitrobox"
 
 [sandbox.sandboxes.main]
 image = "${DEFAULT_IMAGE}"

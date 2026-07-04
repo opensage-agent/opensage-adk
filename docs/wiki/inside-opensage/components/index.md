@@ -12,21 +12,21 @@ The rest of this section walks through the concepts you'll meet once you move pa
 
 An OpenSage agent is built from six composable subsystems:
 
-- **[Sessions](./sessions.md)**: the per-run root object that owns configuration, sandbox handles, Neo4j clients, ensembles, and dynamic agents. One session = one `session_id` = one isolated run.
-- **[Sandboxes](./sandbox.md)**: isolated execution environments (containers or native) where every tool call actually runs. A single session can juggle many sandboxes (`main`, `neo4j`, `gdb_mcp`, and similar).
-- **[Tools](./tools.md)**: the verbs the LLM can use. Python functions, MCP toolsets, bash skills, `ToolCombo` sequences: all normalized into a single tool list before the LLM sees them.
-- **[Plugins](./plugins.md)**: small opt-in behaviors that hook into the agent lifecycle (after tool, before model, on event). Plugins are how features like history summarization, quota tracking, and doom-loop detection are layered in.
-- **[History](./history.md)**: the strategy that keeps long runs from overflowing the context window. Two levers: truncate individual tool responses, and compact the running event log.
-- **[Multi-Agent](./multi-agent.md)**: sub-agents as tools, dynamically-spawned sub-agents, and model ensembles that fan a sub-task across several models in parallel.
+- **[Sessions](./sessions.md)**: the per-run root object that owns configuration, sandbox handles, Neo4j clients, the model registry, and the agent manager. One session equals one `opensage_session_id` equals one isolated run.
+- **[Sandboxes](./sandbox.md)**: isolated execution environments (containers or native) where every tool call runs. A single session can hold many sandboxes (`main`, `neo4j`, `gdb_mcp`, and similar).
+- **[Tools](./tools.md)**: the verbs the model can use. Python functions, MCP toolsets, and bash skills normalize into a single tool list before the model sees them.
+- **[Plugins](./plugins.md)**: small opt-in behaviors that hook into the agent lifecycle (after tool, before model, on event). Plugins layer in features such as history summarization, quota tracking, and doom-loop detection.
+- **[History](./history.md)**: the strategy that keeps long runs from overflowing the context window, through two levers: truncate individual tool responses, and compact the running event log.
+- **[Multi-Agent](./multi-agent.md)**: sub-agents declared at construction time or created at runtime, and per-model delegation through `call_subagent`.
 
 ## The `mk_agent` Factory
 
-Every agent directory exposes a `mk_agent(session_id: str)` factory. It receives a **session id** and returns a root agent (typically an `OpenSageAgent`). The factory should be deterministic and avoid heavy import-time work.
+Every agent directory exposes a `mk_agent(opensage_session_id: str)` factory. It receives a session id and returns a root agent, usually an `OpenSageAgent`. Keep the factory deterministic and free of heavy import-time work.
 
 ```python title="my_agent/agent.py"
 from opensage.agents.opensage_agent import OpenSageAgent
 
-def mk_agent(session_id: str):
+def mk_agent(opensage_session_id: str):
     return OpenSageAgent(
         name="my_agent",
         model=...,
@@ -35,9 +35,9 @@ def mk_agent(session_id: str):
     )
 ```
 
-The `session_id` is a user-chosen string (a UUID is a common choice) that scopes every resource created for this run: sandboxes, Neo4j clients, dynamic agents, ensemble message boards. The framework looks up `get_opensage_session(session_id)` to route those resources correctly.
+The `opensage_session_id` is a user-chosen string, often a UUID, that scopes every resource created for this run: sandboxes, Neo4j clients, agent instances, and peer-message inboxes. The framework calls `get_opensage_session(opensage_session_id)` to route those resources correctly.
 
-`OpenSageAgent` itself is a subclass of ADK's `LlmAgent` (`src/opensage/agents/opensage_agent.py`). It adds: tool normalization (Python functions, MCP toolsets, `ToolCombo` sequences all get wrapped into a uniform shape), `enabled_skills` handling (the bash-skills system), and automatic prompt injection describing which skills the agent can invoke.
+`OpenSageAgent` subclasses ADK's `LlmAgent` (`src/opensage/agents/opensage_agent.py`). It adds tool normalization (Python functions and MCP toolsets wrap into a uniform shape), `enabled_skills` handling for the bash-skills system, and automatic prompt injection describing which skills the agent can invoke.
 
 ## Runtime Shape
 
@@ -46,11 +46,12 @@ The `session_id` is a user-chosen string (a UUID is a common choice) that scopes
 │                                                  │
 │   OpenSageSession(session_id)                    │
 │   ├── config (OpenSageConfig, from TOML)         │
+│   ├── budget (BudgetManager)                     │
 │   ├── sandboxes   (OpenSageSandboxManager)       │
 │   ├── neo4j       (OpenSageNeo4jClientManager)   │
-│   ├── agents      (DynamicAgentManager)          │
-│   ├── ensemble    (OpenSageEnsembleManager)      │
-│   └── message_boards                             │
+│   ├── ADK services (session/artifact/memory/auth)│
+│   ├── llms        (LlmRegistry)                  │
+│   └── agent_manager (AgentManager)               │
 │                                                  │
 │   root_agent = mk_agent(session_id) <─ your code │
 │                                                  │
@@ -73,23 +74,25 @@ opensage-adk/
 ├── README.md
 ├── docs/                    # Docs source (Zensical)
 ├── src/
-│   └── opensage/              # Core Python package (current layout)
+│   └── opensage/            # Core Python package (current layout)
 │       ├── agents/          # Base agent + tool loading
 │       ├── bash_tools/      # Agent Skills (SKILL.md + scripts/)
-│       ├── cli/             # CLI entry points (opensage web / dependency-check)
+│       ├── cli/             # CLI entry points (opensage web / run / review / dependency-check)
 │       ├── config/          # TOML config system + dataclasses
-│       ├── evaluations/     # Benchmarks + evaluation runners
-│       ├── features/        # Feature flags / optional behaviors
-│       ├── memory/          # Neo4j-backed memory (search/update/tools)
-│       ├── plugins/         # ADK plugins
+│       ├── evaluation/      # Evaluation runners, dispatchers, RL adapters
+│       ├── features/        # Optional behaviors (summarization, session service)
+│       ├── memory/          # File-based memory (short-term + long-term)
+│       ├── orchestration/   # AgentManager, inboxes, sub-agent run loops
+│       ├── plugins/         # ADK plugins + Claude Code hooks
 │       ├── sandbox/         # Sandbox backends + initializers
 │       ├── sandbox_scripts/ # Scripts invoked inside sandboxes
-│       ├── session/         # Session + managers (sandboxes/agents/neo4j/ensemble)
+│       ├── session/         # OpenSageSession + sandbox/neo4j managers
 │       ├── templates/       # Default configs + Dockerfiles
 │       ├── toolbox/         # Python tool wrappers / MCP toolsets
-│       ├── util_agents/     # Utility sub-agents (e.g. memory management)
 │       └── utils/           # Shared utilities
 ├── agent_library/           # Example agents and configs
+├── benchmarks/              # Benchmark runners (cybergym, swe_bench_pro, cybench, ...)
+├── rl/                      # RL training integrations (areal, slime, nemo_rl)
 ├── tests/                   # Unit/integration tests
 └── third_party/             # External benchmark/tool dependencies
 ```

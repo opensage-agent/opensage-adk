@@ -37,7 +37,7 @@ class MyEvaluation(Evaluation):
     max_llm_calls: int = 100
     max_workers: int = 6
     use_multiprocessing: bool = True
-    run_until_explicit_finish: bool = True
+    run_until_explicit_finish: bool = False
     use_sandbox_cache: bool = True
 
     # Custom fields
@@ -137,7 +137,7 @@ Three ways to provide one, checked in priority order:
 
 3. **`run_until_explicit_finish`** — legacy field. Uses the built-in `default_fake_user` which sends a continuation prompt until `session.state["task_finished"]` is `True`. The agent must have the `finish_task` tool.
     ```python
-    run_until_explicit_finish: bool = True
+    run_until_explicit_finish: bool = False
     continuation_prompt: str | None = "Keep going."
     ```
 
@@ -175,14 +175,14 @@ registered name is the lowercase class name:
 
 ```bash
 # Production run
-python -m opensage.evaluations.my_benchmark.my_evaluation run \
+python -m benchmarks.my_benchmark.my_evaluation run \
   --dataset_path="org/dataset" \
   --agent_dir="agent_library/agents/my_agent" \
   --max_workers=6 \
   --output_dir="results/my_benchmark"
 
 # Debug run (single-threaded)
-python -m opensage.evaluations.my_benchmark.my_evaluation run_debug \
+python -m benchmarks.my_benchmark.my_evaluation run_debug \
   --dataset_path="org/dataset" \
   --agent_dir="agent_library/agents/my_agent"
 ```
@@ -190,7 +190,7 @@ python -m opensage.evaluations.my_benchmark.my_evaluation run_debug \
 **Python API:**
 
 ```python
-from opensage.evaluations import MyEvaluation
+from benchmarks.my_benchmark.my_evaluation import MyEvaluation
 
 eval = MyEvaluation(
     dataset_path="org/dataset",

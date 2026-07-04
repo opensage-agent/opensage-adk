@@ -6,7 +6,7 @@
 # Setup:
 # 1. Configure docker_host and docker_remote_host below
 # 2. Run OpenSage:
-#    python -m opensage.evaluations run_single_task --config remote_docker_config.toml
+#    uv run opensage web --config remote_docker_config.toml --agent /path/to/agent
 #
 # Note: Environment variables (DOCKER_HOST, DOCKER_REMOTE_HOST) can still be used
 #       as fallback if not specified in config.

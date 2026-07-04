@@ -92,13 +92,6 @@ git clone https://github.com/opensage-agent/opensage-adk.git
 cd opensage-adk
 uv venv --python 3.12
 uv sync
-uv run pre-commit install
-```
-
-The repo uses [pre-commit](https://pre-commit.com/) hooks for format checks: **ruff** (lint + format), **check-yaml**, **trailing-whitespace**, and **end-of-file-fixer**. They run automatically on `git commit`. To check all files manually:
-
-```bash
-uv run pre-commit run --all-files
 ```
 
 > [!NOTE]
@@ -125,11 +118,11 @@ from typing import Optional
 from google.adk.models.lite_llm import LiteLlm
 
 import opensage
-from opensage.agents import MemoryManagement, OpenSageAgent
+from opensage.agents import OpenSageAgent
 
 
 def mk_agent(session_id: str, model=None):
-    session = opensage.get_session(session_id)
+    session = opensage.get_opensage_session(session_id)
 
     if model is None:
         model = LiteLlm(
@@ -143,9 +136,8 @@ def mk_agent(session_id: str, model=None):
         model=model,
         instruction="You are a helpful assistant.",
         enabled_skills="all",
-        memory_management=MemoryManagement.FILE,
         tools=[],
-        sub_agents=[],
+        subagents=[],
     )
 ```
 
@@ -179,29 +171,6 @@ The repo includes [agent library examples](agent_library/) from basic agents to 
 - Discord: https://discord.gg/zbKe5ue8xc
 - GitHub Issues: https://github.com/opensage-agent/opensage-adk/issues
 - Contributing: see [Contributing](https://docs.adk.opensage-agent.ai/community/Contributing/) and [Development Guides](https://docs.adk.opensage-agent.ai/developer_guide/Project-Structure/)
-
-## :test_tube: Benchmarks
-
-### CVEGym
-
-The dataset is downloaded automatically from HuggingFace (`scale-env/cve-dockerfile-benchmark`) on first run. You must pin the dataset with `--dataset_revision` when auto-downloading. To pre-download and stage tasks without running the agent:
-
-```shell
-python -m benchmarks.cvegym.cvegym_bench prepare --dataset_revision <hf_revision>
-```
-
-Run evaluation:
-
-```shell
-# run all CVEs
-python -m benchmarks.cvegym.cvegym_bench run --dataset_revision <hf_revision>
-
-# run a specific CVE
-python -m benchmarks.cvegym.cvegym_bench run --dataset_revision <hf_revision> --cve_id CVE-2025-43859
-
-# evaluate results
-python -m benchmarks.cvegym.cvegym_bench evaluate
-```
 
 ## :page_facing_up: Citation
 

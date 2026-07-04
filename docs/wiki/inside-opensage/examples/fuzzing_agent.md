@@ -110,5 +110,5 @@ The agent stages seed inputs (and, optionally, a custom mutator) inside the `fuz
 
 ## Related References
 
-- [Tools](tools.md): how tools are declared, wrapped, and routed to sandboxes.
-- [Sandbox](sandbox.md): `main` and `fuzz` backend details.
+- [Tools](../components/tools.md): how tools are declared, wrapped, and routed to sandboxes.
+- [Sandbox](../components/sandbox.md): `main` and `fuzz` backend details.

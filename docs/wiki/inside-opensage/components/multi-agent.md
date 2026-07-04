@@ -1,135 +1,96 @@
 # Multi-Agent
 
-OpenSage-ADK treats "one agent" as the simple case and **multi-agent orchestration** as the default for non-trivial workloads. A root `OpenSageAgent` can spawn specialists, fan a sub-task across several models, chain tools as mini sequential agents, and share state through append-only message boards, all using tools the model calls directly with no out-of-band orchestration code.
+OpenSage-ADK runs one agent as the simple case and treats **multi-agent orchestration** as the default for larger work. A root `OpenSageAgent` declares specialists ahead of time or creates them at runtime, delegates a sub-task to a chosen model, and collects results synchronously or through an inbox. The model drives all of this by calling tools; no out-of-band orchestration code is required.
 
 Source:
 
-- Dynamic sub-agent tools: [`src/opensage/toolbox/general/dynamic_subagent.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/toolbox/general/dynamic_subagent.py)
-- Dynamic-agent manager: [`src/opensage/session/opensage_dynamic_agent_manager.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/session/opensage_dynamic_agent_manager.py)
-- Ensemble manager: [`src/opensage/session/opensage_ensemble_manager.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/session/opensage_ensemble_manager.py)
-- Ensemble tools: [`src/opensage/toolbox/general/agent_tools.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/toolbox/general/agent_tools.py)
-- Message board: [`src/opensage/session/message_board.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/session/message_board.py)
-- ToolCombo: [`src/opensage/features/tool_combo.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/features/tool_combo.py)
+- Agent manager: [`src/opensage/orchestration/manager.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/orchestration/manager.py)
+- Instance types and state: [`src/opensage/orchestration/types.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/orchestration/types.py)
+- Sub-agent tools: [`src/opensage/toolbox/general/orchestration_tools.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/toolbox/general/orchestration_tools.py)
+- Self-reflection tools: [`src/opensage/toolbox/general/agent_tools.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/toolbox/general/agent_tools.py)
+- Inbox delivery: [`src/opensage/orchestration/plugins/inbox_delivery.py`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/orchestration/plugins/inbox_delivery.py)
 
-## Three Patterns
+## The Agent Manager
 
-### 1. Sub-Agent as a Tool (`AgentTool`)
+`session.agent_manager` is an `AgentManager`. It holds two structures: a registry that maps an agent name to its `OpenSageAgent` template, and a set of live instances keyed by `session_id`. Declaring an agent adds a template; running one creates an instance.
 
-The simplest composition: wrap one agent in `AgentTool(agent=...)` and add it to the parent's `tools=[...]` list. The parent calls it like any other tool; the sub-agent runs to completion and returns its final answer as the tool result. This is ADK's native primitive; OpenSage does not modify it.
+`register_agent_tree(root)` registers the root and every statically declared sub-agent under it. `spawn(agent_name, ...)` builds a fresh instance from a registered template, persists its definition and state to disk under the session directory, and returns the new `session_id`; it does not start an invocation. Each instance carries an `AgentInstanceState` from `orchestration/types.py`: `RUNNING` during an invocation, `SLEEPING` when idle, and `TERMINATING` or `TERMINATED` on shutdown. Persisting to disk lets an instance survive a process restart.
+
+## Declaring Sub-Agents Statically
+
+When the set of specialists is known at construction time, pass them through `subagents=[...]` and give the root the `call_subagent` tool:
 
 ```python
-from google.adk.tools.agent_tool import AgentTool
+from opensage.toolbox.general.orchestration_tools import call_subagent, list_subagents
 
-calculation_agent = OpenSageAgent(name="calculator", model=..., tools=[...])
+calculation_agent = OpenSageAgent(name="calculation_agent", model=..., tools=[...])
 
 root_agent = OpenSageAgent(
     name="root",
-    tools=[AgentTool(agent=calculation_agent)],
+    subagents=[calculation_agent],
+    tools=[call_subagent, list_subagents],
 )
 ```
 
-Good for **statically-known specialists**: the set of sub-agents is fixed at agent-construction time.
+`OpenSageAgent` rejects two ADK-native alternatives so that one path stays canonical: it raises `ValueError` if you wrap a sub-agent in `AgentTool` and place it in `tools=`, and it raises `ValueError` for ADK's `sub_agents=` keyword. Declare sub-agents with `subagents=` and invoke them with `call_subagent`.
 
-### 2. Dynamic Sub-Agents
+## Creating Sub-Agents Dynamically
 
-When you do not know which specialists the root will need until runtime, hand it three tools and let it decide:
+When the root cannot know which specialists it needs until runtime, give it `create_subagent` and let it build them:
 
 ```python
-from opensage.toolbox.general.dynamic_subagent import (
-    create_subagent, call_subagent_as_tool, list_active_agents,
+from opensage.toolbox.general.orchestration_tools import (
+    create_subagent, call_subagent, list_subagents,
 )
 ```
 
-- **`create_subagent(name, model, instruction, tools_list, enabled_skills)`**: spawn a new `OpenSageAgent` inside the session, register it in `DynamicAgentManager`, and return its id. Status starts at `CREATED`.
-- **`call_subagent_as_tool(subagent_id, request)`**: wrap the sub-agent in `AgentTool`, invoke it, stringify the result.
-- **`list_active_agents()`**: introspection for the root, so it knows what it spawned earlier in the session.
+`create_subagent(agent_name, instruction, model_name, tools_list=None, enabled_skills=None, description=None)` builds a new `OpenSageAgent`, registers it in the same namespace as the static `subagents=[...]`, and persists its definition to disk. `model_name` must be a name that `get_available_models` returns. `tools_list` defaults to every tool the caller holds; pass a shorter list to restrict the child, since baseline tools such as `run_terminal_command` and the orchestration tools are injected regardless. `enabled_skills` selects bash-tool skills the same way the constructor does: `None` for none, `["all"]` for every top-level skill, or a list of paths. Registration alone does not run the child; follow it with `call_subagent(agent_name, request)`.
 
-The `DynamicAgentManager` keeps the parent-child tree in memory (and optionally mirrors metadata to `~/.local/opensage/dynamic_agents/` for cross-session persistence). Status transitions: `CREATED -> ACTIVE -> PAUSED / STOPPED / ERROR / PENDING_TOOLS`.
+`list_subagents()` returns the agents registered so far, so the root can see what it declared or built earlier in the session.
 
-**Tool inheritance.** `tools_list` is a list of names requested from the parent's tool surface. `extract_tools_from_agent()` validates each name against the parent's tools and toolsets; a `tool_name_prefix` match pulls in a whole MCP toolset. If a requested tool does not exist, the child is parked in `PENDING_TOOLS` until it is available (useful when a sibling agent is still registering a tool).
+## Delegating to a Specific Model
 
-**Skill inheritance** is independent. `None` gives the child no skills; `"all"` gives every top-level skill; a list of path prefixes gives the intersection. The child's instruction is augmented with a guardrail documenting the restriction.
-
-### 3. Ensembles (Multi-Model Fan-Out)
-
-When a single model is unreliable, fan the same sub-task across several models in parallel and aggregate:
+`call_subagent` accepts an optional `model_name` that overrides the template's model for one spawned instance:
 
 ```python
-from opensage.toolbox.general.agent_tools import (
-    agent_ensemble, agent_ensemble_pairwise,
-    get_available_agents_for_ensemble, get_available_models,
-)
+call_subagent("reviewer", request, model_name="openai/gpt-5")
 ```
 
-- **`agent_ensemble(agent_name, instruction, model_name_to_count)`**: launch `N` instances of `agent_name`, one per model in the count-dict (e.g. `{"anthropic/claude-opus-4-7": 2, "openai/gpt-5": 1}`), each receiving the same instruction. Results are aggregated by the `summarize` model profile, which is explicitly prompted to highlight consensus and disagreement.
-- **`agent_ensemble_pairwise`**: each parallel task gets **its own** instruction and model. Useful for "explore from two angles" rather than "verify with two models".
+`get_available_models()` returns the model names in the session's `LlmRegistry`, which are the valid values for `model_name`. To hedge a single-model mistake, call the same sub-agent several times with different `model_name` values and compare the results in the parent. This replaces the earlier ensemble tools; fan-out is now expressed as ordinary `call_subagent` calls rather than a dedicated primitive.
 
-`OpenSageEnsembleManager` runs each instance in its own `asyncio` task. All instances share a **message board** (see below) scoped by an ensemble id, so they can post partial findings that the others can read.
+## Synchronous and Asynchronous Calls
 
-The `available_models_for_ensemble` list in `[agent_ensemble]` bounds which models the root can choose from; `get_available_models()` returns that list to the LLM.
+`call_subagent(agent_name, request, mode="sync", use_parent_history=False, model_name=None)` runs in one of two modes. In `"sync"` mode it blocks until the sub-agent finishes and returns the final response text. In `"async"` mode it returns at once; when the sub-agent finishes, its result lands in the caller's inbox, and the caller wakes if it has already ended its turn.
 
-## Message Boards
+The `InboxDeliveryPlugin` (`orchestration/plugins/inbox_delivery.py`) surfaces inbox messages to an agent between turns, so an async result or a message from a peer reaches the model without polling. Setting `use_parent_history=True` gives the sub-agent the parent's full conversation history; the default of `False` starts the child with only the `request`, which saves context budget for self-contained tasks.
 
-For coordination across parallel agents in an ensemble, OpenSage provides an **append-only JSONL board** (`MessageBoardManager`, `message_board.py`). Each ensemble run gets a unique `board_id`; every participant posts timestamped, author-labeled messages to the board with `post_to_board(...)`. Writes are lock-free; each agent keeps its own read cursor.
+## Self-Reflection Tools
 
-The `message_board_diff_plugin` (when enabled) surfaces new board entries to each agent between turns; tool responses grow a `_message_board_diff` field listing posts the agent has not seen yet. This turns the board into a lightweight shared blackboard without requiring the model to poll it.
-
-## Lightweight Self-Reflection Tools
-
-A small family of tools in `toolbox/general/agent_tools.py` encourage the model to externalize meta-reasoning instead of burying it in prose:
+`toolbox/general/agent_tools.py` holds a small family of tools that push the model to externalize meta-reasoning rather than bury it in prose:
 
 | Tool | Purpose |
 |---|---|
-| `think` | A no-op: the agent is asked to write its current plan as the argument. Cheap, trains the habit of planning before acting. |
-| `plan` | Same shape, framed for longer-horizon planning. |
-| `complain` | Marker for a stuck/uncertain state, visible to operators. |
-| `note_suspicious_things` | Records an observation the agent wants to flag without committing to it yet. |
-| `critique` | Calls a registered model (chosen by the agent via `model_name` parameter) with the recent conversation and returns critical feedback on progress, missed steps, and unjustified claims. |
-| `flag_unjustified_claims` | Sends conversation history to a registered model (chosen via `model_name`) to enumerate claims that were not substantiated by evidence. |
+| `think` | Records the agent's current plan, passed as the argument. Cheap, and it trains the habit of planning before acting. |
+| `plan` | Same shape as `think`, framed for longer-horizon planning. |
+| `complain` | Marks a stuck or uncertain state for operators to see. |
+| `note_suspicious_things` | Records an observation the agent wants to flag before committing to it. |
+| `log_finding` | Records a confirmed finding during a task. |
+| `critique` | Calls a model chosen through the `model_name` argument with the recent conversation and returns feedback on progress and missed steps. |
+| `audit_assumptions` | Calls a chosen model to list assumptions the agent has made without evidence. |
+| `validate_claim` | Calls a chosen model to check one specific `claim` against the conversation so far. |
 
-The critique/flag-claims tools are multi-agent in disguise. The agent picks a model from the registry (see `get_available_models`) and passes it as an argument; under the hood the tool spins up a fresh LLM call with that model and a specialized prompt, and returns its verdict.
-
-## ToolCombo as a Sequential Mini-Agent
-
-`ToolCombo` is a small primitive for chaining several tools into one atomic "tool" call:
-
-```python
-from opensage.features.tool_combo import ToolCombo
-
-combo = ToolCombo(
-    name="add_then_double",
-    tool_sequences=[add_numbers, multiply_by_two],
-    model=LiteLlm(model="openai/gpt-5.4"),
-    return_history=True,
-)
-
-root_agent = OpenSageAgent(..., tool_combos=[combo])
-```
-
-Under the hood, `ToolCombo` builds a `SequentialAgent` (ADK primitive) where each step is itself a tiny `OpenSageAgent` running the next tool with context-aware instructions. The final step optionally gets a `delegate_to_parent` tool so the chain can return early.
-
-Two modes:
-
-- **`return_history=True`**: the chain is exposed as a sub-agent, and intermediate steps are visible in the root's history.
-- **`return_history=False`**: wrapped in `AgentTool`; the root sees only the final result. Cheaper for the caller's context.
-
-See the [Agent with Tool Combo](../../get-started/examples/agents_with_features/sample_tool_combo.md) example for a runnable demo.
+`critique`, `audit_assumptions`, and `validate_claim` are multi-agent in disguise: the agent names a model from `get_available_models`, and the tool runs a fresh call to that model with a specialized prompt, then returns its verdict.
 
 ## When to Reach for Which Pattern
 
 | Situation | Pattern |
 |---|---|
-| Fixed set of helpers known at design time | **`AgentTool`** (sub-agent as a tool). |
-| Task decomposition is task-dependent | **Dynamic sub-agents**. |
-| Hedge against a single-model mistake | **`agent_ensemble`**. |
-| Multiple approaches worth trying in parallel | **`agent_ensemble_pairwise`**. |
-| Agents need to coordinate mid-run | **Message board** (enabled automatically in ensembles). |
-| A fixed sequence of tools that the root should not see individually | **`ToolCombo(return_history=False)`**. |
+| Fixed set of helpers known at construction time | Declare `subagents=[...]` and call with `call_subagent`. |
+| Decomposition depends on the task | Build specialists at runtime with `create_subagent`. |
+| Hedge against a single-model mistake | Call the same sub-agent across models with `call_subagent(model_name=...)`. |
+| Continue the parent while a child runs | Use `call_subagent(mode="async")` and read the inbox. |
 
 ## Related References
 
-- [Customize -> Agent Ensembles](../../get-started/customize/agent-ensemble.md): configuration.
-- [`[agent_ensemble]` reference](../../reference/configuration/agent-ensemble.md): fields.
-- [Agent Ensemble example](../../get-started/examples/agents_with_features/sample_agent_ensemble.md): runnable.
 - [Dynamic Sub-Agents example](../../get-started/examples/agents_with_features/sample_dynamic_subagent.md): runnable.
-- [Tool Combo example](../../get-started/examples/agents_with_features/sample_tool_combo.md): runnable.
+- [Multi-Model Delegation example](../../get-started/examples/agents_with_features/sample_agent_ensemble.md): runnable.

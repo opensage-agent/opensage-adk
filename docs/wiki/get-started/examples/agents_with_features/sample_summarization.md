@@ -20,14 +20,13 @@ import os
 from typing import Dict
 
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.tool_context import ToolContext
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    list_subagents,
 )
 from opensage.utils.agent_utils import (
     discover_all_agents,
@@ -66,14 +65,14 @@ def mk_agent(opensage_session_id: str):
     os.environ["MAX_HISTORY_SUMMARY_LENGTH"] = "300"
     os.environ["MAX_TOOL_RESPONSE_LENGTH"] = "100"
 
+    # Create agents inside mk_agent to avoid reusing instances across calls.
     geometry_calculator = OpenSageAgent(
         name="geometry_calculator",
         description="Calculates geometric properties.",
-        model=LiteLlm(model="openai/gpt-5.4"),
+        model=LiteLlm(model="openai/gpt-5.5"),
         instruction="You specialize in calculating geometric properties.",
         tools=[calculate_area_and_perimeter],
     )
-    geometry_tool = AgentTool(agent=geometry_calculator)
 
     math_calculator = OpenSageAgent(
         name="math_calculator",
@@ -86,17 +85,16 @@ def mk_agent(opensage_session_id: str):
     return OpenSageAgent(
         name="calculation_orchestrator",
         description="Main agent that coordinates calculations.",
-        model=LiteLlm(model="openai/gpt-5.4"),
-        instruction="You help users with calculations. Put the final number in <final_answer>...</final_answer>.",
+        model=LiteLlm(model="openai/gpt-5.5"),
+        instruction="You help users with calculations. Delegate to the `geometry_calculator` and `math_calculator` sub-agents via `call_subagent`. Put the final number in <final_answer>...</final_answer>.",
+        subagents=[geometry_calculator, math_calculator],
         tools=[
-            geometry_tool,
             create_subagent,
-            list_active_agents,
-            call_subagent_as_tool,
+            list_subagents,
+            call_subagent,
             add_numbers,
             subtract_numbers,
         ],
-        sub_agents=[math_calculator],
     )
 ```
 !!! info

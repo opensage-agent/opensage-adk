@@ -9,9 +9,9 @@ Every OpenSage run passes through the same lifecycle: parse input, build a sessi
 ## Lifecycle Phases
 
 1. **Input parsing**: validate the config path, agent directory, and flags. Configure logging.
-2. **Session creation**: assign a session ID, load and expand the TOML config, instantiate the session with its managers (`config`, `agents`, `sandboxes`, `neo4j`, `ensemble`).
+2. **Session creation**: assign a session ID, load and expand the TOML config, instantiate the session with its managers (`config`, `sandboxes`, `neo4j`, `agent_manager`, `llms`, `budget`).
 3. **Sandbox preparation**: introspect the agent for sandbox dependencies, prune unused sandboxes, initialize shared volumes, launch containers, run per-sandbox initializers.
-4. **Agent and plugin loading**: import `agent.py`, call `mk_agent(session_id=...)`, discover and instantiate plugins.
+4. **Agent and plugin loading**: import `agent.py`, call `mk_agent(opensage_session_id=...)`, discover and instantiate plugins.
 5. **Service wiring**: hook ADK session, artifact, memory, and credential services into the runtime (entry-point-specific).
 6. **Execution**: drive the agent's reason-act loop over user input or benchmark samples.
 7. **Cleanup**: snapshot or destroy sandboxes, clear the session registry, release Docker resources.
@@ -31,29 +31,22 @@ What happens between `uv run opensage web ...` and the first browser request.
 - Validates that `agent_dir` exists and is a directory.
 - Sets up logging based on `--log_level`.
 
-### Step 2: Optional Neo4j Logging Setup
-
-If `--neo4j_logging` is set:
-
-- Imports `enable_neo4j_logging` from `opensage.features.agent_history_tracker`.
-- Enables Neo4j logging via monkey patches so events stream into Neo4j for later analysis.
-
-### Step 3: Environment Preparation (`_prepare_environment_async`)
+### Step 2: Environment Preparation (`_prepare_environment_async`)
 
 The core setup phase. It creates the OpenSage session and initializes every resource the agent needs.
 
-#### 3.1 Create Session ID
+#### 2.1 Create Session ID
 
 - Generates a unique UUID: `str(uuid.uuid4())`.
 - Example: `"550e8400-e29b-41d4-a716-446655440000"`.
 
-#### 3.2 Create Session
+#### 2.2 Create Session
 
 ```python
 import opensage
 
-session = opensage.get_session(
-    session_id=session_id,
+session = opensage.get_opensage_session(
+    session_id,
     config_path=config_path,
 )
 ```
@@ -61,18 +54,18 @@ session = opensage.get_session(
 - Loads the TOML configuration file.
 - Expands template variables (for example `${VAR_NAME}`).
 - Creates a session instance with all managers:
-    - `config`: configuration manager.
-    - `agents`: `DynamicAgentManager`.
-    - `sandboxes`: `SandboxManager`.
-    - `neo4j`: Neo4j client manager.
-    - `ensemble`: ensemble manager.
+    - `config`: the loaded `OpenSageConfig`.
+    - `sandboxes`: `OpenSageSandboxManager`.
+    - `neo4j`: `OpenSageNeo4jClientManager`.
+    - `agent_manager`: `AgentManager`.
+    - `llms`: `LlmRegistry`.
 
-#### 3.3 Load Agent and Collect Dependencies
+#### 2.3 Load Agent and Collect Dependencies
 
 ```python
 mk_agent = _load_mk_agent_from_dir(agent_dir)
-dummy_agent = mk_agent(session_id=session_id)
-sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
+dummy_agent = mk_agent(opensage_session_id=session_id)
+sandbox_dependencies = collect_sandbox_dependencies(dummy_agent, config=session.config)
 ```
 
 - Dynamically imports `agent.py` from the agent directory.
@@ -80,13 +73,13 @@ sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
 - Builds a dummy agent instance to inspect dependencies.
 - Collects which sandbox types the agent requires.
 
-#### 3.4 Prune Unused Sandboxes
+#### 2.4 Prune Unused Sandboxes
 
 - Compares required sandboxes against configured sandboxes.
 - Removes sandbox configurations the agent does not need.
 - Saves startup time by skipping unnecessary containers.
 
-#### 3.5 Initialize Shared Volumes
+#### 2.5 Initialize Shared Volumes
 
 ```python
 session.sandboxes.initialize_shared_volumes()
@@ -95,7 +88,7 @@ session.sandboxes.initialize_shared_volumes()
 - Creates shared volumes for scripts and data.
 - Configures volume mounts for all sandbox containers.
 
-#### 3.6 Launch Sandbox Containers
+#### 2.6 Launch Sandbox Containers
 
 ```python
 await session.sandboxes.launch_all_sandboxes()
@@ -109,7 +102,7 @@ For each required sandbox type:
 - Starts the container.
 - Stores the sandbox instance in `session.sandboxes._sandboxes[sandbox_type]`.
 
-#### 3.7 Initialize Sandboxes
+#### 2.7 Initialize Sandboxes
 
 ```python
 await session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
@@ -122,25 +115,25 @@ For each sandbox:
 - Marks the sandbox as ready.
 - Continues even if one sandbox fails (`continue_on_error=True`).
 
-### Step 4: Load Agent
+### Step 3: Load Agent
 
 ```python
 mk_agent = _load_mk_agent_from_dir(agent_dir)
-root_agent = mk_agent(session_id=session_id)
+root_agent = mk_agent(opensage_session_id=session_id)
 ```
 
 - Imports the agent module again (picking up the latest code).
 - Calls `mk_agent()` with the session ID.
 - The agent constructor links to the session and configures tools and sub-agents.
 
-### Step 5: Load Plugins
+### Step 4: Load Plugins
 
 ```python
 enabled_plugins = session.config.plugins.enabled or []
 plugins = load_plugins(
     enabled_plugins,
     agent_dir=agent_dir,
-    adk_plugin_params=session.config.plugins.adk_plugin_params,
+    adk_plugin_params=session.config.plugins.params,
     extra_plugin_dirs=session.config.plugins.extra_plugin_dirs,
 )
 ```
@@ -149,10 +142,10 @@ plugins = load_plugins(
 - Discovers plugins from default, shared, and agent-local directories.
 - Loads each plugin (ADK `.py` or Claude-Code hook `.json`) as an independent instance.
 
-### Step 6: Create ADK Services
+### Step 5: Create ADK Services
 
 ```python
-session_service = InMemorySessionServiceBridge()
+session_service = OpenSageInMemorySessionService()
 artifact_service = InMemoryArtifactService()
 memory_service = InMemoryMemoryService()
 credential_service = InMemoryCredentialService()
@@ -163,7 +156,7 @@ eval_set_results_manager = LocalEvalSetResultsManager(agents_dir=agents_dir_pare
 - Creates in-memory services for ADK integration.
 - The session service bridges ADK sessions with OpenSage sessions.
 
-### Step 7: Determine App Name
+### Step 6: Determine App Name
 
 ```python
 app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
@@ -171,10 +164,10 @@ app_name = os.path.basename(os.path.dirname(agent_dir.rstrip(os.sep)))
 
 - Uses the parent directory name as the app name.
 
-### Step 8: Create Web Server
+### Step 7: Create Web Server
 
 ```python
-web_server = WebServer(
+web_server = OpenSageWebServer(
     app_name=app_name,
     root_agent=root_agent,
     fixed_session_id=session_id,
@@ -190,7 +183,7 @@ web_server = WebServer(
 
 - Configures FastAPI endpoints for agent execution, events, artifacts, and the UI.
 
-### Step 9: Pre-create ADK Session
+### Step 8: Pre-create ADK Session
 
 ```python
 await session_service.create_session(
@@ -203,13 +196,13 @@ await session_service.create_session(
 
 - Creates an ADK session that maps to the OpenSage session.
 
-### Step 10: Create FastAPI App
+### Step 9: Create FastAPI App
 
 ```python
 app = web_server.get_fast_api_app(allow_origins=None, enable_dev_ui=True)
 ```
 
-### Step 11: Start Uvicorn Server
+### Step 10: Start Uvicorn Server
 
 ```python
 config = uvicorn.Config(app, host=host, port=port, log_level=log_level.lower())

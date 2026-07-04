@@ -8,36 +8,18 @@ from dotenv import load_dotenv
 from google.adk.agents.llm_agent import ToolUnion
 from google.adk.models.lite_llm import LiteLlm
 
-from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.session import get_opensage_session
-from opensage.toolbox.benchmark_specific.cybergym.cybergym import (
+from benchmarks.cybergym.tools import (
     generate_poc_and_submit,
     run_poc_from_script,
 )
+from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.session import get_opensage_session
 from opensage.toolbox.finish_task.finish_task import finish_task
-from opensage.toolbox.fuzzing.fuzz_tools import simplified_python_fuzzer
 from opensage.toolbox.general.agent_tools import (
     critique,
-    flag_unjustified_claims,
     note_suspicious_things,
 )
 from opensage.toolbox.general.bash_tool import bash_tool_main
-
-# from opensage.toolbox.retrieval.search_tools import (
-#     get_line_around_linenum_in_file,
-#     grep_tool,
-#     list_functions_in_file,
-#     search_symbol_definition,
-# )
-# from opensage.toolbox.static_analysis.cpg import (
-#     get_call_paths_to_function,
-#     get_callee,
-#     get_caller,
-#     joern_query,
-#     joern_slice,
-#     neo4j_query,
-#     search_function,
-# )
 from opensage.toolbox.general.bash_tools_interface import (
     get_background_task_output,
     list_background_tasks,

@@ -17,9 +17,8 @@ This section demonstrates some runnable agents using OpenSage-ADK.
 
 ## `agents_with_features/`: Agents with OpenSage-ADK Features
 
-- [`sample_agent_ensemble`](./agents_with_features/sample_agent_ensemble.md): Run the same prompt across multiple models and aggregate results.
+- [`sample_agent_ensemble`](./agents_with_features/sample_agent_ensemble.md): Declare a static sub-agent and delegate to a specific model via `call_subagent`.
 - [`sample_dynamic_subagent`](./agents_with_features/sample_dynamic_subagent.md): Root agent spawns specialized sub-agents at runtime.
-- [`sample_tool_combo`](./agents_with_features/sample_tool_combo.md): Chain tools as a single step with `ToolCombo`.
 - [`sample_summarization`](./agents_with_features/sample_summarization.md): Register history-summarization callbacks on every agent.
 - [`sample_neo4j_logging`](./agents_with_features/sample_neo4j_logging.md): Persist agent history in a Neo4j graph.
 - [`sample_web_search`](./agents_with_features/sample_web_search.md): Provider-side web search via `WebSearchTool`, plus a Gemini + Google Search variant.

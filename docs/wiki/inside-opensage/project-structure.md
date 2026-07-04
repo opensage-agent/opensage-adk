@@ -18,18 +18,22 @@ OpenSage/
 │       ├── bash_tools/      # Agent Skills (SKILL.md + scripts/)
 │       ├── cli/             # CLI entry points (opensage web / dependency-check)
 │       ├── config/          # TOML config system + dataclasses
-│       ├── evaluations/     # Benchmarks + evaluation runners
+│       ├── evaluation/      # Evaluation base classes, dispatchers, and RL adapters
 │       ├── features/        # Feature flags / optional behaviors
-│       ├── memory/          # Neo4j-backed memory (search/update/tools)
+│       ├── llm/             # LLM client abstractions
+│       ├── memory/          # File-based memory storage and tools
+│       ├── orchestration/   # Event persistence and orchestration helpers
+│       ├── patches/         # Runtime compatibility patches
 │       ├── plugins/         # ADK plugins
 │       ├── sandbox/         # Sandbox backends + initializers
 │       ├── sandbox_scripts/ # Scripts invoked inside sandboxes
 │       ├── session/         # Session + managers (sandboxes/agents/neo4j/ensemble)
 │       ├── templates/       # Default configs + Dockerfiles
 │       ├── toolbox/         # Python tool wrappers / MCP toolsets
-│       ├── util_agents/     # Utility sub-agents (e.g. memory management)
+│       ├── workflow/        # Workflow helpers and supporting utilities
 │       └── utils/           # Shared utilities
 ├── agent_library/           # Example agents and configs
+├── benchmarks/              # Benchmark integrations and task runners
 ├── tests/                   # Unit and integration tests
 └── third_party/             # External benchmark and tool dependencies
 ```
@@ -60,14 +64,25 @@ Filesystem-discovered Skills (bash tools). Each Skill is a directory containing 
 
 Python-side tools, MCP toolsets, and the wrappers used by agents.
 
-### `src/opensage/evaluations/`
+### `src/opensage/evaluation/`
 
-One subdirectory per benchmark:
+Core evaluation abstractions, dispatchers, and RL adapter integrations. Benchmark-specific integrations live under the top-level `benchmarks/` directory.
 
+### `benchmarks/`
+
+Task runners and metadata for supported benchmarks, including:
+
+- `agentbeats/`
+- `cvegym/`
+- `cybench/`
 - `cybergym/`: CyberGym benchmark.
-- `patchagent/`: PatchAgent benchmark.
+- `devopsgym/`
+- `harbor/`
+- `nyuctf/`
+- `sage-ccb/`
 - `secodeplt/`: SecCodePLT benchmark.
 - `swe_bench_pro/`: SWE-Bench Pro benchmark.
+- `termigen/`
 
 ## See Also
 

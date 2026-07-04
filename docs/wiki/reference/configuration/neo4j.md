@@ -12,4 +12,4 @@ Field reference for the `[neo4j]` section. For how to use it, see the [Neo4j con
 | `neo4j_http_port` | `integer` | Neo4j HTTP port | `7474` |
 
 !!! note "URI is constructed dynamically"
-    The `uri` property is built at runtime as `neo4j://{default_host}:{bolt_port}`. If `default_host` (root-level field) is not set, it falls back to `127.0.0.1`.
+    The `uri` property is built at runtime as `bolt://{default_host}:{bolt_port}`. If `default_host` (root-level field) is not set, it falls back to `127.0.0.1`.

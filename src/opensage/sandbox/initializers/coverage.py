@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.base_sandbox import BaseSandbox
 from opensage.sandbox.sandbox_paths import get_sandbox_scripts
 
 from .base import SandboxInitializer

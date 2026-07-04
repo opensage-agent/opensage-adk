@@ -9,7 +9,6 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 import yaml
 from google.adk.agents.llm_agent import LlmAgent
-from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.base_toolset import BaseToolset
 from google.adk.tools.mcp_tool.mcp_tool import MCPTool as _AdkMCPTool
 from google.adk.tools.mcp_tool.mcp_toolset import McpToolset

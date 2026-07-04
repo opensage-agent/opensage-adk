@@ -5,7 +5,7 @@ from opensage.toolbox.sandbox_requirements import requires_sandbox
 from opensage.utils.agent_utils import get_mcp_host_and_port_from_session_id
 
 
-@requires_sandbox("main")
+@requires_sandbox("ida_pro_mcp")
 def get_toolset(opensage_session_id: str) -> OpenSageMCPToolset:
     """Create a named MCP toolset for the IDA Pro MCP server."""
     host, port = get_mcp_host_and_port_from_session_id(

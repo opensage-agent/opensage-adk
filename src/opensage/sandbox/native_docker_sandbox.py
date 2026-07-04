@@ -714,7 +714,7 @@ class NativeDockerSandbox(BaseSandbox):
         container = self.client.containers.get(self.container_id)
 
         for key, new_function_content in files_func_to_content.items():
-            parts = key.split__xx__
+            parts = key.split("__xx__")
             if len(parts) != 2:
                 logger.warning(
                     f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'"
@@ -782,7 +782,7 @@ class NativeDockerSandbox(BaseSandbox):
         self, key: str, lang: str = "c", line_in_func: int = -1
     ) -> tuple[str, int, int]:
         """Retrieve the content of a specific function from a file inside the container."""
-        parts = key.split__xx__
+        parts = key.split("__xx__")
         if len(parts) != 2:
             logger.warning(
                 f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'"

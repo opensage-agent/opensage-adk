@@ -26,7 +26,6 @@ Each named block under `[sandbox.sandboxes.<name>]` is an independent container 
 [sandbox]
 backend = "native"
 project_relative_shared_data_path = "data/my_project.tar.gz"
-host_shared_mem_dir = "/home/you/.local/opensage/shared-memory"
 mount_host_paths = [
   "/data/datasets:/workspace/datasets:ro",
   "/tmp/run-cache:/workspace/run-cache:rw",
@@ -62,7 +61,7 @@ JAVA_OPTS = "-Xmx16G -Xms4G"
 !!! info "Mount semantics"
     `mount_host_paths` is appended to every sandbox's `volumes`. Absolute source paths are treated as host mount sources; mode defaults to `rw` when omitted.
 
-    `host_shared_mem_dir` is also injected into every sandbox volume as `"<host_shared_mem_dir>:/mem/shared:rw"`. The host directory is created automatically if it does not exist.
+    `project_relative_shared_data_path` and `absolute_shared_data_path` seed the shared data volume mounted at `/shared`. Use `mount_host_paths` for additional host directories that should appear inside every sandbox.
 
 !!! tip "Docker networks"
     Omit `network` unless the sandbox should join a specific Docker network. For example, after creating a network named `agent_net`, set `network = "agent_net"` on the sandbox that should connect to it.
@@ -72,7 +71,7 @@ JAVA_OPTS = "-Xmx16G -Xms4G"
 - **`native`**: default; recommended for local development.
 - **`remotedocker`**: under development; additionally uses `docker_host` / `docker_remote_host`.
 - **`opensandbox`**: under development; additionally requires `sandbox.opensandbox` provider settings.
-- **`agentdocker-lite`**: under development; commonly uses `sandbox.sandboxes.<name>.extra` for namespace/cgroup options such as `fs_backend`, `cpu_max`, or `memory_max`.
+- **`nitrobox`**: under development; commonly uses `sandbox.sandboxes.<name>.extra` for namespace/cgroup options such as `fs_backend`, `cpu_max`, or `memory_max`.
 - **`local`**: under development, mainly for debugging; supports only a single sandbox, no shared volumes.
 - **`k8s`**: exists in code, still under development.
 

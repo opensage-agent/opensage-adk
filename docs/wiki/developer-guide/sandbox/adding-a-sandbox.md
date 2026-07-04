@@ -19,13 +19,14 @@ Add a new initializer under:
 
 Implement the `SandboxInitializer` interface from `opensage-adk/src/opensage/sandbox/initializers/base.py`.
 
-### 2) Register the initializer
+### 2) Let the factory discover it
 
-Register your initializer in the initializer registry:
+Initializers are discovered automatically by `opensage.sandbox.factory`:
 
-- `opensage-adk/src/opensage/sandbox/factory.py` (`SANDBOX_INITIALIZERS`)
+- Built-in initializers: `opensage-adk/src/opensage/sandbox/initializers/*.py`
+- User initializers: `~/.local/opensage/initializers/*.py`
 
-This makes the sandbox type discoverable by name (e.g. `"my_sandbox"`).
+`SANDBOX_INITIALIZERS = _discover_initializers()` scans those directories at import time. The sandbox type name comes from the file stem, so `my_sandbox.py` is discoverable as `"my_sandbox"`. Keep exactly one `SandboxInitializer` subclass per file.
 
 ### 3) Add configuration
 
@@ -75,20 +76,26 @@ Note: sandbox command execution is **non-persistent** (each command is a fresh p
 ## Example
 
 ```python
+from opensage.sandbox.base_sandbox import BaseSandbox
 from opensage.sandbox.initializers.base import SandboxInitializer
 
 
 class MySandboxInitializer(SandboxInitializer):
-  async def async_initialize(self) -> None:
-    pass
+    async def _async_initialize_impl(
+        self: BaseSandbox, all_sandboxes: dict[str, BaseSandbox]
+    ) -> bool:
+        # Install or configure resources needed by this sandbox type.
+        return True
 ```
 
 ## Initialization Flow
 
 1. Sandbox container is created
-2. `async_initialize()` is called
-3. Resources are set up
+2. The backend calls `async_initialize(all_sandboxes)`
+3. Inside that wrapper, the base class calls your `_async_initialize_impl(all_sandboxes)`, then runs `ensure_ready()` as its final step
 4. Sandbox is ready for use
+
+Override `_async_initialize_impl`, not `async_initialize`; overriding the wrapper skips the built-in `ensure_ready()` and error handling.
 
 ## Skill Dependency Installers
 

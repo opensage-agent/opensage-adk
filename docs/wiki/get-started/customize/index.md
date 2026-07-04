@@ -12,7 +12,7 @@ An OpenSage-ADK agent can be built from a handful of rich capabilities. Before y
 - **Tools & MCP**: the verbs your agent can use, including Python function tools, bash tools, and external MCP services (filesystem, GDB, custom).
 - **History**: truncation and summarization strategies that keep long runs from overflowing the context window.
 - **Plugins**: small opt-in behaviors that hook into the agent's lifecycle (doom-loop detection, tool-response summarization, build verification, and similar).
-- **Multi-agent**: patterns for orchestration: sub-agents as tools, dynamically-spawned sub-agents, and ensembles that fan a sub-task across several sub-agents.
+- **Multi-agent**: orchestration patterns: sub-agents declared at construction time, sub-agents created at runtime, and per-model delegation through `call_subagent`.
 
 The `config.toml` file is the **place where you wire those capabilities together**.
 
@@ -59,9 +59,8 @@ auto_cleanup = true
 [mcp]             # MCP tool services (step 3)
 [history]         # Tool response + event compaction (step 4)
 [plugins]         # Plugin opt-in list (step 5)
-[agent_ensemble]  # Multi-model ensembles (step 6)
-[neo4j]           # Graph database (step 7)
-[build]           # Build/run commands (step 8)
+[neo4j]           # Graph database (step 6)
+[build]           # Build/run commands (step 7)
 ```
 
 ## Template Variables
@@ -83,7 +82,7 @@ This keeps the "which model/which image" choice in one place when a config refer
 
 ## Root-Level Fields
 
-A few common fields sit outside any `[section]`: `task_name`, `src_dir_in_sandbox`, `agent_storage_path`, `default_host`, `auto_cleanup`. See the [Configuration Reference](../../reference/configuration/index.md#top-level-root-fields) for the full list, types, and defaults.
+A few common fields sit outside any `[section]`: `task_name`, `src_dir_in_sandbox`, `default_host`, `auto_cleanup`. See the [Configuration Reference](../../reference/configuration/index.md#top-level-root-fields) for the full list, types, and defaults.
 
 
 ## Section-Based Configuration
@@ -95,9 +94,8 @@ Follow the steps in order, or jump straight to the one you need:
 3. [**Add MCP Tools**](./mcp.md): wire in external tool servers (GDB, filesystem, custom).
 4. [**Tune Memory & History**](./history.md): keep long runs from blowing context.
 5. [**Turn on Plugins**](./plugins.md): small behaviors you opt in to.
-6. [**Agent Ensembles**](./agent-ensemble.md): fan a sub-task across multiple models and aggregate results.
-7. [**Neo4j Logging**](./neo4j.md): point the memory subsystem at a Neo4j instance.
-8. [**Extra Building**](./build.md): set `compile_command` / `run_command` for agents that build and run user-supplied code.
+6. [**Neo4j Logging**](./neo4j.md): point the memory subsystem at a Neo4j instance.
+7. [**Extra Building**](./build.md): set `compile_command` / `run_command` for agents that build and run user-supplied code.
 
 Once your `config.toml` is shaped, see the [**Complete Example**](./complete-example.md) for a fully-featured template you can adapt.
 
@@ -107,10 +105,10 @@ Once your `config.toml` is shaped, see the [**Complete Example**](./complete-exa
 import opensage
 
 # Use the built-in default
-session = opensage.get_session("my_session")
+session = opensage.get_opensage_session("my_session")
 
 # Or load a custom file
-session = opensage.get_session(
+session = opensage.get_opensage_session(
     "my_session",
     config_path="/path/to/my_config.toml",
 )

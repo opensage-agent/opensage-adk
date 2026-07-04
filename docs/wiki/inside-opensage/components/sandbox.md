@@ -8,8 +8,8 @@ Source lives under [`src/opensage/sandbox/`](https://github.com/opensage-agent/o
 
 The sandbox system deliberately separates two concerns:
 
-- **Backend**: *where and how* a container runs. One of `native` (local Docker), `remotedocker`, `opensandbox`, `agentdocker-lite`, `local` (no container), or `k8s`. Each backend is a subclass of `BaseSandbox` (`base_sandbox.py`) implementing container / pod lifecycle.
-- **Initializer**: *what gets installed inside*. A built-in set under `sandbox/initializers/` configures a particular sandbox type (`main`, `joern`, `codeql`, `neo4j`, `gdb_mcp`, `pdb_mcp`, `fuzz`) by running setup commands after the container is up.
+- **Backend**: *where and how* a container runs. One of `native` (local Docker), `podman`, `remotedocker`, `opensandbox`, `nitrobox`, `local` (no container), or `k8s`. Each backend subclasses `BaseSandbox` (`base_sandbox.py`) and implements the container or pod lifecycle.
+- **Initializer**: *what gets installed inside*. A built-in set under `sandbox/initializers/` configures a particular sandbox type (`main`, `joern`, `codeql`, `neo4j`, `gdb_mcp`, `coverage`, `fuzz`) by running setup commands after the container is up.
 
 Because these axes are independent, the **same sandbox type runs identically on every backend**, and you can swap backends (local dev -> remote Docker -> k8s in CI) without touching the per-sandbox setup code.
 
@@ -38,7 +38,7 @@ await session.sandboxes.initialize_all_sandboxes(continue_on_error=True)
 1. **Shared volumes created.** The `/shared` bind mount is populated with the project's code / data.
 2. **Containers launched.** All sandboxes referenced by the agent (after [pruning](./sessions.md#sandbox-pruning-via-a-dummy-agent)) are started in parallel.
 3. **Initializers run.** Each container runs its initializer (apt installs, venv creation, MCP-service start-up, and so on).
-4. **MCP readiness polled.** Sandboxes hosting an MCP service (`gdb_mcp`, `pdb_mcp`, custom) are not marked `READY` until `_check_mcp_connections()` successfully pings the SSE endpoint.
+4. **MCP readiness polled.** A sandbox hosting an MCP service (`gdb_mcp` or a custom service) stays out of the `READY` state until `_check_mcp_connections()` pings the SSE endpoint successfully.
 5. **Ready.** The agent can now use tools that target this sandbox.
 
 `continue_on_error=True` is the default; if one sandbox fails to initialize, the others still come up. Makes debugging easier, at the cost of the agent having to discover missing capabilities lazily.
@@ -68,10 +68,11 @@ Skills declare the same thing in their `SKILL.md`:
 
 ## Shared Storage
 
-Two shared mount points that are present in *every* sandbox by default:
+Shared mount points that are present in *every* sandbox by default:
 
 - **`/shared`**: populated from the session's shared-data path (`project_relative_shared_data_path` or `absolute_shared_data_path` in `[sandbox]`). This is where target code, PoC inputs, and submission scripts live.
-- **`/mem/shared`**: populated from the host path in `sandbox.host_shared_mem_dir`. File-based shared memory used by tools that want to leave breadcrumbs visible to every sandbox.
+- **`/sandbox_scripts`**: read-only framework scripts used by initializers and sandbox tools.
+- **`/bash_tools`**: read-only staged bash skills selected by `enabled_skills`.
 
 Per-sandbox mounts (`volumes`, `mounts`) are additive on top of these.
 

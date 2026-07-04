@@ -10,9 +10,8 @@ At the start of every invocation we:
   in the finally block).
 
 During the run we also persist traj.json periodically to the host dir so the
-Web UI can show live progress.
-
-AgentTool is banned separately by ``patches/ban_agent_tool.py``.
+Web UI can show live progress. OpenSageAgent rejects AgentTool entries during
+agent construction.
 """
 
 from __future__ import annotations

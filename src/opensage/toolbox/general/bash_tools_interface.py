@@ -2,7 +2,7 @@
 Bash Tools Interface - Unified bash script invocation interface.
 
 This module provides a unified interface for invoking scripts under
-/sandbox_scripts/bash_tools and supports automatic discovery and registration
+/bash_tools and supports automatic discovery and registration
 of these tools for agent use.
 """
 

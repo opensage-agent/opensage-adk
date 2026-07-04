@@ -1,11 +1,11 @@
-"""Unit tests for AgentDockerLiteSandbox.
+"""Unit tests for NitroboxSandbox.
 
 Requires: Linux root, overlayfs support in kernel.
 btrfs tests additionally require a btrfs filesystem at /data.
 
 Skip on CI: these need root privileges and btrfs.
 Run on GCP VM:
-    sudo ~/venv/bin/python -m pytest tests/unit/tests/framework/sandbox/test_agentdocker_lite_sandbox.py -v
+    sudo ~/venv/bin/python -m pytest tests/unit/tests/framework/sandbox/test_nitrobox_sandbox.py -v
 """
 
 from __future__ import annotations
@@ -13,16 +13,18 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import uuid
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
 from opensage.config.config_dataclass import ContainerConfig
 
 needs_root = pytest.mark.skipif(
-    os.geteuid() != 0, reason="AgentDockerLiteSandbox requires root"
+    os.geteuid() != 0, reason="NitroboxSandbox requires root"
 )
 needs_btrfs = pytest.mark.skipif(
     shutil.which("btrfs") is None
@@ -124,9 +126,9 @@ def _make_btrfs_rootfs() -> str:
 
 
 @needs_root
-class TestAgentDockerLiteSandboxOverlayfs:
+class TestNitroboxSandboxOverlayfs:
     def _make_sandbox(self, rootfs_path: str, session_suffix: str = ""):
-        from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+        from opensage.sandbox.nitrobox_sandbox import NitroboxSandbox
 
         cfg = ContainerConfig(
             image=rootfs_path,
@@ -135,10 +137,10 @@ class TestAgentDockerLiteSandboxOverlayfs:
             extra={"fs_backend": "overlayfs"},
         )
         sid = f"test_ovl_{uuid.uuid4().hex[:6]}{session_suffix}"
-        return AgentDockerLiteSandbox(
+        return NitroboxSandbox(
             container_config=cfg,
             opensage_session_id=sid,
-            backend_type="agentdocker-lite",
+            backend_type="nitrobox",
             sandbox_type="main",
         )
 
@@ -247,7 +249,7 @@ class TestAgentDockerLiteSandboxOverlayfs:
 
 @needs_root
 @needs_btrfs
-class TestAgentDockerLiteSandboxBtrfs:
+class TestNitroboxSandboxBtrfs:
     _base_rootfs: str | None = None
 
     @classmethod
@@ -263,7 +265,7 @@ class TestAgentDockerLiteSandboxBtrfs:
             )
 
     def _make_sandbox(self, session_suffix: str = ""):
-        from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+        from opensage.sandbox.nitrobox_sandbox import NitroboxSandbox
 
         cfg = ContainerConfig(
             image=self._base_rootfs,
@@ -276,10 +278,10 @@ class TestAgentDockerLiteSandboxBtrfs:
             },
         )
         sid = f"test_btrfs_{uuid.uuid4().hex[:6]}{session_suffix}"
-        return AgentDockerLiteSandbox(
+        return NitroboxSandbox(
             container_config=cfg,
             opensage_session_id=sid,
-            backend_type="agentdocker-lite",
+            backend_type="nitrobox",
             sandbox_type="main",
         )
 
@@ -374,21 +376,21 @@ class TestAgentDockerLiteSandboxBtrfs:
 # ------------------------------------------------------------------ #
 
 
-class TestAgentDockerLiteSandboxErrors:
+class TestNitroboxSandboxErrors:
     def test_non_root_uses_rootless(self):
         if os.geteuid() == 0:
             pytest.skip("Already root — cannot test rootless fallback")
         pytest.importorskip("nitrobox")
-        from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+        from opensage.sandbox.nitrobox_sandbox import NitroboxSandbox
 
-        # With agentdocker-lite, non-root auto-selects rootless isolation.
+        # With nitrobox, non-root auto-selects rootless isolation.
         # Must not raise PermissionError; other errors (missing image) are acceptable.
         cfg = ContainerConfig(image="/nonexistent", working_dir="/workspace")
         try:
-            AgentDockerLiteSandbox(
+            NitroboxSandbox(
                 container_config=cfg,
                 opensage_session_id="test",
-                backend_type="agentdocker-lite",
+                backend_type="nitrobox",
                 sandbox_type="main",
             )
         except PermissionError:
@@ -398,7 +400,7 @@ class TestAgentDockerLiteSandboxErrors:
 
     @needs_root
     def test_missing_image_raises(self):
-        from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+        from opensage.sandbox.nitrobox_sandbox import NitroboxSandbox
 
         cfg = ContainerConfig(
             image="/nonexistent_path_" + uuid.uuid4().hex[:8],
@@ -406,27 +408,56 @@ class TestAgentDockerLiteSandboxErrors:
             extra={"fs_backend": "overlayfs"},
         )
         with pytest.raises((RuntimeError, FileNotFoundError, ValueError)):
-            AgentDockerLiteSandbox(
+            NitroboxSandbox(
                 container_config=cfg,
                 opensage_session_id="test_err",
-                backend_type="agentdocker-lite",
+                backend_type="nitrobox",
                 sandbox_type="main",
             )
 
     def test_wrong_backend_type_raises(self):
         pytest.importorskip("nitrobox")
-        from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+        from opensage.sandbox.nitrobox_sandbox import NitroboxSandbox
 
         cfg = ContainerConfig(image="/tmp", working_dir="/workspace")
-        with pytest.raises(
-            AssertionError, match="requires backend_type='agentdocker-lite'"
-        ):
-            AgentDockerLiteSandbox(
+        with pytest.raises(AssertionError, match="requires backend_type='nitrobox'"):
+            NitroboxSandbox(
                 container_config=cfg,
                 opensage_session_id="test",
                 backend_type="native",
                 sandbox_type="main",
             )
+
+
+def test_cache_sandboxes_returns_backend_contract(tmp_path):
+    sys.modules.setdefault("nitrobox", MagicMock())
+
+    from opensage.sandbox.nitrobox_sandbox import NitroboxSandbox
+
+    class FakeSandbox:
+        container_id = "fake-container"
+
+        def __init__(self):
+            self.saved_images = []
+
+        def save_as_image(self, image_name: str) -> None:
+            self.saved_images.append(image_name)
+
+    fake = FakeSandbox()
+    result = NitroboxSandbox.cache_sandboxes(
+        sandbox_instances={"main": fake},
+        shared_volume_id=None,
+        cache_dir=str(tmp_path),
+        task_name="task",
+    )
+
+    assert result["backend"] == "nitrobox"
+    assert result["shared_volume_backup"] is None
+    assert result["errors"] == []
+    assert result["cached_images"]["main"]["image_name"] == "task_sandbox_main:cached"
+    assert result["cached_images"]["main"]["container_id"] == "fake-container"
+    assert fake.saved_images == ["task_sandbox_main:cached"]
+    assert (tmp_path / "nitrobox_cache_manifest.json").exists()
 
 
 if __name__ == "__main__":

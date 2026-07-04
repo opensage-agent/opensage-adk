@@ -11,13 +11,13 @@ Evaluations run agents on benchmark datasets for performance measurement and tes
 Evaluations use Python Fire for their CLI. The general form:
 
 ```bash
-python -m opensage.evaluations.<benchmark>.<module> <method> [options]
+python -m benchmarks.<benchmark>.<module> <method> [options]
 ```
 
 **Example:**
 
 ```bash
-python -m opensage.evaluations.cybergym.cybergym_vul_detection run \
+python -m benchmarks.cybergym.cybergym_vul_detection run \
   --dataset_path="org/dataset" \
   --agent_dir="agent_library/agents/my_agent" \
   --max_workers=6 \
@@ -44,7 +44,7 @@ python -m opensage.evaluations.cybergym.cybergym_vul_detection run \
 | `max_workers` | int | 6 | Parallel workers |
 | `use_multiprocessing` | bool | True | Use multiprocessing vs threading |
 | `use_sandbox_cache` | bool | True | Cache/restore sandbox states |
-| `run_until_explicit_finish` | bool | True | Keep running until agent signals done |
+| `run_until_explicit_finish` | bool | False | Keep running until agent signals done |
 | `use_config_model` | bool | False | Use model from config file |
 | `llm_retry_count` | int | 3 | Retries for LLM API calls |
 | `llm_retry_timeout` | int | 30 | Timeout per LLM request (seconds) |

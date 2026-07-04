@@ -23,15 +23,16 @@ Backends are `BaseSandbox` subclasses (see `base_sandbox.py`) such as:
 
 ### 2) Register the backend
 
-Register your backend in:
-
-- `opensage-adk/src/opensage/sandbox/factory.py` (`SANDBOX_BACKENDS`)
-
-Example (conceptually):
+Add an entry to the `_BACKENDS` dict in `src/opensage/sandbox/factory.py`, mapping the backend name to its `(module_name, class_name)` for lazy import:
 
 ```python
-SANDBOX_BACKENDS["mybackend"] = MyBackendSandbox
+_BACKENDS = {
+    # ...
+    "mybackend": ("opensage.sandbox.mybackend_sandbox", "MyBackendSandbox"),
+}
 ```
+
+`get_backend_class(name)` reads `_BACKENDS`, imports the module on first use, and caches the resolved class in `SANDBOX_BACKENDS`. Assigning to `SANDBOX_BACKENDS` directly is unnecessary; the lazy path handles registration.
 
 ### 3) (Optional) Support config injection
 

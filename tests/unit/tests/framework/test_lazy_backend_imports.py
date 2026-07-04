@@ -48,7 +48,7 @@ def test_registry_contains_all_backends():
         "k8s",
         "remotedocker",
         "opensandbox",
-        "agentdocker-lite",
+        "nitrobox",
         "local",
     }
     assert set(_BACKENDS.keys()) == expected

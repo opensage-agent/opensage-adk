@@ -32,7 +32,6 @@ This section walks through those production agents one by one. Unlike the [small
 | [PoC Generation Agent — Static Tools](./poc_agent_static_tools.md) | Generates a PoC input for a disclosed vulnerability using only static retrieval + bash skills. |
 | [PoC Generation Agent — Dynamic Tools](./poc_agent_dynamic_tools.md) | Same goal, but adds the GDB MCP toolset, the fuzzing skill, and the coverage skill for when static reasoning is not enough. |
 | [Dynamic Analysis / Debugger Agent](./debugger_agent.md) | A focused sub-agent that steps through a running program with GDB to verify hypotheses. Called by other agents as a tool. |
-| [CTF Reverse-Engineering Agent](./ctf_agent.md) | Wires Ghidra, IDA Pro, pyghidra, and GDB MCP toolsets together for capture-the-flag challenges. |
 | [Patch Generation Scaffold](./patch_agent.md) | A minimal "hello-world" scaffold for a patch agent; copy-paste this when starting a new agent. |
 
 ## Shared Ingredients
@@ -41,12 +40,11 @@ Read the agent configs and you'll notice the same building blocks in almost ever
 
 - **A reasoning model**, often behind LiteLLM's proxy so it can be swapped without code changes.
 - **`finish_task`** as the explicit termination tool: no "guess when to stop."
-- **Dynamic sub-agents** (`create_subagent`, `call_subagent_as_tool`, `list_active_agents`) so the root agent can spawn specialists for each subtask.
-- **Ensembles** (`agent_ensemble`, `agent_ensemble_pairwise`) for when confidence is low or perspectives disagree.
-- **Bash tools** (`run_terminal_command`, `list_background_tasks`, `get_background_task_output`, `list_available_scripts`) as the universal escape hatch.
+- **Dynamic sub-agents** (`create_subagent`, `call_subagent`, `list_subagents`, `get_available_models`) so the root agent can spawn specialists for each subtask, optionally on a different model.
+- **Bash tools** (`run_terminal_command`, `list_background_tasks`, `get_background_task_output`) as the universal escape hatch.
 - **`complain`** / **`think`** / **`critique`** as lightweight self-reflection levers.
 
-Each agent then layers domain-specific tools on top: Joern/Neo4j for static analysis, GDB for dynamic analysis, Ghidra/IDA/pyghidra for binary RE, fuzzing + coverage for triggering bugs, `search_memory` for graph-backed long-term recall.
+Each agent then layers domain-specific tools on top: Joern/Neo4j for static analysis, GDB for dynamic analysis, fuzzing + coverage for triggering bugs.
 
 ## How to Adapt an Agent
 

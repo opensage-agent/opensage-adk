@@ -1,16 +1,25 @@
-# Agent with a Sub-Agent Tool
+# Agent with a Sub-Agent
 
 **Source:** [`agent_library/agents_101/sample_agent_tool`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_101/sample_agent_tool)
 
-Demonstrates how to wrap a sub-agent as an `AgentTool` so the root agent can call it like any other tool. The sub-agent has its own model, instruction, and tool list; the root agent simply invokes it by name.
+Demonstrates how to declare a sub-agent via `subagents=[...]` and let the root agent invoke it with the `call_subagent` tool. The sub-agent has its own model, instruction, and tool list; the root agent delegates to it by name.
+
+!!! note "OpenSageAgent forbids `AgentTool` and ADK `sub_agents=`"
+    Sub-agents in OpenSage are declared through the `subagents=[...]` field and
+    invoked with `call_subagent` / `list_subagents` from
+    `opensage.toolbox.general.orchestration_tools`. Passing an `AgentTool` in
+    `tools=` or using ADK's `sub_agents=` raises a `ValueError`.
 
 ## Agent Source Code
 
 ```python title="agent_library/agents_101/sample_agent_tool/agent.py"
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools.agent_tool import AgentTool
 
 from opensage.agents.opensage_agent import OpenSageAgent
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
+    list_subagents,
+)
 
 
 def calculate_add(a: float, b: float) -> float:
@@ -24,20 +33,26 @@ def calculate_subtract(a: float, b: float) -> float:
 
 
 calculation_agent = OpenSageAgent(
-    model=LiteLlm(model="anthropic/claude-opus-4-7"),
+    model=LiteLlm(model="anthropic/claude-opus-4-8"),
     name="calculation_agent",
+    description="A math sub-agent that performs basic arithmetic operations.",
     instruction="You are a helpful math assistant.",
-    tools=[calculate_add, calculate_subtract],
+    tools=[calculate_add],
 )
 
-calculation_tool = AgentTool(agent=calculation_agent)
-
 root_agent = OpenSageAgent(
-    model=LiteLlm(model="openai/gpt-5.4"),
+    model=LiteLlm(model="openai/gpt-5.5"),
     name="simple_math_agent",
-    instruction="Use the calculation_agent tool to perform arithmetic.",
+    instruction="""
+    When a user asks you to add two numbers, delegate the calculation to the
+    `calculation_agent` sub-agent via the `call_subagent` tool.
+    """,
     description="A simple math agent that delegates to a calculation sub-agent.",
-    tools=[calculation_tool],
+    subagents=[calculation_agent],
+    tools=[
+        call_subagent,
+        list_subagents,
+    ],
 )
 
 
@@ -53,4 +68,4 @@ uv run opensage web \
   --port 8000
 ```
 
-Open [http://localhost:8000](http://localhost:8000) and try asking the root agent to add or subtract two numbers. It will call the `calculation_agent` sub-agent under the hood, which has access to both `calculate_add` and `calculate_subtract` tools.
+Open [http://localhost:8000](http://localhost:8000) and try asking the root agent to add two numbers. It will delegate to the `calculation_agent` sub-agent under the hood via `call_subagent`.

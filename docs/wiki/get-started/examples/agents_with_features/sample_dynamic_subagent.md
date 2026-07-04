@@ -2,7 +2,7 @@
 
 **Source:** [`agent_library/agents_with_features/sample_dynamic_subagent`](https://github.com/opensage-agent/opensage-adk/tree/main/agent_library/agents_with_features/sample_dynamic_subagent)
 
-Shows the **dynamic sub-agent** pattern: the root agent is given `create_subagent`, `list_active_agents`, and `call_subagent_as_tool` so it can spin up specialized sub-agents at runtime and delegate to them.
+Shows the **dynamic sub-agent** pattern: the root agent is given `create_subagent`, `list_subagents`, and `call_subagent` so it can spin up specialized sub-agents at runtime and delegate to them.
 
 ## Agent Source Code
 
@@ -12,10 +12,10 @@ from typing import Any, Dict
 from google.adk.models.lite_llm import LiteLlm
 
 from opensage.agents.opensage_agent import OpenSageAgent
-from opensage.toolbox.general.dynamic_subagent import (
-    call_subagent_as_tool,
+from opensage.toolbox.general.orchestration_tools import (
+    call_subagent,
     create_subagent,
-    list_active_agents,
+    list_subagents,
 )
 
 
@@ -55,8 +55,8 @@ def mk_agent(opensage_session_id: str):
         description="Root math agent that dynamically creates and manages specialized math sub-agents.",
         tools=[
             create_subagent,
-            list_active_agents,
-            call_subagent_as_tool,
+            list_subagents,
+            call_subagent,
             add_numbers,
             subtract_numbers,
             multiply_numbers,
@@ -76,4 +76,4 @@ uv run opensage web \
   --port 8000
 ```
 
-If you want dynamic sub-agents to persist across runs, set `agent_storage_path` in `config.toml`.
+The root agent uses `create_subagent` to spin up specialized sub-agents on demand, `list_subagents` to enumerate them, and `call_subagent` to delegate a subtask (optionally targeting a specific model via `call_subagent`'s `model_name` parameter).

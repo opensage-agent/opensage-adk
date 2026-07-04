@@ -7,13 +7,13 @@ expressed by directory nesting, not by metadata alone:
         {root_sid}/
             ├── traj.json
             ├── inbox.jsonl
-            ├── inbox.cursor
             ├── metadata.json
             └── {child_sid}/
                 ├── traj.json
                 ├── inbox.jsonl
-                ├── inbox.cursor
                 └── metadata.json
+
+Inbox cursors are runtime-only and are not written to disk.
 
 To locate a dir from a bare sid we recursively walk (``find_instance_dir``).
 """

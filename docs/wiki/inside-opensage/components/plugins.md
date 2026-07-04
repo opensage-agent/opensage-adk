@@ -1,6 +1,6 @@
 # Plugins
 
-A **plugin** is a small, self-contained unit of behavior that hooks into the agent's lifecycle at well-known extension points: after a tool call, after an event is yielded, before a model request. Plugins are how OpenSage ships cross-cutting features like **history summarization**, **tool-response summarization**, **quota tracking**, **doom-loop detection**, **build verification**, and **memory observation** without baking them into every agent.
+A **plugin** is a small, self-contained unit of behavior that hooks into the agent's lifecycle at well-known extension points: after a tool call, after an event is yielded, before a model request. Plugins are how OpenSage ships cross-cutting features like history summarization, tool-response summarization, quota tracking, doom-loop detection, and build verification without baking them into every agent.
 
 Source lives under [`src/opensage/plugins/`](https://github.com/opensage-agent/opensage-adk/tree/main/src/opensage/plugins).
 
@@ -20,12 +20,12 @@ Claude Code hooks use the same JSON format as [Claude Code hooks](https://docs.a
 When a session starts, the runtime does:
 
 ```python
-root_agent = mk_agent(session_id=session_id)
+root_agent = mk_agent(opensage_session_id=session_id)
 
 plugins = load_plugins(
     enabled_plugins,                     # names listed in [plugins] enabled
     agent_dir=agent_dir,
-    adk_plugin_params=session.config.plugins.adk_plugin_params,
+    adk_plugin_params=session.config.plugins.params,
     extra_plugin_dirs=session.config.plugins.extra_plugin_dirs,
 )
 ```
@@ -50,12 +50,11 @@ The ones the OpenSage team actually ships in `src/opensage/plugins/default/adk_p
 | `history_summarizer_plugin` | Compacts the event log once it grows past `max_history_summary_length`. See [History](./history.md). |
 | `tool_response_summarizer_plugin` | Truncates/summarizes any single tool response longer than `max_tool_response_length`. See [History](./history.md). |
 | `quota_after_tool_plugin` | Injects `_quota_info = {used, remaining, limit}` after each tool call so the agent can pace itself against `max_llm_calls`. |
-| `doom_loop_detector_plugin` | Detects repetitive call patterns and nudges the agent to break out. |
-| `build_verifier_plugin` | Verifies that the project still builds after the agent edits files. |
-| `memory_observer_plugin` | Writes each event to long-term memory so future sessions can recall via `search_memory`. |
+| `doom_loop_detector_plugin` | Detects an agent repeating the same failing tool call and nudges it to break out. |
+| `build_verifier_plugin` | Verifies that the project still builds before `finish_task` completes. |
+| `runtime_budget_plugin` | Enforces the runtime LLM budget for the session. |
 | `image_injection_plugin` | Makes tool outputs that contain image bytes visible to multimodal models. |
-| `read_before_edit_plugin` | Gates `str_replace_edit` on `view_file` first, to avoid blind edits. |
-| `message_board_diff_plugin` | Surfaces new board messages during ensemble runs via `_message_board_diff` on tool responses. |
+| `read_before_edit_plugin` | Warns when the agent edits a file it has not read with `view_file` first. |
 
 None are active by default. Enable them by name in `config.toml`:
 
@@ -68,15 +67,13 @@ enabled = [
     "quota_after_tool_plugin",
 ]
 
-[plugins.adk_plugin_params.doom_loop_detector_plugin]
+[plugins.params.doom_loop_detector_plugin]
 threshold = 5
 ```
 
 ## Execution Semantics
 
-Plugins registered for the same callback run **sequentially in discovery order**. Each plugin can mutate the shared state (tool response dict, event object, message list) before the next one runs. This is intentional: `tool_response_summarizer_plugin` runs first and shortens a big response; then `history_summarizer_plugin` sees the shortened version when it decides whether to compact; then `quota_after_tool_plugin` appends quota info to whatever's left.
-
-The order matters enough that you should think of the plugin stack as a pipeline, not a set of independent observers.
+Plugins registered for the same callback run **sequentially in discovery order**. Each plugin can mutate the shared state (tool response dict, event object, message list) before the next one runs. The ordering is deliberate: `tool_response_summarizer_plugin` runs first and shortens a large response, `history_summarizer_plugin` then sees the shortened version when it decides whether to compact, and `quota_after_tool_plugin` finally appends quota info to what remains. Treat the plugin stack as a pipeline whose order changes the result.
 
 ## Related References
 

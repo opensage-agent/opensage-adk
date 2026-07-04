@@ -110,7 +110,7 @@ Use turn files to debug tokenizer and parser issues; use `trajectory_full.json` 
 
 Changes below make OpenSage compatible with AReaL RL training.
 
-### RL Client: `model_name` Passthrough (`rl_integration/client.py`)
+### RL Client: `model_name` Passthrough (`evaluation/rl_adapters/client.py`)
 
 `Client.__init__` and `opensage.create()` accept an optional `model_name` parameter. The client forwards this name to the evaluation class constructor, so prompt formatting and model-specific logic (Gemini vs LiteLlm branches) use the correct model identity instead of the evaluation's default `"gemini-3-pro-preview"`.
 
@@ -176,7 +176,7 @@ To reproduce:
 ```bash
 cd OpenSage
 
-uv run --python ../.venv/bin/python -m src.opensage.evaluations.secodeplt.vul_detection run_debug \
+uv run --python ../.venv/bin/python -m benchmarks.secodeplt.vul_detection run_debug \
     --agent-id reproduce_codeql \
     --task_ids "arvo:65380" \
     --model_name="gemini-3-pro-preview" \

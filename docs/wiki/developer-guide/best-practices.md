@@ -8,8 +8,8 @@ Patterns that have held up across OpenSage-ADK agents and tools. Each entry name
 
 ## Session Management
 
-- Use `opensage.get_session()` instead of constructing sessions directly. The helper handles config expansion and registry bookkeeping.
-- Clean up when finished: `opensage.cleanup_session(session_id)` stops sandboxes, removes shared volumes, and frees Docker resources.
+- Use `opensage.get_opensage_session()` instead of constructing sessions directly. The helper handles config expansion and registry bookkeeping.
+- Clean up when finished: `opensage.cleanup_opensage_session(session_id)` cancels agent tasks and, when `auto_cleanup` is set, releases sandbox resources.
 - Use a unique `session_id` per run. Two runs sharing one ID will overwrite each other's sandbox state and ADK session records.
 
 ## Agent Development

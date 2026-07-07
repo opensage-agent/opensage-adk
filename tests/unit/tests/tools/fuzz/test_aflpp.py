@@ -2,8 +2,6 @@ import pytest
 
 pytestmark = pytest.mark.skip(reason="Skipping all fuzz tests for now")
 
-from unittest.mock import MagicMock
-
 import pytest_asyncio
 
 from opensage.sandbox.base_sandbox import SandboxState
@@ -121,32 +119,3 @@ async def test_fuzz_ground_truth_poc(opensage_session: OpenSageSession):
     )
 
     assert exit_code != 0, f"Crash test failed: {res}"
-
-
-@pytest.mark.slow
-@pytest.mark.asyncio
-async def test_fuzz_tool_functions(opensage_session: OpenSageSession):
-    """Test fuzzing tool functions."""
-    mock_context = MagicMock()
-    mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
-
-    # Import fuzzing tools
-    from opensage.toolbox.fuzzing.fuzz_tools import (
-        analyze_crash,
-        check_fuzzing_coverage,
-        generate_poc,
-        run_fuzzing_campaign,
-    )
-
-    # Test fuzzing coverage check
-    coverage_result = await check_fuzzing_coverage(tool_context=mock_context)
-    assert coverage_result["success"] is True
-    assert "coverage_info" in coverage_result
-
-    # Test short fuzzing campaign
-    fuzz_result = await run_fuzzing_campaign(
-        duration_minutes=1, seed_inputs=["test_input"], tool_context=mock_context
-    )
-    assert fuzz_result["success"] is True
-    assert "fuzz_target" in fuzz_result
-    assert fuzz_result["fuzz_target"] == "magic_fuzzer_loaddb"

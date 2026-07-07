@@ -1,20 +1,3 @@
-# Copyright 2026 OpenSage contributors
-#
-# Derived from Google ADK compaction handling in
-# `src/google/adk/flows/llm_flows/contents.py`.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 from __future__ import annotations
 
 
@@ -69,7 +52,29 @@ def apply() -> None:
                 # On any malformed compaction payload, skip it
                 continue
 
-        # 1) Sort markers by end time (stable)
+        # 1a) Subsumption: drop markers whose range is fully covered by
+        #     a later (more recent) marker.  This prevents old compaction
+        #     summaries from accumulating when new compactions expand their
+        #     start_timestamp to cover all prior ranges.
+        if len(markers) > 1:
+            kept = []
+            for i_m, m in enumerate(markers):
+                subsumed = False
+                for j_m, other in enumerate(markers):
+                    if i_m == j_m:
+                        continue
+                    if (
+                        other["start"] <= m["start"]
+                        and other["end"] >= m["end"]
+                        and j_m > i_m
+                    ):
+                        subsumed = True
+                        break
+                if not subsumed:
+                    kept.append(m)
+            markers = kept
+
+        # 1b) Sort markers by end time (stable)
         markers.sort(key=lambda m: m["end"])
 
         # 2) Single forward pass to build output with exact (start, end] replacement

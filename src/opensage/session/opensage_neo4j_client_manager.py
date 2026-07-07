@@ -61,22 +61,20 @@ class OpenSageNeo4jClientManager:
             str: Database name for the type
         """
         database_mapping = {
-            "history": f"agent-history",
-            "analysis": f"analysis",
-            "memory": f"memory",
+            "analysis": "analysis",
             "default": "neo4j",
         }
         return database_mapping.get(client_type, client_type)
 
     def get_async_client_without_connection(
         self,
-        client_type: str = "history",
+        client_type: str = "analysis",
         database_name: Optional[str] = None,
     ):
         """Get async Neo4j client for a specific type without connection verification.
 
         Args:
-            client_type (str): Type of client ("history", "analysis", etc.)
+            client_type (str): Type of client ("analysis", "default", or a custom name)
             database_name (Optional[str]): Optional specific database name (defaults based on type)"""
         if client_type not in self._clients:
             # Determine database name based on type
@@ -95,13 +93,13 @@ class OpenSageNeo4jClientManager:
 
     async def get_async_client(
         self,
-        client_type: Literal["history", "analysis", "memory", "default"] = "history",
+        client_type: Literal["analysis", "default"] = "analysis",
         database_name: Optional[str] = None,
     ):
         """Get async Neo4j client for a specific type.
 
                 Args:
-                    client_type (Literal['history', 'analysis', 'memory', 'default']): Type of client ("history", "analysis", etc.)
+                    client_type (Literal['analysis', 'default']): Type of client (alias mapped to a database name)
                     database_name (Optional[str]): Optional specific database name (defaults based on type)
 
         Raises:

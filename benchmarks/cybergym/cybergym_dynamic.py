@@ -37,7 +37,9 @@ class CyberGym(Evaluation):
     # Evaluation override configs
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_split: str = "tasks"
-    agent_dir: str = str(find_path("examples", "agents", "poc_agent_dynamic_tools"))
+    agent_dir: str = str(
+        find_path("agent_library", "agents", "poc_agent_dynamic_tools")
+    )
     max_llm_calls: int = 300
     config_template_path: str = str(Path(agent_dir) / "config.toml")
     run_until_explicit_finish: bool = True
@@ -207,7 +209,7 @@ class CyberGym(Evaluation):
     def evaluate(self) -> dict:
         """Evaluate results by calling cybergym's server."""
         logger.warning(f"Evaluating results for agent_id: {self.agent_id}")
-        evaluate_command = f"CYBERGYM_API_KEY=cybergym-030a0cd7-5908-4862-8ab9-91f2bfc7b56d python {self.cybergym_dir}/scripts/verify_agent_result.py --server http://{self.server_host}:{self.server_port} --pocdb_path {self.cybergym_poc_save_dir}/poc.db --agent_id {self.agent_id}"
+        evaluate_command = f"CYBERGYM_API_KEY=${{CYBERGYM_API_KEY:?CYBERGYM_API_KEY must be set}} python {self.cybergym_dir}/scripts/verify_agent_result.py --server http://{self.server_host}:{self.server_port} --pocdb_path {self.cybergym_poc_save_dir}/poc.db --agent_id {self.agent_id}"
         output = subprocess.run(
             evaluate_command,
             shell=True,

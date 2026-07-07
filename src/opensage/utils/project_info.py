@@ -17,12 +17,12 @@ def find_path(*path_parts: str) -> Path:
     2. PROJECT_PATH / path_parts (development project root)
 
     Args:
-        *path_parts (str): Path components (e.g., "examples", "agents", "my_agent")
+        *path_parts (str): Path components (e.g., "agent_library", "agents", "my_agent")
     Returns:
         Path: First existing path, or SRC_PATH-based path if none exist
 
     Example:
-        >>> find_path("examples", "agents", "vul_agent_static_tools")
+        >>> find_path("agent_library", "agents", "vul_agent_static_tools")
         # Returns installed package path if exists, else development path
     """
     # Try SRC_PATH first (works in both environments)

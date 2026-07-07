@@ -49,13 +49,12 @@ except Exception as _patch_err:
     )
 
 # Export version
-__version__ = "1.0.0"
+__version__ = "0.1.0"
 
 # Primary session interface
 # For backward compatibility and advanced usage
 # RL Framework integration (slime, verl, areal, etc.)
 from .evaluation.rl_adapters import Client, RLSession, create
-from .session.opensage_dynamic_agent_manager import DynamicAgentManager
 from .session.opensage_sandbox_manager import OpenSageSandboxManager
 from .session.opensage_session import (
     OpenSageSession,
@@ -77,6 +76,5 @@ __all__ = [
     # Advanced/internal usage
     "OpenSageSession",
     "OpenSageSessionRegistry",
-    "DynamicAgentManager",
     "OpenSageSandboxManager",
 ]

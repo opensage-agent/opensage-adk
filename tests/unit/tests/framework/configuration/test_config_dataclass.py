@@ -12,7 +12,6 @@ import pytest
 import toml
 
 from opensage.config.config_dataclass import (
-    AgentEnsembleConfig,
     BuildConfig,
     ContainerConfig,
     HistoryConfig,
@@ -177,6 +176,7 @@ class TestDataclassCreation:
 
         assert config.image is None
         assert config.timeout == 300
+        assert config.network is None
         assert config.privileged is False
         assert config.environment == {}
         assert config.volumes == []
@@ -194,17 +194,12 @@ class TestDataclassCreation:
         assert config.tpm == 60000
 
     def test_llm_config_with_models(self):
-        """Test LLMConfig with multiple models."""
-        main_model = ModelConfig(model_name="main-model", temperature=0.7)
+        """Test LLMConfig with the supported model_configs keys."""
         summary_model = ModelConfig(model_name="summary-model", temperature=0.3)
 
-        llm_config = LLMConfig(
-            model_configs={"main": main_model, "summarize": summary_model}
-        )
+        llm_config = LLMConfig(model_configs={"summarize": summary_model})
 
-        assert llm_config.get_model_config("main") == main_model
         assert llm_config.get_model_config("summarize") == summary_model
-        assert llm_config.model_name == "main-model"
         assert llm_config.summarize_model == "summary-model"
 
     def test_history_config_creation(self):
@@ -220,16 +215,6 @@ class TestDataclassCreation:
         assert config.max_tool_response_length == 2000
         assert config.events_compaction.max_history_summary_length == 80000
         assert config.events_compaction.compaction_percent == 60
-
-    def test_agent_ensemble_config_creation(self):
-        """Test AgentEnsembleConfig creation."""
-        config = AgentEnsembleConfig(
-            thread_safe_tools={"tool1", "tool2"},
-            available_models_for_ensemble=["model1", "model2"],
-        )
-
-        assert config.thread_safe_tools == {"tool1", "tool2"}
-        assert config.available_models_for_ensemble == ["model1", "model2"]
 
     def test_build_config_creation(self):
         """Test BuildConfig creation."""
@@ -333,22 +318,82 @@ timeout = 300
         assert config.sandbox.sandboxes["main"].image == "ubuntu:20.04"
         assert config.sandbox.sandboxes["main"].timeout == 300
 
+    def test_load_sandbox_network_from_toml(self):
+        """Test loading the network sandbox option."""
+        toml_content = """
+[sandbox]
+backend = "native"
+
+[sandbox.sandboxes.main]
+image = "ubuntu:20.04"
+network = "agent_net"
+"""
+
+        with open(self.test_config_path, "w") as f:
+            f.write(toml_content)
+
+        config = OpenSageConfig.from_toml(str(self.test_config_path))
+
+        assert config.sandbox.sandboxes["main"].network == "agent_net"
+
+    def test_load_agent_relative_dockerfile_path_from_toml(self):
+        """Test loading an agent-relative Dockerfile path."""
+        toml_content = """
+[sandbox]
+backend = "native"
+
+[sandbox.sandboxes.main]
+image = "test-image"
+agent_relative_dockerfile_path = "main_sandbox/Dockerfile"
+"""
+
+        with open(self.test_config_path, "w") as f:
+            f.write(toml_content)
+
+        config = OpenSageConfig.from_toml(str(self.test_config_path))
+
+        assert (
+            config.sandbox.sandboxes["main"].agent_relative_dockerfile_path
+            == "main_sandbox/Dockerfile"
+        )
+
+    def test_dockerfile_path_fields_are_mutually_exclusive(self):
+        """Test Dockerfile path fields cannot be configured together."""
+        toml_content = """
+[sandbox]
+backend = "native"
+
+[sandbox.sandboxes.main]
+image = "test-image"
+absolute_dockerfile_path = "/tmp/Dockerfile"
+agent_relative_dockerfile_path = "main_sandbox/Dockerfile"
+"""
+
+        with open(self.test_config_path, "w") as f:
+            f.write(toml_content)
+
+        with pytest.raises(ValueError, match="multiple Dockerfile path fields"):
+            OpenSageConfig.from_toml(str(self.test_config_path))
+
     def test_load_llm_config_from_toml(self):
         """Test loading LLM configuration from TOML."""
         toml_content = """
 MAIN_MODEL = "test/model"
 
-[llm.model_configs.main]
-model_name = "${MAIN_MODEL}"
-temperature = 0.7
-max_tokens = 4096
-rpm = 60
-tpm = 60000
-
+[llm]
 [llm.model_configs.summarize]
 model_name = "${MAIN_MODEL}"
 temperature = 0.3
 max_tokens = 2048
+
+[model]
+budget = 5.0
+
+[[model.prices]]
+model = "test/model"
+prompt_per_million = 3.0
+completion_per_million = 15.0
+cached_per_million = 0.3
 """
 
         with open(self.test_config_path, "w") as f:
@@ -357,39 +402,18 @@ max_tokens = 2048
         config = OpenSageConfig.from_toml(str(self.test_config_path))
 
         assert config.llm is not None
-        assert config.llm.model_name == "test/model"
+        assert config.model.budget == 5.0
+        assert len(config.model.prices) == 1
+        assert config.model.prices[0].model == "test/model"
+        assert config.model.prices[0].prompt_per_million == 3.0
+        assert config.model.prices[0].completion_per_million == 15.0
+        assert config.model.prices[0].cached_per_million == 0.3
         assert config.llm.summarize_model == "test/model"
-
-        main_config = config.llm.get_model_config("main")
-        assert main_config.model_name == "test/model"
-        assert main_config.temperature == 0.7
-        assert main_config.max_tokens == 4096
 
         summary_config = config.llm.get_model_config("summarize")
         assert summary_config.model_name == "test/model"
         assert summary_config.temperature == 0.3
         assert summary_config.max_tokens == 2048
-
-    def test_load_agent_ensemble_config_from_toml(self):
-        """Test loading agent ensemble configuration from TOML."""
-        toml_content = """
-[agent_ensemble]
-thread_safe_tools = ["tool1", "tool2"]
-available_models_for_ensemble = "model1,model2,model3"
-"""
-
-        with open(self.test_config_path, "w") as f:
-            f.write(toml_content)
-
-        config = OpenSageConfig.from_toml(str(self.test_config_path))
-
-        assert config.agent_ensemble is not None
-        assert config.agent_ensemble.thread_safe_tools == {"tool1", "tool2"}
-        assert config.agent_ensemble.available_models_for_ensemble == [
-            "model1",
-            "model2",
-            "model3",
-        ]
 
     def test_load_build_config_with_empty_strings(self):
         """Test loading build configuration with empty string handling."""
@@ -411,23 +435,6 @@ target_type = "default"
         assert config.build.compile_command is None  # Empty string converted to None
         assert config.build.run_command == "arvo"
         assert config.build.target_type == "default"
-
-    def test_load_sandbox_host_shared_mem_dir_empty_string(self):
-        """Test sandbox.host_shared_mem_dir empty string is normalized to None."""
-        toml_content = """
-[sandbox]
-backend = "native"
-host_shared_mem_dir = ""
-
-[sandbox.sandboxes.main]
-image = "ubuntu:20.04"
-"""
-        with open(self.test_config_path, "w") as f:
-            f.write(toml_content)
-
-        config = OpenSageConfig.from_toml(str(self.test_config_path))
-        assert config.sandbox is not None
-        assert config.sandbox.host_shared_mem_dir is None
 
     def test_load_mcp_config_from_toml(self):
         """Test loading MCP configuration from TOML."""
@@ -491,9 +498,9 @@ class TestOpenSageConfigMethods:
             backend="native",
         )
 
-        # Set up LLM configuration
-        main_model = ModelConfig(model_name="test-model", temperature=0.7)
-        self.config.llm = LLMConfig(model_configs={"main": main_model})
+        # Set up LLM configuration (summarize is one of the supported keys)
+        summary_model = ModelConfig(model_name="test-model", temperature=0.3)
+        self.config.llm = LLMConfig(model_configs={"summarize": summary_model})
 
     def test_get_sandbox_config(self):
         """Test get_sandbox_config method."""
@@ -510,28 +517,12 @@ class TestOpenSageConfigMethods:
         config = OpenSageConfig()
         assert config.get_sandbox_config("main") is None
 
-    def test_get_llm_config(self):
-        """Test get_llm_config method."""
-        llm_config = self.config.get_llm_config("main")
-        assert llm_config is not None
-        assert llm_config.model_name == "test-model"
-        assert llm_config.temperature == 0.7
-
-        # Test non-existent model
-        assert self.config.get_llm_config("non_existent") is None
-
-    def test_get_llm_config_no_llm(self):
-        """Test get_llm_config when no LLM configuration exists."""
-        config = OpenSageConfig()
-        assert config.get_llm_config("main") is None
-
     def test_save_to_toml(self):
         """Test saving configuration to TOML file."""
         with tempfile.TemporaryDirectory() as temp_dir:
             toml_path = Path(temp_dir) / "test_save.toml"
 
             self.config.task_name = "test_task"
-            self.config.agent_storage_path = "/tmp/storage"
             self.config.save_to_toml(str(toml_path))
 
             assert toml_path.exists()
@@ -539,7 +530,6 @@ class TestOpenSageConfigMethods:
             # Load and verify the saved content
             loaded_data = toml.load(toml_path)
             assert loaded_data["task_name"] == "test_task"
-            assert loaded_data["agent_storage_path"] == "/tmp/storage"
 
     def test_copy(self):
         """Test configuration deep copy."""

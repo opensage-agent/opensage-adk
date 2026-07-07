@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import re
 
-from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.base_sandbox import BaseSandbox
 from opensage.utils.project_info import PROJECT_PATH
 
 from .base import SandboxInitializer
@@ -35,11 +35,11 @@ class FuzzInitializer(SandboxInitializer):
                 return False
 
             # Extract environment information from arvo script
-            res, exit_code = self.run_command_in_container(
+            res, exit_code = await self.arun_command_in_container(
                 "cat /bin/arvo", timeout=1200
             )
             if exit_code != 0:
-                infos = self._extract_infos_from_ossfuzz(all_sandboxes["main"])
+                infos = await self._extract_infos_from_ossfuzz(all_sandboxes["main"])
             else:
                 infos = self._extract_infos_from_arvo_script(res)
 
@@ -47,20 +47,20 @@ class FuzzInitializer(SandboxInitializer):
             await self._compile_with_aflpp(infos)
             return True
         except Exception as e:
-            logger.error(f"Failed to initialize fuzzing environment: {e}")
+            logger.exception(f"Failed to initialize fuzzing environment: {e}")
             return False
 
-    def _extract_infos_from_ossfuzz(self, sandbox: BaseSandbox) -> dict[str, str]:
+    async def _extract_infos_from_ossfuzz(self, sandbox: BaseSandbox) -> dict[str, str]:
         infos = {}
         for env in ["SANITIZER", "FUZZING_LANGUAGE", "ARCHITECTURE"]:
-            res, exit_code = sandbox.run_command_in_container(
+            res, exit_code = await sandbox.arun_command_in_container(
                 f"echo ${env}", timeout=1200
             )
             if exit_code != 0:
                 raise RuntimeError(f"Failed to get {env}: {res}")
             infos[env] = res.strip()
         # find fuzz target from /usr/local/bin/run_poc
-        res, exit_code = sandbox.run_command_in_container(
+        res, exit_code = await sandbox.arun_command_in_container(
             "cat /usr/local/bin/run_poc", timeout=1200
         )
         if exit_code != 0:
@@ -100,11 +100,11 @@ class FuzzInitializer(SandboxInitializer):
         # Set environment variables and run compilation
         env_cmd = f"export SANITIZER={infos['SANITIZER']} && export FUZZING_LANGUAGE={infos['FUZZING_LANGUAGE']} && export ARCHITECTURE={infos['ARCHITECTURE']} && bash /sandbox_scripts/ossfuzz/compile_aflpp.sh"
 
-        msg, err = self.run_command_in_container(env_cmd, timeout=3600)
+        msg, err = await self.arun_command_in_container(env_cmd, timeout=3600)
 
         if err != 0:
             logger.info("Recovering old build files...")
-            self.run_command_in_container(
+            await self.arun_command_in_container(
                 "rm -rf /out && mv /out.bak /out", timeout=1200
             )
             raise RuntimeError(f"AFL++ compilation failed: {msg}")

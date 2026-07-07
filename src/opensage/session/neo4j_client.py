@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 from typing import Any
 
 from neo4j import AsyncGraphDatabase, GraphDatabase
@@ -304,7 +304,7 @@ class AsyncNeo4jClient:
             # Convert Neo4j special types to Python native types for JSON serialization
             return _convert_neo4j_types_to_native(data)
 
-    @contextmanager
+    @asynccontextmanager
     async def session(self, database=None):
         async with self.driver.session(database=database) as session:
             yield session

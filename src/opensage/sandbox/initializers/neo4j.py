@@ -6,8 +6,9 @@ import asyncio
 import logging
 import shlex
 
-from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.base_sandbox import BaseSandbox
 from opensage.sandbox.initializers.base import SandboxInitializer
+from opensage.sandbox.sandbox_paths import get_shared
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class Neo4jInitializer(SandboxInitializer):
         assert isinstance(self, BaseSandbox)
 
         msg, err = self.run_command_in_container(
-            ["mkdir", "-p", "/shared/neo4j/import"]
+            ["mkdir", "-p", f"{get_shared()}/neo4j/import"]
         )
         if err != 0:
             logger.error(

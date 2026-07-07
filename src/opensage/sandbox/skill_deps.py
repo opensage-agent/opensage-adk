@@ -13,6 +13,7 @@ import shlex
 from typing import Any
 
 from .base_sandbox import BaseSandbox
+from .sandbox_paths import get_bash_tools, get_shared
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +48,12 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
     if not sandbox_type:
         return
 
+    shared_dir = get_shared()
+    bash_tools_dir = get_bash_tools()
+
     def _marker_path(rel_skill_dir: str) -> str:
         safe = re.sub(r"[^a-zA-Z0-9_.-]+", "_", rel_skill_dir.strip("/"))
-        return f"/shared/.opensage/skill_deps/{sandbox_type}/{safe}.done"
+        return f"{shared_dir}/.opensage/skill_deps/{sandbox_type}/{safe}.done"
 
     def _parse_should_run_in_sandbox(skill_md: str) -> str | None:
         if not skill_md.startswith("---"):
@@ -91,10 +95,10 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
             if entry in (".", "..") or "/../" in normalized or "/./" in normalized:
                 continue
 
-            root = f"/bash_tools/{entry}"
+            root = f"{bash_tools_dir}/{entry}"
 
             # If entry itself is a skill dir (has SKILL.md), include it.
-            _, has_skill_md = sandbox.run_command_in_container(
+            _, has_skill_md = await sandbox.arun_command_in_container(
                 ["bash", "-lc", f"test -f {shlex.quote(root + '/SKILL.md')}"],
                 timeout=10,
             )
@@ -102,7 +106,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
                 skill_dirs.append(entry)
 
             # Expand nested skills under this prefix.
-            out, code = sandbox.run_command_in_container(
+            out, code = await sandbox.arun_command_in_container(
                 [
                     "bash",
                     "-lc",
@@ -118,36 +122,38 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
             if code == 0 and isinstance(out, str) and out.strip():
                 for line in out.splitlines():
                     path = line.strip()
-                    if not path.startswith("/bash_tools/") or not path.endswith(
+                    if not path.startswith(bash_tools_dir + "/") or not path.endswith(
                         "/SKILL.md"
                     ):
                         continue
-                    rel_dir = os.path.dirname(path)[len("/bash_tools/") :]
+                    rel_dir = os.path.dirname(path)[len(bash_tools_dir) + 1 :]
                     if rel_dir:
                         skill_dirs.append(rel_dir)
     else:
-        out, code = sandbox.run_command_in_container(
-            ["bash", "-lc", "find /bash_tools -type f -name SKILL.md -print"],
+        out, code = await sandbox.arun_command_in_container(
+            ["bash", "-lc", f"find {bash_tools_dir} -type f -name SKILL.md -print"],
             timeout=60,
         )
         if code != 0 or not isinstance(out, str):
             return
         for line in out.splitlines():
             path = line.strip()
-            if not path.startswith("/bash_tools/") or not path.endswith("/SKILL.md"):
+            if not path.startswith(bash_tools_dir + "/") or not path.endswith(
+                "/SKILL.md"
+            ):
                 continue
-            rel_dir = os.path.dirname(path)[len("/bash_tools/") :]
+            rel_dir = os.path.dirname(path)[len(bash_tools_dir) + 1 :]
             if rel_dir:
                 skill_dirs.append(rel_dir)
 
     if not skill_dirs:
         return
 
-    sandbox.run_command_in_container(
+    await sandbox.arun_command_in_container(
         [
             "bash",
             "-lc",
-            f"mkdir -p {shlex.quote(f'/shared/.opensage/skill_deps/{sandbox_type}')}",
+            f"mkdir -p {shlex.quote(f'{shared_dir}/.opensage/skill_deps/{sandbox_type}')}",
         ],
         timeout=30,
     )
@@ -155,10 +161,10 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
     # Collect and parse all skills first.
     skills_to_install: list[dict[str, Any]] = []
     for rel_skill_dir in sorted(set(skill_dirs)):
-        skill_root = f"/bash_tools/{rel_skill_dir}"
+        skill_root = f"{bash_tools_dir}/{rel_skill_dir}"
         skill_md_path = f"{skill_root}/SKILL.md"
         try:
-            skill_md = sandbox.extract_file_from_container(skill_md_path)
+            skill_md = await sandbox.aextract_file_from_container(skill_md_path)
         except Exception:  # pylint: disable=broad-except
             continue
         if not isinstance(skill_md, str) or not skill_md:
@@ -183,7 +189,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
         skill_root = skill_info["skill_root"]
         marker = _marker_path(rel_skill_dir)
 
-        _, already = sandbox.run_command_in_container(
+        _, already = await sandbox.arun_command_in_container(
             ["bash", "-lc", f"test -f {shlex.quote(marker)}"],
             timeout=10,
         )
@@ -196,7 +202,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
         ]
         chosen = None
         for installer in installers:
-            _, exists = sandbox.run_command_in_container(
+            _, exists = await sandbox.arun_command_in_container(
                 ["bash", "-lc", f"test -f {shlex.quote(installer)}"],
                 timeout=10,
             )
@@ -213,7 +219,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
             rel_skill_dir,
             skill_info["priority"],
         )
-        msg, err = sandbox.run_command_in_container(
+        msg, err = await sandbox.arun_command_in_container(
             ["bash", "-lc", f"chmod +x {shlex.quote(chosen)} && {shlex.quote(chosen)}"],
             timeout=1800,
         )
@@ -223,7 +229,7 @@ async def prepare_skill_deps(sandbox: BaseSandbox, enabled_skills: Any) -> None:
                 % (sandbox_type, rel_skill_dir, msg)
             )
 
-        sandbox.run_command_in_container(
+        await sandbox.arun_command_in_container(
             ["bash", "-lc", f"touch {shlex.quote(marker)}"],
             timeout=10,
         )

@@ -24,6 +24,13 @@ from opensage.utils.bash_tools_staging import build_bash_tools_staging_dir
 from opensage.utils.parser import get_function_info
 
 from .base_sandbox import BaseSandbox, SandboxState
+from .utils import (
+    SandboxCacheInfo,
+    can_pull_image,
+    image_exists_locally,
+    load_named_cache_manifest,
+    normalize_image_name,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1256,7 +1263,7 @@ class K8sSandbox(BaseSandbox):
             return (scripts_pvc_id, data_pvc_id, tools_pvc_id)
 
         except Exception as e:
-            logger.error(f"Failed to create shared PVCs: {e}")
+            logger.exception(f"Failed to create shared PVCs: {e}")
             # Clean up any created PVCs on failure
             try:
                 cls._run_kubectl_class(
@@ -1658,7 +1665,7 @@ class K8sSandbox(BaseSandbox):
                         final_state.value,
                         state_exc,
                     )
-            logger.error(
+            logger.exception(
                 "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
                 sandbox_type,
                 opensage_session_id,
@@ -1744,6 +1751,97 @@ class K8sSandbox(BaseSandbox):
                 await asyncio.gather(*tasks)
         return {sandbox_type: None for sandbox_type, _ in init_entries}
 
+    @classmethod
+    async def initialize_single_sandbox(
+        cls,
+        sandbox_type: str,
+        sandbox_instance: "K8sSandbox",
+        all_sandboxes: dict[str, BaseSandbox],
+    ) -> None:
+        """Initialize a single sandbox, passing the full sandbox map for peer access."""
+
+        async def _init_one(instance: "K8sSandbox") -> None:
+            if instance._using_cached:
+                await instance.ensure_ready()
+            else:
+                await instance.async_initialize(all_sandboxes)
+
+        await cls._run_initializer_with_tracking(
+            sandbox_type,
+            sandbox_instance,
+            _init_one(sandbox_instance),
+        )
+
+    # ------------------------------------------------------------------
+    # Cache loading
+    # ------------------------------------------------------------------
+    @classmethod
+    def load_cache_manifest(cls, task_name: str, config) -> tuple[dict, Optional[str]]:
+        """Load K8s cache manifest."""
+        manifest, _, shared_volume_backup = load_named_cache_manifest(
+            task_name,
+            cache_dir_env="OPENSAGE_K8S_CACHE_DIR",
+            global_subdir="k8s_cache",
+            manifest_filename="k8s_cache_manifest.json",
+        )
+        return manifest, shared_volume_backup
+
+    @classmethod
+    def resolve_sandbox_cache(
+        cls,
+        sandbox_type: str,
+        cached_image_name: str,
+        manifest: dict,
+    ) -> SandboxCacheInfo:
+        """Resolve cache for K8s: rootfs snapshot first, then docker image fallback."""
+        entry = manifest.get(sandbox_type, {})
+
+        # Strategy 1: rootfs snapshot (when container commit failed)
+        if entry and not entry.get("commit_succeeded", False):
+            rootfs_tar = entry.get("rootfs_tar")
+            if rootfs_tar and os.path.exists(rootfs_tar):
+                logger.info(
+                    f"Using file-based cache for {sandbox_type} "
+                    f"(image unchanged, applying rootfs snapshot)"
+                )
+                return SandboxCacheInfo(
+                    found=True,
+                    rootfs_tar=rootfs_tar,
+                    base_image=entry.get("base_image"),
+                )
+            else:
+                logger.info(
+                    f"No filesystem snapshot found for {sandbox_type}; "
+                    f"skipping cache load"
+                )
+
+        # Strategy 2: docker image fallback
+        if image_exists_locally(cached_image_name) or can_pull_image(cached_image_name):
+            logger.info(f"Found cached image for {sandbox_type}: {cached_image_name}")
+            return SandboxCacheInfo(
+                found=True,
+                image=cached_image_name,
+                rootfs_tar=entry.get("rootfs_tar"),
+                base_image=entry.get("base_image"),
+            )
+
+        return SandboxCacheInfo(found=False)
+
+    @classmethod
+    def prepare_attach_config(
+        cls,
+        container_config,
+        *,
+        container_id=None,
+        pod_name=None,
+        container_name=None,
+    ) -> None:
+        """Inject pod_name and container_name for K8s attach."""
+        if not pod_name or not container_name:
+            raise ValueError("attach(k8s) requires pod_name and container_name")
+        container_config.pod_name = pod_name
+        container_config.container_name = container_name
+
     # ------------------------------------------------------------------
     # Cache support placeholder (kept for parity with BaseSandbox contract)
     # ------------------------------------------------------------------
@@ -1755,16 +1853,6 @@ class K8sSandbox(BaseSandbox):
         cache_dir: str,
         task_name: str,
     ) -> dict:
-        def normalize_image_name(name: str) -> str:
-            normalized = name.lower()
-            normalized = re.sub(r"[^a-z0-9._-]", "_", normalized)
-            normalized = normalized.strip(".-")
-            if normalized.startswith("_"):
-                normalized = "img" + normalized
-            if len(normalized) > 200:
-                normalized = normalized[:200].rstrip("_-.")
-            return normalized
-
         cache_results = {
             "session_id": None,
             "task_name": task_name,
@@ -1804,7 +1892,7 @@ class K8sSandbox(BaseSandbox):
                     f"Shared volume {shared_volume_id} backed up to {backup_path}"
                 )
             except Exception as exc:
-                logger.error(
+                logger.exception(
                     f"Failed to backup shared volume {shared_volume_id}: {exc}"
                 )
                 cache_results["errors"].append(str(exc))
@@ -1980,7 +2068,7 @@ class K8sSandbox(BaseSandbox):
                         )
 
             except Exception as exc:
-                logger.error(f"Failed to cache sandbox {sandbox_type}: {exc}")
+                logger.exception(f"Failed to cache sandbox {sandbox_type}: {exc}")
                 cache_results["errors"].append(f"{sandbox_type}: {exc}")
 
         if k8s_metadata:

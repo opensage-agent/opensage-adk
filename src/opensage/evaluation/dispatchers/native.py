@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import traceback
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import TYPE_CHECKING
 
 from tqdm import tqdm
@@ -40,6 +38,8 @@ class NativeDispatcher(BaseDispatcher):
 
     def _run_single_thread(self, evaluation: Evaluation) -> None:
         """Generate samples sequentially in a single thread."""
+        from opensage.evaluation.base import _run_sample_in_process
+
         evaluation.dataset = evaluation._get_dataset()
         results = []
         failed_samples = []
@@ -49,15 +49,12 @@ class NativeDispatcher(BaseDispatcher):
         ):
             task_name = evaluation._get_task_id(sample)
             try:
-                task = evaluation._create_task(sample)
-                result = asyncio.run(evaluation._generate_one(task))
+                result = _run_sample_in_process(evaluation, sample)
                 results.append(result)
                 logger.info(f"✓ Task {task_name} completed")
             except Exception as e:
                 failed_samples.append(task_name)
-                logger.error(f"✗ Task {task_name} FAILED")
-                logger.error(f"  Error: {e}")
-                logger.error(f"  Traceback:\n{traceback.format_exc()}")
+                logger.exception(f"✗ Task {task_name} FAILED: {e}")
 
         evaluation.customized_modify_and_save_results(
             results=results,
@@ -109,13 +106,11 @@ class NativeDispatcher(BaseDispatcher):
                     logger.info(f"✓ Task {task_name} completed successfully")
                 except Exception as e:
                     failed_samples.append(task_name)
-                    logger.error(f"✗ Task {task_name} FAILED")
-                    logger.error(f"  Error: {e}")
-                    logger.error(f"  Traceback:\n{traceback.format_exc()}")
+                    logger.exception(f"✗ Task {task_name} FAILED: {e}")
 
                     error_file = Path(evaluation.output_dir) / task_name / "error.json"
                     if error_file.exists():
-                        logger.error(f"  Detailed error saved to: {error_file}")
+                        logger.info(f"  Detailed error saved to: {error_file}")
 
             evaluation.customized_modify_and_save_results(
                 results=results,

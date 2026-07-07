@@ -40,7 +40,7 @@ except ImportError:
 class SweBenchPro(Evaluation):
     dataset_path: str = "ScaleAI/SWE-bench_Pro"
     dataset_split: str = "test"
-    agent_dir: str = PROJECT_PATH / "examples/agents/swebenchpro_agent"
+    agent_dir: str = PROJECT_PATH / "agent_library/agents/swebenchpro_agent"
     config_template_path: str = str(Path(agent_dir) / "config.toml")
 
     # Optional override for output directory relative to project root
@@ -940,7 +940,7 @@ Please be concise but comprehensive. Focus on information that would be useful f
                 )
                 logger.warning(f"Successfully cloned {swe_bench_repo_name}")
             except subprocess.CalledProcessError as e:
-                logger.error(f"Failed to clone repo: {e.stderr.decode()}")
+                logger.exception(f"Failed to clone repo: {e.stderr.decode()}")
                 return
 
         # 2. Check/Install requirements
@@ -986,7 +986,7 @@ Please be concise but comprehensive. Focus on information that would be useful f
                 df = ds.to_pandas()
                 df.to_csv(dataset_csv_path, index=False)
             except Exception as e:
-                logger.error(f"Failed to export dataset to CSV: {e}")
+                logger.exception(f"Failed to export dataset to CSV: {e}")
                 return
 
         cmd = [
@@ -1032,7 +1032,7 @@ Please be concise but comprehensive. Focus on information that would be useful f
             else:
                 logger.warning("Evaluation script finished successfully.")
         except Exception as e:
-            logger.error(f"Failed to run evaluation script: {e}")
+            logger.exception(f"Failed to run evaluation script: {e}")
 
 
 if __name__ == "__main__":

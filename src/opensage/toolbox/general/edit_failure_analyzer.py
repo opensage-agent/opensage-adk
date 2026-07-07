@@ -10,16 +10,12 @@ import hashlib
 import logging
 from typing import Optional
 
-from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
 
 from opensage.session import get_opensage_session
-from opensage.utils.agent_utils import (
-    INHERIT_MODEL,
-    get_opensage_session_id_from_context,
-)
+from opensage.utils.agent_utils import get_opensage_session_id_from_context
 
 logger = logging.getLogger(__name__)
 
@@ -120,15 +116,14 @@ async def analyze_edit_failure(
         return _analysis_cache[cache_key]
 
     try:
-        # Get session and model configuration
         opensage_session_id = get_opensage_session_id_from_context(tool_context)
-        session = get_opensage_session(opensage_session_id)
+        opensage_session = get_opensage_session(opensage_session_id)
 
-        # Use flag_claims_model for analysis (or could add dedicated config later)
-        model_name = session.config.llm.flag_claims_model
-        if not model_name:
-            logger.warning("No analysis model configured (flag_claims_model not set)")
+        model_names = opensage_session.llms.list_names()
+        if not model_names:
+            logger.warning("No models in registry for edit failure analysis")
             return None
+        model = opensage_session.llms.get(model_names[0])
 
         # Truncate file content if too long to avoid token limits
         max_content_length = 50000  # ~12.5k tokens roughly
@@ -174,19 +169,6 @@ async def analyze_edit_failure(
         llm_request.contents = [
             types.Content(role="user", parts=[types.Part.from_text(text=user_prompt)])
         ]
-
-        # Resolve model for standalone LLM call.
-        # When "inherit", use the session's main model name via LiteLlm rather
-        # than reusing the agent's model instance (which may have thinking mode
-        # or other config that causes 404 on a bare single-turn call).
-        if model_name == INHERIT_MODEL:
-            resolved_name = session.config.llm.model_name
-            if not resolved_name:
-                logger.debug("Cannot resolve model name for edit failure analysis")
-                return None
-            model = LiteLlm(model=resolved_name)
-        else:
-            model = LiteLlm(model=model_name)
 
         # Call model
         analysis_parts = []

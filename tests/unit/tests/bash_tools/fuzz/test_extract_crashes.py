@@ -42,7 +42,7 @@ async def test_extract_crashes_missing_target_dir(opensage_session: OpenSageSess
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test extract-crashes without target_dir (should fail)
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command="bash /bash_tools/fuzz/extract-crashes/scripts/extract_crashes.sh",
         tool_context=mock_context,
         sandbox_name="main",
@@ -67,7 +67,7 @@ async def test_extract_crashes_no_crashes_directory(opensage_session: OpenSageSe
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test extract-crashes with target_dir but no crashes directory
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/fuzz/extract-crashes/scripts/extract_crashes.sh "/tmp/test_crashes"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -90,7 +90,7 @@ async def test_extract_crashes_json_structure(opensage_session: OpenSageSession)
     mock_context = MagicMock()
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/fuzz/extract-crashes/scripts/extract_crashes.sh "/tmp/test_crashes"',
         tool_context=mock_context,
         sandbox_name="main",

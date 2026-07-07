@@ -27,7 +27,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -36,6 +36,10 @@ jobs:
 
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v6
+
+    - name: Enable unprivileged user namespaces
+      run: |
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
     - name: Start Docker service
       run: |
@@ -54,7 +58,7 @@ jobs:
         pytest tests/unit -v --tb=short -m "not slow"
 
     - name: Upload test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: failure()
       with:
         name: test-results-python-${{ matrix.python-version }}

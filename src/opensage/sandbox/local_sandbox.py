@@ -3,11 +3,10 @@ import os
 import shlex
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 from opensage.config.config_dataclass import ContainerConfig
-from opensage.sandbox.base_sandbox import BaseSandbox
+from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +27,20 @@ class LocalSandbox(BaseSandbox):
         super().__init__(
             container_config, opensage_session_id, backend_type, sandbox_type
         )
+        self.state = SandboxState.READY
 
     def copy_file_from_container(self, src_path: str, dst_path: str):
+        os.makedirs(os.path.dirname(dst_path), exist_ok=True)
         shutil.copyfile(src_path, dst_path)
 
     def copy_file_to_container(self, local_path: str, container_path: str):
+        os.makedirs(os.path.dirname(container_path), exist_ok=True)
         shutil.copyfile(local_path, container_path)
+
+    def copy_directory_to_container(self, src_path: str, dst_path: str):
+        if os.path.exists(dst_path):
+            shutil.rmtree(dst_path)
+        shutil.copytree(src_path, dst_path)
 
     def extract_file_from_container(self, filepath: str) -> str:
         with open(filepath, "r") as f:
@@ -49,19 +56,14 @@ class LocalSandbox(BaseSandbox):
         if isinstance(command, list):
             command = shlex.join(command)
 
-        command = [
-            "/bin/bash",
-            "-c",
-            command,
-        ]
-        if timeout is not None:
-            command = ["timeout", f"{timeout}s"] + command
+        args = ["/bin/bash", "-c", command]
 
         try:
             result = subprocess.run(
-                command,
+                args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
+                timeout=timeout,
                 check=False,
             )
             return result.stdout.decode(
@@ -74,7 +76,13 @@ class LocalSandbox(BaseSandbox):
         return os.getcwd()
 
     def delete_container(self) -> None:
-        logger.info("LocalSandbox has no container to delete")
+        pass
+
+    async def async_initialize(self, all_sandboxes=None) -> None:
+        self.state = SandboxState.READY
+
+    async def ensure_ready(self) -> None:
+        self.state = SandboxState.READY
 
     @classmethod
     def create_shared_volume(
@@ -83,15 +91,30 @@ class LocalSandbox(BaseSandbox):
         init_data_path: Path = None,
         tools_top_roots: set[str] | None = None,
     ) -> tuple[str, str, str]:
-        raise NotImplementedError("Shared volumes are not supported in LocalSandbox.")
+        from opensage.sandbox.sandbox_paths import (
+            get_bash_tools,
+            get_sandbox_scripts,
+            get_shared,
+        )
+
+        shared_dir = Path(get_shared())
+        shared_dir.mkdir(parents=True, exist_ok=True)
+        scripts_dir = Path(get_sandbox_scripts())
+        scripts_dir.mkdir(parents=True, exist_ok=True)
+        tools_dir = Path(get_bash_tools())
+        tools_dir.mkdir(parents=True, exist_ok=True)
+
+        return str(scripts_dir), str(shared_dir), str(tools_dir)
 
     @classmethod
     async def create_single_sandbox(
         cls, session_id: str, sandbox_type: str, container_config: ContainerConfig
     ):
-        raise NotImplementedError(
-            "Creating single sandbox is not supported in LocalSandbox."
-        )
+        if sandbox_type != "main":
+            raise ValueError(
+                f"LocalSandbox only supports 'main' sandbox, got '{sandbox_type}'"
+            )
+        return cls(container_config, session_id, cls.backend_type, sandbox_type)
 
     @classmethod
     async def launch_all_sandboxes(
@@ -102,9 +125,28 @@ class LocalSandbox(BaseSandbox):
         scripts_volume_id: str = None,
         tools_volume_id: str = None,
     ):
-        assert len(sandbox_configs) == 1, "LocalSandbox supports only one sandbox."
+        non_main = [k for k in sandbox_configs if k != "main"]
+        if non_main:
+            msg = (
+                f"\n"
+                f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                f"!!!                                                     !!!\n"
+                f"!!!  LocalSandbox: UNSUPPORTED SANDBOX TYPES DETECTED   !!!\n"
+                f"!!!                                                     !!!\n"
+                f"!!!  Backend 'local' only supports the 'main' sandbox.  !!!\n"
+                f"!!!  The following will be SKIPPED: {non_main!r:<21s}!!!\n"
+                f"!!!                                                     !!!\n"
+                f"!!!  Tools requiring these sandboxes will NOT work.      !!!\n"
+                f"!!!  Switch to 'native' or 'k8s' backend if needed.     !!!\n"
+                f"!!!                                                     !!!\n"
+                f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            )
+            logger.warning(msg)
+
         sandbox_instances = {}
         for sandbox_type, config in sandbox_configs.items():
+            if sandbox_type != "main":
+                continue
             sandbox = cls(config, session_id, cls.backend_type, sandbox_type)
             sandbox_instances[sandbox_type] = sandbox
         return sandbox_instances
@@ -127,11 +169,26 @@ class LocalSandbox(BaseSandbox):
         pass
 
     @classmethod
+    async def initialize_all_sandboxes(
+        cls,
+        sandbox_instances: dict,
+        *,
+        continue_on_error: bool = False,
+    ) -> dict:
+        result_map = {}
+        for sandbox_type, sandbox in sandbox_instances.items():
+            sandbox.state = SandboxState.READY
+            result_map[sandbox_type] = None
+        return result_map
+
+    @classmethod
+    def prepare_attach_config(cls, container_config, **kwargs) -> None:
+        pass
+
+    @classmethod
     def checkpoint(cls) -> str:
-        """Checkpoint the sandbox."""
         raise NotImplementedError("Checkpoint is not implemented for LocalSandbox")
 
     @classmethod
     def restore(cls) -> str:
-        """Restore the sandbox."""
         raise NotImplementedError("Restore is not implemented for LocalSandbox")

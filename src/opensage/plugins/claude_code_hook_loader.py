@@ -619,7 +619,7 @@ class ClaudeCodeHookPlugin(BasePlugin):
         logger.debug("[ClaudeCodeHook] %s command: %s", event, action.command[:80])
 
         try:
-            output, exit_code = sandbox.run_command_in_container(
+            output, exit_code = await sandbox.arun_command_in_container(
                 action.command, timeout=_COMMAND_TIMEOUT
             )
         except Exception as e:

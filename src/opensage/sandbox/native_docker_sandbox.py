@@ -23,7 +23,12 @@ from opensage.config import ContainerConfig
 
 logger = logging.getLogger(__name__)
 from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
-from opensage.sandbox.utils import can_pull_image, image_exists_locally
+from opensage.sandbox.utils import (
+    SandboxCacheInfo,
+    can_pull_image,
+    image_exists_locally,
+    normalize_image_name,
+)
 from opensage.utils.bash_tools_staging import build_bash_tools_staging_dir
 from opensage.utils.parser import get_function_info
 from opensage.utils.project_info import PROJECT_PATH
@@ -41,27 +46,42 @@ class DockerBuildResult:
 
 def build_image_from_dockerfile(
     config: ContainerConfig,
-) -> DockerBuildResult:
-    """Build Docker image from a direct Dockerfile.
+    *,
+    container_cli: str = "docker",
+    build_extra_args: tuple[str, ...] = ("--load",),
+    build_progress_arg: str | None = "--progress=plain",
+) -> DockerBuildResult | None:
+    """Build container image from a direct Dockerfile.
 
     Args:
         dockerfile_path: Path to the Dockerfile
         image_name: Name and tag for the built image (e.g., 'myapp:latest')
         build_context: Directory to use as build context. If None, uses dockerfile directory
-        build_args: Build-time variables for Docker build (--build-arg)
+        build_args: Build-time variables for image build (--build-arg)
     Returns:
-        DockerBuildResult: DockerBuildResult with build status and details
+        DockerBuildResult: Build status and details
     """
-    if not config.project_relative_dockerfile_path or not config.image:
+    has_dockerfile = (
+        config.absolute_dockerfile_path
+        or config.agent_relative_dockerfile_path
+        or config.project_relative_dockerfile_path
+    )
+    if not has_dockerfile and not config.image:
         return None
+
+    if config.agent_relative_dockerfile_path:
+        raise ValueError(
+            "agent_relative_dockerfile_path must be resolved against agent_dir "
+            "before building Docker images."
+        )
 
     # Use absolute path if provided, otherwise use project-relative path
     if config.absolute_dockerfile_path:
-        dockerfile_path = Path(config.absolute_dockerfile_path)
+        dockerfile_path = Path(config.absolute_dockerfile_path).absolute()
     else:
-        dockerfile_path = Path(PROJECT_PATH) / Path(
-            config.project_relative_dockerfile_path
-        )
+        dockerfile_path = (
+            Path(PROJECT_PATH) / config.project_relative_dockerfile_path
+        ).absolute()
 
     build_context = dockerfile_path.parent
     build_args = config.build_args
@@ -84,9 +104,13 @@ def build_image_from_dockerfile(
     build_context = build_context.resolve()
 
     try:
-        # Prepare docker build command
-        # --load ensures the image is loaded into the local daemon (required for buildx)
-        cmd = ["docker", "build", "--load", "-t", image_name]
+        # Prepare image build command. Docker keeps --load for buildx; Podman
+        # does not need it and can override build_extra_args.
+        cmd = [container_cli, "build"]
+        if build_progress_arg:
+            cmd.append(build_progress_arg)
+        cmd.extend(build_extra_args)
+        cmd.extend(["-t", image_name])
 
         # Add build args if provided
         if build_args:
@@ -96,24 +120,41 @@ def build_image_from_dockerfile(
         # Add dockerfile and context
         cmd.extend(["-f", str(dockerfile_path), str(build_context)])
 
-        # Change to build context directory and run docker build
+        # Stream stdout/stderr line-by-line to the logger so a hung build
+        # (e.g. an interactive apt prompt) is visible in real time, while
+        # also accumulating output for the DockerBuildResult.
         original_cwd = os.getcwd()
         try:
             os.chdir(build_context)
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, cwd=build_context
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                cwd=build_context,
             )
+            output_lines: list[str] = []
+            assert proc.stdout is not None
+            for line in proc.stdout:
+                line = line.rstrip("\n")
+                output_lines.append(line)
+                logger.info("[%s build %s] %s", container_cli, image_name, line)
+            returncode = proc.wait()
+            output = "\n".join(output_lines)
 
-            if result.returncode == 0:
+            if returncode == 0:
                 return DockerBuildResult(
-                    success=True, image_name=image_name, build_output=result.stdout
+                    success=True, image_name=image_name, build_output=output
                 )
             else:
                 return DockerBuildResult(
                     success=False,
                     image_name=image_name,
-                    build_output=result.stdout,
-                    error_message=result.stderr,
+                    build_output=output,
+                    error_message=(
+                        f"{container_cli} build exited with code {returncode}"
+                    ),
                 )
 
         finally:
@@ -129,8 +170,14 @@ def build_image_from_dockerfile(
         )
 
 
-def ensure_docker_image(config: ContainerConfig) -> tuple[bool, Optional[str]]:
-    """Ensure Docker image is available, using dockerfile fallback if needed.
+def ensure_docker_image(
+    config: ContainerConfig,
+    *,
+    container_cli: str = "docker",
+    build_extra_args: tuple[str, ...] = ("--load",),
+    build_progress_arg: str | None = "--progress=plain",
+) -> tuple[bool, Optional[str]]:
+    """Ensure container image is available, using dockerfile fallback if needed.
 
     Args:
         config (ContainerConfig): ContainerConfig with image name and optional dockerfile config
@@ -141,24 +188,39 @@ def ensure_docker_image(config: ContainerConfig) -> tuple[bool, Optional[str]]:
         return False, "No image specified in ContainerConfig"
 
     # Check if image exists locally
-    if image_exists_locally(config.image):
+    if image_exists_locally(config.image, container_cli=container_cli):
         return True, None
 
     # Try to pull image
     logger.info(f"Image {config.image} not found locally, attempting to pull...")
-    if can_pull_image(config.image):
+    if can_pull_image(config.image, container_cli=container_cli):
         logger.info(f"Successfully pulled {config.image}")
         return True, None
 
     # If pull failed, try building from dockerfile
     logger.warning(f"Failed to pull {config.image}")
 
-    if config.absolute_dockerfile_path or config.project_relative_dockerfile_path:
+    has_dockerfile = (
+        config.absolute_dockerfile_path
+        or config.agent_relative_dockerfile_path
+        or config.project_relative_dockerfile_path
+    )
+    if has_dockerfile:
+        dockerfile_path = (
+            config.absolute_dockerfile_path
+            or config.agent_relative_dockerfile_path
+            or config.project_relative_dockerfile_path
+        )
         logger.info(
-            f"Attempting to build {config.image} from dockerfile {config.project_relative_dockerfile_path}..."
+            f"Attempting to build {config.image} from dockerfile {dockerfile_path}..."
         )
 
-        build_result = build_image_from_dockerfile(config)
+        build_result = build_image_from_dockerfile(
+            config,
+            container_cli=container_cli,
+            build_extra_args=build_extra_args,
+            build_progress_arg=build_progress_arg,
+        )
 
         if build_result is None:
             return False, "Dockerfile configuration incomplete"
@@ -180,6 +242,10 @@ class NativeDockerSandbox(BaseSandbox):
     """Native Docker sandbox implementation using direct Docker API."""
 
     backend_type = "native"
+    _container_cli = "docker"
+    _build_extra_args = ("--load",)
+    _build_progress_arg = "--progress=plain"
+    _default_network: str | None = None
     _HELPER_IMAGE_CANDIDATES = (
         "alpine:latest",
         "busybox:latest",
@@ -215,7 +281,7 @@ class NativeDockerSandbox(BaseSandbox):
         super().__init__(container_config, session_id, self.backend_type, sandbox_type)
 
         # Initialize Docker client with configuration
-        self.client = docker.from_env(timeout=self.container_config_obj.timeout)
+        self.client = self._get_client(timeout=self.container_config_obj.timeout)
 
         # Connect to existing container or create new one
         if container_config.container_id:
@@ -236,7 +302,7 @@ class NativeDockerSandbox(BaseSandbox):
                         "Fallback to create new container failed: no image specified in ContainerConfig"
                     )
                 # Ensure Docker image is available (with dockerfile build if needed)
-                success, error_message = ensure_docker_image(container_config)
+                success, error_message = self._ensure_image(container_config)
                 if not success:
                     raise RuntimeError(
                         f"Failed to obtain Docker image: {error_message}"
@@ -245,7 +311,7 @@ class NativeDockerSandbox(BaseSandbox):
                 self.container_id = self._get_container()
         else:
             # Ensure Docker image is available (with dockerfile build if needed)
-            success, error_message = ensure_docker_image(container_config)
+            success, error_message = self._ensure_image(container_config)
             if not success:
                 raise RuntimeError(f"Failed to obtain Docker image: {error_message}")
             # Create and start container
@@ -253,6 +319,30 @@ class NativeDockerSandbox(BaseSandbox):
 
         # Detect available shell in container
         self._detected_shell = None  # Will be set on first use
+
+    @classmethod
+    def _get_client(cls, timeout: int | None = None) -> docker.DockerClient:
+        """Return the Docker-compatible client used by this backend."""
+        if timeout is None:
+            return docker.from_env()
+        return docker.from_env(timeout=timeout)
+
+    @classmethod
+    def _image_exists_locally(cls, image_name: str) -> bool:
+        return image_exists_locally(image_name, container_cli=cls._container_cli)
+
+    @classmethod
+    def _can_pull_image(cls, image_name: str) -> bool:
+        return can_pull_image(image_name, container_cli=cls._container_cli)
+
+    @classmethod
+    def _ensure_image(cls, config: ContainerConfig) -> tuple[bool, Optional[str]]:
+        return ensure_docker_image(
+            config,
+            container_cli=cls._container_cli,
+            build_extra_args=cls._build_extra_args,
+            build_progress_arg=cls._build_progress_arg,
+        )
 
     @classmethod
     def _get_helper_image(cls) -> str:
@@ -268,7 +358,7 @@ class NativeDockerSandbox(BaseSandbox):
             return cls._cached_helper_image
 
         for candidate in cls._HELPER_IMAGE_CANDIDATES:
-            if image_exists_locally(candidate) or can_pull_image(candidate):
+            if cls._image_exists_locally(candidate) or cls._can_pull_image(candidate):
                 cls._cached_helper_image = candidate
                 return candidate
 
@@ -362,12 +452,18 @@ class NativeDockerSandbox(BaseSandbox):
             run_kwargs["user"] = self.container_config_obj.user
         if self.container_config_obj.network:
             run_kwargs["network"] = self.container_config_obj.network
+        elif self._default_network:
+            run_kwargs["network"] = self._default_network
         if self.container_config_obj.privileged:
             run_kwargs["privileged"] = True
         if self.container_config_obj.security_opt:
             run_kwargs["security_opt"] = self.container_config_obj.security_opt
         if self.container_config_obj.cap_add:
             run_kwargs["cap_add"] = self.container_config_obj.cap_add
+        if self.container_config_obj.cap_drop:
+            run_kwargs["cap_drop"] = self.container_config_obj.cap_drop
+        if self.container_config_obj.devices:
+            run_kwargs["devices"] = self.container_config_obj.devices
         if self.container_config_obj.gpus is not None:
             run_kwargs["device_requests"] = (
                 [docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])]
@@ -379,8 +475,9 @@ class NativeDockerSandbox(BaseSandbox):
         if self.container_config_obj.mem_limit is not None:
             run_kwargs["mem_limit"] = self.container_config_obj.mem_limit
         if self.container_config_obj.cpus is not None:
-            # docker SDK uses nano_cpus or cpuset; keep simple mapping to cpus via host_config is complex; skip if not trivial
-            run_kwargs["cpuset_cpus"] = str(self.container_config_obj.cpus)
+            run_kwargs["nano_cpus"] = int(
+                float(self.container_config_obj.cpus) * 1_000_000_000
+            )
 
         # Volumes: list of binds "host:cont[:mode]"
         if self.container_config_obj.volumes:
@@ -617,7 +714,7 @@ class NativeDockerSandbox(BaseSandbox):
         container = self.client.containers.get(self.container_id)
 
         for key, new_function_content in files_func_to_content.items():
-            parts = key.split__xx__
+            parts = key.split("__xx__")
             if len(parts) != 2:
                 logger.warning(
                     f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'"
@@ -685,9 +782,7 @@ class NativeDockerSandbox(BaseSandbox):
         self, key: str, lang: str = "c", line_in_func: int = -1
     ) -> tuple[str, int, int]:
         """Retrieve the content of a specific function from a file inside the container."""
-        container = self.client.containers.get(self.container_id)
-
-        parts = key.split__xx__
+        parts = key.split("__xx__")
         if len(parts) != 2:
             logger.warning(
                 f"Key {key} is not in the correct format. Expected format: 'filepath__xx__functionname'"
@@ -837,7 +932,7 @@ class NativeDockerSandbox(BaseSandbox):
         import tarfile as _tarfile
 
         helper_name = f"vol_helper_{volume_name}"
-        client = docker.from_env()
+        client = cls._get_client()
         container = None
         try:
             helper_image = cls._get_helper_image()
@@ -855,7 +950,7 @@ class NativeDockerSandbox(BaseSandbox):
                 f"Successfully copied {label or source_dir} to volume {volume_name}"
             )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 f"Failed to copy {label or source_dir} to volume {volume_name}: {e}"
             )
             raise RuntimeError(f"Failed to copy data to volume: {e}")
@@ -885,7 +980,7 @@ class NativeDockerSandbox(BaseSandbox):
         try:
             # Create Docker volume
             subprocess.run(
-                ["docker", "volume", "create", volume_name],
+                [cls._container_cli, "volume", "create", volume_name],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -913,13 +1008,13 @@ class NativeDockerSandbox(BaseSandbox):
 
                     with tempfile.TemporaryDirectory() as temp_extract_dir:
                         try:
-                            with tarfile.open(tar_file, "r:gz") as tar:
-                                tar.extractall(temp_extract_dir)
+                            with tarfile.open(tar_file, "r:*") as tar:
+                                tar.extractall(temp_extract_dir, filter="data")
                             logger.info(
                                 f"Extracted {tar_file.name} to temporary directory"
                             )
                         except Exception as e:
-                            logger.error(f"Failed to extract {tar_file.name}: {e}")
+                            logger.exception(f"Failed to extract {tar_file.name}: {e}")
                             raise RuntimeError(f"Failed to extract tar.gz: {e}")
 
                         cls._docker_cp_to_volume(
@@ -936,13 +1031,13 @@ class NativeDockerSandbox(BaseSandbox):
 
                 with tempfile.TemporaryDirectory() as temp_extract_dir:
                     try:
-                        with tarfile.open(source_path, "r:gz") as tar:
-                            tar.extractall(temp_extract_dir)
+                        with tarfile.open(source_path, "r:*") as tar:
+                            tar.extractall(temp_extract_dir, filter="data")
                         logger.info(
                             f"Extracted {source_path.name} to temporary directory"
                         )
                     except Exception as e:
-                        logger.error(f"Failed to extract {source_path.name}: {e}")
+                        logger.exception(f"Failed to extract {source_path.name}: {e}")
                         raise RuntimeError(f"Failed to extract tar.gz: {e}")
 
                     cls._docker_cp_to_volume(
@@ -961,10 +1056,12 @@ class NativeDockerSandbox(BaseSandbox):
             return volume_name
 
         except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to create Docker volume {volume_name}: {e.stderr}")
+            logger.exception(
+                f"Failed to create Docker volume {volume_name}: {e.stderr}"
+            )
             raise RuntimeError(f"Docker volume creation failed: {e.stderr}")
         except Exception as e:
-            logger.error(f"Unexpected error creating volume {volume_name}: {e}")
+            logger.exception(f"Unexpected error creating volume {volume_name}: {e}")
             raise
 
     @classmethod
@@ -1034,7 +1131,7 @@ class NativeDockerSandbox(BaseSandbox):
             # 4. Set permissions to 777 on data volume to ensure write access
             chmod_result = subprocess.run(
                 [
-                    "docker",
+                    cls._container_cli,
                     "run",
                     "--rm",
                     "-v",
@@ -1061,7 +1158,7 @@ class NativeDockerSandbox(BaseSandbox):
             # executable/writeable across sandboxes.
             chmod_result = subprocess.run(
                 [
-                    "docker",
+                    cls._container_cli,
                     "run",
                     "--rm",
                     "-v",
@@ -1087,21 +1184,21 @@ class NativeDockerSandbox(BaseSandbox):
             return (scripts_volume_id, data_volume_id, tools_volume_id)
 
         except Exception as e:
-            logger.error(f"Failed to create shared volumes: {e}")
+            logger.exception(f"Failed to create shared volumes: {e}")
             # Clean up any created volumes on failure
             try:
                 subprocess.run(
-                    ["docker", "volume", "rm", scripts_volume_name],
+                    [cls._container_cli, "volume", "rm", scripts_volume_name],
                     capture_output=True,
                     check=False,
                 )
                 subprocess.run(
-                    ["docker", "volume", "rm", data_volume_name],
+                    [cls._container_cli, "volume", "rm", data_volume_name],
                     capture_output=True,
                     check=False,
                 )
                 subprocess.run(
-                    ["docker", "volume", "rm", tools_volume_name],
+                    [cls._container_cli, "volume", "rm", tools_volume_name],
                     capture_output=True,
                     check=False,
                 )
@@ -1126,7 +1223,7 @@ class NativeDockerSandbox(BaseSandbox):
             if volume_id:
                 try:
                     result = subprocess.run(
-                        ["docker", "volume", "rm", volume_id],
+                        [cls._container_cli, "volume", "rm", volume_id],
                         capture_output=True,
                         text=True,
                         check=False,
@@ -1218,7 +1315,7 @@ class NativeDockerSandbox(BaseSandbox):
                         final_state.value,
                         state_exc,
                     )
-            logger.error(
+            logger.exception(
                 "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
                 sandbox_type,
                 opensage_session_id,
@@ -1327,6 +1424,37 @@ class NativeDockerSandbox(BaseSandbox):
             return {sandbox_type: None for sandbox_type, _ in init_entries}
 
     @classmethod
+    async def initialize_single_sandbox(
+        cls,
+        sandbox_type: str,
+        sandbox_instance: BaseSandbox,
+        all_sandboxes: dict[str, BaseSandbox],
+    ) -> None:
+        """Initialize a single sandbox, passing the full sandbox map for peer access."""
+
+        async def _init_one(instance: "NativeDockerSandbox") -> None:
+            if getattr(instance, "_using_cached", False):
+                await instance.ensure_ready()
+            else:
+                await instance.async_initialize(all_sandboxes)
+
+        timeout_seconds = 3600
+        container_cfg = getattr(sandbox_instance, "container_config_obj", None)
+        if container_cfg and getattr(container_cfg, "extra", None):
+            try:
+                timeout_seconds = int(
+                    container_cfg.extra.get("initializer_timeout_sec", 3600)
+                )
+            except Exception:
+                timeout_seconds = 3600
+
+        await cls._run_initializer_with_tracking(
+            sandbox_type,
+            sandbox_instance,
+            asyncio.wait_for(_init_one(sandbox_instance), timeout=timeout_seconds),
+        )
+
+    @classmethod
     def _find_available_loopback_ip(cls, config) -> str:
         """Find an available IP address in 127.0.0.0/24 range (127.0.0.2-127.0.0.254).
 
@@ -1401,8 +1529,11 @@ class NativeDockerSandbox(BaseSandbox):
                 # Create a placeholder container to hold the IP:7777
                 # This ensures no other process takes it before we launch real sandboxes
                 try:
-                    client = docker.from_env(timeout=3600)
+                    client = cls._get_client(timeout=3600)
                     helper_image = cls._get_helper_image()
+                    placeholder_kwargs: dict[str, Any] = {}
+                    if cls._default_network:
+                        placeholder_kwargs["network"] = cls._default_network
                     placeholder_container = client.containers.run(
                         helper_image,
                         command=["sh", "-c", "sleep infinity"],
@@ -1410,6 +1541,7 @@ class NativeDockerSandbox(BaseSandbox):
                         name=f"opensage_placeholder_{str(uuid.uuid4())}",
                         ports={"7777/tcp": (test_ip, 7777)},
                         remove=True,
+                        **placeholder_kwargs,
                     )
                     placeholder_container_id = placeholder_container.id
                     logger.info(
@@ -1542,7 +1674,9 @@ class NativeDockerSandbox(BaseSandbox):
             return sandbox_instances
 
         except Exception as e:
-            logger.error(f"Failed to launch sandboxes for session {session_id}: {e}")
+            logger.exception(
+                f"Failed to launch sandboxes for session {session_id}: {e}"
+            )
 
             # Cleanup any successfully created sandboxes (including placeholder)
             for sandbox in sandbox_instances.values():
@@ -1555,6 +1689,53 @@ class NativeDockerSandbox(BaseSandbox):
                     )
 
             raise
+
+    @classmethod
+    def load_cache_manifest(cls, task_name: str, config) -> tuple[dict, Optional[str]]:
+        """Load cache manifest for native Docker backend.
+
+        Native backend has no manifest file. It only looks for a shared volume
+        backup tar.gz in candidate directories.
+        """
+        candidate_dirs = []
+        if config.sandbox and config.sandbox.absolute_shared_data_path:
+            candidate_dirs.append(Path(config.sandbox.absolute_shared_data_path))
+        candidate_dirs.append(Path(f"./sandbox_cache/{task_name}"))
+
+        for candidate_dir in candidate_dirs:
+            candidate = candidate_dir / f"{task_name}_shared_volume.tar.gz"
+            if candidate.exists():
+                return {}, str(candidate)
+        return {}, None
+
+    @classmethod
+    def resolve_sandbox_cache(
+        cls,
+        sandbox_type: str,
+        cached_image_name: str,
+        manifest: dict,
+    ) -> SandboxCacheInfo:
+        """Resolve cache for native Docker: check local image or pull."""
+        if cls._image_exists_locally(cached_image_name):
+            return SandboxCacheInfo(found=True, image=cached_image_name)
+        if cls._can_pull_image(cached_image_name):
+            logger.info(f"Successfully pulled cached image: {cached_image_name}")
+            return SandboxCacheInfo(found=True, image=cached_image_name)
+        return SandboxCacheInfo(found=False)
+
+    @classmethod
+    def prepare_attach_config(
+        cls,
+        container_config,
+        *,
+        container_id=None,
+        pod_name=None,
+        container_name=None,
+    ) -> None:
+        """Inject container_id for native Docker attach."""
+        if not container_id:
+            raise ValueError("attach(native) requires container_id")
+        container_config.container_id = container_id
 
     @classmethod
     def cache_sandboxes(
@@ -1580,22 +1761,6 @@ class NativeDockerSandbox(BaseSandbox):
             dict: Dictionary with cache results
         """
 
-        def normalize_image_name(name: str) -> str:
-            """Normalize name to comply with Docker image naming rules."""
-            # Convert to lowercase
-            normalized = name.lower()
-            # Replace invalid characters with underscores
-            normalized = re.sub(r"[^a-z0-9._-]", "_", normalized)
-            # Remove leading/trailing dots and dashes
-            normalized = normalized.strip(".-")
-            # Ensure it doesn't start with underscore
-            if normalized.startswith("_"):
-                normalized = "img" + normalized
-            # Limit length to reasonable size (200 chars for repository)
-            if len(normalized) > 200:
-                normalized = normalized[:200].rstrip("_-.")
-            return normalized
-
         cache_results = {
             "task_name": task_name,
             "cache_dir": cache_dir,
@@ -1615,7 +1780,7 @@ class NativeDockerSandbox(BaseSandbox):
                     )
 
                     backup_cmd = [
-                        "docker",
+                        cls._container_cli,
                         "run",
                         "--rm",
                         "-v",
@@ -1647,15 +1812,15 @@ class NativeDockerSandbox(BaseSandbox):
                     error_msg = (
                         f"Failed to backup shared volume {shared_volume_id}: {e.stderr}"
                     )
-                    logger.error(error_msg)
+                    logger.exception(error_msg)
                     cache_results["errors"].append(error_msg)
                 except Exception as e:
                     error_msg = f"Unexpected error backing up shared volume: {e}"
-                    logger.error(error_msg)
+                    logger.exception(error_msg)
                     cache_results["errors"].append(error_msg)
 
             # 2. Commit each sandbox container to an image
-            client = docker.from_env(timeout=3600)
+            client = cls._get_client(timeout=3600)
 
             for sandbox_type, sandbox_instance in sandbox_instances.items():
                 try:
@@ -1703,7 +1868,7 @@ class NativeDockerSandbox(BaseSandbox):
 
                 except Exception as e:
                     error_msg = f"Failed to commit {sandbox_type} container: {e}"
-                    logger.error(error_msg)
+                    logger.exception(error_msg)
                     cache_results["errors"].append(error_msg)
 
             logger.info(f"Sandbox caching completed for task {task_name}")
@@ -1711,7 +1876,7 @@ class NativeDockerSandbox(BaseSandbox):
 
         except Exception as e:
             error_msg = f"Failed to cache sandboxes: {e}"
-            logger.error(error_msg)
+            logger.exception(error_msg)
             cache_results["errors"].append(error_msg)
             return cache_results
 

@@ -22,6 +22,11 @@ from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
 from opensage.sandbox.k8s_sandbox import K8sSandbox
 from opensage.sandbox.remote_docker_sandbox import RemoteDockerSandbox
 from opensage.sandbox.shared_storage import SharedStorage, _temporary_env
+from opensage.sandbox.utils import (
+    SandboxCacheInfo,
+    load_named_cache_manifest,
+    normalize_image_name,
+)
 from opensage.utils.parser import get_function_info
 
 logger = logging.getLogger(__name__)
@@ -114,16 +119,7 @@ class OpenSandboxSandbox(BaseSandbox):
         )
         return connection_config.with_transport_if_missing()
 
-    @staticmethod
-    def _normalize_cache_name(name: str) -> str:
-        normalized = name.lower()
-        normalized = re.sub(r"[^a-z0-9._-]", "_", normalized)
-        normalized = normalized.strip(".-")
-        if normalized.startswith("_"):
-            normalized = "img" + normalized
-        if len(normalized) > 200:
-            normalized = normalized[:200].rstrip("_-.")
-        return normalized
+    _normalize_cache_name = staticmethod(normalize_image_name)
 
     def _parse_legacy_mounts_to_opensandbox_volumes(self):
         from opensandbox.models.sandboxes import PVC, Host, Volume
@@ -567,7 +563,7 @@ class OpenSandboxSandbox(BaseSandbox):
                     sandboxes.get_sandbox(sandbox_type).state = final_state
                 except Exception:
                     pass
-            logger.error(
+            logger.exception(
                 "sandbox '%s' (session %s) state=%s - Initialization failed: %s",
                 sandbox_type,
                 opensage_session_id,
@@ -654,6 +650,103 @@ class OpenSandboxSandbox(BaseSandbox):
 
         await asyncio.gather(*tasks)
         return {sandbox_type: None for sandbox_type, _ in init_entries}
+
+    @classmethod
+    async def initialize_single_sandbox(
+        cls,
+        sandbox_type: str,
+        sandbox_instance: BaseSandbox,
+        all_sandboxes: dict[str, BaseSandbox],
+    ) -> None:
+        """Initialize a single sandbox, passing the full sandbox map for peer access."""
+
+        async def _init_one(instance: BaseSandbox) -> None:
+            await instance.async_initialize(all_sandboxes)
+
+        await cls._run_initializer_with_tracking(
+            sandbox_type,
+            sandbox_instance,
+            _init_one(sandbox_instance),
+        )
+
+    @classmethod
+    def load_cache_manifest(cls, task_name: str, config) -> tuple[dict, Optional[str]]:
+        """Load cache manifest for OpenSandbox backend."""
+        manifest, _, shared_volume_backup = load_named_cache_manifest(
+            task_name,
+            cache_dir_env="OPENSAGE_OPENSANDBOX_CACHE_DIR",
+            global_subdir="opensandbox_cache",
+            manifest_filename="opensandbox_cache_manifest.json",
+        )
+        return manifest, shared_volume_backup
+
+    @classmethod
+    def resolve_sandbox_cache(
+        cls,
+        sandbox_type: str,
+        cached_image_name: str,
+        manifest: dict,
+    ) -> SandboxCacheInfo:
+        """Resolve cache for OpenSandbox: k8s rootfs snapshot, named image, then docker fallback."""
+        entry = manifest.get(sandbox_type, {})
+        config = cls._get_global_config()
+        is_k8s = (
+            config
+            and config.sandbox
+            and config.sandbox.opensandbox
+            and config.sandbox.opensandbox.runtime_type == "kubernetes"
+        )
+
+        # Strategy 1: rootfs snapshot (k8s runtime, commit failed)
+        if is_k8s and entry and not entry.get("commit_succeeded", False):
+            rootfs_tar = entry.get("rootfs_tar")
+            if rootfs_tar and os.path.exists(rootfs_tar):
+                logger.info(
+                    f"Using file-based cache for {sandbox_type} "
+                    f"(image unchanged, applying rootfs snapshot)"
+                )
+                return SandboxCacheInfo(
+                    found=True,
+                    rootfs_tar=rootfs_tar,
+                    base_image=entry.get("base_image"),
+                )
+
+        # Strategy 2: named manifest image
+        if entry:
+            logger.info(
+                f"Using runtime-visible cached image for {sandbox_type}: "
+                f"{entry.get('image_name', cached_image_name)}"
+            )
+            return SandboxCacheInfo(
+                found=True,
+                image=entry.get("image_name", cached_image_name),
+                rootfs_tar=entry.get("rootfs_tar"),
+                base_image=entry.get("base_image"),
+            )
+
+        # Strategy 3: docker image fallback
+        from opensage.sandbox.utils import (
+            can_pull_image,
+            image_exists_locally,
+        )
+
+        if image_exists_locally(cached_image_name) or can_pull_image(cached_image_name):
+            logger.info(f"Found cached image for {sandbox_type}: {cached_image_name}")
+            return SandboxCacheInfo(found=True, image=cached_image_name)
+
+        return SandboxCacheInfo(found=False)
+
+    @classmethod
+    def prepare_attach_config(
+        cls,
+        container_config,
+        *,
+        container_id=None,
+        pod_name=None,
+        container_name=None,
+    ) -> None:
+        """OpenSandbox does not support attach."""
+        raise ValueError("opensandbox backend does not support attach")
 
     @classmethod
     def cache_sandboxes(

@@ -39,7 +39,7 @@ async def test_search_symbol_basic(opensage_session: OpenSageSession):
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test search-symbol with a known symbol
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/retrieval/search-symbol/scripts/search_symbol.sh "file_fsmagic"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -65,7 +65,7 @@ async def test_search_symbol_nonexistent(opensage_session: OpenSageSession):
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test with non-existent symbol
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/retrieval/search-symbol/scripts/search_symbol.sh "NONEXISTENT_SYMBOL_XYZ123"',
         tool_context=mock_context,
         sandbox_name="main",

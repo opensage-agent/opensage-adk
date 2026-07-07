@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from opensage.sandbox.base_sandbox import BaseSandbox, SandboxState
+from opensage.sandbox.base_sandbox import BaseSandbox
 from opensage.sandbox.initializers.base import SandboxInitializer
 
 logger = logging.getLogger(__name__)

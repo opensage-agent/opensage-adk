@@ -2,9 +2,9 @@
 
 Simulates 32 concurrent workers each running a realistic agent workload
 (multiple commands, file operations, resets) to test whether the persistent
-shell optimization fixes the adl-slower-than-Docker issue at scale.
+shell optimization fixes the nitrobox-slower-than-Docker issue at scale.
 
-Usage (must run as root for agentdocker-lite backend):
+Usage (must run as root for nitrobox backend):
   sudo ~/venv/bin/python ray/sandbox_e2e_test.py \
     --image "jefzda/sweap-images:ansible.ansible-ansible__ansible-f327e65d11bb905ed9f15996024f857a95592629-vba6da65a0f3baefda7a058ebbd0a8dcafb8512f5" \
     --workers 32 --rounds 3
@@ -55,11 +55,11 @@ AGENT_COMMANDS = [
 ]
 
 
-def _worker_adl(args: tuple) -> dict:
-    """Single worker: create agentdocker-lite sandbox, run agent commands, reset, repeat."""
+def _worker_nitrobox(args: tuple) -> dict:
+    """Single worker: create nitrobox sandbox, run agent commands, reset, repeat."""
     image, worker_id, round_id = args
     from opensage.config.config_dataclass import ContainerConfig
-    from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+    from opensage.sandbox.nitrobox_sandbox import NitroboxSandbox
 
     cfg = ContainerConfig(
         image=image,
@@ -75,17 +75,17 @@ def _worker_adl(args: tuple) -> dict:
     result = {
         "worker_id": worker_id,
         "round_id": round_id,
-        "backend": "agentdocker-lite",
+        "backend": "nitrobox",
     }
     session_id = f"e2e_ns_w{worker_id}_r{round_id}"
 
     try:
         # Construct
         t0 = time.monotonic()
-        sandbox = AgentDockerLiteSandbox(
+        sandbox = NitroboxSandbox(
             container_config=cfg,
             opensage_session_id=session_id,
-            backend_type="agentdocker-lite",
+            backend_type="nitrobox",
             sandbox_type="main",
         )
         result["construct_ms"] = (time.monotonic() - t0) * 1000
@@ -136,7 +136,7 @@ def _worker_adl(args: tuple) -> dict:
     except Exception as e:
         result["status"] = "error"
         result["error"] = str(e)
-        logger.error("Worker ns w%d r%d failed: %s", worker_id, round_id, e)
+        logger.exception("Worker ns w%d r%d failed: %s", worker_id, round_id, e)
 
     return result
 
@@ -211,17 +211,17 @@ def _worker_docker(args: tuple) -> dict:
     except Exception as e:
         result["status"] = "error"
         result["error"] = str(e)
-        logger.error("Worker docker w%d r%d failed: %s", worker_id, round_id, e)
+        logger.exception("Worker docker w%d r%d failed: %s", worker_id, round_id, e)
 
     return result
 
 
-def warmup_adl(image: str):
+def warmup_nitrobox(image: str):
     """Pre-build rootfs cache so timing test doesn't include one-time cost."""
     from opensage.config.config_dataclass import ContainerConfig
-    from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+    from opensage.sandbox.nitrobox_sandbox import NitroboxSandbox
 
-    logger.info("Warming up agentdocker-lite rootfs cache for image: %s", image)
+    logger.info("Warming up nitrobox rootfs cache for image: %s", image)
     cfg = ContainerConfig(
         image=image,
         working_dir="/workspace",
@@ -233,10 +233,10 @@ def warmup_adl(image: str):
         },
     )
     t0 = time.monotonic()
-    sandbox = AgentDockerLiteSandbox(
+    sandbox = NitroboxSandbox(
         container_config=cfg,
         opensage_session_id="warmup_ns",
-        backend_type="agentdocker-lite",
+        backend_type="nitrobox",
         sandbox_type="main",
     )
     out, rc = sandbox.run_command_in_container("echo warmup_ok")
@@ -262,7 +262,7 @@ def run_concurrent_test(
     image: str, workers: int, rounds: int, backend: str
 ) -> list[dict]:
     """Run concurrent workers and collect results."""
-    worker_fn = _worker_adl if backend == "agentdocker-lite" else _worker_docker
+    worker_fn = _worker_nitrobox if backend == "nitrobox" else _worker_docker
     all_results = []
 
     for r in range(rounds):
@@ -338,12 +338,12 @@ def print_summary(ns_results: list[dict], dk_results: list[dict]):
         if ns_vals:
             print(f"  Namespace: {_stats(ns_vals)}")
         else:
-            print(f"  Namespace: N/A")
+            print("  Namespace: N/A")
 
         if dk_vals:
             print(f"  Docker:    {_stats(dk_vals)}")
         else:
-            print(f"  Docker:    N/A")
+            print("  Docker:    N/A")
 
         if ns_vals and dk_vals:
             ns_avg = statistics.mean(ns_vals)
@@ -386,7 +386,7 @@ def main():
     )
     parser.add_argument(
         "--backend",
-        choices=["both", "agentdocker-lite", "docker"],
+        choices=["both", "nitrobox", "docker"],
         default="both",
         help="Which backend(s) to test",
     )
@@ -403,17 +403,17 @@ def main():
 
     # Warmup
     if not args.skip_warmup:
-        if args.backend in ("both", "agentdocker-lite"):
-            warmup_adl(args.image)
+        if args.backend in ("both", "nitrobox"):
+            warmup_nitrobox(args.image)
         if args.backend in ("both", "docker"):
             warmup_docker(args.image)
 
     ns_results = []
     dk_results = []
 
-    if args.backend in ("both", "agentdocker-lite"):
+    if args.backend in ("both", "nitrobox"):
         ns_results = run_concurrent_test(
-            args.image, args.workers, args.rounds, "agentdocker-lite"
+            args.image, args.workers, args.rounds, "nitrobox"
         )
 
     if args.backend in ("both", "docker"):
@@ -435,7 +435,7 @@ def main():
                     "workers": args.workers,
                     "rounds": args.rounds,
                 },
-                "agentdocker-lite": ns_results,
+                "nitrobox": ns_results,
                 "docker": dk_results,
             },
             indent=2,

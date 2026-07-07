@@ -42,7 +42,7 @@ async def test_run_coverage_missing_testcase_path(opensage_session: OpenSageSess
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test run-coverage without testcase_path (should fail)
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command="bash /bash_tools/coverage/run-coverage/scripts/run_coverage.sh",
         tool_context=mock_context,
         sandbox_name="main",
@@ -62,7 +62,7 @@ async def test_run_coverage_nonexistent_file(opensage_session: OpenSageSession):
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test with non-existent file
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/coverage/run-coverage/scripts/run_coverage.sh "/shared/nonexistent_testcase.txt"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -80,7 +80,7 @@ async def test_run_coverage_output_structure(opensage_session: OpenSageSession):
     mock_context = MagicMock()
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='bash /bash_tools/coverage/run-coverage/scripts/run_coverage.sh "/shared/nonexistent_testcase.txt"',
         tool_context=mock_context,
         sandbox_name="main",

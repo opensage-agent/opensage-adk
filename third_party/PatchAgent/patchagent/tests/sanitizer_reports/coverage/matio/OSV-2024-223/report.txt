@@ -1,0 +1,232 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/matio:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce matio_fuzzer -runs=100.
++ FUZZER=matio_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer matio_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/matio_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=matio_fuzzer.dict < /dev/null
+Dictionary: 4 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 400153143
+INFO: Loaded 1 modules   (24 inline 8-bit counters): 24 [0x55e8f200c030, 0x55e8f200c048), 
+INFO: Loaded 1 PC tables (24 PCs): 24 [0x55e8f200c048,0x55e8f200c1c8), 
+/out/matio_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5Rdeprec.c line 641 in H5Rdereference2(): unable to open object by token
+    major: References
+    minor: Can't open object
+  #001: H5VLcallback.c line 5577 in H5VL_object_open(): object open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #002: H5VLcallback.c line 5544 in H5VL__object_open(): object open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #003: H5VLnative_object.c line 113 in H5VL__native_object_open(): unable to open object by address
+    major: Object header
+    minor: Can't open object
+  #004: H5Oint.c line 689 in H5O__open_by_addr(): unable to open object
+    major: Object header
+    minor: Can't open object
+  #005: H5Oint.c line 717 in H5O_open_by_loc(): unable to determine object class
+    major: Object header
+    minor: Can't get value
+  #006: H5Oint.c line 1648 in H5O__obj_class(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #007: H5Oint.c line 1028 in H5O_protect(): unable to load object header chunk
+    major: Object header
+    minor: Unable to protect metadata
+  #008: H5AC.c line 1277 in H5AC_protect(): H5C_protect() failed
+    major: Object cache
+    minor: Unable to protect metadata
+  #009: H5Centry.c line 3106 in H5C_protect(): can't load entry
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #010: H5Centry.c line 1194 in H5C__load_entry(): Can't deserialize image
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #011: H5Ocache.c line 719 in H5O__cache_chk_deserialize(): unable to destroy object header chunk
+    major: Object header
+    minor: Unable to release object
+  #012: H5Ochunk.c line 393 in H5O__chunk_dest(): can't decrement reference count on object header
+    major: Object header
+    minor: Unable to decrement reference count
+  #013: H5Oint.c line 2777 in H5O__dec_rc(): invalid object header
+    major: Invalid arguments to routine
+    minor: Bad value
+  #014: H5Ocache.c line 689 in H5O__cache_chk_deserialize(): can't deserialize object header chunk
+    major: Object header
+    minor: Unable to initialize object
+  #015: H5Ocache.c line 1266 in H5O__chunk_deserialize(): message not aligned
+    major: Object header
+    minor: Unable to load metadata into cache
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5L.c line 1647 in H5Literate2(): synchronous link iteration failed
+    major: Links
+    minor: Iteration failed
+  #001: H5L.c line 1613 in H5L__iterate_api_common(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #002: H5VLcallback.c line 5318 in H5VL_link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #003: H5VLcallback.c line 5284 in H5VL__link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #004: H5VLnative_link.c line 366 in H5VL__native_link_specific(): error iterating over links
+    major: Links
+    minor: Iteration failed
+  #005: H5Lint.c line 2149 in H5L_iterate(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #006: H5Gint.c line 873 in H5G_iterate(): error iterating over links
+    major: Symbol table
+    minor: Iteration failed
+  #007: H5Gobj.c line 665 in H5G__obj_iterate(): can't iterate over symbol table
+    major: Symbol table
+    minor: Iteration failed
+  #008: H5Gstab.c line 505 in H5G__stab_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+  #009: H5B.c line 1126 in H5B_iterate(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #010: H5B.c line 1088 in H5B__iterate_helper(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #011: H5Gnode.c line 950 in H5G__node_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5Rdeprec.c line 641 in H5Rdereference2(): unable to open object by token
+    major: References
+    minor: Can't open object
+  #001: H5VLcallback.c line 5577 in H5VL_object_open(): object open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #002: H5VLcallback.c line 5544 in H5VL__object_open(): object open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #003: H5VLnative_object.c line 113 in H5VL__native_object_open(): unable to open object by address
+    major: Object header
+    minor: Can't open object
+  #004: H5Oint.c line 689 in H5O__open_by_addr(): unable to open object
+    major: Object header
+    minor: Can't open object
+  #005: H5Oint.c line 717 in H5O_open_by_loc(): unable to determine object class
+    major: Object header
+    minor: Can't get value
+  #006: H5Oint.c line 1648 in H5O__obj_class(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #007: H5Oint.c line 1028 in H5O_protect(): unable to load object header chunk
+    major: Object header
+    minor: Unable to protect metadata
+  #008: H5AC.c line 1277 in H5AC_protect(): H5C_protect() failed
+    major: Object cache
+    minor: Unable to protect metadata
+  #009: H5Centry.c line 3106 in H5C_protect(): can't load entry
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #010: H5Centry.c line 1194 in H5C__load_entry(): Can't deserialize image
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #011: H5Ocache.c line 719 in H5O__cache_chk_deserialize(): unable to destroy object header chunk
+    major: Object header
+    minor: Unable to release object
+  #012: H5Ochunk.c line 393 in H5O__chunk_dest(): can't decrement reference count on object header
+    major: Object header
+    minor: Unable to decrement reference count
+  #013: H5Oint.c line 2777 in H5O__dec_rc(): invalid object header
+    major: Invalid arguments to routine
+    minor: Bad value
+  #014: H5Ocache.c line 689 in H5O__cache_chk_deserialize(): can't deserialize object header chunk
+    major: Object header
+    minor: Unable to initialize object
+  #015: H5Ocache.c line 1266 in H5O__chunk_deserialize(): message not aligned
+    major: Object header
+    minor: Unable to load metadata into cache
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5L.c line 1647 in H5Literate2(): synchronous link iteration failed
+    major: Links
+    minor: Iteration failed
+  #001: H5L.c line 1613 in H5L__iterate_api_common(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #002: H5VLcallback.c line 5318 in H5VL_link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #003: H5VLcallback.c line 5284 in H5VL__link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #004: H5VLnative_link.c line 366 in H5VL__native_link_specific(): error iterating over links
+    major: Links
+    minor: Iteration failed
+  #005: H5Lint.c line 2149 in H5L_iterate(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #006: H5Gint.c line 873 in H5G_iterate(): error iterating over links
+    major: Symbol table
+    minor: Iteration failed
+  #007: H5Gobj.c line 665 in H5G__obj_iterate(): can't iterate over symbol table
+    major: Symbol table
+    minor: Iteration failed
+  #008: H5Gstab.c line 505 in H5G__stab_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+  #009: H5B.c line 1126 in H5B_iterate(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #010: H5B.c line 1088 in H5B__iterate_helper(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #011: H5Gnode.c line 950 in H5G__node_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+ALARM: working on the last Unit for 25 seconds
+       and the timeout value is 25 (use -timeout=N to change)
+==14== ERROR: libFuzzer: timeout after 25 seconds
+    #0 0x55e8f19ec2d4 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x55e8f196b328 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x55e8f194e637 in fuzzer::Fuzzer::AlarmCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:304:5
+    #3 0x7fb6302f241f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x55e8f1adfb89 in H5F_addr_encode_len /src/hdf5/src/H5Fint.c:2925:19
+    #5 0x55e8f1cc67ce in H5VL_native_addr_to_token /src/hdf5/src/H5VLnative.c:447:5
+    #6 0x55e8f1b0f219 in H5G_link_to_info /src/hdf5/src/H5Glink.c:208:21
+    #7 0x55e8f1b0ddef in H5G__iterate_cb /src/hdf5/src/H5Gint.c:815:17
+    #8 0x55e8f1b149c3 in H5G__node_iterate /src/hdf5/src/H5Gnode.c:937:25
+    #9 0x55e8f1cfda5e in H5B__iterate_helper /src/hdf5/src/H5B.c:1086:25
+    #10 0x55e8f1cfd8e1 in H5B_iterate /src/hdf5/src/H5B.c:1125:22
+    #11 0x55e8f1b1a40b in H5G__stab_iterate /src/hdf5/src/H5Gstab.c:504:26
+    #12 0x55e8f1b174e9 in H5G__obj_iterate /src/hdf5/src/H5Gobj.c:664:26
+    #13 0x55e8f1b0dbf2 in H5G_iterate /src/hdf5/src/H5Gint.c:872:14
+    #14 0x55e8f1b4cccd in H5L_iterate /src/hdf5/src/H5Lint.c:2148:22
+    #15 0x55e8f1ccdb75 in H5VL__native_link_specific /src/hdf5/src/H5VLnative_link.c:364:38
+    #16 0x55e8f1cbb6ee in H5VL__link_specific /src/hdf5/src/H5VLcallback.c:5283:22
+    #17 0x55e8f1cbb6ee in H5VL_link_specific /src/hdf5/src/H5VLcallback.c:5317:14
+    #18 0x55e8f1b492de in H5L__iterate_api_common /src/hdf5/src/H5L.c:1611:22
+    #19 0x55e8f1b48ff5 in H5Literate2 /src/hdf5/src/H5L.c:1646:22
+    #20 0x55e8f19f4e8d in Mat_VarReadNextInfo73 /src/matio/src/mat73.c:3162:12
+    #21 0x55e8f19f2a14 in Mat_VarReadNextInfoPredicate /src/matio/src/mat.c:2590:22
+    #22 0x55e8f19f2a14 in Mat_VarReadInfo /src/matio/src/mat.c:2637:22
+    #23 0x55e8f19f2c58 in Mat_VarRead /src/matio/src/mat.c:2712:18
+    #24 0x55e8f19ed713 in MatioRead(char const*) /src/matio/ossfuzz/./matio_wrap.h:49:18
+    #25 0x55e8f19ed797 in LLVMFuzzerTestOneInput /src/matio/ossfuzz/./matio_fuzzer.cpp:30:12
+    #26 0x55e8f194fbd0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #27 0x55e8f193ae45 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #28 0x55e8f19408df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #29 0x55e8f196bb82 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #30 0x7fb6300cd082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #31 0x55e8f193302d in _start (/out/matio_fuzzer+0x3102d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::AlarmCallback()
+SUMMARY: libFuzzer: timeout

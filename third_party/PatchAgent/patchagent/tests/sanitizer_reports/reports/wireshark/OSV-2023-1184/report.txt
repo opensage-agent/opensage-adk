@@ -1,0 +1,149 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/wireshark:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/wireshark/OSV-2023-1184/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzzshark_ip -runs=100.
++ FUZZER=fuzzshark_ip
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzzshark_ip -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzzshark_ip -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -max_len=1024 < /dev/null
+oss-fuzzshark: disabling: udp
+oss-fuzzshark: disabling: udplite
+oss-fuzzshark: disabling: ospf
+oss-fuzzshark: disabling: bgp
+oss-fuzzshark: disabling: dhcp
+oss-fuzzshark: disabling: json
+oss-fuzzshark: disabling: snort
+oss-fuzzshark: configured for dissector: ip
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 235552336
+INFO: Loaded 1 modules   (408021 inline 8-bit counters): 408021 [0xa6a1b50, 0xa705525), 
+INFO: Loaded 1 PC tables (408021 PCs): 408021 [0xa705528,0xad3f278), 
+/out/fuzzshark_ip: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: global-buffer-overflow on address 0x000011c82ca0 at pc 0x000001e95960 bp 0x7ffc76270680 sp 0x7ffc76270678
+[1m[0m[1m[34mREAD of size 4 at 0x000011c82ca0 thread T0[1m[0m
+SCARINESS: 17 (4-byte-read-global-buffer-overflow)
+    #0 0x1e9595f in dissect_zcl_read_attr_struct /src/wireshark/epan/dissectors/packet-zbee-zcl.c:1748:66
+    #1 0x1e91e63 in dissect_zbee_zcl /src/wireshark/epan/dissectors/packet-zbee-zcl.c:1215:17
+    #2 0x71931e in call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    #3 0x71931e in call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    #4 0x70ebca in call_dissector_work /src/wireshark/epan/packet.c:943:9
+    #5 0x70b90a in call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    #6 0x70b90a in call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    #7 0x1e7e12e in dissect_zbee_apf /src/wireshark/epan/dissectors/packet-zbee-aps.c:1778:9
+    #8 0x71931e in call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    #9 0x71931e in call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    #10 0x70ebca in call_dissector_work /src/wireshark/epan/packet.c:943:9
+    #11 0x70b90a in call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    #12 0x70b90a in call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    #13 0x1e7d0ee in dissect_zbee_aps /src/wireshark/epan/dissectors/packet-zbee-aps.c:1149:13
+    #14 0x71931e in call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    #15 0x71931e in call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    #16 0x70ebca in call_dissector_work /src/wireshark/epan/packet.c:943:9
+    #17 0x70b90a in call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    #18 0x70b90a in call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    #19 0x1e800a2 in dissect_zbee_nwk_full /src/wireshark/epan/dissectors/packet-zbee-nwk.c:788:9
+    #20 0x1e800a2 in dissect_zbee_nwk /src/wireshark/epan/dissectors/packet-zbee-nwk.c:820:9
+    #21 0x1e82f40 in dissect_zbee_nwk_heur /src/wireshark/epan/dissectors/packet-zbee-nwk.c:459:5
+    #22 0x714b22 in dissector_try_heuristic /src/wireshark/epan/packet.c:3006:9
+    #23 0x11d412e in ieee802154_dissect_frame_payload /src/wireshark/epan/dissectors/packet-ieee802154.c:3176:21
+    #24 0x11e0443 in dissect_ieee802154_common /src/wireshark/epan/dissectors/packet-ieee802154.c:2467:13
+    #25 0x11d9b1c in dissect_ieee802154_nofcs /src/wireshark/epan/dissectors/packet-ieee802154.c:2158:5
+    #26 0x71931e in call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    #27 0x71931e in call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    #28 0x70ebca in call_dissector_work /src/wireshark/epan/packet.c:943:9
+    #29 0x70b90a in call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    #30 0x70b90a in call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    #31 0x1922ce5 in dissect_scop_bridge /src/wireshark/epan/dissectors/packet-scop.c:296:5
+    #32 0x1922ce5 in dissect_scop /src/wireshark/epan/dissectors/packet-scop.c:181:13
+    #33 0x1b1a02d in tcp_dissect_pdus /src/wireshark/epan/dissectors/packet-tcp.c:5103:13
+    #34 0x1922dd6 in dissect_scop_tcp /src/wireshark/epan/dissectors/packet-scop.c:235:5
+    #35 0x71931e in call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    #36 0x71931e in call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    #37 0x70ebca in call_dissector_work /src/wireshark/epan/packet.c:943:9
+    #38 0x70e7b8 in dissector_try_uint_new /src/wireshark/epan/packet.c:1581:8
+    #39 0x1b1b478 in decode_tcp_ports /src/wireshark/epan/dissectors/packet-tcp.c:7468:9
+    #40 0x1b23c7c in process_tcp_payload /src/wireshark/epan/dissectors/packet-tcp.c:7537:13
+    #41 0x1b1ca07 in dissect_tcp_payload /src/wireshark/epan/dissectors/packet-tcp.c:7619:9
+    #42 0x1b2ea1d in dissect_tcp /src/wireshark/epan/dissectors/packet-tcp.c
+    #43 0x71931e in call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    #44 0x71931e in call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    #45 0x70ebca in call_dissector_work /src/wireshark/epan/packet.c:943:9
+    #46 0x70e7b8 in dissector_try_uint_new /src/wireshark/epan/packet.c:1581:8
+    #47 0x1201100 in ip_try_dissect /src/wireshark/epan/dissectors/packet-ip.c:1822:7
+    #48 0x1204ea1 in dissect_ip_v4 /src/wireshark/epan/dissectors/packet-ip.c:2328:10
+    #49 0x71931e in call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    #50 0x71931e in call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    #51 0x70ebca in call_dissector_work /src/wireshark/epan/packet.c:943:9
+    #52 0x70b90a in call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    #53 0x70b90a in call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    #54 0x11296bf in dissect_icmp /src/wireshark/epan/dissectors/packet-icmp.c:1754:3
+    #55 0x70ecf2 in call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    #56 0x70ecf2 in call_dissector_work /src/wireshark/epan/packet.c:948:9
+    #57 0x70e7b8 in dissector_try_uint_new /src/wireshark/epan/packet.c:1581:8
+    #58 0x1201100 in ip_try_dissect /src/wireshark/epan/dissectors/packet-ip.c:1822:7
+    #59 0x1204ea1 in dissect_ip_v4 /src/wireshark/epan/dissectors/packet-ip.c:2328:10
+    #60 0x70ecf2 in call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    #61 0x70ecf2 in call_dissector_work /src/wireshark/epan/packet.c:948:9
+    #62 0x718670 in call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    #63 0x718670 in call_all_postdissectors /src/wireshark/epan/packet.c:3912:3
+    #64 0xf62e6d in dissect_frame /src/wireshark/epan/dissectors/packet-frame.c:1435:5
+    #65 0x70ecf2 in call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    #66 0x70ecf2 in call_dissector_work /src/wireshark/epan/packet.c:948:9
+    #67 0x70b90a in call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    #68 0x70b90a in call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    #69 0x70b338 in dissect_record /src/wireshark/epan/packet.c:661:3
+    #70 0x6fe0c4 in epan_dissect_run /src/wireshark/epan/epan.c:642:2
+    #71 0x59718c in LLVMFuzzerTestOneInput /src/wireshark/fuzz/fuzzshark.c:382:2
+    #72 0x44bb30 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #73 0x436da5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #74 0x43c83f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #75 0x467ae2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #76 0x7f436bbf3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #77 0x42ef8d in _start (/out/fuzzshark_ip+0x42ef8d)
+
+DEDUP_TOKEN: dissect_zcl_read_attr_struct--dissect_zbee_zcl--call_dissector_through_handle
+[1m[32m0x000011c82ca0 is located 32 bytes before global variable 'ett_zbee_zcl_array_elements' defined in '/src/wireshark/epan/dissectors/packet-zbee-zcl.c:138' (0x11c82cc0) of size 64
+[1m[0m[1m[32m0x000011c82ca0 is located 0 bytes after global variable 'ett_zbee_zcl_sel' defined in '/src/wireshark/epan/dissectors/packet-zbee-zcl.c:137' (0x11c82c60) of size 64
+[1m[0mSUMMARY: AddressSanitizer: global-buffer-overflow /src/wireshark/epan/dissectors/packet-zbee-zcl.c:1748:66 in dissect_zcl_read_attr_struct
+Shadow bytes around the buggy address:
+  0x000011c82a00: [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m04[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m
+  0x000011c82a80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m04[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m
+  0x000011c82b00: [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x000011c82b80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x000011c82c00: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x000011c82c80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m[[1m[31mf9[1m[0m][1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x000011c82d00: [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x000011c82d80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x000011c82e00: [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m
+  0x000011c82e80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m04[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x000011c82f00: [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[31mf9[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==18==ABORTING
+MS: 0 ; base unit: 0000000000000000000000000000000000000000

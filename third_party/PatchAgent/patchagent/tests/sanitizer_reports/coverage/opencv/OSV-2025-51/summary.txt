@@ -1,0 +1,24 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - ~__value_func /usr/local/include/c++/v1/__functional/function.h:0:0
+    - ~function /usr/local/include/c++/v1/__functional/function.h:972:43
+    - cv::parallel_for_(cv::Range const&, std::__1::function<void (cv::Range const&)>, double) /src/opencv/modules/core/include/opencv2/core/utility.hpp:682:5
+    - cv::PngDecoder::compose_frame(std::__1::vector<unsigned char*, std::__1::allocator<unsigned char*>>&, std::__1::vector<unsigned char*, std::__1::allocator<unsigned char*>> const&, unsigned char, unsigned int, unsigned int, unsigned int, unsigned int, cv::Mat&) /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:647:9
+    - cv::PngDecoder::readData(cv::Mat&) /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:439:21
+    - cv::imdecode_(cv::Mat const&, int, cv::Mat&) /src/opencv/modules/imgcodecs/src/loadsave.cpp:1080:22
+    - cv::imdecode(cv::_InputArray const&, int) /src/opencv/modules/imgcodecs/src/loadsave.cpp:1125:10
+    - GetCVImage /src/core_fuzzer.cc:30:23
+    - LLVMFuzzerTestOneInput /src/core_fuzzer.cc:83:26
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

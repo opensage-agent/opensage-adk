@@ -1,0 +1,61 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50b00000ca1a at pc 0x564f407b6aa2 bp 0x7ffc6508ca50 sp 0x7ffc6508ca48
+READ of size 2 at 0x50b00000ca1a thread T0
+SCARINESS: 14 (2-byte-read-heap-buffer-overflow)
+    #0 0x564f407b6aa1 in getCipherSuiteID /src/PcapPlusPlus/Packet++/src/SSLHandshake.cpp:1413:9
+    #1 0x564f407b6aa1 in pcpp::SSLClientHelloMessage::getCipherSuite(int) const /src/PcapPlusPlus/Packet++/src/SSLHandshake.cpp:1392:16
+    #2 0x564f40656abe in readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:244:41
+    #3 0x564f40652e96 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:67:5
+    #4 0x564f405067c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564f404f1a35 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564f404f74cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564f40522772 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f1e04144082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #9 0x564f404e9c1d in _start (/out/FuzzTarget+0x1b5c1d)
+
+DEDUP_TOKEN: getCipherSuiteID--pcpp::SSLClientHelloMessage::getCipherSuite(int) const--readParsedPacket(pcpp::Packet, pcpp::Layer*)
+0x50b00000ca1a is located 0 bytes after 106-byte region [0x50b00000c9b0,0x50b00000ca1a)
+allocated by thread T0 here:
+    #0 0x564f4064fa6d in operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    #1 0x564f406681e0 in pcpp::PcapFileReaderDevice::getNextPacket(pcpp::RawPacket&) /src/PcapPlusPlus/Pcap++/src/PcapFileDevice.cpp:307:27
+    #2 0x564f40652f93 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:72:19
+    #3 0x564f405067c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x564f404f1a35 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x564f404f74cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x564f40522772 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7f1e04144082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new[](unsigned long)--pcpp::PcapFileReaderDevice::getNextPacket(pcpp::RawPacket&)--LLVMFuzzerTestOneInput
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/PcapPlusPlus/Packet++/src/SSLHandshake.cpp:1413:9 in getCipherSuiteID
+Shadow bytes around the buggy address:
+  0x50b00000c780: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+  0x50b00000c800: fd fd fa fa fa fa fa fa fa fa fd fd fd fd fd fd
+  0x50b00000c880: fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+  0x50b00000c900: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fa fa
+  0x50b00000c980: fa fa fa fa fa fa 00 00 00 00 00 00 00 00 00 00
+=>0x50b00000ca00: 00 00 00[02]fa fa fa fa fa fa fa fa fd fd fd fd
+  0x50b00000ca80: fd fd fd fd fd fd fd fd fd fd fa fa fa fa fa fa
+  0x50b00000cb00: fa fa fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x50b00000cb80: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x50b00000cc00: 00 00 00 00 00 02 fa fa fa fa fa fa fa fa fa fa
+  0x50b00000cc80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

@@ -1,0 +1,71 @@
+=================================================================
+==1234907==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51100014e23f at pc 0x7f2470700616 bp 0x7ffdb784b020 sp 0x7ffdb784b018
+READ of size 1 at 0x51100014e23f thread T0
+    #0 0x7f2470700615 in decode /root/libr/arch/p/bf/plugin.c:176:22
+    #1 0x7f24700c60e5 in r_arch_decode /root/libr/arch/arch.c:292:9
+    #2 0x7f246ec18683 in r_anal_op /root/libr/anal/op.c:186:8
+    #3 0x7f2471eba9df in _anal_calls /root/libr/core/./cmd_anal.c:8705:7
+    #4 0x7f2471eb5c84 in cmd_anal_calls /root/libr/core/./cmd_anal.c:8811:5
+    #5 0x7f2471e9f178 in cmd_anal_all /root/libr/core/./cmd_anal.c:12465:11
+    #6 0x7f2471dc3419 in cmd_anal /root/libr/core/./cmd_anal.c:13726:8
+    #7 0x7f2472078156 in r_cmd_call /root/libr/core/cmd_api.c:520:11
+    #8 0x7f2471d70167 in r_core_cmd_call /root/libr/core/cmd.c:6266:9
+    #9 0x7f246e907ebb in perform_analysis /root/libr/main/radare2.c:428:2
+    #10 0x7f246e90432f in r_main_radare2 /root/libr/main/radare2.c:1633:4
+    #11 0x55f3328fb68e in main /root/binr/radare2/radare2.c:105:9
+    #12 0x7f246e6c31c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7f246e6c328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x55f3328fa1f4 in _start (/root/bin/radare2+0x21f4) (BuildId: 521351d32c86fa33a171540bb9438c34acf32027)
+
+0x51100014e23f is located 0 bytes after 255-byte region [0x51100014e140,0x51100014e23f)
+allocated by thread T0 here:
+    #0 0x7f2472dd87a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f24707004de in decode /root/libr/arch/p/bf/plugin.c:167:10
+    #2 0x7f24700c60e5 in r_arch_decode /root/libr/arch/arch.c:292:9
+    #3 0x7f246ec18683 in r_anal_op /root/libr/anal/op.c:186:8
+    #4 0x7f2471eba9df in _anal_calls /root/libr/core/./cmd_anal.c:8705:7
+    #5 0x7f2471eb5c84 in cmd_anal_calls /root/libr/core/./cmd_anal.c:8811:5
+    #6 0x7f2471e9f178 in cmd_anal_all /root/libr/core/./cmd_anal.c:12465:11
+    #7 0x7f2471dc3419 in cmd_anal /root/libr/core/./cmd_anal.c:13726:8
+    #8 0x7f2472078156 in r_cmd_call /root/libr/core/cmd_api.c:520:11
+    #9 0x7f2471d70167 in r_core_cmd_call /root/libr/core/cmd.c:6266:9
+    #10 0x7f246e907ebb in perform_analysis /root/libr/main/radare2.c:428:2
+    #11 0x7f246e90432f in r_main_radare2 /root/libr/main/radare2.c:1633:4
+    #12 0x55f3328fb68e in main /root/binr/radare2/radare2.c:105:9
+    #13 0x7f246e6c31c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x7f246e6c328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x55f3328fa1f4 in _start (/root/bin/radare2+0x21f4) (BuildId: 521351d32c86fa33a171540bb9438c34acf32027)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/libr/arch/p/bf/plugin.c:176:22 in decode
+Shadow bytes around the buggy address:
+  0x51100014df80: fd fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51100014e000: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51100014e080: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fa fa
+  0x51100014e100: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x51100014e180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51100014e200: 00 00 00 00 00 00 00[07]fa fa fa fa fa fa fa fa
+  0x51100014e280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51100014e300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51100014e380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51100014e400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51100014e480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1234907==ABORTING

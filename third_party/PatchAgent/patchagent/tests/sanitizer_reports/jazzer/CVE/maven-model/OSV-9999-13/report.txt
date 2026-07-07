@@ -1,0 +1,193 @@
++ FUZZER=Xpp3ReaderFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer Xpp3ReaderFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/Xpp3ReaderFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 269 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented Xpp3ReaderFuzzer (took 24 ms, size +14%)
+INFO: Instrumented org.codehaus.plexus.util.xml.pull.XmlPullParserException (took 7 ms, size +9%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7fac904c0a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1643692564
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x558cd6555c90, 0x558cd6555e90), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x558cd6533c30,0x558cd6535c30), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.apache.maven.model.io.xpp3.MavenXpp3Reader (took 3 ms, size +5%)
+INFO: New number of coverage counters: 1024
+INFO: New number of coverage counters: 2048
+INFO: New number of coverage counters: 4096
+INFO: Instrumented org.apache.maven.model.v4.MavenStaxReader (took 85 ms, size +79%)
+INFO: Instrumented com.ctc.wstx.stax.WstxInputFactory (took 16 ms, size +11%)
+INFO: Instrumented com.ctc.wstx.sr.ReaderCreator (took 0 ms, size +0%)
+INFO: Instrumented com.ctc.wstx.cfg.InputConfigFlags (took 0 ms, size +0%)
+INFO: Instrumented org.codehaus.stax2.XMLInputFactory2 (took 1 ms, size +6%)
+INFO: Instrumented org.codehaus.stax2.XMLStreamProperties (took 0 ms, size +0%)
+INFO: Instrumented org.apache.maven.api.xml.XmlNode (took 1 ms, size +4%)
+INFO: Instrumented org.apache.maven.model.v4.MavenStaxReader$ContentTransformer (took 0 ms, size +0%)
+INFO: Instrumented com.ctc.wstx.exc.WstxIOException (took 0 ms, size +18%)
+INFO: Instrumented com.ctc.wstx.exc.WstxException (took 1 ms, size +9%)
+INFO: Instrumented org.codehaus.stax2.XMLStreamReader2 (took 0 ms, size +-3%)
+INFO: Instrumented org.codehaus.stax2.typed.TypedXMLStreamReader (took 0 ms, size +0%)
+INFO: Instrumented org.codehaus.stax2.validation.Validatable (took 0 ms, size +0%)
+INFO: Instrumented com.ctc.wstx.io.InputBootstrapper (took 3 ms, size +21%)
+INFO: Instrumented com.ctc.wstx.io.StreamBootstrapper (took 13 ms, size +34%)
+INFO: Instrumented com.ctc.wstx.io.ReaderBootstrapper (took 6 ms, size +20%)
+INFO: Instrumented org.codehaus.stax2.XMLEventReader2 (took 0 ms, size +0%)
+INFO: Instrumented com.ctc.wstx.util.DefaultXmlSymbolTable (took 1 ms, size +16%)
+INFO: Instrumented com.ctc.wstx.util.SymbolTable (took 6 ms, size +20%)
+INFO: Instrumented com.ctc.wstx.util.SymbolTable$Bucket (took 1 ms, size +56%)
+INFO: New number of coverage counters: 8192
+INFO: Instrumented com.ctc.wstx.api.ReaderConfig (took 13 ms, size +14%)
+INFO: Instrumented com.ctc.wstx.api.CommonConfig (took 1 ms, size +20%)
+INFO: Instrumented com.ctc.wstx.api.WstxInputProperties (took 0 ms, size +2%)
+INFO: Instrumented com.ctc.wstx.api.WstxInputProperties$ParsingMode (took 0 ms, size +22%)
+INFO: Instrumented com.ctc.wstx.util.ArgUtil (took 1 ms, size +32%)
+INFO: Instrumented org.codehaus.stax2.io.Stax2Source (took 0 ms, size +11%)
+INFO: Instrumented com.ctc.wstx.io.SystemId (took 1 ms, size +16%)
+INFO: Instrumented com.ctc.wstx.exc.WstxUnexpectedCharException (took 0 ms, size +15%)
+INFO: Instrumented com.ctc.wstx.exc.WstxParsingException (took 0 ms, size +17%)
+INFO: Instrumented com.ctc.wstx.io.BaseReader (took 1 ms, size +14%)
+INFO: Instrumented com.ctc.wstx.io.UTF8Reader (took 2 ms, size +29%)
+INFO: Instrumented com.ctc.wstx.io.ISOLatinReader (took 1 ms, size +29%)
+INFO: Instrumented com.ctc.wstx.io.AsciiReader (took 1 ms, size +22%)
+INFO: Instrumented com.ctc.wstx.io.UTF32Reader (took 1 ms, size +25%)
+INFO: Instrumented com.ctc.wstx.io.MergedStream (took 1 ms, size +23%)
+INFO: Instrumented com.ctc.wstx.exc.WstxEOFException (took 0 ms, size +20%)
+INFO: Instrumented com.ctc.wstx.io.CharsetNames (took 3 ms, size +100%)
+INFO: Instrumented com.ctc.wstx.util.StringUtil (took 2 ms, size +40%)
+INFO: Instrumented com.ctc.wstx.io.InputSourceFactory (took 0 ms, size +7%)
+INFO: Instrumented com.ctc.wstx.io.WstxInputSource (took 1 ms, size +8%)
+INFO: Instrumented com.ctc.wstx.io.CharArraySource (took 1 ms, size +17%)
+INFO: Instrumented com.ctc.wstx.io.BaseInputSource (took 1 ms, size +6%)
+INFO: Instrumented com.ctc.wstx.io.BranchingReaderSource (took 1 ms, size +23%)
+INFO: Instrumented com.ctc.wstx.io.ReaderSource (took 1 ms, size +14%)
+INFO: Instrumented com.ctc.wstx.sr.ValidatingStreamReader (took 3 ms, size +15%)
+INFO: Instrumented com.ctc.wstx.sr.TypedStreamReader (took 6 ms, size +14%)
+INFO: Instrumented com.ctc.wstx.sr.BasicStreamReader (took 24 ms, size +34%)
+INFO: Instrumented com.ctc.wstx.sr.StreamReaderImpl (took 0 ms, size +0%)
+INFO: Instrumented org.codehaus.stax2.DTDInfo (took 0 ms, size +0%)
+INFO: Instrumented org.codehaus.stax2.LocationInfo (took 0 ms, size +0%)
+INFO: New number of coverage counters: 16384
+INFO: Instrumented com.ctc.wstx.sr.StreamScanner (took 12 ms, size +29%)
+INFO: Instrumented com.ctc.wstx.sr.InputProblemReporter (took 0 ms, size +0%)
+INFO: Instrumented com.ctc.wstx.cfg.ParsingErrorMsgs (took 0 ms, size +0%)
+INFO: Instrumented com.ctc.wstx.io.WstxInputData (took 3 ms, size +44%)
+INFO: Instrumented com.ctc.wstx.exc.WstxValidationException (took 1 ms, size +9%)
+INFO: Instrumented org.codehaus.stax2.validation.XMLValidationException (took 1 ms, size +10%)
+INFO: Instrumented org.codehaus.stax2.XMLStreamLocation2 (took 0 ms, size +19%)
+INFO: Instrumented com.ctc.wstx.ent.EntityDecl (took 1 ms, size +8%)
+INFO: Instrumented com.ctc.wstx.evt.WEntityDeclaration (took 1 ms, size +19%)
+INFO: Instrumented org.codehaus.stax2.ri.evt.BaseEventImpl (took 3 ms, size +28%)
+INFO: Instrumented org.codehaus.stax2.evt.XMLEvent2 (took 0 ms, size +0%)
+INFO: Instrumented com.ctc.wstx.ent.IntEntity (took 2 ms, size +11%)
+INFO: Instrumented org.codehaus.stax2.AttributeInfo (took 0 ms, size +0%)
+INFO: Instrumented org.codehaus.stax2.typed.TypedXMLStreamException (took 1 ms, size +7%)
+INFO: Instrumented org.codehaus.stax2.typed.TypedValueDecoder (took 0 ms, size +19%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$BooleanDecoder (took 0 ms, size +47%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$DecoderBase (took 3 ms, size +30%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$IntDecoder (took 2 ms, size +30%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$LongDecoder (took 1 ms, size +23%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$FloatDecoder (took 1 ms, size +38%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$DoubleDecoder (took 1 ms, size +37%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$IntegerDecoder (took 0 ms, size +9%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$DecimalDecoder (took 1 ms, size +9%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$QNameDecoder (took 2 ms, size +28%)
+INFO: Instrumented org.codehaus.stax2.typed.TypedArrayDecoder (took 0 ms, size +18%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$IntArrayDecoder (took 1 ms, size +14%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$BaseArrayDecoder (took 1 ms, size +21%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$LongArrayDecoder (took 1 ms, size +14%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$FloatArrayDecoder (took 1 ms, size +14%)
+INFO: Instrumented org.codehaus.stax2.ri.typed.ValueDecoderFactory$DoubleArrayDecoder (took 1 ms, size +14%)
+INFO: Instrumented org.codehaus.stax2.validation.DTDValidationSchema (took 0 ms, size +0%)
+INFO: Instrumented org.codehaus.stax2.validation.XMLValidationSchema (took 0 ms, size +0%)
+INFO: Instrumented org.codehaus.stax2.validation.ValidationContext (took 0 ms, size +0%)
+INFO: Instrumented com.ctc.wstx.sr.NsDefaultProvider (took 0 ms, size +0%)
+INFO: Instrumented com.ctc.wstx.sr.InputElementStack (took 6 ms, size +25%)
+INFO: Instrumented com.ctc.wstx.util.BaseNsContext (took 0 ms, size +60%)
+INFO: Instrumented com.ctc.wstx.util.EmptyNamespaceContext (took 0 ms, size +9%)
+INFO: Instrumented com.ctc.wstx.sr.CompactNsContext (took 1 ms, size +38%)
+INFO: Instrumented org.codehaus.stax2.validation.XMLValidator (took 0 ms, size +6%)
+INFO: Instrumented org.codehaus.stax2.validation.ValidatorPair (took 1 ms, size +26%)
+INFO: Instrumented com.ctc.wstx.util.StringVector (took 2 ms, size +38%)
+INFO: Instrumented com.ctc.wstx.sr.AttributeCollector (took 5 ms, size +24%)
+INFO: Instrumented com.ctc.wstx.util.InternCache (took 0 ms, size +30%)
+INFO: Instrumented com.ctc.wstx.util.TextBuilder (took 3 ms, size +22%)
+INFO: Instrumented com.ctc.wstx.util.TextBuffer (took 6 ms, size +25%)
+INFO: Instrumented com.ctc.wstx.util.TextBuffer$BufferReader (took 1 ms, size +25%)
+WARN: Some hooks could not be applied to class files built for Java 7 or lower.
+                       Ensure that the fuzz target and its dependencies are compiled with
+                       -target 8 or higher to identify as many bugs as possible.
+INFO: Instrumented com.ctc.wstx.util.URLUtil (took 1 ms, size +45%)
+INFO: Instrumented com.ctc.wstx.dtd.DTDId (took 2 ms, size +39%)
+INFO: Instrumented com.ctc.wstx.io.DefaultInputResolver (took 3 ms, size +13%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueMedium: Server Side Request Forgery (SSRF)
+Attempted connection to: www.apple.com:80
+Requests to destinations based on untrusted data could lead to exfiltration of sensitive data or exposure of internal services.
+
+If the fuzz test is expected to perform network connections, call com.code_intelligence.jazzer.api.BugDetectors#allowNetworkConnections at the beginning of your fuzz test and optionally provide a predicate matching the expected hosts.
+	at com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrf(ServerSideRequestForgery.java:127)
+	at com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrfSocket(ServerSideRequestForgery.java:71)
+	at java.base/java.net.Socket.connect(Socket.java:633)
+	at java.base/java.net.Socket.connect(Socket.java:583)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:183)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:498)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:603)
+	at java.base/sun.net.www.http.HttpClient.<init>(HttpClient.java:246)
+	at java.base/sun.net.www.http.HttpClient.New(HttpClient.java:351)
+	at java.base/sun.net.www.http.HttpClient.New(HttpClient.java:373)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getNewHttpClient(HttpURLConnection.java:1309)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1242)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1128)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1057)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1665)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1589)
+	at java.base/java.net.URL.openStream(URL.java:1161)
+	at com.ctc.wstx.util.URLUtil.inputStreamFromURL(URLUtil.java:158)
+	at com.ctc.wstx.io.DefaultInputResolver.sourceFromURL(DefaultInputResolver.java:255)
+	at com.ctc.wstx.io.DefaultInputResolver.resolveEntity(DefaultInputResolver.java:92)
+	at com.ctc.wstx.sr.ValidatingStreamReader.findDtdExtSubset(ValidatingStreamReader.java:458)
+	at com.ctc.wstx.sr.ValidatingStreamReader.finishDTD(ValidatingStreamReader.java:326)
+	at com.ctc.wstx.sr.BasicStreamReader.skipToken(BasicStreamReader.java:3466)
+	at com.ctc.wstx.sr.BasicStreamReader.nextFromProlog(BasicStreamReader.java:2089)
+	at com.ctc.wstx.sr.BasicStreamReader.next(BasicStreamReader.java:1180)
+	at org.apache.maven.model.v4.MavenStaxReader.read(MavenStaxReader.java:458)
+	at org.apache.maven.model.v4.MavenStaxReader.read(MavenStaxReader.java:431)
+	at org.apache.maven.model.io.xpp3.MavenXpp3Reader.read(MavenXpp3Reader.java:110)
+	at org.apache.maven.model.io.xpp3.MavenXpp3Reader.read(MavenXpp3Reader.java:128)
+	at org.apache.maven.model.io.xpp3.MavenXpp3Reader.read(MavenXpp3Reader.java:141)
+	at Xpp3ReaderFuzzer.fuzzerTestOneInput(Xpp3ReaderFuzzer.java:26)
+DEDUP_TOKEN: 318118e8c141cc3d
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_cad45a26fcffce4257140a21501dd352463265ec.java
+

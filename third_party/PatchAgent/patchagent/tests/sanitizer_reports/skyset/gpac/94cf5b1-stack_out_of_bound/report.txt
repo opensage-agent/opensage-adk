@@ -1,0 +1,75 @@
+=================================================================
+==77814==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f2dbb10f12c at pc 0x7f2dbe44edab bp 0x7fffd49795b0 sp 0x7fffd49795a8
+WRITE of size 4 at 0x7f2dbb10f12c thread T0
+    #0 0x7f2dbe44edaa in Q_DecCoordOnUnitSphere /root/src/bifs/unquantize.c:307:15
+    #1 0x7f2dbe44f630 in Q_DecNormal /root/src/bifs/unquantize.c:347:6
+    #2 0x7f2dbe44ff15 in gf_bifs_dec_unquant_field /root/src/bifs/unquantize.c:423:7
+    #3 0x7f2dbe41966b in gf_bifs_dec_sf_field /root/src/bifs/field_decode.c:84:7
+    #4 0x7f2dbe41f0dc in gf_bifs_dec_field /root/src/bifs/field_decode.c:517:7
+    #5 0x7f2dbe41fc01 in gf_bifs_dec_node_list /root/src/bifs/field_decode.c:618:7
+    #6 0x7f2dbe41d37d in gf_bifs_dec_node /root/src/bifs/field_decode.c:920:7
+    #7 0x7f2dbe41e85b in BD_DecMFFieldVec /root/src/bifs/field_decode.c:432:24
+    #8 0x7f2dbe41f5c1 in gf_bifs_dec_field /root/src/bifs/field_decode.c:558:9
+    #9 0x7f2dbe41fc01 in gf_bifs_dec_node_list /root/src/bifs/field_decode.c:618:7
+    #10 0x7f2dbe41d37d in gf_bifs_dec_node /root/src/bifs/field_decode.c:920:7
+    #11 0x7f2dbe402b2b in gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1143:12
+    #12 0x7f2dbe403dfd in BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    #13 0x7f2dbe42c907 in BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    #14 0x7f2dbe42d487 in BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    #15 0x7f2dbe42da9f in gf_bifs_flush_command_list /root/src/bifs/memory_decoder.c:956:9
+    #16 0x7f2dbe402d7e in gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1162:5
+    #17 0x7f2dbe402a51 in gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1132:8
+    #18 0x7f2dbe403dfd in BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    #19 0x7f2dbe42c907 in BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    #20 0x7f2dbe42d487 in BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    #21 0x7f2dbe42e4dc in gf_bifs_decode_command_list /root/src/bifs/memory_decoder.c:1031:6
+    #22 0x7f2dbea32a55 in gf_sm_load_run_isom /root/src/scene_manager/loader_isom.c:303:10
+    #23 0x7f2dbe9d9f12 in gf_sm_load_run /root/src/scene_manager/scene_manager.c:719:28
+    #24 0x55956bebe5a5 in dump_isom_scene /root/applications/mp4box/filedump.c:203:14
+    #25 0x55956beaa581 in mp4boxMain /root/applications/mp4box/main.c:6146:7
+    #26 0x55956beaf9c1 in main /root/applications/mp4box/main.c:6601:1
+    #27 0x7f2dbda531c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #28 0x7f2dbda5328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #29 0x55956be8fc54 in _start (/root/bin/gcc/MP4Box+0x46c54) (BuildId: 5891a15d833610dfe0298b2ffc3427afebe219fa)
+
+Address 0x7f2dbb10f12c is located in stack of thread T0 at offset 44 in frame
+    #0 0x7f2dbe44f53f in Q_DecNormal /root/src/bifs/unquantize.c:343
+
+  This frame has 2 object(s):
+    [32, 44) 'comp' (line 344) <== Memory access at offset 44 overflows this variable
+    [64, 76) 'v' (line 345)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /root/src/bifs/unquantize.c:307:15 in Q_DecCoordOnUnitSphere
+Shadow bytes around the buggy address:
+  0x7f2dbb10ee80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f2dbb10ef00: f1 f1 f1 f1 04 f2 00 00 00 00 00 f3 f3 f3 f3 f3
+  0x7f2dbb10ef80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f2dbb10f000: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f2dbb10f080: f1 f1 f1 f1 04 f2 00 00 00 00 00 f3 f3 f3 f3 f3
+=>0x7f2dbb10f100: f1 f1 f1 f1 00[04]f2 f2 00 04 f3 f3 00 00 00 00
+  0x7f2dbb10f180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f2dbb10f200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f2dbb10f280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f2dbb10f300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f2dbb10f380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==77814==ABORTING

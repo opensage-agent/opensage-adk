@@ -1,0 +1,22 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - transform<const int *, cv::(anonymous namespace)::ChannelsIterator<cv::(anonymous namespace)::NonConstItTraits<unsigned char> >, (lambda at /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:232:51)> /usr/local/include/c++/v1/__algorithm/transform.h:24:22
+    - copyToMatImpl<unsigned char, const int> /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:232:17
+    - void cv::(anonymous namespace)::copyToMat<int>(std::__1::vector<int const*, std::__1::allocator<int const*>>&&, cv::Mat&, unsigned char) /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:245:9
+    - cv::(anonymous namespace)::decodeSRGBData(opj_image const&, cv::Mat&, unsigned char) /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:365:13
+    - cv::Jpeg2KOpjDecoder::readData(cv::Mat&) /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:637:12
+    - cv::imdecode_(cv::Mat const&, int, cv::Mat&) /src/opencv/modules/imgcodecs/src/loadsave.cpp:845:22
+    - cv::imdecode(cv::_InputArray const&, int) /src/opencv/modules/imgcodecs/src/loadsave.cpp:885:5
+    - LLVMFuzzerTestOneInput /src/imdecode_fuzzer.cc:10:30
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

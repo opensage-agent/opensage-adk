@@ -1,0 +1,89 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libvips:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce matrixsave_buffer_fuzzer -runs=100.
++ FUZZER=matrixsave_buffer_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer matrixsave_buffer_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/matrixsave_buffer_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2254332865
+/out/matrixsave_buffer_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:21:42.136[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:21:42.138[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:21:42.138[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:21:42.138[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:21:42.138[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:21:42.139[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:21:42.139[0m: Invalid TIFF directory; tags are not sorted in ascending order
+
+(process:14): tiff2vips-[1;33mWARNING[0m **: [34m01:21:42.139[0m: Invalid TIFF directory; tags are not sorted in ascending order
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x7efe1b700000 (pc 0x55c4fa9fdb1e bp 0x7efe13ffdf30 sp 0x7efe13ffdf00 T18)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x55c4fa9fdb1e in next_marker /src/libjpeg-turbo/src/jdmarker.c:902:14
+    #1 0x55c4fa9fdebb in read_markers /src/libjpeg-turbo/src/jdmarker.c:979:14
+    #2 0x55c4fa9fcee1 in consume_markers /src/libjpeg-turbo/src/jdinput.c:339:9
+    #3 0x55c4fa9fc8d7 in jpeg_consume_input /src/libjpeg-turbo/src/jdapimin.c:327:15
+    #4 0x55c4fa9fc7e9 in jpeg_read_header /src/libjpeg-turbo/src/jdapimin.c:275:13
+    #5 0x55c4fa63c2e6 in rtiff_decompress_jpeg_run /src/libvips/build/../libvips/foreign/tiff2vips.c:2100:6
+    #6 0x55c4fa63c2e6 in rtiff_decompress_jpeg /src/libvips/build/../libvips/foreign/tiff2vips.c:2203:7
+    #7 0x55c4fa63beb8 in rtiff_decompress_tile /src/libvips/build/../libvips/foreign/tiff2vips.c:2245:7
+    #8 0x55c4fa63beb8 in rtiff_read_tile /src/libvips/build/../libvips/foreign/tiff2vips.c:2329:7
+    #9 0x55c4fa63bc34 in rtiff_fill_region_unaligned /src/libvips/build/../libvips/foreign/tiff2vips.c:2438:8
+    #10 0x55c4fa63b927 in rtiff_fill_region /src/libvips/build/../libvips/foreign/tiff2vips.c:2542:6
+    #11 0x55c4fa4f06b4 in vips_region_generate /src/libvips/build/../libvips/iofuncs/region.c:1624:6
+    #12 0x55c4fa4f0ae2 in vips_region_prepare_to_generate /src/libvips/build/../libvips/iofuncs/region.c:1748:6
+    #13 0x55c4fa4f09df in vips_region_prepare_to /src/libvips/build/../libvips/iofuncs/region.c:1865:7
+    #14 0x55c4fa5be496 in vips_tile_cache_gen /src/libvips/build/../libvips/conversion/tilecache.c:683:15
+    #15 0x55c4fa4f06b4 in vips_region_generate /src/libvips/build/../libvips/iofuncs/region.c:1624:6
+    #16 0x55c4fa4f062e in vips_region_fill /src/libvips/build/../libvips/iofuncs/region.c:881:7
+    #17 0x55c4fa4f062e in vips_region_prepare /src/libvips/build/../libvips/iofuncs/region.c:1692:7
+    #18 0x55c4fa4dd245 in vips_image_write_gen /src/libvips/build/../libvips/iofuncs/image.c:2606:6
+    #19 0x55c4fa4f06b4 in vips_region_generate /src/libvips/build/../libvips/iofuncs/region.c:1624:6
+    #20 0x55c4fa4f062e in vips_region_fill /src/libvips/build/../libvips/iofuncs/region.c:881:7
+    #21 0x55c4fa4f062e in vips_region_prepare /src/libvips/build/../libvips/iofuncs/region.c:1692:7
+    #22 0x55c4fa52e985 in vips_foreign_load_generate /src/libvips/build/../libvips/foreign/foreign.c:1066:6
+    #23 0x55c4fa4f06b4 in vips_region_generate /src/libvips/build/../libvips/iofuncs/region.c:1624:6
+    #24 0x55c4fa4f062e in vips_region_fill /src/libvips/build/../libvips/iofuncs/region.c:881:7
+    #25 0x55c4fa4f062e in vips_region_prepare /src/libvips/build/../libvips/iofuncs/region.c:1692:7
+    #26 0x55c4fa5c7ea5 in vips_copy_gen /src/libvips/build/../libvips/conversion/copy.c:140:6
+    #27 0x55c4fa4f06b4 in vips_region_generate /src/libvips/build/../libvips/iofuncs/region.c:1624:6
+    #28 0x55c4fa4f062e in vips_region_fill /src/libvips/build/../libvips/iofuncs/region.c:881:7
+    #29 0x55c4fa4f062e in vips_region_prepare /src/libvips/build/../libvips/iofuncs/region.c:1692:7
+    #30 0x55c4fa5ce8e9 in vips_cast_gen /src/libvips/build/../libvips/conversion/cast.c:369:6
+    #31 0x55c4fa4f06b4 in vips_region_generate /src/libvips/build/../libvips/iofuncs/region.c:1624:6
+    #32 0x55c4fa4f062e in vips_region_fill /src/libvips/build/../libvips/iofuncs/region.c:881:7
+    #33 0x55c4fa4f062e in vips_region_prepare /src/libvips/build/../libvips/iofuncs/region.c:1692:7
+    #34 0x55c4fa5c7ea5 in vips_copy_gen /src/libvips/build/../libvips/conversion/copy.c:140:6
+    #35 0x55c4fa4f06b4 in vips_region_generate /src/libvips/build/../libvips/iofuncs/region.c:1624:6
+    #36 0x55c4fa4f0ae2 in vips_region_prepare_to_generate /src/libvips/build/../libvips/iofuncs/region.c:1748:6
+    #37 0x55c4fa4f09df in vips_region_prepare_to /src/libvips/build/../libvips/iofuncs/region.c:1865:7
+    #38 0x55c4fa4e414f in wbuffer_work_fn /src/libvips/build/../libvips/iofuncs/sinkdisc.c:431:11
+    #39 0x55c4fa615991 in vips_worker_work_unit /src/libvips/build/../libvips/iofuncs/threadpool.c:373:6
+    #40 0x55c4fa615991 in vips_thread_main_loop /src/libvips/build/../libvips/iofuncs/threadpool.c:400:3
+    #41 0x55c4fa65779c in vips_threadset_work /src/libvips/build/../libvips/iofuncs/threadset.c:182:3
+    #42 0x55c4fa4d99f6 in vips_thread_run /src/libvips/build/../libvips/iofuncs/thread.c:148:11
+    #43 0x55c4fa684ba0 in g_thread_proxy (/out/matrixsave_buffer_fuzzer+0x2fdba0)
+    #44 0x7efe1ba0a608 in start_thread (/lib/x86_64-linux-gnu/libpthread.so.0+0x8608) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #45 0x7efe1b8ec352 in __clone (/lib/x86_64-linux-gnu/libc.so.6+0x11f352) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: next_marker--read_markers--consume_markers
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/libjpeg-turbo/src/jdmarker.c:902:14 in next_marker
+==14==ABORTING

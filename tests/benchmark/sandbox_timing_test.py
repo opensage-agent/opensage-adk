@@ -1,9 +1,9 @@
-"""Sandbox timing comparison: AgentDocker-Lite (btrfs) vs AgentDocker-Lite (overlayfs) vs Docker.
+"""Sandbox timing comparison: Nitrobox (btrfs) vs Nitrobox (overlayfs) vs Docker.
 
 Exercises the sandbox lifecycle without any LLM calls:
   construct (mount/snapshot) -> run_command -> reset -> run_command -> delete
 
-Usage (must run as root for agentdocker-lite backend):
+Usage (must run as root for nitrobox backend):
   sudo ~/venv/bin/python ray/sandbox_timing_test.py \
     --image "jefzda/sweap-images:nodebb.nodebb-NodeBB__NodeBB-04998908ba6721d64eba79ae3b65a351dcfbc5b5" \
     --rounds 3
@@ -23,9 +23,9 @@ logging.basicConfig(
 logger = logging.getLogger("sandbox_timing")
 
 
-def _time_adl(image: str, round_idx: int) -> dict:
+def _time_nitrobox(image: str, round_idx: int) -> dict:
     from opensage.config.config_dataclass import ContainerConfig
-    from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+    from opensage.sandbox.nitrobox_sandbox import NitroboxSandbox
 
     cfg = ContainerConfig(
         image=image,
@@ -42,10 +42,10 @@ def _time_adl(image: str, round_idx: int) -> dict:
     session_id = f"ns_timing_{round_idx}"
 
     t0 = time.monotonic()
-    sandbox = AgentDockerLiteSandbox(
+    sandbox = NitroboxSandbox(
         container_config=cfg,
         opensage_session_id=session_id,
-        backend_type="agentdocker-lite",
+        backend_type="nitrobox",
         sandbox_type="main",
     )
     timings["construct_ms"] = (time.monotonic() - t0) * 1000
@@ -81,9 +81,9 @@ def _time_adl(image: str, round_idx: int) -> dict:
     return timings
 
 
-def _time_adl_overlayfs(image: str, round_idx: int) -> dict:
+def _time_nitrobox_overlayfs(image: str, round_idx: int) -> dict:
     from opensage.config.config_dataclass import ContainerConfig
-    from opensage.sandbox.agentdocker_lite_sandbox import AgentDockerLiteSandbox
+    from opensage.sandbox.nitrobox_sandbox import NitroboxSandbox
 
     cfg = ContainerConfig(
         image=image,
@@ -100,10 +100,10 @@ def _time_adl_overlayfs(image: str, round_idx: int) -> dict:
     session_id = f"ns_ovl_timing_{round_idx}"
 
     t0 = time.monotonic()
-    sandbox = AgentDockerLiteSandbox(
+    sandbox = NitroboxSandbox(
         container_config=cfg,
         opensage_session_id=session_id,
-        backend_type="agentdocker-lite",
+        backend_type="nitrobox",
         sandbox_type="main",
     )
     timings["construct_ms"] = (time.monotonic() - t0) * 1000
@@ -185,28 +185,30 @@ def _time_docker(image: str, round_idx: int) -> dict:
 
 
 def run_test(image: str, rounds: int):
-    results = {"adl_btrfs": [], "adl_overlayfs": [], "docker": []}
+    results = {"nitrobox_btrfs": [], "nitrobox_overlayfs": [], "docker": []}
 
     for i in range(rounds):
         logger.info("=== Round %d/%d ===", i + 1, rounds)
 
-        logger.info("--- AgentDocker-Lite (btrfs) ---")
+        logger.info("--- Nitrobox (btrfs) ---")
         try:
-            ns_timings = _time_adl(image, i)
-            results["adl_btrfs"].append(ns_timings)
-            logger.info("ADL btrfs timings: %s", json.dumps(ns_timings, indent=2))
+            ns_timings = _time_nitrobox(image, i)
+            results["nitrobox_btrfs"].append(ns_timings)
+            logger.info("Nitrobox btrfs timings: %s", json.dumps(ns_timings, indent=2))
         except Exception as e:
-            logger.error("ADL btrfs failed: %s", e, exc_info=True)
-            results["adl_btrfs"].append({"error": str(e)})
+            logger.exception("Nitrobox btrfs failed: %s", e)
+            results["nitrobox_btrfs"].append({"error": str(e)})
 
-        logger.info("--- AgentDocker-Lite (overlayfs) ---")
+        logger.info("--- Nitrobox (overlayfs) ---")
         try:
-            ovl_timings = _time_adl_overlayfs(image, i)
-            results["adl_overlayfs"].append(ovl_timings)
-            logger.info("ADL overlayfs timings: %s", json.dumps(ovl_timings, indent=2))
+            ovl_timings = _time_nitrobox_overlayfs(image, i)
+            results["nitrobox_overlayfs"].append(ovl_timings)
+            logger.info(
+                "Nitrobox overlayfs timings: %s", json.dumps(ovl_timings, indent=2)
+            )
         except Exception as e:
-            logger.error("ADL overlayfs failed: %s", e, exc_info=True)
-            results["adl_overlayfs"].append({"error": str(e)})
+            logger.exception("Nitrobox overlayfs failed: %s", e)
+            results["nitrobox_overlayfs"].append({"error": str(e)})
 
         logger.info("--- Docker ---")
         try:
@@ -214,7 +216,7 @@ def run_test(image: str, rounds: int):
             results["docker"].append(dk_timings)
             logger.info("Docker timings: %s", json.dumps(dk_timings, indent=2))
         except Exception as e:
-            logger.error("Docker failed: %s", e, exc_info=True)
+            logger.exception("Docker failed: %s", e)
             results["docker"].append({"error": str(e)})
 
     logger.info("\n=== SUMMARY ===")

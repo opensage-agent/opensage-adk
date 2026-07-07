@@ -1,0 +1,22 @@
+The sanitizer detected a undefined behavior vulnerability. The explanation of the vulnerability is: The program exhibits undefined behavior, leading to unpredictable results or crashes. Here is the detail: 
+
+runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:524:8 in 
+src/wav.c:525:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:525:8 in 
+src/wav.c:526:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:526:8 in 
+src/wav.c:527:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:527:8 in 
+src/wav.c:528:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:528:8 in 
+src/wav.c:529:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:529:8 in 
+src/wav.c:530:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:530:8 in 
+Executed id:000051,sig:06,src:002454+003908,time:5669051,op:splice,rep:8,trial:2 in 2 ms
+
+To fix this issue, follow the advice below:
+
+1. Review the code for undefined behavior patterns and correct them.
+2. Check for type mismatches, signed integer overflows, and other undefined behavior triggers.

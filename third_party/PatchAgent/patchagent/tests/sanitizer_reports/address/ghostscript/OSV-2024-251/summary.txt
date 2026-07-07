@@ -1,0 +1,52 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: timeout after 18446744073709551615 seconds
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::AlarmCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:304:5
+    - gs_point_transform /src/ghostpdl/base/gsmatrix.c:289:0
+    - clamp_pattern_bbox /src/ghostpdl/base/gsptype1.c:576:13
+    - compute_inst_matrix /src/ghostpdl/base/gsptype1.c:757:16
+    - gs_pattern1_make_pattern /src/ghostpdl/base/gsptype1.c:262:12
+    - pdfi_setpattern_type1 /src/ghostpdl/pdf/pdf_pattern.c:519:12
+    - pdfi_pattern_set /src/ghostpdl/pdf/pdf_pattern.c:727:16
+    - pdfi_setcolorN /src/ghostpdl/pdf/pdf_colour.c:823:16
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:0:0
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2145:24
+    - pdfi_interpret_inner_content /src/ghostpdl/pdf/pdf_int.c:1911:12
+    - pdfi_interpret_inner_content_stream /src/ghostpdl/pdf/pdf_int.c:2015:12
+    - pdfi_run_context /src/ghostpdl/pdf/pdf_int.c:1847:12
+    - pdfi_do_form /src/ghostpdl/pdf/pdf_image.c:2575:16
+    - pdfi_do_image_or_form /src/ghostpdl/pdf/pdf_image.c:2716:16
+    - pdfi_Do /src/ghostpdl/pdf/pdf_image.c:2793:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1491:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2145:24
+    - pdfi_interpret_inner_content /src/ghostpdl/pdf/pdf_int.c:1911:12
+    - pdfi_interpret_inner_content_stream /src/ghostpdl/pdf/pdf_int.c:2015:12
+    - pdfi_run_context /src/ghostpdl/pdf/pdf_int.c:1847:12
+    - pdfi_do_form /src/ghostpdl/pdf/pdf_image.c:2575:16
+    - pdfi_do_image_or_form /src/ghostpdl/pdf/pdf_image.c:2716:16
+    - pdfi_annot_draw_AP /src/ghostpdl/pdf/pdf_annot.c:295:12
+    - pdfi_annot_draw /src/ghostpdl/pdf/pdf_annot.c:4064:16
+    - pdfi_annot_handle /src/ghostpdl/pdf/pdf_annot.c:0:0
+    - pdfi_do_annotations /src/ghostpdl/pdf/pdf_annot.c:4634:16
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:176:13
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:1029:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:963:24
+    - do_call_operator /src/ghostpdl/psi/interp.c:91:12
+    - interp /src/ghostpdl/psi/interp.c:1772:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:535:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:488:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1174:12
+    - swproc /src/ghostpdl/psi/imainarg.c:368:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:290:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_pxlmono_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10

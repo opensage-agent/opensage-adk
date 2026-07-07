@@ -1,0 +1,46 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x000000000000 bp 0x7ffe8c2a90b0 sp 0x7ffe8c2a8fb8 T0)
+==14==Hint: pc points to the zero page.
+==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+SCARINESS: 10 (null-deref)
+    #0 0x0  (<unknown module>)
+    #1 0x558d803b32b4 in load_glyph /src/ghostpdl/./base/fapi_ft.c:685:20
+    #2 0x558d803af6f4 in gs_fapi_ft_get_char_raster_metrics /src/ghostpdl/./base/fapi_ft.c:1572:9
+    #3 0x558d803a63e1 in gs_fapi_do_char /src/ghostpdl/./base/gxfapi.c:1570:16
+    #4 0x558d80de5dc8 in pdfi_fapi_build_char /src/ghostpdl/./pdf/pdf_fapi.c:1398:16
+    #5 0x558d804bf54f in show_proceed /src/ghostpdl/./base/gxchar.c:1229:12
+    #6 0x558d8095862e in pdfi_show_simple /src/ghostpdl/./pdf/pdf_text.c:445:16
+    #7 0x558d8095862e in pdfi_show_Tr_0 /src/ghostpdl/./pdf/pdf_text.c:460:12
+    #8 0x558d80953e0f in pdfi_show /src/ghostpdl/./pdf/pdf_text.c:842:24
+    #9 0x558d809563b1 in pdfi_TJ /src/ghostpdl/./pdf/pdf_text.c:1188:20
+    #10 0x558d8087e756 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1625:24
+    #11 0x558d8087cd16 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2078:24
+    #12 0x558d808d0445 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #13 0x558d808d0445 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #14 0x558d808d0445 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #15 0x558d80841eba in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1092:24
+    #16 0x558d806d4e79 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #17 0x558d806d4e79 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #18 0x558d806d4e79 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #19 0x558d7fe7d3b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #20 0x558d7fe7d3b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #21 0x558d7fe7d3b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #22 0x558d809a57f0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #23 0x558d809a21c0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #24 0x558d8099f342 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #25 0x558d809a5578 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #26 0x558d7fe74fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #27 0x558d7fe75335 in gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    #28 0x558d7fe75335 in LLVMFuzzerTestOneInput /src/gstoraster_fuzzer.cc:23:2
+    #29 0x558d7fd296d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #30 0x558d7fd14945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #31 0x558d7fd1a3df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #32 0x558d7fd45682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #33 0x7f9927a7b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: load_glyph--gs_fapi_ft_get_char_raster_metrics
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (<unknown module>) 
+==14==ABORTING

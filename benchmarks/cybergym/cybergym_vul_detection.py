@@ -24,23 +24,23 @@ from langfuse import get_client
 from openinference.instrumentation.google_adk import GoogleADKInstrumentor
 from pydantic import BaseModel, ConfigDict, Field
 
-from opensage import OpenSageSession
-from opensage.session import get_opensage_session
-from opensage.toolbox.benchmark_specific.cybergym.cybergym import run_poc_from_script
-from opensage.toolbox.general.bash_tool import bash_tool
-from opensage.toolbox.retrieval.search_tools import (
+from benchmarks.common_tools.retrieval import (
     get_line_around_linenum_in_file,
     grep_tool,
     list_functions_in_file,
     search_symbol_definition,
 )
-from opensage.toolbox.static_analysis.cpg import (
+from benchmarks.common_tools.static_analysis import (
     get_call_paths_to_function,
     get_callee,
     get_caller,
     neo4j_query,
     search_function,
 )
+from benchmarks.cybergym.tools import run_poc_from_script
+from opensage import OpenSageSession
+from opensage.session import get_opensage_session
+from opensage.toolbox.general.bash_tool import bash_tool
 from opensage.utils.project_info import PROJECT_PATH, SRC_PATH, find_path
 
 from .. import Evaluation, EvaluationTask
@@ -113,7 +113,7 @@ def async_retry(max_attempts: int = 3):
                         f"Attempt {attempt}/{max_attempts} failed for {func.__name__}: {e}"
                     )
                     if attempt == max_attempts:
-                        logger.error(
+                        logger.exception(
                             f"All {max_attempts} attempts failed for {func.__name__}"
                         )
                         raise last_exception
@@ -256,7 +256,7 @@ class CyberGym(Evaluation):
     dataset_path: str = "sunblaze-ucb/cybergym"
     dataset_hf_split: str = "tasks"
     export_dir_in_sandbox: str = "/tmp/"
-    agent_dir: str = str(find_path("examples", "agents", "vul_agent_static_tools"))
+    agent_dir: str = str(find_path("agent_library", "agents", "vul_agent_static_tools"))
     difficulty: str = "level1"
     server_url: str = ""
     agent_id: str = ""
@@ -879,7 +879,7 @@ class CyberGym(Evaluation):
                             resp += text
 
             except LlmCallsLimitExceededError as e:
-                logger.error(
+                logger.exception(
                     f"Llm calls limit exceeded for session {task.session_id}: {e}"
                 )
                 raise e

@@ -1,0 +1,17 @@
+=================================================================
+==3789890==ERROR: AddressSanitizer: FPE on unknown address 0x7fe96db3a915 (pc 0x7fe96db3a915 bp 0x7ffe9aa6bfc0 sp 0x7ffe9aa6bac0 T0)
+    #0 0x7fe96db3a915 in JPEGSetupEncode /root/libtiff/tif_jpeg.c:1687:26
+    #1 0x7fe96dbbc481 in TIFFWriteEncodedTile /root/libtiff/tif_write.c:446:8
+    #2 0x7fe96dbbb6c3 in TIFFWriteTile /root/libtiff/tif_write.c:364:10
+    #3 0x558c42309e0f in writeBufferToContigTiles /root/tools/tiffcp.c:1549:8
+    #4 0x558c4230990c in cpImage /root/tools/tiffcp.c:1235:14
+    #5 0x558c42308347 in cpContigTiles2ContigTiles /root/tools/tiffcp.c:1694:9
+    #6 0x558c4230616b in tiffcp /root/tools/tiffcp.c:814:15
+    #7 0x558c4230392b in main /root/tools/tiffcp.c:303:9
+    #8 0x7fe96d6a21c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #9 0x7fe96d6a228a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #10 0x558c423014b4 in _start (/root/tools/.libs/tiffcp+0x54b4) (BuildId: 3084a03fbb378d2211849337792d20b8071bab14)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: FPE /root/libtiff/tif_jpeg.c:1687:26 in JPEGSetupEncode
+==3789890==ABORTING

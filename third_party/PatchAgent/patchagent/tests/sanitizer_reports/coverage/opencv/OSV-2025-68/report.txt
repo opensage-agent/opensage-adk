@@ -1,0 +1,57 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/opencv:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce core_fuzzer -runs=100.
++ FUZZER=core_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer core_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/core_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2306648686
+INFO: Loaded 1 modules   (120 inline 8-bit counters): 120 [0x561a35507e30, 0x561a35507ea8), 
+INFO: Loaded 1 PC tables (120 PCs): 120 [0x561a35507ea8,0x561a35508628), 
+/out/core_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+libpng warning: fcTL: CRC error
+libpng warning: IDAT: IDAT: ADLER32 checksum mismatch
+UndefinedBehaviorSanitizerUndefinedBehaviorSanitizerUndefinedBehaviorSanitizerUndefinedBehaviorSanitizerUndefinedBehaviorSanitizer:DEADLYSIGNAL
+:DEADLYSIGNAL
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+:DEADLYSIGNAL
+:DEADLYSIGNAL
+UndefinedBehaviorSanitizerUndefinedBehaviorSanitizerUndefinedBehaviorSanitizerUndefinedBehaviorSanitizerUndefinedBehaviorSanitizerUndefinedBehaviorSanitizerUndefinedBehaviorSanitizerUndefinedBehaviorSanitizerUndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m:DEADLYSIGNAL
+:DEADLYSIGNAL
+:DEADLYSIGNAL
+:DEADLYSIGNAL
+:DEADLYSIGNAL
+:DEADLYSIGNAL
+:DEADLYSIGNAL
+:DEADLYSIGNAL
+==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x561dc6773000 (pc 0x561a3363c612 bp 0x7f3dcdfbac40 sp 0x7f3dcdfbac10 T17)
+:DEADLYSIGNAL
+[1m[0m==14==The signal is caused by a READ memory access.
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+    #0 0x561a3363c612 in operator() /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:650:49
+    #1 0x561a3363c612 in __invoke<(lambda at /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:647:44) &, const cv::Range &> /usr/local/bin/../include/c++/v1/__type_traits/invoke.h:344:25
+    #2 0x561a3363c612 in __call<(lambda at /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:647:44) &, const cv::Range &> /usr/local/bin/../include/c++/v1/__type_traits/invoke.h:419:5
+    #3 0x561a3363c612 in operator() /usr/local/bin/../include/c++/v1/__functional/function.h:169:12
+    #4 0x561a3363c612 in std::__1::__function::__func<cv::PngDecoder::compose_frame(std::__1::vector<unsigned char*, std::__1::allocator<unsigned char*>>&, std::__1::vector<unsigned char*, std::__1::allocator<unsigned char*>> const&, unsigned char, unsigned int, unsigned int, unsigned int, unsigned int, cv::Mat&)::$_1, std::__1::allocator<cv::PngDecoder::compose_frame(std::__1::vector<unsigned char*, std::__1::allocator<unsigned char*>>&, std::__1::vector<unsigned char*, std::__1::allocator<unsigned char*>> const&, unsigned char, unsigned int, unsigned int, unsigned int, unsigned int, cv::Mat&)::$_1>, void (cv::Range const&)>::operator()(cv::Range const&) /usr/local/bin/../include/c++/v1/__functional/function.h:311:10
+    #5 0x561a338cd342 in cv::(anonymous namespace)::ParallelLoopBodyWrapper::operator()(cv::Range const&) const /src/opencv/modules/core/src/parallel.cpp:360:17
+    #6 0x561a338e327b in cv::ParallelJob::execute(bool) /src/opencv/modules/core/src/parallel_impl.cpp:332:22
+    #7 0x561a338e2d97 in cv::WorkerThread::thread_body() /src/opencv/modules/core/src/parallel_impl.cpp:442:24
+    #8 0x561a338e576f in cv::WorkerThread::thread_loop_wrapper(void*) /src/opencv/modules/core/src/parallel_impl.cpp:282:41
+    #9 0x7f3dd0c67608 in start_thread (/lib/x86_64-linux-gnu/libpthread.so.0+0x8608) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #10 0x7f3dd0b49352 in __clone (/lib/x86_64-linux-gnu/libc.so.6+0x11f352) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator()--__invoke<(lambda at /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:647:44) &, const cv::Range &>--__call<(lambda at /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:647:44) &, const cv::Range &>
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/opencv/modules/imgcodecs/src/grfmt_png.cpp:650:49 in operator()
+==14==ABORTING

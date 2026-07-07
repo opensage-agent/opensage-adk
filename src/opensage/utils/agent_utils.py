@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import os
+import posixpath
+import re
+import shlex
 from typing import Any, Dict, List, Optional, Set
 
 from google.adk.agents.base_agent import BaseAgent
@@ -14,7 +18,46 @@ from google.adk.tools.tool_context import ToolContext
 from opensage.config.config_dataclass import OpenSageConfig
 from opensage.session.joern_client import JoernClient
 
-INHERIT_MODEL = "inherit"
+_AGENT_NAME_FALLBACK = "agent"
+_SANDBOX_WRITE_CHUNK_SIZE = 8192
+_SAFE_FILENAME_PART_RE = re.compile(r"[^A-Za-z0-9_.-]+")
+
+
+def sanitize_agent_name(name: str) -> str:
+    """Canonical sanitizer for agent names / app_names / session-store dir keys.
+
+    Produces a valid Python identifier: letters, digits, and underscores only,
+    never starting with a digit. This matches ADK's own ``BaseAgent.name``
+    validator (``value.isidentifier()``), so sanitized names are safe for
+    direct use as ADK agent names, app_names, and filesystem keys.
+
+    Returns ``"agent"`` if the input collapses to an empty string.
+    """
+    sanitized = re.sub(r"[^A-Za-z0-9_]+", "_", (name or "").strip())
+    sanitized = sanitized.strip("_") or _AGENT_NAME_FALLBACK
+    if sanitized[0].isdigit():
+        sanitized = f"_{sanitized}"
+    return sanitized
+
+
+def _get_litellm_kwargs_for_model(model_name: str) -> Dict[str, Any]:
+    """Build LiteLLM kwargs from environment for provider-specific routing.
+
+    LiteLLM forwards these kwargs to ``litellm.acompletion()``. This allows
+    OpenSage to honor local proxy endpoints such as ``ANTHROPIC_BASE_URL``
+    without requiring every call site to thread ``api_base`` manually.
+    """
+    kwargs: Dict[str, Any] = {}
+    if model_name.startswith("anthropic/"):
+        api_base = os.getenv("ANTHROPIC_API_BASE") or os.getenv("ANTHROPIC_BASE_URL")
+        if api_base:
+            kwargs["api_base"] = api_base.rstrip("/")
+    return kwargs
+
+
+def create_litellm_model(model_name: str) -> LiteLlm:
+    """Create a LiteLlm model with provider-specific env overrides applied."""
+    return LiteLlm(model=model_name, **_get_litellm_kwargs_for_model(model_name))
 
 
 def get_model_from_agent(agent: Any) -> Optional[BaseLlm]:
@@ -28,28 +71,6 @@ def get_model_from_agent(agent: Any) -> Optional[BaseLlm]:
     if isinstance(model, BaseLlm):
         return model
     return None
-
-
-def resolve_model_spec(
-    model_name: str, *, tool_context: Optional[ToolContext] = None
-) -> BaseLlm:
-    """Resolve a model spec into a model instance.
-
-        Supports a special sentinel value INHERIT_MODEL which reuses the current
-        agent's model in the provided tool_context.
-
-    Raises:
-      ValueError: Raised when this operation fails."""
-    if model_name == INHERIT_MODEL:
-        if tool_context is None:
-            raise ValueError("tool_context is required when model_name='inherit'")
-        inv_context = getattr(tool_context, "_invocation_context", None)
-        current_agent = getattr(inv_context, "agent", None)
-        model = get_model_from_agent(current_agent)
-        if model is None:
-            raise ValueError("Unable to resolve current agent model for 'inherit'")
-        return model
-    return LiteLlm(model=model_name)
 
 
 def get_opensage_session_from_context(
@@ -165,12 +186,80 @@ def get_sandbox_from_context(
     return opensage_session.sandboxes.get_sandbox(sandbox_type)
 
 
-def save_content_to_sandbox_file(
+def _sanitize_filename_part(raw: str | None, fallback: str) -> str:
+    cleaned = _SAFE_FILENAME_PART_RE.sub("_", str(raw or "").strip()).strip("._-")
+    return cleaned or fallback
+
+
+def _sanitize_file_extension(raw: str | None) -> str:
+    if not isinstance(raw, str) or not raw.startswith("."):
+        return ".txt"
+    suffix = _SAFE_FILENAME_PART_RE.sub("_", raw[1:].strip()).strip("._-")
+    return f".{suffix}" if suffix else ".txt"
+
+
+async def _write_text_file_in_sandbox(
+    sandbox: Any,
+    path: str,
+    content: str,
+    *,
+    timeout: int = 30,
+) -> tuple[bool, str]:
+    parent_dir = posixpath.dirname(path) or "."
+    quoted_parent = shlex.quote(parent_dir)
+    quoted_path = shlex.quote(path)
+
+    output, exit_code = await sandbox.arun_command_in_container(
+        f"mkdir -p {quoted_parent} && rm -f {quoted_path} && : > {quoted_path}",
+        timeout=timeout,
+    )
+    if exit_code != 0:
+        return False, f"create failed ({exit_code}): {output.strip()}"
+
+    for start in range(0, len(content), _SANDBOX_WRITE_CHUNK_SIZE):
+        chunk = content[start : start + _SANDBOX_WRITE_CHUNK_SIZE]
+        output, exit_code = await sandbox.arun_command_in_container(
+            f"printf %s {shlex.quote(chunk)} >> {quoted_path}",
+            timeout=timeout,
+        )
+        if exit_code != 0:
+            return False, f"write failed ({exit_code}): {output.strip()}"
+
+    output, exit_code = await sandbox.arun_command_in_container(
+        f"chmod 0644 {quoted_path}", timeout=timeout
+    )
+    if exit_code != 0:
+        return False, f"chmod failed ({exit_code}): {output.strip()}"
+
+    output, exit_code = await sandbox.arun_command_in_container(
+        f"test -f {quoted_path} && wc -c < {quoted_path}", timeout=10
+    )
+    if exit_code != 0:
+        return False, f"verify failed ({exit_code}): {output.strip()}"
+
+    try:
+        actual_size = int(output.strip().splitlines()[-1])
+    except (IndexError, ValueError):
+        return False, f"verify returned non-byte-count output: {output.strip()}"
+
+    expected_size = len(content.encode("utf-8"))
+    if actual_size != expected_size:
+        return (
+            False,
+            f"verify byte count mismatch: expected {expected_size}, got {actual_size}",
+        )
+
+    return True, f"{actual_size} bytes"
+
+
+async def save_content_to_sandbox_file(
     context: "InvocationContext | ToolContext",
     content: str,
     tool_name: str,
     output_dir: str = "/workspace/.tool_outputs",
     sandbox_type: str = "main",
+    file_id: Optional[str] = None,
+    file_extension: str = ".txt",
 ) -> Optional[str]:
     """Save content to a file in the sandbox and return the file path.
 
@@ -183,6 +272,8 @@ def save_content_to_sandbox_file(
         tool_name (str): Name of the tool (used in filename).
         output_dir (str): Directory in sandbox to save files.
         sandbox_type (str): Type of sandbox to use.
+        file_id (Optional[str]): Optional stable file id for the output filename.
+        file_extension (str): Output file extension including the leading dot.
     Returns:
         Optional[str]: File path if saved successfully, None otherwise.
     """
@@ -201,54 +292,49 @@ def save_content_to_sandbox_file(
         )
 
         sandbox = get_sandbox_from_context(context, sandbox_type)
-        file_id = uuid.uuid4().hex[:8]
-        output_file = f"{output_dir}/{tool_name}_{file_id}.txt"
+        safe_tool_name = _sanitize_filename_part(tool_name, "tool")
+        resolved_file_id = _sanitize_filename_part(file_id, uuid.uuid4().hex[:8])
+        resolved_extension = _sanitize_file_extension(file_extension)
+        output_file = (
+            f"{output_dir.rstrip('/')}/"
+            f"{safe_tool_name}_{resolved_file_id}{resolved_extension}"
+        )
 
         logger.warning(f"[save_content_to_sandbox_file] Target file: {output_file}")
 
-        # Create directory if not exists
-        mkdir_result = sandbox.run_command_in_container(
-            f"mkdir -p {output_dir}", timeout=10
-        )
-        logger.warning(f"[save_content_to_sandbox_file] mkdir result: {mkdir_result}")
+        saved, detail = await _write_text_file_in_sandbox(sandbox, output_file, content)
+        if not saved:
+            logger.error(
+                "[save_content_to_sandbox_file] FAILED to save content to %s: %s",
+                output_file,
+                detail,
+            )
+            return None
 
-        # Use heredoc to write content safely
-        write_result = sandbox.run_command_in_container(
-            f"cat > {output_file} << 'OPENSAGE_SAVE_EOF'\n{content}\nOPENSAGE_SAVE_EOF",
-            timeout=30,
-        )
-        logger.warning(f"[save_content_to_sandbox_file] write result: {write_result}")
-
-        # Verify file was created
-        verify_result = sandbox.run_command_in_container(
-            f"ls -la {output_file} && wc -c {output_file}",
-            timeout=10,
-        )
         logger.warning(
-            f"[save_content_to_sandbox_file] File verification: {verify_result}"
+            "[save_content_to_sandbox_file] SUCCESS saved to %s (%s)",
+            output_file,
+            detail,
         )
-
-        logger.warning(f"[save_content_to_sandbox_file] SUCCESS saved to {output_file}")
         return output_file
 
     except Exception as e:
-        logger.error(
+        logger.exception(
             f"[save_content_to_sandbox_file] FAILED to save content:\n"
             f"  tool_name: {tool_name}\n"
             f"  error: {e}",
-            exc_info=True,
         )
         return None
 
 
 async def get_neo4j_client_from_context(
-    context: InvocationContext | ToolContext, client_type: str = "history"
+    context: InvocationContext | ToolContext, client_type: str = "analysis"
 ):
     """Get Neo4j client from context using new OpenSageSession architecture.
 
     Args:
         context (InvocationContext | ToolContext): Tool or invocation context
-        client_type (str): Type of client ("history", "analysis", etc.)
+        client_type (str): Type of client ("analysis", "default", or a custom name)
     Returns:
         Neo4j client for the specified type
     """
@@ -475,191 +561,3 @@ def extract_tools_from_agent(agent) -> Dict[str, Any]:
                 available_tools[tool_name] = tool_obj
 
     return available_tools
-
-
-def _copy_agent_with_updated_model(base_agent_info, model_name: str):
-    """
-        Create a new OpenSageAgent instance with a specific model, based on an existing OpenSageAgent.
-
-        Args:
-            base_agent_info: EnsembleAgentInfo object containing the base agent (must be OpenSageAgent)
-            model_name (str): The model name to use (e.g., "anthropic/claude-sonnet-4") or
-              INHERIT_MODEL ("inherit") to reuse inherit_model.
-            inherit_model: Model instance used when model_name==INHERIT_MODEL.
-
-    Raises:
-      ValueError: Raised when this operation fails.
-        Returns:
-            New OpenSageAgent instance with the specified model and same enabled_skills
-    """
-    # NOTE: This is intentionally a private helper, but used by ensemble manager.
-
-    # pylint: disable=protected-access
-    from opensage.agents.opensage_agent import OpenSageAgent
-
-    if not base_agent_info.agent_instance or not isinstance(
-        base_agent_info.agent_instance, OpenSageAgent
-    ):
-        raise ValueError(
-            f"Base agent must be an OpenSageAgent instance, got {type(base_agent_info.agent_instance)}"
-        )
-
-    base_agent = base_agent_info.agent_instance
-
-    # Get enabled_skills from the OpenSageAgent instance
-    enabled_skills = getattr(base_agent, "_enabled_skills", None)
-
-    if model_name == INHERIT_MODEL:
-        raise ValueError(
-            "model_name='inherit' requires using _copy_agent_with_updated_model_v2 "
-            "with inherit_model provided"
-        )
-
-    # Use the official copy method provided by BaseAgent (Pydantic model_copy)
-    try:
-        new_agent = base_agent.copy(
-            update={
-                "model": LiteLlm(model=model_name),
-                "name": f"{base_agent.name}_{model_name.replace('/', '_').replace('-', '_')}",
-            }
-        )
-
-        # Copy enabled_skills attribute (copy() doesn't copy private attributes)
-        new_agent._enabled_skills = enabled_skills
-
-        # If enabled_skills exists, update the system prompt
-        # (instruction was copied, but we need to regenerate tool_prompt if needed)
-        # Actually, since we're copying, the instruction already has the tool_prompt
-        # But we should ensure _enabled_skills is set correctly
-        # The instruction should already be correct from the copy
-
-        return new_agent
-
-    except Exception as copy_error:
-        # Fallback to manual creation if copy fails
-        print(
-            f"Warning: agent.copy() failed ({copy_error}), falling back to manual creation"
-        )
-
-        new_model = LiteLlm(model=model_name)
-
-        # Create new OpenSageAgent with the same configuration but different model
-        new_agent = OpenSageAgent(
-            model=new_model,
-            name=f"{base_agent.name}_{model_name.replace('/', '_').replace('-', '_')}",
-            instruction=base_agent.instruction,
-            description=base_agent.description
-            or f"{base_agent.name} using {model_name}",
-            tools=base_agent.tools,
-            enabled_skills=enabled_skills,  # Pass enabled_skills from original agent
-            sub_agents=base_agent.sub_agents
-            if hasattr(base_agent, "sub_agents")
-            else None,
-            tool_combos=getattr(base_agent, "tool_combos", None),
-            # Copy additional configuration fields
-            global_instruction=getattr(base_agent, "global_instruction", ""),
-            generate_content_config=getattr(
-                base_agent, "generate_content_config", None
-            ),
-            disallow_transfer_to_parent=getattr(
-                base_agent, "disallow_transfer_to_parent", False
-            ),
-            disallow_transfer_to_peers=getattr(
-                base_agent, "disallow_transfer_to_peers", False
-            ),
-            include_contents=getattr(base_agent, "include_contents", "default"),
-        )
-
-        # Copy ALL 4 types of callbacks (evidence: LlmAgent has 4 callback types)
-        if (
-            hasattr(base_agent, "before_model_callback")
-            and base_agent.before_model_callback
-        ):
-            new_agent.before_model_callback = base_agent.before_model_callback
-
-        if (
-            hasattr(base_agent, "after_model_callback")
-            and base_agent.after_model_callback
-        ):
-            new_agent.after_model_callback = base_agent.after_model_callback
-
-        if (
-            hasattr(base_agent, "before_tool_callback")
-            and base_agent.before_tool_callback
-        ):
-            new_agent.before_tool_callback = base_agent.before_tool_callback
-
-        if (
-            hasattr(base_agent, "after_tool_callback")
-            and base_agent.after_tool_callback
-        ):
-            new_agent.after_tool_callback = base_agent.after_tool_callback
-
-        return new_agent
-
-
-def _copy_agent_with_updated_model_v2(
-    base_agent_info, model_name: str, *, inherit_model: Optional[BaseLlm] = None
-):
-    """Like _copy_agent_with_updated_model but supports model inheritance.
-
-    Raises:
-      ValueError: Raised when this operation fails."""
-    from opensage.agents.opensage_agent import OpenSageAgent
-
-    if not base_agent_info.agent_instance or not isinstance(
-        base_agent_info.agent_instance, OpenSageAgent
-    ):
-        raise ValueError(
-            f"Base agent must be an OpenSageAgent instance, got {type(base_agent_info.agent_instance)}"
-        )
-
-    base_agent = base_agent_info.agent_instance
-    enabled_skills = getattr(base_agent, "_enabled_skills", None)
-
-    if model_name == INHERIT_MODEL:
-        if inherit_model is None:
-            raise ValueError("inherit_model must be provided for model_name='inherit'")
-        resolved_model = inherit_model
-        suffix = INHERIT_MODEL
-    else:
-        resolved_model = LiteLlm(model=model_name)
-        suffix = model_name.replace("/", "_").replace("-", "_")
-
-    try:
-        new_agent = base_agent.copy(
-            update={
-                "model": resolved_model,
-                "name": f"{base_agent.name}_{suffix}",
-            }
-        )
-        new_agent._enabled_skills = enabled_skills
-        return new_agent
-    except Exception as copy_error:
-        print(
-            f"Warning: agent.copy() failed ({copy_error}), falling back to manual creation"
-        )
-        new_agent = OpenSageAgent(
-            model=resolved_model,
-            name=f"{base_agent.name}_{suffix}",
-            instruction=base_agent.instruction,
-            description=base_agent.description or f"{base_agent.name} using {suffix}",
-            tools=base_agent.tools,
-            enabled_skills=enabled_skills,
-            sub_agents=base_agent.sub_agents
-            if hasattr(base_agent, "sub_agents")
-            else None,
-            tool_combos=getattr(base_agent, "tool_combos", None),
-            global_instruction=getattr(base_agent, "global_instruction", ""),
-            generate_content_config=getattr(
-                base_agent, "generate_content_config", None
-            ),
-            disallow_transfer_to_parent=getattr(
-                base_agent, "disallow_transfer_to_parent", False
-            ),
-            disallow_transfer_to_peers=getattr(
-                base_agent, "disallow_transfer_to_peers", False
-            ),
-            include_contents=getattr(base_agent, "include_contents", "default"),
-        )
-        return new_agent

@@ -1,0 +1,89 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x50800001d771 thread T0
+    - skip_to_next_entry /src/cpython3/Python/ceval.c:4798:13
+    - get_exception_handler /src/cpython3/Python/ceval.c:4866:16
+    - _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4465:33
+    - _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    - _PyObject_VectorcallTstate /src/cpython3/Include/cpython/abstract.h:114:11
+    - PyObject_Vectorcall /src/cpython3/Include/cpython/abstract.h:123:12
+    - call_function /src/cpython3/Python/ceval.c:5976:13
+    - _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4219:19
+    - _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    - _PyObject_VectorcallTstate /src/cpython3/Include/cpython/abstract.h:114:11
+    - PyObject_Vectorcall /src/cpython3/Include/cpython/abstract.h:123:12
+    - call_function /src/cpython3/Python/ceval.c:5976:13
+    - _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4219:19
+    - _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    - _PyObject_VectorcallTstate /src/cpython3/Include/cpython/abstract.h:114:11
+    - PyObject_Vectorcall /src/cpython3/Include/cpython/abstract.h:123:12
+    - call_function /src/cpython3/Python/ceval.c:5976:13
+    - _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4187:23
+    - _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    - _PyObject_VectorcallTstate /src/cpython3/Include/cpython/abstract.h:114:11
+    - object_vacall /src/cpython3/Objects/call.c:734:14
+    - PyObject_CallFunctionObjArgs /src/cpython3/Objects/call.c:841:14
+    - fuzz_sre_compile /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:248:26
+    - _run_fuzz /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:398:14
+    - LLVMFuzzerTestOneInput /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:475:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x50800001d771 is located 0 bytes after 81-byte region [0x50800001d720,0x50800001d771)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - _PyBytes_FromSize /src/cpython3/Objects/bytesobject.c:126:31
+    - PyBytes_FromStringAndSize /src/cpython3/Objects/bytesobject.c:159:27
+    - r_object /src/cpython3/Python/marshal.c:1066:17
+    - r_object /src/cpython3/Python/marshal.c:1375:30
+    - r_object /src/cpython3/Python/marshal.c:1171:18
+    - r_object /src/cpython3/Python/marshal.c:1348:22
+    - read_object /src/cpython3/Python/marshal.c:1445:9
+    - marshal_loads_impl /src/cpython3/Python/marshal.c:1751:14
+    - marshal_loads /src/cpython3/Python/clinic/marshal.c.h:148:20
+    - cfunction_vectorcall_O /src/cpython3/Objects/methodobject.c:512:24
+    - _PyObject_VectorcallTstate /src/cpython3/Include/cpython/abstract.h:114:11
+    - PyObject_Vectorcall /src/cpython3/Include/cpython/abstract.h:123:12
+    - call_function /src/cpython3/Python/ceval.c:5976:13
+    - _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4187:23
+    - _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    - _PyObject_VectorcallTstate /src/cpython3/Include/cpython/abstract.h:114:11
+    - PyObject_Vectorcall /src/cpython3/Include/cpython/abstract.h:123:12
+    - call_function /src/cpython3/Python/ceval.c:5976:13
+    - _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4237:19
+    - _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    - _PyObject_VectorcallTstate /src/cpython3/Include/cpython/abstract.h:114:11
+    - PyObject_Vectorcall /src/cpython3/Include/cpython/abstract.h:123:12
+    - call_function /src/cpython3/Python/ceval.c:5976:13
+    - _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4204:23
+    - _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    - _PyObject_VectorcallTstate /src/cpython3/Include/cpython/abstract.h:114:11
+    - PyObject_Vectorcall /src/cpython3/Include/cpython/abstract.h:123:12
+    - call_function /src/cpython3/Python/ceval.c:5976:13
+    - _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4204:23
+    - _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    - _PyObject_VectorcallTstate /src/cpython3/Include/cpython/abstract.h:114:11
+    - PyObject_Vectorcall /src/cpython3/Include/cpython/abstract.h:123:12
+    - call_function /src/cpython3/Python/ceval.c:5976:13
+    - _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4219:19
+    - _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    - _PyObject_VectorcallTstate /src/cpython3/Include/cpython/abstract.h:114:11
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

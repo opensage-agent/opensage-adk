@@ -1,0 +1,257 @@
+The sanitizer detected a stack overflow vulnerability. The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably. Here is the detail: 
+
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - Token /src/serenity/Userland/Libraries/LibMarkdown/Text.h:165:12
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:620:20
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+    - Markdown::Text::parse_link(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:623:22
+    - Markdown::Text::parse_sequence(AK::SimpleIterator<AK::Vector<Markdown::Text::Token, 0ul> const, Markdown::Text::Token const>&, bool) /src/serenity/Userland/Libraries/LibMarkdown/Text.cpp:477:35
+
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

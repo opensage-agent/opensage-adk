@@ -1,0 +1,32 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: timeout after 18446744073709551615 seconds
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::AlarmCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:304:5
+    - js_promise_resolve_function_mark /src/quickjs/quickjs.c:48126:9
+    - gc_decref /src/quickjs/quickjs.c:5762:9
+    - JS_RunGC /src/quickjs/quickjs.c:5863:5
+    - js_trigger_gc /src/quickjs/quickjs.c:1303:9
+    - JS_NewObjectFromShape /src/quickjs/quickjs.c:4761:5
+    - JS_NewObjectProtoClass /src/quickjs/quickjs.c:4884:12
+    - JS_NewObjectClass /src/quickjs/quickjs.c:4942:12
+    - js_closure /src/quickjs/quickjs.c:15781:16
+    - JS_EvalFunctionInternal /src/quickjs/quickjs.c:34400:19
+    - __JS_EvalInternal /src/quickjs/quickjs.c:34536:19
+    - JS_EvalInternal /src/quickjs/quickjs.c:34554:12
+    - JS_EvalObject /src/quickjs/quickjs.c:34570:11
+    - JS_CallInternal /src/quickjs/quickjs.c:16784:31
+    - async_func_resume /src/quickjs/quickjs.c:18959:15
+    - js_async_function_resume /src/quickjs/quickjs.c:19232:16
+    - js_async_function_call /src/quickjs/quickjs.c:19326:5
+    - js_execute_sync_module /src/quickjs/quickjs.c:28913:19
+    - js_inner_module_evaluation /src/quickjs/quickjs.c:29025:13
+    - js_evaluate_module /src/quickjs/quickjs.c:29072:9
+    - JS_EvalFunctionInternal /src/quickjs/quickjs.c:34411:19
+    - JS_EvalFunction /src/quickjs/quickjs.c:34425:12
+    - LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_compile.c:81:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10

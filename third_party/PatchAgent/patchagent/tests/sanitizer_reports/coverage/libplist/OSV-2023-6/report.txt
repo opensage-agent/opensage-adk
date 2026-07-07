@@ -1,0 +1,49 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libplist:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce oplist_fuzzer -runs=100.
++ FUZZER=oplist_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer oplist_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/oplist_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -max_len=4096 -dict=oplist.dict < /dev/null
+Dictionary: 41 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1161976871
+INFO: Loaded 1 modules   (1 inline 8-bit counters): 1 [0x55b533dea8c8, 0x55b533dea8c9), 
+INFO: Loaded 1 PC tables (1 PCs): 1 [0x55b533dea8d0,0x55b533dea8e0), 
+/out/oplist_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+free(): double free detected in tcache 2
+==18== ERROR: libFuzzer: deadly signal
+    #0 0x55b533d50fa4 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x55b533ccfff8 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x55b533cb3393 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7f22e865341f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7f22e844d00a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7f22e842c858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7f22e8497265  (/lib/x86_64-linux-gnu/libc.so.6+0x8d265) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7f22e849f2fb  (/lib/x86_64-linux-gnu/libc.so.6+0x952fb) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x7f22e84a0f6c  (/lib/x86_64-linux-gnu/libc.so.6+0x96f6c) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x55b533d55699 in plist_free_node /src/libplist/src/plist.c:343:5
+    #10 0x55b533d522df in LLVMFuzzerTestOneInput /src/libplist/fuzz/oplist_fuzzer.cc:29:2
+    #11 0x55b533cb48a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x55b533c9fb15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x55b533ca55af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x55b533cd0852 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f22e842e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #16 0x55b533c97cfd in _start (/out/oplist_fuzzer+0x1fcfd)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal
+MS: 0 ; base unit: 0000000000000000000000000000000000000000
+0x22,0x2,0x2,0x33,0xff,0xff,0xff,0xff,0x22,0x3d,0x20,0x2f,0x2f,0x2f,0x20,0x68,0xd0,0x6f,0x2f,0x2a,0x2a,0x35,0x2f,0x2a,0x28,0x2a,0x2f,0x2f,0x2f,0x36,0x2f,0x2a,0x2f,0x1d,0x23,0x6f,0x2f,0x2c,0x7b,0xc5,0x9,
+\"\002\0023\377\377\377\377\"= /// h\320o/**5/*(*///6/*/\035#o/,{\305\011

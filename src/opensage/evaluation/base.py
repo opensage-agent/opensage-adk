@@ -23,32 +23,29 @@ import google.adk as adk
 import jsonpickle
 import litellm
 from google.adk.agents.base_agent import BaseAgent
-from google.adk.agents.invocation_context import LlmCallsLimitExceededError
 from google.adk.agents.llm_agent import LlmAgent
-from google.adk.agents.run_config import RunConfig
-from google.adk.apps.app import App
 from google.adk.models import BaseLlm
-from google.adk.models.lite_llm import LiteLlm
-from google.adk.runners import Runner
 from google.adk.sessions import Session
-from google.adk.tools.agent_tool import AgentTool
 from google.genai import types
 from tqdm import tqdm
 
 from opensage import get_opensage_session
-from opensage.features.opensage_in_memory_session_service import (
-    OpenSageInMemorySessionService,
+from opensage.orchestration.fake_user import (
+    FakeUserFn,
+    default_fake_user,
+    load_fake_user_from_file,
 )
 from opensage.plugins import load_plugins
 from opensage.session.opensage_session import OpenSageSession
 from opensage.toolbox.sandbox_requirements import collect_sandbox_dependencies
 from opensage.utils.bash_tools_staging import compute_bash_tools_top_roots
-from opensage.utils.project_info import PROJECT_PATH, SRC_PATH
+from opensage.utils.project_info import PROJECT_PATH
 
 # TODO: incompatibility between litellm and multiple async event loops
 litellm.disable_streaming_logging = True
 
 logger = logging.getLogger(__name__)
+
 
 # Registry for Evaluation subclasses
 _EVALUATION_REGISTRY: dict[str, type[Evaluation]] = {}
@@ -63,11 +60,6 @@ def get_evaluation_class(name: str) -> type[Evaluation] | None:
         type[Evaluation] | None: Evaluation subclass or None if not found
     """
     return _EVALUATION_REGISTRY.get(name.lower())
-
-
-def list_evaluations() -> list[str]:
-    """List all registered evaluation names."""
-    return list(_EVALUATION_REGISTRY.keys())
 
 
 def _run_sample_in_process(evaluation_instance: Evaluation, sample: dict) -> dict:
@@ -213,6 +205,9 @@ class EvaluationTask:
     model: str | BaseLlm | None = None
     """Optional model override (BaseLlm instance or string model name)"""
 
+    run_timed_out: bool = False
+    """Whether agent execution hit the evaluation timeout."""
+
     @property
     def opensage_session(self) -> OpenSageSession:
         """Get or create OpenSage session for this task."""
@@ -247,19 +242,28 @@ class Evaluation(abc.ABC):
     output_dir: str | None = None
     """If None, will create by default as evals/{name}/{timestamp}"""
 
+    non_interactive: bool = False
+    """If True, skip the interactive 'output_dir already exists, continue?' prompt.
+    Set to True when running from RL pipelines (Ray workers have no stdin)."""
+
     max_workers: int = 6
 
     run_until_explicit_finish: bool = False
+    continuation_prompt: str | None = None
+
+    fake_user_fn: FakeUserFn | None = None
+    """Custom fake-user callback.  ``async (Session) -> str | None``.
+
+    If set, this takes precedence over ``run_until_explicit_finish``.
+    After each invocation the callback receives the refreshed Session
+    and returns the next user message (str) or None to stop.
+    """
 
     runner_type: str = "native"
     """Execution backend: "native" (threading/multiprocessing) or "ray" (distributed)"""
 
     log_level: str = "INFO"
     """Console log level: DEBUG, INFO, WARNING, ERROR, CRITICAL"""
-
-    # TODO: better priority system for which model to use
-    use_config_model: bool = False
-    """Override the model use the model specified in the config file if True"""
 
     # Agent
 
@@ -273,9 +277,6 @@ class Evaluation(abc.ABC):
 
     llm_retry_timeout: int = 30
     """Timeout in seconds for each LLM request, currently only applies to LiteLLM"""
-
-    neo4j_logging: bool = False
-    """Whether to enable Neo4j logging for this run"""
 
     # Dataset
     dataset_split: str = "train"
@@ -337,14 +338,19 @@ class Evaluation(abc.ABC):
             Path(self.output_dir).mkdir(parents=True, exist_ok=True)
         else:
             if Path(self.output_dir).exists():
-                flag = (
-                    input(f"{self.output_dir} already exists, continue? (y/n): ")
-                    .strip()
-                    .lower()
-                )
-                if flag != "y" and flag != "" and flag != "yes":
-                    print("Exiting...")
-                    exit(0)
+                if self.non_interactive:
+                    logger.info(
+                        f"{self.output_dir} already exists, continuing (non_interactive=True)"
+                    )
+                else:
+                    flag = (
+                        input(f"{self.output_dir} already exists, continue? (y/n): ")
+                        .strip()
+                        .lower()
+                    )
+                    if flag != "y" and flag != "" and flag != "yes":
+                        print("Exiting...")
+                        exit(0)
             else:
                 Path(self.output_dir).mkdir(parents=True)
 
@@ -362,6 +368,9 @@ class Evaluation(abc.ABC):
         logging.getLogger().addHandler(master_handler)
         logger.info(f"Master log handler created: {master_log}")
 
+        if self.use_sandbox_cache and self.sandbox_cache_dir is None:
+            self.sandbox_cache_dir = str(Path(self.output_dir) / ".sandbox_cache")
+
         # Log and save evaluation parameters
         self._log_and_save_parameters()
 
@@ -373,13 +382,13 @@ class Evaluation(abc.ABC):
 
         # Collect all dataclass fields
         params = {}
-        for field in fields(self):
-            value = getattr(self, field.name)
+        for dataclass_field in fields(self):
+            value = getattr(self, dataclass_field.name)
             # Convert Path objects to strings
             if isinstance(value, Path):
-                params[field.name] = str(value)
+                params[dataclass_field.name] = str(value)
             elif value is not None:
-                params[field.name] = value
+                params[dataclass_field.name] = value
 
         # Add timestamp
         params["timestamp"] = datetime.datetime.now().isoformat()
@@ -387,10 +396,11 @@ class Evaluation(abc.ABC):
 
         # Add git commit information
         try:
+            output_dir_path = Path(self.output_dir)
             git_commit = (
                 subprocess.check_output(
                     ["git", "rev-parse", "HEAD"],
-                    cwd=self.output_dir.parent.parent,
+                    cwd=output_dir_path.parent.parent,
                     stderr=subprocess.DEVNULL,
                 )
                 .decode()
@@ -399,7 +409,7 @@ class Evaluation(abc.ABC):
             git_branch = (
                 subprocess.check_output(
                     ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                    cwd=self.output_dir.parent.parent,
+                    cwd=output_dir_path.parent.parent,
                     stderr=subprocess.DEVNULL,
                 )
                 .decode()
@@ -454,36 +464,56 @@ class Evaluation(abc.ABC):
 
         # Determine model name for logging
         model_name = "agent_default"
-        if self.use_config_model and task.opensage_session:
-            main_model_config = task.opensage_session.config.llm.model_configs.get(
-                "main"
-            )
-            if main_model_config:
-                model_name = main_model_config.model_name
+        budget_state = None
+        if task.opensage_session:
+            budget = getattr(task.opensage_session, "budget", None)
+            if budget is not None:
+                budget_state = budget.to_dict()
+            replace_name = task.opensage_session.config.model.evaluation_replace_all_models_with_model_name
+            if replace_name:
+                model_name = replace_name
+
+        estimated_cost = (
+            budget_state.get("spent_cost") if isinstance(budget_state, dict) else None
+        )
+
+        effective_num_llm_calls = num_llm_calls
+        if isinstance(budget_state, dict):
+            per_model_usage = budget_state.get("per_model_usage")
+            if isinstance(per_model_usage, dict):
+                budget_calls = 0
+                for usage in per_model_usage.values():
+                    if isinstance(usage, dict):
+                        budget_calls += int(usage.get("calls") or 0)
+                if budget_calls:
+                    effective_num_llm_calls = budget_calls
 
         cost_info = {
             "session_id": task.session_id,
             "task_name": task.id,
             "model": model_name,
-            "use_config_model": self.use_config_model,
             "timestamp": datetime.datetime.now().isoformat(),
+            "estimated_cost": estimated_cost,
             "token_usage": {
                 "total_input_tokens": total_input_tokens,
                 "total_output_tokens": total_output_tokens,
                 "total_cached_tokens": total_cached_tokens,
                 "total_tokens": total_input_tokens + total_output_tokens,
             },
-            "num_llm_calls": num_llm_calls,
+            "num_llm_calls": effective_num_llm_calls,
+            "budget": budget_state,
         }
 
         logger.warning("=" * 80)
         logger.warning(f"Cost info for session {task.session_id}:")
         logger.warning(f"  Model: {model_name}")
-        logger.warning(f"  LLM calls: {num_llm_calls}")
+        logger.warning(f"  LLM calls: {effective_num_llm_calls}")
         logger.warning(f"  Input tokens: {total_input_tokens:,}")
         logger.warning(f"  Output tokens: {total_output_tokens:,}")
         logger.warning(f"  Cached tokens: {total_cached_tokens:,}")
         logger.warning(f"  Total tokens: {total_input_tokens + total_output_tokens:,}")
+        if estimated_cost is not None:
+            logger.warning(f"  Estimated cost: ${float(estimated_cost):.6f}")
         logger.warning("=" * 80)
 
         # Ensure output directory exists
@@ -501,8 +531,8 @@ class Evaluation(abc.ABC):
         Expects agent_dir to contain agent.py with mk_agent function.
         Supports both relative and absolute paths.
 
-        Example: agent_dir = "examples/agents/poc_agent"
-                 -> will load from <cwd>/examples/agents/poc_agent/agent.py
+        Example: agent_dir = "agent_library/agents/poc_agent"
+                 -> will load from <cwd>/agent_library/agents/poc_agent/agent.py
 
         Args:
             agent_dir: Directory containing agent.py with mk_agent function.
@@ -601,12 +631,6 @@ class Evaluation(abc.ABC):
             for sub_agent in agent.sub_agents:
                 self._replace_agent_models_recursive(sub_agent, model, visited)
 
-        # Recursively replace in agent_tools
-        if hasattr(agent, "tools") and agent.tools:
-            for tool in agent.tools:
-                if isinstance(tool, AgentTool):
-                    self._replace_agent_models_recursive(tool.agent, model, visited)
-
     def _get_dataset(self) -> datasets.Dataset:
         if Path(self.dataset_path).exists():
             if Path(self.dataset_path).is_dir():
@@ -675,81 +699,60 @@ class Evaluation(abc.ABC):
         return str(Path(self.sandbox_cache_dir) / task_id)
 
     def _prepare_agent(self, task: EvaluationTask) -> BaseAgent | None:
-        """Prepare agent with the correct model.
+        """Prepare the agent for one task.
 
         Model selection priority:
-        1. task.model (RL integration or explicit override)
-        2. self.use_config_model (from config file)
-        3. Agent's default model (specified in mk_agent)
+          1. ``task.model`` (RL integration or explicit override)
+          2. ``config.model.evaluation_replace_all_models_with_model_name``
+             — looked up in the LlmRegistry; raises if not registered.
+          3. None → use whatever models the agents declared themselves.
+
+        If ``mk_agent`` accepts a ``model=`` kwarg, the chosen model is
+        passed through. Otherwise, ``_replace_agent_models_recursive`` walks
+        the agent tree post-construction to overwrite each LlmAgent's model.
         """
-        # Determine which model to use
-        model_to_use = None
-        model_source = "agent default"
+        import inspect
+
+        opensage_session = task.opensage_session
+        replace_name = (
+            opensage_session.config.model.evaluation_replace_all_models_with_model_name
+            if opensage_session is not None
+            else None
+        )
 
         if task.model is not None:
-            # Priority 1: task.model (RL integration or explicit override)
             model_to_use = task.model
             model_source = "task.model (RL integration)"
-        elif self.use_config_model:
-            # Priority 2: config model
-            opensage_session = task.opensage_session
-            if opensage_session and opensage_session.config.llm:
-                main_model_config = opensage_session.config.llm.model_configs.get(
-                    "main"
-                )
-                if main_model_config:
-                    # Convert config to dict and extract all parameters
-                    config_dict = (
-                        main_model_config.model_dump()
-                        if hasattr(main_model_config, "model_dump")
-                        else vars(main_model_config)
-                    )
+        elif replace_name:
+            model_to_use = opensage_session.llms.get(replace_name)
+            model_source = f"LlmRegistry[{replace_name!r}]"
+        else:
+            model_to_use = None
+            model_source = "agent default"
 
-                    # LiteLlm expects 'model' not 'model_name'
-                    if "model_name" in config_dict:
-                        config_dict["model"] = config_dict.pop("model_name")
-
-                    # Create LiteLlm instance with all config parameters
-                    model_to_use = LiteLlm(**config_dict)
-                    model_source = (
-                        f"config model '{config_dict.get('model', 'unknown')}'"
-                    )
-
-        # Try to create agent with model parameter
-        try:
-            import inspect
-
-            sig = inspect.signature(self._mk_agent_original)
-            if "model" in sig.parameters:
-                # mk_agent supports model parameter - use it
-                agent = self._mk_agent_original(
-                    opensage_session_id=task.session_id, model=model_to_use
-                )
-                logger.warning(
-                    f"Created agent with model from {model_source} (session {task.session_id})"
-                )
-            else:
-                # mk_agent doesn't support model parameter - fallback to replacement
-                agent = self._mk_agent_original(opensage_session_id=task.session_id)
-                if model_to_use is not None:
-                    self._replace_agent_models_recursive(agent, model_to_use)
-                    logger.warning(
-                        f"Replaced agent models with {model_source} via recursive replacement "
-                        f"(session {task.session_id})"
-                    )
-                else:
-                    logger.warning(
-                        f"Using agent's default model (session {task.session_id})"
-                    )
-        except Exception as e:
-            # Fallback: try without model parameter
-            logger.warning(
-                f"Failed to create agent with model parameter, falling back: {e}"
+        sig = inspect.signature(self._mk_agent_original)
+        if "model" in sig.parameters:
+            agent = self._mk_agent_original(
+                opensage_session_id=task.session_id, model=model_to_use
             )
+            logger.warning(
+                "Built agent for session %s using %s",
+                task.session_id,
+                model_source,
+            )
+        else:
             agent = self._mk_agent_original(opensage_session_id=task.session_id)
             if model_to_use is not None:
                 self._replace_agent_models_recursive(agent, model_to_use)
-
+                logger.warning(
+                    "Replaced agent tree models for session %s using %s",
+                    task.session_id,
+                    model_source,
+                )
+            else:
+                logger.warning(
+                    "Using agent default model for session %s", task.session_id
+                )
         return agent
 
     async def _generate_one(self, task: EvaluationTask) -> dict:
@@ -808,12 +811,11 @@ class Evaluation(abc.ABC):
                 if task.opensage_session:
                     task.opensage_session.cleanup()
             except Exception as cleanup_error:
-                logger.error(f"Cleanup after interrupt failed: {cleanup_error}")
+                logger.exception(f"Cleanup after interrupt failed: {cleanup_error}")
             raise
 
         except Exception as e:
-            logger.error(f"Task {task.id} failed with exception: {e}")
-            logger.error(f"Full traceback:\n{traceback.format_exc()}")
+            logger.exception(f"Task {task.id} failed with exception: {e}")
 
             error_file = output_path / "error.json"
             with open(error_file, "w") as f:
@@ -834,7 +836,7 @@ class Evaluation(abc.ABC):
                 if task.opensage_session:
                     task.opensage_session.cleanup()
             except Exception as cleanup_error:
-                logger.error(f"Cleanup after error failed: {cleanup_error}")
+                logger.exception(f"Cleanup after error failed: {cleanup_error}")
 
             raise
 
@@ -882,7 +884,11 @@ class Evaluation(abc.ABC):
         template_variables = self._get_config_template_variables(task)
         self._replace_template_variables_in_config(temp_config_path, template_variables)
 
-        get_opensage_session(task.session_id, config_path=temp_config_path)
+        get_opensage_session(
+            task.session_id,
+            config_path=temp_config_path,
+            agent_dir=self.agent_dir,
+        )
 
         # clean up temp config file
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -894,26 +900,12 @@ class Evaluation(abc.ABC):
             task (EvaluationTask): EvaluationTask instance with all task data"""
         opensage_session = task.opensage_session
 
-        # 1. Configure Neo4j logging
-        from opensage.features.agent_history_tracker import (
-            disable_neo4j_logging,
-            enable_neo4j_logging,
-            is_neo4j_logging_enabled,
-        )
-
-        if self.neo4j_logging:
-            if not is_neo4j_logging_enabled():
-                enable_neo4j_logging()
-                logger.warning("Neo4j logging enabled (neo4j_logging=True).")
-        else:
-            if is_neo4j_logging_enabled():
-                disable_neo4j_logging()
-                logger.warning("Neo4j logging disabled (neo4j_logging=False).")
-
         dummy_agent = self._mk_agent_original(opensage_session_id=task.session_id)
 
         # Collect sandbox dependencies from agent
-        sandbox_dependencies = collect_sandbox_dependencies(dummy_agent)
+        sandbox_dependencies = collect_sandbox_dependencies(
+            dummy_agent, config=opensage_session.config
+        )
         tools_top_roots = compute_bash_tools_top_roots(dummy_agent)
 
         # Strong behavior:
@@ -990,14 +982,12 @@ class Evaluation(abc.ABC):
         Returns:
             Session: ADK Session object with execution history
         """
-        # 2. Create runner and session service
-        user_id = self.output_dir.replace("/", "_")
         app_name = Path(self.agent_dir).resolve().parent.name
-        session_service = OpenSageInMemorySessionService()
+        opensage_session = task.opensage_session
         enabled_plugins = []
         plugin_params = {}
-        if task.opensage_session and getattr(task.opensage_session, "config", None):
-            plugins_cfg = getattr(task.opensage_session.config, "plugins", None)
+        if opensage_session and getattr(opensage_session, "config", None):
+            plugins_cfg = getattr(opensage_session.config, "plugins", None)
             enabled_plugins = getattr(plugins_cfg, "enabled", []) or []
             plugin_params = getattr(plugins_cfg, "params", {}) or {}
             extra_plugin_dirs = getattr(plugins_cfg, "extra_plugin_dirs", []) or []
@@ -1013,135 +1003,113 @@ class Evaluation(abc.ABC):
                 task.session_id,
                 ", ".join(plugin.name for plugin in plugins),
             )
-        app = App(name=app_name, root_agent=agent, plugins=plugins)
-        runner = Runner(
-            app=app,
-            session_service=session_service,
-        )
 
-        # 3. Create session with opensage_session_id in state
-        await session_service.create_session(
-            app_name=app_name,
-            user_id=user_id,
+        # Register the root agent tree with AgentManager so that sub-agent
+        # tools (call_subagent, continue_agent_instance, send_message) can
+        # resolve names during the evaluation run. Start the dispatcher so
+        # peer-messaging signals are processed. AgentManager owns the Runner
+        # and all instance dirs — eval drives it through ``send_message``.
+        opensage_session.agent_manager.set_app_name(app_name)
+        opensage_session.agent_manager.set_base_plugins(plugins)
+        opensage_session.agent_manager.register_agent_tree(agent)
+        await opensage_session.agent_manager.start()
+
+        # Create the root instance (ADK session + on-disk instance dir with
+        # metadata.json / inbox.jsonl / initial traj.json).
+        await opensage_session.agent_manager.spawn(
+            agent_name=agent.name,
             session_id=task.session_id,
-            state={
-                "opensage_session_id": task.session_id,
-            },
+            parent_session_id=None,
         )
 
-        # Helper to track remaining LLM-call budget across multiple runner invocations.
-        remaining_llm_calls = self.max_llm_calls
+        manager = opensage_session.agent_manager
+        instance = manager.get_instance(task.session_id)
 
-        def _build_run_config() -> RunConfig:
-            """Construct RunConfig reflecting the remaining LLM quota."""
-            if remaining_llm_calls is None:
-                return RunConfig(max_llm_calls=self.max_llm_calls)
-            return RunConfig(max_llm_calls=remaining_llm_calls)
+        fake_user_callback = self._get_fake_user_fn(opensage_session)
+        if fake_user_callback:
+            instance.fake_user_fn = fake_user_callback
+        effective_budget = self.max_llm_calls if self.max_llm_calls > 0 else None
+        if effective_budget is not None:
+            instance.max_llm_calls = effective_budget
 
-        async def _update_remaining_and_get_session() -> Session | None:
-            """Refresh the cached session and update remaining call budget."""
-            nonlocal remaining_llm_calls
-            used_calls = 0
-            session_snapshot = await session_service.get_session(
-                app_name=app_name,
-                user_id=user_id,
-                session_id=task.session_id,
-            )
-            if (
-                self.max_llm_calls > 0
-                and session_snapshot
-                and session_snapshot.state
-                and "_adk" in session_snapshot.state
-            ):
-                used_calls = int(
-                    session_snapshot.state.get("_adk", {}).get("llm_calls_used", 0) or 0
+        _live_trace = Path(task.output_dir) / "live_events.jsonl"
+        _live_trace.parent.mkdir(parents=True, exist_ok=True)
+        all_events: list = []
+        seen = 0
+
+        async def _poll_events():
+            nonlocal seen
+            while True:
+                s = await manager.session_service.get_session(
+                    app_name=app_name,
+                    user_id=manager.default_user_id,
+                    session_id=task.session_id,
                 )
-                remaining_llm_calls = max(0, remaining_llm_calls - used_calls)
-            logger.warning(f"Remaining LLM calls: {remaining_llm_calls}")
-            logger.warning(f"Used LLM calls during last invocation: {used_calls}")
-            logger.warning(f"Max LLM calls: {self.max_llm_calls}")
-            return session_snapshot
+                events = s.events if s else []
+                for evt in events[seen:]:
+                    all_events.append(evt)
+                    logger.warning(evt.model_dump_json(exclude_none=True))
+                    with open(_live_trace, "a") as _f:
+                        _f.write(evt.model_dump_json(exclude_none=True) + "\n")
+                seen = len(events)
+                await asyncio.sleep(0.1)
 
-        all_events = []
-        session_snapshot: Session | None = None
-        llm_calls_used_total: int = 0
+        await manager.send_message(
+            from_sid="__user__",
+            to_sid=task.session_id,
+            content=task.first_user_message,
+        )
+
+        poll_task = asyncio.create_task(_poll_events())
+        task.run_timed_out = False
         try:
-            async for event in runner.run_async(
-                user_id=user_id,
-                session_id=task.session_id,
-                run_config=_build_run_config(),
-                new_message=types.Content(
-                    role="user", parts=[types.Part(text=task.first_user_message)]
-                ),
-            ):
-                logger.warning(event.model_dump_json())
-                all_events.append(event)
-
-            session_snapshot = await _update_remaining_and_get_session()
-            if self.max_llm_calls > 0:
-                llm_calls_used_total = max(0, self.max_llm_calls - remaining_llm_calls)
-
-            if self.run_until_explicit_finish:
-                task_finished = (
-                    session_snapshot.state.get("task_finished", False)
-                    if session_snapshot
-                    else False
+            timeout_s = self._get_agent_timeout(task)
+            completed = await manager.wait_until_idle(
+                task.session_id,
+                timeout=timeout_s,
+                stop_on_timeout=True,
+            )
+            if not completed:
+                task.run_timed_out = True
+                logger.warning(
+                    "Agent execution timed out after %s seconds for task %s; "
+                    "stopped agent and returning current session for output collection",
+                    timeout_s,
+                    task.id,
                 )
-                while not task_finished:
-                    if self.max_llm_calls > 0 and remaining_llm_calls <= 0:
-                        logger.warning(
-                            "LLM-call budget exhausted before task signaled completion; stopping follow-up loop."
-                        )
-                        break
+        finally:
+            poll_task.cancel()
+            try:
+                await poll_task
+            except asyncio.CancelledError:
+                pass
 
-                    async for event in runner.run_async(
-                        user_id=user_id,
-                        session_id=task.session_id,
-                        run_config=_build_run_config(),
-                        new_message=types.Content(
-                            role="user",
-                            parts=[
-                                types.Part(
-                                    text="I approve you to continue, if you think the task is complete, you should call the task_completed tool, and then summarize the task and the result without calling any other tool. If you haven't submitted a poc that triggers the vulnerability, the task is not finshed, continue and try harder, do not respond to this message in natural language, start calling appropriate tools to complete the task. DO NOT respond to this message."
-                                )
-                            ],
-                        ),
-                    ):
-                        logger.warning(event.model_dump_json(exclude_none=True))
-                        all_events.append(event)
+        s = await manager.session_service.get_session(
+            app_name=app_name,
+            user_id=manager.default_user_id,
+            session_id=task.session_id,
+        )
+        events = s.events if s else []
+        for evt in events[seen:]:
+            all_events.append(evt)
+            logger.warning(evt.model_dump_json(exclude_none=True))
+            with open(_live_trace, "a") as _f:
+                _f.write(evt.model_dump_json(exclude_none=True) + "\n")
 
-                    session_snapshot = await _update_remaining_and_get_session()
-                    if self.max_llm_calls > 0:
-                        llm_calls_used_total = max(
-                            0, self.max_llm_calls - remaining_llm_calls
-                        )
+        session = await manager.session_service.get_session(
+            app_name=app_name,
+            user_id=manager.default_user_id,
+            session_id=task.session_id,
+        )
+        if session:
+            session.events = all_events
 
-                    task_finished = (
-                        session_snapshot.state.get("task_finished", False)
-                        if session_snapshot
-                        else False
-                    )
+        if task.run_timed_out:
+            logger.warning(f"Agent execution timed out for session: {task.session_id}")
+        else:
+            logger.warning(f"Agent execution completed for session: {task.session_id}")
 
-        except LlmCallsLimitExceededError as e:
-            logger.warning(
-                f"Llm calls limit exceeded for session {task.session_id}: {e}"
-            )
-            if self.max_llm_calls > 0:
-                llm_calls_used_total = self.max_llm_calls
-
-        await runner.close()
-        if not session_snapshot:
-            session_snapshot = await session_service.get_session(
-                app_name=app_name, user_id=user_id, session_id=task.session_id
-            )
-        session = session_snapshot
-        # set our collected events to the session object, since the original events may be lost due to summarization
-        session.events = all_events
-
-        logger.warning(f"Agent execution completed for session: {task.session_id}")
-
-        # Calculate and save cost information
-        self._save_cost_info(task, session, num_llm_calls=llm_calls_used_total)
+        self._save_cost_info(task, session, num_llm_calls=instance._llm_calls_used)
 
         return session
 
@@ -1175,7 +1143,7 @@ class Evaluation(abc.ABC):
             for idx, src_path in enumerate(paths_to_copy):
                 # Check if path exists in container before copying
                 check_cmd = f"test -e {src_path}"
-                _, exit_code = sandbox.run_command_in_container(check_cmd)
+                _, exit_code = await sandbox.arun_command_in_container(check_cmd)
 
                 if exit_code != 0:
                     logger.warning(
@@ -1203,15 +1171,10 @@ class Evaluation(abc.ABC):
                 except Exception as e:
                     logger.warning(f"Failed to copy {src_path}: {e}. Skipping.")
 
-        # 2. Export Neo4j history database
-        await self._export_neo4j_database(
-            opensage_session, output_path / "neo4j_history"
-        )
-
-        # 3. Export session trace
+        # 2. Export session trace
         self._export_session_trace(session, output_path / "session_trace.json")
 
-        # 4. Save metadata
+        # 3. Save metadata
         info = {
             "session": session.model_dump() if session else None,
         }
@@ -1220,46 +1183,6 @@ class Evaluation(abc.ABC):
 
         logger.warning(f"Outputs collected to {output_path}")
         return info
-
-    async def _export_neo4j_database(
-        self, opensage_session: OpenSageSession, output_path: Path
-    ) -> None:
-        # TODO: Should implement the export in the session management, not in evaluations
-        """Export Neo4j history database files.
-
-        Args:
-            opensage_session (OpenSageSession): OpenSage session instance
-            output_path (Path): Local path to save database files"""
-        output_path.mkdir(parents=True, exist_ok=True)
-
-        try:
-            # Get Neo4j sandbox
-            neo4j_sandbox = opensage_session.sandboxes.get_sandbox("neo4j")
-
-            # Get database name from Neo4j client manager (reuse naming logic)
-            database_name = opensage_session.neo4j._get_database_name_for_type(
-                "history"
-            )
-
-            # Create tar archive in container
-            tar_path_in_container = f"/tmp/{database_name}.tar.gz"
-            tar_command = (
-                f"tar -czf {tar_path_in_container} -C /data/databases {database_name}"
-            )
-
-            neo4j_sandbox.run_command_in_container(tar_command)
-
-            # Copy tar file from container
-            neo4j_sandbox.copy_file_from_container(
-                src_path=tar_path_in_container,
-                dst_path=str(output_path / f"{database_name}.tar.gz"),
-            )
-
-            logger.warning(
-                f"Neo4j database exported to {output_path}/{database_name}.tar.gz"
-            )
-        except Exception as e:
-            logger.warning(f"Failed to export Neo4j database: {e}")
 
     def _export_session_trace(self, session: Session, output_path: Path) -> None:
         # TODO: Should implement the export in the session management, not in evaluations
@@ -1379,6 +1302,56 @@ class Evaluation(abc.ABC):
         Args:
             task (EvaluationTask): EvaluationTask instance with all task data"""
         pass
+
+    def _get_agent_timeout(self, task: EvaluationTask) -> float | None:
+        """Get the maximum time to wait for agent execution to become idle."""
+        return 7200
+
+    def _get_fake_user_fn(self, opensage_session=None) -> FakeUserFn | None:
+        """Return the fake-user callback for multi-turn interaction.
+
+        Override in subclasses for custom multi-turn logic.
+
+        Returns:
+            - A ``FakeUserFn`` callback to drive multi-turn interaction, or
+            - ``None`` for single-invocation mode (no follow-up).
+
+        Precedence (mirrors model selection priority):
+            1. ``self.fake_user_fn`` if explicitly set (programmatic).
+            2. ``config.fake_user.python_file`` if configured.
+            3. ``run_until_explicit_finish`` → ``default_fake_user``.
+            4. ``None`` otherwise.
+        """
+        # 1. Programmatic override
+        if self.fake_user_fn is not None:
+            return self.fake_user_fn
+
+        # 2. Config python_file
+        if opensage_session is not None:
+            cfg = getattr(opensage_session.config, "fake_user", None)
+            py_file = getattr(cfg, "python_file", None) if cfg else None
+            if py_file:
+                return load_fake_user_from_file(
+                    py_file,
+                    agent_dir=self.agent_dir,
+                )
+
+        # 3. run_until_explicit_finish (backward compat)
+        if self.run_until_explicit_finish:
+            if not self.continuation_prompt:
+                return default_fake_user
+            prompt = self.continuation_prompt
+
+            async def _continue_until_finished(session: Session) -> str | None:
+                if session and session.state:
+                    if session.state.get("task_finished", False):
+                        return None
+                return prompt
+
+            return _continue_until_finished
+
+        # 4. No fake user — single invocation
+        return None
 
     @abc.abstractmethod
     def evaluate(self) -> None:

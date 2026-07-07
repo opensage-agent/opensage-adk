@@ -1,0 +1,24 @@
+The sanitizer detected a function param overlap vulnerability. The explanation of the vulnerability is: The source and destination buffers of a memory copy operation overlap, causing data corruption. Here is the detail: 
+
+    - main /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/strcpy-param-overlap/test.c:10:5
+
+Address 0x7fd6c6309023 is located in stack of thread T0 at offset 35 in frame
+    - main /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/strcpy-param-overlap/test.c:4:0
+
+  This frame has 1 object(s):
+    [32, 52) 'buffer' (line 5) <== Memory access at offset 35 is inside this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+Address 0x7fd6c6309025 is located in stack of thread T0 at offset 37 in frame
+    - main /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/strcpy-param-overlap/test.c:4:0
+
+  This frame has 1 object(s):
+    [32, 52) 'buffer' (line 5) <== Memory access at offset 37 is inside this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. Ensure that the source and destination buffers do not overlap in memcpy operations.
+2. If overlapping memory regions must be copied, use memmove instead of memcpy.
+3. Validate memory regions before performing copy operations.

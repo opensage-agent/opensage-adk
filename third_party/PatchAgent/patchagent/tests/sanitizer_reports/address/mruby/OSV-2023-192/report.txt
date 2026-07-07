@@ -1,0 +1,108 @@
+line 133:18: warning: '*' interpreted as argument prefix
+[:"$", :";", :"=", :$+, :==, :"-7441467585r/------7585/-2-0-", :"#", :",", :+, :"=&=!=====Y___", :"UCC=sz", :"4294966", :$+, :"=", :$+, :==, :"=~!=,===", :"<Y_R_", :"UCC=sz", :"3", :"!$'=", :$&, :`, :$+, :==, :"=&=!=", :===, :$T, :==, :"=~!=$$", :"$$$$$$$$$$$$$+", :==, :$;, :"=", :$99999999, :"<<99999999999999999999999999999999999999999=sz", :"2147483*648d$", :"$'=szsv", :"&=!====,", :"(", :"$'=", :"$&=,", :"(", :&, :%, :"$do&=", :$0, :`, :case, :"6", :P, :"4__", :"|mnakn", :">e45", :s, :m, :"|mn^MMM", :ll, :"0.", :">?_", :_, :"|mnak", :"**=n", :">e45", :l, :s, :m, :$+, :"=}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}", :ra, :"-82>>32>>-8>>1709939.time", :"{|x}", :"7585/-2-0-49--", :"-0-1-~", :-, :"-0-1r-------74414IHJG5r/----1r-------3720733792r/--.m---729i-729i/0i-1r--", :"-0-1r---0i/-1i/30i-", :"...4678r-4-5/----------1/-2-0-1r--", :SORN, :"RRXr--", :"41467585r/----1r------0-1r-------7441467585r/-------729i/3i-11-0i/-1i/30i-7441467*84r/------------1/-2-0-0-46-0i/-2i/3--7585/-2-0-9--", :"-0-1-~", :"-0-1r--1r--", :"-0-1r------7-44146758r-4-5/----------1/-2-0-1r--", :"-0-1r--1r--", :"41467585r/----1r-__FILE__r-------7441467585rB-------729i/3i-11-0i/-1i/30i-7441467*84r/------------1/-2-0-0-49--", :"-0RN-~", :"-0-1r--1r--", :"-0-1r-------7441467585r/----1r-------3720733792r/-------729i-729i/0i-1r--", :"-0-1r---0i/-1i/30i-", :"...467584r/------------1/-2-0-1r--", :"-0-1r--1r--", :"-0-1r------ooooooooooooooooooooooo0-1-~", :"-0-1r--1r--", :"-0-1r-------7441467585r/----1r------0-1r-------744146758r--", :"-0-1r---0i/-1i/30i-", :"...467584r/-------RRRR-1/-2-0-1r--", :"-041r--1r--", :"-0-1r--,M----0-1r-------74414675C5###############/-", :"-0-49--", :"-0-1-~", :"-0-1r--1r--", :"-------7441467585r/----1r------0-1r-------7441467585r/-------729i/3i-11-0i/-1i/30i-/441467*84r/------------1/-2-0-0-49--", :"-0-1-0-49--", :"-0-1-~", :"-0-1r--1r--", :"-0-1r----D-}}}}}}}-----HM", :s, :r, :$s, :Ar, :s, :"}}}}}}}}=", :"=&=!=====Y_", :__, :"UCC=sandz", :"2140+;##---K467585/-", :-, :"-49--", :"-0", :"-~", :"-0-1r--1KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKPIKKKKKKKKKK[KKKKKKK", :"KKKKKKKKKKKKKKKKKK41o7483*648d$", :"$$+", :==, :"==&!=====Y__", :"-7441467585r/----1r2**55", :"#", :encods, :"#ii"]
+[:"$", :";", :"=", :$+, :==, :"-7441467585r/------7585/-2-0-", :"#", :",", :+, :"=&=!=====Y___", :"UCC=sz", :"4294966", :$+, :"=", :$+, :==, :"=~!=,===", :"<Y_R_", :"UCC=sz", :"3", :"!$'=", :$&, :`, :$+, :==, :"=&=!=", :===, :$T, :==, :"=~!=$$", :"$$$$$$$$$$$$$+", :==, :$;, :"=", :$99999999, :"<<99999999999999999999999999999999999999999=sz", :"2147483*648d$", :"$'=szsv", :"&=!====,", :"(", :"$'=", :"$&=,", :"(", :&, :%, :"$do&=", :$0, :`, :case, :"6", :P, :"4__", :"|mnakn", :">e45", :s, :m, :"|mn^MMM", :ll, :"0.", :">?_", :_, :"|mnak", :"**=n", :">e45", :l, :s, :m, :$+, :"=}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}", :ra, :"-82>>32>>-8>>1709939.time", :"{|x}", :"7585/-2-0-49--", :"-0-1-~", :-, :"-0-1r-------74414IHJG5r/----1r-------3720733792r/--.m---729i-729i/0i-1r--", :"-0-1r---0i/-1i/30i-", :"...4678r-4-5/----------1/-2-0-1r--", :SORN, :"RRXr--", :"41467585r/----1r------0-1r-------7441467585r/-------729i/3i-11-0i/-1i/30i-7441467*84r/------------1/-2-0-0-46-0i/-2i/3--7585/-2-0-9--", :"-0-1-~", :"-0-1r--1r--", :"-0-1r------7-44146758r-4-5/----------1/-2-0-1r--", :"-0-1r--1r--", :"41467585r/----1r-__FILE__r-------7441467585rB-------729i/3i-11-0i/-1i/30i-7441467*84r/------------1/-2-0-0-49--", :"-0RN-~", :"-0-1r--1r--", :"-0-1r-------7441467585r/----1r-------3720733792r/-------729i-729i/0i-1r--", :"-0-1r---0i/-1i/30i-", :"...467584r/------------1/-2-0-1r--", :"-0-1r--1r--", :"-0-1r------ooooooooooooooooooooooo0-1-~", :"-0-1r--1r--", :"-0-1r-------7441467585r/----1r------0-1r-------744146758r--", :"-0-1r---0i/-1i/30i-", :"...467584r/-------RRRR-1/-2-0-1r--", :"-041r--1r--", :"-0-1r--,M----0-1r-------74414675C5###############/-", :"-0-49--", :"-0-1-~", :"-0-1r--1r--", :"-------7441467585r/----1r------0-1r-------7441467585r/-------729i/3i-11-0i/-1i/30i-/441467*84r/------------1/-2-0-0-49--", :"-0-1-0-49--", :"-0-1-~", :"-0-1r--1r--", :"-0-1r----D-}}}}}}}-----HM", :s, :r, :$s, :Ar, :s, :"}}}}}}}}=", :"=&=!=====Y_", :__, :"UCC=sandz", :"2140+;##---K467585/-", :-, :"-49--", :"-0", :"-~", :"-0-1r--1KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKPIKKKKKKKKKK[KKKKKKK", :"KKKKKKKKKKKKKKKKKK41o7483*648d$", :"$$+", :==, :"==&!=====Y__", :"-7441467585r/----1r2**55", :"#", :encods, :"#ii"]
+[:"$", :";", :"=", :$+, :==, :"-7441467585r/------7585/-2-0-", :"#", :",", :+, :"=&=!=====Y___", :"UCC=sz", :"4294966", :$+, :"=", :$+, :==, :"=~!=,===", :"<Y_R_", :"UCC=sz", :"3", :"!$'=", :$&, :`, :$+, :==, :"=&=!=", :===, :$T, :==, :"=~!=$$", :"$$$$$$$$$$$$$+", :==, :$;, :"=", :$99999999, :"<<99999999999999999999999999999999999999999=sz", :"2147483*648d$", :"$'=szsv", :"&=!====,", :"(", :"$'=", :"$&=,", :"(", :&, :%, :"$do&=", :$0, :`, :case, :"6", :P, :"4__", :"|mnakn", :">e45", :s, :m, :"|mn^MMM", :ll, :"0.", :">?_", :_, :"|mnak", :"**=n", :">e45", :l, :s, :m, :$+, :"=}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}", :ra, :"-82>>32>>-8>>1709939.time", :"{|x}", :"7585/-2-0-49--", :"-0-1-~", :-, :"-0-1r-------74414IHJG5r/----1r-------3720733792r/--.m---729i-729i/0i-1r--", :"-0-1r---0i/-1i/30i-", :"...4678r-4-5/----------1/-2-0-1r--", :SORN, :"RRXr--", :"41467585r/----1r------0-1r-------7441467585r/-------729i/3i-11-0i/-1i/30i-7441467*84r/------------1/-2-0-0-46-0i/-2i/3--7585/-2-0-9--", :"-0-1-~", :"-0-1r--1r--", :"-0-1r------7-44146758r-4-5/----------1/-2-0-1r--", :"-0-1r--1r--", :"41467585r/----1r-__FILE__r-------7441467585rB-------729i/3i-11-0i/-1i/30i-7441467*84r/------------1/-2-0-0-49--", :"-0RN-~", :"-0-1r--1r--", :"-0-1r-------7441467585r/----1r-------3720733792r/-------729i-729i/0i-1r--", :"-0-1r---0i/-1i/30i-", :"...467584r/------------1/-2-0-1r--", :"-0-1r--1r--", :"-0-1r------ooooooooooooooooooooooo0-1-~", :"-0-1r--1r--", :"-0-1r-------7441467585r/----1r------0-1r-------744146758r--", :"-0-1r---0i/-1i/30i-", :"...467584r/-------RRRR-1/-2-0-1r--", :"-041r--1r--", :"-0-1r--,M----0-1r-------74414675C5###############/-", :"-0-49--", :"-0-1-~", :"-0-1r--1r--", :"-------7441467585r/----1r------0-1r-------7441467585r/-------729i/3i-11-0i/-1i/30i-/441467*84r/------------1/-2-0-0-49--", :"-0-1-0-49--", :"-0-1-~", :"-0-1r--1r--", :"-0-1r----D-}}}}}}}-----HM", :s, :r, :$s, :Ar, :s, :"}}}}}}}}=", :"=&=!=====Y_", :__, :"UCC=sandz", :"2140+;##---K467585/-", :-, :"-49--", :"-0", :"-~", :"-0-1r--1KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKPIKKKKKKKKKK[KKKKKKK", :"KKKKKKKKKKKKKKKKKK41o7483*648d$", :"$$+", :==, :"==&!=====Y__", :"-7441467585r/----1r2**55", :"#", :encods, :"#ii"]
+=================================================================
+==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x504000003e90 at pc 0x556d80805f45 bp 0x7ffe07e82100 sp 0x7ffe07e820f8
+READ of size 1 at 0x504000003e90 thread T0
+SCARINESS: 40 (1-byte-read-heap-use-after-free)
+    #0 0x556d80805f44 in mrb_byte_hash_step /src/mruby/src/string.c:1685:23
+    #1 0x556d80805f44 in mrb_byte_hash /src/mruby/src/string.c:1695:10
+    #2 0x556d80805f44 in mrb_str_hash /src/mruby/src/string.c:1702:10
+    #3 0x556d80805f44 in mrb_str_hash_m /src/mruby/src/string.c:1715:17
+    #4 0x556d8084eeb8 in mrb_funcall_with_block /src/mruby/src/vm.c:693:13
+    #5 0x556d807e8c36 in obj_hash_code /src/mruby/src/hash.c:345:5
+    #6 0x556d807e8c36 in ib_it_init /src/mruby/src/hash.c:645:31
+    #7 0x556d807eaa87 in ht_set_without_ib_adjustment /src/mruby/src/hash.c:855:3
+    #8 0x556d807eaa87 in ht_set /src/mruby/src/hash.c:897:3
+    #9 0x556d807e5796 in h_set /src/mruby/src/hash.c:1013:3
+    #10 0x556d807e5796 in mrb_hash_set /src/mruby/src/hash.c:1246:3
+    #11 0x556d807e6f53 in mrb_hash_aset /src/mruby/src/hash.c:1566:3
+    #12 0x556d80867806 in mrb_vm_exec /src/mruby/src/vm.c
+    #13 0x556d80854074 in mrb_vm_run /src/mruby/src/vm.c:1299:12
+    #14 0x556d807a8093 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6916:7
+    #15 0x556d8075fcb0 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #16 0x556d806147a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x556d805ffa15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x556d806054af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x556d80630752 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7f4248fe7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #21 0x556d805f7bfd in _start (/out/mruby_fuzzer+0x167bfd)
+
+DEDUP_TOKEN: mrb_byte_hash_step--mrb_byte_hash--mrb_str_hash
+0x504000003e90 is located 0 bytes inside of 42-byte region [0x504000003e90,0x504000003eba)
+freed by thread T0 here:
+    #0 0x556d807202d6 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x556d8075fee5 in mrb_default_allocf /src/mruby/src/state.c:65:5
+    #2 0x556d807f9e33 in str_decref /src/mruby/src/string.c:214:5
+    #3 0x556d807f9e33 in mrb_gc_free_str /src/mruby/src/string.c:255:5
+    #4 0x556d80832c63 in obj_free /src/mruby/src/gc.c:826:5
+    #5 0x556d8083352d in incremental_sweep_phase /src/mruby/src/gc.c:1133:11
+    #6 0x556d8083352d in incremental_gc /src/mruby/src/gc.c:1199:20
+    #7 0x556d8082e021 in incremental_gc_finish /src/mruby/src/gc.c:1215:5
+    #8 0x556d8082e021 in mrb_full_gc /src/mruby/src/gc.c:1315:3
+    #9 0x556d80831695 in mrb_objspace_each_objects /src/mruby/src/gc.c:1588:3
+    #10 0x556d808d47ca in mrb_class_subclasses /src/mruby/mrbgems/mruby-class-ext/src/class.c:108:5
+    #11 0x556d80867806 in mrb_vm_exec /src/mruby/src/vm.c
+    #12 0x556d80854074 in mrb_vm_run /src/mruby/src/vm.c:1299:12
+    #13 0x556d807a8093 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6916:7
+    #14 0x556d8075fcb0 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #15 0x556d806147a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x556d805ffa15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x556d806054af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x556d80630752 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f4248fe7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--mrb_default_allocf--str_decref
+previously allocated by thread T0 here:
+    #0 0x556d8072095c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x556d8082e53c in mrb_realloc_simple /src/mruby/src/gc.c:191:8
+    #2 0x556d8082e53c in mrb_realloc /src/mruby/src/gc.c:205:8
+    #3 0x556d8082e53c in mrb_malloc /src/mruby/src/gc.c:221:10
+    #4 0x556d807f964d in str_init_normal_capa /src/mruby/src/string.c:53:23
+    #5 0x556d807f98f7 in str_init_normal /src/mruby/src/string.c:66:10
+    #6 0x556d807f98f7 in str_new /src/mruby/src/string.c:146:10
+    #7 0x556d8085c4be in mrb_vm_exec /src/mruby/src/vm.c:2829:19
+    #8 0x556d80854074 in mrb_vm_run /src/mruby/src/vm.c:1299:12
+    #9 0x556d807a8093 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6916:7
+    #10 0x556d8075fcb0 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #11 0x556d806147a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x556d805ffa15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x556d806054af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x556d80630752 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f4248fe7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--mrb_realloc_simple--mrb_realloc
+SUMMARY: AddressSanitizer: heap-use-after-free /src/mruby/src/string.c:1685:23 in mrb_byte_hash_step
+Shadow bytes around the buggy address:
+  0x504000003c00: fa fa 00 00 00 00 01 fa fa fa 00 00 00 00 00 fa
+  0x504000003c80: fa fa 00 00 00 00 06 fa fa fa 00 00 00 00 03 fa
+  0x504000003d00: fa fa fd fd fd fd fd fa fa fa 00 00 00 00 01 fa
+  0x504000003d80: fa fa 00 00 00 00 03 fa fa fa 00 00 00 00 04 fa
+  0x504000003e00: fa fa 00 00 00 00 00 04 fa fa 00 00 00 00 00 fa
+=>0x504000003e80: fa fa[fd]fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000003f00: fa fa fd fd fd fd fd fa fa fa fd fd fd fd fd fd
+  0x504000003f80: fa fa fd fd fd fd fd fa fa fa fd fd fd fd fd fa
+  0x504000004000: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fa
+  0x504000004080: fa fa fd fd fd fd fd fa fa fa fd fd fd fd fd fa
+  0x504000004100: fa fa 00 00 00 00 06 fa fa fa 00 00 00 00 03 fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

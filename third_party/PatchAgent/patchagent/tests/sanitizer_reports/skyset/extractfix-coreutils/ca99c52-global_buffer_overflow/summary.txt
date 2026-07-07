@@ -1,0 +1,22 @@
+The sanitizer detected a global buffer overflow vulnerability. The explanation of the vulnerability is: A buffer overflow occurs in globally allocated memory, leading to memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x555fd1929242 thread T0
+    - print_sep_string /root/src/pr.c:2241:19
+    - read_line /root/src/pr.c:2493:9
+    - print_page /root/src/pr.c:1802:20
+    - print_files /root/src/pr.c:1618:10
+    - main /root/src/pr.c:1136:9
+
+0x555fd1929242 is located 62 bytes before global variable '.str.72' defined in '/root/src/pr.c:1480' (0x555fd1929280) of size 2
+  '.str.72' is ascii string 'r'
+0x555fd1929242 is located 30 bytes before global variable '.str.71' defined in '/root/src/pr.c:1471' (0x555fd1929260) of size 2
+  '.str.71' is ascii string '-'
+0x555fd1929242 is located 0 bytes after global variable '.str.70' defined in '/root/src/pr.c:693' (0x555fd1929240) of size 2
+  '.str.70' is ascii string ' '
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,93 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 1 at 0x5020001e0890 thread T0
+    - r_reg_get_name_idx /root/libr/reg/reg.c:101:6
+    - r_reg_get /root/libr/reg/reg.c:321:15
+    - r_reg_setv /root/libr/reg/reg.c:301:17
+    - r_core_anal_esil /root/libr/core/canal.c:5377:3
+    - cmd_anal_all /root/libr/core/cmd_anal.c:11056:5
+    - cmd_anal /root/libr/core/cmd_anal.c:11966:8
+    - r_cmd_call /root/libr/core/cmd_api.c:537:10
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    - run_cmd_depth /root/libr/core/cmd.c:5366:9
+    - r_core_cmd /root/libr/core/cmd.c:5449:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5606:9
+    - cmd_anal_all /root/libr/core/cmd_anal.c:10921:7
+    - cmd_anal /root/libr/core/cmd_anal.c:11966:8
+    - r_cmd_call /root/libr/core/cmd_api.c:537:10
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    - run_cmd_depth /root/libr/core/cmd.c:5366:9
+    - r_core_cmd /root/libr/core/cmd.c:5449:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5606:9
+    - r_main_radare2 /root/libr/main/radare2.c:1393:11
+    - main /root/binr/radare2/radare2.c:96:9
+
+0x5020001e0890 is located 0 bytes inside of 3-byte region [0x5020001e0890,0x5020001e0893)
+freed by thread T0 here:
+    - r_reg_free_internal /root/libr/reg/reg.c:178:4
+    - r_reg_set_profile_string /root/libr/reg/profile.c:150:2
+    - r_anal_set_reg_profile /root/libr/anal/anal.c:258:4
+    - r_anal_set_bits /root/libr/anal/anal.c:324:4
+    - cb_asmbits /root/libr/core/cconfig.c:884:8
+    - r_config_set_i /root/libr/config/config.c:574:13
+    - r_core_seek_arch_bits /root/libr/core/cio.c:377:3
+    - r_core_anal_esil /root/libr/core/canal.c:5293:3
+    - cmd_anal_all /root/libr/core/cmd_anal.c:11056:5
+    - cmd_anal /root/libr/core/cmd_anal.c:11966:8
+    - r_cmd_call /root/libr/core/cmd_api.c:537:10
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    - run_cmd_depth /root/libr/core/cmd.c:5366:9
+    - r_core_cmd /root/libr/core/cmd.c:5449:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5606:9
+    - cmd_anal_all /root/libr/core/cmd_anal.c:10921:7
+    - cmd_anal /root/libr/core/cmd_anal.c:11966:8
+    - r_cmd_call /root/libr/core/cmd_api.c:537:10
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    - run_cmd_depth /root/libr/core/cmd.c:5366:9
+    - r_core_cmd /root/libr/core/cmd.c:5449:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5606:9
+    - r_main_radare2 /root/libr/main/radare2.c:1393:11
+    - main /root/binr/radare2/radare2.c:96:9
+
+previously allocated by thread T0 here:
+    - r_str_new /root/libr/util/str.c:688:14
+    - r_str_dup /root/libr/util/str.c:865:14
+    - r_reg_set_name /root/libr/reg/reg.c:138:21
+    - parse_alias /root/libr/reg/profile.c:10:10
+    - r_reg_set_profile_string /root/libr/reg/profile.c:220:8
+    - r_anal_set_reg_profile /root/libr/anal/anal.c:258:4
+    - r_anal_set_bits /root/libr/anal/anal.c:324:4
+    - cb_asmbits /root/libr/core/cconfig.c:884:8
+    - r_config_set_i /root/libr/config/config.c:574:13
+    - r_core_seek_arch_bits /root/libr/core/cio.c:377:3
+    - r_core_anal_esil /root/libr/core/canal.c:5293:3
+    - cmd_anal_all /root/libr/core/cmd_anal.c:11056:5
+    - cmd_anal /root/libr/core/cmd_anal.c:11966:8
+    - r_cmd_call /root/libr/core/cmd_api.c:537:10
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    - run_cmd_depth /root/libr/core/cmd.c:5366:9
+    - r_core_cmd /root/libr/core/cmd.c:5449:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5606:9
+    - cmd_anal_all /root/libr/core/cmd_anal.c:10921:7
+    - cmd_anal /root/libr/core/cmd_anal.c:11966:8
+    - r_cmd_call /root/libr/core/cmd_api.c:537:10
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    - run_cmd_depth /root/libr/core/cmd.c:5366:9
+    - r_core_cmd /root/libr/core/cmd.c:5449:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5606:9
+    - r_main_radare2 /root/libr/main/radare2.c:1393:11
+    - main /root/binr/radare2/radare2.c:96:9
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

@@ -1,0 +1,42 @@
+The sanitizer detected a remote code execution vulnerability.The explanation of the vulnerability is: An attacker can execute arbitrary code on a remote system, leading to full compromise.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh: Remote Code Execution
+Unrestricted class/object creation based on externally controlled data may allow
+remote code execution depending on available classes on the classpath.
+- jaz.Zer.reportFinding (jaz/Zer.java:110)
+- jaz.Zer.reportFindingIfEnabled (jaz/Zer.java:105)
+- jaz.Zer.<init> (jaz/Zer.java:78)
+- java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance (java/base/jdk/internal/reflect/NativeConstructorAccessorImpl.java:77)
+- java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance (java/base/jdk/internal/reflect/DelegatingConstructorAccessorImpl.java:45)
+- java.base/java.lang.reflect.Constructor.newInstanceWithCaller (java/base/java/lang/reflect/Constructor.java:499)
+- java.base/java.lang.reflect.Constructor.newInstance (java/base/java/lang/reflect/Constructor.java:480)
+- com.fasterxml.jackson.databind.introspect.AnnotatedConstructor.call (com/fasterxml/jackson/databind/introspect/AnnotatedConstructor.java:123)
+- com.fasterxml.jackson.databind.deser.std.StdValueInstantiator.createUsingDefault (com/fasterxml/jackson/databind/deser/std/StdValueInstantiator.java:278)
+- com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.createDefaultInstance (com/fasterxml/jackson/databind/deser/std/CollectionDeserializer.java:262)
+- com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize (com/fasterxml/jackson/databind/deser/std/CollectionDeserializer.java:252)
+- com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize (com/fasterxml/jackson/databind/deser/std/CollectionDeserializer.java:28)
+- com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer.handleNonArray (com/fasterxml/jackson/databind/deser/std/ObjectArrayDeserializer.java:378)
+- com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer.deserialize (com/fasterxml/jackson/databind/deser/std/ObjectArrayDeserializer.java:196)
+- com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer.deserialize (com/fasterxml/jackson/databind/deser/std/ObjectArrayDeserializer.java:26)
+- com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer.handleNonArray (com/fasterxml/jackson/databind/deser/std/ObjectArrayDeserializer.java:378)
+- com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer.deserialize (com/fasterxml/jackson/databind/deser/std/ObjectArrayDeserializer.java:196)
+- com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer.deserialize (com/fasterxml/jackson/databind/deser/std/ObjectArrayDeserializer.java:26)
+- com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer.handleNonArray (com/fasterxml/jackson/databind/deser/std/ObjectArrayDeserializer.java:378)
+- com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer.deserialize (com/fasterxml/jackson/databind/deser/std/ObjectArrayDeserializer.java:196)
+- com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer.deserialize (com/fasterxml/jackson/databind/deser/std/ObjectArrayDeserializer.java:26)
+- com.fasterxml.jackson.databind.jsontype.impl.AsArrayTypeDeserializer._deserialize (com/fasterxml/jackson/databind/jsontype/impl/AsArrayTypeDeserializer.java:120)
+- com.fasterxml.jackson.databind.jsontype.impl.AsArrayTypeDeserializer.deserializeTypedFromAny (com/fasterxml/jackson/databind/jsontype/impl/AsArrayTypeDeserializer.java:71)
+- com.fasterxml.jackson.databind.deser.std.UntypedObjectDeserializerNR.deserializeWithType (com/fasterxml/jackson/databind/deser/std/UntypedObjectDeserializerNR.java:115)
+- com.fasterxml.jackson.databind.deser.std.MapDeserializer._readAndBindStringKeyMap (com/fasterxml/jackson/databind/deser/std/MapDeserializer.java:625)
+- com.fasterxml.jackson.databind.deser.std.MapDeserializer.deserialize (com/fasterxml/jackson/databind/deser/std/MapDeserializer.java:449)
+- com.fasterxml.jackson.databind.deser.std.MapDeserializer.deserialize (com/fasterxml/jackson/databind/deser/std/MapDeserializer.java:32)
+- com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue (com/fasterxml/jackson/databind/deser/DefaultDeserializationContext.java:323)
+- com.fasterxml.jackson.databind.ObjectReader._bindAndClose (com/fasterxml/jackson/databind/ObjectReader.java:2105)
+- com.fasterxml.jackson.databind.ObjectReader.readValue (com/fasterxml/jackson/databind/ObjectReader.java:1546)
+- AdaLObjectReader3Fuzzer.fuzzerTestOneInput (AdaLObjectReader3Fuzzer.java:279)
+
+To fix this issue, follow the advice below:
+
+1. Implement strong input validation to prevent code injection attacks.
+2. Use secure communication protocols to protect against remote code execution.
+3. Monitor network traffic for suspicious activity and unauthorized access.

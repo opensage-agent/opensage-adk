@@ -1,0 +1,5 @@
+# Minimal config for web search agent demo
+MAIN_MODEL = "anthropic/claude-opus-4-7"
+AGENT_STORAGE_PATH = ""
+
+task_name = "web_search_demo"

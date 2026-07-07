@@ -44,7 +44,7 @@ async def test_simplified_python_fuzzer_missing_script(
     mock_context.state = {"opensage_session_id": opensage_session.opensage_session_id}
 
     # Test simplified-python-fuzzer without script (should fail)
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command="bash /bash_tools/fuzz/simplified-python-fuzzer/scripts/simplified_python_fuzzer.sh",
         tool_context=mock_context,
         sandbox_name="main",
@@ -71,7 +71,7 @@ async def test_simplified_python_fuzzer_basic_script(opensage_session: OpenSageS
     # Test with a minimal script (just waits and exits)
     minimal_script = "import time\nimport sys\ntime.sleep(1)\nsys.exit(0)"
 
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command=f'bash /bash_tools/fuzz/simplified-python-fuzzer/scripts/simplified_python_fuzzer.sh "{minimal_script}" 5',
         tool_context=mock_context,
         sandbox_name="main",

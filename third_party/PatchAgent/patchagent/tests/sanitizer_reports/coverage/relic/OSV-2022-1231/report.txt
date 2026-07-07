@@ -1,0 +1,49 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/relic:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce cryptofuzz-relic -runs=100.
++ FUZZER=cryptofuzz-relic
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer cryptofuzz-relic -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/cryptofuzz-relic -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: found LLVMFuzzerCustomMutator (0x5632fb9c5fa0). Disabling -len_control by default.
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2465744799
+/out/cryptofuzz-relic: Running 1 inputs 100 time(s) each.
+Running: /testcase
+free(): invalid next size (normal)
+==14== ERROR: libFuzzer: deadly signal
+    #0 0x5632fb7727d4 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x5632fb6f1828 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x5632fb6d4bc3 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7f59a220b41f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7f59a200500a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7f59a1fe4858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7f59a204f265  (/lib/x86_64-linux-gnu/libc.so.6+0x8d265) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7f59a20572fb  (/lib/x86_64-linux-gnu/libc.so.6+0x952fb) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x7f59a2058e3b  (/lib/x86_64-linux-gnu/libc.so.6+0x96e3b) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x5632fbae0edf in bn_clean /src/relic/src/bn/relic_bn_mem.c:102:4
+    #10 0x5632fbad2446 in cryptofuzz::module::relic_bignum::Bignum::~Bignum() /src/cryptofuzz/modules/relic/bn_helper.cpp:129:5
+    #11 0x5632fbacaef1 in cryptofuzz::module::relic::OpBignumCalc(cryptofuzz::operation::BignumCalc&) /src/cryptofuzz/modules/relic/module.cpp:845:1
+    #12 0x5632fb7fe715 in cryptofuzz::ExecutorBignumCalc::callModule(std::__1::shared_ptr<cryptofuzz::Module>, cryptofuzz::operation::BignumCalc&) const /src/cryptofuzz/executor.cpp:1325:20
+    #13 0x5632fb8c9f3b in cryptofuzz::ExecutorBase<cryptofuzz::Bignum, cryptofuzz::operation::BignumCalc>::Run(fuzzing::datasource::Datasource&, unsigned char const*, unsigned long) const /src/cryptofuzz/executor.cpp:2808:47
+    #14 0x5632fb7d0e4c in cryptofuzz::Driver::Run(unsigned char const*, unsigned long) const /src/cryptofuzz/driver.cpp
+    #15 0x5632fb7ddb43 in LLVMFuzzerTestOneInput /src/cryptofuzz/entry.cpp:981:13
+    #16 0x5632fb6d60d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x5632fb6c1345 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x5632fb6c6ddf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x5632fb6f2082 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7f59a1fe6082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #21 0x5632fb6b952d in _start (/out/cryptofuzz-relic+0xbf52d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

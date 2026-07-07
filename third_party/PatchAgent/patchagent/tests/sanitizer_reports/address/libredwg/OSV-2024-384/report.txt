@@ -1,0 +1,78 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x507000000090 at pc 0x564f0179b184 bp 0x7fffb0627d30 sp 0x7fffb06274f0
+WRITE of size 11 at 0x507000000090 thread T0
+SCARINESS: 55 (multi-byte-write-heap-use-after-free)
+    #0 0x564f0179b183 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x564f0544f3cf in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:34:10
+    #2 0x564f0544f3cf in json_fixed_string /src/libredwg/src/in_json.c:480:11
+    #3 0x564f05420d9d in json_R2004_Header /src/libredwg/src/in_json.c:3823:21
+    #4 0x564f05403c79 in dwg_read_json /src/libredwg/src/in_json.c:5176:18
+    #5 0x564f017dcbee in LLVMFuzzerTestOneInput /src/libredwg/examples/llvmfuzz.c:98:11
+    #6 0x564f01691430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x564f0167c6a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x564f0168213f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x564f016ad3e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7fbee7617082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #11 0x564f0167488d in _start (/out/llvmfuzz+0x119f88d)
+
+DEDUP_TOKEN: __asan_memcpy--memcpy--json_fixed_string
+0x507000000090 is located 0 bytes inside of 75-byte region [0x507000000090,0x5070000000db)
+freed by thread T0 here:
+    #0 0x564f0179cf66 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x564f0544f335 in json_fixed_string /src/libredwg/src/in_json.c:465:15
+    #2 0x564f05420d9d in json_R2004_Header /src/libredwg/src/in_json.c:3823:21
+    #3 0x564f05403c79 in dwg_read_json /src/libredwg/src/in_json.c:5176:18
+    #4 0x564f017dcbee in LLVMFuzzerTestOneInput /src/libredwg/examples/llvmfuzz.c:98:11
+    #5 0x564f01691430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x564f0167c6a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564f0168213f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x564f016ad3e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7fbee7617082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--json_fixed_string--json_R2004_Header
+previously allocated by thread T0 here:
+    #0 0x564f0179d5ec in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x564f0544ee2c in json_fixed_string /src/libredwg/src/in_json.c:468:25
+    #2 0x564f05420d9d in json_R2004_Header /src/libredwg/src/in_json.c:3823:21
+    #3 0x564f05403c79 in dwg_read_json /src/libredwg/src/in_json.c:5176:18
+    #4 0x564f017dcbee in LLVMFuzzerTestOneInput /src/libredwg/examples/llvmfuzz.c:98:11
+    #5 0x564f01691430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x564f0167c6a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564f0168213f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x564f016ad3e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7fbee7617082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--json_fixed_string--json_R2004_Header
+SUMMARY: AddressSanitizer: heap-use-after-free /usr/include/x86_64-linux-gnu/bits/string_fortified.h:34:10 in memcpy
+Shadow bytes around the buggy address:
+  0x506ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x506ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x506fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x506fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507000000000: fa fa fa fa fd fd fd fd fd fd fd fd fd fa fa fa
+=>0x507000000080: fa fa[fd]fd fd fd fd fd fd fd fd fd fa fa fa fa
+  0x507000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

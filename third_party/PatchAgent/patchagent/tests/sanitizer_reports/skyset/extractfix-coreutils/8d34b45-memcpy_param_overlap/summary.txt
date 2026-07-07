@@ -1,0 +1,30 @@
+The sanitizer detected a function param overlap vulnerability. The explanation of the vulnerability is: The source and destination buffers of a memory copy operation overlap, causing data corruption. Here is the detail: 
+
+    - fillpattern /root/src/shred.c:293:5
+    - dopass /root/src/shred.c:480:7
+    - do_wipefd /root/src/shred.c:967:17
+    - wipefile /root/src/shred.c:1191:8
+    - main /root/src/shred.c:1317:17
+
+0x531000029003 is located 2051 bytes inside of 69633-byte region [0x531000028800,0x531000039801)
+allocated by thread T0 here:
+    - xmalloc /root/lib/xmalloc.c:41:13
+    - dopass /root/src/shred.c:451:28
+    - do_wipefd /root/src/shred.c:967:17
+    - wipefile /root/src/shred.c:1191:8
+    - main /root/src/shred.c:1317:17
+
+0x531000029000 is located 2048 bytes inside of 69633-byte region [0x531000028800,0x531000039801)
+allocated by thread T0 here:
+    - xmalloc /root/lib/xmalloc.c:41:13
+    - dopass /root/src/shred.c:451:28
+    - do_wipefd /root/src/shred.c:967:17
+    - wipefile /root/src/shred.c:1191:8
+    - main /root/src/shred.c:1317:17
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that the source and destination buffers do not overlap in memcpy operations.
+2. If overlapping memory regions must be copied, use memmove instead of memcpy.
+3. Validate memory regions before performing copy operations.

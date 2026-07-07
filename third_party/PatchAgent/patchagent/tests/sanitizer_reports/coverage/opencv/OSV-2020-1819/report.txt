@@ -1,0 +1,46 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/opencv:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce imdecode_fuzzer -runs=100.
++ FUZZER=imdecode_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer imdecode_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/imdecode_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3884534635
+INFO: Loaded 1 modules   (252 inline 8-bit counters): 252 [0x555f9ab3a6b0, 0x555f9ab3a7ac), 
+INFO: Loaded 1 PC tables (252 PCs): 252 [0x555f9ab3a7b0,0x555f9ab3b770), 
+/out/imdecode_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+[ WARN:0] global /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp (304) warningLogCallback OpenJPEG2000: Unknown marker
+
+[ WARN:0] global /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp (609) readData OpenJPEG2000: Image has unknown color space, SRGB is assumed
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x555f9c990000 (pc 0x555f98f0e267 bp 0x7ffc6b018be0 sp 0x7ffc6b018b90 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x555f98f0e267 in transform<const int *, cv::(anonymous namespace)::ChannelsIterator<cv::(anonymous namespace)::NonConstItTraits<unsigned char> >, (lambda at /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:232:51)> /usr/local/bin/../include/c++/v1/__algorithm/transform.h:24:22
+    #1 0x555f98f0e267 in copyToMatImpl<unsigned char, const int> /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:232:17
+    #2 0x555f98f0e267 in void cv::(anonymous namespace)::copyToMat<int>(std::__1::vector<int const*, std::__1::allocator<int const*>>&&, cv::Mat&, unsigned char) /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:245:9
+    #3 0x555f98f0a874 in cv::(anonymous namespace)::decodeSRGBData(opj_image const&, cv::Mat&, unsigned char) /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:365:13
+    #4 0x555f98f0a4a2 in cv::Jpeg2KOpjDecoder::readData(cv::Mat&) /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:637:12
+    #5 0x555f98ef33ea in cv::imdecode_(cv::Mat const&, int, cv::Mat&) /src/opencv/modules/imgcodecs/src/loadsave.cpp:845:22
+    #6 0x555f98ef269a in cv::imdecode(cv::_InputArray const&, int) /src/opencv/modules/imgcodecs/src/loadsave.cpp:885:5
+    #7 0x555f98ee9c40 in LLVMFuzzerTestOneInput /src/imdecode_fuzzer.cc:10:30
+    #8 0x555f98e4c180 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x555f98e373f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x555f98e3ce8f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x555f98e68132 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f7ababe7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x555f98e2f5dd in _start (/out/imdecode_fuzzer+0x8e5dd)
+
+DEDUP_TOKEN: transform<const int *, cv::(anonymous namespace)::ChannelsIterator<cv::(anonymous namespace)::NonConstItTraits<unsigned char> >, (lambda at /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:232:51)>--copyToMatImpl<unsigned char, const int>--void cv::(anonymous namespace)::copyToMat<int>(std::__1::vector<int const*, std::__1::allocator<int const*>>&&, cv::Mat&, unsigned char)
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/opencv/modules/imgcodecs/src/grfmt_jpeg2000_openjpeg.cpp:232:17 in copyToMatImpl<unsigned char, const int>
+==14==ABORTING

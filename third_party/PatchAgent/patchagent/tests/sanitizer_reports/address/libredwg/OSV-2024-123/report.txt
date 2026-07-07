@@ -1,0 +1,51 @@
+Executed /testcase in 2256 ms
+***
+*** NOTE: fuzzing was not performed, you have only
+***       executed the target code on a fixed set of inputs.
+***
+
+=================================================================
+==18==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 14233600 byte(s) in 55600 object(s) allocated from:
+    #0 0x55a3efd973c9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x55a3f3931ad0 in xcalloc /src/libredwg/src/in_dxf.c:307:7
+    #2 0x55a3f3931ad0 in dxf_tables_read /src/libredwg/src/in_dxf.c:12246:60
+    #3 0x55a3f3922c49 in dwg_read_dxf /src/libredwg/src/in_dxf.c:13161:23
+    #4 0x55a3efdd6cf0 in LLVMFuzzerTestOneInput /src/libredwg/examples/llvmfuzz.c:113:11
+    #5 0x55a3efc8b430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55a3efc766a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55a3efc7c13f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55a3efca73e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f37fa3bd082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--xcalloc--dxf_tables_read
+Direct leak of 891200 byte(s) in 55700 object(s) allocated from:
+    #0 0x55a3efd973c9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x55a3f3924342 in xcalloc /src/libredwg/src/in_dxf.c:307:7
+    #2 0x55a3f3924342 in dxf_read_pair /src/libredwg/src/in_dxf.c:692:32
+    #3 0x55a3f3932dd8 in dxf_tables_read /src/libredwg/src/in_dxf.c:12326:14
+    #4 0x55a3f3922c49 in dwg_read_dxf /src/libredwg/src/in_dxf.c:13161:23
+    #5 0x55a3efdd6cf0 in LLVMFuzzerTestOneInput /src/libredwg/examples/llvmfuzz.c:113:11
+    #6 0x55a3efc8b430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55a3efc766a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55a3efc7c13f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55a3efca73e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f37fa3bd082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--xcalloc--dxf_read_pair
+Indirect leak of 334200 byte(s) in 55700 object(s) allocated from:
+    #0 0x55a3efd971ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55a3f393fb04 in dxf_read_string /src/libredwg/src/in_dxf.c:658:27
+    #2 0x55a3f392471f in dxf_read_pair /src/libredwg/src/in_dxf.c:714:7
+    #3 0x55a3f3932dd8 in dxf_tables_read /src/libredwg/src/in_dxf.c:12326:14
+    #4 0x55a3f3922c49 in dwg_read_dxf /src/libredwg/src/in_dxf.c:13161:23
+    #5 0x55a3efdd6cf0 in LLVMFuzzerTestOneInput /src/libredwg/examples/llvmfuzz.c:113:11
+    #6 0x55a3efc8b430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55a3efc766a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55a3efc7c13f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55a3efca73e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f37fa3bd082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--dxf_read_string--dxf_read_pair
+SUMMARY: AddressSanitizer: 15459000 byte(s) leaked in 167000 allocation(s).

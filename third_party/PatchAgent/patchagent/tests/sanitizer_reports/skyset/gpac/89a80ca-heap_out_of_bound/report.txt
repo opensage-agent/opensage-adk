@@ -1,0 +1,68 @@
+=================================================================
+==639842==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7f1d0508ff50 at pc 0x7f1d06f5c511 bp 0x7ffd15553810 sp 0x7ffd15553808
+READ of size 4 at 0x7f1d0508ff50 thread T0
+    #0 0x7f1d06f5c510 in gf_hevc_read_sps_bs_internal /root/src/media_tools/av_parsers.c:8202:54
+    #1 0x7f1d06f62da3 in gf_hevc_parse_nalu_bs /root/src/media_tools/av_parsers.c:8629:30
+    #2 0x7f1d07aaf07f in naludmx_parse_nal_hevc /root/src/filters/reframe_nalu.c:2164:8
+    #3 0x7f1d07aa53f7 in naludmx_process /root/src/filters/reframe_nalu.c:3059:23
+    #4 0x7f1d0760c060 in gf_filter_process_task /root/src/filter_core/filter.c:2573:7
+    #5 0x7f1d075de808 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1799:3
+    #6 0x7f1d075dade0 in gf_fs_run /root/src/filter_core/filter_session.c:2043:2
+    #7 0x7f1d06fb5bc3 in gf_media_import /root/src/media_tools/media_import.c:1225:3
+    #8 0x563c72ccae4b in convert_file_info /root/applications/mp4box/fileimport.c:128:6
+    #9 0x563c72c89ef5 in mp4boxMain /root/applications/mp4box/main.c:6052:6
+    #10 0x563c72c8f9d1 in main /root/applications/mp4box/main.c:6585:1
+    #11 0x7f1d061b81c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7f1d061b828a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x563c72c6fc64 in _start (/root/bin/gcc/MP4Box+0x46c64) (BuildId: 15f74ef3d4c8be9b0c19e8ad907ed9f991ddf5bb)
+
+0x7f1d0508ff50 is located 4240 bytes after 157376-byte region [0x7f1d05068800,0x7f1d0508eec0)
+allocated by thread T0 here:
+    #0 0x7f1d083e17a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f1d06686cc4 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7f1d07a980b5 in naludmx_configure_pid /root/src/filters/reframe_nalu.c:348:25
+    #3 0x7f1d07568e6a in gf_filter_pid_configure /root/src/filter_core/filter_pid.c:752:6
+    #4 0x7f1d07582e47 in gf_filter_pid_connect_task /root/src/filter_core/filter_pid.c:1061:3
+    #5 0x7f1d075de808 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1799:3
+    #6 0x7f1d075dade0 in gf_fs_run /root/src/filter_core/filter_session.c:2043:2
+    #7 0x7f1d06fb5bc3 in gf_media_import /root/src/media_tools/media_import.c:1225:3
+    #8 0x563c72ccae4b in convert_file_info /root/applications/mp4box/fileimport.c:128:6
+    #9 0x563c72c89ef5 in mp4boxMain /root/applications/mp4box/main.c:6052:6
+    #10 0x563c72c8f9d1 in main /root/applications/mp4box/main.c:6585:1
+    #11 0x7f1d061b81c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7f1d061b828a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x563c72c6fc64 in _start (/root/bin/gcc/MP4Box+0x46c64) (BuildId: 15f74ef3d4c8be9b0c19e8ad907ed9f991ddf5bb)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/media_tools/av_parsers.c:8202:54 in gf_hevc_read_sps_bs_internal
+Shadow bytes around the buggy address:
+  0x7f1d0508fc80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f1d0508fd00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f1d0508fd80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f1d0508fe00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f1d0508fe80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x7f1d0508ff00: fa fa fa fa fa fa fa fa fa fa[fa]fa fa fa fa fa
+  0x7f1d0508ff80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f1d05090000: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+  0x7f1d05090080: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+  0x7f1d05090100: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+  0x7f1d05090180: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==639842==ABORTING

@@ -1,0 +1,58 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 16 at 0x7fbfa487c638 thread T0
+    - ih264_inter_pred_luma_vert_ssse3 /src/libavc/common/x86/ih264_inter_pred_filters_ssse3.c:650:24
+    - ih264d_motion_compensate_mp /src/libavc/decoder/ih264d_inter_pred.c:1125:13
+    - isvcd_decode_recon_tfr_nmb_non_base_lyr /src/libavc/decoder/svc/isvcd_process_epslice.c:1215:17
+    - isvcd_parse_inter_slice_data_cabac_enh_lyr /src/libavc/decoder/svc/isvcd_parse_epslice.c:1527:23
+    - isvcd_parse_epslice /src/libavc/decoder/svc/isvcd_parse_epslice.c:475:11
+    - isvcd_parse_decode_slice_ext_nal /src/libavc/decoder/svc/isvcd_parse_slice.c:1496:15
+    - isvcd_parse_nal_unit /src/libavc/decoder/svc/isvcd_parse_headers.c:1063:44
+    - isvcd_video_decode /src/libavc/decoder/svc/isvcd_api.c:5290:27
+    - Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/svc_dec_fuzzer.cpp:375:11
+    - LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_dec_fuzzer.cpp:437:22
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x7fbfa487c638 is located 986680 bytes inside of 1204224-byte region [0x7fbfa478b800,0x7fbfa48b1800)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - ih264d_free_dynamic_bufs /src/libavc/decoder/ih264d_utils.c:2337:5
+    - isvcd_free_dynamic_bufs /src/libavc/decoder/svc/isvcd_utils.c:87:5
+    - isvcd_init_decoder /src/libavc/decoder/svc/isvcd_api.c:1080:5
+    - isvcd_reset /src/libavc/decoder/svc/isvcd_api.c:6424:13
+    - isvcd_ctl /src/libavc/decoder/svc/isvcd_api.c:6486:19
+    - resetCodec /src/libavc/fuzzer/svc_dec_fuzzer.cpp:185:5
+    - Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/svc_dec_fuzzer.cpp:381:9
+    - LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_dec_fuzzer.cpp:437:22
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    - iv_aligned_malloc(void*, int, int) /src/libavc/fuzzer/svc_dec_fuzzer.cpp:85:13
+    - ih264d_allocate_dynamic_bufs /src/libavc/decoder/ih264d_utils.c:2170:14
+    - isvcd_allocate_dynamic_bufs /src/libavc/decoder/svc/isvcd_utils.c:126:18
+    - isvcd_init_pic /src/libavc/decoder/svc/isvcd_utils.c:843:15
+    - isvcd_start_of_pic /src/libavc/decoder/svc/isvcd_parse_slice.c:283:11
+    - isvcd_parse_decode_slice_ext_nal /src/libavc/decoder/svc/isvcd_parse_slice.c:1181:19
+    - isvcd_parse_nal_unit /src/libavc/decoder/svc/isvcd_parse_headers.c:1063:44
+    - isvcd_video_decode /src/libavc/decoder/svc/isvcd_api.c:5290:27
+    - Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/svc_dec_fuzzer.cpp:375:11
+    - LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_dec_fuzzer.cpp:437:22
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

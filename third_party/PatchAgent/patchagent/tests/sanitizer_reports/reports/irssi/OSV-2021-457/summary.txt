@@ -1,0 +1,43 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5020000bd63f thread T0
+    - unescape_tag /src/irssi/src/irc/core/irc.c:395:9
+    - irc_parse_message_tags /src/irssi/src/irc/core/irc.c:437:3
+    - irc_server_event_tags /src/irssi/src/irc/core/irc.c:453:15
+    - signal_emit_real /src/irssi/src/core/signals.c:242:3
+    - signal_emit_id /src/irssi/src/core/signals.c:304:3
+    - irc_parse_incoming_line /src/irssi/src/irc/core/irc.c:524:3
+    - signal_emit_real /src/irssi/src/core/signals.c:242:3
+    - signal_emit /src/irssi/src/core/signals.c:286:3
+    - LLVMFuzzerTestOneInput /src/irssi/src/fe-fuzz/server.c:185:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5020000bd63f is located 0 bytes after 15-byte region [0x5020000bd630,0x5020000bd63f)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - g_malloc /src/irssi/subprojects/glib-2.58.3/glib/gmem.c:99:13
+    - g_strdup /src/irssi/subprojects/glib-2.58.3/glib/gstrfuncs.c:363:17
+    - g_strsplit /src/irssi/subprojects/glib-2.58.3/glib/gstrfuncs.c:2361:51
+    - irc_parse_message_tags /src/irssi/src/irc/core/irc.c:436:8
+    - irc_server_event_tags /src/irssi/src/irc/core/irc.c:453:15
+    - signal_emit_real /src/irssi/src/core/signals.c:242:3
+    - signal_emit_id /src/irssi/src/core/signals.c:304:3
+    - irc_parse_incoming_line /src/irssi/src/irc/core/irc.c:524:3
+    - signal_emit_real /src/irssi/src/core/signals.c:242:3
+    - signal_emit /src/irssi/src/core/signals.c:286:3
+    - LLVMFuzzerTestOneInput /src/irssi/src/fe-fuzz/server.c:185:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

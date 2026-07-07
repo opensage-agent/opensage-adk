@@ -1,0 +1,74 @@
+=================================================================
+==1382232==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x504000000a80 at pc 0x55860c4a9dc1 bp 0x7ffedf4bb5d0 sp 0x7ffedf4bb5c8
+READ of size 8 at 0x504000000a80 thread T0
+    #0 0x55860c4a9dc0 in Assimp::LWO::AnimResolver::UpdateAnimRangeSetup() /root/code/AssetLib/LWO/LWOAnimation.cpp:214:31
+    #1 0x55860b807f95 in Assimp::LWO::AnimResolver::SetAnimationRange(double, double) /root/code/AssetLib/LWO/LWOAnimation.h:252:9
+    #2 0x55860b800c50 in Assimp::LWSImporter::BuildGraph(aiNode*, Assimp::LWS::NodeDesc&, std::vector<Assimp::AttachmentInfo, std::allocator<Assimp::AttachmentInfo>>&, Assimp::BatchLoader&, aiCamera**&, aiLight**&, std::vector<aiNodeAnim*, std::allocator<aiNodeAnim*>>&) /root/code/AssetLib/LWS/LWSLoader.cpp:435:18
+    #3 0x55860b8066a2 in Assimp::LWSImporter::InternReadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /root/code/AssetLib/LWS/LWSLoader.cpp:883:13
+    #4 0x55860c35782b in Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:110:9
+    #5 0x55860b4d3b87 in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:717:30
+    #6 0x55860b4d129f in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:512:5
+    #7 0x55860b462be7 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:53:34
+    #8 0x55860b4482c4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2bc2c4) (BuildId: cd9f8b5ceecc2af0f6ee4e47cf4088e90e02bc40)
+    #9 0x55860b4313f6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2a53f6) (BuildId: cd9f8b5ceecc2af0f6ee4e47cf4088e90e02bc40)
+    #10 0x55860b436eaa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2aaeaa) (BuildId: cd9f8b5ceecc2af0f6ee4e47cf4088e90e02bc40)
+    #11 0x55860b461706 in main (/root/assimp_fuzzer+0x2d5706) (BuildId: cd9f8b5ceecc2af0f6ee4e47cf4088e90e02bc40)
+    #12 0x7ff517ee71c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7ff517ee728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x55860b42bfc4 in _start (/root/assimp_fuzzer+0x29ffc4) (BuildId: cd9f8b5ceecc2af0f6ee4e47cf4088e90e02bc40)
+
+0x504000000a80 is located 16 bytes before 40-byte region [0x504000000a90,0x504000000ab8)
+allocated by thread T0 here:
+    #0 0x7ff5182dd7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7ff518dbc5bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+    #2 0x55860b7eb7e3 in std::allocator_traits<std::allocator<Assimp::LWO::Key>>::allocate(std::allocator<Assimp::LWO::Key>&, unsigned long) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/alloc_traits.h:482:20
+    #3 0x55860b7eb7e3 in std::_Vector_base<Assimp::LWO::Key, std::allocator<Assimp::LWO::Key>>::_M_allocate(unsigned long) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/stl_vector.h:378:20
+    #4 0x55860b80b656 in void std::vector<Assimp::LWO::Key, std::allocator<Assimp::LWO::Key>>::_M_realloc_insert<Assimp::LWO::Key const&>(__gnu_cxx::__normal_iterator<Assimp::LWO::Key*, std::vector<Assimp::LWO::Key, std::allocator<Assimp::LWO::Key>>>, Assimp::LWO::Key const&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/vector.tcc:459:33
+    #5 0x55860b807ee0 in std::vector<Assimp::LWO::Key, std::allocator<Assimp::LWO::Key>>::push_back(Assimp::LWO::Key const&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/stl_vector.h:1289:4
+    #6 0x55860b7fe446 in Assimp::LWSImporter::ReadEnvelope_Old(std::_List_const_iterator<Assimp::LWS::Element>&, std::_List_const_iterator<Assimp::LWS::Element> const&, Assimp::LWS::NodeDesc&, unsigned int) /root/code/AssetLib/LWS/LWSLoader.cpp:286:23
+    #7 0x55860b8041a8 in Assimp::LWSImporter::InternReadFile(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /root/code/AssetLib/LWS/LWSLoader.cpp:664:17
+    #8 0x55860c35782b in Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:110:9
+    #9 0x55860b4d3b87 in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:717:30
+    #10 0x55860b4d129f in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:512:5
+    #11 0x55860b462be7 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:53:34
+    #12 0x55860b4482c4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2bc2c4) (BuildId: cd9f8b5ceecc2af0f6ee4e47cf4088e90e02bc40)
+    #13 0x55860b4313f6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2a53f6) (BuildId: cd9f8b5ceecc2af0f6ee4e47cf4088e90e02bc40)
+    #14 0x55860b436eaa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2aaeaa) (BuildId: cd9f8b5ceecc2af0f6ee4e47cf4088e90e02bc40)
+    #15 0x55860b461706 in main (/root/assimp_fuzzer+0x2d5706) (BuildId: cd9f8b5ceecc2af0f6ee4e47cf4088e90e02bc40)
+    #16 0x7ff517ee71c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7ff517ee728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x55860b42bfc4 in _start (/root/assimp_fuzzer+0x29ffc4) (BuildId: cd9f8b5ceecc2af0f6ee4e47cf4088e90e02bc40)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/code/AssetLib/LWO/LWOAnimation.cpp:214:31 in Assimp::LWO::AnimResolver::UpdateAnimRangeSetup()
+Shadow bytes around the buggy address:
+  0x504000000800: fa fa 00 00 00 00 05 fa fa fa 00 00 00 00 05 fa
+  0x504000000880: fa fa 00 00 00 00 05 fa fa fa 00 00 00 00 05 fa
+  0x504000000900: fa fa 00 00 00 00 05 fa fa fa 00 00 00 00 05 fa
+  0x504000000980: fa fa 00 00 00 00 00 fa fa fa 00 00 00 00 00 00
+  0x504000000a00: fa fa 00 00 00 00 00 fa fa fa fd fd fd fd fd fa
+=>0x504000000a80:[fa]fa 00 00 00 00 00 fa fa fa 00 00 00 00 00 fa
+  0x504000000b00: fa fa fd fd fd fd fd fa fa fa 00 00 00 00 00 fa
+  0x504000000b80: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000000c00: fa fa fd fd fd fd fd fa fa fa fd fd fd fd fd fa
+  0x504000000c80: fa fa fd fd fd fd fd fd fa fa 00 00 00 00 00 00
+  0x504000000d00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1382232==ABORTING

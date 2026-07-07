@@ -1,0 +1,26 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x55764f841d62 bp 0x7ffe7caa8d20 sp 0x7ffe7caa84e0 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55764f841d62 in QuickCheckForUnpoisonedRegion /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.h:37:7
+    #1 0x55764f841d62 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #2 0x55764f8bf16a in blosc_read_header /src/c-blosc2/blosc/blosc2.c:677:3
+    #3 0x55764f8cda88 in blosc2_getitem_ctx /src/c-blosc2/blosc/blosc2.c:2587:12
+    #4 0x55764f8cda88 in blosc_getitem /src/c-blosc2/blosc/blosc2.c:2572:12
+    #5 0x55764f8fc82d in get_coffset /src/c-blosc2/blosc/frame.c:1718:12
+    #6 0x55764f8fd557 in frame_get_lazychunk /src/c-blosc2/blosc/frame.c:1883:20
+    #7 0x55764f90217b in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:2661:20
+    #8 0x55764f883945 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:38:15
+    #9 0x55764f738380 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55764f7235f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55764f72908f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55764f754332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f8f633d0082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #14 0x55764f71b7dd in _start (/out/decompress_frame_fuzzer+0x10d7dd)
+
+DEDUP_TOKEN: QuickCheckForUnpoisonedRegion--__asan_memcpy--blosc_read_header
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/c-blosc2/blosc/blosc2.c:677:3 in blosc_read_header
+==14==ABORTING

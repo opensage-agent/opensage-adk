@@ -1,26 +1,107 @@
+from __future__ import annotations
+
+import asyncio
 import logging
-from enum import Enum
+import traceback
+from datetime import timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 import yaml
 from google.adk.agents.llm_agent import LlmAgent
-from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.base_toolset import BaseToolset
+from google.adk.tools.mcp_tool.mcp_tool import MCPTool as _AdkMCPTool
 from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
-from pydantic import Field
 
-from opensage.features.tool_combo import ToolCombo
 from opensage.utils.project_info import PROJECT_PATH
 
 logger = logging.getLogger(__name__)
 
+MCP_TOOL_CALL_TIMEOUT = timedelta(seconds=300)
+
 _TOOLSET_SUMMARY_MARKER = "[[OPENSAGE_TOOLSET_SUMMARY]]"
 
 
-class MemoryManagement(str, Enum):
-    FILE = "file"
-    DATABASE = "database"
+async def opensage_default_tool_error_handler(
+    tool: Any,
+    args: dict[str, Any],
+    tool_context: Any,
+    error: Exception,
+) -> dict[str, Any]:
+    """Convert otherwise-unhandled tool exceptions into model-visible results."""
+    return {
+        "success": False,
+        "error": (
+            f"Tool {getattr(tool, 'name', '<unknown>')!r} failed: "
+            f"{type(error).__name__}: {error}\n\nBacktrace:\n"
+            f"{traceback.format_exc()}"
+        ),
+    }
+
+
+def _append_default_tool_error_handler(
+    callback: Optional[Union[Callable[..., Any], List[Callable[..., Any]]]],
+) -> Union[Callable[..., Any], List[Callable[..., Any]]]:
+    if callback is None:
+        return opensage_default_tool_error_handler
+    callbacks = list(callback) if isinstance(callback, list) else [callback]
+    if opensage_default_tool_error_handler not in callbacks:
+        callbacks.append(opensage_default_tool_error_handler)
+    return callbacks
+
+
+class OpenSageMcpTool(_AdkMCPTool):
+    """Wraps ADK's MCPTool with per-call timeout and error resilience.
+
+    Fixes two ADK gaps:
+    - ``_run_async_impl``: passes ``read_timeout_seconds`` to
+      ``session.call_tool()`` so a stuck MCP server doesn't block forever.
+    - ``run_async``: catches all exceptions and converts them to an
+      ``{"error": ...}`` dict so the LLM can continue gracefully.
+    """
+
+    async def _run_async_impl(self, *, args, tool_context, credential):
+        from google.adk.agents.readonly_context import ReadonlyContext
+        from opentelemetry import propagate
+
+        auth_headers = await self._get_headers(tool_context, credential)
+        dynamic_headers = None
+        if self._header_provider:
+            dynamic_headers = self._header_provider(
+                ReadonlyContext(tool_context._invocation_context)
+            )
+
+        headers: Dict[str, str] = {}
+        if auth_headers:
+            headers.update(auth_headers)
+        if dynamic_headers:
+            headers.update(dynamic_headers)
+        final_headers = headers if headers else None
+
+        trace_carrier: Dict[str, str] = {}
+        propagate.get_global_textmap().inject(carrier=trace_carrier)
+        meta_trace_context = trace_carrier if trace_carrier else None
+
+        session = await self._mcp_session_manager.create_session(headers=final_headers)
+        resolved_callback = self._resolve_progress_callback(tool_context)
+
+        response = await session.call_tool(
+            self._mcp_tool.name,
+            arguments=args,
+            read_timeout_seconds=MCP_TOOL_CALL_TIMEOUT,
+            progress_callback=resolved_callback,
+            meta=meta_trace_context,
+        )
+        return response.model_dump(exclude_none=True, mode="json")
+
+    async def run_async(self, *, args: dict[str, Any], tool_context) -> Any:
+        try:
+            return await super().run_async(args=args, tool_context=tool_context)
+        except Exception as e:
+            logger.warning("MCP tool %s failed: %s", self.name, e, exc_info=True)
+            return {
+                "error": (f"MCP tool {self.name!r} failed: {type(e).__name__}: {e}")
+            }
 
 
 class OpenSageMCPToolset(McpToolset):
@@ -61,6 +142,70 @@ class OpenSageMCPToolset(McpToolset):
             )
         super().__init__(tool_name_prefix=resolved_prefix, **kwargs)
         self.name = name
+
+    def _mcp_log_context(self) -> str:
+        connection_params = getattr(self, "_connection_params", None)
+        parts = [f"name={self.name!r}"]
+
+        url = getattr(connection_params, "url", None)
+        if url:
+            parts.append(f"url={url!r}")
+        else:
+            server_params = getattr(connection_params, "server_params", None)
+            command = getattr(connection_params, "command", None) or getattr(
+                server_params, "command", None
+            )
+            args = getattr(connection_params, "args", None) or getattr(
+                server_params, "args", None
+            )
+            if command:
+                parts.append(f"command={command!r}")
+            if args:
+                parts.append(f"args={args!r}")
+
+        return ", ".join(parts)
+
+    async def _execute_with_session(
+        self,
+        coroutine_func: Any,
+        error_message: str,
+        readonly_context: Optional[Any] = None,
+    ) -> Any:
+        enriched_message = f"{error_message} ({self._mcp_log_context()})"
+        return await super()._execute_with_session(
+            coroutine_func, enriched_message, readonly_context
+        )
+
+    async def get_tools(self, readonly_context=None):
+        try:
+            tools = await super().get_tools(readonly_context)
+        except (ConnectionError, TimeoutError, OSError) as e:
+            logger.warning(
+                "MCP server %s unreachable, returning empty tool list "
+                "for this turn (%s): %s",
+                self.name,
+                self._mcp_log_context(),
+                e,
+            )
+            return []
+
+        wrapped = []
+        for tool in tools:
+            if isinstance(tool, _AdkMCPTool) and not isinstance(tool, OpenSageMcpTool):
+                wrapped.append(
+                    OpenSageMcpTool(
+                        mcp_tool=tool.raw_mcp_tool,
+                        mcp_session_manager=tool._mcp_session_manager,
+                        auth_scheme=self._auth_scheme,
+                        auth_credential=self._auth_credential,
+                        require_confirmation=tool._require_confirmation,
+                        header_provider=tool._header_provider,
+                        progress_callback=getattr(tool, "_progress_callback", None),
+                    )
+                )
+            else:
+                wrapped.append(tool)
+        return wrapped
 
 
 class ToolLoader:
@@ -306,7 +451,6 @@ class ToolLoader:
 
         # Prefer the first fenced code block.
         if lines[i].strip().startswith("```"):
-            fence = lines[i].strip()
             i += 1
             block = []
             while i < len(lines):
@@ -406,7 +550,7 @@ class ToolLoader:
     def generate_system_prompt_part(
         tools_metadata: List[Dict[str, Any]],
         sandbox_name: Optional[str] = None,
-        remote_root: str = "/bash_tools",
+        remote_root: str | None = None,
     ) -> tuple[str, Set[str]]:
         """Generate system prompt from tool metadata.
 
@@ -415,6 +559,11 @@ class ToolLoader:
             - prompt_text: The generated prompt text
             - required_sandboxes: Set of sandbox types required by the tools
         """
+        if remote_root is None:
+            from opensage.sandbox.sandbox_paths import get_bash_tools
+
+            remote_root = get_bash_tools()
+
         lines = []
         required_sandboxes: Set[str] = set()
 
@@ -450,14 +599,12 @@ class ToolLoader:
     def generate_sandbox_structure_description(
         required_sandboxes: Set[str],
         *,
-        memory_management: MemoryManagement = MemoryManagement.FILE,
         agent_name: Optional[str] = None,
     ) -> str:
         """Generate description of sandbox structure for required sandboxes.
 
         Args:
             required_sandboxes (Set[str]): Set of sandbox type names that are actually required
-            memory_management (MemoryManagement): Memory management type.
         Returns:
             str: Description text about sandbox structure and mount points
         """
@@ -510,116 +657,66 @@ class ToolLoader:
                 "",
             ]
         )
-        if memory_management == MemoryManagement.FILE:
-            lines.extend(
-                [
-                    "### File Memory Layout (`/mem`)",
-                    "",
-                    "File memory is organized by agent name (shared across sessions for the same agent name):",
-                    "",
-                    "```",
-                    "/mem/<agent_name>/",
-                    "  planning.md",
-                    "  session_<session_id>.json",
-                    "  session_<session_id>.json",
-                    "  ...",
-                    "/mem/topology.json",
-                    "```",
-                    "",
-                    f"- Your agent folder is `/mem/{agent_name or '<agent_name>'}/`.",
-                    "- `planning.md`: your living plan/todo file. Read it before work and update it after major steps.",
-                    "- `session_<session_id>.json`: one full trajectory dump per session.",
-                    "- `/mem/topology.json`: cross-agent topology with `agents` and `calls`; includes `query`, `response`, `parent_session_id`, and `parent_agent_name`.",
-                    "- Shared memory directory:",
-                    "```",
-                    "/mem/shared/",
-                    "  knowledge.jsonl",
-                    "  schema.md",
-                    "```",
-                    "- `/mem/shared` is reserved for high-level knowledge shared across tasks.",
-                    "- Use bash tools to maintain `planning.md`, inspect/search `session_<session_id>.json`, and curate `/mem/shared/knowledge.jsonl`.",
-                    "",
-                    "### Shared Knowledge Schema (`/mem/shared/knowledge.jsonl`)",
-                    "",
-                    "Store one JSON object per line (JSONL). Required fields:",
-                    "- `key` (string): short summary/description used as retrieval key.",
-                    "- `value` (string): the reusable high-level knowledge.",
-                    "",
-                    "Rules:",
-                    "- Keep `key` concise and specific (one idea per key).",
-                    "- `value` should be stable guidance, not raw transient logs.",
-                    "- Update existing entries when refining knowledge; do not create near-duplicate keys.",
-                    "",
-                    "Examples:",
-                    "```json",
-                    '{"key":"nginx authentication mechanism overview","value":"Nginx itself usually delegates auth to upstream services or auth_request; common patterns are Basic Auth, JWT verification via auth_request, or OIDC at ingress.","tags":["nginx","auth"],"source":{"agent":"security_agent","session_id":"abc123"},"updated_at":"2026-03-17T10:00:00Z"}',
-                    '{"key":"gdb mcp server readiness check","value":"Treat /sse endpoint as ready only after HTTP 200 and stable response for at least one retry interval.","tags":["gdb_mcp","ops"]}',
-                    '{"key":"neo4j bolt default port","value":"Neo4j Bolt uses 7687 by default; prefer reading resolved runtime config before connecting in resumed sessions.","tags":["neo4j","network"]}',
-                    "```",
-                    "",
-                    "When you discover valuable reusable knowledge, proactively add/update entries in `/mem/shared/knowledge.jsonl` and consult it via search before major decisions.",
-                    "",
-                ]
-            )
-
         if "neo4j" in required_sandboxes:
             idx = lines.index("### Python Environment")
             neo4j_lines = [
-                "### Neo4j (Databases & Schemas)",
+                "### Neo4j",
                 "",
-                "The `neo4j` sandbox provides Neo4j as structured storage.",
-                "",
-                "Database organization (selected by `client_type`):",
-                "- **history**: Agent execution history (e.g. `AgentRun`, `Event`, `RawToolResponse`; relationships like `HAS_EVENT`, `SUMMARIZES_TOOL_RESPONSE`)",
-                "- **analysis**: Static analysis / code graph data (Joern/CodeQL-related)",
-                "- **memory**: Long-term memory (e.g. Q&A cache `QACache`)",
-                "- Note: Some databases may not be available depending on sandbox configuration.",
+                "The `neo4j` sandbox provides Neo4j as structured storage. The "
+                "`analysis` database holds the code property graph populated by "
+                "Joern/CodeQL initializers; query it with the `static_analysis` "
+                "or `neo4j-query` skills (see their `SKILL.md` for schema).",
                 "",
             ]
-            if memory_management == MemoryManagement.DATABASE:
-                neo4j_lines.extend(
-                    [
-                        "Querying long-term memory and short-term memory(agent execution history of sub-agents):",
-                        "- Prefer using the `memory_management_agent` tool. Use natrual language to interact with memory_management_agent.",
-                        "",
-                    ]
-                )
             lines[idx:idx] = neo4j_lines
 
         return "\n".join(lines)
 
 
 class OpenSageAgent(LlmAgent):
-    tool_combos: Optional[List[ToolCombo]] = Field(default=None)
-
     def __init__(
         self,
         *args,
-        tools: Optional[List] = None,  # TODO: this should be the initial tool list?
-        tool_combos: Optional[List[ToolCombo]] = None,
+        tools: Optional[List] = None,
         enabled_skills: Optional[Union[List[str], str]] = None,
-        memory_management: MemoryManagement = MemoryManagement.FILE,
+        subagents: Optional[List["OpenSageAgent"]] = None,
         **kwargs,
     ):
+        # --- Ban AgentTool in tools list ---
         tools = list(tools) if tools else []
-        sub_agents = kwargs.get("sub_agents", [])
-        for combo in tool_combos or []:  # TODO: why tool combos for sub-agents?
-            if combo.return_history:
-                sub_agents.append(combo.sequential_agent)
-            else:
-                if combo.agent_tool not in tools:
-                    tools.append(combo.agent_tool)
+        try:
+            from google.adk.tools.agent_tool import AgentTool as _AgentTool
 
-        if memory_management == MemoryManagement.DATABASE:
-            # Lazy import to avoid circular dependencies at module import time.
-            from opensage.util_agents.memory_management_agent.agent import (
-                create_memory_management_agent_tool,
+            offending_names = [
+                getattr(getattr(t, "agent", None), "name", "?")
+                for t in tools
+                if isinstance(t, _AgentTool)
+            ]
+            if offending_names:
+                raise ValueError(
+                    f"AgentTool is forbidden in OpenSageAgent. "
+                    f"Found AgentTool(s) wrapping: {offending_names}. "
+                    f"Use subagents=[...] to declare sub-agents; use the "
+                    f"call_subagent / continue_agent_instance tools to invoke them."
+                )
+        except ImportError:
+            pass
+
+        # --- Ban ADK's sub_agents kwarg ---
+        if kwargs.get("sub_agents"):
+            raise ValueError(
+                "sub_agents is forbidden in OpenSageAgent. "
+                "Use subagents=[...] and call_subagent / continue_agent_instance instead."
             )
 
-            model = kwargs.get("model", "")
-            memory_management_tool = create_memory_management_agent_tool(model=model)
-            if memory_management_tool not in tools:
-                tools.append(memory_management_tool)
+        # --- Validate and stash subagents (OpenSage's own declaration field) ---
+        subagents_list = list(subagents or [])
+        for sa in subagents_list:
+            if not isinstance(sa, OpenSageAgent):
+                raise ValueError(
+                    f"subagents must contain OpenSageAgent instances; got "
+                    f"{type(sa).__name__}"
+                )
 
         # Ensure all tools are safe and dict-shaped (including MCP-expanded tools).
         # We intentionally do this before calling the ADK LlmAgent constructor so the
@@ -628,12 +725,55 @@ class OpenSageAgent(LlmAgent):
 
         tools = make_toollikes_safe_dict(tools)
 
-        kwargs["sub_agents"] = sub_agents
         kwargs["tools"] = tools
+
+        # Append default tool error handler
+        kwargs["on_tool_error_callback"] = _append_default_tool_error_handler(
+            kwargs.get("on_tool_error_callback")
+        )
 
         # Initialize the parent class first
         super().__init__(*args, **kwargs)
-        self._memory_management = memory_management
+
+        # Store the OpenSage-specific subagents declaration (distinct from ADK's
+        # sub_agents field). These are registered to AgentManager.agents at
+        # startup and are invoked via call_subagent / continue_agent_instance.
+        self._subagents = subagents_list
+
+        # Inject subagent coordination policy when orchestration tools are present.
+        _orch_names = {
+            "call_subagent",
+            "create_subagent",
+            "continue_agent_instance",
+        }
+        if _orch_names & {getattr(t, "__name__", "") for t in tools}:
+            self.instruction = (self.instruction or "") + (
+                "\n\n## Subagent Coordination Policy\n"
+                "Do NOT poll or check on subagent progress in any way — not via "
+                "list_subagents, not via terminal commands (find, ls, cat), not "
+                "by any other means. Both sync and async subagents automatically "
+                "report results back to you when they finish. While waiting, "
+                "work on a different task or do nothing.\n"
+                "\n"
+                "## Peer-to-Peer Collaboration\n"
+                "You are part of a multi-agent system where specialist agents "
+                "collaborate toward a shared goal. You have orchestration tools "
+                "(create_subagent, call_subagent, send_message, list_subagents, "
+                "etc.) and can communicate directly with other agents.\n"
+                "\n"
+                "- Use `list_subagents` to discover other active agents and their capabilities.\n"
+                "- Use `send_message` to directly request information from a peer agent — "
+                "do NOT route peer requests through the root agent.\n"
+                "- Use `create_subagent` / `call_subagent` to spawn specialists for "
+                "subtasks you cannot handle with your own tools.\n"
+                "\n"
+                "When to message a peer directly:\n"
+                "- You need a different tool that another agent has (e.g., ask a GDB agent "
+                "to set a breakpoint, ask a Ghidra agent to decompile a function).\n"
+                "- You found something another agent needs to know about (e.g., a memory "
+                "address, a vulnerability, a key insight).\n"
+                "- You want a second opinion or verification from another specialist.\n"
+            )
 
         # Store enabled_skills for dependency collection
         self._enabled_skills = enabled_skills
@@ -660,8 +800,9 @@ class OpenSageAgent(LlmAgent):
                 "`/bash_tools/...` (i.e., the tool scripts described below).\n"
                 "- Only fall back to generic shell commands when there is **no** suitable `/bash_tools` Skill for the job.\n"
                 "- Before starting work, survey the tool ecosystem broadly:\n"
-                "  - Call `list_available_scripts to review relevant available Skill docs.\n"
-                "  - Then inspect and consider multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
+                "  - Skill paths and descriptions are listed in your prompt above; "
+                "`cat /bash_tools/<path>/SKILL.md` to read a Skill's full docs when needed.\n"
+                "  - Inspect multiple relevant toolsets (e.g., retrieval + static_analysis + neo4j), not just one.\n"
                 "  - If a Skill exists, use it instead of generic shell.\n"
                 "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
                 "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
@@ -676,16 +817,9 @@ class OpenSageAgent(LlmAgent):
             ):
                 tool_usage_policy += f"\n\n{toolset_summary}"
 
-            memory_management = getattr(
-                self,
-                "_memory_management",
-                MemoryManagement.FILE,
-            )
-
             # Generate sandbox structure description based on required sandboxes.
             sandbox_description = ToolLoader.generate_sandbox_structure_description(
                 required_sandboxes,
-                memory_management=memory_management,
                 agent_name=self.name,
             )
 
@@ -697,6 +831,13 @@ class OpenSageAgent(LlmAgent):
             )  # TODO: is this instruction too long and some should be written as skills?
         else:
             logger.info("No dynamically loaded tool descriptions found")
+
+        # Wrap instruction as a callable to bypass ADK's inject_session_state,
+        # which treats {identifier} patterns as state variable placeholders.
+        # Model-generated instructions may contain literal braces (e.g. flags).
+        if isinstance(self.instruction, str):
+            _frozen = self.instruction
+            self.instruction = lambda ctx: _frozen
 
     @staticmethod
     def _build_toolset_summary(tools: List[Any]) -> str:
@@ -761,82 +902,3 @@ class OpenSageAgent(LlmAgent):
             "Note: toolsets (especially MCP toolsets) expand their individual tools at runtime."
         )
         return "\n".join(lines).strip()
-
-    def update_enabled_skills(
-        self, enabled_skills: Optional[Union[List[str], str]]
-    ) -> None:
-        """Update enabled_skills and regenerate system prompt with new bash tools.
-
-        This method:
-        1. Updates the _enabled_skills attribute
-        2. Removes the old bash tools section from instruction
-        3. Generates new tool prompt based on new enabled_skills
-        4. Appends the new tool prompt to instruction
-
-        Args:
-            enabled_skills (Optional[Union[List[str], str]]): New enabled_skills value (None, "all", or List[str])"""
-        import re
-
-        # Update enabled_skills
-        self._enabled_skills = enabled_skills
-
-        # Remove old tool prompt section from instruction
-        # Pattern matches from "Here are the available bash tools" to end of string
-        pattern = r"\n\nHere are the available bash tools you can use:.*"
-        self.instruction = re.sub(pattern, "", self.instruction, flags=re.DOTALL)
-
-        # Generate new tool prompt based on new enabled_skills
-        loader = ToolLoader(enabled_skills=enabled_skills)
-        metadata = loader.load_tools()
-        tool_prompt, required_sandboxes = ToolLoader.generate_system_prompt_part(
-            metadata
-        )
-
-        if tool_prompt:
-            # Preamble describing the skill structure
-            description_preamble = (
-                "Each tool path below is a Skill directory:\n"
-                "- `SKILL.md`: documentation/usage.\n"
-                "- Toolset Skills may not have `scripts/`.\n"
-                "- Executable Skills have `scripts/` with runnable tools.\n"
-            )
-
-            tool_usage_policy = (
-                "Tool usage policy:\n"
-                "- When planning or describing how you will accomplish a task, prefer using the provided Skills under "
-                "`/bash_tools/...` (i.e., the tool scripts described below). You should call them through run_terminal_command tool and execute the corresponding scripts.\n"
-                "- Prioritize using static analysis based tools to retrieve information rather than using general shell commands or general retrieval tools. Only fall back to generic shell commands when there is **no** suitable `/bash_tools` Skill for the job.\n"
-                "- If a workflow is repetitive, prefer writing a small wrapper script (or a new Skill) to automate it. "
-                "You may compose existing `/bash_tools` Skills, and you may also adapt/extend them.\n"
-                "- Do NOT edit existing `/bash_tools/...` Skills in place. If you need changes, copy/adapt into a new "
-                "Skill/script under `/bash_tools/new_tools/<tool_name>/` (with a `SKILL.md`). You can use "
-                "`/bash_tools/new_tool_creator` to scaffold the initial directory structure.\n"
-            )
-
-            memory_management = getattr(
-                self,
-                "_memory_management",
-                MemoryManagement.FILE,
-            )
-
-            # Generate sandbox structure description based on required sandboxes.
-            sandbox_description = ToolLoader.generate_sandbox_structure_description(
-                required_sandboxes,
-                memory_management=memory_management,
-                agent_name=self.name,
-            )
-
-            # Append new tool prompt to instruction
-            self.instruction += (
-                "\n\nHere are the available bash tools you can use:\n"
-                f"{description_preamble}\n{tool_prompt}{sandbox_description}\n\n"
-                "## Tool Usage Policy (MUST FOLLOW)\n\n"
-                f"{tool_usage_policy}"
-            )
-            logger.info(
-                f"Updated enabled_skills and regenerated system prompt for agent '{self.name}'"
-            )
-        else:
-            logger.info(
-                f"Updated enabled_skills to {enabled_skills}, no bash tools found"
-            )

@@ -1,0 +1,45 @@
+ALARM: working on the last Unit for 25 seconds
+       and the timeout value is 25 (use -timeout=N to change)
+==14== ERROR: libFuzzer: timeout after 25 seconds
+    #0 0x5640fc3fbe91 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    #1 0x5640fc300e28 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x5640fc2e4137 in fuzzer::Fuzzer::AlarmCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:304:5
+    #3 0x7f97d8e2c41f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 9a65bb469e45a1c6fbcffae5b82a2fd7a69eb479)
+    #4 0x5640fc2fe6dc in AddValue /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerValueBitMap.h:39:18
+    #5 0x5640fc2fe6dc in HandleCmp<unsigned int> /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerTracePC.cpp:392:19
+    #6 0x5640fc2fe6dc in __sanitizer_cov_trace_const_cmp4 /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerTracePC.cpp:513:15
+    #7 0x5640fc5a5290 in chunk_free_object /src/ghostpdl/./base/gsmchunk.c:1090:9
+    #8 0x5640fcf11074 in pdfi_free_cmap_contents /src/ghostpdl/./pdf/pdf_cmap.c:914:9
+    #9 0x5640fcf1065b in pdfi_read_cmap /src/ghostpdl/./pdf/pdf_cmap.c:895:5
+    #10 0x5640fcf04001 in pdfi_read_type3_font /src/ghostpdl/./pdf/pdf_font3.c:301:20
+    #11 0x5640fcec050d in pdfi_load_font /src/ghostpdl/./pdf/pdf_font.c:889:16
+    #12 0x5640fcec6920 in pdfi_load_dict_font /src/ghostpdl/./pdf/pdf_font.c:1023:20
+    #13 0x5640fcec994a in pdfi_load_resource_font /src/ghostpdl/./pdf/pdf_font.c:1065:12
+    #14 0x5640fcec994a in pdfi_Tf /src/ghostpdl/./pdf/pdf_font.c:1424:12
+    #15 0x5640fce45a8f in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1662:24
+    #16 0x5640fce43f23 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2146:24
+    #17 0x5640fce9bafe in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #18 0x5640fce9bafe in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #19 0x5640fce9bafe in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:1003:12
+    #20 0x5640fce0618a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1157:24
+    #21 0x5640fcc99029 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #22 0x5640fcc99029 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #23 0x5640fcc99029 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #24 0x5640fc4393b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #25 0x5640fc4393b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #26 0x5640fc4393b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #27 0x5640fcf7af40 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #28 0x5640fcf77910 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #29 0x5640fcf74a92 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #30 0x5640fcf7acc8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #31 0x5640fc430fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #32 0x5640fc431335 in LLVMFuzzerTestOneInput /src/gs_device_faxg3_fuzzer.cc:18:2
+    #33 0x5640fc2e56d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #34 0x5640fc2d0945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #35 0x5640fc2d63df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #36 0x5640fc301682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #37 0x7f97d8a77082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #38 0x5640fc2c8b2d in _start (/out/gs_device_faxg3_fuzzer+0x721b2d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::AlarmCallback()
+SUMMARY: libFuzzer: timeout

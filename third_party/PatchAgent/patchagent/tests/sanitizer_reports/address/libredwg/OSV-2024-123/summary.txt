@@ -1,0 +1,44 @@
+The sanitizer detected a memory leak vulnerability. The explanation of the vulnerability is: A program fails to free allocated memory, leading to resource exhaustion and degraded system performance over time. Here is the detail: 
+
+
+Direct leak of 14233600 byte(s) in 55600 object(s) allocated from:
+    - calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    - xcalloc /src/libredwg/src/in_dxf.c:307:7
+    - dxf_tables_read /src/libredwg/src/in_dxf.c:12246:60
+    - dwg_read_dxf /src/libredwg/src/in_dxf.c:13161:23
+    - LLVMFuzzerTestOneInput /src/libredwg/examples/llvmfuzz.c:113:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Direct leak of 891200 byte(s) in 55700 object(s) allocated from:
+    - calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    - xcalloc /src/libredwg/src/in_dxf.c:307:7
+    - dxf_read_pair /src/libredwg/src/in_dxf.c:692:32
+    - dxf_tables_read /src/libredwg/src/in_dxf.c:12326:14
+    - dwg_read_dxf /src/libredwg/src/in_dxf.c:13161:23
+    - LLVMFuzzerTestOneInput /src/libredwg/examples/llvmfuzz.c:113:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Indirect leak of 334200 byte(s) in 55700 object(s) allocated from:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - dxf_read_string /src/libredwg/src/in_dxf.c:658:27
+    - dxf_read_pair /src/libredwg/src/in_dxf.c:714:7
+    - dxf_tables_read /src/libredwg/src/in_dxf.c:12326:14
+    - dwg_read_dxf /src/libredwg/src/in_dxf.c:13161:23
+    - LLVMFuzzerTestOneInput /src/libredwg/examples/llvmfuzz.c:113:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that every memory allocation has a corresponding deallocation.
+2. Track allocated memory systematically to avoid leaks.
+3. Avoid unnecessary memory allocations by reusing buffers where possible.

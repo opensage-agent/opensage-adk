@@ -1,0 +1,64 @@
+=================================================================
+==360324==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f7b83000aa1 at pc 0x7f7b85218616 bp 0x7ffd072c3d50 sp 0x7ffd072c3510
+READ of size 130 at 0x7f7b83000aa1 thread T0
+    #0 0x7f7b85218615 in __asan_memcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf6615) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x556344eb0a2e in Classifier_read /root/src/lib/OpenEXRCore/internal_dwa_classifier.h:102:9
+    #2 0x556344eab35b in DwaCompressor_readChannelRules /root/src/lib/OpenEXRCore/internal_dwa_compressor.h:1526:18
+    #3 0x556344e7f944 in DwaCompressor_uncompress /root/src/lib/OpenEXRCore/internal_dwa_compressor.h:777:13
+    #4 0x556344e7f2fc in internal_exr_undo_dwaa /root/src/lib/OpenEXRCore/internal_dwa.c:193:18
+    #5 0x556344e1e8c6 in decompress_data /root/src/lib/OpenEXRCore/decoding.c:262:18
+    #6 0x556344e1c85b in default_decompress_chunk /root/src/lib/OpenEXRCore/decoding.c:318:14
+    #7 0x556344e1d33a in exr_decoding_run /root/src/lib/OpenEXRCore/decoding.c:654:14
+    #8 0x556344b66869 in Imf_3_2::(anonymous namespace)::readCoreScanlinePart(_priv_exr_context_t*, int, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1287:18
+    #9 0x556344b65ba8 in Imf_3_2::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1496:17
+    #10 0x556344b64731 in Imf_3_2::(anonymous namespace)::runCoreChecks(char const*, unsigned long, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1611:15
+    #11 0x556344b6434a in Imf_3_2::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /root/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1651:16
+    #12 0x556344b62cc0 in LLVMFuzzerTestOneInput /root/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcorecheck_fuzzer.cc:17:5
+    #13 0x556344b484b4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/openexr_exrcorecheck_fuzzer+0x654b4) (BuildId: 02c88ca5d0bf47bbe8fa41cf61592751d39f3a07)
+    #14 0x556344b315e6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/openexr_exrcorecheck_fuzzer+0x4e5e6) (BuildId: 02c88ca5d0bf47bbe8fa41cf61592751d39f3a07)
+    #15 0x556344b3709a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/openexr_exrcorecheck_fuzzer+0x5409a) (BuildId: 02c88ca5d0bf47bbe8fa41cf61592751d39f3a07)
+    #16 0x556344b618f6 in main (/root/openexr_exrcorecheck_fuzzer+0x7e8f6) (BuildId: 02c88ca5d0bf47bbe8fa41cf61592751d39f3a07)
+    #17 0x7f7b84e061c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x7f7b84e0628a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x556344b2c1b4 in _start (/root/openexr_exrcorecheck_fuzzer+0x491b4) (BuildId: 02c88ca5d0bf47bbe8fa41cf61592751d39f3a07)
+
+Address 0x7f7b83000aa1 is located in stack of thread T0 at offset 161 in frame
+    #0 0x556344eb05ff in Classifier_read /root/src/lib/OpenEXRCore/internal_dwa_classifier.h:77
+
+  This frame has 1 object(s):
+    [32, 161) 'suffix' (line 87) <== Memory access at offset 161 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /root/src/lib/OpenEXRCore/internal_dwa_classifier.h:102:9 in Classifier_read
+Shadow bytes around the buggy address:
+  0x7f7b83000800: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f7b83000880: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f7b83000900: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f7b83000980: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f7b83000a00: f1 f1 f1 f1 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7f7b83000a80: 00 00 00 00[01]f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3
+  0x7f7b83000b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f7b83000b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f7b83000c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f7b83000c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f7b83000d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360324==ABORTING

@@ -1,0 +1,38 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x5020000007d4 thread T0
+    - HeifContext::interpret_heif_file() /src/libheif/libheif/context.cc:985:42
+    - HeifContext::read_from_memory(void const*, unsigned long, bool) /src/libheif/libheif/context.cc:448:10
+    - heif_context_read_from_memory /src/libheif/libheif/heif.cc:450:29
+    - LLVMFuzzerTestOneInput /src/libheif/fuzzing/file_fuzzer.cc:97:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5020000007d4 is located 0 bytes after 4-byte region [0x5020000007d0,0x5020000007d4)
+allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - void* std::__1::__libcpp_operator_new[abi:ne180100]<unsigned long>(unsigned long) /usr/local/include/c++/v1/new:271:10
+    - std::__1::__libcpp_allocate[abi:ne180100](unsigned long, unsigned long) /usr/local/include/c++/v1/new:295:10
+    - std::__1::allocator<unsigned int>::allocate[abi:ne180100](unsigned long) /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - std::__1::__allocation_result<std::__1::allocator_traits<std::__1::allocator<unsigned int>>::pointer> std::__1::__allocate_at_least[abi:ne180100]<std::__1::allocator<unsigned int>>(std::__1::allocator<unsigned int>&, unsigned long) /usr/local/include/c++/v1/__memory/allocate_at_least.h:55:19
+    - std::__1::vector<unsigned int, std::__1::allocator<unsigned int>>::__vallocate[abi:ne180100](unsigned long) /usr/local/include/c++/v1/vector:741:25
+    - void std::__1::vector<unsigned int, std::__1::allocator<unsigned int>>::__init_with_size[abi:ne180100]<unsigned int*, unsigned int*>(unsigned int*, unsigned int*, unsigned long) /usr/local/include/c++/v1/vector:759:7
+    - std::__1::vector<unsigned int, std::__1::allocator<unsigned int>>::vector(std::__1::vector<unsigned int, std::__1::allocator<unsigned int>> const&) /usr/local/include/c++/v1/vector:1195:3
+    - HeifContext::interpret_heif_file() /src/libheif/libheif/context.cc:980:42
+    - HeifContext::read_from_memory(void const*, unsigned long, bool) /src/libheif/libheif/context.cc:448:10
+    - heif_context_read_from_memory /src/libheif/libheif/heif.cc:450:29
+    - LLVMFuzzerTestOneInput /src/libheif/fuzzing/file_fuzzer.cc:97:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

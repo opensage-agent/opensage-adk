@@ -1,0 +1,48 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x516000003290 thread T0
+    - Assimp::FBXExporter::WriteObjects() /src/assimp/code/AssetLib/FBX/FBXExporter.cpp:2053:34
+    - WriteAllNodes /src/assimp/code/AssetLib/FBX/FBXExporter.cpp:308:5
+    - Assimp::FBXExporter::ExportBinary(char const*, Assimp::IOSystem*) /src/assimp/code/AssetLib/FBX/FBXExporter.cpp:178:5
+    - Assimp::ExportSceneFBX(char const*, Assimp::IOSystem*, aiScene const*, Assimp::ExportProperties const*) /src/assimp/code/AssetLib/FBX/FBXExporter.cpp:115:18
+    - Assimp::Exporter::Export(aiScene const*, char const*, char const*, unsigned int, Assimp::ExportProperties const*) /src/assimp/code/Common/Exporter.cpp:495:17
+    - Assimp::Exporter::ExportToBlob(aiScene const*, char const*, unsigned int, Assimp::ExportProperties const*) /src/assimp/code/Common/Exporter.cpp:353:23
+    - LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:62:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x516000003290 is located 0 bytes after 528-byte region [0x516000003080,0x516000003290)
+allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - __allocate_at_least<std::__1::allocator<int> > /usr/local/include/c++/v1/__memory/allocate_at_least.h:55:19
+    - __vallocate /usr/local/include/c++/v1/vector:741:25
+    - void std::__1::vector<int, std::__1::allocator<int>>::__init_with_size[abi:ne180100]<int*, int*>(int*, int*, unsigned long) /usr/local/include/c++/v1/vector:759:7
+    - vector /usr/local/include/c++/v1/vector:1195:3
+    - construct<std::__1::vector<int, std::__1::allocator<int> >, const std::__1::vector<int, std::__1::allocator<int> > &> /usr/local/include/c++/v1/__memory/allocator.h:173:24
+    - construct<std::__1::vector<int, std::__1::allocator<int> >, const std::__1::vector<int, std::__1::allocator<int> > &, void> /usr/local/include/c++/v1/__memory/allocator_traits.h:296:9
+    - std::__1::vector<int, std::__1::allocator<int>>* std::__1::vector<std::__1::vector<int, std::__1::allocator<int>>, std::__1::allocator<std::__1::vector<int, std::__1::allocator<int>>>>::__push_back_slow_path<std::__1::vector<int, std::__1::allocator<int>> const&>(std::__1::vector<int, std::__1::allocator<int>> const&) /usr/local/include/c++/v1/vector:1453:3
+    - push_back /usr/local/include/c++/v1/vector:1467:13
+    - Assimp::FBXExporter::WriteObjects() /src/assimp/code/AssetLib/FBX/FBXExporter.cpp:1146:23
+    - WriteAllNodes /src/assimp/code/AssetLib/FBX/FBXExporter.cpp:308:5
+    - Assimp::FBXExporter::ExportBinary(char const*, Assimp::IOSystem*) /src/assimp/code/AssetLib/FBX/FBXExporter.cpp:178:5
+    - Assimp::ExportSceneFBX(char const*, Assimp::IOSystem*, aiScene const*, Assimp::ExportProperties const*) /src/assimp/code/AssetLib/FBX/FBXExporter.cpp:115:18
+    - Assimp::Exporter::Export(aiScene const*, char const*, char const*, unsigned int, Assimp::ExportProperties const*) /src/assimp/code/Common/Exporter.cpp:495:17
+    - Assimp::Exporter::ExportToBlob(aiScene const*, char const*, unsigned int, Assimp::ExportProperties const*) /src/assimp/code/Common/Exporter.cpp:353:23
+    - LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:62:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

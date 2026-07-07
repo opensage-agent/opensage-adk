@@ -1,0 +1,12 @@
+The sanitizer detected a java generic exception vulnerability.The explanation of the vulnerability is: A Java exception occurred, indicating a potential issue in the code or environment.Here is the detail: 
+
+- org.checkerframework.checker.formatter.util.FormatUtil.tryFormatSatisfiability (org/checkerframework/checker/formatter/util/FormatUtil.java:107)
+- org.checkerframework.checker.formatter.util.FormatUtil.formatParameterCategories (org/checkerframework/checker/formatter/util/FormatUtil.java:118)
+- UtilCheckerFuzzer.fuzzChecker (UtilCheckerFuzzer.java:37)
+- UtilCheckerFuzzer.fuzzerTestOneInput (UtilCheckerFuzzer.java:27)
+
+To fix this issue, follow the advice below:
+
+1. Investigate the cause of the Java exception to identify the root cause of the error.
+2. Review the code for potential memory corruption or undefined behavior.
+3. Check for uninitialized variables or unintended pointer accesses.

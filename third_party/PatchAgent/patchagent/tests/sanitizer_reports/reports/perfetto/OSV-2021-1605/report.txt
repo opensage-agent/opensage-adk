@@ -1,0 +1,118 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/perfetto:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/perfetto/OSV-2021-1605/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce trace_processor_fuzzer -runs=100.
++ FUZZER=trace_processor_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer trace_processor_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/trace_processor_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1439262046
+INFO: Loaded 1 modules   (115865 inline 8-bit counters): 115865 [0x55887e7648d8, 0x55887e780d71), 
+INFO: Loaded 1 PC tables (115865 PCs): 115865 [0x55887e780d78,0x55887e945708), 
+/out/trace_processor_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x7f69cc54b7e0 at pc 0x55887df29312 bp 0x7ffd27f95350 sp 0x7ffd27f95348
+[1m[0m[1m[34mREAD of size 8 at 0x7f69cc54b7e0 thread T0[1m[0m
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x55887df29311 in size /usr/local/bin/../include/c++/v1/vector:595:41
+    #1 0x55887df29311 in perfetto::trace_processor::SliceTracker::GetStackHash(std::__1::vector<perfetto::trace_processor::SliceTracker::SliceInfo, std::__1::allocator<perfetto::trace_processor::SliceTracker::SliceInfo>> const&) /work/build/../../src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:361:32
+    #2 0x55887df27984 in perfetto::trace_processor::SliceTracker::StartSlice(long, perfetto::trace_processor::tables::TrackTable::DefinedId, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>, std::__1::function<perfetto::trace_processor::tables::SliceTable::DefinedId ()>) /work/build/../../src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:173:46
+    #3 0x55887df246d9 in perfetto::trace_processor::SliceTracker::Scoped(long, perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::StringPool::Id, perfetto::trace_processor::StringPool::Id, long, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>) /work/build/../../src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:81:10
+    #4 0x55887de1ef9f in perfetto::trace_processor::NinjaLogParser::NotifyEndOfFile() /work/build/../../src/perfetto/src/trace_processor/importers/ninja/ninja_log_parser.cc:184:26
+    #5 0x55887ded8ea5 in perfetto::trace_processor::TraceProcessorStorageImpl::NotifyEndOfFile() /work/build/../../src/perfetto/src/trace_processor/trace_processor_storage_impl.cc:118:26
+    #6 0x55887dc5b2ac in perfetto::trace_processor::FuzzTraceProcessor(unsigned char const*, unsigned long) /work/build/../../src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:33:14
+    #7 0x55887dc5b40f in LLVMFuzzerTestOneInput /work/build/../../src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:42:3
+    #8 0x55887dc1d3c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55887dc08dc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55887dc0e85f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55887dc37f62 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f69ce22a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x55887db3f0ad in _start (/out/trace_processor_fuzzer+0x35a0ad) (BuildId: ec4ef153ae44cff71573e6d2b02c66e4e1257288)
+
+DEDUP_TOKEN: size--perfetto::trace_processor::SliceTracker::GetStackHash(std::__1::vector<perfetto::trace_processor::SliceTracker::SliceInfo, std::__1::allocator<perfetto::trace_processor::SliceTracker::SliceInfo>> const&)--perfetto::trace_processor::SliceTracker::StartSlice(long, perfetto::trace_processor::tables::TrackTable::DefinedId, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>, std::__1::function<perfetto::trace_processor::tables::SliceTable::DefinedId ()>)
+[1m[32m0x7f69cc54b7e0 is located 245728 bytes inside of 327680-byte region [0x7f69cc50f800,0x7f69cc55f800)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x55887dbcccb6 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55887df2b15a in operator() /work/build/../../src/perfetto/include/perfetto/ext/base/utils.h:147:42
+    #2 0x55887df2b15a in reset /usr/local/bin/../include/c++/v1/__memory/unique_ptr.h:445:7
+    #3 0x55887df2b15a in ~unique_ptr /usr/local/bin/../include/c++/v1/__memory/unique_ptr.h:406:71
+    #4 0x55887df2b15a in perfetto::base::FlatHashMap<perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo, std::__1::hash<perfetto::trace_processor::tables::TrackTable::DefinedId>, perfetto::base::QuadraticProbe, false>::GrowAndRehash() /work/build/../../src/perfetto/include/perfetto/ext/base/flat_hash_map.h:293:3
+    #5 0x55887df2aaa9 in perfetto::base::FlatHashMap<perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo, std::__1::hash<perfetto::trace_processor::tables::TrackTable::DefinedId>, perfetto::base::QuadraticProbe, false>::Insert(perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo) /work/build/../../src/perfetto/include/perfetto/ext/base/flat_hash_map.h:124:7
+    #6 0x55887df28802 in operator[] /work/build/../../src/perfetto/include/perfetto/ext/base/flat_hash_map.h:207:28
+    #7 0x55887df28802 in perfetto::trace_processor::SliceTracker::StackPush(perfetto::trace_processor::tables::TrackTable::DefinedId, unsigned int) /work/build/../../src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:381:3
+    #8 0x55887df278a7 in perfetto::trace_processor::SliceTracker::StartSlice(long, perfetto::trace_processor::tables::TrackTable::DefinedId, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>, std::__1::function<perfetto::trace_processor::tables::SliceTable::DefinedId ()>) /work/build/../../src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:167:3
+    #9 0x55887df246d9 in perfetto::trace_processor::SliceTracker::Scoped(long, perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::StringPool::Id, perfetto::trace_processor::StringPool::Id, long, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>) /work/build/../../src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:81:10
+    #10 0x55887de1ef9f in perfetto::trace_processor::NinjaLogParser::NotifyEndOfFile() /work/build/../../src/perfetto/src/trace_processor/importers/ninja/ninja_log_parser.cc:184:26
+    #11 0x55887ded8ea5 in perfetto::trace_processor::TraceProcessorStorageImpl::NotifyEndOfFile() /work/build/../../src/perfetto/src/trace_processor/trace_processor_storage_impl.cc:118:26
+    #12 0x55887dc5b2ac in perfetto::trace_processor::FuzzTraceProcessor(unsigned char const*, unsigned long) /work/build/../../src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:33:14
+    #13 0x55887dc5b40f in LLVMFuzzerTestOneInput /work/build/../../src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:42:3
+    #14 0x55887dc1d3c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x55887dc08dc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x55887dc0e85f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x55887dc37f62 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7f69ce22a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: ___interceptor_free--operator()--reset
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x55887dbcd867 in posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    #1 0x55887ddfa66a in perfetto::base::AlignedAlloc(unsigned long, unsigned long) /work/build/../../src/perfetto/src/base/utils.cc:255:17
+    #2 0x55887df2a271 in AlignedAllocTyped<perfetto::trace_processor::SliceTracker::TrackInfo[]> /work/build/../../src/perfetto/include/perfetto/ext/base/utils.h:161:24
+    #3 0x55887df2a271 in perfetto::base::FlatHashMap<perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo, std::__1::hash<perfetto::trace_processor::tables::TrackTable::DefinedId>, perfetto::base::QuadraticProbe, false>::Reset(unsigned long) /work/build/../../src/perfetto/include/perfetto/ext/base/flat_hash_map.h:309:15
+    #4 0x55887df2ad7c in perfetto::base::FlatHashMap<perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo, std::__1::hash<perfetto::trace_processor::tables::TrackTable::DefinedId>, perfetto::base::QuadraticProbe, false>::GrowAndRehash() /work/build/../../src/perfetto/include/perfetto/ext/base/flat_hash_map.h:279:5
+    #5 0x55887df2aaa9 in perfetto::base::FlatHashMap<perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo, std::__1::hash<perfetto::trace_processor::tables::TrackTable::DefinedId>, perfetto::base::QuadraticProbe, false>::Insert(perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo) /work/build/../../src/perfetto/include/perfetto/ext/base/flat_hash_map.h:124:7
+    #6 0x55887df272c9 in operator[] /work/build/../../src/perfetto/include/perfetto/ext/base/flat_hash_map.h:207:28
+    #7 0x55887df272c9 in perfetto::trace_processor::SliceTracker::StartSlice(long, perfetto::trace_processor::tables::TrackTable::DefinedId, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>, std::__1::function<perfetto::trace_processor::tables::SliceTable::DefinedId ()>) /work/build/../../src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:135:23
+    #8 0x55887df246d9 in perfetto::trace_processor::SliceTracker::Scoped(long, perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::StringPool::Id, perfetto::trace_processor::StringPool::Id, long, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>) /work/build/../../src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:81:10
+    #9 0x55887de1ef9f in perfetto::trace_processor::NinjaLogParser::NotifyEndOfFile() /work/build/../../src/perfetto/src/trace_processor/importers/ninja/ninja_log_parser.cc:184:26
+    #10 0x55887ded8ea5 in perfetto::trace_processor::TraceProcessorStorageImpl::NotifyEndOfFile() /work/build/../../src/perfetto/src/trace_processor/trace_processor_storage_impl.cc:118:26
+    #11 0x55887dc5b2ac in perfetto::trace_processor::FuzzTraceProcessor(unsigned char const*, unsigned long) /work/build/../../src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:33:14
+    #12 0x55887dc5b40f in LLVMFuzzerTestOneInput /work/build/../../src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:42:3
+    #13 0x55887dc1d3c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x55887dc08dc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x55887dc0e85f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x55887dc37f62 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f69ce22a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_posix_memalign--perfetto::base::AlignedAlloc(unsigned long, unsigned long)--AlignedAllocTyped<perfetto::trace_processor::SliceTracker::TrackInfo[]>
+SUMMARY: AddressSanitizer: heap-use-after-free /work/build/../../src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:361:32 in perfetto::trace_processor::SliceTracker::GetStackHash(std::__1::vector<perfetto::trace_processor::SliceTracker::SliceInfo, std::__1::allocator<perfetto::trace_processor::SliceTracker::SliceInfo>> const&)
+Shadow bytes around the buggy address:
+  0x7f69cc54b500: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x7f69cc54b580: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x7f69cc54b600: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x7f69cc54b680: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x7f69cc54b700: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+=>0x7f69cc54b780: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x7f69cc54b800: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x7f69cc54b880: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x7f69cc54b900: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x7f69cc54b980: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x7f69cc54ba00: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

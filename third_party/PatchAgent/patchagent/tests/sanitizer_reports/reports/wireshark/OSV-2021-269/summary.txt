@@ -1,0 +1,82 @@
+The sanitizer detected a stack use after return vulnerability. The explanation of the vulnerability is: A function accesses stack memory after returning, leading to use-after-free vulnerabilities. Here is the detail: 
+
+READ of size 6 at 0x7fecc3e86c60 thread T0
+    - MemcmpInterceptorCommon(void*, int (*)(void const*, void const*, unsigned long), void const*, void const*, unsigned long) /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc:814:7
+    - memcmp /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc:845:10
+    - sta_prop_equal_fn /src/wireshark/epan/dissectors/packet-ieee80211.c:137:11
+    - wmem_map_insert /src/wireshark/epan/wmem/wmem_map.c:202:13
+    - dissect_ieee80211_common /src/wireshark/epan/dissectors/packet-ieee80211.c:30059:11
+    - dissect_ieee80211 /src/wireshark/epan/dissectors/packet-ieee80211.c:30987:10
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - dissect_radiotap /src/wireshark/epan/dissectors/packet-ieee80211-radiotap.c:3765:2
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - dissect_tzsp /src/wireshark/epan/dissectors/packet-tzsp.c:0:0
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - dissector_try_uint /src/wireshark/epan/packet.c:1437:9
+    - decode_udp_ports /src/wireshark/epan/dissectors/packet-udp.c:705:7
+    - dissect /src/wireshark/epan/dissectors/packet-udp.c:1267:5
+    - dissect_udp /src/wireshark/epan/dissectors/packet-udp.c:1273:3
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_all_postdissectors /src/wireshark/epan/packet.c:3608:3
+    - dissect_frame /src/wireshark/epan/dissectors/packet-frame.c:901:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - dissect_record /src/wireshark/epan/packet.c:594:3
+    - epan_dissect_run /src/wireshark/epan/epan.c:585:2
+    - LLVMFuzzerTestOneInput /src/wireshark/fuzz/fuzzshark.c:381:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::Fuzzer::TryDetectingAMemoryLeak(unsigned char const*, unsigned long, bool) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:690:3
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:332:8
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7fecc3e86c60 is located in stack of thread T0 at offset 1120 in frame
+    - dissect_ieee80211_common /src/wireshark/epan/dissectors/packet-ieee80211.c:29047:0
+
+  This frame has 22 object(s):
+    [32, 80) 'association_sanity_check.i' (line 27152)
+    [112, 120) 'lcl_fixed_hdr.i' (line 27384)
+    [144, 168) 'ether_addr.i3540' (line 28401)
+    [208, 216) 'src_addr.i3533' (line 28438)
+    [240, 264) 'ether_addr.i3514' (line 28412)
+    [304, 328) 'ether_addr.i3248' (line 28401)
+    [368, 392) 'ether_addr.i' (line 28412)
+    [432, 440) 'src_addr.i' (line 28438)
+    [464, 488) 'ether_addr.i488.i' (line 28412)
+    [528, 552) 'ether_addr.i461.i' (line 28412)
+    [592, 616) 'ether_addr.i430.i' (line 28401)
+    [656, 680) 'ether_addr.i.i' (line 28412)
+    [720, 728) 'cw_item' (line 29055)
+    [752, 1008) 'out_buff' (line 29069)
+    [1072, 1076) 'iv_buff' (line 29071)
+    [1088, 1098) 'flag_str' (line 29075)
+    [1120, 1128) 'src_addr' (line 30053) <== Memory access at offset 1120 is inside this variable
+    [1152, 1156) 's1g_val' (line 30054)
+    [1168, 1188) 'key' (line 30317)
+    [1232, 1656) 'used_key' (line 30386)
+    [1728, 1736) 'key1355' (line 30449)
+    [1760, 1768) 'hdtbl_entry' (line 30893)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. Avoid returning addresses of local variables from functions, as stack memory is deallocated after return.
+2. If persistent storage is needed, use heap-allocated memory instead of local stack memory.
+3. Check the lifetime of variables to ensure they are not accessed after they go out of scope.

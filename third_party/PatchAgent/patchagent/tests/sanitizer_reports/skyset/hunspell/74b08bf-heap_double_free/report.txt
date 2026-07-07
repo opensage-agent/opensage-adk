@@ -1,0 +1,51 @@
+=================================================================
+==1441215==ERROR: AddressSanitizer: attempting double-free on 0x502000000030 in thread T0:
+    #0 0x7f423542150a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x5652479beeec in HashMgr::~HashMgr() /root/src/hunspell/hashmgr.cxx:131:5
+    #2 0x5652479056d0 in HunspellImpl::~HunspellImpl() /root/src/hunspell/hunspell.cxx:204:5
+    #3 0x5652479206fb in Hunspell::~Hunspell() /root/src/hunspell/hunspell.cxx:2030:3
+    #4 0x5652479043a4 in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:69:1
+    #5 0x5652478e93e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3e4) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #6 0x5652478d2516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x16516) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #7 0x5652478d7fca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bfca) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #8 0x565247902826 in main (/root/affdicfuzzer+0x46826) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #9 0x7f423502b1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x7f423502b28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x5652478cd0e4 in _start (/root/affdicfuzzer+0x110e4) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+
+0x502000000030 is located 0 bytes inside of 2-byte region [0x502000000030,0x502000000032)
+freed by thread T0 here:
+    #0 0x7f423542150a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x5652479bedfa in HashMgr::free_flag(unsigned short*, short) /root/src/hunspell/hashmgr.cxx:108:5
+    #2 0x5652479bec31 in HashMgr::free_table() /root/src/hunspell/hashmgr.cxx:119:7
+    #3 0x5652479bee68 in HashMgr::~HashMgr() /root/src/hunspell/hashmgr.cxx:128:3
+    #4 0x5652479056d0 in HunspellImpl::~HunspellImpl() /root/src/hunspell/hunspell.cxx:204:5
+    #5 0x5652479206fb in Hunspell::~Hunspell() /root/src/hunspell/hunspell.cxx:2030:3
+    #6 0x5652479043a4 in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:69:1
+    #7 0x5652478e93e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3e4) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #8 0x5652478d2516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x16516) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #9 0x5652478d7fca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bfca) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #10 0x565247902826 in main (/root/affdicfuzzer+0x46826) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #11 0x7f423502b1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7f423502b28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x5652478cd0e4 in _start (/root/affdicfuzzer+0x110e4) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+
+previously allocated by thread T0 here:
+    #0 0x7f42354217a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f4235f005bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+    #2 0x5652479c7a82 in HashMgr::parse_aliasf(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, FileMgr*) /root/src/hunspell/hashmgr.cxx:1091:33
+    #3 0x5652479bd24e in HashMgr::load_config(char const*, char const*) /root/src/hunspell/hashmgr.cxx:986:12
+    #4 0x5652479bbfd3 in HashMgr::HashMgr(char const*, char const*, char const*) /root/src/hunspell/hashmgr.cxx:93:3
+    #5 0x565247904e8e in HunspellImpl::HunspellImpl(char const*, char const*, char const*) /root/src/hunspell/hunspell.cxx:179:25
+    #6 0x565247920654 in Hunspell::Hunspell(char const*, char const*, char const*) /root/src/hunspell/hunspell.cxx:2026:16
+    #7 0x56524790419e in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:63:14
+    #8 0x5652478e93e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3e4) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #9 0x5652478d2516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x16516) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #10 0x5652478d7fca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bfca) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #11 0x565247902826 in main (/root/affdicfuzzer+0x46826) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+    #12 0x7f423502b1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7f423502b28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x5652478cd0e4 in _start (/root/affdicfuzzer+0x110e4) (BuildId: ee691638f2cc70447440a99cbab8e4866ae156bb)
+
+SUMMARY: AddressSanitizer: double-free /root/src/hunspell/hashmgr.cxx:131:5 in HashMgr::~HashMgr()
+==1441215==ABORTING

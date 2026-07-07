@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Callable, List, Optional, Set, TypeVar, Union
 
 from google.adk.agents.base_agent import BaseAgent
-from google.adk.tools.agent_tool import AgentTool
 
 from opensage.utils.project_info import SRC_PATH
 
@@ -61,15 +60,19 @@ def requires_sandbox(*sandbox_types: str) -> Callable[[F], F]:
     return decorator
 
 
-def collect_sandbox_dependencies(agent) -> set[str]:
-    """Collect sandbox dependencies from an agent and its tools."""
+def collect_sandbox_dependencies(agent, config=None) -> set[str]:
+    """Collect sandbox dependencies from an agent and its tools.
+
+    Args:
+        agent: The agent to collect dependencies from.
+        config: Optional OpenSageConfig. If provided and database-based
+            short-term memory is enabled, "neo4j" is added automatically.
+    """
     dependencies = set()
 
     if hasattr(agent, "tools") and agent.tools:
         for tool in agent.tools:
-            if isinstance(tool, AgentTool):
-                dependencies.update(collect_sandbox_dependencies(tool.agent))
-            elif hasattr(tool, "agent") and isinstance(tool.agent, BaseAgent):
+            if hasattr(tool, "agent") and isinstance(tool.agent, BaseAgent):
                 dependencies.update(collect_sandbox_dependencies(tool.agent))
 
             if hasattr(tool, "__sandbox_requirements__"):
@@ -79,6 +82,11 @@ def collect_sandbox_dependencies(agent) -> set[str]:
                 elif isinstance(deps, str):
                     dependencies.add(deps)
 
+    # OpenSageAgent sub-agents (our field, not ADK's sub_agents)
+    for sub_agent in getattr(agent, "_subagents", None) or []:
+        dependencies.update(collect_sandbox_dependencies(sub_agent))
+
+    # ADK's sub_agents field (for non-OpenSage ADK agents)
     if hasattr(agent, "sub_agents") and agent.sub_agents:
         for sub_agent in agent.sub_agents:
             dependencies.update(collect_sandbox_dependencies(sub_agent))
@@ -94,11 +102,6 @@ def collect_sandbox_dependencies(agent) -> set[str]:
     dependencies.update(skill_deps)
 
     dependencies.add("main")
-    from opensage.features import is_neo4j_logging_enabled
-
-    if is_neo4j_logging_enabled():
-        dependencies.add("neo4j")
-
     return dependencies
 
 

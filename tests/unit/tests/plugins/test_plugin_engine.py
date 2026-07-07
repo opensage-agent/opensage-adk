@@ -763,6 +763,7 @@ class TestRegexPatterns:
         }
         for stem in json_stems:
             assert stem in names
+        assert "runtime_budget_plugin" not in names
 
     def test_regex_suffix_pattern(self):
         from opensage.plugins import load_plugins

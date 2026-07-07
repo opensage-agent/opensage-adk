@@ -1,0 +1,28 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - tracked_add /src/php-src/Zend/zend_alloc.c:2798:2
+    - tracked_malloc /src/php-src/Zend/zend_alloc.c:2834:2
+    - zend_objects_new /src/php-src/Zend/zend_objects.c:187:24
+    - zend_default_exception_new /src/php-src/Zend/zend_exceptions.c:251:24
+    - _object_and_properties_init /src/php-src/Zend/zend_API.c:1760:3
+    - zend_throw_exception_zstr /src/php-src/Zend/zend_exceptions.c:818:2
+    - zend_throw_exception /src/php-src/Zend/zend_exceptions.c:838:20
+    - zend_throw_exception_ex /src/php-src/Zend/zend_exceptions.c:855:8
+    - php_date_initialize /src/php-src/ext/date/php_date.c:2410:3
+    - zim_DateTime___construct /src/php-src/ext/date/php_date.c:2588:2
+    - ZEND_DO_FCALL_SPEC_RETVAL_UNUSED_HANDLER /src/php-src/Zend/zend_vm_execute.h:0:0
+    - fuzzer_execute_ex /src/php-src/sapi/fuzzer/fuzzer-execute-common.h:57:14
+    - zend_execute /src/php-src/Zend/zend_vm_execute.h:61397:2
+    - fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:276:5
+    - LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-execute.c:27:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

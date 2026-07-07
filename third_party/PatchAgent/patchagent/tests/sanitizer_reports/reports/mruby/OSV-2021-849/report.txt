@@ -1,0 +1,64 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mruby:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/mruby/OSV-2021-849/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce mruby_fuzzer -runs=100.
++ FUZZER=mruby_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer mruby_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/mruby_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=mruby.dict -only_ascii=1 < /dev/null
+Dictionary: 102 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3441748830
+INFO: Loaded 1 modules   (19379 inline 8-bit counters): 19379 [0x559642a69978, 0x559642a6e52b), 
+INFO: Loaded 1 PC tables (19379 PCs): 19379 [0x559642a6e530,0x559642aba060), 
+/out/mruby_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: negative-size-param: (size=-337667)
+[1m[0mSCARINESS: 10 (negative-size-param)
+    #0 0x5596427a6256 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x5596429245d1 in mrb_str_format /src/mruby/mrbgems/mruby-sprintf/src/sprintf.c:841:9
+    #2 0x5596429279e8 in mrb_f_sprintf /src/mruby/mrbgems/mruby-sprintf/src/sprintf.c:566:12
+    #3 0x55964281f0fd in mrb_vm_exec /src/mruby/src/vm.c
+    #4 0x559642806b9b in mrb_vm_run /src/mruby/src/vm.c:1115:12
+    #5 0x559642887f76 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6867:7
+    #6 0x5596427e7b70 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #7 0x55964269c660 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5596426878d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55964268d36f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5596426b8612 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f61b6021082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #12 0x55964267fabd in _start (/out/mruby_fuzzer+0x140abd)
+
+DEDUP_TOKEN: __asan_memcpy--mrb_str_format--mrb_f_sprintf
+[1m[32m0x52f0000023f4 is located 8180 bytes inside of 49200-byte region [0x52f000000400,0x52f00000c430)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x5596427a881c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x5596427eae95 in mrb_realloc_simple /src/mruby/src/gc.c:229:8
+    #2 0x5596427eae95 in mrb_realloc /src/mruby/src/gc.c:243:8
+    #3 0x5596427eae95 in mrb_malloc /src/mruby/src/gc.c:259:10
+    #4 0x5596427eae95 in mrb_calloc /src/mruby/src/gc.c:277:9
+    #5 0x5596427eae95 in add_heap /src/mruby/src/gc.c:375:42
+    #6 0x5596427eac87 in mrb_gc_init /src/mruby/src/gc.c:409:3
+    #7 0x5596427e7dde in init_gc_and_core /src/mruby/src/state.c:29:3
+    #8 0x559642847944 in mrb_core_init_protect /src/mruby/src/error.c:570:5
+    #9 0x5596427e7fef in mrb_open_core /src/mruby/src/state.c:52:7
+    #10 0x5596427e7fef in mrb_open_allocf /src/mruby/src/state.c:91:20
+    #11 0x5596427e7fef in mrb_open /src/mruby/src/state.c:75:20
+    #12 0x5596427e7b62 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:13:22
+    #13 0x55964269c660 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x5596426878d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x55964268d36f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x5596426b8612 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f61b6021082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_realloc--mrb_realloc_simple--mrb_realloc
+SUMMARY: AddressSanitizer: negative-size-param /src/mruby/mrbgems/mruby-sprintf/src/sprintf.c:841:9 in mrb_str_format
+==18==ABORTING

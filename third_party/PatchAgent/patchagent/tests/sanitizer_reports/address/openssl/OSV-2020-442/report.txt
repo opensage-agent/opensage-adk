@@ -1,0 +1,82 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000008e9d at pc 0x56396f79d37b bp 0x7ffe23fa8330 sp 0x7ffe23fa7af8
+READ of size 14 at 0x502000008e9d thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x56396f79d37a in strlen /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:391:5
+    #1 0x56396f9031d6 in CRYPTO_strdup /src/openssl/crypto/o_str.c:21:25
+    #2 0x56396f9146c5 in X509V3_add_value /src/openssl/crypto/x509/v3_utl.c:46:28
+    #3 0x56396fc409a8 in i2v_GENERAL_NAME /src/openssl/crypto/x509/v3_alt.c:80:18
+    #4 0x56396fc3f6c6 in i2v_GENERAL_NAMES /src/openssl/crypto/x509/v3_alt.c:57:15
+    #5 0x56396f914049 in X509V3_EXT_print /src/openssl/crypto/x509/v3_prn.c:117:21
+    #6 0x56396f9144cc in X509V3_extensions_print /src/openssl/crypto/x509/v3_prn.c:164:14
+    #7 0x56396f912a2f in X509_print_ex /src/openssl/crypto/x509/t_x509.c:201:9
+    #8 0x56396f85e819 in FuzzerTestOneInput /src/openssl/fuzz/x509.c:37:9
+    #9 0x56396f87b480 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x56396f8666f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x56396f86c18f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x56396f897432 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f6a62c10082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #14 0x56396f785efd in _start (/out/x509+0x226efd)
+
+DEDUP_TOKEN: ___interceptor_strlen--CRYPTO_strdup--X509V3_add_value
+0x502000008e9d is located 0 bytes after 13-byte region [0x502000008e90,0x502000008e9d)
+allocated by thread T0 here:
+    #0 0x56396f81ef0f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x56396f94db60 in ASN1_STRING_set /src/openssl/crypto/asn1/asn1_lib.c:284:21
+    #2 0x56396f93a791 in c2i_ASN1_INTEGER /src/openssl/crypto/asn1/a_int.c:300:9
+    #3 0x56396f953e83 in asn1_ex_c2i /src/openssl/crypto/asn1/tasn_dec.c:835:14
+    #4 0x56396f953e83 in asn1_d2i_ex_primitive /src/openssl/crypto/asn1/tasn_dec.c:761:10
+    #5 0x56396f951eed in asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:181:16
+    #6 0x56396f955344 in asn1_template_noexp_d2i /src/openssl/crypto/asn1/tasn_dec.c:624:15
+    #7 0x56396f952fce in asn1_template_ex_d2i /src/openssl/crypto/asn1/tasn_dec.c:475:15
+    #8 0x56396f952656 in asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:363:19
+    #9 0x56396f95542a in asn1_template_noexp_d2i /src/openssl/crypto/asn1/tasn_dec.c:614:15
+    #10 0x56396f9522c4 in asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:240:19
+    #11 0x56396f9557f1 in asn1_template_noexp_d2i /src/openssl/crypto/asn1/tasn_dec.c:592:18
+    #12 0x56396f952840 in asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:178:20
+    #13 0x56396f95177e in ASN1_item_ex_d2i /src/openssl/crypto/asn1/tasn_dec.c:124:10
+    #14 0x56396f95177e in ASN1_item_d2i /src/openssl/crypto/asn1/tasn_dec.c:114:9
+    #15 0x56396f913ecd in X509V3_EXT_print /src/openssl/crypto/x509/v3_prn.c:89:19
+    #16 0x56396f9144cc in X509V3_extensions_print /src/openssl/crypto/x509/v3_prn.c:164:14
+    #17 0x56396f912a2f in X509_print_ex /src/openssl/crypto/x509/t_x509.c:201:9
+    #18 0x56396f85e819 in FuzzerTestOneInput /src/openssl/fuzz/x509.c:37:9
+    #19 0x56396f87b480 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x56396f8666f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x56396f86c18f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x56396f897432 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7f6a62c10082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ASN1_STRING_set--c2i_ASN1_INTEGER
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/openssl/crypto/o_str.c:21:25 in CRYPTO_strdup
+Shadow bytes around the buggy address:
+  0x502000008c00: fa fa 00 00 fa fa fd fd fa fa fd fa fa fa fd fa
+  0x502000008c80: fa fa fd fa fa fa fd fd fa fa fd fd fa fa fd fa
+  0x502000008d00: fa fa fd fd fa fa 00 00 fa fa 00 05 fa fa 00 00
+  0x502000008d80: fa fa 00 00 fa fa 00 00 fa fa 00 05 fa fa 00 00
+  0x502000008e00: fa fa 00 05 fa fa 00 00 fa fa 00 00 fa fa 00 00
+=>0x502000008e80: fa fa 00[05]fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000008f00: fa fa 00 00 fa fa 04 fa fa fa 00 05 fa fa 00 05
+  0x502000008f80: fa fa 04 fa fa fa 00 05 fa fa fa fa fa fa fa fa
+  0x502000009000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000009080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000009100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

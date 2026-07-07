@@ -1,0 +1,63 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x7f69cc54b7e0 thread T0
+    - size /usr/local/include/c++/v1/vector:595:41
+    - perfetto::trace_processor::SliceTracker::GetStackHash(std::__1::vector<perfetto::trace_processor::SliceTracker::SliceInfo, std::__1::allocator<perfetto::trace_processor::SliceTracker::SliceInfo>> const&) /src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:361:32
+    - perfetto::trace_processor::SliceTracker::StartSlice(long, perfetto::trace_processor::tables::TrackTable::DefinedId, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>, std::__1::function<perfetto::trace_processor::tables::SliceTable::DefinedId ()>) /src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:173:46
+    - perfetto::trace_processor::SliceTracker::Scoped(long, perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::StringPool::Id, perfetto::trace_processor::StringPool::Id, long, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>) /src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:81:10
+    - perfetto::trace_processor::NinjaLogParser::NotifyEndOfFile() /src/perfetto/src/trace_processor/importers/ninja/ninja_log_parser.cc:184:26
+    - perfetto::trace_processor::TraceProcessorStorageImpl::NotifyEndOfFile() /src/perfetto/src/trace_processor/trace_processor_storage_impl.cc:118:26
+    - perfetto::trace_processor::FuzzTraceProcessor(unsigned char const*, unsigned long) /src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:33:14
+    - LLVMFuzzerTestOneInput /src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:42:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x7f69cc54b7e0 is located 245728 bytes inside of 327680-byte region [0x7f69cc50f800,0x7f69cc55f800)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - operator() /src/perfetto/include/perfetto/ext/base/utils.h:147:42
+    - reset /usr/local/include/c++/v1/__memory/unique_ptr.h:445:7
+    - ~unique_ptr /usr/local/include/c++/v1/__memory/unique_ptr.h:406:71
+    - perfetto::base::FlatHashMap<perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo, std::__1::hash<perfetto::trace_processor::tables::TrackTable::DefinedId>, perfetto::base::QuadraticProbe, false>::GrowAndRehash() /src/perfetto/include/perfetto/ext/base/flat_hash_map.h:293:3
+    - perfetto::base::FlatHashMap<perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo, std::__1::hash<perfetto::trace_processor::tables::TrackTable::DefinedId>, perfetto::base::QuadraticProbe, false>::Insert(perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo) /src/perfetto/include/perfetto/ext/base/flat_hash_map.h:124:7
+    - operator[] /src/perfetto/include/perfetto/ext/base/flat_hash_map.h:207:28
+    - perfetto::trace_processor::SliceTracker::StackPush(perfetto::trace_processor::tables::TrackTable::DefinedId, unsigned int) /src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:381:3
+    - perfetto::trace_processor::SliceTracker::StartSlice(long, perfetto::trace_processor::tables::TrackTable::DefinedId, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>, std::__1::function<perfetto::trace_processor::tables::SliceTable::DefinedId ()>) /src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:167:3
+    - perfetto::trace_processor::SliceTracker::Scoped(long, perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::StringPool::Id, perfetto::trace_processor::StringPool::Id, long, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>) /src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:81:10
+    - perfetto::trace_processor::NinjaLogParser::NotifyEndOfFile() /src/perfetto/src/trace_processor/importers/ninja/ninja_log_parser.cc:184:26
+    - perfetto::trace_processor::TraceProcessorStorageImpl::NotifyEndOfFile() /src/perfetto/src/trace_processor/trace_processor_storage_impl.cc:118:26
+    - perfetto::trace_processor::FuzzTraceProcessor(unsigned char const*, unsigned long) /src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:33:14
+    - LLVMFuzzerTestOneInput /src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:42:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    - perfetto::base::AlignedAlloc(unsigned long, unsigned long) /src/perfetto/src/base/utils.cc:255:17
+    - AlignedAllocTyped<perfetto::trace_processor::SliceTracker::TrackInfo[]> /src/perfetto/include/perfetto/ext/base/utils.h:161:24
+    - perfetto::base::FlatHashMap<perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo, std::__1::hash<perfetto::trace_processor::tables::TrackTable::DefinedId>, perfetto::base::QuadraticProbe, false>::Reset(unsigned long) /src/perfetto/include/perfetto/ext/base/flat_hash_map.h:309:15
+    - perfetto::base::FlatHashMap<perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo, std::__1::hash<perfetto::trace_processor::tables::TrackTable::DefinedId>, perfetto::base::QuadraticProbe, false>::GrowAndRehash() /src/perfetto/include/perfetto/ext/base/flat_hash_map.h:279:5
+    - perfetto::base::FlatHashMap<perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo, std::__1::hash<perfetto::trace_processor::tables::TrackTable::DefinedId>, perfetto::base::QuadraticProbe, false>::Insert(perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::SliceTracker::TrackInfo) /src/perfetto/include/perfetto/ext/base/flat_hash_map.h:124:7
+    - operator[] /src/perfetto/include/perfetto/ext/base/flat_hash_map.h:207:28
+    - perfetto::trace_processor::SliceTracker::StartSlice(long, perfetto::trace_processor::tables::TrackTable::DefinedId, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>, std::__1::function<perfetto::trace_processor::tables::SliceTable::DefinedId ()>) /src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:135:23
+    - perfetto::trace_processor::SliceTracker::Scoped(long, perfetto::trace_processor::tables::TrackTable::DefinedId, perfetto::trace_processor::StringPool::Id, perfetto::trace_processor::StringPool::Id, long, std::__1::function<void (perfetto::trace_processor::ArgsTracker::BoundInserter*)>) /src/perfetto/src/trace_processor/importers/common/slice_tracker.cc:81:10
+    - perfetto::trace_processor::NinjaLogParser::NotifyEndOfFile() /src/perfetto/src/trace_processor/importers/ninja/ninja_log_parser.cc:184:26
+    - perfetto::trace_processor::TraceProcessorStorageImpl::NotifyEndOfFile() /src/perfetto/src/trace_processor/trace_processor_storage_impl.cc:118:26
+    - perfetto::trace_processor::FuzzTraceProcessor(unsigned char const*, unsigned long) /src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:33:14
+    - LLVMFuzzerTestOneInput /src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:42:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

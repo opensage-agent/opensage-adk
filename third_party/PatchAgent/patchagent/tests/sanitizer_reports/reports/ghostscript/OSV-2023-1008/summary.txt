@@ -1,0 +1,114 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+WRITE of size 8 at 0x52b00000e748 thread T0
+    - gx_image_enum_begin /src/ghostpdl/base/gxipixel.c:1082:16
+    - gx_begin_image1 /src/ghostpdl/base/gximage1.c:95:12
+    - clist_begin_typed_image /src/ghostpdl/base/gxclimag.c:968:16
+    - gs_image_begin_typed /src/ghostpdl/base/gsimage.c:275:12
+    - pdfi_render_image /src/ghostpdl/pdf/pdf_image.c:818:16
+    - pdfi_do_image /src/ghostpdl/pdf/pdf_image.c:2133:12
+    - pdfi_ID /src/ghostpdl/pdf/pdf_image.c:2219:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1525:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2124:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:128:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:150:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:1025:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:942:24
+    - do_call_operator /src/ghostpdl/psi/interp.c:91:12
+    - interp /src/ghostpdl/psi/interp.c:1768:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:531:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:488:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_tiffsep1_fuzzer.cc:24:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x52b00000e748 is located 1352 bytes inside of 24976-byte region [0x52b00000e200,0x52b000014390)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - alloc_free_clump /src/ghostpdl/base/gsalloc.c:2597:9
+    - i_free_object /src/ghostpdl/base/gsalloc.c:1542:17
+    - gx_image_enum_begin /src/ghostpdl/base/gxipixel.c:1080:5
+    - gx_begin_image1 /src/ghostpdl/base/gximage1.c:95:12
+    - clist_begin_typed_image /src/ghostpdl/base/gxclimag.c:968:16
+    - gs_image_begin_typed /src/ghostpdl/base/gsimage.c:275:12
+    - pdfi_render_image /src/ghostpdl/pdf/pdf_image.c:818:16
+    - pdfi_do_image /src/ghostpdl/pdf/pdf_image.c:2133:12
+    - pdfi_ID /src/ghostpdl/pdf/pdf_image.c:2219:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1525:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2124:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:128:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:150:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:1025:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:942:24
+    - do_call_operator /src/ghostpdl/psi/interp.c:91:12
+    - interp /src/ghostpdl/psi/interp.c:1768:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:531:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:488:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_tiffsep1_fuzzer.cc:24:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - gs_heap_alloc_bytes /src/ghostpdl/base/gsmalloc.c:192:34
+    - alloc_acquire_clump /src/ghostpdl/base/gsalloc.c:2446:13
+    - alloc_obj /src/ghostpdl/base/gsalloc.c:1911:13
+    - i_alloc_struct /src/ghostpdl/base/gsalloc.c:1217:15
+    - gx_image_enum_alloc /src/ghostpdl/base/gxipixel.c:179:13
+    - gx_begin_image1 /src/ghostpdl/base/gximage1.c:85:16
+    - clist_begin_typed_image /src/ghostpdl/base/gxclimag.c:968:16
+    - gs_image_begin_typed /src/ghostpdl/base/gsimage.c:275:12
+    - pdfi_render_image /src/ghostpdl/pdf/pdf_image.c:818:16
+    - pdfi_do_image /src/ghostpdl/pdf/pdf_image.c:2133:12
+    - pdfi_ID /src/ghostpdl/pdf/pdf_image.c:2219:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1525:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2124:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:128:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:150:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:1025:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:942:24
+    - do_call_operator /src/ghostpdl/psi/interp.c:91:12
+    - interp /src/ghostpdl/psi/interp.c:1768:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:531:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:488:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_tiffsep1_fuzzer.cc:24:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

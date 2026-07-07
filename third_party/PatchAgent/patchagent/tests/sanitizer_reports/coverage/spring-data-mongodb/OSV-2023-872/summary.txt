@@ -1,0 +1,21 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- org.springframework.expression.spel.ast.SpelNodeImpl.getValue (org/springframework/expression/spel/ast/SpelNodeImpl.java:114)
+- org.springframework.expression.spel.ast.InlineMap.getValueInternal (org/springframework/expression/spel/ast/InlineMap.java:136)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:95)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:93)
+Caused by: java.lang.StackOverflowError
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:73)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:93)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:93)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:93)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:93)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:93)
+	... 4 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

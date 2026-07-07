@@ -1,0 +1,53 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/htslib:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/htslib/OSV-2020-999/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce hts_open_fuzzer -runs=100.
++ FUZZER=hts_open_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer hts_open_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/hts_open_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 990419255
+INFO: Loaded 1 modules   (24479 inline 8-bit counters): 24479 [0x5628239b2fb8, 0x5628239b8f57), 
+INFO: Loaded 1 PC tables (24479 PCs): 24479 [0x5628239b8f58,0x562823a18948), 
+/out/hts_open_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+[W::vcf_parse] Contig '@SQ' is not defined in the header. (Quick workaround: index the file with tabix.)
+[W::vcf_parse] FILTER 'AF:dx##' is not defined in the header
+[W::vcf_parse] INFO 'L¯:S´Q' is not defined in the header, assuming Type=String
+[W::vcf_parse_format] FORMAT 'AN' is not defined in the header, assuming Type=String
+[W::vcf_parse_format] FORMAT 'Õ›*››AN' is not defined in the header, assuming Type=String
+[W::vcf_parse_format] FORMAT 'Õ›*›@SÑ' is not defined in the header, assuming Type=String
+==14== ERROR: libFuzzer: out-of-memory (malloc(4294967296))
+   To change the out-of-memory limit use -rss_limit_mb=<N>
+
+    #0 0x562823715ed1 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    #1 0x56282361ae68 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x5628235fd3b1 in fuzzer::Fuzzer::HandleMalloc(unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:131:3
+    #3 0x5628235fd2cb in fuzzer::MallocHook(void const volatile*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:100:6
+    #4 0x56282371d5c2 in __sanitizer::RunMallocHooks(void*, unsigned long) /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common.cpp:346:5
+    #5 0x5628236750be in __asan::Allocator::Allocate(unsigned long, unsigned long, __sanitizer::BufferedStackTrace*, __asan::AllocType, bool) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:658:5
+    #6 0x562823675539 in __asan::Allocator::Reallocate(void*, unsigned long, __sanitizer::BufferedStackTrace*) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:758:21
+    #7 0x562823675465 in __asan::asan_realloc(void*, unsigned long, __sanitizer::BufferedStackTrace*) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:1029:34
+    #8 0x56282370b92f in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:83:10
+    #9 0x562823803d7c in ks_resize /src/htslib/./htslib/kstring.h:163:16
+    #10 0x562823803d7c in vcf_parse_format /src/htslib/vcf.c:2342:9
+    #11 0x562823801a2c in vcf_parse /src/htslib/vcf.c:2822:20
+    #12 0x56282374aecd in view_vcf /src/htslib/test/fuzz/hts_open_fuzzer.c:107:12
+    #13 0x56282374aecd in LLVMFuzzerTestOneInput /src/htslib/test/fuzz/hts_open_fuzzer.c:144:13
+    #14 0x5628235ff710 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x5628235ea985 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x5628235f041f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x56282361b6c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7f600539c082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #19 0x5628235e2b6d in _start (/out/hts_open_fuzzer+0xeab6d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::HandleMalloc(unsigned long)
+SUMMARY: libFuzzer: out-of-memory

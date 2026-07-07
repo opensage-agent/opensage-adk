@@ -1,0 +1,65 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/swift-nio:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/swift-nio/OSV-2022-902/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce swift-nio-http1-fuzz-release -runs=100.
++ FUZZER=swift-nio-http1-fuzz-release
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer swift-nio-http1-fuzz-release -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/swift-nio-http1-fuzz-release -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=swift-nio-http1-fuzz-release.dict < /dev/null
+Dictionary: 141 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1393313662
+INFO: Loaded 1 modules   (102455 inline 8-bit counters): 102455 [0x55b2d6d50890, 0x55b2d6d698c7), 
+INFO: Loaded 1 PC tables (102455 PCs): 102455 [0x55b2d6d698c8,0x55b2d6ef9c38), 
+/out/swift-nio-http1-fuzz-release: Running 1 inputs 100 time(s) each.
+Running: /testcase
+NIOHTTP1/HTTPDecoder.swift:915: Fatal error: Unexpected http_method llhttp_method(rawValue: 45)
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: ILL on unknown address 0x55b2d660099f (pc 0x55b2d660099f bp 0x7fff23cb4ad0 sp 0x7fff23cb4a30 T0)
+[1m[0mSCARINESS: 10 (signal)
+    #0 0x55b2d660099f in Swift._assertionFailure(_: Swift.StaticString, _: Swift.String, file: Swift.StaticString, line: Swift.UInt, flags: Swift.UInt32) -> Swift.Never crtstuff.c
+    #1 0x55b2d63d6a16 in function signature specialization <Arg[1] = Dead> of static NIOHTTP1.HTTPMethod.from(httpParserMethod: __C.llhttp_method) -> NIOHTTP1.HTTPMethod /src/swift-nio/Sources/NIOHTTP1/HTTPDecoder.swift:915:13
+    #2 0x55b2d63c809f in static NIOHTTP1.HTTPMethod.from(httpParserMethod: __C.llhttp_method) -> NIOHTTP1.HTTPMethod /src/swift-nio/swift-nio-fuzz/<compiler-generated>
+    #3 0x55b2d63c809f in NIOHTTP1.HTTPDecoder.didFinishHead(versionMajor: Swift.Int, versionMinor: Swift.Int, isUpgrade: Swift.Bool, method: __C.llhttp_method, statusCode: Swift.Int, keepAliveState: NIOHTTP1.KeepAliveState) -> Swift.Bool /src/swift-nio/Sources/NIOHTTP1/HTTPDecoder.swift:625:62
+    #4 0x55b2d63cbdec in protocol witness for NIOHTTP1.(HTTPDecoderDelegate in _F43193CAFF0FA6BBC607ACDC4F85EA9D).didFinishHead(versionMajor: Swift.Int, versionMinor: Swift.Int, isUpgrade: Swift.Bool, method: __C.llhttp_method, statusCode: Swift.Int, keepAliveState: NIOHTTP1.KeepAliveState) -> Swift.Bool in conformance NIOHTTP1.HTTPDecoder<A, B> : NIOHTTP1.(HTTPDecoderDelegate in _F43193CAFF0FA6BBC607ACDC4F85EA9D) in NIOHTTP1 /src/swift-nio/swift-nio-fuzz/<compiler-generated>
+    #5 0x55b2d63c1704 in NIOHTTP1.(BetterHTTPParser in _F43193CAFF0FA6BBC607ACDC4F85EA9D).didReceiveHeadersCompleteNotification(versionMajor: Swift.Int, versionMinor: Swift.Int, statusCode: Swift.Int, isUpgrade: Swift.Bool, method: __C.llhttp_method, keepAliveState: NIOHTTP1.KeepAliveState) -> NIOHTTP1.(BetterHTTPParser in _F43193CAFF0FA6BBC607ACDC4F85EA9D).MessageContinuation /src/swift-nio/Sources/NIOHTTP1/HTTPDecoder.swift:324:37
+    #6 0x55b2d63bd356 in closure #9 (Swift.Optional<Swift.UnsafeMutablePointer<__C.llhttp__internal_s>>) -> Swift.Int32 in NIOHTTP1.(BetterHTTPParser in _F43193CAFF0FA6BBC607ACDC4F85EA9D).init(kind: NIOHTTP1.HTTPDecoderKind) -> NIOHTTP1.(BetterHTTPParser in _F43193CAFF0FA6BBC607ACDC4F85EA9D) /src/swift-nio/Sources/NIOHTTP1/HTTPDecoder.swift:99:27
+    #7 0x55b2d6150845 in llhttp__internal__run /src/swift-nio/Sources/CNIOLLHTTP/c_nio_llhttp.c:14251:13
+    #8 0x55b2d613fda0 in c_nio_llhttp__internal_execute /src/swift-nio/Sources/CNIOLLHTTP/c_nio_llhttp.c:16120:10
+    #9 0x55b2d63c2d77 in closure #1 (Swift.UnsafeMutablePointer<__C.llhttp__internal_s>) -> __C.llhttp_errno in NIOHTTP1.(BetterHTTPParser in _F43193CAFF0FA6BBC607ACDC4F85EA9D).feedInput(Swift.Optional<Swift.UnsafeRawBufferPointer>) throws -> Swift.Int /src/swift-nio/Sources/NIOHTTP1/HTTPDecoder.swift:387:22
+    #10 0x55b2d63c20a3 in generic specialization <__C.llhttp_errno> of NIOHTTP1.(BetterHTTPParser in _F43193CAFF0FA6BBC607ACDC4F85EA9D).withExclusiveHTTPParser<A>((Swift.UnsafeMutablePointer<__C.llhttp__internal_s>) -> A) -> A /src/swift-nio/Sources/NIOHTTP1/HTTPDecoder.swift:370:16
+    #11 0x55b2d63c20a3 in NIOHTTP1.(BetterHTTPParser in _F43193CAFF0FA6BBC607ACDC4F85EA9D).feedInput(Swift.Optional<Swift.UnsafeRawBufferPointer>) throws -> Swift.Int /src/swift-nio/Sources/NIOHTTP1/HTTPDecoder.swift:375:48
+    #12 0x55b2d63ca433 in closure #1 (Swift.UnsafeRawBufferPointer) throws -> Swift.Int in NIOHTTP1.HTTPDecoder.(feedInput in _F43193CAFF0FA6BBC607ACDC4F85EA9D)(context: NIOCore.ChannelHandlerContext, buffer: inout NIOCore.ByteBuffer) throws -> () /src/swift-nio/Sources/NIOHTTP1/HTTPDecoder.swift:709:29
+    #13 0x55b2d63ca433 in generic specialization <Swift.Int> of NIOCore.ByteBuffer.withUnsafeReadableBytes<A>((Swift.UnsafeRawBufferPointer) throws -> A) throws -> A /src/swift-nio/swift-nio-fuzz/<compiler-generated>
+    #14 0x55b2d63ca433 in NIOHTTP1.HTTPDecoder.(feedInput in _F43193CAFF0FA6BBC607ACDC4F85EA9D)(context: NIOCore.ChannelHandlerContext, buffer: inout NIOCore.ByteBuffer) throws -> () /src/swift-nio/Sources/NIOHTTP1/HTTPDecoder.swift:708:35
+    #15 0x55b2d63ca9b2 in NIOHTTP1.HTTPDecoder.decode(context: NIOCore.ChannelHandlerContext, buffer: inout NIOCore.ByteBuffer) throws -> NIOCore.DecodingState /src/swift-nio/Sources/NIOHTTP1/HTTPDecoder.swift:716:22
+    #16 0x55b2d63cb8e3 in protocol witness for NIOCore.ByteToMessageDecoder.decode(context: NIOCore.ChannelHandlerContext, buffer: inout NIOCore.ByteBuffer) throws -> NIOCore.DecodingState in conformance NIOHTTP1.HTTPDecoder<A, B> : NIOCore.ByteToMessageDecoder in NIOHTTP1 /src/swift-nio/swift-nio-fuzz/<compiler-generated>
+    #17 0x55b2d62846d7 in closure #1 (inout A, inout NIOCore.ByteBuffer) throws -> NIOCore.DecodingState in NIOCore.ByteToMessageHandler.(decodeLoop in _3B15959193A57E0C1E789632BC533F5E)(context: NIOCore.ChannelHandlerContext, decodeMode: NIOCore.ByteToMessageHandler<A>.(DecodeMode in _3B15959193A57E0C1E789632BC533F5E)) throws -> NIOCore.(B2MDBuffer in _3B15959193A57E0C1E789632BC533F5E).BufferProcessingResult /src/swift-nio/Sources/NIOCore/Codec.swift:582:49
+    #18 0x55b2d62830fc in NIOCore.ByteToMessageHandler.(withNextBuffer in _3B15959193A57E0C1E789632BC533F5E)(allowEmptyBuffer: Swift.Bool, _: (inout A, inout NIOCore.ByteBuffer) throws -> NIOCore.DecodingState) throws -> NIOCore.(B2MDBuffer in _3B15959193A57E0C1E789632BC533F5E).BufferProcessingResult /src/swift-nio/Sources/NIOCore/Codec.swift:539:36
+    #19 0x55b2d62830fc in NIOCore.ByteToMessageHandler.(decodeLoop in _3B15959193A57E0C1E789632BC533F5E)(context: NIOCore.ChannelHandlerContext, decodeMode: NIOCore.ByteToMessageHandler<A>.(DecodeMode in _3B15959193A57E0C1E789632BC533F5E)) throws -> NIOCore.(B2MDBuffer in _3B15959193A57E0C1E789632BC533F5E).BufferProcessingResult /src/swift-nio/Sources/NIOCore/Codec.swift:578:35
+    #20 0x55b2d6286891 in NIOCore.ByteToMessageHandler.channelRead(context: NIOCore.ChannelHandlerContext, data: NIOCore.NIOAny) -> () /src/swift-nio/Sources/NIOCore/Codec.swift:651:29
+    #21 0x55b2d6249ade in NIOCore.ChannelHandlerContext.(invokeChannelRead in _F5AC316541457BD146E3694279514AA3)(NIOCore.NIOAny) -> () /src/swift-nio/Sources/NIOCore/ChannelPipeline.swift:1702:28
+    #22 0x55b2d6245fce in NIOCore.ChannelPipeline.(fireChannelRead0 in _F5AC316541457BD146E3694279514AA3)(NIOCore.NIOAny) -> () /src/swift-nio/Sources/NIOCore/ChannelPipeline.swift:897:29
+    #23 0x55b2d6245fce in NIOCore.ChannelPipeline.fireChannelRead(NIOCore.NIOAny) -> () /src/swift-nio/Sources/NIOCore/ChannelPipeline.swift:655:13
+    #24 0x55b2d65e0248 in generic specialization <NIOCore.ByteBuffer> of NIOEmbedded.EmbeddedChannel.writeInbound<A>(A) throws -> NIOEmbedded.EmbeddedChannel.BufferState /src/swift-nio/swift-nio-fuzz/<compiler-generated>
+    #25 0x55b2d65dee41 in swift_nio_http1_fuzz.test(Swift.UnsafeRawPointer, Swift.Int) -> Swift.Int32 /src/swift-nio/swift-nio-fuzz/Sources/swift-nio-http1-fuzz/main.swift:12:21
+    #26 0x55b2d65de61f in LLVMFuzzerTestOneInput /src/swift-nio/swift-nio-fuzz/<compiler-generated>
+    #27 0x55b2d5fcb450 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /home/build-user/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:617:13
+    #28 0x55b2d5fbedc1 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /home/build-user/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:6
+    #29 0x55b2d5fc3e6d in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /home/build-user/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:9
+    #30 0x55b2d5fdedb2 in main /home/build-user/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #31 0x7f53e725f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #32 0x55b2d5fbb5ed in _start (/out/swift-nio-http1-fuzz-release+0x3f65ed)
+
+DEDUP_TOKEN: Swift._assertionFailure(_: Swift.StaticString, _: Swift.String, file: Swift.StaticString, line: Swift.UInt, flags: Swift.UInt32) -> Swift.Never--function signature specialization <Arg[1] = Dead> of static NIOHTTP1.HTTPMethod.from(httpParserMethod: __C.llhttp_method) -> NIOHTTP1.HTTPMethod--static NIOHTTP1.HTTPMethod.from(httpParserMethod: __C.llhttp_method) -> NIOHTTP1.HTTPMethod
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: ILL crtstuff.c in Swift._assertionFailure(_: Swift.StaticString, _: Swift.String, file: Swift.StaticString, line: Swift.UInt, flags: Swift.UInt32) -> Swift.Never
+==14==ABORTING

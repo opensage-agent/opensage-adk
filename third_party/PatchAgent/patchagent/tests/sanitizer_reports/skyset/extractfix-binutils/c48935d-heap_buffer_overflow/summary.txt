@@ -1,0 +1,33 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 8 at 0x50700000045f thread T0
+    - process_cu_tu_index /root/binutils/dwarf.c:9290:3
+    - load_cu_tu_indexes /root/binutils/dwarf.c:9411:8
+    - find_cu_tu_set /root/binutils/dwarf.c:9429:9
+    - display_debug_section /root/binutils/readelf.c:13721:25
+    - process_section_contents /root/binutils/readelf.c:13814:10
+    - process_object /root/binutils/readelf.c:18702:9
+    - process_file /root/binutils/readelf.c:19122:13
+    - main /root/binutils/readelf.c:19181:11
+
+0x50700000045f is located 0 bytes after 79-byte region [0x507000000410,0x50700000045f)
+allocated by thread T0 here:
+    - get_data /root/binutils/readelf.c:423:9
+    - load_specific_debug_section /root/binutils/readelf.c:13495:38
+    - load_debug_section /root/binutils/readelf.c:13648:10
+    - load_debug_section_with_follow /root/binutils/dwarf.c:2705:7
+    - load_cu_tu_indexes /root/binutils/dwarf.c:9410:11
+    - find_cu_tu_set /root/binutils/dwarf.c:9429:9
+    - display_debug_section /root/binutils/readelf.c:13721:25
+    - process_section_contents /root/binutils/readelf.c:13814:10
+    - process_object /root/binutils/readelf.c:18702:9
+    - process_file /root/binutils/readelf.c:19122:13
+    - main /root/binutils/readelf.c:19181:11
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

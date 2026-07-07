@@ -1,0 +1,45 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 2 at 0x51000000084a thread T0
+    - dwarf_dealloc /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:872:33
+    - _dwarf_fde_destructor /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:3014:9
+    - tdestroy_free_node /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:525:9
+    - _dwarf_tdestroy_inner /src/libdwarf/src/lib/libdwarf/dwarf_tsearchhash.c:672:17
+    - _dwarf_tdestroy /src/libdwarf/src/lib/libdwarf/dwarf_tsearchhash.c:705:5
+    - _dwarf_free_all_of_one_debug /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:1126:9
+    - LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_stack_frame_access.c:82:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x51000000084a is located 10 bytes inside of 184-byte region [0x510000000840,0x5100000008f8)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - _dwarf_tdestroy_inner /src/libdwarf/src/lib/libdwarf/dwarf_tsearchhash.c:672:17
+    - _dwarf_tdestroy /src/libdwarf/src/lib/libdwarf/dwarf_tsearchhash.c:705:5
+    - _dwarf_free_all_of_one_debug /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:1126:9
+    - LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_stack_frame_access.c:82:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - _dwarf_get_alloc /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:608:17
+    - _dwarf_create_cie_from_after_start /src/libdwarf/src/lib/libdwarf/dwarf_frame2.c:964:27
+    - dwarf_get_fde_for_die /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:1901:16
+    - LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_stack_frame_access.c:74:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

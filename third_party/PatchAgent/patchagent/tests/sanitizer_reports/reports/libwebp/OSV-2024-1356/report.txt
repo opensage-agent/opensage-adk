@@ -1,0 +1,141 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libwebp:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libwebp/OSV-2024-1356/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce mux_demux_api_fuzzer@MuxDemuxApi.MuxDemuxApiTest -runs=100.
++ FUZZER=mux_demux_api_fuzzer@MuxDemuxApi.MuxDemuxApiTest
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer mux_demux_api_fuzzer@MuxDemuxApi.MuxDemuxApiTest -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/mux_demux_api_fuzzer@MuxDemuxApi.MuxDemuxApiTest -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+[0;33mNote: Google Test filter = MuxDemuxApi.MuxDemuxApiTest
+[m[0;32m[==========] [mRunning 1 test from 1 test suite.
+[0;32m[----------] [mGlobal test environment set-up.
+[0;32m[----------] [m1 test from MuxDemuxApi
+[0;32m[ RUN      ] [mMuxDemuxApi.MuxDemuxApiTest
+FUZZTEST_PRNG_SEED=fMs06DXFCJdiPnBrk9EQVerlUhN9QxnjhXmMGfoQXCE
+INFO: found LLVMFuzzerCustomMutator (0x55b758806ff0). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1077061900
+INFO: Loaded 1 modules   (45365 inline 8-bit counters): 45365 [0x55b758d753c0, 0x55b758d804f5), 
+INFO: Loaded 1 PC tables (45365 PCs): 45365 [0x55b758d804f8,0x55b758e31848), 
+/out/mux_demux_api_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==17==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x503000000b34 at pc 0x55b7586ff552 bp 0x7fff00ecc9a0 sp 0x7fff00ecc160
+[1m[0m[1m[34mREAD of size 1 at 0x503000000b34 thread T0[1m[0m
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x55b7586ff551 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x55b75878a6bf in WebPDataCopy /src/libwebp/src/webp/./mux_types.h:89:5
+    #2 0x55b75878a6bf in ChunkAssignData /src/libwebp/src/mux/muxinternal.c:128:12
+    #3 0x55b75878e7fa in ChunkVerifyAndAssign /src/libwebp/src/mux/muxread.c:76:10
+    #4 0x55b75878e7fa in WebPMuxCreateInternal /src/libwebp/src/mux/muxread.c:245:9
+    #5 0x55b758740e5f in WebPMuxCreate(WebPData const*, int) /src/libwebp/src/webp/mux.h:142:10
+    #6 0x55b758740e5f in (anonymous namespace)::MuxDemuxApiTest(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool) /src/libwebp/tests/fuzzer/mux_demux_api_fuzzer.cc:39:20
+    #7 0x55b75877e9c5 in auto fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...)::operator()<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&, bool&>(auto&&...) const /src/libwebp/build/_deps/fuzztest-src/./fuzztest/internal/fixture_driver.h:294:11
+    #8 0x55b75877e9c5 in decltype(std::declval<fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...)>()(std::declval<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&>(), std::declval<bool&>())) std::__1::__invoke[abi:ne180100]<fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...), std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&, bool&>(fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...)&&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&, bool&) /usr/local/bin/../include/c++/v1/__type_traits/invoke.h:344:25
+    #9 0x55b75877e9c5 in decltype(auto) std::__1::__apply_tuple_impl[abi:ne180100]<fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...), std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>&, 0ul, 1ul>(fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...)&&, std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>&, std::__1::__tuple_indices<0ul, 1ul>) /usr/local/bin/../include/c++/v1/tuple:1424:5
+    #10 0x55b75877e9c5 in decltype(auto) std::__1::apply[abi:ne180100]<fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...), std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>&>(fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...)&&, std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>&) /usr/local/bin/../include/c++/v1/tuple:1428:5
+    #11 0x55b75877e9c5 in fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const /src/libwebp/build/_deps/fuzztest-src/./fuzztest/internal/fixture_driver.h:292:5
+    #12 0x55b7588a1f1d in fuzztest::internal::FuzzTestFuzzerImpl::RunOneInput(fuzztest::internal::FuzzTestFuzzerImpl::Input const&) /src/libwebp/build/_deps/fuzztest-src/fuzztest/internal/runtime.cc:927:20
+    #13 0x55b758808727 in fuzztest::internal::FuzzTestExternalEngineAdaptor::RunOneInputData(std::__1::basic_string_view<char, std::__1::char_traits<char>>) /src/libwebp/build/_deps/fuzztest-src/fuzztest/internal/compatibility_mode.cc:131:8
+    #14 0x55b75880a749 in fuzztest::internal::FuzzTestExternalEngineAdaptor::RunInFuzzingMode(int*, char***, fuzztest::internal::Configuration const&)::$_1::operator()(unsigned char const*, unsigned long) const /src/libwebp/build/_deps/fuzztest-src/fuzztest/internal/compatibility_mode.cc:93:34
+    #15 0x55b75880a749 in fuzztest::internal::FuzzTestExternalEngineAdaptor::RunInFuzzingMode(int*, char***, fuzztest::internal::Configuration const&)::$_1::__invoke(unsigned char const*, unsigned long) /src/libwebp/build/_deps/fuzztest-src/fuzztest/internal/compatibility_mode.cc:92:35
+    #16 0x55b758828950 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x55b758813bc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x55b75881965f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x55b758807e63 in fuzztest::internal::FuzzTestExternalEngineAdaptor::RunInFuzzingMode(int*, char***, fuzztest::internal::Configuration const&) /src/libwebp/build/_deps/fuzztest-src/fuzztest/internal/compatibility_mode.cc:92:3
+    #20 0x55b7587fcf24 in fuzztest::internal::GTest_TestAdaptor::TestBody() /src/libwebp/build/_deps/fuzztest-src/./fuzztest/internal/googletest_adaptor.h:83:7
+    #21 0x55b758a882de in void testing::internal::HandleSehExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2612:10
+    #22 0x55b758a882de in void testing::internal::HandleExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2648:14
+    #23 0x55b758a87eec in testing::Test::Run() /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2687:5
+    #24 0x55b758a8c192 in testing::TestInfo::Run() /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2836:11
+    #25 0x55b758a8f375 in testing::TestSuite::Run() /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:3015:30
+    #26 0x55b758ac62eb in testing::internal::UnitTestImpl::RunAllTests() /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:5920:44
+    #27 0x55b758ac4fce in bool testing::internal::HandleSehExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2612:10
+    #28 0x55b758ac4fce in bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2648:14
+    #29 0x55b758ac49df in testing::UnitTest::Run() /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:5484:10
+    #30 0x55b7587975a2 in RUN_ALL_TESTS() /src/libwebp/build/_deps/googletest-src/googletest/include/gtest/gtest.h:2317:73
+    #31 0x55b7587975a2 in main /src/libwebp/build/_deps/fuzztest-src/fuzztest/fuzztest_gtest_main.cc:28:10
+    #32 0x7f0222a79082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #33 0x55b75866864d in _start (/out/mux_demux_api_fuzzer+0x19364d)
+
+DEDUP_TOKEN: __asan_memcpy--WebPDataCopy--ChunkAssignData
+[1m[32m0x503000000b34 is located 0 bytes after 20-byte region [0x503000000b20,0x503000000b34)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55b75873ea2d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x55b75877f1bf in void* std::__1::__libcpp_operator_new[abi:ne180100]<unsigned long>(unsigned long) /usr/local/bin/../include/c++/v1/new:271:10
+    #2 0x55b75877f1bf in std::__1::__libcpp_allocate[abi:ne180100](unsigned long, unsigned long) /usr/local/bin/../include/c++/v1/new:295:10
+    #3 0x55b75877f1bf in std::__1::allocator<char>::allocate[abi:ne180100](unsigned long) /usr/local/bin/../include/c++/v1/__memory/allocator.h:125:32
+    #4 0x55b75877f1bf in std::__1::__allocation_result<std::__1::allocator_traits<std::__1::allocator<char>>::pointer> std::__1::__allocate_at_least[abi:ne180100]<std::__1::allocator<char>>(std::__1::allocator<char>&, unsigned long) /usr/local/bin/../include/c++/v1/__memory/allocate_at_least.h:55:19
+    #5 0x55b75877f1bf in std::__1::vector<char, std::__1::allocator<char>>::__vallocate[abi:ne180100](unsigned long) /usr/local/bin/../include/c++/v1/vector:741:25
+    #6 0x55b75877f1bf in void std::__1::vector<char, std::__1::allocator<char>>::__init_with_size[abi:ne180100]<std::__1::__wrap_iter<char*>, std::__1::__wrap_iter<char*>>(std::__1::__wrap_iter<char*>, std::__1::__wrap_iter<char*>, unsigned long) /usr/local/bin/../include/c++/v1/vector:759:7
+    #7 0x55b75877e978 in std::__1::vector<char, std::__1::allocator<char>>::vector<std::__1::__wrap_iter<char*>, 0>(std::__1::__wrap_iter<char*>, std::__1::__wrap_iter<char*>) /usr/local/bin/../include/c++/v1/vector:1177:3
+    #8 0x55b75877e978 in decltype(auto) fuzztest::internal::ForceVectorForStringView<std::__1::basic_string_view<char, std::__1::char_traits<char>>, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&&) /src/libwebp/build/_deps/fuzztest-src/./fuzztest/internal/fixture_driver.h:186:24
+    #9 0x55b75877e978 in auto fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...)::operator()<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&, bool&>(auto&&...) const /src/libwebp/build/_deps/fuzztest-src/./fuzztest/internal/fixture_driver.h:294:28
+    #10 0x55b75877e978 in decltype(std::declval<fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...)>()(std::declval<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&>(), std::declval<bool&>())) std::__1::__invoke[abi:ne180100]<fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...), std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&, bool&>(fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...)&&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&, bool&) /usr/local/bin/../include/c++/v1/__type_traits/invoke.h:344:25
+    #11 0x55b75877e978 in decltype(auto) std::__1::__apply_tuple_impl[abi:ne180100]<fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...), std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>&, 0ul, 1ul>(fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...)&&, std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>&, std::__1::__tuple_indices<0ul, 1ul>) /usr/local/bin/../include/c++/v1/tuple:1424:5
+    #12 0x55b75877e978 in decltype(auto) std::__1::apply[abi:ne180100]<fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...), std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>&>(fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const::'lambda'(auto&&...)&&, std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>&) /usr/local/bin/../include/c++/v1/tuple:1428:5
+    #13 0x55b75877e978 in fuzztest::internal::FixtureDriver<fuzztest::Domain<std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, bool>>, fuzztest::internal::NoFixture, void (*)(std::__1::basic_string_view<char, std::__1::char_traits<char>>, bool), void*>::Test(fuzztest::internal::MoveOnlyAny&&) const /src/libwebp/build/_deps/fuzztest-src/./fuzztest/internal/fixture_driver.h:292:5
+    #14 0x55b7588a1f1d in fuzztest::internal::FuzzTestFuzzerImpl::RunOneInput(fuzztest::internal::FuzzTestFuzzerImpl::Input const&) /src/libwebp/build/_deps/fuzztest-src/fuzztest/internal/runtime.cc:927:20
+    #15 0x55b758808727 in fuzztest::internal::FuzzTestExternalEngineAdaptor::RunOneInputData(std::__1::basic_string_view<char, std::__1::char_traits<char>>) /src/libwebp/build/_deps/fuzztest-src/fuzztest/internal/compatibility_mode.cc:131:8
+    #16 0x55b75880a749 in fuzztest::internal::FuzzTestExternalEngineAdaptor::RunInFuzzingMode(int*, char***, fuzztest::internal::Configuration const&)::$_1::operator()(unsigned char const*, unsigned long) const /src/libwebp/build/_deps/fuzztest-src/fuzztest/internal/compatibility_mode.cc:93:34
+    #17 0x55b75880a749 in fuzztest::internal::FuzzTestExternalEngineAdaptor::RunInFuzzingMode(int*, char***, fuzztest::internal::Configuration const&)::$_1::__invoke(unsigned char const*, unsigned long) /src/libwebp/build/_deps/fuzztest-src/fuzztest/internal/compatibility_mode.cc:92:35
+    #18 0x55b758828950 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #19 0x55b758813bc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #20 0x55b75881965f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #21 0x55b758807e63 in fuzztest::internal::FuzzTestExternalEngineAdaptor::RunInFuzzingMode(int*, char***, fuzztest::internal::Configuration const&) /src/libwebp/build/_deps/fuzztest-src/fuzztest/internal/compatibility_mode.cc:92:3
+    #22 0x55b7587fcf24 in fuzztest::internal::GTest_TestAdaptor::TestBody() /src/libwebp/build/_deps/fuzztest-src/./fuzztest/internal/googletest_adaptor.h:83:7
+    #23 0x55b758a882de in void testing::internal::HandleSehExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2612:10
+    #24 0x55b758a882de in void testing::internal::HandleExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2648:14
+    #25 0x55b758a87eec in testing::Test::Run() /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2687:5
+    #26 0x55b758a8c192 in testing::TestInfo::Run() /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2836:11
+    #27 0x55b758a8f375 in testing::TestSuite::Run() /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:3015:30
+    #28 0x55b758ac62eb in testing::internal::UnitTestImpl::RunAllTests() /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:5920:44
+    #29 0x55b758ac4fce in bool testing::internal::HandleSehExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2612:10
+    #30 0x55b758ac4fce in bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:2648:14
+    #31 0x55b758ac49df in testing::UnitTest::Run() /src/libwebp/build/_deps/googletest-src/googletest/src/gtest.cc:5484:10
+    #32 0x55b7587975a2 in RUN_ALL_TESTS() /src/libwebp/build/_deps/googletest-src/googletest/include/gtest/gtest.h:2317:73
+    #33 0x55b7587975a2 in main /src/libwebp/build/_deps/fuzztest-src/fuzztest/fuzztest_gtest_main.cc:28:10
+    #34 0x7f0222a79082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator new(unsigned long)--void* std::__1::__libcpp_operator_new[abi:ne180100]<unsigned long>(unsigned long)--std::__1::__libcpp_allocate[abi:ne180100](unsigned long, unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/libwebp/src/webp/./mux_types.h:89:5 in WebPDataCopy
+Shadow bytes around the buggy address:
+  0x503000000880: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x503000000900: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x503000000980: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x503000000a00: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m
+  0x503000000a80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x503000000b00: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m[[1m[0m04[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x503000000b80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x503000000c00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x503000000c80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x503000000d00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x503000000d80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==17==ABORTING

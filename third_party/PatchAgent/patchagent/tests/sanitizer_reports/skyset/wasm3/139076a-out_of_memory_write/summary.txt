@@ -1,0 +1,15 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a WRITE memory access.
+    - op_CopySlot_64 /root/source/m3_exec.h:998:11
+    - op_Entry /root/source/m3_exec.h:829:21
+    - m3_CallArgv /root/source/m3_env.c:1013:25
+    - repl_call /root/platforms/app/main.c:298:14
+    - main /root/platforms/app/main.c:639:26
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

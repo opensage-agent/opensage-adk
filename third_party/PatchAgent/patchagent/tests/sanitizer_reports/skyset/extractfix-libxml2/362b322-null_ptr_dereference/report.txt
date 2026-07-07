@@ -1,0 +1,23 @@
+=================================================================
+==782603==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x55b4e0b322f3 bp 0x7fff45710250 sp 0x7fff45710070 T0)
+==782603==The signal is caused by a READ memory access.
+==782603==Hint: address points to the zero page.
+    #0 0x55b4e0b322f3 in xmlDumpElementContent /root/valid.c:1181:29
+    #1 0x55b4e0b32209 in xmlDumpElementContent /root/valid.c:1177:3
+    #2 0x55b4e0b31f11 in xmlDumpElementDecl /root/valid.c:1708:6
+    #3 0x55b4e0e376bc in xmlBufDumpElementDecl /root/xmlsave.c:501:5
+    #4 0x55b4e0e39e70 in xmlNodeDumpOutputInternal /root/xmlsave.c:939:9
+    #5 0x55b4e0e46a79 in xmlNodeListDumpOutput /root/xmlsave.c:825:9
+    #6 0x55b4e0e4652a in xmlDtdDumpOutput /root/xmlsave.c:749:5
+    #7 0x55b4e0e39d0c in xmlNodeDumpOutputInternal /root/xmlsave.c:931:9
+    #8 0x55b4e0e3965d in xmlDocContentDumpOutput /root/xmlsave.c:1234:7
+    #9 0x55b4e0e384fe in xmlSaveDoc /root/xmlsave.c:1936:9
+    #10 0x55b4e09d5a37 in parseAndPrintFile /root/xmllint.c:2712:11
+    #11 0x55b4e09cfb80 in main /root/xmllint.c:3767:7
+    #12 0x7fc4e7e591c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #13 0x7fc4e7e5928a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #14 0x55b4e09c9834 in _start (/root/xmllint+0x6a834) (BuildId: 589ec2ba81cbd1b0cc254241c98df28eb6c3bad2)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/valid.c:1181:29 in xmlDumpElementContent
+==782603==ABORTING

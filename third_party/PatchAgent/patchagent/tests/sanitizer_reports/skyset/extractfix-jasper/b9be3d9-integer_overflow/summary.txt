@@ -1,0 +1,16 @@
+The sanitizer detected a undefined behavior vulnerability. The explanation of the vulnerability is: The program exhibits undefined behavior, leading to unpredictable results or crashes. Here is the detail: 
+
+runtime error: signed integer overflow: 210 * -2147483646 cannot be represented in type 'int'
+    - jpc_dec_process_siz /root/src/libjasper/jpc/jpc_dec.c:1234:33
+    - jpc_dec_decode /root/src/libjasper/jpc/jpc_dec.c:391:10
+    - jpc_decode /root/src/libjasper/jpc/jpc_dec.c:255:6
+    - jp2_decode /root/src/libjasper/jp2/jp2_dec.c:215:21
+    - jas_image_decode /root/src/libjasper/base/jas_image.c:395:16
+    - main /root/src/appl/imginfo.c:203:16
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior jpc_dec.c:1234:33 in 
+
+To fix this issue, follow the advice below:
+
+1. Review the code for undefined behavior patterns and correct them.
+2. Check for type mismatches, signed integer overflows, and other undefined behavior triggers.

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from opensage.config import ContainerConfig
+from opensage.sandbox.utils import SandboxCacheInfo
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,38 @@ class BaseSandbox(ABC):
     ) -> tuple[str, int]:
         """Run a command inside the container."""
         pass
+
+    async def arun_command_in_container(
+        self, command: str | list[str], timeout: int | None = None
+    ) -> tuple[str, int]:
+        """Async wrapper around run_command_in_container.
+
+        Runs the synchronous sandbox command in a thread so that concurrent
+        asyncio tasks (e.g. other agents) are not blocked.
+        """
+        return await asyncio.to_thread(self.run_command_in_container, command, timeout)
+
+    async def acopy_file_to_container(
+        self, local_path: str, container_path: str
+    ) -> None:
+        """Async wrapper around copy_file_to_container."""
+        return await asyncio.to_thread(
+            self.copy_file_to_container, local_path, container_path
+        )
+
+    async def acopy_file_from_container(self, src_path: str, dst_path: str) -> None:
+        """Async wrapper around copy_file_from_container."""
+        return await asyncio.to_thread(
+            self.copy_file_from_container, src_path, dst_path
+        )
+
+    async def aextract_file_from_container(self, filepath: str) -> str:
+        """Async wrapper around extract_file_from_container."""
+        return await asyncio.to_thread(self.extract_file_from_container, filepath)
+
+    async def aextract_file_from_container_bytes(self, filepath: str) -> bytes:
+        """Async wrapper around extract_file_from_container_bytes."""
+        return await asyncio.to_thread(self.extract_file_from_container_bytes, filepath)
 
     @abstractmethod
     def get_work_dir(self):
@@ -181,6 +214,50 @@ class BaseSandbox(ABC):
     ) -> None:
         """Delete shared volumes."""
         pass
+
+    @classmethod
+    def load_cache_manifest(cls, task_name: str, config) -> tuple[dict, Optional[str]]:
+        """Load backend-specific cache manifest.
+
+        Returns:
+            (manifest_dict, shared_volume_backup_path)
+        """
+        return {}, None
+
+    @classmethod
+    def resolve_sandbox_cache(
+        cls,
+        sandbox_type: str,
+        cached_image_name: str,
+        manifest: dict,
+    ) -> SandboxCacheInfo:
+        """Resolve cache for a single sandbox.
+
+        Args:
+            sandbox_type: The sandbox type key
+            cached_image_name: Expected cached image name
+            manifest: Manifest dict from load_cache_manifest
+
+        Returns:
+            SandboxCacheInfo with cache details, or found=False
+        """
+        return SandboxCacheInfo(found=False)
+
+    @classmethod
+    def prepare_attach_config(
+        cls,
+        container_config: ContainerConfig,
+        *,
+        container_id: Optional[str] = None,
+        pod_name: Optional[str] = None,
+        container_name: Optional[str] = None,
+    ) -> None:
+        """Inject backend-specific attach identifiers into container_config.
+
+        Raises:
+            ValueError: If the backend does not support attach or required args are missing.
+        """
+        raise ValueError("This backend does not support attach")
 
     @classmethod
     @abstractmethod

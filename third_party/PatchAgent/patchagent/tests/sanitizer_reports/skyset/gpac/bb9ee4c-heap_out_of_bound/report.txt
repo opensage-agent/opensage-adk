@@ -1,0 +1,84 @@
+=================================================================
+==639732==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000001199 at pc 0x7f563e0c3c08 bp 0x7ffef4a6a5e0 sp 0x7ffef4a69d70
+READ of size 10 at 0x502000001199 thread T0
+    #0 0x7f563e0c3c07  (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0x82c07) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f563e0c406a in vfprintf (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0x8306a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #2 0x7f563c3f62bb in gf_fprintf /root/src/utils/os_file.c:1598:9
+    #3 0x7f563ca34732 in cprt_box_dump /root/src/isomedia/box_dump.c:395:2
+    #4 0x7f563ca73b0e in gf_isom_box_dump /root/src/isomedia/box_funcs.c:2065:2
+    #5 0x7f563ca32627 in gf_isom_box_array_dump /root/src/isomedia/box_dump.c:101:3
+    #6 0x7f563ca38b14 in udta_box_dump /root/src/isomedia/box_dump.c:918:3
+    #7 0x7f563ca73b0e in gf_isom_box_dump /root/src/isomedia/box_funcs.c:2065:2
+    #8 0x7f563ca32627 in gf_isom_box_array_dump /root/src/isomedia/box_dump.c:101:3
+    #9 0x7f563ca74238 in gf_isom_box_dump_done /root/src/isomedia/box_funcs.c:2072:3
+    #10 0x7f563ca3363f in moov_box_dump /root/src/isomedia/box_dump.c:217:2
+    #11 0x7f563ca73b0e in gf_isom_box_dump /root/src/isomedia/box_funcs.c:2065:2
+    #12 0x7f563ca32b05 in gf_isom_dump /root/src/isomedia/box_dump.c:135:3
+    #13 0x56062ce26cd7 in dump_isom_xml /root/applications/mp4box/filedump.c:1949:6
+    #14 0x56062ce0390b in mp4boxMain /root/applications/mp4box/main.c:6171:7
+    #15 0x56062ce089c1 in main /root/applications/mp4box/main.c:6601:1
+    #16 0x7f563bf4d1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7f563bf4d28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x56062cde8c54 in _start (/root/bin/gcc/MP4Box+0x46c54) (BuildId: e8d3f5cff95472d6c79657b7f4d98516589c47de)
+
+0x502000001199 is located 0 bytes after 9-byte region [0x502000001190,0x502000001199)
+allocated by thread T0 here:
+    #0 0x7f563e1397a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f563c4168b4 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7f563c98f099 in cprt_box_read /root/src/isomedia/box_code_base.c:245:24
+    #3 0x7f563ca6faa6 in gf_isom_box_read /root/src/isomedia/box_funcs.c:1822:9
+    #4 0x7f563ca6e289 in gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:264:14
+    #5 0x7f563ca6ff8e in gf_isom_box_array_read_ex /root/src/isomedia/box_funcs.c:1719:7
+    #6 0x7f563ca6fdff in gf_isom_box_array_read /root/src/isomedia/box_funcs.c:379:9
+    #7 0x7f563c9dc14c in udta_box_read /root/src/isomedia/box_code_base.c:8026:13
+    #8 0x7f563ca6faa6 in gf_isom_box_read /root/src/isomedia/box_funcs.c:1822:9
+    #9 0x7f563ca6e289 in gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:264:14
+    #10 0x7f563ca6ff8e in gf_isom_box_array_read_ex /root/src/isomedia/box_funcs.c:1719:7
+    #11 0x7f563ca6fdff in gf_isom_box_array_read /root/src/isomedia/box_funcs.c:379:9
+    #12 0x7f563c9ab8fc in moov_box_read /root/src/isomedia/box_code_base.c:3733:9
+    #13 0x7f563ca6faa6 in gf_isom_box_read /root/src/isomedia/box_funcs.c:1822:9
+    #14 0x7f563ca6e289 in gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:264:14
+    #15 0x7f563ca6cdcf in gf_isom_parse_root_box /root/src/isomedia/box_funcs.c:38:8
+    #16 0x7f563ca94222 in gf_isom_parse_movie_boxes_internal /root/src/isomedia/isom_intern.c:321:7
+    #17 0x7f563ca93bc6 in gf_isom_parse_movie_boxes /root/src/isomedia/isom_intern.c:784:6
+    #18 0x7f563ca9a7e3 in gf_isom_open_file /root/src/isomedia/isom_intern.c:904:19
+    #19 0x7f563caa6893 in gf_isom_open /root/src/isomedia/isom_read.c:509:11
+    #20 0x56062ce02a5c in mp4boxMain /root/applications/mp4box/main.c:5984:12
+    #21 0x56062ce089c1 in main /root/applications/mp4box/main.c:6601:1
+    #22 0x7f563bf4d1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #23 0x7f563bf4d28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #24 0x56062cde8c54 in _start (/root/bin/gcc/MP4Box+0x46c54) (BuildId: e8d3f5cff95472d6c79657b7f4d98516589c47de)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/utils/os_file.c:1598:9 in gf_fprintf
+Shadow bytes around the buggy address:
+  0x502000000f00: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fd
+  0x502000000f80: fa fa 00 07 fa fa 07 fa fa fa fd fa fa fa 04 fa
+  0x502000001000: fa fa 00 02 fa fa fd fa fa fa 00 07 fa fa 00 00
+  0x502000001080: fa fa 00 00 fa fa 00 fa fa fa fd fa fa fa 00 00
+  0x502000001100: fa fa 06 fa fa fa fd fa fa fa 00 00 fa fa 00 00
+=>0x502000001180: fa fa 00[01]fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000001200: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fd
+  0x502000001280: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fd
+  0x502000001300: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fd
+  0x502000001380: fa fa 00 05 fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000001400: fa fa 00 fa fa fa 04 fa fa fa 00 00 fa fa 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==639732==ABORTING

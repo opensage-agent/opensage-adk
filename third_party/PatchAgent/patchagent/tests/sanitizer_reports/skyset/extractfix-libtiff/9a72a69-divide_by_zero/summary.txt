@@ -1,0 +1,14 @@
+The sanitizer detected a floating point exception vulnerability. The explanation of the vulnerability is: The program encountered a floating-point exception, such as division by zero or invalid arithmetic operation. Here is the detail: 
+
+    - OJPEGDecodeRaw /root/libtiff/tif_ojpeg.c:816:8
+    - OJPEGDecode /root/libtiff/tif_ojpeg.c:791:7
+    - TIFFReadScanline /root/libtiff/tif_read.c:304:7
+    - quant /root/tools/tiffmedian.c:771:7
+    - main /root/tools/tiffmedian.c:283:3
+
+
+To fix this issue, follow the advice below:
+
+1. Implement input validation to prevent division by zero and other arithmetic exceptions.
+2. Use exception handling mechanisms to gracefully handle floating-point exceptions.
+3. Check for invalid arithmetic operations that may lead to floating-point exceptions.

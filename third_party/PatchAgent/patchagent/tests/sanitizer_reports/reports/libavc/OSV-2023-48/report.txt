@@ -1,0 +1,50 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libavc:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libavc/OSV-2023-48/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce svc_enc_fuzzer -runs=100.
++ FUZZER=svc_enc_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer svc_enc_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/svc_enc_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1433995520
+INFO: Loaded 1 modules   (13149 inline 8-bit counters): 13149 [0x563c820d40c0, 0x563c820d741d), 
+INFO: Loaded 1 PC tables (13149 PCs): 13149 [0x563c820d7420,0x563c8210a9f0), 
+/out/svc_enc_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+svc_enc_fuzzer: /src/libavc/encoder/svc/isvce_cavlc.c:260: IH264E_ERROR_T isvce_write_coeff4x4_cavlc(WORD16 *, UWORD32, ENTROPY_BLK_TYPE, UWORD8 *, UWORD32, bitstrm_t *, UWORD32): Assertion `(u4_total_coeff <= u4_max_num_coeff)' failed.
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: ABRT on unknown address 0x00000000000e (pc 0x7fc527b3700b bp 0x7fc527cac588 sp 0x7ffd65a72cc0 T0)
+[1m[0mSCARINESS: 10 (signal)
+    #0 0x7fc527b3700b in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300b) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x7fc527b16858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #2 0x7fc527b16728  (/lib/x86_64-linux-gnu/libc.so.6+0x22728) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #3 0x7fc527b27fd5 in __assert_fail (/lib/x86_64-linux-gnu/libc.so.6+0x33fd5) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #4 0x563c81f3d2ce in isvce_write_coeff4x4_cavlc /src/libavc/encoder/svc/isvce_cavlc.c:260:5
+    #5 0x563c81f388ac in isvce_encode_residue /src/libavc/encoder/svc/isvce_cavlc.c:897:13
+    #6 0x563c81f3a24a in isvce_write_pslice_mb_cavlc /src/libavc/encoder/svc/isvce_cavlc.c:1587:20
+    #7 0x563c81e86baf in isvce_entropy /src/libavc/encoder/svc/isvce_process.c:903:13
+    #8 0x563c81e94c2d in isvce_process_thread /src/libavc/encoder/svc/isvce_process.c:2775:32
+    #9 0x563c81e761fb in isvce_encode /src/libavc/encoder/svc/isvce_encode.c:484:13
+    #10 0x563c81e5f474 in isvce_api_function /src/libavc/encoder/svc/isvce_api.c:6045:19
+    #11 0x563c81e5a362 in Codec::encodeFrames(unsigned char const*, unsigned long) /src/libavc/fuzzer/svc_enc_fuzzer.cpp:1263:9
+    #12 0x563c81e5b28f in LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_enc_fuzzer.cpp:1339:16
+    #13 0x563c81d04380 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x563c81cef5f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x563c81cf508f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x563c81d20332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7fc527b18082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #18 0x563c81ce77dd in _start (/out/svc_enc_fuzzer+0x997dd)
+
+DEDUP_TOKEN: raise--abort--
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: ABRT (/lib/x86_64-linux-gnu/libc.so.6+0x4300b) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) in raise
+==14==ABORTING

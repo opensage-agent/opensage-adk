@@ -1,0 +1,192 @@
++ FUZZER=MessageTrackerPeekReceivedFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer MessageTrackerPeekReceivedFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/MessageTrackerPeekReceivedFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 297 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented MessageTrackerPeekReceivedFuzzer (took 23 ms, size +12%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7fcd7de1ea00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2406211692
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55cbd5d5af40, 0x55cbd5d5b140), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55cbd5d1ceb0,0x55cbd5d1eeb0), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.slf4j.LoggerFactory (took 13 ms, size +15%)
+INFO: Instrumented org.slf4j.event.LoggingEvent (took 0 ms, size +12%)
+INFO: Instrumented org.slf4j.spi.SLF4JServiceProvider (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.helpers.SubstituteServiceProvider (took 1 ms, size +10%)
+INFO: Instrumented org.slf4j.ILoggerFactory (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.IMarkerFactory (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.spi.MDCAdapter (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.helpers.SubstituteLoggerFactory (took 1 ms, size +19%)
+INFO: Instrumented org.slf4j.Logger (took 2 ms, size +11%)
+INFO: Instrumented org.slf4j.helpers.BasicMarkerFactory (took 1 ms, size +45%)
+INFO: Instrumented org.slf4j.Marker (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.helpers.BasicMDCAdapter (took 2 ms, size +17%)
+INFO: Instrumented org.slf4j.helpers.BasicMDCAdapter$1 (took 1 ms, size +9%)
+INFO: Instrumented org.slf4j.helpers.ThreadLocalMapOfStacks (took 1 ms, size +28%)
+INFO: Instrumented org.slf4j.helpers.NOP_FallbackServiceProvider (took 1 ms, size +11%)
+INFO: Instrumented org.slf4j.helpers.NOPLoggerFactory (took 0 ms, size +17%)
+INFO: Instrumented org.slf4j.helpers.NOPMDCAdapter (took 1 ms, size +9%)
+INFO: Instrumented org.slf4j.helpers.Util (took 2 ms, size +32%)
+INFO: Instrumented ch.qos.logback.classic.spi.LogbackServiceProvider (took 1 ms, size +11%)
+INFO: Instrumented ch.qos.logback.core.joran.spi.JoranException (took 0 ms, size +16%)
+INFO: Instrumented ch.qos.logback.core.Context (took 0 ms, size +6%)
+INFO: Instrumented ch.qos.logback.core.spi.PropertyContainer (took 0 ms, size +0%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented ch.qos.logback.classic.LoggerContext (took 8 ms, size +13%)
+INFO: Instrumented ch.qos.logback.core.spi.LifeCycle (took 0 ms, size +0%)
+INFO: Instrumented ch.qos.logback.core.ContextBase (took 6 ms, size +18%)
+INFO: Instrumented ch.qos.logback.core.status.StatusManager (took 0 ms, size +0%)
+INFO: Instrumented ch.qos.logback.core.status.Status (took 0 ms, size +9%)
+INFO: Instrumented ch.qos.logback.core.BasicStatusManager (took 2 ms, size +14%)
+INFO: Instrumented ch.qos.logback.core.helpers.CyclicBuffer (took 2 ms, size +19%)
+INFO: Instrumented ch.qos.logback.core.spi.LogbackLock (took 0 ms, size +31%)
+INFO: Instrumented ch.qos.logback.classic.spi.TurboFilterList (took 0 ms, size +14%)
+INFO: Instrumented ch.qos.logback.classic.spi.LoggerContextVO (took 1 ms, size +37%)
+INFO: Instrumented ch.qos.logback.classic.Logger (took 15 ms, size +11%)
+INFO: Instrumented org.slf4j.spi.LocationAwareLogger (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.spi.LoggingEventAware (took 0 ms, size +0%)
+INFO: Instrumented ch.qos.logback.core.spi.AppenderAttachable (took 0 ms, size +0%)
+INFO: Instrumented org.slf4j.spi.LoggingEventBuilder (took 0 ms, size +0%)
+INFO: Instrumented ch.qos.logback.classic.spi.ILoggingEvent (took 0 ms, size +14%)
+INFO: Instrumented ch.qos.logback.core.spi.DeferredProcessingAware (took 0 ms, size +0%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented ch.qos.logback.classic.Level (took 3 ms, size +37%)
+INFO: Instrumented ch.qos.logback.classic.util.ContextInitializer (took 1 ms, size +13%)
+INFO: Instrumented ch.qos.logback.core.LogbackException (took 0 ms, size +16%)
+INFO: Instrumented ch.qos.logback.core.spi.ContextAware (took 0 ms, size +0%)
+INFO: Instrumented ch.qos.logback.classic.util.ContextInitializer$1 (took 0 ms, size +8%)
+INFO: Instrumented ch.qos.logback.core.spi.ContextAwareImpl (took 1 ms, size +12%)
+INFO: Instrumented ch.qos.logback.classic.spi.Configurator (took 0 ms, size +0%)
+INFO: Instrumented ch.qos.logback.core.util.Loader (took 1 ms, size +18%)
+INFO: Instrumented ch.qos.logback.core.util.OptionHelper (took 2 ms, size +26%)
+INFO: Instrumented ch.qos.logback.core.util.IncompatibleClassException (took 0 ms, size +13%)
+INFO: Instrumented ch.qos.logback.core.util.DynamicClassLoadingException (took 0 ms, size +17%)
+INFO: Instrumented ch.qos.logback.core.util.Loader$1 (took 0 ms, size +11%)
+INFO: Instrumented ch.qos.logback.core.util.EnvUtil (took 2 ms, size +30%)
+INFO: Instrumented ch.qos.logback.core.util.ReflectionUtil (took 0 ms, size +28%)
+INFO: Instrumented ch.qos.logback.core.status.InfoStatus (took 0 ms, size +8%)
+INFO: Instrumented ch.qos.logback.core.status.StatusBase (took 2 ms, size +26%)
+INFO: Instrumented ch.qos.logback.core.util.StatusListenerConfigHelper (took 1 ms, size +30%)
+INFO: Instrumented ch.qos.logback.core.status.StatusListener (took 0 ms, size +24%)
+INFO: Instrumented ch.qos.logback.classic.util.ClassicEnvUtil (took 0 ms, size +16%)
+INFO: Instrumented ch.qos.logback.classic.joran.SerializedModelConfigurator (took 1 ms, size +12%)
+INFO: Instrumented ch.qos.logback.core.spi.ContextAwareBase (took 1 ms, size +12%)
+INFO: Instrumented ch.qos.logback.classic.spi.Configurator$ExecutionStatus (took 0 ms, size +9%)
+INFO: Instrumented ch.qos.logback.classic.util.DefaultJoranConfigurator (took 1 ms, size +18%)
+INFO: Instrumented ch.qos.logback.classic.BasicConfigurator (took 0 ms, size +8%)
+INFO: Instrumented ch.qos.logback.core.Layout (took 0 ms, size +0%)
+INFO: Instrumented ch.qos.logback.core.encoder.Encoder (took 0 ms, size +0%)
+INFO: Instrumented ch.qos.logback.core.Appender (took 0 ms, size +0%)
+INFO: Instrumented ch.qos.logback.core.spi.FilterAttachable (took 0 ms, size +0%)
+INFO: Instrumented ch.qos.logback.core.ConsoleAppender (took 2 ms, size +23%)
+INFO: Instrumented ch.qos.logback.core.OutputStreamAppender (took 2 ms, size +12%)
+INFO: Instrumented ch.qos.logback.core.UnsynchronizedAppenderBase (took 1 ms, size +11%)
+INFO: Instrumented ch.qos.logback.core.spi.FilterAttachableImpl (took 0 ms, size +12%)
+INFO: Instrumented ch.qos.logback.core.util.COWArrayList (took 2 ms, size +9%)
+INFO: Instrumented ch.qos.logback.core.filter.Filter (took 0 ms, size +10%)
+INFO: Instrumented ch.qos.logback.core.joran.spi.ConsoleTarget (took 1 ms, size +31%)
+INFO: Instrumented ch.qos.logback.core.joran.spi.ConsoleTarget$1 (took 0 ms, size +11%)
+INFO: Instrumented ch.qos.logback.core.joran.spi.ConsoleTarget$2 (took 0 ms, size +11%)
+INFO: Instrumented ch.qos.logback.core.encoder.LayoutWrappingEncoder (took 1 ms, size +10%)
+INFO: Instrumented ch.qos.logback.core.encoder.EncoderBase (took 0 ms, size +12%)
+INFO: Instrumented ch.qos.logback.classic.layout.TTLLLayout (took 0 ms, size +16%)
+INFO: Instrumented ch.qos.logback.core.LayoutBase (took 1 ms, size +7%)
+INFO: Instrumented ch.qos.logback.core.util.CachingDateFormatter (took 0 ms, size +12%)
+INFO: Instrumented ch.qos.logback.core.util.CachingDateFormatter$CacheTuple (took 0 ms, size +15%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented ch.qos.logback.classic.pattern.ThrowableProxyConverter (took 2 ms, size +24%)
+INFO: Instrumented ch.qos.logback.classic.pattern.ThrowableHandlingConverter (took 0 ms, size +21%)
+INFO: Instrumented ch.qos.logback.classic.pattern.ClassicConverter (took 0 ms, size +20%)
+INFO: Instrumented ch.qos.logback.core.pattern.DynamicConverter (took 1 ms, size +10%)
+INFO: Instrumented ch.qos.logback.core.pattern.FormattingConverter (took 0 ms, size +17%)
+INFO: Instrumented ch.qos.logback.core.pattern.Converter (took 0 ms, size +8%)
+INFO: Instrumented ch.qos.logback.core.boolex.EvaluationException (took 0 ms, size +14%)
+INFO: Instrumented ch.qos.logback.core.spi.AppenderAttachableImpl (took 1 ms, size +29%)
+INFO: Instrumented ch.qos.logback.core.status.StatusUtil (took 3 ms, size +29%)
+INFO: Instrumented ch.qos.logback.core.util.StatusPrinter (took 2 ms, size +19%)
+INFO: Instrumented ch.qos.logback.classic.util.LogbackMDCAdapter (took 1 ms, size +17%)
+INFO: Instrumented ch.qos.logback.classic.util.LoggerNameUtil (took 0 ms, size +51%)
+INFO: Instrumented org.apache.zookeeper.server.util.MessageTracker (took 2 ms, size +30%)
+INFO: Instrumented org.apache.zookeeper.server.util.CircularBuffer (took 1 ms, size +17%)
+INFO: Instrumented org.apache.zookeeper.server.util.MessageTracker$BufferedMessage (took 0 ms, size +16%)
+INFO: Instrumented org.apache.zookeeper.server.util.MessageTracker$Direction (took 0 ms, size +9%)
+ALARM: working on the last Unit for 25 seconds
+       and the timeout value is 25 (use -timeout=N to change)
+==16== ERROR: libFuzzer: timeout after 25 seconds
+
+Stack traces of all JVM threads:
+Thread[Finalizer,8,system]
+	at java.base@17.0.14/java.lang.Object.wait(Native Method)
+	at java.base@17.0.14/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:155)
+	at java.base@17.0.14/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:176)
+	at java.base@17.0.14/java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:172)
+
+Thread[Notification Thread,9,system]
+
+Thread[main,5,main]
+	at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.dumpAllStackTraces(FuzzTargetRunner.java:534)
+
+Thread[Reference Handler,10,system]
+	at java.base@17.0.14/java.lang.ref.Reference.waitForReferencePendingList(Native Method)
+	at java.base@17.0.14/java.lang.ref.Reference.processPendingReferences(Reference.java:253)
+	at java.base@17.0.14/java.lang.ref.Reference$ReferenceHandler.run(Reference.java:215)
+
+Thread[Attach Listener,9,system]
+
+Thread[Signal Dispatcher,9,system]
+
+Thread[Common-Cleaner,8,InnocuousThreadGroup]
+	at java.base@17.0.14/java.lang.Object.wait(Native Method)
+	at java.base@17.0.14/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:155)
+	at java.base@17.0.14/jdk.internal.ref.CleanerImpl.run(CleanerImpl.java:140)
+	at java.base@17.0.14/java.lang.Thread.run(Thread.java:840)
+	at java.base@17.0.14/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:162)
+
+Thread[process reaper,10,system]
+	at java.base@17.0.14/jdk.internal.misc.Unsafe.park(Native Method)
+	at java.base@17.0.14/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+	at java.base@17.0.14/java.util.concurrent.SynchronousQueue$TransferStack.transfer(SynchronousQueue.java:401)
+	at java.base@17.0.14/java.util.concurrent.SynchronousQueue.poll(SynchronousQueue.java:903)
+	at java.base@17.0.14/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1061)
+	at java.base@17.0.14/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+	at java.base@17.0.14/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base@17.0.14/java.lang.Thread.run(Thread.java:840)
+
+Garbage collector stats:
+
+PS MarkSweep: 0 collections took 0ms
+PS Scavenge: 6 collections took 29ms
+
+SUMMARY: libFuzzer: timeout

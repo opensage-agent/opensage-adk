@@ -1,0 +1,17 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - Assimp::ComputeUVMappingProcess::Execute(aiScene*) /root/code/PostProcessing/ComputeUVMappingProcess.cpp:359:36
+    - Assimp::BaseProcess::ExecuteOnScene(Assimp::Importer*) /root/code/Common/BaseProcess.cpp:82:9
+    - Assimp::Importer::ApplyPostProcessing(unsigned int) /root/code/Common/Importer.cpp:841:22
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:751:13
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

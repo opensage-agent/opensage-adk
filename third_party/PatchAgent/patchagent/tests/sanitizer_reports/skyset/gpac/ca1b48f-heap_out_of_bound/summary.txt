@@ -1,0 +1,41 @@
+The sanitizer detected a function param overlap vulnerability. The explanation of the vulnerability is: The source and destination buffers of a memory copy operation overlap, causing data corruption. Here is the detail: 
+
+    - mpgviddmx_process /root/src/filters/reframe_mpgvid.c:959:7
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4831:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+0x52a000066200 is located 0 bytes inside of 20000-byte region [0x52a000066200,0x52a00006b020)
+allocated by thread T0 here:
+    - gf_realloc /root/src/utils/alloc.c:160:9
+    - mpgviddmx_process /root/src/filters/reframe_mpgvid.c:670:21
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4831:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+0x52a000066201 is located 1 bytes inside of 20000-byte region [0x52a000066200,0x52a00006b020)
+allocated by thread T0 here:
+    - gf_realloc /root/src/utils/alloc.c:160:9
+    - mpgviddmx_process /root/src/filters/reframe_mpgvid.c:670:21
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4831:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that the source and destination buffers do not overlap in memcpy operations.
+2. If overlapping memory regions must be copied, use memmove instead of memcpy.
+3. Validate memory regions before performing copy operations.

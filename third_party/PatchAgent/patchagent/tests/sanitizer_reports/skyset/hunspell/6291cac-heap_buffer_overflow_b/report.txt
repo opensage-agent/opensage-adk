@@ -1,0 +1,59 @@
+=================================================================
+==360186==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5060000601e1 at pc 0x5604e3494f7e bp 0x7ffcabe0be90 sp 0x7ffcabe0be88
+READ of size 1 at 0x5060000601e1 thread T0
+    #0 0x5604e3494f7d in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:1874:35
+    #1 0x5604e344b72b in SuggestMgr::checkword(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int*, long*) /root/src/hunspell/suggestmgr.cxx:1653:21
+    #2 0x5604e344b1b5 in SuggestMgr::testsug(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int*, long*) /root/src/hunspell/suggestmgr.cxx:173:17
+    #3 0x5604e3450fa4 in SuggestMgr::swapchar(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int) /root/src/hunspell/suggestmgr.cxx:913:5
+    #4 0x5604e344df06 in SuggestMgr::suggest(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*) /root/src/hunspell/suggestmgr.cxx:261:9
+    #5 0x5604e34263f3 in HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1063:22
+    #6 0x5604e3424263 in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:900:35
+    #7 0x5604e342a97a in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/src/hunspell/hunspell.cxx:991:10
+    #8 0x5604e3437374 in Hunspell::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/src/hunspell/hunspell.cxx:2079:18
+    #9 0x5604e3419204 in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:66:14
+    #10 0x5604e33fe3e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3e4) (BuildId: 5eacabf5e1af37359209bea4d2bc341e34bef2bd)
+    #11 0x5604e33e7516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x16516) (BuildId: 5eacabf5e1af37359209bea4d2bc341e34bef2bd)
+    #12 0x5604e33ecfca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bfca) (BuildId: 5eacabf5e1af37359209bea4d2bc341e34bef2bd)
+    #13 0x5604e3417826 in main (/root/affdicfuzzer+0x46826) (BuildId: 5eacabf5e1af37359209bea4d2bc341e34bef2bd)
+    #14 0x7faa73eca1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x7faa73eca28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x5604e33e20e4 in _start (/root/affdicfuzzer+0x110e4) (BuildId: 5eacabf5e1af37359209bea4d2bc341e34bef2bd)
+
+0x5060000601e1 is located 14 bytes after 51-byte region [0x5060000601a0,0x5060000601d3)
+allocated by thread T0 here:
+    #0 0x7faa742c07a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7faa74d9f5bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/hunspell/affixmgr.cxx:1874:35 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*)
+Shadow bytes around the buggy address:
+  0x50600005ff00: fd fd fd fd fd fd fd fa fa fa fa fa fd fd fd fd
+  0x50600005ff80: fd fd fd fa fa fa fa fa fd fd fd fd fd fd fd fa
+  0x506000060000: fa fa fa fa fd fd fd fd fd fd fd fa fa fa fa fa
+  0x506000060080: fd fd fd fd fd fd fd fa fa fa fa fa fd fd fd fd
+  0x506000060100: fd fd fd fa fa fa fa fa fd fd fd fd fd fd fd fa
+=>0x506000060180: fa fa fa fa 00 00 00 00 00 00 03 fa[fa]fa fa fa
+  0x506000060200: fd fd fd fd fd fd fd fa fa fa fa fa fd fd fd fd
+  0x506000060280: fd fd fd fd fa fa fa fa fd fd fd fd fd fd fd fd
+  0x506000060300: fa fa fa fa fd fd fd fd fd fd fd fd fa fa fa fa
+  0x506000060380: fd fd fd fd fd fd fd fd fa fa fa fa fd fd fd fd
+  0x506000060400: fd fd fd fd fa fa fa fa fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360186==ABORTING

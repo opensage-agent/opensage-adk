@@ -1,0 +1,142 @@
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+WARN: Jazzer is not compatible with LeakSanitizer. Leaks are not reported.
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 265 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented PersonInfoParserFuzzer (took 40 ms, size +66%)
+INFO: using inputs from: /tmp/corpus
+INFO: found LLVMFuzzerCustomMutator (0x7f21dc695a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1986813861
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x7f21dcc92800, 0x7f21dcc92a00), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x5250002d7900,0x5250002d9900), 
+INFO:        1 files found in /tmp/corpus
+INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 4096 bytes
+INFO: detected a native library load, enabling interception for libc functions
+INFO: Instrumented com.example.jni.PersonInfoParser (took 2 ms, size +29%)
+INFO: Instrumented com.example.jni.PersonInfo (took 1 ms, size +24%)
+INFO: seed corpus: files: 1 min: 75b max: 75b total: 75b rss: 1280Mb
+=================================================================
+==4776==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f22ceb090c0 at pc 0x7f22d3bdee90 bp 0x7f22cf790620 sp 0x7f22cf78fdd8
+WRITE of size 70 at 0x7f22ceb090c0 thread T1
+    #0 0x7f22d3bdee8f in strcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:556:5
+    #1 0x7f2236accd94 in person_info_parse_file /mnt/aigo/temp/code/fuzzing_target/integration-test/vuln.c:29:5
+    #2 0x7f2236acc755 in Java_com_example_jni_PersonInfoParser_parsePersonInfo /mnt/aigo/temp/code/fuzzing_target/integration-test/jni/person_info_jni.c:24:19
+    #3 0x7f22b800d4d9  (<unknown module>)
+
+Address 0x7f22ceb090c0 is located in stack of thread T1 at offset 64 in frame
+    #0 0x7f2236acc59f in Java_com_example_jni_PersonInfoParser_parsePersonInfo /mnt/aigo/temp/code/fuzzing_target/integration-test/jni/person_info_jni.c:12
+
+  This frame has 1 object(s):
+    [32, 64) 'person' (line 21) <== Memory access at offset 64 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+Thread T1 created by T0 here:
+    #0 0x7f22d3bdcc61 in pthread_create /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:250:3
+    #1 0x7f22d3acdab8 in CallJavaMainInNewThread (/usr/lib/jvm/java-17-openjdk-amd64/bin/../lib/libjli.so+0x8ab8)
+    #2 0x7f22d3acaa7c in ContinueInNewThread (/usr/lib/jvm/java-17-openjdk-amd64/bin/../lib/libjli.so+0x5a7c)
+    #3 0x7f22d3acc1d5 in JLI_Launch (/usr/lib/jvm/java-17-openjdk-amd64/bin/../lib/libjli.so+0x71d5)
+    #4 0x55707e25bb02 in main (/usr/lib/jvm/java-17-openjdk-amd64/bin/java+0xb02)
+    #5 0x7f22d38cc082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+SUMMARY: AddressSanitizer: stack-buffer-overflow /mnt/aigo/temp/code/fuzzing_target/integration-test/vuln.c:29:5 in person_info_parse_file
+Shadow bytes around the buggy address:
+  0x7f22ceb08e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f22ceb08e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f22ceb08f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f22ceb08f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f22ceb09000: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+=>0x7f22ceb09080: f1 f1 f1 f1 00 00 00 00[f3]f3 f3 f3 00 00 00 00
+  0x7f22ceb09100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f22ceb09180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f22ceb09200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f22ceb09280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f22ceb09300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==4776==ABORTING
+
+Stack traces of all JVM threads:
+Thread[Notification Thread,9,system]
+
+Thread[Attach Listener,9,system]
+
+Thread[Finalizer,8,system]
+	at java.base@17.0.2/java.lang.Object.wait(Native Method)
+	at java.base@17.0.2/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:155)
+	at java.base@17.0.2/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:176)
+	at java.base@17.0.2/java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:172)
+
+Thread[Reference Handler,10,system]
+	at java.base@17.0.2/java.lang.ref.Reference.waitForReferencePendingList(Native Method)
+	at java.base@17.0.2/java.lang.ref.Reference.processPendingReferences(Reference.java:253)
+	at java.base@17.0.2/java.lang.ref.Reference$ReferenceHandler.run(Reference.java:215)
+
+Thread[Signal Dispatcher,9,system]
+
+Thread[Common-Cleaner,8,InnocuousThreadGroup]
+	at java.base@17.0.2/java.lang.Object.wait(Native Method)
+	at java.base@17.0.2/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:155)
+	at java.base@17.0.2/jdk.internal.ref.CleanerImpl.run(CleanerImpl.java:140)
+	at java.base@17.0.2/java.lang.Thread.run(Thread.java:833)
+	at java.base@17.0.2/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:162)
+
+Thread[main,5,main]
+	at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.dumpAllStackTraces(FuzzTargetRunner.java:534)
+	at app//com.example.jni.PersonInfoParser.parsePersonInfo(Native Method)
+	at app//PersonInfoParserFuzzer.fuzzerTestOneInput(PersonInfoParserFuzzer.java:20)
+	at java.base@17.0.2/java.lang.invoke.LambdaForm$DMH/0x00007f21f249d400.invokeStatic(LambdaForm$DMH)
+	at java.base@17.0.2/java.lang.invoke.LambdaForm$MH/0x00007f21f2504c00.invoke(LambdaForm$MH)
+	at java.base@17.0.2/java.lang.invoke.LambdaForm$MH/0x00007f21f2504800.invoke_MT(LambdaForm$MH)
+	at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.runOne(FuzzTargetRunner.java:234)
+	at com.code_intelligence.jazzer.runtime.FuzzTargetRunnerNatives.startLibFuzzer(Native Method)
+	at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer(FuzzTargetRunner.java:551)
+	at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer(FuzzTargetRunner.java:441)
+	at app//com.code_intelligence.jazzer.driver.Driver.start(Driver.java:166)
+	at app//com.code_intelligence.jazzer.Jazzer.start(Jazzer.java:118)
+	at app//com.code_intelligence.jazzer.Jazzer.main(Jazzer.java:71)
+
+Garbage collector stats:
+
+PS MarkSweep: 0 collections took 0ms
+PS Scavenge: 4 collections took 29ms
+
+MS: 0 ; base unit: 0000000000000000000000000000000000000000
+0x6e,0x61,0x6d,0x65,0x3a,0x20,0x41,0x41,0x41,0x41,0x41,0x42,0x42,0x42,0x42,0x41,0x41,0x41,0x41,0x42,0x42,0x42,0x42,0x41,0x41,0x41,0x41,0x42,0x41,0x41,0x41,0x41,0x42,0x42,0x42,0x42,0x41,0x41,0x41,0x41,0x42,0x42,0x42,0x42,0x41,0x41,0x41,0x41,0x42,0x41,0x41,0x41,0x42,0x42,0x42,0x42,0x41,0x41,0x41,0x41,0x42,0x42,0x42,0x42,0x41,0x41,0x41,0x41,0x42,0x42,0x42,0x42,0x41,0x41,0xa,
+name: AAAAABBBBAAAABBBBAAAABAAAABBBBAAAABBBBAAAABAAABBBBAAAABBBBAAAABBBBAA\012
+artifact_prefix='./'; Test unit written to ./crash-3d4fa804aeee2354b0c264c10e31fe1523fb7a93
+Base64: bmFtZTogQUFBQUFCQkJCQUFBQUJCQkJBQUFBQkFBQUFCQkJCQUFBQUJCQkJBQUFBQkFBQUJCQkJBQUFBQkJCQkFBQUFCQkJCQUEK

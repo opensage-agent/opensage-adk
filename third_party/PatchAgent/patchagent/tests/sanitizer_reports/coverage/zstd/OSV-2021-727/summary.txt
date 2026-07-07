@@ -1,0 +1,25 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - ZSTD_compressBlock_lazy_extDict_generic /src/zstd/lib/compress/zstd_lazy.c:2106:32
+    - ZSTD_compressBlock_greedy_extDict_row /src/zstd/lib/compress/zstd_lazy.c:2163:12
+    - ZSTD_buildSeqStore /src/zstd/lib/compress/zstd_compress.c:2806:17
+    - ZSTD_compressBlock_targetCBlockSize /src/zstd/lib/compress/zstd_compress.c:3786:24
+    - ZSTD_compress_frameChunk /src/zstd/lib/compress/zstd_compress.c:3867:25
+    - ZSTD_compressContinue_internal /src/zstd/lib/compress/zstd_compress.c:4046:30
+    - ZSTD_compressContinue /src/zstd/lib/compress/zstd_compress.c:4070:12
+    - ZSTD_compressStream_generic /src/zstd/lib/compress/zstd_compress.c:5279:29
+    - ZSTD_compressStream2 /src/zstd/lib/compress/zstd_compress.c:5574:5
+    - compress /src/zstd/tests/fuzz/dictionary_stream_round_trip.c:93:25
+    - LLVMFuzzerTestOneInput /src/zstd/tests/fuzz/dictionary_stream_round_trip.c:181:30
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

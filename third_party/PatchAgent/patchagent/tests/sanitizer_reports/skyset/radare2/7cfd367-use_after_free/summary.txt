@@ -1,0 +1,52 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x504001aa9a30 thread T0
+    - r_io_bank_map_add_top /root/libr/io/io_bank.c:229:18
+    - r_io_map_add /root/libr/io/io_map.c:158:8
+    - add_section /root/libr/core/cbin.c:2681:16
+    - bin_sections /root/libr/core/cbin.c:3096:4
+    - r_core_bin_info /root/libr/core/cbin.c:4221:10
+    - r_core_bin_set_env /root/libr/core/cbin.c:340:3
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:439:6
+    - r_core_bin_load /root/libr/core/cfile.c:635:4
+    - r_main_radare2 /root/libr/main/radare2.c:1176:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+0x504001aa9a30 is located 32 bytes inside of 40-byte region [0x504001aa9a10,0x504001aa9a38)
+freed by thread T0 here:
+    - r_crbtree_take /root/libr/util/new_rbtree.c:359:3
+    - r_crbtree_delete /root/libr/util/new_rbtree.c:376:9
+    - r_io_bank_map_add_top /root/libr/io/io_bank.c:233:3
+    - r_io_map_add /root/libr/io/io_map.c:158:8
+    - add_section /root/libr/core/cbin.c:2681:16
+    - bin_sections /root/libr/core/cbin.c:3096:4
+    - r_core_bin_info /root/libr/core/cbin.c:4221:10
+    - r_core_bin_set_env /root/libr/core/cbin.c:340:3
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:439:6
+    - r_core_bin_load /root/libr/core/cfile.c:635:4
+    - r_main_radare2 /root/libr/main/radare2.c:1176:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+previously allocated by thread T0 here:
+    - _node_new /root/libr/util/new_rbtree.c:104:18
+    - r_crbtree_insert /root/libr/util/new_rbtree.c:161:8
+    - r_io_bank_map_add_top /root/libr/io/io_bank.c:175:8
+    - r_io_map_add /root/libr/io/io_map.c:158:8
+    - r_io_open_at /root/libr/io/io.c:90:2
+    - io_create_mem_map /root/libr/core/cbin.c:2629:10
+    - add_section /root/libr/core/cbin.c:2660:8
+    - bin_sections /root/libr/core/cbin.c:3096:4
+    - r_core_bin_info /root/libr/core/cbin.c:4221:10
+    - r_core_bin_set_env /root/libr/core/cbin.c:340:3
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:439:6
+    - r_core_bin_load /root/libr/core/cfile.c:635:4
+    - r_main_radare2 /root/libr/main/radare2.c:1176:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

@@ -1,0 +1,85 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/php:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/php/OSV-2021-1670/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce php-fuzz-parser -runs=100.
++ FUZZER=php-fuzz-parser
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer php-fuzz-parser -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/php-fuzz-parser -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=php-fuzz-parser.dict < /dev/null
+Dictionary: 85 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2079528616
+INFO: Loaded 1 modules   (139744 inline 8-bit counters): 139744 [0x55a2e271ecc0, 0x55a2e2740ea0), 
+INFO: Loaded 1 PC tables (139744 PCs): 139744 [0x55a2e2740ea0,0x55a2e2962ca0), 
+/out/php-fuzz-parser: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: dynamic-stack-buffer-overflow on address 0x7ffd173098a8 at pc 0x55a2e1ad6b3c bp 0x7ffd17309870 sp 0x7ffd17309868
+[1m[0m[1m[34mREAD of size 4 at 0x7ffd173098a8 thread T0[1m[0m
+SCARINESS: 32 (4-byte-read-dynamic-stack-buffer-overflow)
+    #0 0x55a2e1ad6b3b in zend_calc_live_ranges /src/php-src/Zend/zend_opcode.c:902:8
+    #1 0x55a2e1a598ad in zend_compile_func_decl /src/php-src/Zend/zend_compile.c:7202:2
+    #2 0x55a2e1a9bad7 in zend_compile_expr_inner /src/php-src/Zend/zend_compile.c:10123:4
+    #3 0x55a2e1a9c48b in zend_compile_expr /src/php-src/Zend/zend_compile.c:10140:2
+    #4 0x55a2e1a9c48b in zend_compile_assign /src/php-src/Zend/zend_compile.c:3133:4
+    #5 0x55a2e1a9b965 in zend_compile_expr_inner /src/php-src/Zend/zend_compile.c:10023:4
+    #6 0x55a2e1a9f14a in zend_compile_expr /src/php-src/Zend/zend_compile.c:10140:2
+    #7 0x55a2e1a9f14a in zend_compile_greater /src/php-src/Zend/zend_compile.c:8590:2
+    #8 0x55a2e1a9ba91 in zend_compile_expr_inner /src/php-src/Zend/zend_compile.c:10042:4
+    #9 0x55a2e1a7ced5 in zend_compile_expr /src/php-src/Zend/zend_compile.c:10140:2
+    #10 0x55a2e1a5e9a8 in zend_compile_stmt /src/php-src/Zend/zend_compile.c:9982:4
+    #11 0x55a2e1a547c8 in zend_compile_top_stmt /src/php-src/Zend/zend_compile.c:9868:3
+    #12 0x55a2e1a54659 in zend_compile_top_stmt /src/php-src/Zend/zend_compile.c:9854:4
+    #13 0x55a2e19f0899 in zend_compile /src/php-src/Zend/zend_language_scanner.l:619:3
+    #14 0x55a2e19f0340 in compile_file /src/php-src/Zend/zend_language_scanner.l:654:14
+    #15 0x55a2e1f309bc in fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:272:29
+    #16 0x55a2e1f2ff5e in LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-parser.c:35:2
+    #17 0x55a2e131ffe0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x55a2e130b255 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x55a2e1310cef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x55a2e133bf92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7fd2b5109082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #22 0x55a2e130343d in _start (/out/php-fuzz-parser+0x60243d)
+
+DEDUP_TOKEN: zend_calc_live_ranges--zend_compile_func_decl--zend_compile_expr_inner
+[1m[32mAddress 0x7ffd173098a8 is located in stack of thread T0[1m[0m
+SUMMARY: AddressSanitizer: dynamic-stack-buffer-overflow /src/php-src/Zend/zend_opcode.c:902:8 in zend_calc_live_ranges
+Shadow bytes around the buggy address:
+  0x7ffd17309600: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7ffd17309680: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7ffd17309700: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7ffd17309780: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7ffd17309800: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x7ffd17309880: [1m[34mca[1m[0m [1m[34mca[1m[0m [1m[34mca[1m[0m [1m[34mca[1m[0m [1m[0m00[1m[0m[[1m[34mcb[1m[0m][1m[34mcb[1m[0m [1m[34mcb[1m[0m [1m[34mcb[1m[0m [1m[34mcb[1m[0m [1m[34mcb[1m[0m [1m[34mcb[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7ffd17309900: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7ffd17309980: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7ffd17309a00: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7ffd17309a80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7ffd17309b00: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

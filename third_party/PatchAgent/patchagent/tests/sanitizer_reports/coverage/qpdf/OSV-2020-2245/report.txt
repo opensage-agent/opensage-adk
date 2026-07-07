@@ -1,0 +1,249 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/qpdf:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce qpdf_fuzzer -runs=100.
++ FUZZER=qpdf_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer qpdf_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/qpdf_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=pdf.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1169163553
+/out/qpdf_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+WARNING: fuzz input: can't find PDF header
+WARNING: fuzz input: file is damaged
+WARNING: fuzz input (offset 78063): xref not found
+WARNING: fuzz input: Attempting to reconstruct cross-reference table
+WARNING: fuzz input, object 22 0 at offset 34424 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning null for attempted key retrieval
+WARNING: fuzz input, object 22 0 at offset 34424 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning false for a key containment request
+WARNING: fuzz input, object 22 0 at offset 34424 -> dictionary key /Pages: operation for dictionary attempted on object of type null: returning null for attempted key retrieval
+WARNING: fuzz input (object 4 0, offset 36604): unknown token while reading object; treating as string
+WARNING: fuzz input (object 5 0, offset 4453): expected endstream
+WARNING: fuzz input (object 5 0, offset 3769): attempting to recover stream length
+WARNING: fuzz input (object 5 0, offset 3769): recovered stream length: 403
+WARNING: fuzz input (object 34 0, offset 35870): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 53 0, offset 14474): /Length key in stream dictionary is not an integer
+WARNING: fuzz input (object 53 0, offset 14526): attempting to recover stream length
+WARNING: fuzz input (object 53 0, offset 14526): recovered stream length: 69
+WARNING: fuzz input (object 73 0, offset 31090): unknown token while reading object; treating as string
+WARNING: fuzz input (object 73 0, offset 31050): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 73 0, offset 31050): expected dictionary key but found non-name object; inserting key /QPDFFake2
+WARNING: fuzz input (object 81 0, offset 32041): expected endobj
+WARNING: fuzz input (object 82 0, offset 17979): unknown token while reading object; treating as string
+WARNING: fuzz input (object 82 0, offset 17947): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 82 0, offset 18005): expected endobj
+WARNING: fuzz input (object 94 0, offset 33577): unexpected dictionary close token
+WARNING: fuzz input (object 94 0, offset 33581): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33594): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33745): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33758): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33806): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33814): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33818): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33857): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33862): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33865): unknown token while reading object; treating as string
+WARNING: fuzz input (object 94 0, offset 33865): too many errors; giving up on reading object
+WARNING: fuzz input (object 94 0, offset 33867): expected endobj
+WARNING: fuzz input (object 111 0, offset 23820): expected endstream
+WARNING: fuzz input (object 111 0, offset 23738): attempting to recover stream length
+WARNING: fuzz input (object 111 0, offset 23738): recovered stream length: 166
+WARNING: fuzz input (object 125 0, offset 11873): expected endstream
+WARNING: fuzz input (object 125 0, offset 11790): attempting to recover stream length
+WARNING: fuzz input (object 125 0, offset 11790): recovered stream length: 10
+WARNING: fuzz input (object 134 0, offset 25007): /Length key in stream dictionary is not an integer
+WARNING: fuzz input (object 134 0, offset 25141): attempting to recover stream length
+WARNING: fuzz input (object 134 0, offset 25141): recovered stream length: 84
+WARNING: fuzz input (object 141 0, offset 26019): expected endstream
+WARNING: fuzz input (object 141 0, offset 25935): attempting to recover stream length
+WARNING: fuzz input (object 141 0, offset 25935): recovered stream length: 94
+WARNING: fuzz input (object 146 0, offset 26598): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 158 0, offset 8218): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8349): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8362): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8519): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8532): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8563): invalid character (") in hexstring
+WARNING: fuzz input (object 158 0, offset 8570): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8720): unexpected >
+WARNING: fuzz input (object 158 0, offset 8538): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 158 0, offset 8538): expected dictionary key but found non-name object; inserting key /QPDFFake2
+WARNING: fuzz input (object 158 0, offset 8827): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8840): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 8992): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9005): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9155): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9168): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9339): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9352): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9542): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9555): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9667): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9675): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9679): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9687): unexpected >
+WARNING: fuzz input (object 158 0, offset 9688): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9741): unknown token while reading object; treating as string
+WARNING: fuzz input (object 158 0, offset 9741): too many errors; giving up on reading object
+WARNING: fuzz input (object 158 0, offset 9744): expected endobj
+WARNING: fuzz input (object 161 0, offset 8563): invalid character (") in hexstring
+WARNING: fuzz input (object 161 0, offset 8570): unknown token while reading object; treating as string
+WARNING: fuzz input (object 161 0, offset 8720): unexpected >
+WARNING: fuzz input (object 161 0, offset 8538): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 161 0, offset 8538): expected dictionary key but found non-name object; inserting key /QPDFFake2
+WARNING: fuzz input (object 167 0, offset 21524): unknown token while reading object; treating as string
+WARNING: fuzz input (object 167 0, offset 21548): treating unexpected array close token as null
+WARNING: fuzz input (object 167 0, offset 21384): expected dictionary key but found non-name object; inserting key /QPDFFake1
+WARNING: fuzz input (object 171 0, offset 34014): expected endobj
+WARNING: fuzz input (object 173 0, offset 7465): /Length key in stream dictionary is not an integer
+WARNING: fuzz input (object 173 0, offset 7539): attempting to recover stream length
+WARNING: fuzz input (object 173 0, offset 7539): recovered stream length: 144
+WARNING: fuzz input (offset 34684): error decoding stream data for object 23 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 34684): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 22947): error decoding stream data for object 104 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 22947): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 36470): error decoding stream data for object 2 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 36470): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 33175): error decoding stream data for object 90 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 33175): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 33814): error decoding stream data for object 169 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 33814): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 32913): error decoding stream data for object 88 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 32913): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 3769): error decoding stream data for object 5 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 3769): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 34323): error decoding stream data for object 20 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 34323): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 22688): error decoding stream data for object 102 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 22688): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 35045): error decoding stream data for object 26 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 35045): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 23214): error decoding stream data for object 106 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 23214): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 35406): error decoding stream data for object 29 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 35406): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 23474): error decoding stream data for object 108 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 23474): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 35768): error decoding stream data for object 32 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 35768): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 23738): error decoding stream data for object 110 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 23738): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 36068): error decoding stream data for object 35 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 36068): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 11971): error decoding stream data for object 112 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 11971): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 12716): error decoding stream data for object 38 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 12716): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 13078): error decoding stream data for object 41 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 13078): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 10732): error decoding stream data for object 116 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 10732): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 13440): error decoding stream data for object 44 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 13440): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 10997): error decoding stream data for object 118 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 10997): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 13802): error decoding stream data for object 47 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 13802): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 11261): error decoding stream data for object 120 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 11261): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 14164): error decoding stream data for object 50 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 14164): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 11526): error decoding stream data for object 122 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 11526): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 14526): error decoding stream data for object 53 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 14526): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 29062): error decoding stream data for object 56 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 29062): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 24085): error decoding stream data for object 126 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 24085): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 29424): error decoding stream data for object 59 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 29424): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 24349): error decoding stream data for object 128 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 24349): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 29786): error decoding stream data for object 62 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 29786): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 24613): error decoding stream data for object 130 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 24613): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 30148): error decoding stream data for object 65 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 30148): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 24876): error decoding stream data for object 132 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 24876): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 30510): error decoding stream data for object 68 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 30510): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 25141): error decoding stream data for object 134 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 25141): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 30872): error decoding stream data for object 71 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 30872): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 25406): error decoding stream data for object 136 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 25406): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 31233): error decoding stream data for object 74 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 31233): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 25671): error decoding stream data for object 138 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 25671): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 31595): error decoding stream data for object 77 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 31595): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 25935): error decoding stream data for object 140 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 25935): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 31957): error decoding stream data for object 80 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 31957): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 26200): error decoding stream data for object 142 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 26200): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 32319): error decoding stream data for object 83 0: stream inflate: inflate: data: unknown compression method
+WARNING: fuzz input (offset 32319): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 32681): error decoding stream data for object 86 0: stream inflate: inflate: data: incorrect header check
+WARNING: fuzz input (offset 32681): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 26736): error decoding stream data for object 146 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 26736): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input (offset 26958): error decoding stream data for object 149 0: character out of range during base 85 decode
+WARNING: fuzz input (offset 26958): stream will be re-processed without filtering to avoid data loss
+WARNING: fuzz input: can't find PDF header
+WARNING: fuzz input: file is damaged
+WARNING: fuzz input (offset 78063): xref not found
+WARNING: fuzz input: Attempting to reconstruct cross-reference table
+double free or corruption (out)
+==18== ERROR: libFuzzer: deadly signal
+    #0 0x55a78dfb1f64 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x55a78df30fb8 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x55a78df14353 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7f0e5134b41f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7f0e5114500a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7f0e51124858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7f0e5118f265  (/lib/x86_64-linux-gnu/libc.so.6+0x8d265) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7f0e511972fb  (/lib/x86_64-linux-gnu/libc.so.6+0x952fb) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x7f0e51198f9f  (/lib/x86_64-linux-gnu/libc.so.6+0x96f9f) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x55a78e18468b in std::underflow_error::~underflow_error() (/out/qpdf_fuzzer+0x2bc68b)
+    #10 0x55a78dfdfbe8 in destroy /usr/local/bin/../include/c++/v1/__memory/allocator.h:176:87
+    #11 0x55a78dfdfbe8 in destroy<QPDFExc, void> /usr/local/bin/../include/c++/v1/__memory/allocator_traits.h:311:9
+    #12 0x55a78dfdfbe8 in __base_destruct_at_end /usr/local/bin/../include/c++/v1/vector:926:7
+    #13 0x55a78dfdfbe8 in __clear /usr/local/bin/../include/c++/v1/vector:920:5
+    #14 0x55a78dfdfbe8 in std::__1::vector<QPDFExc, std::__1::allocator<QPDFExc>>::__destroy_vector::operator()[abi:ne180100]() /usr/local/bin/../include/c++/v1/vector:490:16
+    #15 0x55a78dfb92fe in ~vector /usr/local/bin/../include/c++/v1/vector:501:67
+    #16 0x55a78dfb92fe in QPDF::Members::~Members() /src/qpdf/libqpdf/QPDF.cc:159:1
+    #17 0x55a78dfe01db in ~Data /src/qpdf/include/qpdf/PointerHolder.hh:74:7
+    #18 0x55a78dfe01db in PointerHolder<QPDF::Members>::destroy() /src/qpdf/include/qpdf/PointerHolder.hh:178:3
+    #19 0x55a78dfb5858 in ~Data /src/qpdf/include/qpdf/PointerHolder.hh:74:7
+    #20 0x55a78dfb5858 in PointerHolder<QPDF>::destroy() /src/qpdf/include/qpdf/PointerHolder.hh:178:3
+    #21 0x55a78dfb38a2 in operator= /src/qpdf/include/qpdf/PointerHolder.hh:104:9
+    #22 0x55a78dfb38a2 in FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:92:7
+    #23 0x55a78dfb479c in doChecks /src/qpdf/fuzz/qpdf_fuzzer.cc:179:5
+    #24 0x55a78dfb479c in FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:195:9
+    #25 0x55a78dfb48cc in LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:210:7
+    #26 0x55a78df15860 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #27 0x55a78df00ad5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #28 0x55a78df0656f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #29 0x55a78df31812 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #30 0x7f0e51126082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #31 0x55a78def8cbd in _start (/out/qpdf_fuzzer+0x30cbd)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

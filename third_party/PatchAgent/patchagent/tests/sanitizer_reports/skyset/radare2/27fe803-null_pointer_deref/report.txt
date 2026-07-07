@@ -1,0 +1,21 @@
+=================================================================
+==360093==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7f94fce726f9 bp 0x7ffe4b0f2810 sp 0x7ffe4b0f2680 T0)
+==360093==The signal is caused by a READ memory access.
+==360093==Hint: address points to the zero page.
+    #0 0x7f94fce726f9 in symbols /root/libr/../libr/bin/p/bin_symbols.c:364:21
+    #1 0x7f94fcbcd505 in r_bin_object_set_items /root/libr/bin/bobj.c:324:17
+    #2 0x7f94fcbcc035 in r_bin_object_new /root/libr/bin/bobj.c:168:2
+    #3 0x7f94fcbc128c in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    #4 0x7f94fcb9bd75 in r_bin_open_buf /root/libr/bin/bin.c:279:8
+    #5 0x7f94fcb9ae9d in r_bin_open_io /root/libr/bin/bin.c:339:13
+    #6 0x7f94fd592a82 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    #7 0x7f94fd58dd35 in r_core_bin_load /root/libr/core/cfile.c:636:4
+    #8 0x7f94fabae45c in r_main_radare2 /root/libr/main/radare2.c:1179:15
+    #9 0x557927de767e in main /root/binr/radare2/radare2.c:96:9
+    #10 0x7f94fa9791c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f94fa97928a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x557927de61e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 8471b71fb3ea188563b536ce5d62eac3fc525d9b)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/libr/../libr/bin/p/bin_symbols.c:364:21 in symbols
+==360093==ABORTING

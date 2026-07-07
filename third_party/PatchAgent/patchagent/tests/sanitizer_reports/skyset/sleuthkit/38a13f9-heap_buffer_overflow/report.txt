@@ -1,0 +1,79 @@
+=================================================================
+==359993==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5140000005f7 at pc 0x7f1cbf8e4616 bp 0x7fff5174df00 sp 0x7fff5174d6c0
+READ of size 708 at 0x5140000005f7 thread T0
+    #0 0x7f1cbf8e4615 in __asan_memcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf6615) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55bbd42a2da5 in ext4_load_attrs_inline /root/tsk/fs/ext2fs.c:674:9
+    #2 0x55bbd4254ef3 in ext2fs_dinode_copy /root/tsk/fs/ext2fs.c:865:9
+    #3 0x55bbd4246962 in ext2fs_inode_walk /root/tsk/fs/ext2fs.c:1259:13
+    #4 0x55bbd41145f7 in tsk_fs_meta_walk /root/tsk/fs/fs_inode.c:214:12
+    #5 0x55bbd410e5fa in tsk_fs_dir_find_orphans /root/tsk/fs/fs_dir.c:1318:9
+    #6 0x55bbd42ae65c in ext2fs_dir_open_meta /root/tsk/fs/ext2fs_dent.c:298:16
+    #7 0x55bbd41096c9 in tsk_fs_dir_open_meta /root/tsk/fs/fs_dir.c:289:14
+    #8 0x55bbd410ac16 in tsk_fs_dir_walk_lcl /root/tsk/fs/fs_dir.c:625:19
+    #9 0x55bbd410cb8f in tsk_fs_dir_walk_lcl /root/tsk/fs/fs_dir.c:817:26
+    #10 0x55bbd410aace in tsk_fs_dir_walk /root/tsk/fs/fs_dir.c:930:14
+    #11 0x55bbd4105e29 in tsk_fs_fls /root/tsk/fs/fls_lib.c:262:12
+    #12 0x55bbd41058f9 in LLVMFuzzerTestOneInput /workspaces/nvwa/skyset/sleuthkit/sleuthkit_fls_fuzzer.cc:35:5
+    #13 0x55bbd40eaaa4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/sleuthkit_fls_ext_fuzzer+0x58aa4) (BuildId: 19567176a2bbc795462d91c563a89d15a4d8a793)
+    #14 0x55bbd40d3bd6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/sleuthkit_fls_ext_fuzzer+0x41bd6) (BuildId: 19567176a2bbc795462d91c563a89d15a4d8a793)
+    #15 0x55bbd40d968a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/sleuthkit_fls_ext_fuzzer+0x4768a) (BuildId: 19567176a2bbc795462d91c563a89d15a4d8a793)
+    #16 0x55bbd4103ee6 in main (/root/sleuthkit_fls_ext_fuzzer+0x71ee6) (BuildId: 19567176a2bbc795462d91c563a89d15a4d8a793)
+    #17 0x7f1cbf4d21c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x7f1cbf4d228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x55bbd40ce7a4 in _start (/root/sleuthkit_fls_ext_fuzzer+0x3c7a4) (BuildId: 19567176a2bbc795462d91c563a89d15a4d8a793)
+
+0x5140000005f7 is located 0 bytes after 439-byte region [0x514000000440,0x5140000005f7)
+allocated by thread T0 here:
+    #0 0x7f1cbf8e67a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55bbd4235e24 in tsk_malloc /root/tsk/base/mymalloc.c:32:16
+    #2 0x55bbd42456f1 in ext2fs_inode_walk /root/tsk/fs/ext2fs.c:1177:38
+    #3 0x55bbd41145f7 in tsk_fs_meta_walk /root/tsk/fs/fs_inode.c:214:12
+    #4 0x55bbd410e5fa in tsk_fs_dir_find_orphans /root/tsk/fs/fs_dir.c:1318:9
+    #5 0x55bbd42ae65c in ext2fs_dir_open_meta /root/tsk/fs/ext2fs_dent.c:298:16
+    #6 0x55bbd41096c9 in tsk_fs_dir_open_meta /root/tsk/fs/fs_dir.c:289:14
+    #7 0x55bbd410ac16 in tsk_fs_dir_walk_lcl /root/tsk/fs/fs_dir.c:625:19
+    #8 0x55bbd410cb8f in tsk_fs_dir_walk_lcl /root/tsk/fs/fs_dir.c:817:26
+    #9 0x55bbd410aace in tsk_fs_dir_walk /root/tsk/fs/fs_dir.c:930:14
+    #10 0x55bbd4105e29 in tsk_fs_fls /root/tsk/fs/fls_lib.c:262:12
+    #11 0x55bbd41058f9 in LLVMFuzzerTestOneInput /workspaces/nvwa/skyset/sleuthkit/sleuthkit_fls_fuzzer.cc:35:5
+    #12 0x55bbd40eaaa4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/sleuthkit_fls_ext_fuzzer+0x58aa4) (BuildId: 19567176a2bbc795462d91c563a89d15a4d8a793)
+    #13 0x55bbd40d3bd6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/sleuthkit_fls_ext_fuzzer+0x41bd6) (BuildId: 19567176a2bbc795462d91c563a89d15a4d8a793)
+    #14 0x55bbd40d968a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/sleuthkit_fls_ext_fuzzer+0x4768a) (BuildId: 19567176a2bbc795462d91c563a89d15a4d8a793)
+    #15 0x55bbd4103ee6 in main (/root/sleuthkit_fls_ext_fuzzer+0x71ee6) (BuildId: 19567176a2bbc795462d91c563a89d15a4d8a793)
+    #16 0x7f1cbf4d21c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7f1cbf4d228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x55bbd40ce7a4 in _start (/root/sleuthkit_fls_ext_fuzzer+0x3c7a4) (BuildId: 19567176a2bbc795462d91c563a89d15a4d8a793)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/tsk/fs/ext2fs.c:674:9 in ext4_load_attrs_inline
+Shadow bytes around the buggy address:
+  0x514000000300: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x514000000380: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fa
+  0x514000000400: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x514000000480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x514000000500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x514000000580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00[07]fa
+  0x514000000600: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x514000000680: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x514000000700: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x514000000780: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fa
+  0x514000000800: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359993==ABORTING

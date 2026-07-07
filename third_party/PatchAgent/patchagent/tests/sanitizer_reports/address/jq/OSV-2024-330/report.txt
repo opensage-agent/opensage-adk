@@ -1,0 +1,64 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f1f62b4fdf0 at pc 0x564a9ee928d8 bp 0x7ffe2f465690 sp 0x7ffe2f465688
+WRITE of size 2 at 0x7f1f62b4fdf0 thread T0
+SCARINESS: 48 (2-byte-write-stack-buffer-overflow)
+    #0 0x564a9ee928d7 in decNumberCopy /src/jq/src/decNumber/decNumber.c:3375:45
+    #1 0x564a9ee928d7 in decNaNs /src/jq/src/decNumber/decNumber.c:7706:33
+    #2 0x564a9ee84128 in decCompareOp /src/jq/src/decNumber/decNumber.c:6085:7
+    #3 0x564a9ee83db2 in decNumberCompare /src/jq/src/decNumber/decNumber.c:858:3
+    #4 0x564a9ee47030 in jvp_number_cmp /src/jq/src/jv.c:748:5
+    #5 0x564a9ee4957e in jvp_number_equal /src/jq/src/jv.c:773:10
+    #6 0x564a9ee4957e in jv_equal /src/jq/src/jv.c:1922:11
+    #7 0x564a9ee4913f in jv_array_indexes /src/jq/src/jv.c:1031:12
+    #8 0x564a9ee52ea8 in jv_get /src/jq/src/jv_aux.c:128:9
+    #9 0x564a9ee3cb47 in jq_next /src/jq/src/execute.c:697:14
+    #10 0x564a9ee31fae in LLVMFuzzerTestOneInput /src/jq/./tests/jq_fuzz_fixed.cpp:283:23
+    #11 0x564a9ece6740 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x564a9ecd19b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x564a9ecd744f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x564a9ed026f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f1f63316082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #16 0x564a9ecc9b9d in _start (/out/jq_fuzz_fixed+0xddb9d)
+
+DEDUP_TOKEN: decNumberCopy--decNaNs--decCompareOp
+Address 0x7f1f62b4fdf0 is located in stack of thread T0 at offset 48 in frame
+    #0 0x564a9ee46e9f in jvp_number_cmp /src/jq/src/jv.c:737
+
+DEDUP_TOKEN: jvp_number_cmp
+  This frame has 1 object(s):
+    [32, 48) 'res' (line 743) <== Memory access at offset 48 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/jq/src/decNumber/decNumber.c:3375:45 in decNumberCopy
+Shadow bytes around the buggy address:
+  0x7f1f62b4fb00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f1f62b4fb80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f1f62b4fc00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f1f62b4fc80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f1f62b4fd00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+=>0x7f1f62b4fd80: f5 f5 f5 f5 f5 f5 f5 f5 f1 f1 f1 f1 00 00[f3]f3
+  0x7f1f62b4fe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f1f62b4fe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f1f62b4ff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f1f62b4ff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f1f62b50000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

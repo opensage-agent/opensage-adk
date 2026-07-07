@@ -1,0 +1,44 @@
+The sanitizer detected a bad free vulnerability. The explanation of the vulnerability is: A program attempts to free a memory block that was not dynamically allocated, causing undefined behavior or crashes. Here is the detail: 
+
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - sig_destroyed /src/irssi/src/irc/core/irc-servers.c:459:2
+    - signal_emit_real /src/irssi/src/core/signals.c:242:3
+    - signal_emit /src/irssi/src/core/signals.c:286:3
+    - server_unref /src/irssi/src/core/servers.c:523:3
+    - LLVMFuzzerTestOneInput /src/irssi/src/fe-fuzz/server.c:192:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x519000000ce0 is located 224 bytes inside of 496-byte region [0x519000000c00,0x519000000df0)
+allocated by thread T0 here:
+    - posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    - allocator_memalign /src/irssi/subprojects/glib-2.58.3/glib/gslice.c:1409:9
+    - allocator_add_slab /src/irssi/subprojects/glib-2.58.3/glib/gslice.c:1283:20
+    - slab_allocator_alloc_chunk /src/irssi/subprojects/glib-2.58.3/glib/gslice.c:1329:5
+    - magazine_cache_pop_magazine /src/irssi/subprojects/glib-2.58.3/glib/gslice.c:730:25
+    - thread_memory_magazine1_reload /src/irssi/subprojects/glib-2.58.3/glib/gslice.c:800:17
+    - g_slice_alloc /src/irssi/subprojects/glib-2.58.3/glib/gslice.c:1013:13
+    - g_string_sized_new /src/irssi/subprojects/glib-2.58.3/glib/gstring.c:121:21
+    - g_string_new /src/irssi/subprojects/glib-2.58.3/glib/gstring.c:148:14
+    - g_scanner_get_token_ll /src/irssi/subprojects/glib-2.58.3/glib/gscanner.c:2148:15
+    - g_scanner_get_token_i /src/irssi/subprojects/glib-2.58.3/glib/gscanner.c:1660:7
+    - g_scanner_peek_next_token /src/irssi/subprojects/glib-2.58.3/glib/gscanner.c:956:7
+    - config_parse_peek_token /src/irssi/src/lib-config/parse.c:100:3
+    - config_parse_loop /src/irssi/src/lib-config/parse.c:219:3
+    - config_parse_data /src/irssi/src/lib-config/parse.c:295:2
+    - parse_configfile /src/irssi/src/core/settings.c:751:3
+    - init_configfile /src/irssi/src/core/settings.c:775:15
+    - settings_init /src/irssi/src/core/settings.c:882:2
+    - core_init /src/irssi/src/core/core.c:241:2
+    - LLVMFuzzerInitialize /src/irssi/src/fe-fuzz/server.c:155:2
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:650:5
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that only dynamically allocated memory is freed.
+2. Avoid freeing memory that was not allocated using malloc or similar functions.
+3. Verify pointer values before attempting to free them.

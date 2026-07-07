@@ -1,0 +1,24 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x55b2c851d955 bp 0x7ffc635b6930 sp 0x7ffc635b6880 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+SCARINESS: 10 (null-deref)
+    #0 0x55b2c851d955 in wabt::interp::(anonymous namespace)::BinaryReaderInterp::OnExport(unsigned int, wabt::ExternalKind, unsigned int, std::__1::basic_string_view<char, std::__1::char_traits<char>>) /src/wabt/src/interp/binary-reader-interp.cc:693:63
+    #1 0x55b2c85f627f in wabt::(anonymous namespace)::BinaryReader::ReadExportSection(unsigned long) /src/wabt/src/binary-reader.cc:2778:5
+    #2 0x55b2c85eb398 in wabt::(anonymous namespace)::BinaryReader::ReadSections(wabt::(anonymous namespace)::BinaryReader::ReadSectionsOptions const&) /src/wabt/src/binary-reader.cc:3033:26
+    #3 0x55b2c85ea100 in ReadModule /src/wabt/src/binary-reader.cc:3119:3
+    #4 0x55b2c85ea100 in wabt::ReadBinary(void const*, unsigned long, wabt::BinaryReaderDelegate*, wabt::ReadBinaryOptions const&) /src/wabt/src/binary-reader.cc:3141:17
+    #5 0x55b2c8515cff in wabt::interp::ReadBinaryInterp(std::__1::basic_string_view<char, std::__1::char_traits<char>>, void const*, unsigned long, wabt::ReadBinaryOptions const&, std::__1::vector<wabt::Error, std::__1::allocator<wabt::Error>>*, wabt::interp::ModuleDesc*) /src/wabt/src/interp/binary-reader-interp.cc:1720:10
+    #6 0x55b2c8501967 in LLVMFuzzerTestOneInput /src/read_binary_interp_fuzzer.cc:39:3
+    #7 0x55b2c83b53f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55b2c83a0665 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55b2c83a60ff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55b2c83d13a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fb34ff01082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x55b2c839884d in _start (/out/read_binary_interp_fuzzer+0xfc84d)
+
+DEDUP_TOKEN: wabt::interp::(anonymous namespace)::BinaryReaderInterp::OnExport(unsigned int, wabt::ExternalKind, unsigned int, std::__1::basic_string_view<char, std::__1::char_traits<char>>)--wabt::(anonymous namespace)::BinaryReader::ReadExportSection(unsigned long)--wabt::(anonymous namespace)::BinaryReader::ReadSections(wabt::(anonymous namespace)::BinaryReader::ReadSectionsOptions const&)
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/wabt/src/interp/binary-reader-interp.cc:693:63 in wabt::interp::(anonymous namespace)::BinaryReaderInterp::OnExport(unsigned int, wabt::ExternalKind, unsigned int, std::__1::basic_string_view<char, std::__1::char_traits<char>>)
+==14==ABORTING

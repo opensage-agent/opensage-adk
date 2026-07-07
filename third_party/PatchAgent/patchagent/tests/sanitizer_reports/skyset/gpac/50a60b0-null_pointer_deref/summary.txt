@@ -1,0 +1,21 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - gf_filter_pck_new_alloc_internal /root/src/filter_core/filter_pck.c:108:6
+    - gf_filter_pck_new_alloc /root/src/filter_core/filter_pck.c:197:9
+    - pcmreframe_process /root/src/filters/reframe_rawpcm.c:399:19
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4831:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

@@ -1,0 +1,38 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/clamav:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce clamav_dbload_CRB_fuzzer -runs=100.
++ FUZZER=clamav_dbload_CRB_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer clamav_dbload_CRB_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/clamav_dbload_CRB_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1673543208
+/out/clamav_dbload_CRB_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x7fff27123020 (pc 0x55e661cbb5d7 bp 0x7fff270fc6c0 sp 0x7fff270fc6a0 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x55e661cbb5d7 in fp_read_unsigned_bin /src/clamav/libclamav/tomsfastmath/bin/fp_read_unsigned_bin.c:61:3
+    #1 0x55e661bca7b2 in cli_loadcrt /src/clamav/libclamav/readdb.c:3064:9
+    #2 0x55e661bc84fc in cli_load /src/clamav/libclamav/readdb.c:4393:15
+    #3 0x55e661bcfd01 in cl_load /src/clamav/libclamav/readdb.c:4952:19
+    #4 0x55e661bbe4cf in LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_dbload_fuzzer.cpp:128:30
+    #5 0x55e661b20a50 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55e661b0bcc5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55e661b1175f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55e661b3ca02 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f2802487082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #10 0x55e661b03ead in _start (/out/clamav_dbload_CRB_fuzzer+0xdbead)
+
+DEDUP_TOKEN: fp_read_unsigned_bin--cli_loadcrt--cli_load
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/clamav/libclamav/tomsfastmath/bin/fp_read_unsigned_bin.c:61:3 in fp_read_unsigned_bin
+==14==ABORTING

@@ -1,0 +1,41 @@
+The sanitizer detected a server side request forgery vulnerability.The explanation of the vulnerability is: An attacker can make the server perform unauthorized requests, leading to potential data exfiltration or unauthorized access.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueMedium: Server Side Request Forgery (SSRF)
+Attempted connection to: LL:443
+Requests to destinations based on untrusted data could lead to exfiltration of sensitive data or exposure of internal services.
+
+If the fuzz test is expected to perform network connections, call com.code_intelligence.jazzer.api.BugDetectors#allowNetworkConnections at the beginning of your fuzz test and optionally provide a predicate matching the expected hosts.
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrf (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:127)
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrfHttpConnection (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:92)
+- java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1 (java/net/http/jdk/internal/net/http/PlainHttpConnection.java:210)
+- java.base/java.security.AccessController.doPrivileged (java/base/java/security/AccessController.java:571)
+- java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync (java/net/http/jdk/internal/net/http/PlainHttpConnection.java:212)
+- java.net.http/jdk.internal.net.http.AsyncSSLConnection.connectAsync (java/net/http/jdk/internal/net/http/AsyncSSLConnection.java:56)
+- java.net.http/jdk.internal.net.http.Http1Exchange.sendHeadersAsync (java/net/http/jdk/internal/net/http/Http1Exchange.java:312)
+- java.net.http/jdk.internal.net.http.Exchange.lambda$responseAsyncImpl0$8 (java/net/http/jdk/internal/net/http/Exchange.java:581)
+- java.net.http/jdk.internal.net.http.Exchange.checkFor407 (java/net/http/jdk/internal/net/http/Exchange.java:452)
+- java.net.http/jdk.internal.net.http.Exchange.lambda$responseAsyncImpl0$9 (java/net/http/jdk/internal/net/http/Exchange.java:585)
+- java.base/java.util.concurrent.CompletableFuture.uniHandle (java/base/java/util/concurrent/CompletableFuture.java:934)
+- java.base/java.util.concurrent.CompletableFuture.uniHandleStage (java/base/java/util/concurrent/CompletableFuture.java:950)
+- java.base/java.util.concurrent.CompletableFuture.handle (java/base/java/util/concurrent/CompletableFuture.java:2372)
+- java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0 (java/net/http/jdk/internal/net/http/Exchange.java:585)
+- java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl (java/net/http/jdk/internal/net/http/Exchange.java:428)
+- java.net.http/jdk.internal.net.http.Exchange.responseAsync (java/net/http/jdk/internal/net/http/Exchange.java:420)
+- java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl (java/net/http/jdk/internal/net/http/MultiExchange.java:413)
+- java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2 (java/net/http/jdk/internal/net/http/MultiExchange.java:346)
+- java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire (java/base/java/util/concurrent/CompletableFuture$UniCompose/tryFire:1150)
+- java.base/java.util.concurrent.CompletableFuture.postComplete (java/base/java/util/concurrent/CompletableFuture.java:510)
+- java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run (java/base/java/util/concurrent/CompletableFuture$AsyncSupply/run:1773)
+- java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute (java/net/http/jdk/internal/net/http/HttpClientImpl$DelegatingExecutor/execute:177)
+- java.base/java.util.concurrent.CompletableFuture.completeAsync (java/base/java/util/concurrent/CompletableFuture.java:2719)
+- java.net.http/jdk.internal.net.http.MultiExchange.responseAsync (java/net/http/jdk/internal/net/http/MultiExchange.java:299)
+- java.net.http/jdk.internal.net.http.HttpClientImpl.sendAsync (java/net/http/jdk/internal/net/http/HttpClientImpl.java:1049)
+- java.net.http/jdk.internal.net.http.HttpClientImpl.send (java/net/http/jdk/internal/net/http/HttpClientImpl.java:930)
+- java.net.http/jdk.internal.net.http.HttpClientFacade.send (java/net/http/jdk/internal/net/http/HttpClientFacade.java:133)
+- com.example.SsrfHttpClient.fuzzerTestOneInput (com/example/SsrfHttpClient.java:37)
+
+To fix this issue, follow the advice below:
+
+1. Validate and sanitize all user-provided URLs to prevent SSRF attacks.
+2. Use allowlists or secure APIs to restrict server-side requests to authorized domains.
+3. Monitor server logs for unusual or unauthorized requests.

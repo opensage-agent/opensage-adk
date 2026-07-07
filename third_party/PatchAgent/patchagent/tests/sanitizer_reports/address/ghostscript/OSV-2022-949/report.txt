@@ -1,0 +1,106 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x511000013bd8 at pc 0x55fab948b00e bp 0x7ffc843c8a60 sp 0x7ffc843c8a58
+READ of size 8 at 0x511000013bd8 thread T0
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x55fab948b00d in gp_fflush /src/ghostpdl/./base/gp.h:296:16
+    #1 0x55fab948b00d in s_file_write_flush /src/ghostpdl/./base/sfxstdio.c:232:5
+    #2 0x55fab926ea1b in sclose /src/ghostpdl/./base/stream.c:445:18
+    #3 0x55fab9a79573 in restore_finalize /src/ghostpdl/./psi/isave.c:954:13
+    #4 0x55fab9a79573 in alloc_restore_all /src/ghostpdl/./psi/isave.c:901:13
+    #5 0x55fab9136bdb in gs_main_finit /src/ghostpdl/./psi/imain.c:1391:20
+    #6 0x55fab997d133 in psapi_exit /src/ghostpdl/./psi/psapi.c:517:5
+    #7 0x55fab912c010 in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:144:8
+    #8 0x55fab912c335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #9 0x55fab8fe06d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55fab8fcb945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55fab8fd13df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55fab8ffc682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f9e1639c082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #14 0x55fab8fc3b2d in _start (/out/gs_device_pdfwrite_fuzzer+0x719b2d)
+
+DEDUP_TOKEN: gp_fflush--s_file_write_flush--sclose
+0x511000013bd8 is located 152 bytes inside of 232-byte region [0x511000013b40,0x511000013c28)
+freed by thread T0 here:
+    #0 0x55fab90ec206 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55fab95daad8 in gx_device_close_output_file /src/ghostpdl/./base/gsdevice.c:1368:5
+    #2 0x55fab9484124 in gdev_vector_close_file /src/ghostpdl/./base/gdevvec.c:860:13
+    #3 0x55fab93a52ab in pdf_close /src/ghostpdl/./devices/vector/gdevpdf.c:3601:13
+    #4 0x55fab95d1e85 in gs_closedevice /src/ghostpdl/./base/gsdevice.c:786:16
+    #5 0x55fab9136457 in gs_main_finit /src/ghostpdl/./psi/imain.c:1351:20
+    #6 0x55fab997d133 in psapi_exit /src/ghostpdl/./psi/psapi.c:517:5
+    #7 0x55fab912c010 in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:144:8
+    #8 0x55fab912c335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #9 0x55fab8fe06d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55fab8fcb945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55fab8fd13df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55fab8ffc682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f9e1639c082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--gx_device_close_output_file--gdev_vector_close_file
+previously allocated by thread T0 here:
+    #0 0x55fab90ec49f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55fab9612650 in gs_heap_alloc_bytes /src/ghostpdl/./base/gsmalloc.c:192:34
+    #2 0x55fab95ad663 in gp_file_alloc /src/ghostpdl/./base/gpmisc.c:438:32
+    #3 0x55fab95ad663 in gp_file_FILE_alloc /src/ghostpdl/./base/gpmisc.c:676:12
+    #4 0x55fab9620b58 in fs_file_open_file /src/ghostpdl/./base/gslibctx.c:174:13
+    #5 0x55fab95add74 in gp_fopen /src/ghostpdl/./base/gpmisc.c:731:20
+    #6 0x55fab9608605 in iodev_os_gp_fopen /src/ghostpdl/./base/gsiodev.c:289:14
+    #7 0x55fab95da5c8 in gx_device_open_output_file /src/ghostpdl/./base/gsdevice.c:1327:16
+    #8 0x55fab947fa86 in gdev_vector_open_file_options /src/ghostpdl/./base/gdevvec.c:282:13
+    #9 0x55fab93969ff in pdf_open /src/ghostpdl/./devices/vector/gdevpdf.c:787:12
+    #10 0x55fab95d4e8d in gs_opendevice /src/ghostpdl/./base/gsdevice.c:461:20
+    #11 0x55fab95d4e8d in gs_setdevice_no_erase /src/ghostpdl/./base/gsdevice.c:580:28
+    #12 0x55fab9a44e58 in zsetdevice_no_safer /src/ghostpdl/./psi/zdevice.c:593:12
+    #13 0x55fab9a44e58 in zsetdevice /src/ghostpdl/./psi/zdevice.c:636:12
+    #14 0x55fab99923f9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #15 0x55fab99923f9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #16 0x55fab99923f9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #17 0x55fab91300cb in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #18 0x55fab91300cb in gs_run_init_file /src/ghostpdl/./psi/imain.c:861:12
+    #19 0x55fab91300cb in gs_main_init2aux /src/ghostpdl/./psi/imain.c:305:16
+    #20 0x55fab9130ff9 in gs_main_init2 /src/ghostpdl/./psi/imain.c:491:12
+    #21 0x55fab9c61871 in swproc /src/ghostpdl/./psi/imainarg.c:363:20
+    #22 0x55fab9c5ea42 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #23 0x55fab9c64c78 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #24 0x55fab912bfbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #25 0x55fab912c335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #26 0x55fab8fe06d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #27 0x55fab8fcb945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #28 0x55fab8fd13df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #29 0x55fab8ffc682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #30 0x7f9e1639c082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--gs_heap_alloc_bytes--gp_file_alloc
+SUMMARY: AddressSanitizer: heap-use-after-free /src/ghostpdl/./base/gp.h:296:16 in gp_fflush
+Shadow bytes around the buggy address:
+  0x511000013900: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x511000013980: fd fd fd fd fd fa fa fa fa fa fa fa fa fa fa fa
+  0x511000013a00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x511000013a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fa
+  0x511000013b00: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+=>0x511000013b80: fd fd fd fd fd fd fd fd fd fd fd[fd]fd fd fd fd
+  0x511000013c00: fd fd fd fd fd fa fa fa fa fa fa fa fa fa fa fa
+  0x511000013c80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x511000013d00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fa
+  0x511000013d80: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x511000013e00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

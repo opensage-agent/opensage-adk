@@ -1,0 +1,16 @@
+model_provider = "OpenAI"
+model = "gpt-5.5"
+review_model = "gpt-5.5"
+model_reasoning_effort = "high"
+disable_response_storage = true
+network_access = "enabled"
+windows_wsl_setup_acknowledged = true
+
+[model_providers.OpenAI]
+name = "OpenAI"
+base_url = "http://localhost:8080"
+wire_api = "responses"
+requires_openai_auth = true
+
+[features]
+goals = true

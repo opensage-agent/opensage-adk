@@ -1,0 +1,108 @@
+=================================================================
+==2200448==ERROR: AddressSanitizer: heap-use-after-free on address 0x50700002ff82 at pc 0x7ff8c19387f5 bp 0x7ffef607d710 sp 0x7ffef607d708
+READ of size 2 at 0x50700002ff82 thread T0
+    #0 0x7ff8c19387f4 in xmt_resolve_od_links /root/src/scene_manager/loader_xmt.c:531:24
+    #1 0x7ff8c1935a71 in load_xmt_run /root/src/scene_manager/loader_xmt.c:3148:2
+    #2 0x7ff8c1903492 in gf_sm_load_run /root/src/scene_manager/scene_manager.c:722:28
+    #3 0x7ff8c2160e9d in ctxload_process /root/src/filters/load_bt_xmt.c:522:8
+    #4 0x7ff8c1de8870 in gf_filter_process_task /root/src/filter_core/filter.c:3164:7
+    #5 0x7ff8c1db5a89 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2145:3
+    #6 0x7ff8c1db16b2 in gf_fs_run /root/src/filter_core/filter_session.c:2452:3
+    #7 0x7ff8c174b0a3 in gf_media_import /root/src/media_tools/media_import.c:1239:3
+    #8 0x561555b8c1fe in convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    #9 0x561555b465f6 in mp4box_main /root/applications/mp4box/mp4box.c:6403:10
+    #10 0x561555b4c951 in main /root/applications/mp4box/mp4box.c:6962:1
+    #11 0x7ff8c087c1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #12 0x7ff8c087c28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #13 0x561555b2be14 in _start (/root/bin/gcc/MP4Box+0x49e14) (BuildId: 2b317e602e2c1158cfb17d411f1cb2efb316db03)
+
+0x50700002ff82 is located 2 bytes inside of 80-byte region [0x50700002ff80,0x50700002ffd0)
+freed by thread T0 here:
+    #0 0x7ff8c2d4777a in free build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x7ff8c0d93a04 in gf_free /root/src/utils/alloc.c:165:2
+    #2 0x7ff8c163ab82 in gf_odf_del_iod /root/src/odf/odf_code.c:442:2
+    #3 0x7ff8c162521b in gf_odf_delete_descriptor /root/src/odf/desc_private.c:169:10
+    #4 0x7ff8c164755f in gf_odf_desc_del /root/src/odf/odf_codec.c:253:12
+    #5 0x7ff8c193cf6a in xmt_node_end /root/src/scene_manager/loader_xmt.c:2675:5
+    #6 0x7ff8c0dba3e6 in xml_sax_node_end /root/src/utils/xml_parser.c:265:4
+    #7 0x7ff8c0da6421 in xml_sax_parse /root/src/utils/xml_parser.c:867:6
+    #8 0x7ff8c0da22e0 in gf_xml_sax_parse_intern /root/src/utils/xml_parser.c:1104:9
+    #9 0x7ff8c0da184a in gf_xml_sax_parse /root/src/utils/xml_parser.c:1132:6
+    #10 0x7ff8c0da3bf4 in xml_sax_read_file /root/src/utils/xml_parser.c:1219:7
+    #11 0x7ff8c0da37cb in gf_xml_sax_parse_file /root/src/utils/xml_parser.c:1331:9
+    #12 0x7ff8c1935a08 in load_xmt_run /root/src/scene_manager/loader_xmt.c:3144:6
+    #13 0x7ff8c1903492 in gf_sm_load_run /root/src/scene_manager/scene_manager.c:722:28
+    #14 0x7ff8c2160e9d in ctxload_process /root/src/filters/load_bt_xmt.c:522:8
+    #15 0x7ff8c1de8870 in gf_filter_process_task /root/src/filter_core/filter.c:3164:7
+    #16 0x7ff8c1db5a89 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2145:3
+    #17 0x7ff8c1db16b2 in gf_fs_run /root/src/filter_core/filter_session.c:2452:3
+    #18 0x7ff8c174b0a3 in gf_media_import /root/src/media_tools/media_import.c:1239:3
+    #19 0x561555b8c1fe in convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    #20 0x561555b465f6 in mp4box_main /root/applications/mp4box/mp4box.c:6403:10
+    #21 0x561555b4c951 in main /root/applications/mp4box/mp4box.c:6962:1
+    #22 0x7ff8c087c1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #23 0x7ff8c087c28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #24 0x561555b2be14 in _start (/root/bin/gcc/MP4Box+0x49e14) (BuildId: 2b317e602e2c1158cfb17d411f1cb2efb316db03)
+
+previously allocated by thread T0 here:
+    #0 0x7ff8c2d47a13 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7ff8c0d93984 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7ff8c163a7c1 in gf_odf_new_iod /root/src/odf/odf_code.c:415:71
+    #3 0x7ff8c1624e3f in gf_odf_create_descriptor /root/src/odf/desc_private.c:38:10
+    #4 0x7ff8c16474e6 in gf_odf_desc_new /root/src/odf/odf_codec.c:244:12
+    #5 0x7ff8c193177b in xmt_parse_descriptor /root/src/scene_manager/loader_xmt.c:1951:10
+    #6 0x7ff8c193b72f in xmt_node_start /root/src/scene_manager/loader_xmt.c:2578:10
+    #7 0x7ff8c0db99d2 in xml_sax_node_start /root/src/utils/xml_parser.c:308:4
+    #8 0x7ff8c0dbc121 in xml_sax_parse_attribute /root/src/utils/xml_parser.c:397:6
+    #9 0x7ff8c0da75a9 in xml_sax_parse /root/src/utils/xml_parser.c:940:8
+    #10 0x7ff8c0da22e0 in gf_xml_sax_parse_intern /root/src/utils/xml_parser.c:1104:9
+    #11 0x7ff8c0da184a in gf_xml_sax_parse /root/src/utils/xml_parser.c:1132:6
+    #12 0x7ff8c0da3bf4 in xml_sax_read_file /root/src/utils/xml_parser.c:1219:7
+    #13 0x7ff8c0da37cb in gf_xml_sax_parse_file /root/src/utils/xml_parser.c:1331:9
+    #14 0x7ff8c1935a08 in load_xmt_run /root/src/scene_manager/loader_xmt.c:3144:6
+    #15 0x7ff8c1903492 in gf_sm_load_run /root/src/scene_manager/scene_manager.c:722:28
+    #16 0x7ff8c2160e9d in ctxload_process /root/src/filters/load_bt_xmt.c:522:8
+    #17 0x7ff8c1de8870 in gf_filter_process_task /root/src/filter_core/filter.c:3164:7
+    #18 0x7ff8c1db5a89 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2145:3
+    #19 0x7ff8c1db16b2 in gf_fs_run /root/src/filter_core/filter_session.c:2452:3
+    #20 0x7ff8c174b0a3 in gf_media_import /root/src/media_tools/media_import.c:1239:3
+    #21 0x561555b8c1fe in convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    #22 0x561555b465f6 in mp4box_main /root/applications/mp4box/mp4box.c:6403:10
+    #23 0x561555b4c951 in main /root/applications/mp4box/mp4box.c:6962:1
+    #24 0x7ff8c087c1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #25 0x7ff8c087c28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #26 0x561555b2be14 in _start (/root/bin/gcc/MP4Box+0x49e14) (BuildId: 2b317e602e2c1158cfb17d411f1cb2efb316db03)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/src/scene_manager/loader_xmt.c:531:24 in xmt_resolve_od_links
+Shadow bytes around the buggy address:
+  0x50700002fd00: 00 00 00 00 00 00 fa fa fa fa 00 00 00 00 00 00
+  0x50700002fd80: 00 00 00 00 fa fa fa fa 00 00 00 00 00 00 00 00
+  0x50700002fe00: 00 00 fa fa fa fa 00 00 00 00 00 00 00 00 00 00
+  0x50700002fe80: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 fa fa
+  0x50700002ff00: fa fa fd fd fd fd fd fd fd fd fd fd fa fa fa fa
+=>0x50700002ff80:[fd]fd fd fd fd fd fd fd fd fd fa fa fa fa 00 00
+  0x507000030000: 00 00 00 00 00 00 00 00 fa fa fa fa 00 00 00 00
+  0x507000030080: 00 00 00 00 00 00 fa fa fa fa fa fa fa fa fa fa
+  0x507000030100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000030180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000030200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==2200448==ABORTING

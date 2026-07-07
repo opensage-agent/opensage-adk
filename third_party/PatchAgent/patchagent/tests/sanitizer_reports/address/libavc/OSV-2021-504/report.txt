@@ -1,0 +1,50 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x524000007790 at pc 0x559edea23eea bp 0x7fff2e9c4bc0 sp 0x7fff2e9c4bb8
+WRITE of size 8 at 0x524000007790 thread T0
+SCARINESS: 52 (8-byte-write-heap-buffer-overflow-far-from-bounds)
+    #0 0x559edea23ee9 in ih264d_mark_err_slice_skip /src/libavc/decoder/ih264d_parse_pslice.c:1711:60
+    #1 0x559ede9c83fe in ih264d_video_decode /src/libavc/decoder/ih264d_api.c:2440:16
+    #2 0x559ede9c033b in Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/avc_dec_fuzzer.cpp:313:9
+    #3 0x559ede9c0cbe in LLVMFuzzerTestOneInput /src/libavc/fuzzer/avc_dec_fuzzer.cpp:362:18
+    #4 0x559ede8732f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x559ede85e565 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x559ede863fff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x559ede88f2a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f2c7972c082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #9 0x559ede85674d in _start (/out/avc_dec_fuzzer+0x7374d)
+
+DEDUP_TOKEN: ih264d_mark_err_slice_skip--ih264d_video_decode--Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*)
+Address 0x524000007790 is a wild pointer inside of access range of size 0x000000000008.
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/libavc/decoder/ih264d_parse_pslice.c:1711:60 in ih264d_mark_err_slice_skip
+Shadow bytes around the buggy address:
+  0x524000007500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000007580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000007600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000007680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000007700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x524000007780: fa fa[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000007800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000007880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000007900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000007980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x524000007a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

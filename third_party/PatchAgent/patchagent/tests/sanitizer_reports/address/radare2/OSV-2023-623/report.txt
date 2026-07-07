@@ -1,0 +1,108 @@
+WARN: Unsupported reloc type 236 for x86-32
+ERROR: reloc conversion failed for 0xffffffffffffffff
+=================================================================
+==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x503000033880 at pc 0x55f60bb37acc bp 0x7ffef936a790 sp 0x7ffef936a788
+READ of size 8 at 0x503000033880 thread T0
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x55f60bb37acb in RVecRBinElfSymbol_fini /src/radare2/libr/../libr/bin/p/../format/elf/elf.h:114:1
+    #1 0x55f60bb37acb in RVecRBinElfSymbol_free /src/radare2/libr/../libr/bin/p/../format/elf/elf.h:114:1
+    #2 0x55f60bb37acb in Elf32_free /src/radare2/libr/../libr/bin/p/../format/elf/elf.c:4965:2
+    #3 0x55f60ba8b90e in r_bin_file_free /src/radare2/libr/bin/bfile.c:814:3
+    #4 0x55f60c068fd4 in r_list_delete /src/radare2/libr/util/list.c:121:3
+    #5 0x55f60c068fd4 in r_list_purge /src/radare2/libr/util/list.c:87:3
+    #6 0x55f60c068fd4 in r_list_free /src/radare2/libr/util/list.c:97:3
+    #7 0x55f60ba66211 in r_bin_free /src/radare2/libr/bin/bin.c:502:3
+    #8 0x55f60c40f90b in r_core_fini /src/radare2/libr/core/core.c:2866:12
+    #9 0x55f60c40fe0f in r_core_free /src/radare2/libr/core/core.c:2895:3
+    #10 0x55f60b92ef5c in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:16:2
+    #11 0x55f60b7e3a40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x55f60b7cecb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x55f60b7d474f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x55f60b7ff9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f730dbb7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #16 0x55f60b7c6e9d in _start (/out/ia_fuzz+0xf46e9d)
+
+DEDUP_TOKEN: RVecRBinElfSymbol_fini--RVecRBinElfSymbol_free--Elf32_free
+0x503000033880 is located 0 bytes inside of 24-byte region [0x503000033880,0x503000033898)
+freed by thread T0 here:
+    #0 0x55f60b8ef576 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55f60bb3760a in RVecRBinElfSymbol_free /src/radare2/libr/../libr/bin/p/../format/elf/elf.h:114:1
+    #2 0x55f60bb3760a in Elf32_free /src/radare2/libr/../libr/bin/p/../format/elf/elf.c:4963:2
+    #3 0x55f60ba8b90e in r_bin_file_free /src/radare2/libr/bin/bfile.c:814:3
+    #4 0x55f60c068fd4 in r_list_delete /src/radare2/libr/util/list.c:121:3
+    #5 0x55f60c068fd4 in r_list_purge /src/radare2/libr/util/list.c:87:3
+    #6 0x55f60c068fd4 in r_list_free /src/radare2/libr/util/list.c:97:3
+    #7 0x55f60ba66211 in r_bin_free /src/radare2/libr/bin/bin.c:502:3
+    #8 0x55f60c40f90b in r_core_fini /src/radare2/libr/core/core.c:2866:12
+    #9 0x55f60c40fe0f in r_core_free /src/radare2/libr/core/core.c:2895:3
+    #10 0x55f60b92ef5c in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:16:2
+    #11 0x55f60b7e3a40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x55f60b7cecb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x55f60b7d474f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x55f60b7ff9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f730dbb7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--RVecRBinElfSymbol_free--Elf32_free
+previously allocated by thread T0 here:
+    #0 0x55f60b8ef80f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55f60bb44dd9 in RVecRBinElfSymbol_new /src/radare2/libr/../libr/bin/p/../format/elf/elf.h:114:1
+    #2 0x55f60bb44dd9 in load_symbols_from_phdr /src/radare2/libr/../libr/bin/p/../format/elf/elf.c:4178:27
+    #3 0x55f60bb352d7 in Elf32_load_symbols_type /src/radare2/libr/../libr/bin/p/../format/elf/elf.c
+    #4 0x55f60bb352d7 in Elf32_load_symbols_from /src/radare2/libr/../libr/bin/p/../format/elf/elf.c:4840:10
+    #5 0x55f60bb2906a in Elf32_load_symbols /src/radare2/libr/../libr/bin/p/../format/elf/elf.c:4869:23
+    #6 0x55f60bb152a5 in symbols_vec /src/radare2/libr/../libr/bin/p/bin_elf.inc.c:349:7
+    #7 0x55f60bb165c1 in lookup_symbols /src/radare2/libr/../libr/bin/p/bin_elf.inc.c:1081:7
+    #8 0x55f60bb165c1 in info /src/radare2/libr/../libr/bin/p/bin_elf.inc.c:1256:2
+    #9 0x55f60ba93c94 in r_bin_object_set_items /src/radare2/libr/bin/bobj.c:346:22
+    #10 0x55f60ba9361b in r_bin_object_new /src/radare2/libr/bin/bobj.c:240:2
+    #11 0x55f60ba8a135 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:634:19
+    #12 0x55f60ba652af in r_bin_open_buf /src/radare2/libr/bin/bin.c:310:8
+    #13 0x55f60ba648c5 in r_bin_open_io /src/radare2/libr/bin/bin.c:375:13
+    #14 0x55f60c5a4bf9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:298:6
+    #15 0x55f60c4b0e64 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2507:3
+    #16 0x55f60c692473 in r_cmd_call /src/radare2/libr/core/cmd_api.c:427:11
+    #17 0x55f60c503d82 in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5319:8
+    #18 0x55f60c4fc08d in r_core_cmd_subst /src/radare2/libr/core/cmd.c:4054:10
+    #19 0x55f60c456696 in run_cmd_depth /src/radare2/libr/core/cmd.c:6285:9
+    #20 0x55f60c44ba9d in r_core_cmd /src/radare2/libr/core/cmd.c:6387:8
+    #21 0x55f60b92ef45 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #22 0x55f60b7e3a40 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #23 0x55f60b7cecb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #24 0x55f60b7d474f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #25 0x55f60b7ff9f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #26 0x7f730dbb7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--RVecRBinElfSymbol_new--load_symbols_from_phdr
+SUMMARY: AddressSanitizer: heap-use-after-free /src/radare2/libr/../libr/bin/p/../format/elf/elf.h:114:1 in RVecRBinElfSymbol_fini
+Shadow bytes around the buggy address:
+  0x503000033600: fa fa fd fd fd fd fa fa fd fd fd fd fa fa fd fd
+  0x503000033680: fd fd fa fa fd fd fd fd fa fa fd fd fd fa fa fa
+  0x503000033700: fd fd fd fa fa fa fd fd fd fa fa fa fd fd fd fa
+  0x503000033780: fa fa fd fd fd fa fa fa fd fd fd fa fa fa fd fd
+  0x503000033800: fd fa fa fa fd fd fd fa fa fa fd fd fd fa fa fa
+=>0x503000033880:[fd]fd fd fa fa fa 00 00 00 fa fa fa 00 00 00 fa
+  0x503000033900: fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00
+  0x503000033980: 00 fa fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa
+  0x503000033a00: 00 00 00 fa fa fa fd fd fd fd fa fa fd fd fd fa
+  0x503000033a80: fa fa fd fd fd fa fa fa fd fd fd fa fa fa fd fd
+  0x503000033b00: fd fa fa fa fd fd fd fa fa fa fd fd fd fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

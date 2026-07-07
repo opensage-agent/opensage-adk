@@ -1,0 +1,74 @@
+=================================================================
+==948692==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52400015dd37 at pc 0x7f5363545e08 bp 0x7ffed2e6dd90 sp 0x7ffed2e6dd88
+READ of size 1 at 0x52400015dd37 thread T0
+    #0 0x7f5363545e07 in r_read_le32 /root/libr/include/r_endian.h:176:17
+    #1 0x7f536354631b in r_read_at_le32 /root/libr/include/r_endian.h:185:9
+    #2 0x7f5363545b99 in r_read_le64 /root/libr/include/r_endian.h:199:21
+    #3 0x7f5363546408 in r_read_ble64 /root/libr/include/r_endian.h:322:40
+    #4 0x7f5363545d80 in r_read_ble /root/libr/include/r_endian.h:346:10
+    #5 0x7f5363543f3c in r_coresym_cache_element_new /root/libr/../libr/bin/p/../format/mach0/coresymbolication.c:272:32
+    #6 0x7f536354094b in parseDragons /root/libr/../libr/bin/p/bin_symbols.c:253:9
+    #7 0x7f536353d8f9 in load_buffer /root/libr/../libr/bin/p/bin_symbols.c:292:34
+    #8 0x7f5363294121 in r_bin_object_new /root/libr/bin/bobj.c:149:8
+    #9 0x7f5363289193 in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:585:19
+    #10 0x7f5363263b1c in r_bin_open_buf /root/libr/bin/bin.c:281:8
+    #11 0x7f5363262c3e in r_bin_open_io /root/libr/bin/bin.c:341:13
+    #12 0x7f5363c71ac2 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:436:7
+    #13 0x7f5363c6cd7c in r_core_bin_load /root/libr/core/cfile.c:637:4
+    #14 0x7f53612aa7fb in r_main_radare2 /root/libr/main/radare2.c:1206:15
+    #15 0x55e678eee67e in main /root/binr/radare2/radare2.c:96:9
+    #16 0x7f53610741c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7f536107428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x55e678eed1e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 7ea346ef9d2fb4109b6e17ae1dab2ba4e2d7c55a)
+
+0x52400015dd37 is located 0 bytes after 7223-byte region [0x52400015c100,0x52400015dd37)
+allocated by thread T0 here:
+    #0 0x7f53667ec7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f5363542b1f in r_coresym_cache_element_new /root/libr/../libr/bin/p/../format/mach0/coresymbolication.c:180:6
+    #2 0x7f536354094b in parseDragons /root/libr/../libr/bin/p/bin_symbols.c:253:9
+    #3 0x7f536353d8f9 in load_buffer /root/libr/../libr/bin/p/bin_symbols.c:292:34
+    #4 0x7f5363294121 in r_bin_object_new /root/libr/bin/bobj.c:149:8
+    #5 0x7f5363289193 in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:585:19
+    #6 0x7f5363263b1c in r_bin_open_buf /root/libr/bin/bin.c:281:8
+    #7 0x7f5363262c3e in r_bin_open_io /root/libr/bin/bin.c:341:13
+    #8 0x7f5363c71ac2 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:436:7
+    #9 0x7f5363c6cd7c in r_core_bin_load /root/libr/core/cfile.c:637:4
+    #10 0x7f53612aa7fb in r_main_radare2 /root/libr/main/radare2.c:1206:15
+    #11 0x55e678eee67e in main /root/binr/radare2/radare2.c:96:9
+    #12 0x7f53610741c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7f536107428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x55e678eed1e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 7ea346ef9d2fb4109b6e17ae1dab2ba4e2d7c55a)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/libr/include/r_endian.h:176:17 in r_read_le32
+Shadow bytes around the buggy address:
+  0x52400015da80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52400015db00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52400015db80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52400015dc00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52400015dc80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x52400015dd00: 00 00 00 00 00 00[07]fa fa fa fa fa fa fa fa fa
+  0x52400015dd80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52400015de00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52400015de80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52400015df00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52400015df80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==948692==ABORTING

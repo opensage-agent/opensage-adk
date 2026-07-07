@@ -1,0 +1,49 @@
+=================================================================
+==359969==ERROR: AddressSanitizer: global-buffer-overflow on address 0x55759e965c38 at pc 0x55759e9413e3 bp 0x7ffc8ac8c960 sp 0x7ffc8ac8c958
+READ of size 4 at 0x55759e965c38 thread T0
+    #0 0x55759e9413e2 in _getBaseCellNeighbor /root/src/h3lib/lib/baseCells.c:901:12
+    #1 0x55759e93ee1b in localIjkToCell /root/src/h3lib/lib/localij.c:326:33
+    #2 0x55759e940005 in localIjToCell /root/src/h3lib/lib/localij.c:568:12
+    #3 0x55759e93da65 in LLVMFuzzerTestOneInput /root/src/apps/fuzzers/fuzzerLocalIj.c:58:19
+    #4 0x55759e922e64 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/fuzzerLocalIj+0x2ae64) (BuildId: bad95255ad2a9153afd5783dd350ee8a675f3f18)
+    #5 0x55759e90bf96 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/fuzzerLocalIj+0x13f96) (BuildId: bad95255ad2a9153afd5783dd350ee8a675f3f18)
+    #6 0x55759e911a4a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/fuzzerLocalIj+0x19a4a) (BuildId: bad95255ad2a9153afd5783dd350ee8a675f3f18)
+    #7 0x55759e93c2a6 in main (/root/fuzzerLocalIj+0x442a6) (BuildId: bad95255ad2a9153afd5783dd350ee8a675f3f18)
+    #8 0x7f0efef981c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7f0efef9828a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x55759e906b64 in _start (/root/fuzzerLocalIj+0xeb64) (BuildId: bad95255ad2a9153afd5783dd350ee8a675f3f18)
+
+0x55759e965c38 is located 0 bytes after global variable 'baseCellNeighbors' defined in '/root/src/h3lib/lib/baseCells.c:38' (0x55759e964ee0) of size 3416
+SUMMARY: AddressSanitizer: global-buffer-overflow /root/src/h3lib/lib/baseCells.c:901:12 in _getBaseCellNeighbor
+Shadow bytes around the buggy address:
+  0x55759e965980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x55759e965a00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x55759e965a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x55759e965b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x55759e965b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x55759e965c00: 00 00 00 00 00 00 00[f9]f9 f9 f9 f9 f9 f9 f9 f9
+  0x55759e965c80: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9
+  0x55759e965d00: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9
+  0x55759e965d80: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9
+  0x55759e965e00: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9
+  0x55759e965e80: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359969==ABORTING

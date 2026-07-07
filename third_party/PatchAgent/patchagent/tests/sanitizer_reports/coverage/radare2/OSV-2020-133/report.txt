@@ -1,0 +1,59 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/radare2:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce ia_fuzz -runs=100.
++ FUZZER=ia_fuzz
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ia_fuzz -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ia_fuzz -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -detect_leaks=0 < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3519064442
+INFO: Loaded 1 modules   (1 inline 8-bit counters): 1 [0x55e8b0f7d0f8, 0x55e8b0f7d0f9), 
+INFO: Loaded 1 PC tables (1 PCs): 1 [0x55e8b0f7d100,0x55e8b0f7d110), 
+/out/ia_fuzz: Running 1 inputs 100 time(s) each.
+Running: /testcase
+# adler32 checksum doesn't match. Type this to fix it:
+wx `ph sha1 $s-32 @32` @12 ; wx `ph adler32 $s-12 @12` @8
+double free or corruption (out)
+==18== ERROR: libFuzzer: deadly signal
+    #0 0x55e8affaa6f4 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x55e8aff29748 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x55e8aff0cae3 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7fd82bfda41f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7fd82bdd400a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7fd82bdb3858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7fd82be1e265  (/lib/x86_64-linux-gnu/libc.so.6+0x8d265) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7fd82be262fb  (/lib/x86_64-linux-gnu/libc.so.6+0x952fb) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x7fd82be27f9f  (/lib/x86_64-linux-gnu/libc.so.6+0x96f9f) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x55e8b0292686 in r_bin_class_free /src/radare2/libr/bin/bfile.c:973:3
+    #10 0x55e8b017255e in r_list_delete /src/radare2/libr/util/list.c:106:3
+    #11 0x55e8b0172622 in r_list_purge /src/radare2/libr/util/list.c:72:3
+    #12 0x55e8b0172622 in r_list_free /src/radare2/libr/util/list.c:82:3
+    #13 0x55e8b02e4c01 in object_delete_items /src/radare2/libr/bin/bobj.c:46:2
+    #14 0x55e8b02e4c01 in r_bin_object_free /src/radare2/libr/bin/bobj.c:62:3
+    #15 0x55e8b028f671 in r_bin_file_free /src/radare2/libr/bin/bfile.c:711:2
+    #16 0x55e8b017255e in r_list_delete /src/radare2/libr/util/list.c:106:3
+    #17 0x55e8b0172622 in r_list_purge /src/radare2/libr/util/list.c:72:3
+    #18 0x55e8b0172622 in r_list_free /src/radare2/libr/util/list.c:82:3
+    #19 0x55e8b02940ca in r_bin_free /src/radare2/libr/bin/bin.c:469:3
+    #20 0x55e8b004a858 in r_core_fini /src/radare2/libr/core/core.c:2853:12
+    #21 0x55e8b004a970 in r_core_free /src/radare2/libr/core/core.c:2879:3
+    #22 0x55e8affaba6f in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:16:2
+    #23 0x55e8aff0dff0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #24 0x55e8afef9265 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #25 0x55e8afefecff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #26 0x55e8aff29fa2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #27 0x7fd82bdb5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #28 0x55e8afef144d in _start (/out/ia_fuzz+0x38644d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

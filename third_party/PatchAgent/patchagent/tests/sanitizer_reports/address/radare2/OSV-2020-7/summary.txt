@@ -1,0 +1,31 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: out-of-memory (used: 2628Mb; limit: 2560Mb)
+   To change the out-of-memory limit use -rss_limit_mb=<N>
+
+Live Heap Allocations: 2990417978 bytes in 13143 chunks; quarantined: 9832900 bytes in 3325 chunks; 40411 other chunks; total chunks: 56879; showing top 95% (at most 8 unique contexts)
+2964369588 byte(s) (99%) in 4 allocation(s)
+ERROR: Unknown arch 168034303
+    - calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    - walk_exports /src/radare2/libr/bin/format/mach0/mach0.c:2750:14
+    - _parse_symbols /src/radare2/libr/bin/format/mach0/mach0.c:2997:2
+    - load_symbols_64 /src/radare2/libr/bin/format/mach0/mach0.c:3263:3
+    - get_main_64 /src/radare2/libr/bin/format/mach0/mach0.c:4432:4
+    - binsym /src/radare2/libr/bin/p/bin_mach064.c:273:16
+    - r_bin_object_set_items /src/radare2/libr/bin/bobj.c:310:20
+    - r_bin_object_new /src/radare2/libr/bin/bobj.c:182:2
+    - r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:613:19
+    - r_bin_open_buf /src/radare2/libr/bin/bin.c:303:8
+    - r_bin_open_io /src/radare2/libr/bin/bin.c:369:13
+    - cmd_open_bin /src/radare2/libr/core/cmd_open.inc.c:273:6
+    - cmd_open /src/radare2/libr/core/cmd_open.inc.c:2110:3
+    - r_cmd_call /src/radare2/libr/core/cmd_api.c:520:11
+    - r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5016:8
+    - r_core_cmd_subst /src/radare2/libr/core/cmd.c:3842:10
+    - run_cmd_depth /src/radare2/libr/core/cmd.c:5958:9
+    - r_core_cmd /src/radare2/libr/core/cmd.c:6046:8
+    - LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10

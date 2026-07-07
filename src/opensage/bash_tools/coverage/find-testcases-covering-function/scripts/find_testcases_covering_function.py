@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Standalone Neo4j query: find testcase IDs covering a function.
 
-This script mirrors the behavior of the Python tool:
-  opensage.toolbox.coverage.tools.find_testcases_covering_function
+This script is the bash_tools implementation for finding testcase IDs that
+cover a function.
 
 But runs as a standalone bash_tool script inside the sandbox.
 

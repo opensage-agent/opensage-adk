@@ -1,0 +1,32 @@
+Warning: "$El1mentData" not supported yet.  Ignored.
+=================================================================
+==14==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x504000000050 in thread T0
+SCARINESS: 40 (bad-free)
+    #0 0x5614bf59cb9d in operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    #1 0x5614bf59f32d in __libcpp_operator_delete<void *> /usr/local/bin/../include/c++/v1/new:280:3
+    #2 0x5614bf59f32d in __do_deallocate_handle_size<> /usr/local/bin/../include/c++/v1/new:302:10
+    #3 0x5614bf59f32d in __libcpp_deallocate /usr/local/bin/../include/c++/v1/new:317:12
+    #4 0x5614bf59f32d in deallocate /usr/local/bin/../include/c++/v1/__memory/allocator.h:139:7
+    #5 0x5614bf59f32d in deallocate /usr/local/bin/../include/c++/v1/__memory/allocator_traits.h:289:9
+    #6 0x5614bf59f32d in operator() /usr/local/bin/../include/c++/v1/vector:492:9
+    #7 0x5614bf59f32d in ~vector /usr/local/bin/../include/c++/v1/vector:501:67
+    #8 0x5614bf59f32d in igl::MshLoader::~MshLoader() /src/libigl/cmake/../include/igl/MshLoader.h:23:7
+    #9 0x5614bf59ea6e in LLVMFuzzerTestOneInput /src/igl_fuzzer.cpp:33:5
+    #10 0x5614bf4531a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x5614bf43e415 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x5614bf443eaf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x5614bf46f152 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fce31e78082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #15 0x5614bf4365fd in _start (/out/igl_fuzzer+0x575fd)
+
+DEDUP_TOKEN: operator delete(void*)--__libcpp_operator_delete<void *>--__do_deallocate_handle_size<>
+0x504000000050 is located 16 bytes after 48-byte region [0x504000000010,0x504000000040)
+allocated by thread T0 here:
+    #0 0x5614bf55ef6f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5614bf61efb3 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x5614bf46f152 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #3 0x7fce31e78082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--main
+SUMMARY: AddressSanitizer: bad-free /src/libigl/cmake/../include/igl/MshLoader.h:23:7 in igl::MshLoader::~MshLoader()
+==14==ABORTING

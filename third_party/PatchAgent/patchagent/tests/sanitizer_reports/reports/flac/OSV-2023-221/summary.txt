@@ -1,0 +1,63 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 4 at 0x515000006980 thread T0
+    - flac__analyze_frame /src/flac/src/flac/analyze.c:144:28
+    - write_callback /src/flac/src/flac/decode.c:1238:4
+    - write_audio_frame_to_client_ /src/flac/src/libFLAC/stream_decoder.c:0:0
+    - read_frame_ /src/flac/src/libFLAC/stream_decoder.c:2241:7
+    - FLAC__stream_decoder_process_until_end_of_stream /src/flac/src/libFLAC/stream_decoder.c:1063:9
+    - DecoderSession_process /src/flac/src/flac/decode.c:470:6
+    - flac__decode_file /src/flac/src/flac/decode.c:188:6
+    - decode_file /src/flac/src/flac/main.c:0:0
+    - do_it /src/flac/src/flac/main.c:525:15
+    - main_to_fuzz /src/flac/src/flac/main.c:350:13
+    - LLVMFuzzerTestOneInput /src/flac/oss-fuzz/tool_flac.c:84:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x515000006980 is located 0 bytes inside of 455-byte region [0x515000006980,0x515000006b47)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - allocate_output_ /src/flac/src/libFLAC/stream_decoder.c:1251:4
+    - read_frame_ /src/flac/src/libFLAC/stream_decoder.c:2173:10
+    - FLAC__stream_decoder_process_until_end_of_stream /src/flac/src/libFLAC/stream_decoder.c:1063:9
+    - DecoderSession_process /src/flac/src/flac/decode.c:470:6
+    - flac__decode_file /src/flac/src/flac/decode.c:188:6
+    - decode_file /src/flac/src/flac/main.c:0:0
+    - do_it /src/flac/src/flac/main.c:525:15
+    - main_to_fuzz /src/flac/src/flac/main.c:350:13
+    - LLVMFuzzerTestOneInput /src/flac/oss-fuzz/tool_flac.c:84:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - safe_malloc_ /src/flac/include/share/alloc.h:94:9
+    - safe_malloc_add_2op_ /src/flac/include/share/alloc.h:130:9
+    - FLAC__memory_alloc_aligned /src/flac/src/libFLAC/memory.c:54:6
+    - FLAC__memory_alloc_aligned_int32_array /src/flac/src/libFLAC/memory.c:79:7
+    - allocate_output_ /src/flac/src/libFLAC/stream_decoder.c:1276:7
+    - read_frame_ /src/flac/src/libFLAC/stream_decoder.c:2051:6
+    - FLAC__stream_decoder_process_until_end_of_stream /src/flac/src/libFLAC/stream_decoder.c:1063:9
+    - DecoderSession_process /src/flac/src/flac/decode.c:470:6
+    - flac__decode_file /src/flac/src/flac/decode.c:188:6
+    - decode_file /src/flac/src/flac/main.c:0:0
+    - do_it /src/flac/src/flac/main.c:525:15
+    - main_to_fuzz /src/flac/src/flac/main.c:350:13
+    - LLVMFuzzerTestOneInput /src/flac/oss-fuzz/tool_flac.c:84:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

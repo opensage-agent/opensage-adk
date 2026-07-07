@@ -1,0 +1,32 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 1 at 0x7fa768252938 thread T0
+    - PfxEntry::test_condition(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/hunspell/src/hunspell/affentry.cxx:177:13
+    - PfxEntry::checkword(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int, char, unsigned short) /src/hunspell/src/hunspell/affentry.cxx:242:9
+    - AffixMgr::prefix_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int, char, unsigned short) /src/hunspell/src/hunspell/affixmgr.cxx:1128:20
+    - SuggestMgr::checkword(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int*, long*) /src/hunspell/src/hunspell/suggestmgr.cxx:1669:19
+    - SuggestMgr::twowords(std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, char const*, int, bool) /src/hunspell/src/hunspell/suggestmgr.cxx:849:16
+    - SuggestMgr::suggest(std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, char const*, int*) /src/hunspell/src/hunspell/suggestmgr.cxx:336:25
+    - HunspellImpl::suggest_internal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, bool&, unsigned long&, int&) /src/hunspell/src/hunspell/hunspell.cxx:1031:22
+    - HunspellImpl::suggest(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/hunspell/src/hunspell/hunspell.cxx:882:35
+    - Hunspell::suggest(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/hunspell/src/hunspell/hunspell.cxx:2043:18
+    - LLVMFuzzerTestOneInput /src/hunspell/src/tools/affdicfuzzer.cxx:66:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7fa768252938 is located in stack of thread T0 at offset 56 in frame
+    - PfxEntry::checkword(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int, char, unsigned short) /src/hunspell/src/hunspell/affentry.cxx:217:0
+
+  This frame has 1 object(s):
+    [32, 56) 'tmpword' (line 231) <== Memory access at offset 56 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

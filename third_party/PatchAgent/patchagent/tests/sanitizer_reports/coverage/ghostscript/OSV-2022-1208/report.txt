@@ -1,0 +1,64 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gs_device_pdfwrite_fuzzer -runs=100.
++ FUZZER=gs_device_pdfwrite_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gs_device_pdfwrite_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gs_device_pdfwrite_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=gs_device_pdfwrite_fuzzer.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 4144951252
+INFO: Loaded 1 modules   (19 inline 8-bit counters): 19 [0x5604356272d8, 0x5604356272eb), 
+INFO: Loaded 1 PC tables (19 PCs): 19 [0x5604356272f0,0x560435627420), 
+/out/gs_device_pdfwrite_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: stack-overflow on address 0x7ffc97da6000 (pc 0x5604339cd397 bp 0x7ffc97d9f340 sp 0x7ffc97d9f300 T14)
+[1m[0m    #0 0x5604339cd397 in pput_hex /src/ghostpdl/./devices/vector/gdevpsfm.c:60:9
+    #1 0x5604339cd397 in cmap_put_ranges /src/ghostpdl/./devices/vector/gdevpsfm.c:74:9
+    #2 0x5604339cd0e5 in psf_write_cmap /src/ghostpdl/./devices/vector/gdevpsfm.c:303:13
+    #3 0x5604339c5ca8 in pdf_write_cmap /src/ghostpdl/./devices/vector/gdevpdtw.c:816:12
+    #4 0x560433d555f3 in attach_cmap_resource /src/ghostpdl/./devices/vector/gdevpdtc.c:310:20
+    #5 0x560433d54cad in scan_cmap_text /src/ghostpdl/./devices/vector/gdevpdtc.c:823:28
+    #6 0x560433d54cad in process_cmap_text /src/ghostpdl/./devices/vector/gdevpdtc.c:965:12
+    #7 0x5604339c2953 in pdf_text_process /src/ghostpdl/./devices/vector/gdevpdtt.c:3758:16
+    #8 0x560433c452da in pdfi_show_simple /src/ghostpdl/./pdf/pdf_text.c:445:16
+    #9 0x560433c452da in pdfi_show_Tr_preserve /src/ghostpdl/./pdf/pdf_text.c:780:12
+    #10 0x560433c452da in pdfi_show /src/ghostpdl/./pdf/pdf_text.c:830:16
+    #11 0x560433c456d7 in pdfi_Tj /src/ghostpdl/./pdf/pdf_text.c:1076:12
+    #12 0x560433bf1af0 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1666:24
+    #13 0x560433bf0966 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2156:24
+    #14 0x560433c1279b in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #15 0x560433c1279b in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #16 0x560433c1279b in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:1003:12
+    #17 0x560433bdb77b in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1157:24
+    #18 0x560433b64c8c in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #19 0x560433b64c8c in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #20 0x560433b62c52 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #21 0x560433880b12 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #22 0x560433880b12 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #23 0x560433880b12 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #24 0x560433c670dd in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #25 0x560433c65e3b in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #26 0x560433c6476b in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #27 0x560433c66f84 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #28 0x56043387d981 in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #29 0x56043387dbfc in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #30 0x5604337dfd20 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #31 0x5604337caf95 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #32 0x5604337d0a2f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #33 0x5604337fbcd2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #34 0x7ff47754a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #35 0x5604337c317d in _start (/out/gs_device_pdfwrite_fuzzer+0xab17d)
+
+DEDUP_TOKEN: pput_hex--cmap_put_ranges--psf_write_cmap
+SUMMARY: UndefinedBehaviorSanitizer: stack-overflow /src/ghostpdl/./devices/vector/gdevpsfm.c:60:9 in pput_hex
+==14==ABORTING

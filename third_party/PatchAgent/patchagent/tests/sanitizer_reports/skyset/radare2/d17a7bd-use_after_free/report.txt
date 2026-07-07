@@ -1,0 +1,110 @@
+=================================================================
+==360090==ERROR: AddressSanitizer: heap-use-after-free on address 0x502000065990 at pc 0x7eff215e20b2 bp 0x7ffdb327c170 sp 0x7ffdb327c168
+READ of size 4 at 0x502000065990 thread T0
+    #0 0x7eff215e20b1 in copy_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:769:23
+    #1 0x7eff215de53d in get_ref_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:693:14
+    #2 0x7eff215dd635 in get_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:1021:10
+    #3 0x7eff215db7b6 in get_code_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:922:17
+    #4 0x7eff215dd69f in get_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:1032:9
+    #5 0x7eff215dc51b in get_sections_symbols_from_code_objects /root/libr/../libr/bin/p/../format/pyc/marshal.c:1205:34
+    #6 0x7eff215e3fb4 in pyc_get_sections_symbols /root/libr/../libr/bin/p/../format/pyc/pyc.c:7:9
+    #7 0x7eff215da55a in symbols /root/libr/../libr/bin/p/bin_pyc.c:124:2
+    #8 0x7eff212b91e5 in r_bin_object_set_items /root/libr/bin/bobj.c:326:16
+    #9 0x7eff212b7d35 in r_bin_object_new /root/libr/bin/bobj.c:168:2
+    #10 0x7eff212acf8c in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    #11 0x7eff21287a75 in r_bin_open_buf /root/libr/bin/bin.c:279:8
+    #12 0x7eff21286b9d in r_bin_open_io /root/libr/bin/bin.c:339:13
+    #13 0x7eff21d0d092 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    #14 0x7eff21d08345 in r_core_bin_load /root/libr/core/cfile.c:636:4
+    #15 0x7eff1f2983f3 in r_main_radare2 /root/libr/main/radare2.c:1177:15
+    #16 0x5586f95a967e in main /root/binr/radare2/radare2.c:96:9
+    #17 0x7eff1f0631c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x7eff1f06328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x5586f95a81e4 in _start (/root/bin/radare2+0x21e4) (BuildId: f42033c89cc5b8c3d9c9682dabdc419bf889388c)
+
+0x502000065990 is located 0 bytes inside of 16-byte region [0x502000065990,0x5020000659a0)
+freed by thread T0 here:
+    #0 0x7eff2484c50a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7eff215dc4ae in free_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:760:2
+    #2 0x7eff241b94b7 in r_list_delete /root/libr/util/list.c:124:3
+    #3 0x7eff241b92d1 in r_list_purge /root/libr/util/list.c:90:3
+    #4 0x7eff241b951f in r_list_free /root/libr/util/list.c:100:3
+    #5 0x7eff215e2b86 in get_array_object_generic /root/libr/../libr/bin/p/../format/pyc/marshal.c:504:4
+    #6 0x7eff215e1f3b in get_set_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:629:8
+    #7 0x7eff215dd8ff in get_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:1093:9
+    #8 0x7eff215db710 in get_code_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:919:15
+    #9 0x7eff215dd69f in get_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:1032:9
+    #10 0x7eff215dc51b in get_sections_symbols_from_code_objects /root/libr/../libr/bin/p/../format/pyc/marshal.c:1205:34
+    #11 0x7eff215e3fb4 in pyc_get_sections_symbols /root/libr/../libr/bin/p/../format/pyc/pyc.c:7:9
+    #12 0x7eff215da55a in symbols /root/libr/../libr/bin/p/bin_pyc.c:124:2
+    #13 0x7eff212b91e5 in r_bin_object_set_items /root/libr/bin/bobj.c:326:16
+    #14 0x7eff212b7d35 in r_bin_object_new /root/libr/bin/bobj.c:168:2
+    #15 0x7eff212acf8c in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    #16 0x7eff21287a75 in r_bin_open_buf /root/libr/bin/bin.c:279:8
+    #17 0x7eff21286b9d in r_bin_open_io /root/libr/bin/bin.c:339:13
+    #18 0x7eff21d0d092 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    #19 0x7eff21d08345 in r_core_bin_load /root/libr/core/cfile.c:636:4
+    #20 0x7eff1f2983f3 in r_main_radare2 /root/libr/main/radare2.c:1177:15
+    #21 0x5586f95a967e in main /root/binr/radare2/radare2.c:96:9
+    #22 0x7eff1f0631c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #23 0x7eff1f06328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #24 0x5586f95a81e4 in _start (/root/bin/radare2+0x21e4) (BuildId: f42033c89cc5b8c3d9c9682dabdc419bf889388c)
+
+previously allocated by thread T0 here:
+    #0 0x7eff2484c98d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7eff215de0b6 in get_none_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:91:20
+    #2 0x7eff215ddaf4 in get_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:1122:8
+    #3 0x7eff215e2b45 in get_array_object_generic /root/libr/../libr/bin/p/../format/pyc/marshal.c:502:9
+    #4 0x7eff215e1f3b in get_set_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:629:8
+    #5 0x7eff215dd8ff in get_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:1093:9
+    #6 0x7eff215db710 in get_code_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:919:15
+    #7 0x7eff215dd69f in get_object /root/libr/../libr/bin/p/../format/pyc/marshal.c:1032:9
+    #8 0x7eff215dc51b in get_sections_symbols_from_code_objects /root/libr/../libr/bin/p/../format/pyc/marshal.c:1205:34
+    #9 0x7eff215e3fb4 in pyc_get_sections_symbols /root/libr/../libr/bin/p/../format/pyc/pyc.c:7:9
+    #10 0x7eff215da55a in symbols /root/libr/../libr/bin/p/bin_pyc.c:124:2
+    #11 0x7eff212b91e5 in r_bin_object_set_items /root/libr/bin/bobj.c:326:16
+    #12 0x7eff212b7d35 in r_bin_object_new /root/libr/bin/bobj.c:168:2
+    #13 0x7eff212acf8c in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    #14 0x7eff21287a75 in r_bin_open_buf /root/libr/bin/bin.c:279:8
+    #15 0x7eff21286b9d in r_bin_open_io /root/libr/bin/bin.c:339:13
+    #16 0x7eff21d0d092 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    #17 0x7eff21d08345 in r_core_bin_load /root/libr/core/cfile.c:636:4
+    #18 0x7eff1f2983f3 in r_main_radare2 /root/libr/main/radare2.c:1177:15
+    #19 0x5586f95a967e in main /root/binr/radare2/radare2.c:96:9
+    #20 0x7eff1f0631c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #21 0x7eff1f06328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #22 0x5586f95a81e4 in _start (/root/bin/radare2+0x21e4) (BuildId: f42033c89cc5b8c3d9c9682dabdc419bf889388c)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/libr/../libr/bin/p/../format/pyc/marshal.c:769:23 in copy_object
+Shadow bytes around the buggy address:
+  0x502000065700: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x502000065780: fa fa fd fa fa fa 06 fa fa fa 06 fa fa fa fd fa
+  0x502000065800: fa fa fd fa fa fa 06 fa fa fa 06 fa fa fa 06 fa
+  0x502000065880: fa fa 02 fa fa fa fd fa fa fa fd fa fa fa 00 00
+  0x502000065900: fa fa 06 fa fa fa 00 00 fa fa 00 00 fa fa fd fd
+=>0x502000065980: fa fa[fd]fd fa fa fd fa fa fa fd fd fa fa fd fa
+  0x502000065a00: fa fa fd fd fa fa fd fa fa fa fd fd fa fa fd fa
+  0x502000065a80: fa fa fd fd fa fa fd fa fa fa fd fd fa fa fd fa
+  0x502000065b00: fa fa 00 00 fa fa 05 fa fa fa 00 00 fa fa 05 fa
+  0x502000065b80: fa fa 00 00 fa fa 05 fa fa fa 00 00 fa fa fa fa
+  0x502000065c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360090==ABORTING

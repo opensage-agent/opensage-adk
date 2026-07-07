@@ -1,0 +1,57 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/ghostscript/OSV-2024-294/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gs_device_psdcmyk_fuzzer -runs=100.
++ FUZZER=gs_device_psdcmyk_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gs_device_psdcmyk_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gs_device_psdcmyk_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 794566571
+INFO: Loaded 3 modules   (226264 inline 8-bit counters): 14221 [0x7f813137e2a0, 0x7f8131381a2d), 958 [0x7f813141f778, 0x7f813141fb36), 211085 [0x55f0cb7fdba0, 0x55f0cb83142d), 
+INFO: Loaded 3 PC tables (226264 PCs): 14221 [0x7f8131381a30,0x7f81313b9300), 958 [0x7f813141fb38,0x7f8131423718), 211085 [0x55f0cb831430,0x55f0cbb69d00), 
+/out/gs_device_psdcmyk_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x55f0c934a6ea bp 0x7ffc393bfb30 sp 0x7ffc393bfaf8 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55f0c934a6ea in gx_device_forward_finalize /src/ghostpdl/./base/gdevnfwd.c:33:5
+    #1 0x55f0c9077e93 in gx_device_finalize /src/ghostpdl/./base/gsdevice.c:81:9
+    #2 0x55f0c9528184 in restore_finalize /src/ghostpdl/./psi/isave.c:954:13
+    #3 0x55f0c9528184 in alloc_restore_step_in /src/ghostpdl/./psi/isave.c:759:9
+    #4 0x55f0c94acb86 in dorestore /src/ghostpdl/./psi/zvmem.c:194:16
+    #5 0x55f0c94217b2 in z2restore /src/ghostpdl/./psi/zdevice2.c:380:12
+    #6 0x55f0c94456d5 in do_call_operator /src/ghostpdl/./psi/interp.c:91:12
+    #7 0x55f0c943f504 in interp /src/ghostpdl/./psi/interp.c:1768:40
+    #8 0x55f0c943f504 in gs_call_interp /src/ghostpdl/./psi/interp.c:531:12
+    #9 0x55f0c943f504 in gs_interpret /src/ghostpdl/./psi/interp.c:488:12
+    #10 0x55f0c8bc5407 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #11 0x55f0c8bc5407 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #12 0x55f0c8bc5407 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #13 0x55f0c973c9d0 in run_string /src/ghostpdl/./psi/imainarg.c:1170:12
+    #14 0x55f0c97393a0 in swproc /src/ghostpdl/./psi/imainarg.c:368:20
+    #15 0x55f0c9736582 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #16 0x55f0c973c758 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:290:16
+    #17 0x55f0c8bbcfbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #18 0x55f0c8bbd335 in LLVMFuzzerTestOneInput /src/gs_device_psdcmyk_fuzzer.cc:18:2
+    #19 0x55f0c8a716d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x55f0c8a5c945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x55f0c8a623df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x55f0c8a8d682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7f8130da6082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #24 0x55f0c8a54b2d in _start (/out/gs_device_psdcmyk_fuzzer+0x740b2d)
+
+DEDUP_TOKEN: gx_device_forward_finalize--gx_device_finalize--restore_finalize
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/ghostpdl/./base/gdevnfwd.c:33:5 in gx_device_forward_finalize
+==14==ABORTING

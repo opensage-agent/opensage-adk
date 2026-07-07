@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/sudoers:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/sudoers/OSV-2021-441/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_sudoers -runs=100.
++ FUZZER=fuzz_sudoers
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_sudoers -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_sudoers -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 864498585
+INFO: Loaded 1 modules   (4057 inline 8-bit counters): 4057 [0x558973a72c60, 0x558973a73c39), 
+INFO: Loaded 1 PC tables (4057 PCs): 4057 [0x558973a73c40,0x558973a839d0), 
+/out/fuzz_sudoers: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x558973a067f0 (pc 0x5589738be572 bp 0x000000000000 sp 0x7fff14708aa0 T0)
+[1m[0m==14==The signal is caused by a WRITE memory access.
+SCARINESS: 30 (wild-addr-write)
+    #0 0x5589738be572 in atomic_compare_exchange_strong<__sanitizer::atomic_uint8_t> /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_atomic_clang.h:81:10
+    #1 0x5589738be572 in AtomicallySetQuarantineFlagIfAllocated /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:668:10
+    #2 0x5589738be572 in __asan::Allocator::Deallocate(void*, unsigned long, unsigned long, __sanitizer::BufferedStackTrace*, __asan::AllocType) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:724:10
+    #3 0x558973954ffb in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:53:3
+    #4 0x558973999c7d in sudoers_lookup_check /src/sudo/plugins/sudoers/./parse.c:173:7
+    #5 0x558973999c7d in sudoers_lookup /src/sudo/plugins/sudoers/./parse.c:379:6
+    #6 0x558973995b04 in LLVMFuzzerTestOneInput /src/sudo/plugins/sudoers/./regress/fuzz/fuzz_sudoers.c:187:2
+    #7 0x558973849460 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5589738346d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55897383a16f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x558973865412 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f04a9ab7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #12 0x55897382c8bd in _start (/out/fuzz_sudoers+0x6a8bd)
+
+DEDUP_TOKEN: atomic_compare_exchange_strong<__sanitizer::atomic_uint8_t>--AtomicallySetQuarantineFlagIfAllocated--__asan::Allocator::Deallocate(void*, unsigned long, unsigned long, __sanitizer::BufferedStackTrace*, __asan::AllocType)
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/sudo/plugins/sudoers/./parse.c:173:7 in sudoers_lookup_check
+==14==ABORTING

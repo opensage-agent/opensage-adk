@@ -1,0 +1,77 @@
+The sanitizer detected a negative size param vulnerability. The explanation of the vulnerability is: A function receives a negative size parameter, leading to unexpected behavior or memory allocation errors. Here is the detail: 
+
+    - memset /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:87:3
+    - pdf_resize_array /src/ghostpdl/devices/vector/gdevpdtf.c:362:5
+    - pdf_resize_resource_arrays /src/ghostpdl/devices/vector/gdevpdtf.c:679:12
+    - scan_cmap_text /src/ghostpdl/devices/vector/gdevpdtc.c:569:24
+    - process_cmap_text /src/ghostpdl/devices/vector/gdevpdtc.c:965:12
+    - pdf_text_process /src/ghostpdl/devices/vector/gdevpdtt.c:3728:16
+    - pdfi_show_simple /src/ghostpdl/pdf/pdf_text.c:445:16
+    - pdfi_show_Tr_preserve /src/ghostpdl/pdf/pdf_text.c:780:12
+    - pdfi_show /src/ghostpdl/pdf/pdf_text.c:830:16
+    - pdfi_Tj /src/ghostpdl/pdf/pdf_text.c:1069:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1644:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2101:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:127:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:152:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:895:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:1074:24
+    - interp /src/ghostpdl/psi/interp.c:1725:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:522:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:479:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x52a00031b561 is located 13153 bytes inside of 20048-byte region [0x52a000318200,0x52a00031d050)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - gs_heap_alloc_bytes /src/ghostpdl/base/gsmalloc.c:192:34
+    - alloc_acquire_clump /src/ghostpdl/base/gsalloc.c:2445:13
+    - alloc_add_clump /src/ghostpdl/base/gsalloc.c:2395:19
+    - alloc_obj /src/ghostpdl/base/gsalloc.c:2004:17
+    - i_alloc_struct /src/ghostpdl/base/gsalloc.c:1217:15
+    - c_param_add /src/ghostpdl/base/gscparam.c:237:9
+    - c_param_write /src/ghostpdl/base/gscparam.c:276:26
+    - param_write_int /src/ghostpdl/base/gsparam.c:645:5
+    - psdf_DCT_filter /src/ghostpdl/devices/vector/gdevpsdu.c:383:21
+    - psdf_put_image_dict_param /src/ghostpdl/devices/vector/gdevpsdp.c:867:20
+    - psdf_put_image_params /src/ghostpdl/devices/vector/gdevpsdp.c:939:16
+    - gdev_psdf_put_params /src/ghostpdl/devices/vector/gdevpsdp.c:1207:13
+    - gdev_pdf_put_params_impl /src/ghostpdl/devices/vector/gdevpdfp.c:758:13
+    - gdev_pdf_put_params /src/ghostpdl/devices/vector/gdevpdfp.c:918:12
+    - gs_putdeviceparams /src/ghostpdl/base/gsdparam.c:1087:12
+    - zputdeviceparams /src/ghostpdl/psi/zdevice.c:546:12
+    - interp /src/ghostpdl/psi/interp.c:1725:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:522:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:479:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_run_init_file /src/ghostpdl/psi/imain.c:861:12
+    - gs_main_init2aux /src/ghostpdl/psi/imain.c:305:16
+    - gs_main_init2 /src/ghostpdl/psi/imain.c:491:12
+    - swproc /src/ghostpdl/psi/imainarg.c:363:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Validate all size parameters before passing them to memory allocation functions.
+2. Ensure that buffer sizes and loop limits are always positive values.
+3. Use unsigned integer types to store sizes to prevent negative values.

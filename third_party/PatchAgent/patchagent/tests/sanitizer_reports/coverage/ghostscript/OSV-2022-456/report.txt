@@ -1,0 +1,38 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gstoraster_fuzzer -runs=100.
++ FUZZER=gstoraster_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gstoraster_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gstoraster_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=gstoraster_fuzzer.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1413171019
+INFO: Loaded 1 modules   (19 inline 8-bit counters): 19 [0x564b3a95c110, 0x564b3a95c123), 
+INFO: Loaded 1 PC tables (19 PCs): 19 [0x564b3a95c128,0x564b3a95c258), 
+/out/gstoraster_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x000000000000 (pc 0x000000000000 bp 0x7ffd63edfc00 sp 0x7ffd63edfba8 T14)
+[1m[0m==14==Hint: pc points to the zero page.
+==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+    #0 0x0  (<unknown module>)
+    #1 0x564b38bbb930 in ubsan_GetStackTrace(__sanitizer::BufferedStackTrace*, unsigned long, unsigned long, unsigned long, void*, bool) /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag.cpp:41:10
+    #2 0x564b38bbaece in ReportDeadlySignalImpl /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_symbolizer_report.cpp:268:3
+    #3 0x564b38bbaece in __sanitizer::ReportDeadlySignal(__sanitizer::SignalContext const&, unsigned int, void (*)(__sanitizer::SignalContext const&, void const*, __sanitizer::BufferedStackTrace*), void const*) /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_symbolizer_report.cpp:282:5
+    #4 0x564b38bbb1a8 in __sanitizer::HandleDeadlySignal(void*, void*, unsigned int, void (*)(__sanitizer::SignalContext const&, void const*, __sanitizer::BufferedStackTrace*), void const*) /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_symbolizer_report.cpp:291:3
+    #5 0x7fbb50bd041f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+
+DEDUP_TOKEN: ubsan_GetStackTrace(__sanitizer::BufferedStackTrace*, unsigned long, unsigned long, unsigned long, void*, bool)--ReportDeadlySignalImpl
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (<unknown module>) 
+==14==ABORTING

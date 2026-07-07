@@ -1,0 +1,81 @@
+=================================================================
+==1072095==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000ad2f3 at pc 0x7f4870b76b77 bp 0x7ffc52d33a30 sp 0x7ffc52d33a28
+READ of size 1 at 0x5020000ad2f3 thread T0
+    #0 0x7f4870b76b76 in r_read_le16 /root/libr/include/r_endian.h:143:17
+    #1 0x7f4870b76afa in r_read_at_le16 /root/libr/include/r_endian.h:151:9
+    #2 0x7f4870b76401 in msp430_op /root/libr/../libr/anal/p/anal_msp430.c:62:15
+    #3 0x7f4870cbc544 in r_anal_op /root/libr/anal/op.c:121:9
+    #4 0x7f48727d809c in anal_block_cb /root/libr/core/canal.c:3512:7
+    #5 0x7f4870cf45c4 in r_anal_block_recurse_depth_first /root/libr/anal/block.c:561:21
+    #6 0x7f48727d7090 in r_core_recover_vars /root/libr/core/canal.c:3563:2
+    #7 0x7f48724ea9e1 in r_core_af /root/libr/core/./cmd_anal.c:3928:4
+    #8 0x7f48727ddaf5 in r_core_anal_all /root/libr/core/canal.c:4262:3
+    #9 0x7f48725faf8b in cmd_anal_all /root/libr/core/./cmd_anal.c:11228:4
+    #10 0x7f4872534287 in cmd_anal /root/libr/core/./cmd_anal.c:12445:8
+    #11 0x7f48727b9f16 in r_cmd_call /root/libr/core/cmd_api.c:549:11
+    #12 0x7f48725ae2ae in r_core_cmd_subst_i /root/libr/core/cmd.c:4528:8
+    #13 0x7f48725a388d in r_core_cmd_subst /root/libr/core/cmd.c:3401:9
+    #14 0x7f487251a028 in run_cmd_depth /root/libr/core/cmd.c:5422:9
+    #15 0x7f487250cb79 in r_core_cmd /root/libr/core/cmd.c:5505:8
+    #16 0x7f48724e5dbe in r_core_cmd0 /root/libr/core/cmd.c:5662:9
+    #17 0x7f486fbba823 in r_main_radare2 /root/libr/main/radare2.c:1438:11
+    #18 0x55ead20b567e in main /root/binr/radare2/radare2.c:96:9
+    #19 0x7f486f9811c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #20 0x7f486f98128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #21 0x55ead20b41e4 in _start (/root/bin/radare2+0x21e4) (BuildId: f82601947c81609d940f36c5a612ced2058f0f20)
+
+0x5020000ad2f3 is located 1 bytes after 2-byte region [0x5020000ad2f0,0x5020000ad2f2)
+allocated by thread T0 here:
+    #0 0x7f48749a77a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f48727d7631 in anal_block_cb /root/libr/core/canal.c:3449:13
+    #2 0x7f4870cf45c4 in r_anal_block_recurse_depth_first /root/libr/anal/block.c:561:21
+    #3 0x7f48727d7090 in r_core_recover_vars /root/libr/core/canal.c:3563:2
+    #4 0x7f48724ea9e1 in r_core_af /root/libr/core/./cmd_anal.c:3928:4
+    #5 0x7f48727ddaf5 in r_core_anal_all /root/libr/core/canal.c:4262:3
+    #6 0x7f48725faf8b in cmd_anal_all /root/libr/core/./cmd_anal.c:11228:4
+    #7 0x7f4872534287 in cmd_anal /root/libr/core/./cmd_anal.c:12445:8
+    #8 0x7f48727b9f16 in r_cmd_call /root/libr/core/cmd_api.c:549:11
+    #9 0x7f48725ae2ae in r_core_cmd_subst_i /root/libr/core/cmd.c:4528:8
+    #10 0x7f48725a388d in r_core_cmd_subst /root/libr/core/cmd.c:3401:9
+    #11 0x7f487251a028 in run_cmd_depth /root/libr/core/cmd.c:5422:9
+    #12 0x7f487250cb79 in r_core_cmd /root/libr/core/cmd.c:5505:8
+    #13 0x7f48724e5dbe in r_core_cmd0 /root/libr/core/cmd.c:5662:9
+    #14 0x7f486fbba823 in r_main_radare2 /root/libr/main/radare2.c:1438:11
+    #15 0x55ead20b567e in main /root/binr/radare2/radare2.c:96:9
+    #16 0x7f486f9811c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7f486f98128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x55ead20b41e4 in _start (/root/bin/radare2+0x21e4) (BuildId: f82601947c81609d940f36c5a612ced2058f0f20)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/libr/include/r_endian.h:143:17 in r_read_le16
+Shadow bytes around the buggy address:
+  0x5020000ad000: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x5020000ad080: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x5020000ad100: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x5020000ad180: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x5020000ad200: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+=>0x5020000ad280: fa fa fd fa fa fa fd fa fa fa fd fa fa fa[02]fa
+  0x5020000ad300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5020000ad380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5020000ad400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5020000ad480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x5020000ad500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1072095==ABORTING

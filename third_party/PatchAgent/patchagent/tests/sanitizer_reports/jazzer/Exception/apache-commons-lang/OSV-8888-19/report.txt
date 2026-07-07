@@ -1,0 +1,81 @@
++ FUZZER=BuilderFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer BuilderFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/BuilderFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 321 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented BuilderFuzzer (took 43 ms, size +11%)
+INFO: Instrumented org.apache.commons.lang3.builder.Builder (took 2 ms, size +0%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f9a39776a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2667971756
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x56442f7d2610, 0x56442f7d2810), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x56442f7abb50,0x56442f7adb50), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.apache.commons.lang3.builder.ToStringStyle (took 24 ms, size +18%)
+INFO: Instrumented org.apache.commons.lang3.builder.ToStringStyle$DefaultToStringStyle (took 0 ms, size +14%)
+INFO: Instrumented org.apache.commons.lang3.builder.ToStringStyle$MultiLineToStringStyle (took 0 ms, size +11%)
+INFO: Instrumented org.apache.commons.lang3.builder.ToStringStyle$NoFieldNameToStringStyle (took 0 ms, size +14%)
+INFO: Instrumented org.apache.commons.lang3.builder.ToStringStyle$ShortPrefixToStringStyle (took 0 ms, size +14%)
+INFO: Instrumented org.apache.commons.lang3.builder.ToStringStyle$SimpleToStringStyle (took 0 ms, size +9%)
+INFO: Instrumented org.apache.commons.lang3.builder.ToStringStyle$NoClassNameToStringStyle (took 0 ms, size +14%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.apache.commons.lang3.builder.ToStringStyle$JsonToStringStyle (took 5 ms, size +22%)
+INFO: Instrumented org.apache.commons.lang3.builder.CompareToBuilder (took 8 ms, size +30%)
+INFO: Instrumented org.apache.commons.lang3.builder.DiffBuilder (took 6 ms, size +16%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented org.apache.commons.lang3.builder.EqualsBuilder (took 9 ms, size +26%)
+INFO: Instrumented org.apache.commons.lang3.builder.HashCodeBuilder (took 7 ms, size +17%)
+INFO: Instrumented org.apache.commons.lang3.builder.ReflectionDiffBuilder (took 1 ms, size +22%)
+INFO: Instrumented org.apache.commons.lang3.builder.ReflectionToStringBuilder (took 5 ms, size +12%)
+INFO: Instrumented org.apache.commons.lang3.builder.ToStringBuilder (took 6 ms, size +4%)
+INFO: Instrumented org.apache.commons.lang3.ObjectUtils (took 7 ms, size +17%)
+INFO: Instrumented org.apache.commons.lang3.exception.CloneFailedException (took 0 ms, size +14%)
+INFO: Instrumented org.apache.commons.lang3.ObjectUtils$Null (took 0 ms, size +16%)
+INFO: Instrumented org.apache.commons.lang3.Validate (took 6 ms, size +13%)
+INFO: Instrumented org.apache.commons.lang3.builder.IDKey (took 0 ms, size +36%)
+INFO: Instrumented org.apache.commons.lang3.ArraySorter (took 1 ms, size +9%)
+
+== Java Exception: java.lang.reflect.InaccessibleObjectException: Unable to make field private static final long java.lang.Double.serialVersionUID accessible: module java.base does not "opens java.lang" to unnamed module @548ad73b
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:354)
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:297)
+	at java.base/java.lang.reflect.Field.checkCanSetAccessible(Field.java:178)
+	at java.base/java.lang.reflect.AccessibleObject.setAccessible(AccessibleObject.java:130)
+	at org.apache.commons.lang3.builder.HashCodeBuilder.reflectionAppend(HashCodeBuilder.java:187)
+	at org.apache.commons.lang3.builder.HashCodeBuilder.reflectionHashCode(HashCodeBuilder.java:342)
+	at org.apache.commons.lang3.builder.HashCodeBuilder.reflectionHashCode(HashCodeBuilder.java:384)
+	at BuilderFuzzer.fuzzerTestOneInput(BuilderFuzzer.java:72)
+DEDUP_TOKEN: 36104e102df25518
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_6ddb03dae1085baf8c27500bf75579803c01e689.java
+

@@ -1,0 +1,69 @@
+=================================================================
+==13==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7ff0d748f2e0 at pc 0x559c5aac7895 bp 0x7ffc6e1997b0 sp 0x7ffc6e1997a8
+READ of size 4 at 0x7ff0d748f2e0 thread T0
+SCARINESS: 32 (4-byte-read-stack-buffer-overflow)
+    #0 0x559c5aac7894 in gs_type2_interpret /src/ghostpdl/./base/gstype2.c:497:46
+    #1 0x559c5a0d9602 in copied_type1_glyph_outline /src/ghostpdl/./devices/gxfcopy.c:1108:16
+    #2 0x559c5a1f488b in gs_default_glyph_info /src/ghostpdl/./base/gsfont.c:1061:12
+    #3 0x559c5aa98296 in gs_type1_glyph_info /src/ghostpdl/./base/gxtype1.c:619:16
+    #4 0x559c5a093278 in pdf_compute_font_descriptor /src/ghostpdl/./devices/vector/gdevpdtd.c:469:16
+    #5 0x559c5a094484 in pdf_finish_FontDescriptor /src/ghostpdl/./devices/vector/gdevpdtd.c:649:17
+    #6 0x559c5a0c8fbf in pdf_finish_resources /src/ghostpdl/./devices/vector/gdevpdtw.c:684:24
+    #7 0x559c59f9bac5 in pdf_close /src/ghostpdl/./devices/vector/gdevpdf.c:2785:13
+    #8 0x559c5a1d6005 in gs_closedevice /src/ghostpdl/./base/gsdevice.c:786:16
+    #9 0x559c59d39457 in gs_main_finit /src/ghostpdl/./psi/imain.c:1351:20
+    #10 0x559c5a581263 in psapi_exit /src/ghostpdl/./psi/psapi.c:517:5
+    #11 0x559c59d2f010 in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:144:8
+    #12 0x559c59d2f335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #13 0x559c59be36d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x559c59bce945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x559c59bd43df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x559c59bff682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7ff0d7c01082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #18 0x559c59bc6b2d in _start (/out/gs_device_pdfwrite_fuzzer+0x71fb2d)
+
+DEDUP_TOKEN: gs_type2_interpret--copied_type1_glyph_outline--gs_default_glyph_info
+Address 0x7ff0d748f2e0 is located in stack of thread T0 at offset 224 in frame
+    #0 0x559c5aac082f in gs_type2_interpret /src/ghostpdl/./base/gstype2.c:124
+
+DEDUP_TOKEN: gs_type2_interpret
+  This frame has 4 object(s):
+    [32, 224) 'cstack' (line 129) <== Memory access at offset 224 overflows this variable
+    [288, 300) 'mask' (line 460)
+    [320, 336) 'join' (line 855)
+    [352, 368) 'end' (line 855)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/ghostpdl/./base/gstype2.c:497:46 in gs_type2_interpret
+Shadow bytes around the buggy address:
+  0x7ff0d748f000: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7ff0d748f080: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7ff0d748f100: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7ff0d748f180: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7ff0d748f200: f1 f1 f1 f1 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7ff0d748f280: 00 00 00 00 00 00 00 00 00 00 00 00[f2]f2 f2 f2
+  0x7ff0d748f300: f2 f2 f2 f2 f8 f8 f2 f2 f8 f8 f2 f2 f8 f8 f3 f3
+  0x7ff0d748f380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7ff0d748f400: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7ff0d748f480: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7ff0d748f500: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==13==ABORTING

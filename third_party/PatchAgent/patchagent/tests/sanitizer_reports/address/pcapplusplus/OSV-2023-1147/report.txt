@@ -1,0 +1,67 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50e00000061c at pc 0x55a86fb4de92 bp 0x7ffe1393a750 sp 0x7ffe13939f10
+READ of size 16777081 at 0x50e00000061c thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x55a86fb4de91 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x55a86fbc6d20 in parse_by_block_type /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng.c:155:10
+    #2 0x55a86fbc7a2c in light_read_record /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng.c:356:4
+    #3 0x55a86fbc5251 in light_get_next_packet /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng_ext.c:384:2
+    #4 0x55a86fba625d in pcpp::PcapNgFileReaderDevice::getNextPacket(pcpp::RawPacket&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&) /src/PcapPlusPlus/Pcap++/src/PcapFileDevice.cpp:403:8
+    #5 0x55a86fba7395 in pcpp::PcapNgFileReaderDevice::getNextPacket(pcpp::RawPacket&) /src/PcapPlusPlus/Pcap++/src/PcapFileDevice.cpp:444:10
+    #6 0x55a86fb9097d in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:71:19
+    #7 0x55a86fa441d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55a86fa2f445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55a86fa34edf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55a86fa60182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f2ca6c5f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x55a86fa2762d in _start (/out/FuzzTargetNg+0x1b762d)
+
+DEDUP_TOKEN: __asan_memcpy--parse_by_block_type--light_read_record
+0x50e00000061c is located 0 bytes after 156-byte region [0x50e000000580,0x50e00000061c)
+allocated by thread T0 here:
+    #0 0x55a86fb50169 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x55a86fbc7963 in light_read_record /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng.c:333:27
+    #2 0x55a86fbc5251 in light_get_next_packet /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng_ext.c:384:2
+    #3 0x55a86fba625d in pcpp::PcapNgFileReaderDevice::getNextPacket(pcpp::RawPacket&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>&) /src/PcapPlusPlus/Pcap++/src/PcapFileDevice.cpp:403:8
+    #4 0x55a86fba7395 in pcpp::PcapNgFileReaderDevice::getNextPacket(pcpp::RawPacket&) /src/PcapPlusPlus/Pcap++/src/PcapFileDevice.cpp:444:10
+    #5 0x55a86fb9097d in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:71:19
+    #6 0x55a86fa441d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55a86fa2f445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55a86fa34edf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55a86fa60182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f2ca6c5f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--light_read_record--light_get_next_packet
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/PcapPlusPlus/3rdParty/LightPcapNg/LightPcapNg/src/light_pcapng.c:155:10 in parse_by_block_type
+Shadow bytes around the buggy address:
+  0x50e000000380: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x50e000000400: fd fd fd fd fd fd fd fd fd fd fd fa fa fa fa fa
+  0x50e000000480: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+  0x50e000000500: fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+  0x50e000000580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x50e000000600: 00 00 00[04]fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50e000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50e000000700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50e000000780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50e000000800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50e000000880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

@@ -1,0 +1,25 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - gf_strdup /root/src/utils/alloc.c:170:2
+    - isor_get_chapters /root/src/filters/isoffin_load.c:92:20
+    - isor_declare_track /root/src/filters/isoffin_load.c:1187:3
+    - isor_declare_objects /root/src/filters/isoffin_load.c:1728:3
+    - isoffin_setup /root/src/filters/isoffin_read.c:181:6
+    - isoffin_configure_pid /root/src/filters/isoffin_read.c:477:9
+    - gf_filter_pid_configure /root/src/filter_core/filter_pid.c:876:6
+    - gf_filter_pid_connect_task /root/src/filter_core/filter_pid.c:1230:3
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4831:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

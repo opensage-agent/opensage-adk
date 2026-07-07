@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/c-blosc2:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce decompress_frame_fuzzer -runs=100.
++ FUZZER=decompress_frame_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer decompress_frame_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/decompress_frame_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3264959481
+/out/decompress_frame_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x0000000000e8 (pc 0x55c0bd56279d bp 0x7ffe3f3b3fc0 sp 0x7ffe3f3b3e80 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+    #0 0x55c0bd56279d in zfp_getcell /src/c-blosc2/plugins/codecs/zfp/blosc2-zfp.c:696:113
+    #1 0x55c0bd4347ff in blosc_d /src/c-blosc2/blosc/blosc2.c:1716:20
+    #2 0x55c0bd43339d in _blosc_getitem /src/c-blosc2/blosc/blosc2.c:2890:18
+    #3 0x55c0bd435028 in blosc2_getitem_ctx /src/c-blosc2/blosc/blosc2.c:2963:12
+    #4 0x55c0bd434ef6 in blosc2_getitem /src/c-blosc2/blosc/blosc2.c:2922:12
+    #5 0x55c0bd445786 in get_coffset /src/c-blosc2/blosc/frame.c:1879:12
+    #6 0x55c0bd444d04 in frame_get_lazychunk /src/c-blosc2/blosc/frame.c:2093:8
+    #7 0x55c0bd449a96 in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:3398:8
+    #8 0x55c0bd43c65e in blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:1001:17
+    #9 0x55c0bd42d42a in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:37:15
+    #10 0x55c0bd38f990 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x55c0bd37ac05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x55c0bd38069f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x55c0bd3ab942 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fdab51c6082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #15 0x55c0bd372ded in _start (/out/decompress_frame_fuzzer+0x21ded)
+
+DEDUP_TOKEN: zfp_getcell--blosc_d--_blosc_getitem
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/c-blosc2/plugins/codecs/zfp/blosc2-zfp.c:696:113 in zfp_getcell
+==14==ABORTING

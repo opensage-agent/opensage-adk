@@ -1,0 +1,43 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/opensc:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/opensc/OSV-2023-1163/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_pkcs15init -runs=100.
++ FUZZER=fuzz_pkcs15init
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_pkcs15init -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_pkcs15init -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 429141841
+INFO: Loaded 1 modules   (42181 inline 8-bit counters): 42181 [0x56428847be90, 0x564288486355), 
+INFO: Loaded 1 PC tables (42181 PCs): 42181 [0x564288486358,0x56428852afa8), 
+/out/fuzz_pkcs15init: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x00000100000a (pc 0x564287d48324 bp 0x7ffe6966fa80 sp 0x7ffe6966fa10 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x564287d48324 in sc_file_clear_acl_entries /src/opensc/src/libopensc/sc.c:610:28
+    #1 0x564287d487b3 in sc_file_free /src/opensc/src/libopensc/sc.c:634:3
+    #2 0x564288275e62 in setcos_create_key /src/opensc/src/pkcs15init/pkcs15-setcos.c:367:3
+    #3 0x564287cff9ef in sc_pkcs15init_generate_key /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:1609:6
+    #4 0x564287d2dd52 in do_generate_key /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:207:9
+    #5 0x564287d2ef46 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:337:5
+    #6 0x564287b9dc90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x564287b88f05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x564287b8e99f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x564287bb9c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7ff4f409d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x564287b810ed in _start (/out/fuzz_pkcs15init+0x1f40ed)
+
+DEDUP_TOKEN: sc_file_clear_acl_entries--sc_file_free--setcos_create_key
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/opensc/src/libopensc/sc.c:610:28 in sc_file_clear_acl_entries
+==14==ABORTING

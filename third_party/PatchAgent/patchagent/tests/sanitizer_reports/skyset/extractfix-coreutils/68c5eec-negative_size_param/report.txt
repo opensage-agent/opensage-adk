@@ -1,0 +1,20 @@
+=================================================================
+==575131==ERROR: AddressSanitizer: negative-size-param: (size=-6)
+    #0 0x7f8a3b77e9db in __asan_memmove build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:71:3
+    #1 0x55d009affa5c in bytes_chunk_extract /root/src/split.c:987:7
+    #2 0x55d009afe1c1 in main /root/src/split.c:1625:9
+    #3 0x7f8a3b46a1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #4 0x7f8a3b46a28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #5 0x55d009afa6a4 in _start (/root/src/split+0x76a4) (BuildId: e88522dc4c473e80199780d4601160be8de84fd3)
+
+0x7f8a3a97e006 is located 2054 bytes inside of 135168-byte region [0x7f8a3a97d800,0x7f8a3a99e800)
+allocated by thread T0 here:
+    #0 0x7f8a3b7807a3 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55d009b0b1d4 in xmalloc /root/lib/xmalloc.c:41:13
+    #2 0x55d009afddfb in main /root/src/split.c:1568:13
+    #3 0x7f8a3b46a1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #4 0x7f8a3b46a28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #5 0x55d009afa6a4 in _start (/root/src/split+0x76a4) (BuildId: e88522dc4c473e80199780d4601160be8de84fd3)
+
+SUMMARY: AddressSanitizer: negative-size-param /root/src/split.c:987:7 in bytes_chunk_extract
+==575131==ABORTING

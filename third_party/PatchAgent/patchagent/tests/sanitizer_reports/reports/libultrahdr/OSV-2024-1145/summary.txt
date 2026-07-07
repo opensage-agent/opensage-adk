@@ -1,0 +1,49 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5150000004e0 thread T0
+    - getYuv4abPixel /src/libultrahdr/lib/src/gainmapmath.cpp:724:20
+    - ultrahdr::getYuv444Pixel(uhdr_raw_image*, unsigned long, unsigned long) /src/libultrahdr/lib/src/gainmapmath.cpp:734:10
+    - operator() /src/libultrahdr/lib/src/jpegr.cpp:1201:33
+    - __invoke<(lambda at /src/libultrahdr/lib/src/jpegr.cpp:1192:39) &> /usr/local/include/c++/v1/__type_traits/invoke.h:344:25
+    - __call<(lambda at /src/libultrahdr/lib/src/jpegr.cpp:1192:39) &> /usr/local/include/c++/v1/__type_traits/invoke.h:419:5
+    - operator() /usr/local/include/c++/v1/__functional/function.h:169:12
+    - std::__1::__function::__func<ultrahdr::JpegR::applyGainMap(uhdr_raw_image*, uhdr_raw_image*, ultrahdr::uhdr_gainmap_metadata_ext*, uhdr_color_transfer, uhdr_img_fmt, float, uhdr_raw_image*)::$_0, std::__1::allocator<ultrahdr::JpegR::applyGainMap(uhdr_raw_image*, uhdr_raw_image*, ultrahdr::uhdr_gainmap_metadata_ext*, uhdr_color_transfer, uhdr_img_fmt, float, uhdr_raw_image*)::$_0>, void ()>::operator()() /usr/local/include/c++/v1/__functional/function.h:311:10
+    - operator() /usr/local/include/c++/v1/__functional/function.h:428:12
+    - operator() /usr/local/include/c++/v1/__functional/function.h:981:10
+    - ultrahdr::JpegR::applyGainMap(uhdr_raw_image*, uhdr_raw_image*, ultrahdr::uhdr_gainmap_metadata_ext*, uhdr_color_transfer, uhdr_img_fmt, float, uhdr_raw_image*) /src/libultrahdr/lib/src/jpegr.cpp:1297:3
+    - ultrahdr::JpegR::decodeJPEGR(uhdr_compressed_image*, uhdr_raw_image*, float, uhdr_color_transfer, uhdr_img_fmt, uhdr_raw_image*, uhdr_gainmap_metadata*) /src/libultrahdr/lib/src/jpegr.cpp:1051:3
+    - uhdr_decode /src/libultrahdr/lib/src/ultrahdr_api.cpp:1486:13
+    - UltraHdrDecFuzzer::process() /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:73:5
+    - LLVMFuzzerTestOneInput /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:82:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5150000004e0 is located 0 bytes after 480-byte region [0x515000000300,0x5150000004e0)
+allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - __allocate_at_least<std::__1::allocator<unsigned char> > /usr/local/include/c++/v1/__memory/allocate_at_least.h:55:19
+    - __split_buffer /usr/local/include/c++/v1/__split_buffer:343:25
+    - std::__1::vector<unsigned char, std::__1::allocator<unsigned char>>::__append(unsigned long) /usr/local/include/c++/v1/vector:1095:49
+    - ultrahdr::JpegDecoderHelper::decode(void const*, int, ultrahdr::decode_mode_t) /src/libultrahdr/lib/src/jpegdecoderhelper.cpp:392:21
+    - ultrahdr::JpegDecoderHelper::decompressImage(void const*, int, ultrahdr::decode_mode_t) /src/libultrahdr/lib/src/jpegdecoderhelper.cpp:203:10
+    - ultrahdr::JpegR::decodeJPEGR(uhdr_compressed_image*, uhdr_raw_image*, float, uhdr_color_transfer, uhdr_img_fmt, uhdr_raw_image*, uhdr_gainmap_metadata*) /src/libultrahdr/lib/src/jpegr.cpp:1011:3
+    - uhdr_decode /src/libultrahdr/lib/src/ultrahdr_api.cpp:1486:13
+    - UltraHdrDecFuzzer::process() /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:73:5
+    - LLVMFuzzerTestOneInput /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:82:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

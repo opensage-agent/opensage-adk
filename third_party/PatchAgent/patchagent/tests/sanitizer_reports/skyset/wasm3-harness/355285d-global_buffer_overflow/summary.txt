@@ -1,0 +1,21 @@
+The sanitizer detected a global buffer overflow vulnerability. The explanation of the vulnerability is: A buffer overflow occurs in globally allocated memory, leading to memory corruption or crashes. Here is the detail: 
+
+READ of size 8 at 0x555f1632bc18 thread T0
+    - Compile_BlockStatements /root/source/m3_compile.c:2206:21
+    - CompileBlock /root/source/m3_compile.c:2277:1
+    - Compile_If /root/source/m3_compile.c:1648:1
+    - Compile_BlockStatements /root/source/m3_compile.c:2207:1
+    - Parse_InitExpr /root/source/m3_parse.c:282:14
+    - ParseSection_Data /root/source/m3_parse.c:390:1
+    - ParseModuleSection /root/source/m3_parse.c:539:18
+    - m3_ParseModule /root/source/m3_parse.c:591:1
+    - LLVMFuzzerTestOneInput /root/platforms/app_fuzz/fuzzer.c:30:22
+
+0x555f1632bc18 is located 88 bytes after global variable 'c_operationsFC' defined in '/root/source/m3_compile.c:2177' (0x555f1632ba40) of size 384
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

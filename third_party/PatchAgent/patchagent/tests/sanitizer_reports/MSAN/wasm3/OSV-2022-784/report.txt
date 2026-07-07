@@ -1,0 +1,40 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/wasm3:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/wasm3/OSV-2022-784/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzzer -runs=100.
++ FUZZER=fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1840172672
+INFO: Loaded 1 modules   (3264 inline 8-bit counters): 3264 [0x56226b7452e8, 0x56226b745fa8), 
+INFO: Loaded 1 PC tables (3264 PCs): 3264 [0x56226b745fa8,0x56226b752ba8), 
+/out/fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+MemorySanitizer:DEADLYSIGNAL
+[1m[31m==13==ERROR: MemorySanitizer: SEGV on unknown address (pc 0x56226b680503 bp 0x7ffe217d0590 sp 0x7ffe217d0550 T13)
+[1m[0m==13==The signal is caused by a READ memory access.
+==13==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    #0 0x56226b680503 in FreeCodePages /src/wasm3/source/m3_code.c:62:39
+    #1 0x56226b66cfbb in Environment_Release /src/wasm3/source/m3_env.c:69:5
+    #2 0x56226b66cfbb in m3_FreeEnvironment /src/wasm3/source/m3_env.c:77:9
+    #3 0x56226b66c3bc in LLVMFuzzerTestOneInput /src/wasm3/platforms/app_fuzz/fuzzer.c:44:9
+    #4 0x56226b562140 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x56226b54d3b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x56226b552e4f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x56226b57e0f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f56bd6f7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x56226b54559d in _start (/out/fuzzer+0x5a59d)
+
+DEDUP_TOKEN: FreeCodePages--Environment_Release--m3_FreeEnvironment
+MemorySanitizer can not provide additional info.
+SUMMARY: MemorySanitizer: SEGV /src/wasm3/source/m3_code.c:62:39 in FreeCodePages
+==13==ABORTING

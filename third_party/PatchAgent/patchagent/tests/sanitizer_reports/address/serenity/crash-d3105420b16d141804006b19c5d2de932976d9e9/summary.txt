@@ -1,0 +1,498 @@
+The sanitizer detected a stack overflow vulnerability. The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably. Here is the detail: 
+
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:917:0
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:934:18
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:934:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:934:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:934:18
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+    - parse_sub_expression /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:867:18
+    - regex::PosixExtendedParser::parse_root(regex::ByteCode&, unsigned long&) /src/serenity/Userland/Libraries/LibRegex/RegexParser.cpp:925:14
+
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

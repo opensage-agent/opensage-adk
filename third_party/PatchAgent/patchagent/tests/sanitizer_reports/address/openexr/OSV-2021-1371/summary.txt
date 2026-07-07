@@ -1,0 +1,60 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 6 at 0x5060000000b0 thread T0
+    - printf_common(void*, char const*, __va_list_tag*) /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors_format.inc:563:9
+    - vsnprintf /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc:1652:1
+    - dispatch_print_error /src/openexr/src/lib/OpenEXRCore/internal_structs.c:134:17
+    - check_populate_type /src/openexr/src/lib/OpenEXRCore/parse_header.c:0:0
+    - check_req_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1616:24
+    - pull_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1688:10
+    - internal_exr_parse_header /src/openexr/src/lib/OpenEXRCore/parse_header.c:2431:18
+    - exr_start_read /src/openexr/src/lib/OpenEXRCore/context.c:255:49
+    - runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1534:10
+    - Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    - LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5060000000b0 is located 48 bytes inside of 57-byte region [0x506000000080,0x5060000000b9)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - attr_destroy /src/openexr/src/lib/OpenEXRCore/attributes.c:263:5
+    - check_populate_type /src/openexr/src/lib/OpenEXRCore/parse_header.c:1427:9
+    - check_req_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1616:24
+    - pull_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1688:10
+    - internal_exr_parse_header /src/openexr/src/lib/OpenEXRCore/parse_header.c:2431:18
+    - exr_start_read /src/openexr/src/lib/OpenEXRCore/context.c:255:49
+    - runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1534:10
+    - Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    - LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - create_attr_block /src/openexr/src/lib/OpenEXRCore/attributes.c:697:22
+    - exr_attr_list_add_static_name /src/openexr/src/lib/OpenEXRCore/attributes.c:1055:12
+    - check_populate_type /src/openexr/src/lib/OpenEXRCore/parse_header.c:1377:10
+    - check_req_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1616:24
+    - pull_attr /src/openexr/src/lib/OpenEXRCore/parse_header.c:1688:10
+    - internal_exr_parse_header /src/openexr/src/lib/OpenEXRCore/parse_header.c:2431:18
+    - exr_start_read /src/openexr/src/lib/OpenEXRCore/context.c:255:49
+    - runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1534:10
+    - Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    - LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

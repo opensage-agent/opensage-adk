@@ -1,0 +1,78 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x53100003c828 at pc 0x56434a3cb0ad bp 0x7ffd51624310 sp 0x7ffd51624308
+WRITE of size 4 at 0x53100003c828 thread T0
+SCARINESS: 46 (4-byte-write-heap-use-after-free)
+    #0 0x56434a3cb0ac in memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:34:10
+    #1 0x56434a3cb0ac in usbredirparser_serialize /work/build/../../src/spice-usbredir/usbredirparser/usbredirparser.c:1720:5
+    #2 0x56434a3c1cd2 in try_serialize /work/build/../../src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:400:11
+    #3 0x56434a3c1cd2 in LLVMFuzzerTestOneInput /work/build/../../src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:495:39
+    #4 0x56434a2753c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x56434a260635 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x56434a2660cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x56434a291372 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f02a2067082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #9 0x56434a25881d in _start (/out/usbredirparserfuzz+0x4c81d)
+
+DEDUP_TOKEN: memcpy--usbredirparser_serialize--try_serialize
+0x53100003c828 is located 40 bytes inside of 65536-byte region [0x53100003c800,0x53100004c800)
+freed by thread T0 here:
+    #0 0x56434a38157c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x56434a3cb65f in serialize_alloc /work/build/../../src/spice-usbredir/usbredirparser/usbredirparser.c:1534:14
+    #2 0x56434a3cb65f in serialize_data /work/build/../../src/spice-usbredir/usbredirparser/usbredirparser.c:1590:9
+    #3 0x56434a3caeda in usbredirparser_serialize /work/build/../../src/spice-usbredir/usbredirparser/usbredirparser.c:1712:13
+    #4 0x56434a3c1cd2 in try_serialize /work/build/../../src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:400:11
+    #5 0x56434a3c1cd2 in LLVMFuzzerTestOneInput /work/build/../../src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:495:39
+    #6 0x56434a2753c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x56434a260635 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x56434a2660cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x56434a291372 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f02a2067082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--serialize_alloc--serialize_data
+previously allocated by thread T0 here:
+    #0 0x56434a38157c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x56434a3cb22d in serialize_alloc /work/build/../../src/spice-usbredir/usbredirparser/usbredirparser.c:1534:14
+    #2 0x56434a3cb22d in serialize_int /work/build/../../src/spice-usbredir/usbredirparser/usbredirparser.c:1553:9
+    #3 0x56434a3caae1 in usbredirparser_serialize /work/build/../../src/spice-usbredir/usbredirparser/usbredirparser.c:1665:9
+    #4 0x56434a3c1cd2 in try_serialize /work/build/../../src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:400:11
+    #5 0x56434a3c1cd2 in LLVMFuzzerTestOneInput /work/build/../../src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:495:39
+    #6 0x56434a2753c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x56434a260635 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x56434a2660cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x56434a291372 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f02a2067082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--serialize_alloc--serialize_int
+SUMMARY: AddressSanitizer: heap-use-after-free /usr/include/x86_64-linux-gnu/bits/string_fortified.h:34:10 in memcpy
+Shadow bytes around the buggy address:
+  0x53100003c580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x53100003c600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x53100003c680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x53100003c700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x53100003c780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x53100003c800: fd fd fd fd fd[fd]fd fd fd fd fd fd fd fd fd fd
+  0x53100003c880: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x53100003c900: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x53100003c980: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x53100003ca00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x53100003ca80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

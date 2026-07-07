@@ -1,0 +1,111 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /home/yk/code/oss-fuzz/build/out/exp4j:/out -v /home/yk/code/oss-fuzz/oss-fuzz-exp4j-20250423-162157/crashes/crash-36e22342e74c166843787481261007f7ab824c66:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce ExpressionBuilderFuzzer -runs=100.
++ FUZZER=ExpressionBuilderFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ExpressionBuilderFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ExpressionBuilderFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 265 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented ExpressionBuilderFuzzer (took 56 ms, size +24%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f9783b6aa00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1086026220
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55572dddf740, 0x55572dddf940), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55572dda9410,0x55572ddab410), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented net.objecthunter.exp4j.ExpressionBuilder (took 17 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.operator.Operators (took 3 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.operator.Operator (took 4 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.operator.Operators$1 (took 1 ms, size +14%)
+INFO: Instrumented net.objecthunter.exp4j.operator.Operators$2 (took 1 ms, size +14%)
+INFO: Instrumented net.objecthunter.exp4j.operator.Operators$3 (took 1 ms, size +14%)
+INFO: Instrumented net.objecthunter.exp4j.operator.Operators$4 (took 1 ms, size +14%)
+INFO: Instrumented net.objecthunter.exp4j.operator.Operators$5 (took 1 ms, size +14%)
+INFO: Instrumented net.objecthunter.exp4j.operator.Operators$6 (took 1 ms, size +13%)
+INFO: Instrumented net.objecthunter.exp4j.operator.Operators$7 (took 0 ms, size +13%)
+INFO: Instrumented net.objecthunter.exp4j.operator.Operators$8 (took 1 ms, size +13%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions (took 12 ms, size +113%)
+INFO: Instrumented net.objecthunter.exp4j.function.Function (took 4 ms, size +26%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$1 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$2 (took 1 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$3 (took 10 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$4 (took 1 ms, size +14%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$5 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$6 (took 1 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$7 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$8 (took 1 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$9 (took 1 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$10 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$11 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$12 (took 1 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$13 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$14 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$15 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$16 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$17 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$18 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$19 (took 1 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$20 (took 1 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$21 (took 1 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$22 (took 1 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$23 (took 1 ms, size +16%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$24 (took 1 ms, size +14%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$25 (took 0 ms, size +14%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$26 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$27 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$28 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$29 (took 0 ms, size +14%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$30 (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.function.Functions$31 (took 1 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.Expression (took 10 ms, size +21%)
+INFO: Instrumented net.objecthunter.exp4j.shuntingyard.ShuntingYard (took 2 ms, size +23%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented net.objecthunter.exp4j.tokenizer.Tokenizer (took 10 ms, size +31%)
+INFO: Instrumented net.objecthunter.exp4j.tokenizer.Token (took 0 ms, size +13%)
+INFO: Instrumented net.objecthunter.exp4j.tokenizer.OperatorToken (took 0 ms, size +12%)
+INFO: Instrumented net.objecthunter.exp4j.tokenizer.NumberToken (took 1 ms, size +13%)
+INFO: Instrumented net.objecthunter.exp4j.tokenizer.ArgumentSeparatorToken (took 0 ms, size +22%)
+INFO: Instrumented net.objecthunter.exp4j.tokenizer.OpenParenthesesToken (took 0 ms, size +23%)
+INFO: Instrumented net.objecthunter.exp4j.tokenizer.CloseParenthesesToken (took 0 ms, size +22%)
+INFO: Instrumented net.objecthunter.exp4j.tokenizer.VariableToken (took 0 ms, size +17%)
+INFO: Instrumented net.objecthunter.exp4j.tokenizer.FunctionToken (took 0 ms, size +15%)
+INFO: Instrumented net.objecthunter.exp4j.tokenizer.UnknownFunctionOrVariableException (took 1 ms, size +16%)
+
+== Java Exception: java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 1
+	at net.objecthunter.exp4j.tokenizer.Tokenizer.nextToken(Tokenizer.java:72)
+	at net.objecthunter.exp4j.shuntingyard.ShuntingYard.convertToRPN(ShuntingYard.java:48)
+	at net.objecthunter.exp4j.ExpressionBuilder.build(ExpressionBuilder.java:202)
+	at ExpressionBuilderFuzzer.fuzzerTestOneInput(ExpressionBuilderFuzzer.java:51)
+DEDUP_TOKEN: b1e5adf1698e9a79
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_36e22342e74c166843787481261007f7ab824c66.java
+

@@ -1,0 +1,14 @@
+The sanitizer detected a java generic exception vulnerability.The explanation of the vulnerability is: A Java exception occurred, indicating a potential issue in the code or environment.Here is the detail: 
+
+== Java Exception: java.lang.ArrayIndexOutOfBoundsException: Index 2 out of bounds for length 2
+- com.alibaba.fastjson2.JSONReaderUTF8.readNumber0 (com/alibaba/fastjson2/JSONReaderUTF8.java:5228)
+- com.alibaba.fastjson2.JSONReader.readNumber (com/alibaba/fastjson2/JSONReader.java:1126)
+- com.alibaba.fastjson2.reader.ObjectReaderImplObject.readObject (com/alibaba/fastjson2/reader/ObjectReaderImplObject.java:286)
+- com.alibaba.fastjson2.JSON.parse (com/alibaba/fastjson2/JSON.java:79)
+- JsonFuzzer.fuzzerTestOneInput (JsonFuzzer.java:24)
+
+To fix this issue, follow the advice below:
+
+1. Investigate the cause of the Java exception to identify the root cause of the error.
+2. Review the code for potential memory corruption or undefined behavior.
+3. Check for uninitialized variables or unintended pointer accesses.

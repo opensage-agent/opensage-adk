@@ -1,0 +1,23 @@
+The sanitizer detected a memory leak vulnerability. The explanation of the vulnerability is: A program fails to free allocated memory, leading to resource exhaustion and degraded system performance over time. Here is the detail: 
+
+
+Direct leak of 264 byte(s) in 22 object(s) allocated from:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - ndpi_malloc /src/ndpi/src/lib/ndpi_memory.c:60:25
+    - ndpi_strdup /src/ndpi/src/lib/ndpi_memory.c:113:13
+    - ndpi_set_proto_defaults /src/ndpi/src/lib/ndpi_main.c:615:10
+    - ndpi_handle_rule /src/ndpi/src/lib/ndpi_main.c:4786:7
+    - load_protocols_file_fd /src/ndpi/src/lib/ndpi_main.c:5521:8
+    - ndpi_load_protocols_file /src/ndpi/src/lib/ndpi_main.c:5456:8
+    - LLVMFuzzerTestOneInput /src/ndpi/fuzz/fuzz_ndpi_reader.c:98:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that every memory allocation has a corresponding deallocation.
+2. Track allocated memory systematically to avoid leaks.
+3. Avoid unnecessary memory allocations by reusing buffers where possible.

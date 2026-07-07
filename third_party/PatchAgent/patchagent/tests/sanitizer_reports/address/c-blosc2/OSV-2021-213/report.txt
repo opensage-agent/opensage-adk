@@ -1,0 +1,87 @@
+Error in decompressing chunkDecompression error.  Error code: -10
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x52b000006a48 at pc 0x55fdb417f002 bp 0x7ffcfc5c9ea0 sp 0x7ffcfc5c9660
+READ of size 24 at 0x52b000006a48 thread T0
+SCARINESS: 54 (multi-byte-read-heap-use-after-free)
+    #0 0x55fdb417f001 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x55fdb4543f4b in ZSTD_freeDDict /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:215:44
+    #2 0x55fdb4205620 in blosc2_free_ctx /src/c-blosc2/blosc/blosc2.c:3154:5
+    #3 0x55fdb42245db in blosc2_schunk_free /src/c-blosc2/blosc/schunk.c:223:3
+    #4 0x55fdb41c098c in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:44:3
+    #5 0x55fdb4075340 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55fdb40605b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55fdb406604f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55fdb40912f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7fbd9bd7f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #10 0x55fdb405879d in _start (/out/decompress_frame_fuzzer+0x12979d)
+
+DEDUP_TOKEN: __asan_memcpy--ZSTD_freeDDict--blosc2_free_ctx
+0x52b000006a48 is located 26696 bytes inside of 26720-byte region [0x52b000000200,0x52b000006a60)
+freed by thread T0 here:
+    #0 0x55fdb4180e76 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55fdb437bd81 in ZSTD_free /src/c-blosc2/internal-complibs/zstd-1.4.5/common/zstd_common.c:81:13
+    #2 0x55fdb4543fb9 in ZSTD_freeDDict /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:217:9
+    #3 0x55fdb4205df1 in initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:1634:7
+    #4 0x55fdb4205df1 in blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2157:11
+    #5 0x55fdb420678c in blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2183:12
+    #6 0x55fdb423472d in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:1675:23
+    #7 0x55fdb42260d8 in blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:540:17
+    #8 0x55fdb41c08d5 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:33:15
+    #9 0x55fdb4075340 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55fdb40605b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55fdb406604f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55fdb40912f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fbd9bd7f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--ZSTD_free--ZSTD_freeDDict
+previously allocated by thread T0 here:
+    #0 0x55fdb418110f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55fdb437b9e0 in ZSTD_malloc /src/c-blosc2/internal-complibs/zstd-1.4.5/common/zstd_common.c:60:12
+    #2 0x55fdb4544089 in ZSTD_createDDict_advanced /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:152:49
+    #3 0x55fdb4544089 in ZSTD_createDDict /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:173:12
+    #4 0x55fdb42062a8 in initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:1653:27
+    #5 0x55fdb42062a8 in blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2157:11
+    #6 0x55fdb420678c in blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2183:12
+    #7 0x55fdb423472d in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:1675:23
+    #8 0x55fdb42260d8 in blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:540:17
+    #9 0x55fdb41c08d5 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:33:15
+    #10 0x55fdb4075340 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x55fdb40605b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x55fdb406604f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x55fdb40912f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fbd9bd7f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ZSTD_malloc--ZSTD_createDDict_advanced
+SUMMARY: AddressSanitizer: heap-use-after-free /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:215:44 in ZSTD_freeDDict
+Shadow bytes around the buggy address:
+  0x52b000006780: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x52b000006800: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x52b000006880: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x52b000006900: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x52b000006980: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x52b000006a00: fd fd fd fd fd fd fd fd fd[fd]fd fd fa fa fa fa
+  0x52b000006a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52b000006b00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52b000006b80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52b000006c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52b000006c80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

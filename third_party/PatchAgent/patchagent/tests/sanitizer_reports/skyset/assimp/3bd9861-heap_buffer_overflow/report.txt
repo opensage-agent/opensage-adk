@@ -1,0 +1,22 @@
+=================================================================
+==962297==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000460 (pc 0x555556b408bc bp 0x7fffffffc810 sp 0x7fffffffc660 T0)
+==962297==The signal is caused by a READ memory access.
+==962297==Hint: address points to the zero page.
+    #0 0x555556b408bc in Assimp::SplitLargeMeshesProcess_Triangle::UpdateNode(aiNode*, std::vector<std::pair<aiMesh*, unsigned int>, std::allocator<std::pair<aiMesh*, unsigned int>>> const&) /root/code/PostProcessing/SplitLargeMeshes.cpp:105:31
+    #1 0x555556b3dbfe in Assimp::SplitLargeMeshesProcess_Triangle::Execute(aiScene*) /root/code/PostProcessing/SplitLargeMeshes.cpp:89:5
+    #2 0x555556a9b44f in Assimp::BaseProcess::ExecuteOnScene(Assimp::Importer*) /root/code/Common/BaseProcess.cpp:82:9
+    #3 0x5555558d79b2 in Assimp::Importer::ApplyPostProcessing(unsigned int) /root/code/Common/Importer.cpp:841:22
+    #4 0x5555558d5321 in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:751:13
+    #5 0x5555558d1fd9 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    #6 0x555555861fa9 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+    #7 0x555555847714 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2f3714) (BuildId: cb8539a72825e94f38e22358c2d052ec5a8ac868)
+    #8 0x555555830846 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2dc846) (BuildId: cb8539a72825e94f38e22358c2d052ec5a8ac868)
+    #9 0x5555558362fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2e22fa) (BuildId: cb8539a72825e94f38e22358c2d052ec5a8ac868)
+    #10 0x555555860ab6 in main (/root/assimp_fuzzer+0x30cab6) (BuildId: cb8539a72825e94f38e22358c2d052ec5a8ac868)
+    #11 0x7ffff6f1b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #12 0x7ffff6f1b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #13 0x55555582b414 in _start (/root/assimp_fuzzer+0x2d7414) (BuildId: cb8539a72825e94f38e22358c2d052ec5a8ac868)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/code/PostProcessing/SplitLargeMeshes.cpp:105:31 in Assimp::SplitLargeMeshesProcess_Triangle::UpdateNode(aiNode*, std::vector<std::pair<aiMesh*, unsigned int>, std::allocator<std::pair<aiMesh*, unsigned int>>> const&)
+==962297==ABORTING

@@ -1,0 +1,20 @@
+=================================================================
+==360148==ERROR: AddressSanitizer: SEGV on unknown address 0x7fffb440b91c (pc 0x555f9f8e7c6b bp 0x7fff5e9c1cf0 sp 0x7fff5e9c0e20 T0)
+==360148==The signal is caused by a READ memory access.
+    #0 0x555f9f8e7c6b in Assimp::SortByPTypeProcess::Execute(aiScene*) /root/code/PostProcessing/SortByPTypeProcess.cpp:183:17
+    #1 0x555f9f82f48f in Assimp::BaseProcess::ExecuteOnScene(Assimp::Importer*) /root/code/Common/BaseProcess.cpp:86:9
+    #2 0x555f9e99c3e2 in Assimp::Importer::ApplyPostProcessing(unsigned int) /root/code/Common/Importer.cpp:855:22
+    #3 0x555f9e999d58 in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:765:13
+    #4 0x555f9e9967b9 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    #5 0x555f9e928117 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:53:34
+    #6 0x555f9e90d7f4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2b87f4) (BuildId: cd1c1ef52ea0cc85179a289ba45c871deef62c90)
+    #7 0x555f9e8f6926 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2a1926) (BuildId: cd1c1ef52ea0cc85179a289ba45c871deef62c90)
+    #8 0x555f9e8fc3da in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2a73da) (BuildId: cd1c1ef52ea0cc85179a289ba45c871deef62c90)
+    #9 0x555f9e926c36 in main (/root/assimp_fuzzer+0x2d1c36) (BuildId: cd1c1ef52ea0cc85179a289ba45c871deef62c90)
+    #10 0x7ffbb5f451c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7ffbb5f4528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x555f9e8f14f4 in _start (/root/assimp_fuzzer+0x29c4f4) (BuildId: cd1c1ef52ea0cc85179a289ba45c871deef62c90)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/code/PostProcessing/SortByPTypeProcess.cpp:183:17 in Assimp::SortByPTypeProcess::Execute(aiScene*)
+==360148==ABORTING

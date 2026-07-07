@@ -1,0 +1,30 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - iv_get /src/mruby/src/variable.c:129:19
+    - mrb_obj_iv_get /src/mruby/src/variable.c:316:18
+    - mrb_class_path /src/mruby/src/class.c:2122:10
+    - class_name_str /src/mruby/src/class.c:404:20
+    - mrb_funcall_with_block /src/mruby/src/vm.c:693:13
+    - mrb_funcall_argv /src/mruby/src/vm.c:709:10
+    - mrb_funcall_id /src/mruby/src/vm.c:520:10
+    - mrb_inspect /src/mruby/src/object.c:641:17
+    - mrb_vformat /src/mruby/src/error.c:334:17
+    - error_va /src/mruby/src/error.c:399:20
+    - mrb_raisef /src/mruby/src/error.c:410:9
+    - mrb_vm_define_class /src/mruby/src/class.c:0:0
+    - mrb_vm_exec /src/mruby/src/vm.c:2935:11
+    - mrb_vm_run /src/mruby/src/vm.c:1299:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6916:7
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

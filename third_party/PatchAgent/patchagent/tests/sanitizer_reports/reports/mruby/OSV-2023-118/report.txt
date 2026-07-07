@@ -1,0 +1,1885 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mruby:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/mruby/OSV-2023-118/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce mruby_proto_fuzzer -runs=100.
++ FUZZER=mruby_proto_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer mruby_proto_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/mruby_proto_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=mruby.dict -only_ascii=1 < /dev/null
+INFO: found LLVMFuzzerCustomMutator (0x561b4018b030). Disabling -len_control by default.
+Dictionary: 102 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3135901622
+INFO: Loaded 1 modules   (25915 inline 8-bit counters): 25915 [0x561b40720788, 0x561b40726cc3), 
+INFO: Loaded 1 PC tables (25915 PCs): 25915 [0x561b40726cc8,0x561b4078c078), 
+/out/mruby_proto_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+
+
+############
+def foo()
+var_0 = 1
+@scope ||= begin
+var_1 = 1
+
+var_2 = 1
+
+
+var_3 = 1
+
+var_4 = 1
+
+var_5 = 1
+
+var_6 = 1
+
+
+var_7 = 1
+
+
+
+var_8 = 1
+
+@scope ||= begin
+
+[1].combination(1)
+
+var_9 = 1
+
+[1].combination(1)
+
+1
+
+[1].permutation(1)
+
+1
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].permutation(1)
+
+var_10 = 1
+
+1
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+Math.cos(1)
+
+1
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].permutation(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination((0))
+
+var_11 = (1 + var_5)
+
+[1].combination(1)
+
+[1].permutation(1)
+
+
+[1].combination(1)
+
+var_12 = var_0
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+
+[1].permutation(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+var_13 = 1
+
+[1].combination(1)
+
+[1].combination(1)
+
+var_14 = 1
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].permutation(1)
+
+1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].permutation(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+var_15 = 1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].permutation(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+
+
+[1].permutation(1)
+
+1
+
+
+
+1
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination((4))
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].permutation(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+
+@scope ||= begin
+
+[1].combination(1)
+
+var_16 = 1
+
+[1].combination(1)
+
+1
+
+[1].permutation(1)
+
+1
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].permutation(1)
+
+var_17 = 1
+
+1
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+Math.cos(1)
+
+1
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].permutation(1)
+
+[1].combination(1)
+
+[1].combination((4))
+
+[1].combination(1)
+
+[1].combination((0))
+
+var_18 = (1 + var_16)
+
+[1].combination(1)
+
+[1].permutation(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+
+[1].permutation(1)
+
+
+1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+var_19 = 1
+
+[1].combination(1)
+
+[1].combination(1)
+
+var_20 = 1
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].permutation(1)
+
+1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].permutation(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+var_21 = 1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].permutation(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+
+
+[1].permutation(1)
+
+1
+
+
+
+1
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination((4))
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+
+
+
+@scope ||= begin
+
+end
+
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+[1].combination(1)
+
+1
+
+
+
+1
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+Math.cos(Math::E)
+
+[1].combination(1)
+
+[1].combination(1)
+
+Time.at(6)
+
+
+
+
+[1].combination(1)
+
+
+[(4)].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+
+
+
+[1].combination((6))
+
+
+[1].combination((6))
+
+
+[(8)].combination(1)
+
+end
+
+@scope ||= begin
+
+end
+
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+1
+
+1
+
+1
+
+
+
+1
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+
+
+[1].combination(1)
+
+
+
+[1].combination(1)
+
+Math.cos(Math::E)
+
+[1].combination(1)
+
+[1].combination(1)
+
+Time.at(6)
+
+
+
+
+[1].combination(1)
+
+
+[(4)].combination(1)
+
+[1].combination(1)
+
+[1].combination(1)
+
+
+[1].combination(1)
+
+
+
+
+[1].combination((6))
+
+1
+
+[1].combination((6))
+
+
+[(8)].combination(1)
+
+end
+
+if 1
+
+else
+@scope ||= begin
+var_9 = 1
+
+end
+
+end
+
+var_9 = 1
+
+var_10 = 1
+
+var_11 = 1
+
+var_12 = 1
+
+var_13 = 1
+
+var_14 = 1
+
+var_15 = 1
+
+var_16 = 1
+
+var_17 = 1
+
+var_18 = 1
+
+var_19 = 1
+
+
+var_20 = 1
+
+var_21 = 1
+
+var_22 = 1
+
+var_23 = 1
+
+1
+
+Time.at(0)
+
+
+var_24 = 1
+
+var_25 = 1
+
+var_26 = 1
+
+var_27 = 1
+
+var_28 = 1
+
+var_29 = 1
+
+var_30 = 1
+
+var_31 = 1
+
+var_32 = (1)
+
+var_33 = 1
+
+var_34 = 1
+
+var_35 = 1
+
+var_36 = 1
+
+
+
+var_37 = 1
+
+var_38 = 1
+
+@scope ||= begin
+
+
+
+end
+
+var_39 = 1
+
+
+var_40 = var_1
+
+var_41 = 1
+
+var_42 = 1
+
+var_43 = 1
+
+
+var_44 = 1
+
+var_45 = 1
+
+var_46 = 1
+
+var_47 = var_0
+
+var_48 = 1
+
+
+var_49 = 1
+
+var_50 = 1
+
+var_51 = 1
+
+var_52 = 1
+
+
+var_53 = 1
+
+var_54 = 1
+
+
+var_55 = 1
+
+var_56 = var_1
+
+var_57 = (1 + 1)
+
+var_58 = 1
+
+(1 ? (8) : 1)
+
+var_59 = 1
+
+var_60 = 1
+
+var_61 = 1
+
+var_62 = 1
+
+var_63 = 1
+
+var_64 = 1
+
+var_65 = 1
+
+ObjectSpace.count_objects()
+
+
+var_66 = 1
+
+var_67 = 1
+
+
+var_68 = 1
+
+var_69 = 1
+
+var_70 = 1
+
+var_71 = var_1
+
+var_72 = 1
+
+var_73 = 1
+
+var_74 = 1
+
+
+var_75 = 1
+
+var_76 = 1
+
+var_77 = 1
+
+var_78 = 1
+
+var_79 = 1
+
+var_80 = 1
+
+var_81 = 1
+
+var_82 = 1
+
+var_83 = 1
+
+var_84 = 1
+
+var_85 = var_1
+
+var_86 = 1
+
+
+var_87 = 1
+
+var_88 = 1
+
+
+var_89 = 1
+
+
+var_90 = 1
+
+var_91 = 1
+
+
+var_92 = 1
+
+var_93 = 1
+
+var_94 = 1
+
+var_95 = 1
+
+var_96 = var_0
+
+var_97 = 1
+
+var_98 = 1
+
+var_99 = 1
+
+var_100 = 1
+
+var_101 = 1
+
+var_102 = 1
+
+var_103 = 1
+
+var_104 = (1 >> (1 - ((8) * var_32)))
+
+(1 ? 1 : 1)
+
+var_105 = 1
+
+
+var_106 = ((1) + 1)
+
+var_107 = 1
+
+var_108 = 1
+
+var_109 = 1
+
+var_110 = 1
+
+var_111 = 1
+
+var_112 = (1)
+
+var_113 = 1
+
+
+var_114 = 1
+
+
+var_115 = 1
+
+var_116 = 1
+
+var_117 = 1
+
+var_118 = 1
+
+var_119 = 1
+
+var_120 = 1
+
+var_121 = 1
+
+var_122 = (1 / 1)
+
+var_123 = 1
+
+var_124 = 1
+
+
+var_125 = 1
+
+var_126 = 1
+
+var_127 = (8)
+
+var_128 = 1
+
+var_129 = (1 + 1)
+
+
+var_130 = 1
+
+
+var_131 = (1)
+
+var_132 = 1
+
+var_133 = 1
+
+var_134 = 1
+
+if (var_1 <= var_32)
+
+else
+@scope ||= begin
+if 1
+
+else
+
+end
+
+if (var_1 <= var_32)
+
+else
+
+end
+
+if (var_1 <= var_32)
+
+else
+
+end
+
+if (var_1 <= var_32)
+
+else
+
+end
+
+end
+
+end
+
+var_135 = 1
+
+
+var_136 = (8)
+
+var_137 = 1
+
+Math.sqrt(1)
+
+var_138 = 1
+
+var_139 = 1
+
+
+var_140 = var_1
+
+var_141 = 1
+
+var_142 = 1
+
+var_143 = 1
+
+var_144 = 1
+
+
+var_145 = 1
+
+var_146 = 1
+
+var_147 = 1
+
+var_148 = 1
+
+var_149 = 1
+
+var_150 = 1
+
+@scope ||= begin
+ObjectSpace.count_objects()
+
+
+end
+
+
+var_151 = 1
+
+var_152 = 1
+
+var_153 = 1
+
+var_154 = 1
+
+var_155 = 1
+
+Math.sqrt(1)
+
+var_156 = 1
+
+@scope ||= begin
+
+@scope ||= begin
+var_157 = 1
+
+end
+
+end
+
+var_157 = 1
+
+
+var_158 = 1
+
+var_159 = 1
+
+var_160 = 1
+
+
+var_161 = 1
+
+var_162 = 1
+
+var_163 = 1
+
+ObjectSpace.count_objects()
+
+
+
+var_164 = 1
+
+var_165 = 1
+
+var_166 = 1
+
+var_167 = 1
+
+var_168 = 1
+
+
+var_169 = 1
+
+
+var_170 = 1
+
+var_171 = 1
+
+
+var_172 = 1
+
+var_173 = 1
+
+var_174 = 1
+
+var_175 = 1
+
+var_176 = 1
+
+var_177 = 1
+
+
+ObjectSpace.count_objects()
+
+
+var_178 = 1
+
+var_179 = 1
+
+var_180 = 1
+
+var_181 = 1
+
+var_182 = 1
+
+var_183 = 1
+
+
+var_184 = 1
+
+
+var_185 = 1
+
+var_186 = 1
+
+
+var_187 = var_1
+
+var_188 = 1
+
+
+var_189 = 1
+
+var_190 = 1
+
+var_191 = 1
+
+var_192 = 1
+
+var_193 = 1
+
+var_194 = 1
+
+var_195 = 1
+
+
+var_196 = 1
+
+
+var_197 = 1
+
+var_198 = 1
+
+
+
+var_199 = (3)
+
+var_200 = 1
+
+var_201 = (var_14 + 1)
+
+
+var_202 = 1
+
+var_203 = 1
+
+var_204 = 1
+
+var_205 = 1
+
+var_206 = 1
+
+
+
+var_207 = 1
+
+var_208 = 1
+
+
+var_209 = 1
+
+var_210 = 1
+
+
+var_211 = 1
+
+var_212 = 1
+
+var_213 = 1
+
+var_214 = 1
+
+var_215 = 1
+
+
+var_216 = 1
+
+
+var_217 = (6)
+
+var_218 = 1
+
+var_219 = 1
+
+var_220 = 1
+
+var_221 = 1
+
+var_222 = 1
+
+var_223 = 1
+
+var_224 = 1
+
+@scope ||= begin
+@scope ||= begin
+var_225 = 1
+
+@scope ||= begin
+@scope ||= begin
+@scope ||= begin
+var_226 = var_1
+
+@scope ||= begin
+var_227 = 1
+
+@scope ||= begin
+var_228 = var_0
+
+1
+
+end
+
+end
+
+end
+
+var_226 = 1
+
+end
+
+end
+
+
+end
+
+var_225 = (8)
+
+@scope ||= begin
+[1].rotate(1)
+
+@scope ||= begin
+
+1
+
+end
+
+@scope ||= begin
+(1 ? 1 : 1)
+
+end
+
+end
+
+end
+
+var_225 = 1
+
+var_226 = 1
+
+var_227 = 1
+
+var_228 = 1
+
+var_229 = 1
+
+var_230 = 1
+
+var_231 = 1
+
+var_232 = 1
+
+var_233 = 1
+
+var_234 = 1
+
+var_235 = 1
+
+var_236 = 1
+
+var_237 = 1
+
+var_238 = 1
+
+
+var_239 = 1
+
+var_240 = 1
+
+
+var_241 = 1
+
+
+var_242 = 1
+
+ObjectSpace.count_objects()
+
+
+var_243 = 1
+
+var_244 = 1
+
+var_245 = var_1
+
+var_246 = 1
+
+var_247 = 1
+
+var_248 = 1
+
+@scope ||= begin
+var_249 = 1
+
+@scope ||= begin
+var_250 = 1
+
+var_251 = 1
+
+end
+
+@scope ||= begin
+var_250 = var_1
+
+@scope ||= begin
+var_251 = (6)
+
+@scope ||= begin
+var_252 = var_1
+
+end
+
+var_252 = (3)
+
+end
+
+end
+
+end
+
+var_249 = 1
+
+
+end
+end
+foo
+
+############
+
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x52f00001c440 at pc 0x561b4033f01f bp 0x7ffc48171c70 sp 0x7ffc48171c68
+[1m[0m[1m[34mREAD of size 4 at 0x52f00001c440 thread T0[1m[0m
+SCARINESS: 45 (4-byte-read-heap-use-after-free)
+    #0 0x561b4033f01e in mrb_gc_mark /src/mruby/src/gc.c:789:8
+    #1 0x561b40389720 in iv_mark_i /src/mruby/src/variable.c:240:3
+    #2 0x561b40389720 in iv_foreach /src/mruby/src/variable.c:190:11
+    #3 0x561b40389720 in mark_tbl /src/mruby/src/variable.c:247:3
+    #4 0x561b40389720 in mrb_gc_mark_iv /src/mruby/src/variable.c:266:3
+    #5 0x561b40341e96 in incremental_marking_phase /src/mruby/src/gc.c:1097:5
+    #6 0x561b40341e96 in incremental_gc /src/mruby/src/gc.c:1237:14
+    #7 0x561b4033c0e1 in incremental_gc_finish /src/mruby/src/gc.c:1262:5
+    #8 0x561b4033c0e1 in mrb_full_gc /src/mruby/src/gc.c:1373:3
+    #9 0x561b4033f7d5 in mrb_objspace_each_objects /src/mruby/src/gc.c:1648:3
+    #10 0x561b404acfc6 in os_count_objects /src/mruby/mrbgems/mruby-objectspace/src/mruby_objectspace.c:73:3
+    #11 0x561b4036ba6d in mrb_vm_exec /src/mruby/src/vm.c
+    #12 0x561b40359344 in mrb_vm_run /src/mruby/src/vm.c:1282:12
+    #13 0x561b403ffbd3 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6914:7
+    #14 0x561b4018aae5 in FuzzRB(unsigned char const*, unsigned long) /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:34:7
+    #15 0x561b4018b66b in TestOneProtoInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:44:9
+    #16 0x561b4018b66b in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:41:1
+    #17 0x561b4003f370 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x561b4002a5e5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x561b4003007f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x561b4005b322 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7f70c7f43082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #22 0x561b400227cd in _start (/out/mruby_proto_fuzzer+0x1a27cd)
+
+DEDUP_TOKEN: mrb_gc_mark--iv_mark_i--iv_foreach
+[1m[32m0x52f00001c440 is located 64 bytes inside of 49200-byte region [0x52f00001c400,0x52f000028430)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x561b4014aea6 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x561b4033a955 in mrb_default_allocf /src/mruby/src/state.c:65:5
+    #2 0x561b40341bd6 in mrb_free /src/mruby/src/gc.c:296:3
+    #3 0x561b40341bd6 in incremental_sweep_phase /src/mruby/src/gc.c:1205:7
+    #4 0x561b40341bd6 in incremental_gc /src/mruby/src/gc.c:1246:20
+    #5 0x561b4033c0e1 in incremental_gc_finish /src/mruby/src/gc.c:1262:5
+    #6 0x561b4033c0e1 in mrb_full_gc /src/mruby/src/gc.c:1373:3
+    #7 0x561b4033f7d5 in mrb_objspace_each_objects /src/mruby/src/gc.c:1648:3
+    #8 0x561b404acfc6 in os_count_objects /src/mruby/mrbgems/mruby-objectspace/src/mruby_objectspace.c:73:3
+    #9 0x561b4036ba6d in mrb_vm_exec /src/mruby/src/vm.c
+    #10 0x561b40359344 in mrb_vm_run /src/mruby/src/vm.c:1282:12
+    #11 0x561b403ffbd3 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6914:7
+    #12 0x561b4018aae5 in FuzzRB(unsigned char const*, unsigned long) /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:34:7
+    #13 0x561b4018b66b in TestOneProtoInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:44:9
+    #14 0x561b4018b66b in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:41:1
+    #15 0x561b4003f370 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x561b4002a5e5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x561b4003007f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x561b4005b322 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f70c7f43082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--mrb_default_allocf--mrb_free
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x561b4014b52c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x561b4033d9d5 in mrb_realloc_simple /src/mruby/src/gc.c:234:8
+    #2 0x561b4033d9d5 in mrb_realloc /src/mruby/src/gc.c:248:8
+    #3 0x561b4033d9d5 in mrb_malloc /src/mruby/src/gc.c:264:10
+    #4 0x561b4033d9d5 in mrb_calloc /src/mruby/src/gc.c:282:9
+    #5 0x561b4033d9d5 in add_heap /src/mruby/src/gc.c:381:42
+    #6 0x561b4033d1d3 in mrb_obj_alloc /src/mruby/src/gc.c:584:5
+    #7 0x561b40394a9a in ary_new_capa /src/mruby/src/array.c:51:7
+    #8 0x561b403623e5 in ary_new_from_regs /src/mruby/src/vm.c:1321:19
+    #9 0x561b403623e5 in mrb_vm_exec /src/mruby/src/vm.c:2685:17
+    #10 0x561b40359344 in mrb_vm_run /src/mruby/src/vm.c:1282:12
+    #11 0x561b403ffbd3 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6914:7
+    #12 0x561b4018aae5 in FuzzRB(unsigned char const*, unsigned long) /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:34:7
+    #13 0x561b4018b66b in TestOneProtoInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:44:9
+    #14 0x561b4018b66b in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_proto_fuzzer.cpp:41:1
+    #15 0x561b4003f370 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x561b4002a5e5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x561b4003007f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x561b4005b322 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f70c7f43082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_realloc--mrb_realloc_simple--mrb_realloc
+SUMMARY: AddressSanitizer: heap-use-after-free /src/mruby/src/gc.c:789:8 in mrb_gc_mark
+Shadow bytes around the buggy address:
+  0x52f00001c180: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52f00001c200: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52f00001c280: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52f00001c300: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x52f00001c380: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+=>0x52f00001c400: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f00001c480: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f00001c500: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f00001c580: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f00001c600: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52f00001c680: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==18==ABORTING

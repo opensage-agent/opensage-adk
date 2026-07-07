@@ -347,18 +347,6 @@ async def update_joern_cpg(
         logger.info(f"Created {res[0]['rel_count']} MAYBE_IDENTICAL edges")
 
 
-# async def import_joern_cpg(n4j_client: AsyncNeo4jClient, graphml_path: str):
-#     cypher = f"""
-#     CALL apoc.import.graphml("file://{graphml_path}", {{readLabels: true, storeNodeIds: true}})
-#     YIELD nodes, relationships, properties, time
-#     RETURN nodes, relationships, properties, time
-#     """
-#     res = await n4j_client.run_query(cypher)
-#     logger.info(
-#         f"Imported {res[0]['nodes']} nodes, {res[0]['relationships']} relationships, {res[0]['properties']} properties, in {res[0]['time']} ms from {graphml_path}"
-#     )
-
-
 async def import_joern_callgraph(n4j_client: AsyncNeo4jClient, json_outdir: str):
     for node in ["CALL", "METHOD"]:
         res = await n4j_client.run_query(

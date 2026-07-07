@@ -1,0 +1,17 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - wabt::Module::operator=(wabt::Module&&) /root/include/wabt/ir.h:1192:8
+    - wabt::WastParser::ParseModuleCommand(wabt::Script*, std::unique_ptr<wabt::Command, std::default_delete<wabt::Command>>*) /root/src/wast-parser.cc:3442:15
+    - wabt::WastParser::ParseModule(std::unique_ptr<wabt::Module, std::default_delete<wabt::Module>>*) /root/src/wast-parser.cc:1169:5
+    - wabt::ParseWatModule(wabt::WastLexer*, std::unique_ptr<wabt::Module, std::default_delete<wabt::Module>>*, std::vector<wabt::Error, std::allocator<wabt::Error>>*, wabt::WastParseOptions*) /root/src/wast-parser.cc:3720:3
+    - ProgramMain(int, char**) /root/src/tools/wat2wasm.cc:145:12
+    - main /root/src/tools/wat2wasm.cc:173:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

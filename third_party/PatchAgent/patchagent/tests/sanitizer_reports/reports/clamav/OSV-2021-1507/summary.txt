@@ -1,0 +1,51 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 2 at 0x525000002101 thread T0
+    - memchr /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc:884:3
+    - handle_gets /src/clamav/libclamav/fmap.c:810:23
+    - fmap_gets /src/clamav/libclamav/fmap.h:356:12
+    - uudecodeFile /src/clamav/libclamav/uuencode.c:104:12
+    - cli_uuencode /src/clamav/libclamav/uuencode.c:70:9
+    - cli_scanuuencoded /src/clamav/libclamav/scanners.c:2955:11
+    - cli_magic_scan /src/clamav/libclamav/scanners.c:4543:23
+    - magic_scan_nested_fmap_type /src/clamav/libclamav/scanners.c:5057:14
+    - cli_magic_scan_nested_fmap_type /src/clamav/libclamav/scanners.c:5147:15
+    - cli_parsegif /src/clamav/libclamav/gif.c:419:41
+    - cli_magic_scan /src/clamav/libclamav/scanners.c:4617:23
+    - magic_scan_nested_fmap_type /src/clamav/libclamav/scanners.c:5057:14
+    - cli_magic_scan_nested_fmap_type /src/clamav/libclamav/scanners.c:5147:15
+    - cli_parsegif /src/clamav/libclamav/gif.c:419:41
+    - cli_magic_scan /src/clamav/libclamav/scanners.c:4617:23
+    - scan_common /src/clamav/libclamav/scanners.c:5327:14
+    - cl_scandesc_callback /src/clamav/libclamav/scanners.c:5503:14
+    - cl_scanfile_callback /src/clamav/libclamav/scanners.c:5598:11
+    - cl_scanfile /src/clamav/libclamav/scanners.c:5575:12
+    - LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_scanfile_fuzzer.cpp:129:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x525000002101 is located 1 bytes after 8192-byte region [0x525000000100,0x525000002100)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - cli_malloc /src/clamav/libclamav/others_common.c:197:13
+    - cl_fmap_open_handle /src/clamav/libclamav/fmap.c:409:29
+    - fmap_check_empty /src/clamav/libclamav/fmap.c:132:9
+    - fmap /src/clamav/libclamav/fmap.c:947:12
+    - cl_scandesc_callback /src/clamav/libclamav/scanners.c:5497:24
+    - cl_scanfile_callback /src/clamav/libclamav/scanners.c:5598:11
+    - cl_scanfile /src/clamav/libclamav/scanners.c:5575:12
+    - LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_scanfile_fuzzer.cpp:129:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

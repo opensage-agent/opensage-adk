@@ -1,0 +1,32 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - ucmp /src/mruby/mrbgems/mruby-bigint/core/bigint.c:191:17
+    - mpz_cmp /src/mruby/mrbgems/mruby-bigint/core/bigint.c:569:10
+    - mrb_bint_cmp /src/mruby/mrbgems/mruby-bigint/core/bigint.c:1284:10
+    - int_eql /src/mruby/src/numeric.c:558:27
+    - mrb_funcall_with_block /src/mruby/src/vm.c:637:13
+    - mrb_funcall_argv /src/mruby/src/vm.c:653:10
+    - mrb_funcall_id /src/mruby/src/vm.c:479:10
+    - mrb_eql /src/mruby/src/object.c:642:10
+    - obj_eql /src/mruby/src/hash.c:379:5
+    - ht_set_without_ib_adjustment /src/mruby/src/hash.c:854:3
+    - ht_set /src/mruby/src/hash.c:896:3
+    - h_set /src/mruby/src/hash.c:1012:3
+    - mrb_hash_set /src/mruby/src/hash.c:1245:3
+    - mrb_hash_aset /src/mruby/src/hash.c:1565:3
+    - mrb_vm_exec /src/mruby/src/vm.c:0:0
+    - mrb_vm_run /src/mruby/src/vm.c:1208:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6889:7
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

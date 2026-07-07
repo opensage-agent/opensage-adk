@@ -1,0 +1,26 @@
+# OpenSage config for sample_dynamic_subagent
+
+task_name = "sample_dynamic_subagent_task"
+src_dir_in_sandbox = "/shared/code"
+
+[sandbox]
+backend = "native"
+
+[sandbox.sandboxes.main]
+image = "ubuntu:20.04_main"
+project_relative_dockerfile_path = "src/opensage/templates/dockerfiles/main/Dockerfile"
+timeout = 300
+
+[sandbox.sandboxes.main.build_args]
+BASE_IMAGE = "ubuntu:20.04"
+
+[llm]
+[subagent]
+agent_storage_path = "/tmp/dynamic_agent_test/agent_storage"
+
+[plugins]
+enabled = [
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+    "quota_after_tool_plugin",
+]

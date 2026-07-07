@@ -1,0 +1,118 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/flac:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/flac/OSV-2023-221/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzzer_tool_flac -runs=100.
++ FUZZER=fuzzer_tool_flac
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzzer_tool_flac -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzzer_tool_flac -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 939493772
+INFO: Loaded 1 modules   (15014 inline 8-bit counters): 15014 [0x55893304b210, 0x55893304ecb6), 
+INFO: Loaded 1 PC tables (15014 PCs): 15014 [0x55893304ecb8,0x558933089718), 
+/out/fuzzer_tool_flac: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x515000006980 at pc 0x558932e6898e bp 0x7ffc2e776110 sp 0x7ffc2e776108
+[1m[0m[1m[34mREAD of size 4 at 0x515000006980 thread T0[1m[0m
+SCARINESS: 45 (4-byte-read-heap-use-after-free)
+    #0 0x558932e6898d in flac__analyze_frame /src/flac/oss-fuzz/../src/flac/analyze.c:144:28
+    #1 0x558932e6c0b4 in write_callback /src/flac/oss-fuzz/../src/flac/decode.c:1238:4
+    #2 0x558932f12880 in write_audio_frame_to_client_ /src/flac/src/libFLAC/stream_decoder.c
+    #3 0x558932f0880e in read_frame_ /src/flac/src/libFLAC/stream_decoder.c:2241:7
+    #4 0x558932f0a700 in FLAC__stream_decoder_process_until_end_of_stream /src/flac/src/libFLAC/stream_decoder.c:1063:9
+    #5 0x558932e6a33f in DecoderSession_process /src/flac/oss-fuzz/../src/flac/decode.c:470:6
+    #6 0x558932e6a33f in flac__decode_file /src/flac/oss-fuzz/../src/flac/decode.c:188:6
+    #7 0x558932e9d032 in decode_file /src/flac/oss-fuzz/./../src/flac/main.c
+    #8 0x558932e98ceb in do_it /src/flac/oss-fuzz/./../src/flac/main.c:525:15
+    #9 0x558932e98ceb in main_to_fuzz /src/flac/oss-fuzz/./../src/flac/main.c:350:13
+    #10 0x558932e98ceb in LLVMFuzzerTestOneInput /src/flac/oss-fuzz/tool_flac.c:84:2
+    #11 0x558932d1b430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x558932d066a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x558932d0c13f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x558932d373e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fe07b2f4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #16 0x558932cfe88d in _start (/out/fuzzer_tool_flac+0xac88d)
+
+DEDUP_TOKEN: flac__analyze_frame--write_callback--write_audio_frame_to_client_
+[1m[32m0x515000006980 is located 0 bytes inside of 455-byte region [0x515000006980,0x515000006b47)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x558932e26f66 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x558932f11da2 in allocate_output_ /src/flac/src/libFLAC/stream_decoder.c:1251:4
+    #2 0x558932f09008 in read_frame_ /src/flac/src/libFLAC/stream_decoder.c:2173:10
+    #3 0x558932f0a700 in FLAC__stream_decoder_process_until_end_of_stream /src/flac/src/libFLAC/stream_decoder.c:1063:9
+    #4 0x558932e6a33f in DecoderSession_process /src/flac/oss-fuzz/../src/flac/decode.c:470:6
+    #5 0x558932e6a33f in flac__decode_file /src/flac/oss-fuzz/../src/flac/decode.c:188:6
+    #6 0x558932e9d032 in decode_file /src/flac/oss-fuzz/./../src/flac/main.c
+    #7 0x558932e98ceb in do_it /src/flac/oss-fuzz/./../src/flac/main.c:525:15
+    #8 0x558932e98ceb in main_to_fuzz /src/flac/oss-fuzz/./../src/flac/main.c:350:13
+    #9 0x558932e98ceb in LLVMFuzzerTestOneInput /src/flac/oss-fuzz/tool_flac.c:84:2
+    #10 0x558932d1b430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x558932d066a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x558932d0c13f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x558932d373e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fe07b2f4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--allocate_output_--read_frame_
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x558932e271ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x558932fb5d26 in safe_malloc_ /src/flac/src/libFLAC/../../include/share/alloc.h:94:9
+    #2 0x558932fb5d26 in safe_malloc_add_2op_ /src/flac/src/libFLAC/../../include/share/alloc.h:130:9
+    #3 0x558932fb5d26 in FLAC__memory_alloc_aligned /src/flac/src/libFLAC/memory.c:54:6
+    #4 0x558932fb5d26 in FLAC__memory_alloc_aligned_int32_array /src/flac/src/libFLAC/memory.c:79:7
+    #5 0x558932f1205f in allocate_output_ /src/flac/src/libFLAC/stream_decoder.c:1276:7
+    #6 0x558932f04047 in read_frame_ /src/flac/src/libFLAC/stream_decoder.c:2051:6
+    #7 0x558932f0a700 in FLAC__stream_decoder_process_until_end_of_stream /src/flac/src/libFLAC/stream_decoder.c:1063:9
+    #8 0x558932e6a33f in DecoderSession_process /src/flac/oss-fuzz/../src/flac/decode.c:470:6
+    #9 0x558932e6a33f in flac__decode_file /src/flac/oss-fuzz/../src/flac/decode.c:188:6
+    #10 0x558932e9d032 in decode_file /src/flac/oss-fuzz/./../src/flac/main.c
+    #11 0x558932e98ceb in do_it /src/flac/oss-fuzz/./../src/flac/main.c:525:15
+    #12 0x558932e98ceb in main_to_fuzz /src/flac/oss-fuzz/./../src/flac/main.c:350:13
+    #13 0x558932e98ceb in LLVMFuzzerTestOneInput /src/flac/oss-fuzz/tool_flac.c:84:2
+    #14 0x558932d1b430 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x558932d066a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x558932d0c13f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x558932d373e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fe07b2f4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--safe_malloc_--safe_malloc_add_2op_
+SUMMARY: AddressSanitizer: heap-use-after-free /src/flac/oss-fuzz/../src/flac/analyze.c:144:28 in flac__analyze_frame
+Shadow bytes around the buggy address:
+  0x515000006700: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000006780: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000006800: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000006880: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000006900: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+=>0x515000006980:[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000006a00: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000006a80: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000006b00: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000006b80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000006c00: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

@@ -1,0 +1,70 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/apache-commons-lang:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce SerializationUtilsFuzzer -runs=100.
++ FUZZER=SerializationUtilsFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer SerializationUtilsFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/SerializationUtilsFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 321 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented SerializationUtilsFuzzer (took 56 ms, size +12%)
+INFO: Instrumented org.apache.commons.lang3.SerializationException (took 5 ms, size +13%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7fe1d7164a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 522251413
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55ffed75b430, 0x55ffed75b630), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55ffed6ffe20,0x55ffed701e20), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.apache.commons.lang3.SerializationUtils (took 9 ms, size +20%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh: Remote Code Execution
+Unrestricted class/object creation based on externally controlled data may allow
+remote code execution depending on available classes on the classpath.
+	at jaz.Zer.reportFinding(Zer.java:110)
+	at jaz.Zer.reportFindingIfEnabled(Zer.java:105)
+	at jaz.Zer.readObject(Zer.java:377)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.io.ObjectStreamClass.invokeReadObject(ObjectStreamClass.java:1231)
+	at java.base/java.io.ObjectInputStream.readSerialData(ObjectInputStream.java:2434)
+	at java.base/java.io.ObjectInputStream.readOrdinaryObject(ObjectInputStream.java:2268)
+	at java.base/java.io.ObjectInputStream.readObject0(ObjectInputStream.java:1744)
+	at java.base/java.io.ObjectInputStream.readObject(ObjectInputStream.java:514)
+	at java.base/java.io.ObjectInputStream.readObject(ObjectInputStream.java:472)
+	at org.apache.commons.lang3.SerializationUtils.deserialize(SerializationUtils.java:208)
+	at org.apache.commons.lang3.SerializationUtils.deserialize(SerializationUtils.java:174)
+	at SerializationUtilsFuzzer.fuzzerTestOneInput(SerializationUtilsFuzzer.java:38)
+DEDUP_TOKEN: c794e2177a903587
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_6ddb03dae1085baf8c27500bf75579803c01e689.java
+

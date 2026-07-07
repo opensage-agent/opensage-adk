@@ -1,0 +1,113 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 1 at 0x502000001310 thread T0
+    - gf_odf_vvc_cfg_read_bs /root/src/odf/descriptors.c:1403:12
+    - vvcc_box_read /root/src/isomedia/avc_ext.c:3115:16
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - video_sample_entry_box_read /root/src/isomedia/box_code_base.c:4354:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - stsd_box_read /root/src/isomedia/box_code_base.c:5486:9
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - stbl_box_read /root/src/isomedia/box_code_base.c:5115:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - minf_box_read /root/src/isomedia/box_code_base.c:3583:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - mdia_box_read /root/src/isomedia/box_code_base.c:3134:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - trak_box_read /root/src/isomedia/box_code_base.c:6907:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - moov_box_read /root/src/isomedia/box_code_base.c:3779:9
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_parse_root_box /root/src/isomedia/box_funcs.c:38:8
+    - gf_isom_parse_movie_boxes_internal /root/src/isomedia/isom_intern.c:378:7
+    - gf_isom_parse_movie_boxes /root/src/isomedia/isom_intern.c:868:6
+    - gf_isom_open_file /root/src/isomedia/isom_intern.c:988:19
+    - gf_isom_open /root/src/isomedia/isom_read.c:520:11
+    - mp4box_main /root/applications/mp4box/mp4box.c:6221:12
+    - main /root/applications/mp4box/mp4box.c:6846:1
+
+0x502000001310 is located 0 bytes inside of 16-byte region [0x502000001310,0x502000001320)
+freed by thread T0 here:
+    - gf_free /root/src/utils/alloc.c:165:2
+    - gf_odf_vvc_cfg_read_bs /root/src/odf/descriptors.c:1399:4
+    - vvcc_box_read /root/src/isomedia/avc_ext.c:3115:16
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - video_sample_entry_box_read /root/src/isomedia/box_code_base.c:4354:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - stsd_box_read /root/src/isomedia/box_code_base.c:5486:9
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - stbl_box_read /root/src/isomedia/box_code_base.c:5115:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - minf_box_read /root/src/isomedia/box_code_base.c:3583:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - mdia_box_read /root/src/isomedia/box_code_base.c:3134:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - trak_box_read /root/src/isomedia/box_code_base.c:6907:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+
+previously allocated by thread T0 here:
+    - gf_malloc /root/src/utils/alloc.c:150:9
+    - gf_odf_vvc_cfg_read_bs /root/src/odf/descriptors.c:1375:3
+    - vvcc_box_read /root/src/isomedia/avc_ext.c:3115:16
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - video_sample_entry_box_read /root/src/isomedia/box_code_base.c:4354:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - stsd_box_read /root/src/isomedia/box_code_base.c:5486:9
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - stbl_box_read /root/src/isomedia/box_code_base.c:5115:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - minf_box_read /root/src/isomedia/box_code_base.c:3583:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - mdia_box_read /root/src/isomedia/box_code_base.c:3134:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:1790:7
+    - trak_box_read /root/src/isomedia/box_code_base.c:6907:6
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1897:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:282:14
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

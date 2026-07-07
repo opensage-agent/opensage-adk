@@ -1,0 +1,39 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5140000005e0 thread T0
+    - SkipSpaces<char> /src/assimp/include/assimp/ParsingUtils.h:107:12
+    - SkipSpaces<char> /src/assimp/include/assimp/ParsingUtils.h:117:12
+    - Assimp::MD5::MD5MeshParser::MD5MeshParser(std::__1::vector<Assimp::MD5::Section, std::__1::allocator<Assimp::MD5::Section>>&) /src/assimp/code/AssetLib/MD5/MD5Parser.cpp:297:17
+    - Assimp::MD5Importer::LoadMD5MeshFile() /src/assimp/code/AssetLib/MD5/MD5Loader.cpp:345:24
+    - Assimp::MD5Importer::InternReadFile(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /src/assimp/code/AssetLib/MD5/MD5Loader.cpp:145:13
+    - Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, Assimp::IOSystem*) /src/assimp/code/Common/BaseImporter.cpp:110:9
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /src/assimp/code/Common/Importer.cpp:723:30
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /src/assimp/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:54:34
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5140000005e0 is located 0 bytes after 416-byte region [0x514000000440,0x5140000005e0)
+allocated by thread T0 here:
+    - operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    - Assimp::MD5Importer::LoadFileIntoMemory(Assimp::IOStream*) /src/assimp/code/AssetLib/MD5/MD5Loader.cpp:182:15
+    - Assimp::MD5Importer::LoadMD5MeshFile() /src/assimp/code/AssetLib/MD5/MD5Loader.cpp:339:5
+    - Assimp::MD5Importer::InternReadFile(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, aiScene*, Assimp::IOSystem*) /src/assimp/code/AssetLib/MD5/MD5Loader.cpp:145:13
+    - Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, Assimp::IOSystem*) /src/assimp/code/Common/BaseImporter.cpp:110:9
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /src/assimp/code/Common/Importer.cpp:723:30
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /src/assimp/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:54:34
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

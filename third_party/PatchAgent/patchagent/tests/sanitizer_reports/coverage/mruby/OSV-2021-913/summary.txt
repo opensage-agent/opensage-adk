@@ -1,0 +1,70 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - dispatch /src/mruby/mrbgems/mruby-compiler/core/codegen.c:573:21
+    - dispatch_linked /src/mruby/mrbgems/mruby-compiler/core/codegen.c:584:11
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1629:11
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    - gen_literal_array /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1426:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1917:5
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1917:5
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    - lambda_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1058:3
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1700:17
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1221:5
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1917:5
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1917:5
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1917:5
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    - scope_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1075:3
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1912:5
+    - generate_code /src/mruby/mrbgems/mruby-compiler/core/codegen.c:3340:5
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6843:10
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

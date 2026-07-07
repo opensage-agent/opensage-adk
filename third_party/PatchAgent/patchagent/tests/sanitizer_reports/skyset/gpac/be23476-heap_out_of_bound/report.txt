@@ -1,0 +1,70 @@
+=================================================================
+==263051==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000001d18 at pc 0x7fe97047bb18 bp 0x7fff4fa83a90 sp 0x7fff4fa83a88
+WRITE of size 1 at 0x502000001d18 thread T0
+    #0 0x7fe97047bb17 in id3dmx_flush /root/src/filters/reframe_mp3.c:274:16
+    #1 0x7fe97048089b in mp3_dmx_flush_id3 /root/src/filters/reframe_mp3.c:344:2
+    #2 0x7fe970481ed3 in mp3_dmx_check_pid /root/src/filters/reframe_mp3.c:417:3
+    #3 0x7fe97047e6a1 in mp3_dmx_process /root/src/filters/reframe_mp3.c:657:3
+    #4 0x7fe96ff58d83 in gf_filter_process_task /root/src/filter_core/filter.c:2901:7
+    #5 0x7fe96ff27dd1 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #6 0x7fe96ff23dcb in gf_fs_run /root/src/filter_core/filter_session.c:2264:3
+    #7 0x7fe96f8d3e33 in gf_media_import /root/src/media_tools/media_import.c:1239:3
+    #8 0x5595c75e8b7e in convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    #9 0x5595c75a348d in mp4box_main /root/applications/mp4box/mp4box.c:6374:10
+    #10 0x5595c75a97e1 in main /root/applications/mp4box/mp4box.c:6933:1
+    #11 0x7fe96ea681c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7fe96ea6828a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x5595c7588db4 in _start (/root/bin/gcc/MP4Box+0x49db4) (BuildId: d022fe75be6f8a0fc72583947cb6ca1dd0681fd8)
+
+0x502000001d18 is located 0 bytes after 8-byte region [0x502000001d10,0x502000001d18)
+allocated by thread T0 here:
+    #0 0x7fe970e40bc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fe96ef6577c in gf_realloc /root/src/utils/alloc.c:160:9
+    #2 0x7fe97047ba9a in id3dmx_flush /root/src/filters/reframe_mp3.c:269:11
+    #3 0x7fe97048089b in mp3_dmx_flush_id3 /root/src/filters/reframe_mp3.c:344:2
+    #4 0x7fe970481ed3 in mp3_dmx_check_pid /root/src/filters/reframe_mp3.c:417:3
+    #5 0x7fe97047e6a1 in mp3_dmx_process /root/src/filters/reframe_mp3.c:657:3
+    #6 0x7fe96ff58d83 in gf_filter_process_task /root/src/filter_core/filter.c:2901:7
+    #7 0x7fe96ff27dd1 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #8 0x7fe96ff23dcb in gf_fs_run /root/src/filter_core/filter_session.c:2264:3
+    #9 0x7fe96f8d3e33 in gf_media_import /root/src/media_tools/media_import.c:1239:3
+    #10 0x5595c75e8b7e in convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    #11 0x5595c75a348d in mp4box_main /root/applications/mp4box/mp4box.c:6374:10
+    #12 0x5595c75a97e1 in main /root/applications/mp4box/mp4box.c:6933:1
+    #13 0x7fe96ea681c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x7fe96ea6828a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x5595c7588db4 in _start (/root/bin/gcc/MP4Box+0x49db4) (BuildId: d022fe75be6f8a0fc72583947cb6ca1dd0681fd8)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/filters/reframe_mp3.c:274:16 in id3dmx_flush
+Shadow bytes around the buggy address:
+  0x502000001a80: fa fa 06 fa fa fa 00 01 fa fa 00 00 fa fa 00 00
+  0x502000001b00: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000001b80: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000001c00: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa fd fa
+  0x502000001c80: fa fa 00 00 fa fa 00 00 fa fa fd fa fa fa 06 fa
+=>0x502000001d00: fa fa 00[fa]fa fa 05 fa fa fa 03 fa fa fa fa fa
+  0x502000001d80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000001e00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000001e80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000001f00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000001f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==263051==ABORTING

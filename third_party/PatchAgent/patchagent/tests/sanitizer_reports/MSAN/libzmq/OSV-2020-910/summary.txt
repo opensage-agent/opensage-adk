@@ -1,0 +1,19 @@
+The sanitizer detected a use of uninitialized memory vulnerability. The explanation of the vulnerability is: The program reads uninitialized memory, leading to undefined behavior or crashes. Here is the detail: 
+
+    - zmq::stream_engine_base_t::out_event() /src/libzmq/src/stream_engine_base.cpp:360:13
+    - zmq::epoll_t::loop() /src/libzmq/src/epoll.cpp:202:29
+    - thread_routine(void*) /src/libzmq/src/thread.cpp:250:5
+
+  Uninitialized value was created by a heap deallocation
+    - operator delete(void*) /src/llvm-project/compiler-rt/lib/msan/msan_new_delete.cpp:80:44
+    - zmq::stream_engine_base_t::error(zmq::i_engine::error_reason_t) /src/libzmq/src/stream_engine_base.cpp:715:5
+    - zmq::ws_engine_t::close_connection_after_close(zmq::msg_t*) /src/libzmq/src/ws_engine.cpp:975:5
+    - zmq::stream_engine_base_t::out_event() /src/libzmq/src/stream_engine_base.cpp:347:17
+    - zmq::epoll_t::loop() /src/libzmq/src/epoll.cpp:202:29
+    - thread_routine(void*) /src/libzmq/src/thread.cpp:250:5
+
+
+To fix this issue, follow the advice below:
+
+1. Initialize all variables before using them to prevent uninitialized memory access.
+2. Check for uninitialized pointers or memory buffers that may lead to undefined behavior.

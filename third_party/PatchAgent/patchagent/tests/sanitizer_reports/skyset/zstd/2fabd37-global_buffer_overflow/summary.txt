@@ -1,0 +1,26 @@
+The sanitizer detected a global buffer overflow vulnerability. The explanation of the vulnerability is: A buffer overflow occurs in globally allocated memory, leading to memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x556ef0daadf0 thread T0
+    - ZSTD_litLengthPrice /root/lib/compress/zstd_opt.c:274:17
+    - ZSTD_compressBlock_opt_generic /root/lib/compress/zstd_opt.c:1072:40
+    - ZSTD_compressBlock_btopt /root/lib/compress/zstd_opt.c:1251:12
+    - ZSTD_buildSeqStore /root/lib/compress/zstd_compress.c:2887:26
+    - ZSTD_compressBlock_splitBlock /root/lib/compress/zstd_compress.c:3727:28
+    - ZSTD_compress_frameChunk /root/lib/compress/zstd_compress.c:3967:25
+    - ZSTD_compressContinue_internal /root/lib/compress/zstd_compress.c:4142:30
+    - ZSTD_compressEnd /root/lib/compress/zstd_compress.c:4646:26
+    - ZSTD_compress_advanced_internal /root/lib/compress/zstd_compress.c:4695:12
+    - ZSTD_compress_usingDict /root/lib/compress/zstd_compress.c:4710:12
+    - ZSTD_compressCCtx /root/lib/compress/zstd_compress.c:4720:12
+    - LLVMFuzzerTestOneInput /root/tests/fuzz/simple_compress.c:46:24
+    - main /root/tests/fuzz/regression_driver.c:77:5
+
+0x556ef0daadf0 is located 48 bytes before global variable 'ZSTD_LLcode.LL_Code' defined in '/root/tests/fuzz/../../lib/compress/zstd_compress_internal.h:452' (0x556ef0daae20) of size 64
+0x556ef0daadf0 is located 0 bytes after global variable 'LL_bits' defined in '/root/tests/fuzz/../../lib/compress/../common/zstd_internal.h:195' (0x556ef0daad60) of size 144
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

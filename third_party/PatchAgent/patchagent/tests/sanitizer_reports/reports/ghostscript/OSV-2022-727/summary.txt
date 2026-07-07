@@ -1,0 +1,56 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 8 at 0x511000013bd8 thread T0
+    - gp_fflush /src/ghostpdl/base/gp.h:296:16
+    - s_file_write_flush /src/ghostpdl/base/sfxstdio.c:232:5
+    - sclose /src/ghostpdl/base/stream.c:445:18
+    - restore_finalize /src/ghostpdl/psi/isave.c:954:13
+    - alloc_restore_all /src/ghostpdl/psi/isave.c:901:13
+    - gs_main_finit /src/ghostpdl/psi/imain.c:1391:20
+    - psapi_exit /src/ghostpdl/psi/psapi.c:517:5
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:144:8
+    - LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x511000013bd8 is located 224 bytes after 248-byte region [0x511000013a00,0x511000013af8)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - gs_heap_alloc_bytes /src/ghostpdl/base/gsmalloc.c:192:34
+    - alloc_acquire_clump /src/ghostpdl/base/gsalloc.c:2423:10
+    - alloc_add_clump /src/ghostpdl/base/gsalloc.c:2395:19
+    - alloc_obj /src/ghostpdl/base/gsalloc.c:2004:17
+    - i_alloc_bytes /src/ghostpdl/base/gsalloc.c:1162:15
+    - gx_device_open_output_file /src/ghostpdl/base/gsdevice.c:1264:28
+    - gdev_vector_open_file_options /src/ghostpdl/base/gdevvec.c:282:13
+    - pdf_open /src/ghostpdl/devices/vector/gdevpdf.c:787:12
+    - gs_opendevice /src/ghostpdl/base/gsdevice.c:461:20
+    - gs_setdevice_no_erase /src/ghostpdl/base/gsdevice.c:580:28
+    - zsetdevice_no_safer /src/ghostpdl/psi/zdevice.c:593:12
+    - zsetdevice /src/ghostpdl/psi/zdevice.c:636:12
+    - interp /src/ghostpdl/psi/interp.c:1725:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:522:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:479:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_run_init_file /src/ghostpdl/psi/imain.c:861:12
+    - gs_main_init2aux /src/ghostpdl/psi/imain.c:305:16
+    - gs_main_init2 /src/ghostpdl/psi/imain.c:491:12
+    - swproc /src/ghostpdl/psi/imainarg.c:363:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

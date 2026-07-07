@@ -1,0 +1,43 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5030000000cf thread T0
+    - AffixMgr::redundant_condition(char, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int) /src/hunspell/src/hunspell/affixmgr.cxx:4825:29
+    - AffixMgr::parse_affix(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, char, FileMgr*, char*) /src/hunspell/src/hunspell/affixmgr.cxx:4678:15
+    - AffixMgr::parse_file(char const*, char const*) /src/hunspell/src/hunspell/affixmgr.cxx:692:12
+    - AffixMgr::AffixMgr(char const*, std::__1::vector<HashMgr*, std::__1::allocator<HashMgr*>> const&, char const*) /src/hunspell/src/hunspell/affixmgr.cxx:170:7
+    - HunspellImpl::HunspellImpl(char const*, char const*, char const*) /src/hunspell/src/hunspell/hunspell.cxx:183:15
+    - Hunspell::Hunspell(char const*, char const*, char const*) /src/hunspell/src/hunspell/hunspell.cxx:2026:16
+    - LLVMFuzzerTestOneInput /src/hunspell/src/tools/affdicfuzzer.cxx:63:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5030000000cf is located 1 bytes before 26-byte region [0x5030000000d0,0x5030000000ea)
+allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - __allocate_at_least<std::__1::allocator<char> > /usr/local/include/c++/v1/__memory/allocate_at_least.h:55:19
+    - __init_with_size<std::__1::__wrap_iter<const char *>, std::__1::__wrap_iter<const char *> > /usr/local/include/c++/v1/string:2325:25
+    - __init<std::__1::__wrap_iter<const char *>, 0> /usr/local/include/c++/v1/string:2306:3
+    - basic_string<std::__1::__wrap_iter<const char *>, 0> /usr/local/include/c++/v1/string:1067:5
+    - AffixMgr::parse_affix(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, char, FileMgr*, char*) /src/hunspell/src/hunspell/affixmgr.cxx:4668:23
+    - AffixMgr::parse_file(char const*, char const*) /src/hunspell/src/hunspell/affixmgr.cxx:692:12
+    - AffixMgr::AffixMgr(char const*, std::__1::vector<HashMgr*, std::__1::allocator<HashMgr*>> const&, char const*) /src/hunspell/src/hunspell/affixmgr.cxx:170:7
+    - HunspellImpl::HunspellImpl(char const*, char const*, char const*) /src/hunspell/src/hunspell/hunspell.cxx:183:15
+    - Hunspell::Hunspell(char const*, char const*, char const*) /src/hunspell/src/hunspell/hunspell.cxx:2026:16
+    - LLVMFuzzerTestOneInput /src/hunspell/src/tools/affdicfuzzer.cxx:63:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

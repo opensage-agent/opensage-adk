@@ -1,0 +1,97 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x5110000f9028 at pc 0x55e90cc25092 bp 0x7ffc07fabca0 sp 0x7ffc07fab460
+READ of size 20 at 0x5110000f9028 thread T0
+SCARINESS: 54 (multi-byte-read-heap-use-after-free)
+    #0 0x55e90cc25091 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x55e90cc6f757 in uiomove /src/usrsctp/usrsctplib/user_socket.c
+    #2 0x55e90cdf6581 in sctp_sorecvmsg /src/usrsctp/usrsctplib/netinet/sctputil.c:6681:13
+    #3 0x55e90cc71fad in usrsctp_recvv /src/usrsctp/usrsctplib/user_socket.c:1110:10
+    #4 0x55e90cc67b11 in handle_upcall /src/usrsctp/fuzzer/fuzzer_connect.c:113:7
+    #5 0x55e90cc8a5f2 in sctp_common_input_processing /src/usrsctp/usrsctplib/netinet/sctp_input.c:6197:5
+    #6 0x55e90cc7e013 in usrsctp_conninput /src/usrsctp/usrsctplib/user_socket.c:3320:2
+    #7 0x55e90cc6754e in LLVMFuzzerTestOneInput /src/usrsctp/fuzzer/fuzzer_connect.c:445:2
+    #8 0x55e90cb1b3d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55e90cb06645 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55e90cb0c0df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55e90cb37382 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f8d6481e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #13 0x55e90cafe82d in _start (/out/fuzzer_connect+0xe782d)
+
+DEDUP_TOKEN: __asan_memcpy--uiomove--sctp_sorecvmsg
+0x5110000f9028 is located 40 bytes inside of 256-byte region [0x5110000f9000,0x5110000f9100)
+freed by thread T5 (SCTP timer) here:
+    #0 0x55e90cc26f06 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55e90ce033c5 in m_free /src/usrsctp/usrsctplib/user_mbuf.c:197:3
+    #2 0x55e90cdf6b90 in sctp_sorecvmsg /src/usrsctp/usrsctplib/netinet/sctputil.c:6732:22
+    #3 0x55e90cc71fad in usrsctp_recvv /src/usrsctp/usrsctplib/user_socket.c:1110:10
+    #4 0x55e90cc67b11 in handle_upcall /src/usrsctp/fuzzer/fuzzer_connect.c:113:7
+    #5 0x55e90cdcc935 in sctp_timeout_handler /src/usrsctp/usrsctplib/netinet/sctputil.c:2211:4
+    #6 0x55e90cc85442 in sctp_handle_tick /src/usrsctp/usrsctplib/netinet/sctp_callout.c:172:4
+    #7 0x55e90cc85b5d in user_sctp_timer_iterate /src/usrsctp/usrsctplib/netinet/sctp_callout.c:214:3
+    #8 0x55e90cc24cd8 in asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+
+DEDUP_TOKEN: __interceptor_free--m_free--sctp_sorecvmsg
+previously allocated by thread T0 here:
+    #0 0x55e90cc2719f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55e90ce03f3c in m_get /src/usrsctp/usrsctplib/user_mbuf.c:122:9
+    #2 0x55e90ce03f3c in m_getm2 /src/usrsctp/usrsctplib/user_mbuf.c:322:9
+    #3 0x55e90cde0e33 in sctp_notify_remote_error /src/usrsctp/usrsctplib/netinet/sctputil.c:4213:13
+    #4 0x55e90cdd6c40 in sctp_ulp_notify /src/usrsctp/usrsctplib/netinet/sctputil.c:4446:3
+    #5 0x55e90cc985de in sctp_handle_error /src/usrsctp/usrsctplib/netinet/sctp_input.c:1342:2
+    #6 0x55e90cc8d9ce in sctp_process_control /src/usrsctp/usrsctplib/netinet/sctp_input.c:5253:8
+    #7 0x55e90cc897b7 in sctp_common_input_processing /src/usrsctp/usrsctplib/netinet/sctp_input.c:5952:10
+    #8 0x55e90cc7e013 in usrsctp_conninput /src/usrsctp/usrsctplib/user_socket.c:3320:2
+    #9 0x55e90cc6754e in LLVMFuzzerTestOneInput /src/usrsctp/fuzzer/fuzzer_connect.c:445:2
+    #10 0x55e90cb1b3d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x55e90cb06645 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x55e90cb0c0df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x55e90cb37382 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f8d6481e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--m_get--m_getm2
+Thread T5 (SCTP timer) created by T0 here:
+    #0 0x55e90cc0cd21 in pthread_create /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:250:3
+    #1 0x55e90cc85c45 in sctp_start_timer_thread /src/usrsctp/usrsctplib/netinet/sctp_callout.c:228:7
+    #2 0x55e90cc67dda in usrsctp_init /src/usrsctp/usrsctplib/user_socket.c:112:2
+    #3 0x55e90cc66c85 in initialize_fuzzer /src/usrsctp/fuzzer/fuzzer_connect.c:141:2
+    #4 0x55e90cc66c85 in LLVMFuzzerTestOneInput /src/usrsctp/fuzzer/fuzzer_connect.c:268:17
+    #5 0x55e90cb1b3d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55e90cb06645 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55e90cb0c0df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55e90cb37382 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f8d6481e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_pthread_create--sctp_start_timer_thread--usrsctp_init
+SUMMARY: AddressSanitizer: heap-use-after-free /src/usrsctp/usrsctplib/user_socket.c in uiomove
+Shadow bytes around the buggy address:
+  0x5110000f8d80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x5110000f8e00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x5110000f8e80: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x5110000f8f00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x5110000f8f80: fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+=>0x5110000f9000: fd fd fd fd fd[fd]fd fd fd fd fd fd fd fd fd fd
+  0x5110000f9080: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x5110000f9100: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x5110000f9180: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x5110000f9200: fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+  0x5110000f9280: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

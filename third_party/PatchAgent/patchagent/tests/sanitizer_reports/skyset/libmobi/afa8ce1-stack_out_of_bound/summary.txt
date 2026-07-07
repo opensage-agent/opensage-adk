@@ -1,0 +1,33 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 1 at 0x7fe570806cff thread T0
+    - mobi_decode_infl /root/src/index.c:991:21
+    - mobi_reconstruct_infl /root/src/parse_rawml.c:1423:28
+    - mobi_reconstruct_orth /root/src/parse_rawml.c:1582:23
+    - mobi_reconstruct_links_kf7 /root/src/parse_rawml.c:1800:15
+    - mobi_reconstruct_links /root/src/parse_rawml.c:1849:15
+    - mobi_parse_rawml_opt /root/src/parse_rawml.c:2153:15
+    - mobi_parse_rawml /root/src/parse_rawml.c:2009:12
+    - loadfilename /root/tools/mobitool.c:852:20
+    - main /root/tools/mobitool.c:1051:11
+
+Address 0x7fe570806cff is located in stack of thread T0 at offset 1279 in frame
+    - mobi_reconstruct_infl /root/src/parse_rawml.c:1364:0
+
+  This frame has 7 object(s):
+    [32, 40) 'infl_groups' (line 1366)
+    [64, 565) 'name_attr' (line 1375)
+    [640, 1141) 'infl_tag' (line 1376)
+    [1216, 1224) 'groups' (line 1395)
+    [1248, 1256) 'parts' (line 1397)
+    [1280, 1781) 'decoded' (line 1414) <== Memory access at offset 1279 underflows this variable
+    [1856, 1860) 'decoded_length' (line 1422)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

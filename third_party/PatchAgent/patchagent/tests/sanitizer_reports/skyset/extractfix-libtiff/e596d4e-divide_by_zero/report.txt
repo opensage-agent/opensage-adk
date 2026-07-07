@@ -1,0 +1,12 @@
+=================================================================
+==3790016==ERROR: AddressSanitizer: FPE on unknown address 0x5632f512b04c (pc 0x5632f512b04c bp 0x7fff61ffbeb0 sp 0x7fff61ffbe40 T0)
+    #0 0x5632f512b04c in cvtRaster /root/tools/rgb2ycbcr.c:257:19
+    #1 0x5632f512ae13 in tiffcvt /root/tools/rgb2ycbcr.c:352:11
+    #2 0x5632f5129c6f in main /root/tools/rgb2ycbcr.c:127:10
+    #3 0x7f1174dbe1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #4 0x7f1174dbe28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #5 0x5632f5128314 in _start (/root/tools/.libs/rgb2ycbcr+0x3314) (BuildId: 270508593f283a78710dfa9a19bc04fad633926d)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: FPE /root/tools/rgb2ycbcr.c:257:19 in cvtRaster
+==3790016==ABORTING

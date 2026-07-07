@@ -1,0 +1,26 @@
+Executed /testcase in 607 ms
+***
+*** NOTE: fuzzing was not performed, you have only
+***       executed the target code on a fixed set of inputs.
+***
+
+=================================================================
+==14==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 264 byte(s) in 22 object(s) allocated from:
+    #0 0x5610e12c329f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5610e13ecd7a in ndpi_malloc /src/ndpi/src/lib/ndpi_memory.c:60:46
+    #2 0x5610e13ecd7a in ndpi_strdup /src/ndpi/src/lib/ndpi_memory.c:113:13
+    #3 0x5610e1358a29 in ndpi_set_proto_defaults /src/ndpi/src/lib/ndpi_main.c:615:10
+    #4 0x5610e137a398 in ndpi_handle_rule /src/ndpi/src/lib/ndpi_main.c:4786:7
+    #5 0x5610e137a398 in load_protocols_file_fd /src/ndpi/src/lib/ndpi_main.c:5521:8
+    #6 0x5610e13797f5 in ndpi_load_protocols_file /src/ndpi/src/lib/ndpi_main.c:5456:8
+    #7 0x5610e1302cc7 in LLVMFuzzerTestOneInput /src/ndpi/fuzz/fuzz_ndpi_reader.c:98:5
+    #8 0x5610e11b74d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x5610e11a2745 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x5610e11a81df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x5610e11d3482 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f76f4cac082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ndpi_malloc--ndpi_strdup
+SUMMARY: AddressSanitizer: 264 byte(s) leaked in 22 allocation(s).

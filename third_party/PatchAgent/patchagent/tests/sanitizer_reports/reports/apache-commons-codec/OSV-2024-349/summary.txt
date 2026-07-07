@@ -1,0 +1,19 @@
+The sanitizer detected a out of memory vulnerability.The explanation of the vulnerability is: The program runs out of memory, causing allocation failures and potential crashes.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Out of memory (use '-Xmx1710m' to reproduce)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+- java.base/java.lang.AbstractStringBuilder.<init> (java/base/java/lang/AbstractStringBuilder.java:146)
+- java.base/java.lang.StringBuilder.<init> (java/base/java/lang/StringBuilder.java:143)
+- org.apache.commons.codec.language.bm.Rule$Phoneme.<init> (org/apache/commons/codec/language/bm/Rule$Phoneme/<init>:113)
+- org.apache.commons.codec.language.bm.Rule$Phoneme.<init> (org/apache/commons/codec/language/bm/Rule$Phoneme/<init>:123)
+- org.apache.commons.codec.language.bm.PhoneticEngine$PhonemeBuilder.apply (org/apache/commons/codec/language/bm/PhoneticEngine$PhonemeBuilder/apply:114)
+- org.apache.commons.codec.language.bm.PhoneticEngine$RulesApplication.invoke (org/apache/commons/codec/language/bm/PhoneticEngine$RulesApplication/invoke:206)
+- org.apache.commons.codec.language.bm.PhoneticEngine.encode (org/apache/commons/codec/language/bm/PhoneticEngine.java:446)
+- org.apache.commons.codec.language.bm.PhoneticEngine.encode (org/apache/commons/codec/language/bm/PhoneticEngine.java:363)
+- PhoneticEngineFuzzer.fuzzerTestOneInput (PhoneticEngineFuzzer.java:32)
+
+To fix this issue, follow the advice below:
+
+1. Check for memory leaks that may be consuming system resources.
+2. Optimize memory usage by releasing unused resources.
+3. Increase system memory or swap space to accommodate memory requirements.

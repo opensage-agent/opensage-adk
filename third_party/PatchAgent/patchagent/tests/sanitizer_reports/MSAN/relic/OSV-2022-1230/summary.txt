@@ -1,0 +1,144 @@
+The sanitizer detected a use of uninitialized memory vulnerability. The explanation of the vulnerability is: The program reads uninitialized memory, leading to undefined behavior or crashes. Here is the detail: 
+
+    - word_add<unsigned long> /src/botan/build/include/internal/botan/internal/mp_asmi.h:195:17
+    - unsigned long Botan::bigint_add3_nc<unsigned long>(unsigned long*, unsigned long const*, unsigned long, unsigned long const*, unsigned long) /src/botan/build/include/internal/botan/internal/mp_core.h:227:14
+    - Botan::PCurve::operator+(Botan::PCurve::GenericField const&, Botan::PCurve::GenericField const&) /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:619:20
+    - operator- /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:626:94
+    - Botan::PCurve::GenericProjectivePoint Botan::dbl_a_minus_3<Botan::PCurve::GenericProjectivePoint>(Botan::PCurve::GenericProjectivePoint const&) /src/botan/build/include/internal/botan/internal/pcurves_algos.h:315:27
+    - dbl /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1032:20
+    - std::__1::vector<Botan::PCurve::GenericCurve::AffinePoint, std::__1::allocator<Botan::PCurve::GenericCurve::AffinePoint>> Botan::basemul_setup<Botan::PCurve::GenericCurve, 5ul>(Botan::PCurve::GenericCurve::AffinePoint const&, unsigned long) /src/botan/build/include/internal/botan/internal/pcurves_mul.h:161:49
+    - GenericBaseMulTable /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1208:21
+    - make_unique<Botan::PCurve::GenericBaseMulTable, Botan::PCurve::GenericAffinePoint> /usr/local/include/c++/v1/__memory/unique_ptr.h:597:30
+    - Botan::PCurve::GenericPrimeOrderCurve::_precompute_base_mul() /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1301:16
+    - Botan::PCurve::PCurveInstance::from_params(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&) /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1604:10
+    - Botan::PCurve::PrimeOrderCurve::from_params(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&) /src/botan/src/lib/math/pcurves/pcurves.cpp:18:11
+    - Botan::EC_Group_Data::EC_Group_Data(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_inner_data.cpp:76:18
+    - construct_at<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, Botan::EC_Group_Data *> /usr/local/include/c++/v1/__memory/construct_at.h:41:46
+    - __construct_at<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, Botan::EC_Group_Data *> /usr/local/include/c++/v1/__memory/construct_at.h:49:10
+    - construct<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, void, void> /usr/local/include/c++/v1/__memory/allocator_traits.h:305:5
+    - __shared_ptr_emplace<const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, std::__1::allocator<Botan::EC_Group_Data>, 0> /usr/local/include/c++/v1/__memory/shared_ptr.h:265:5
+    - std::__1::shared_ptr<Botan::EC_Group_Data> std::__1::allocate_shared[abi:ne180100]<Botan::EC_Group_Data, std::__1::allocator<Botan::EC_Group_Data>, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source&, void>(std::__1::allocator<Botan::EC_Group_Data> const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source&) /usr/local/include/c++/v1/__memory/shared_ptr.h:823:51
+    - make_shared<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, void> /usr/local/include/c++/v1/__memory/shared_ptr.h:831:10
+    - Botan::EC_Group_Data::create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_inner_data.cpp:112:17
+    - Botan::EC_Group_Data_Map::lookup_or_create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source)::'lambda'()::operator()() const /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:120:23
+    - Botan::EC_Group_Data_Map::lookup_or_create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:106:27
+    - Botan::EC_Group::EC_Group(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&) /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:428:32
+    - cryptofuzz::module::Botan::Botan() /src/cryptofuzz/modules/botan/module.cpp:64:33
+    - construct<cryptofuzz::module::Botan> /usr/local/include/c++/v1/__memory/allocator.h:173:24
+    - construct<cryptofuzz::module::Botan, void> /usr/local/include/c++/v1/__memory/allocator_traits.h:296:9
+    - __shared_ptr_emplace<std::__1::allocator<cryptofuzz::module::Botan>, 0> /usr/local/include/c++/v1/__memory/shared_ptr.h:265:5
+    - std::__1::shared_ptr<cryptofuzz::module::Botan> std::__1::allocate_shared[abi:ne180100]<cryptofuzz::module::Botan, std::__1::allocator<cryptofuzz::module::Botan>, void>(std::__1::allocator<cryptofuzz::module::Botan> const&) /usr/local/include/c++/v1/__memory/shared_ptr.h:823:51
+    - make_shared<cryptofuzz::module::Botan, void> /usr/local/include/c++/v1/__memory/shared_ptr.h:831:10
+    - LLVMFuzzerInitialize /src/cryptofuzz/entry.cpp:626:25
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:650:5
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was stored to memory at
+    - unsigned long Botan::bigint_add3_nc<unsigned long>(unsigned long*, unsigned long const*, unsigned long, unsigned long const*, unsigned long) /src/botan/build/include/internal/botan/internal/mp_core.h:227:29
+    - Botan::PCurve::operator+(Botan::PCurve::GenericField const&, Botan::PCurve::GenericField const&) /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:619:20
+    - operator- /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:626:94
+    - Botan::PCurve::GenericProjectivePoint Botan::dbl_a_minus_3<Botan::PCurve::GenericProjectivePoint>(Botan::PCurve::GenericProjectivePoint const&) /src/botan/build/include/internal/botan/internal/pcurves_algos.h:315:27
+    - dbl /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1032:20
+    - std::__1::vector<Botan::PCurve::GenericCurve::AffinePoint, std::__1::allocator<Botan::PCurve::GenericCurve::AffinePoint>> Botan::basemul_setup<Botan::PCurve::GenericCurve, 5ul>(Botan::PCurve::GenericCurve::AffinePoint const&, unsigned long) /src/botan/build/include/internal/botan/internal/pcurves_mul.h:161:49
+    - GenericBaseMulTable /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1208:21
+    - make_unique<Botan::PCurve::GenericBaseMulTable, Botan::PCurve::GenericAffinePoint> /usr/local/include/c++/v1/__memory/unique_ptr.h:597:30
+    - Botan::PCurve::GenericPrimeOrderCurve::_precompute_base_mul() /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1301:16
+    - Botan::PCurve::PCurveInstance::from_params(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&) /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1604:10
+    - Botan::PCurve::PrimeOrderCurve::from_params(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&) /src/botan/src/lib/math/pcurves/pcurves.cpp:18:11
+    - Botan::EC_Group_Data::EC_Group_Data(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_inner_data.cpp:76:18
+    - construct_at<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, Botan::EC_Group_Data *> /usr/local/include/c++/v1/__memory/construct_at.h:41:46
+    - __construct_at<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, Botan::EC_Group_Data *> /usr/local/include/c++/v1/__memory/construct_at.h:49:10
+    - construct<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, void, void> /usr/local/include/c++/v1/__memory/allocator_traits.h:305:5
+    - __shared_ptr_emplace<const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, std::__1::allocator<Botan::EC_Group_Data>, 0> /usr/local/include/c++/v1/__memory/shared_ptr.h:265:5
+    - std::__1::shared_ptr<Botan::EC_Group_Data> std::__1::allocate_shared[abi:ne180100]<Botan::EC_Group_Data, std::__1::allocator<Botan::EC_Group_Data>, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source&, void>(std::__1::allocator<Botan::EC_Group_Data> const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source&) /usr/local/include/c++/v1/__memory/shared_ptr.h:823:51
+    - make_shared<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, void> /usr/local/include/c++/v1/__memory/shared_ptr.h:831:10
+    - Botan::EC_Group_Data::create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_inner_data.cpp:112:17
+    - Botan::EC_Group_Data_Map::lookup_or_create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source)::'lambda'()::operator()() const /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:120:23
+    - Botan::EC_Group_Data_Map::lookup_or_create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:106:27
+    - Botan::EC_Group::EC_Group(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&) /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:428:32
+    - cryptofuzz::module::Botan::Botan() /src/cryptofuzz/modules/botan/module.cpp:64:33
+    - construct<cryptofuzz::module::Botan> /usr/local/include/c++/v1/__memory/allocator.h:173:24
+    - construct<cryptofuzz::module::Botan, void> /usr/local/include/c++/v1/__memory/allocator_traits.h:296:9
+    - __shared_ptr_emplace<std::__1::allocator<cryptofuzz::module::Botan>, 0> /usr/local/include/c++/v1/__memory/shared_ptr.h:265:5
+    - std::__1::shared_ptr<cryptofuzz::module::Botan> std::__1::allocate_shared[abi:ne180100]<cryptofuzz::module::Botan, std::__1::allocator<cryptofuzz::module::Botan>, void>(std::__1::allocator<cryptofuzz::module::Botan> const&) /usr/local/include/c++/v1/__memory/shared_ptr.h:823:51
+    - make_shared<cryptofuzz::module::Botan, void> /usr/local/include/c++/v1/__memory/shared_ptr.h:831:10
+    - LLVMFuzzerInitialize /src/cryptofuzz/entry.cpp:626:25
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:650:5
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was stored to memory at
+    - __msan_memcpy /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:1729:3
+    - negate /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:664:39
+    - operator- /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:626:98
+    - Botan::PCurve::GenericProjectivePoint Botan::dbl_a_minus_3<Botan::PCurve::GenericProjectivePoint>(Botan::PCurve::GenericProjectivePoint const&) /src/botan/build/include/internal/botan/internal/pcurves_algos.h:315:27
+    - dbl /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1032:20
+    - std::__1::vector<Botan::PCurve::GenericCurve::AffinePoint, std::__1::allocator<Botan::PCurve::GenericCurve::AffinePoint>> Botan::basemul_setup<Botan::PCurve::GenericCurve, 5ul>(Botan::PCurve::GenericCurve::AffinePoint const&, unsigned long) /src/botan/build/include/internal/botan/internal/pcurves_mul.h:161:49
+    - GenericBaseMulTable /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1208:21
+    - make_unique<Botan::PCurve::GenericBaseMulTable, Botan::PCurve::GenericAffinePoint> /usr/local/include/c++/v1/__memory/unique_ptr.h:597:30
+    - Botan::PCurve::GenericPrimeOrderCurve::_precompute_base_mul() /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1301:16
+    - Botan::PCurve::PCurveInstance::from_params(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&) /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1604:10
+    - Botan::PCurve::PrimeOrderCurve::from_params(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&) /src/botan/src/lib/math/pcurves/pcurves.cpp:18:11
+    - Botan::EC_Group_Data::EC_Group_Data(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_inner_data.cpp:76:18
+    - construct_at<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, Botan::EC_Group_Data *> /usr/local/include/c++/v1/__memory/construct_at.h:41:46
+    - __construct_at<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, Botan::EC_Group_Data *> /usr/local/include/c++/v1/__memory/construct_at.h:49:10
+    - construct<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, void, void> /usr/local/include/c++/v1/__memory/allocator_traits.h:305:5
+    - __shared_ptr_emplace<const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, std::__1::allocator<Botan::EC_Group_Data>, 0> /usr/local/include/c++/v1/__memory/shared_ptr.h:265:5
+    - std::__1::shared_ptr<Botan::EC_Group_Data> std::__1::allocate_shared[abi:ne180100]<Botan::EC_Group_Data, std::__1::allocator<Botan::EC_Group_Data>, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source&, void>(std::__1::allocator<Botan::EC_Group_Data> const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source&) /usr/local/include/c++/v1/__memory/shared_ptr.h:823:51
+    - make_shared<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, void> /usr/local/include/c++/v1/__memory/shared_ptr.h:831:10
+    - Botan::EC_Group_Data::create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_inner_data.cpp:112:17
+    - Botan::EC_Group_Data_Map::lookup_or_create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source)::'lambda'()::operator()() const /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:120:23
+    - Botan::EC_Group_Data_Map::lookup_or_create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:106:27
+    - Botan::EC_Group::EC_Group(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&) /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:428:32
+    - cryptofuzz::module::Botan::Botan() /src/cryptofuzz/modules/botan/module.cpp:64:33
+    - construct<cryptofuzz::module::Botan> /usr/local/include/c++/v1/__memory/allocator.h:173:24
+    - construct<cryptofuzz::module::Botan, void> /usr/local/include/c++/v1/__memory/allocator_traits.h:296:9
+    - __shared_ptr_emplace<std::__1::allocator<cryptofuzz::module::Botan>, 0> /usr/local/include/c++/v1/__memory/shared_ptr.h:265:5
+    - std::__1::shared_ptr<cryptofuzz::module::Botan> std::__1::allocate_shared[abi:ne180100]<cryptofuzz::module::Botan, std::__1::allocator<cryptofuzz::module::Botan>, void>(std::__1::allocator<cryptofuzz::module::Botan> const&) /usr/local/include/c++/v1/__memory/shared_ptr.h:823:51
+    - make_shared<cryptofuzz::module::Botan, void> /usr/local/include/c++/v1/__memory/shared_ptr.h:831:10
+    - LLVMFuzzerInitialize /src/cryptofuzz/entry.cpp:626:25
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:650:5
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was stored to memory at
+    - if_set_zero_out /src/botan/build/include/internal/botan/internal/ct_utils.h:589:20
+    - negate /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:663:20
+    - operator- /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:626:98
+    - Botan::PCurve::GenericProjectivePoint Botan::dbl_a_minus_3<Botan::PCurve::GenericProjectivePoint>(Botan::PCurve::GenericProjectivePoint const&) /src/botan/build/include/internal/botan/internal/pcurves_algos.h:315:27
+    - dbl /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1032:20
+    - std::__1::vector<Botan::PCurve::GenericCurve::AffinePoint, std::__1::allocator<Botan::PCurve::GenericCurve::AffinePoint>> Botan::basemul_setup<Botan::PCurve::GenericCurve, 5ul>(Botan::PCurve::GenericCurve::AffinePoint const&, unsigned long) /src/botan/build/include/internal/botan/internal/pcurves_mul.h:161:49
+    - GenericBaseMulTable /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1208:21
+    - make_unique<Botan::PCurve::GenericBaseMulTable, Botan::PCurve::GenericAffinePoint> /usr/local/include/c++/v1/__memory/unique_ptr.h:597:30
+    - Botan::PCurve::GenericPrimeOrderCurve::_precompute_base_mul() /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1301:16
+    - Botan::PCurve::PCurveInstance::from_params(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&) /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:1604:10
+    - Botan::PCurve::PrimeOrderCurve::from_params(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&) /src/botan/src/lib/math/pcurves/pcurves.cpp:18:11
+    - Botan::EC_Group_Data::EC_Group_Data(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_inner_data.cpp:76:18
+    - construct_at<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, Botan::EC_Group_Data *> /usr/local/include/c++/v1/__memory/construct_at.h:41:46
+    - __construct_at<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, Botan::EC_Group_Data *> /usr/local/include/c++/v1/__memory/construct_at.h:49:10
+    - construct<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, void, void> /usr/local/include/c++/v1/__memory/allocator_traits.h:305:5
+    - __shared_ptr_emplace<const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, std::__1::allocator<Botan::EC_Group_Data>, 0> /usr/local/include/c++/v1/__memory/shared_ptr.h:265:5
+    - std::__1::shared_ptr<Botan::EC_Group_Data> std::__1::allocate_shared[abi:ne180100]<Botan::EC_Group_Data, std::__1::allocator<Botan::EC_Group_Data>, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source&, void>(std::__1::allocator<Botan::EC_Group_Data> const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source&) /usr/local/include/c++/v1/__memory/shared_ptr.h:823:51
+    - make_shared<Botan::EC_Group_Data, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::BigInt &, const Botan::OID &, Botan::EC_Group_Source &, void> /usr/local/include/c++/v1/__memory/shared_ptr.h:831:10
+    - Botan::EC_Group_Data::create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_inner_data.cpp:112:17
+    - Botan::EC_Group_Data_Map::lookup_or_create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source)::'lambda'()::operator()() const /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:120:23
+    - Botan::EC_Group_Data_Map::lookup_or_create(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&, Botan::EC_Group_Source) /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:106:27
+    - Botan::EC_Group::EC_Group(Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::BigInt const&, Botan::OID const&) /src/botan/src/lib/pubkey/ec_group/ec_group.cpp:428:32
+    - cryptofuzz::module::Botan::Botan() /src/cryptofuzz/modules/botan/module.cpp:64:33
+    - construct<cryptofuzz::module::Botan> /usr/local/include/c++/v1/__memory/allocator.h:173:24
+    - construct<cryptofuzz::module::Botan, void> /usr/local/include/c++/v1/__memory/allocator_traits.h:296:9
+    - __shared_ptr_emplace<std::__1::allocator<cryptofuzz::module::Botan>, 0> /usr/local/include/c++/v1/__memory/shared_ptr.h:265:5
+    - std::__1::shared_ptr<cryptofuzz::module::Botan> std::__1::allocate_shared[abi:ne180100]<cryptofuzz::module::Botan, std::__1::allocator<cryptofuzz::module::Botan>, void>(std::__1::allocator<cryptofuzz::module::Botan> const&) /usr/local/include/c++/v1/__memory/shared_ptr.h:823:51
+    - make_shared<cryptofuzz::module::Botan, void> /usr/local/include/c++/v1/__memory/shared_ptr.h:831:10
+    - LLVMFuzzerInitialize /src/cryptofuzz/entry.cpp:626:25
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:650:5
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was created by an allocation of 'r.i.i' in the stack frame
+    - negate /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:661:10
+    - operator- /src/botan/src/lib/math/pcurves/pcurves_generic/pcurves_generic.cpp:626:98
+    - Botan::PCurve::GenericProjectivePoint Botan::dbl_a_minus_3<Botan::PCurve::GenericProjectivePoint>(Botan::PCurve::GenericProjectivePoint const&) /src/botan/build/include/internal/botan/internal/pcurves_algos.h:315:27
+
+
+To fix this issue, follow the advice below:
+
+1. Initialize all variables before using them to prevent uninitialized memory access.
+2. Check for uninitialized pointers or memory buffers that may lead to undefined behavior.

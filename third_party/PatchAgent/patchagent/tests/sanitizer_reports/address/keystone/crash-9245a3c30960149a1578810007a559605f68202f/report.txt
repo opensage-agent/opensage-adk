@@ -1,0 +1,49 @@
+=================================================================
+==18==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x519000000595 in thread T0
+SCARINESS: 40 (bad-free)
+    #0 0x558a197ed996 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x558a19865d6b in llvm_ks::SmallVectorImpl<llvm_ks::MCFixup>::~SmallVectorImpl() /src/keystone/llvm/include/llvm/ADT/SmallVector.h:374:7
+    #2 0x558a19865d6b in llvm_ks::MCEncodedFragmentWithFixups<32u, 4u>::~MCEncodedFragmentWithFixups() /src/keystone/llvm/include/llvm/MC/MCFragment.h:185:7
+    #3 0x558a19865d6b in llvm_ks::MCFragment::destroy() /src/keystone/llvm/lib/MC/MCFragment.cpp:295:7
+    #4 0x558a198df092 in llvm_ks::iplist<llvm_ks::MCFragment, llvm_ks::ilist_traits<llvm_ks::MCFragment>>::erase(llvm_ks::ilist_iterator<llvm_ks::MCFragment>) /src/keystone/llvm/include/llvm/ADT/ilist.h:518:5
+    #5 0x558a198df092 in llvm_ks::iplist<llvm_ks::MCFragment, llvm_ks::ilist_traits<llvm_ks::MCFragment>>::erase(llvm_ks::ilist_iterator<llvm_ks::MCFragment>, llvm_ks::ilist_iterator<llvm_ks::MCFragment>) /src/keystone/llvm/include/llvm/ADT/ilist.h:601:15
+    #6 0x558a198df092 in llvm_ks::iplist<llvm_ks::MCFragment, llvm_ks::ilist_traits<llvm_ks::MCFragment>>::clear() /src/keystone/llvm/include/llvm/ADT/ilist.h:605:28
+    #7 0x558a198df092 in llvm_ks::iplist<llvm_ks::MCFragment, llvm_ks::ilist_traits<llvm_ks::MCFragment>>::~iplist() /src/keystone/llvm/include/llvm/ADT/ilist.h:403:5
+    #8 0x558a198df529 in llvm_ks::MCSection::~MCSection() /src/keystone/llvm/lib/MC/MCSection.cpp:35:1
+    #9 0x558a1983a897 in llvm_ks::SpecificBumpPtrAllocator<llvm_ks::MCSectionELF>::DestroyAll()::'lambda'(char*, char*)::operator()(char*, char*) const /src/keystone/llvm/include/llvm/Support/Allocator.h:384:38
+    #10 0x558a1983a897 in llvm_ks::SpecificBumpPtrAllocator<llvm_ks::MCSectionELF>::DestroyAll() /src/keystone/llvm/include/llvm/Support/Allocator.h:395:7
+    #11 0x558a19838c02 in llvm_ks::MCContext::reset() /src/keystone/llvm/lib/MC/MCContext.cpp:75:16
+    #12 0x558a19837cc2 in llvm_ks::MCContext::~MCContext() /src/keystone/llvm/lib/MC/MCContext.cpp:62:5
+    #13 0x558a19833709 in ks_asm /src/keystone/llvm/keystone/ks.cpp:716:1
+    #14 0x558a1982d503 in LLVMFuzzerTestOneInput /src/keystone/suite/fuzz/fuzz_asm_sparc.c:42:9
+    #15 0x558a196e1e60 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x558a196cd0d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x558a196d2b6f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x558a196fde12 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7ff80b509082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #20 0x558a196c52bd in _start (/out/fuzz_asm_sparc+0x49e2bd)
+
+DEDUP_TOKEN: __interceptor_free--llvm_ks::SmallVectorImpl<llvm_ks::MCFixup>::~SmallVectorImpl()--llvm_ks::MCEncodedFragmentWithFixups<32u, 4u>::~MCEncodedFragmentWithFixups()
+0x519000000595 is located 21 bytes inside of 936-byte region [0x519000000580,0x519000000928)
+allocated by thread T0 here:
+    #0 0x558a197ee01c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x558a19967e18 in llvm_ks::SmallVectorBase::grow_pod(void*, unsigned long, unsigned long) /src/keystone/llvm/lib/Support/SmallVector.cpp:34:15
+    #2 0x558a19874db6 in llvm_ks::SmallVectorTemplateCommon<llvm_ks::MCFixup, void>::grow_pod(unsigned long, unsigned long) /src/keystone/llvm/include/llvm/ADT/SmallVector.h:81:22
+    #3 0x558a19874db6 in llvm_ks::SmallVectorTemplateBase<llvm_ks::MCFixup, true>::grow(unsigned long) /src/keystone/llvm/include/llvm/ADT/SmallVector.h:334:11
+    #4 0x558a19874db6 in llvm_ks::SmallVectorTemplateBase<llvm_ks::MCFixup, true>::push_back(llvm_ks::MCFixup const&) /src/keystone/llvm/include/llvm/ADT/SmallVector.h:339:13
+    #5 0x558a19874db6 in llvm_ks::MCObjectStreamer::EmitValueImpl(llvm_ks::MCExpr const*, unsigned int, llvm_ks::SMLoc) /src/keystone/llvm/lib/MC/MCObjectStreamer.cpp:155:19
+    #6 0x558a19c4544d in (anonymous namespace)::SparcAsmParser::parseDirectiveWord(unsigned int, llvm_ks::SMLoc) /src/keystone/llvm/lib/Target/Sparc/AsmParser/SparcAsmParser.cpp:684:33
+    #7 0x558a1988fe4b in (anonymous namespace)::AsmParser::parseStatement((anonymous namespace)::ParseStatementInfo&, llvm_ks::MCAsmParserSemaCallback*, unsigned long&) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp:1700:30
+    #8 0x558a1987f86e in (anonymous namespace)::AsmParser::Run(bool, unsigned long, bool) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp:712:10
+    #9 0x558a1983381d in ks_asm /src/keystone/llvm/keystone/ks.cpp:691:27
+    #10 0x558a1982d503 in LLVMFuzzerTestOneInput /src/keystone/suite/fuzz/fuzz_asm_sparc.c:42:9
+    #11 0x558a196e1e60 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x558a196cd0d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x558a196d2b6f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x558a196fde12 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7ff80b509082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--llvm_ks::SmallVectorBase::grow_pod(void*, unsigned long, unsigned long)--llvm_ks::SmallVectorTemplateCommon<llvm_ks::MCFixup, void>::grow_pod(unsigned long, unsigned long)
+SUMMARY: AddressSanitizer: bad-free /src/keystone/llvm/include/llvm/ADT/SmallVector.h:374:7 in llvm_ks::SmallVectorImpl<llvm_ks::MCFixup>::~SmallVectorImpl()
+==18==ABORTING
+MS: 0 ; base unit: 0000000000000000000000000000000000000000

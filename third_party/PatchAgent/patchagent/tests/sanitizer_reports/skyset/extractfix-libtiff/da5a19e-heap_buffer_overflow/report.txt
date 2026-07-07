@@ -1,0 +1,19 @@
+=================================================================
+==3788884==ERROR: AddressSanitizer: negative-size-param: (size=-1)
+    #0 0x7f78f968d4ff in __asan_memset build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:67:3
+    #1 0x563524a47d6e in readextension /root/tools/gif2tiff.c:316:9
+    #2 0x563524a470f5 in convert /root/tools/gif2tiff.c:217:25
+    #3 0x563524a46c11 in main /root/tools/gif2tiff.c:174:14
+    #4 0x7f78f90191c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #5 0x7f78f901928a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #6 0x563524a45394 in _start (/root/tools/.libs/gif2tiff+0x3394) (BuildId: 205dcf1cc4cb6686808d42d10bd1ae521e3d1f4b)
+
+Address 0x7f78f7000020 is located in stack of thread T0 at offset 32 in frame
+    #0 0x563524a47c0f in readextension /root/tools/gif2tiff.c:310
+
+  This frame has 1 object(s):
+    [32, 287) 'buf' (line 312) <== Memory access at offset 32 is inside this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: negative-size-param build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:67:3 in __asan_memset
+==3788884==ABORTING

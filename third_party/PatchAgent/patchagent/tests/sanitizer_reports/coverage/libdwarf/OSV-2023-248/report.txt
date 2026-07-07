@@ -1,0 +1,56 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libdwarf:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_srcfiles -runs=100.
++ FUZZER=fuzz_srcfiles
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_srcfiles -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_srcfiles -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2905802124
+INFO: Loaded 1 modules   (31 inline 8-bit counters): 31 [0x55e8cc9ec718, 0x55e8cc9ec737), 
+INFO: Loaded 1 PC tables (31 PCs): 31 [0x55e8cc9ec738,0x55e8cc9ec928), 
+/out/fuzz_srcfiles: Running 1 inputs 100 time(s) each.
+Running: /testcase
+
+libdwarf is unable to record error DW_DLE_LINE_OFFSET_WRONG_FORM(336) Corrupt dwarf No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_LINE_OFFSET_BAD (120) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_LINE_OFFSET_BAD (120) No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_LINE_NUMBER_HEADER_ERROR (235), a line number program header seems incomplete No error argument or handler available
+free(): double free detected in tcache 2
+==14== ERROR: libFuzzer: deadly signal
+    #0 0x55e8cc905f24 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x55e8cc884f78 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x55e8cc868313 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7fd529c5441f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7fd529a4e00a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7fd529a2d858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7fd529a98265  (/lib/x86_64-linux-gnu/libc.so.6+0x8d265) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7fd529aa02fb  (/lib/x86_64-linux-gnu/libc.so.6+0x952fb) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x7fd529aa1f6c  (/lib/x86_64-linux-gnu/libc.so.6+0x96f6c) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x55e8cc927c67 in _dwarf_read_line_table_header /src/libdwarf/src/lib/libdwarf/dwarf_line_table_reader_common.h
+    #10 0x55e8cc92899b in _dwarf_internal_srclines /src/libdwarf/src/lib/libdwarf/dwarf_line.c:826:20
+    #11 0x55e8cc92c06a in dwarf_srclines_b /src/libdwarf/src/lib/libdwarf/dwarf_line.c:1088:12
+    #12 0x55e8cc9067b9 in exampled /src/libdwarf/fuzz/fuzz_srcfiles.c:123:10
+    #13 0x55e8cc9065ef in LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_srcfiles.c:78:11
+    #14 0x55e8cc869820 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x55e8cc854a95 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x55e8cc85a52f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x55e8cc8857d2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7fd529a2f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #19 0x55e8cc84cc7d in _start (/out/fuzz_srcfiles+0x16c7d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

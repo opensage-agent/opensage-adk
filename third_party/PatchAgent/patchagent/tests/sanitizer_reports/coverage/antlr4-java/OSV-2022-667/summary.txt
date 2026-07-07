@@ -1,0 +1,45 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- org.antlr.v4.parse.ANTLRParser.lexerElement (org/antlr/v4/parse/ANTLRParser.java:4322)
+- org.antlr.v4.parse.ANTLRParser.lexerElements (org/antlr/v4/parse/ANTLRParser.java:4048)
+- org.antlr.v4.parse.ANTLRParser.lexerAlt (org/antlr/v4/parse/ANTLRParser.java:3885)
+- org.antlr.v4.parse.ANTLRParser.lexerAltList (org/antlr/v4/parse/ANTLRParser.java:3778)
+- org.antlr.v4.parse.ANTLRParser.lexerBlock (org/antlr/v4/parse/ANTLRParser.java:4534)
+Caused by: java.lang.StackOverflowError
+- java.base/java.lang.String.rangeCheck (java/base/java/lang/String.java:304)
+- java.base/java.lang.String.<init> (java/base/java/lang/String.java:300)
+- org.antlr.runtime.ANTLRStringStream.substring (org/antlr/runtime/ANTLRStringStream.java:217)
+- org.antlr.runtime.CommonToken.getText (org/antlr/runtime/CommonToken.java:106)
+- org.antlr.runtime.BaseRecognizer.getTokenErrorDisplay (org/antlr/runtime/BaseRecognizer.java:327)
+- org.antlr.v4.parse.ANTLRLexer.mERRCHAR (org/antlr/v4/parse/ANTLRLexer.java:2866)
+- org.antlr.v4.parse.ANTLRLexer.mTokens (org/antlr/v4/parse/ANTLRLexer.java:3199)
+- org.antlr.runtime.Lexer.nextToken (org/antlr/runtime/Lexer.java:85)
+- org.antlr.runtime.BufferedTokenStream.fetch (org/antlr/runtime/BufferedTokenStream.java:143)
+- org.antlr.runtime.BufferedTokenStream.sync (org/antlr/runtime/BufferedTokenStream.java:137)
+- org.antlr.runtime.CommonTokenStream.consume (org/antlr/runtime/CommonTokenStream.java:68)
+- org.antlr.runtime.BaseRecognizer.match (org/antlr/runtime/BaseRecognizer.java:106)
+- org.antlr.v4.parse.ANTLRParser.wildcard (org/antlr/v4/parse/ANTLRParser.java:6986)
+- org.antlr.v4.parse.ANTLRParser.lexerAtom (org/antlr/v4/parse/ANTLRParser.java:6754)
+- org.antlr.v4.parse.ANTLRParser.lexerElement (org/antlr/v4/parse/ANTLRParser.java:4216)
+- org.antlr.v4.parse.ANTLRParser.lexerElements (org/antlr/v4/parse/ANTLRParser.java:4048)
+- org.antlr.v4.parse.ANTLRParser.lexerAlt (org/antlr/v4/parse/ANTLRParser.java:3885)
+- org.antlr.v4.parse.ANTLRParser.lexerAltList (org/antlr/v4/parse/ANTLRParser.java:3778)
+- org.antlr.v4.parse.ANTLRParser.lexerBlock (org/antlr/v4/parse/ANTLRParser.java:4534)
+- org.antlr.v4.parse.ANTLRParser.lexerElement (org/antlr/v4/parse/ANTLRParser.java:4322)
+- org.antlr.v4.parse.ANTLRParser.lexerElements (org/antlr/v4/parse/ANTLRParser.java:4048)
+- org.antlr.v4.parse.ANTLRParser.lexerAlt (org/antlr/v4/parse/ANTLRParser.java:3885)
+- org.antlr.v4.parse.ANTLRParser.lexerAltList (org/antlr/v4/parse/ANTLRParser.java:3778)
+- org.antlr.v4.parse.ANTLRParser.lexerBlock (org/antlr/v4/parse/ANTLRParser.java:4534)
+- org.antlr.v4.parse.ANTLRParser.lexerElement (org/antlr/v4/parse/ANTLRParser.java:4322)
+- org.antlr.v4.parse.ANTLRParser.lexerElements (org/antlr/v4/parse/ANTLRParser.java:4048)
+- org.antlr.v4.parse.ANTLRParser.lexerAlt (org/antlr/v4/parse/ANTLRParser.java:3885)
+- org.antlr.v4.parse.ANTLRParser.lexerAltList (org/antlr/v4/parse/ANTLRParser.java:3778)
+- org.antlr.v4.parse.ANTLRParser.lexerBlock (org/antlr/v4/parse/ANTLRParser.java:4534)
+	... 5 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

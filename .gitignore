@@ -55,6 +55,7 @@ share/python-wheels/
 MANIFEST
 **/cybergym_data/
 **/oss-fuzz-data/
+third_party/devops-gym/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -181,8 +182,12 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
+# zensical / static-site build output
 /site
+
+# CLI reference pages are auto-generated from `opensage --help` before each
+# docs build (see docs/scripts/generate_cli_reference.py). Do not commit them.
+/docs/wiki/generated/
 
 # mypy
 .mypy_cache/
@@ -235,3 +240,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+.codex
+GOAL.md
+AGENTS.md
+CLAUDE.md
+TODO.md
+.agent-style

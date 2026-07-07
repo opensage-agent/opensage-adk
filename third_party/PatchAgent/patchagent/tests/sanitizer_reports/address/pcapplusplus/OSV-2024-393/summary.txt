@@ -1,0 +1,34 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 2 at 0x52d00000a2fb thread T0
+    - pcpp::BgpLayer::getHeaderLen() const /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:21:25
+    - pcpp::Packet::shortenLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:672:33
+    - pcpp::BgpUpdateMessageLayer::setPathAttributes(std::__1::vector<pcpp::BgpUpdateMessageLayer::path_attribute, std::__1::allocator<pcpp::BgpUpdateMessageLayer::path_attribute>> const&) /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:653:15
+    - readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:470:24
+    - LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:66:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x52d00000a2fb is located 261 bytes before 34102-byte region [0x52d00000a400,0x52d000012936)
+allocated by thread T0 here:
+    - operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    - pcpp::RawPacket::reallocateData(unsigned long) /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:177:24
+    - pcpp::Packet::reallocateRawData(unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:201:21
+    - pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:0:0
+    - pcpp::BgpUpdateMessageLayer::setWithdrawnRoutes(std::__1::vector<pcpp::BgpUpdateMessageLayer::prefix_and_ip, std::__1::allocator<pcpp::BgpUpdateMessageLayer::prefix_and_ip>> const&) /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:566:15
+    - readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:451:24
+    - LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:66:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

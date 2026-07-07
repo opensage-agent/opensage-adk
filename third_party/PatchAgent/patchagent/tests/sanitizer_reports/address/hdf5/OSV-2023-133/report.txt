@@ -1,0 +1,86 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5030000013a6 at pc 0x555f5026c73b bp 0x7ffd4646f930 sp 0x7ffd4646f0f8
+READ of size 22 at 0x5030000013a6 thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x555f5026c73a in strlen /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:391:5
+    #1 0x555f50f06e11 in H5L__extern_traverse /src/hdf5/src/H5Lexternal.c:133:17
+    #2 0x555f505bea6e in H5G__traverse_ud /src/hdf5/src/H5Gtraverse.c:203:29
+    #3 0x555f505bea6e in H5G__traverse_special /src/hdf5/src/H5Gtraverse.c:416:13
+    #4 0x555f505c0684 in H5G__traverse_real /src/hdf5/src/H5Gtraverse.c:593:17
+    #5 0x555f505bf757 in H5G_traverse /src/hdf5/src/H5Gtraverse.c:845:9
+    #6 0x555f5059d153 in H5G_loc_find /src/hdf5/src/H5Gloc.c:423:9
+    #7 0x555f5042e5cd in H5D__open_name /src/hdf5/src/H5Dint.c:1471:9
+    #8 0x555f50d7e6be in H5VL__native_dataset_open /src/hdf5/src/H5VLnative_dataset.c:331:25
+    #9 0x555f50d3ac2c in H5VL__dataset_open /src/hdf5/src/H5VLcallback.c:2053:25
+    #10 0x555f50d3a63e in H5VL_dataset_open /src/hdf5/src/H5VLcallback.c:2088:30
+    #11 0x555f50404683 in H5D__open_api_common /src/hdf5/src/H5D.c:361:25
+    #12 0x555f5040410e in H5Dopen2 /src/hdf5/src/H5D.c:400:22
+    #13 0x555f5032db0b in LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:31:27
+    #14 0x555f501e2500 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x555f501cd775 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x555f501d320f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x555f501fe4b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7f8c79ac6082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #19 0x555f501c595d in _start (/out/h5_extended_fuzzer+0x43795d)
+
+DEDUP_TOKEN: ___interceptor_strlen--H5L__extern_traverse--H5G__traverse_ud
+0x5030000013a6 is located 0 bytes after 22-byte region [0x503000001390,0x5030000013a6)
+allocated by thread T0 here:
+    #0 0x555f502ee2cf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x555f506d9179 in H5O__link_copy /src/hdf5/src/H5Olink.c:441:45
+    #2 0x555f506dfe2a in H5O_msg_copy /src/hdf5/src/H5Omessage.c:675:30
+    #3 0x555f50ee6faf in H5G__compact_lookup_cb /src/hdf5/src/H5Gcompact.c:418:25
+    #4 0x555f506e2b0c in H5O__msg_iterate_real /src/hdf5/src/H5Omessage.c:1165:29
+    #5 0x555f506e349a in H5O_msg_iterate /src/hdf5/src/H5Omessage.c:1099:22
+    #6 0x555f50ee6d35 in H5G__compact_lookup /src/hdf5/src/H5Gcompact.c:464:9
+    #7 0x555f505b526a in H5G__obj_lookup /src/hdf5/src/H5Gobj.c:1080:17
+    #8 0x555f505c05df in H5G__traverse_real /src/hdf5/src/H5Gtraverse.c:572:13
+    #9 0x555f505bf757 in H5G_traverse /src/hdf5/src/H5Gtraverse.c:845:9
+    #10 0x555f5059d153 in H5G_loc_find /src/hdf5/src/H5Gloc.c:423:9
+    #11 0x555f5042e5cd in H5D__open_name /src/hdf5/src/H5Dint.c:1471:9
+    #12 0x555f50d7e6be in H5VL__native_dataset_open /src/hdf5/src/H5VLnative_dataset.c:331:25
+    #13 0x555f50d3ac2c in H5VL__dataset_open /src/hdf5/src/H5VLcallback.c:2053:25
+    #14 0x555f50d3a63e in H5VL_dataset_open /src/hdf5/src/H5VLcallback.c:2088:30
+    #15 0x555f50404683 in H5D__open_api_common /src/hdf5/src/H5D.c:361:25
+    #16 0x555f5040410e in H5Dopen2 /src/hdf5/src/H5D.c:400:22
+    #17 0x555f5032db0b in LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:31:27
+    #18 0x555f501e2500 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #19 0x555f501cd775 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #20 0x555f501d320f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #21 0x555f501fe4b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f8c79ac6082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--H5O__link_copy--H5O_msg_copy
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/hdf5/src/H5Lexternal.c:133:17 in H5L__extern_traverse
+Shadow bytes around the buggy address:
+  0x503000001100: 00 fa fa fa fd fd fd fd fa fa 00 00 00 00 fa fa
+  0x503000001180: 00 00 00 00 fa fa 00 00 00 fa fa fa 00 00 02 fa
+  0x503000001200: fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00
+  0x503000001280: 02 fa fa fa 00 00 02 fa fa fa 00 00 00 fa fa fa
+  0x503000001300: 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00 06 fa
+=>0x503000001380: fa fa 00 00[06]fa fa fa 00 00 00 fa fa fa 00 00
+  0x503000001400: 00 fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000001480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000001500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000001580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000001600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

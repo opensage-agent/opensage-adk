@@ -1,0 +1,42 @@
+The sanitizer detected a global buffer overflow vulnerability. The explanation of the vulnerability is: A buffer overflow occurs in globally allocated memory, leading to memory corruption or crashes. Here is the detail: 
+
+READ of size 8 at 0x556fc5b77f88 thread T0
+    - get_unpack_proc /src/ghostpdl/base/gximdecode.c:68:19
+    - xps_begin_typed_image /src/ghostpdl/devices/vector/gdevxps.c:2085:5
+    - gs_image_begin_typed /src/ghostpdl/base/gsimage.c:268:12
+    - pdfi_render_image /src/ghostpdl/pdf/pdf_image.c:759:16
+    - pdfi_do_image /src/ghostpdl/pdf/pdf_image.c:2063:12
+    - pdfi_do_image_or_form /src/ghostpdl/pdf/pdf_image.c:2553:16
+    - pdfi_Do /src/ghostpdl/pdf/pdf_image.c:2645:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1475:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2126:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:127:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:152:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:1003:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:1157:24
+    - interp /src/ghostpdl/psi/interp.c:1725:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:522:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:479:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_xpswrite_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x556fc5b77f88 is located 24 bytes before global variable 'image1_reloc_ptrs' defined in './base/gximage1.c' (0x556fc5b77fa0) of size 24
+0x556fc5b77f88 is located 8 bytes after global variable 'get_unpack_proc.procs' defined in './base/gximdecode.c' (0x556fc5b77f20) of size 96
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

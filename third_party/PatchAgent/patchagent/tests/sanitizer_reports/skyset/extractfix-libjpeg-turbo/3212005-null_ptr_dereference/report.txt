@@ -1,0 +1,19 @@
+=================================================================
+==937860==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7f56a47205a4 bp 0x7fffcb14aff0 sp 0x7fffcb14aec0 T0)
+==937860==The signal is caused by a READ memory access.
+==937860==Hint: address points to the zero page.
+    #0 0x7f56a47205a4 in quantize_ord_dither /root/jquant1.c:536:24
+    #1 0x7f56a46f010c in post_process_1pass /root/jdpostct.c:145:3
+    #2 0x7f56a46adb76 in process_data_simple_main /root/jdmainct.c:311:3
+    #3 0x7f56a4676975 in jpeg_read_scanlines /root/jdapistd.c:282:3
+    #4 0x7f56a467878e in read_and_discard_scanlines /root/jdapistd.c:316:5
+    #5 0x7f56a4678f7e in increment_simple_rowgroup_ctr /root/jdapistd.c:342:3
+    #6 0x7f56a4678555 in jpeg_skip_scanlines /root/jdapistd.c:504:5
+    #7 0x562186e989a6 in main /root/djpeg.c:729:5
+    #8 0x7f56a43fd1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #9 0x7f56a43fd28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #10 0x562186e96404 in _start (/root/.libs/djpeg+0x5404) (BuildId: 96a37b837d1af0073396ed3d4cf1c24607c2188a)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/jquant1.c:536:24 in quantize_ord_dither
+==937860==ABORTING

@@ -1,0 +1,21 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- jflex.core.NFA.insertNFA (jflex/core/NFA.java:872)
+Caused by: java.lang.StackOverflowError
+- jflex.core.unicode.IntCharSet.indexOf (jflex/core/unicode/IntCharSet.java:104)
+- jflex.core.unicode.IntCharSet.contains (jflex/core/unicode/IntCharSet.java:268)
+- jflex.core.unicode.CharClasses.getClassCode (jflex/core/unicode/CharClasses.java:212)
+- jflex.core.NFA.insertLetterNFA (jflex/core/NFA.java:538)
+- jflex.core.NFA.insertCCLNFA (jflex/core/NFA.java:808)
+- jflex.core.NFA.insertNFA (jflex/core/NFA.java:846)
+- jflex.core.NFA.insertNFA (jflex/core/NFA.java:871)
+- jflex.core.NFA.insertNFA (jflex/core/NFA.java:872)
+- jflex.core.NFA.insertNFA (jflex/core/NFA.java:872)
+	... 1 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

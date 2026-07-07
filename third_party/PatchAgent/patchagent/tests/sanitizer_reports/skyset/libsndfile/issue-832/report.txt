@@ -1,0 +1,20 @@
+INFO: Seed: 3446105526
+INFO: Loaded 1 modules   (33759 inline 8-bit counters): 33759 [0x8977c3, 0x89fba2), 
+INFO: Loaded 1 PC tables (33759 PCs): 33759 [0x6f6b48,0x77a938), 
+sndfile_alt_fuzzer: Running 1 inputs 1 time(s) each.
+Running: id:000051,sig:06,src:002454+003908,time:5669051,op:splice,rep:8,trial:2
+src/wav.c:524:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:524:8 in 
+src/wav.c:525:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:525:8 in 
+src/wav.c:526:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:526:8 in 
+src/wav.c:527:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:527:8 in 
+src/wav.c:528:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:528:8 in 
+src/wav.c:529:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:529:8 in 
+src/wav.c:530:8: runtime error: index 100 out of bounds for type 'SF_CUE_POINT [100]'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior src/wav.c:530:8 in 
+Executed id:000051,sig:06,src:002454+003908,time:5669051,op:splice,rep:8,trial:2 in 2 ms

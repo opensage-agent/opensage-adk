@@ -1,0 +1,62 @@
+==14==ERROR: AddressSanitizer: unknown-crash on address 0x000000000000 at pc 0x55eeb4644666 bp 0x7ffe7bf3de00 sp 0x7ffe7bf3ddf8
+READ of size 8 at 0x000000000000 thread T0
+SCARINESS: 13 (8-byte-read-unknown-crash)
+    #0 0x55eeb4644665 in chunk_free_object /src/ghostpdl/./base/gsmchunk.c:1203:20
+    #1 0x55eeb496c5c3 in sfclose /src/ghostpdl/./base/strmio.c:178:5
+    #2 0x55eeb467184f in gsicc_set_profile /src/ghostpdl/./base/gsicc_manage.c:1042:16
+    #3 0x55eeb4679974 in gsicc_init_iccmanager /src/ghostpdl/./base/gsicc_manage.c:2340:20
+    #4 0x55eeb4992a93 in gs_setdevice_no_erase /src/ghostpdl/./base/gsdevice.c:515:20
+    #5 0x55eeb49949e6 in gs_nulldevice /src/ghostpdl/./base/gsdevice.c:763:13
+    #6 0x55eeb49fab8f in gs_gstate_alloc /src/ghostpdl/./base/gsstate.c:235:12
+    #7 0x55eeb4ee7896 in pdfi_create_context /src/ghostpdl/./pdf/ghostpdf.c:1865:11
+    #8 0x55eeb4ecdfb7 in zPDFInit /src/ghostpdl/./psi/zpdfops.c:1408:11
+    #9 0x55eeb4d618d5 in do_call_operator /src/ghostpdl/./psi/interp.c:91:12
+    #10 0x55eeb4d5b6e4 in interp /src/ghostpdl/./psi/interp.c:1772:40
+    #11 0x55eeb4d5b6e4 in gs_call_interp /src/ghostpdl/./psi/interp.c:535:12
+    #12 0x55eeb4d5b6e4 in gs_interpret /src/ghostpdl/./psi/interp.c:488:12
+    #13 0x55eeb44d04a7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #14 0x55eeb44d04a7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #15 0x55eeb44d04a7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #16 0x55eeb5067c00 in run_string /src/ghostpdl/./psi/imainarg.c:1187:12
+    #17 0x55eeb50644c0 in swproc /src/ghostpdl/./psi/imainarg.c:381:20
+    #18 0x55eeb5061663 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:230:24
+    #19 0x55eeb5067988 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:303:16
+    #20 0x55eeb44c7fae in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #21 0x55eeb44c83aa in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_opts_fuzzer.cc:25:2
+    #22 0x55eeb437c6c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #23 0x55eeb4367935 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #24 0x55eeb436d3cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #25 0x55eeb4398672 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #26 0x7f3681272082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #27 0x55eeb435fb1d in _start (/out/gs_device_pdfwrite_opts_fuzzer+0x754b1d)
+
+DEDUP_TOKEN: chunk_free_object--sfclose--gsicc_set_profile
+Address 0x000000000000 is a wild pointer inside of access range of size 0x000000000008.
+SUMMARY: AddressSanitizer: unknown-crash /src/ghostpdl/./base/gsmchunk.c:1203:20 in chunk_free_object
+Shadow bytes around the buggy address:
+=>0x000000000000:[00]00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x000000000080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x000000000100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x000000000180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x000000000200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x000000000280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

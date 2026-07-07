@@ -1,0 +1,24 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - find_es_header /src/vlc/modules/demux/ty.c:579:14
+    - analyze_chunk /src/vlc/modules/demux/ty.c:1828:36
+    - probe_stream /src/vlc/modules/demux/ty.c:1719:9
+    - Open /src/vlc/modules/demux/ty.c:351:9
+    - demux_Probe /src/vlc/src/input/demux.c:111:15
+    - vlc_module_load /src/vlc/src/modules/modules.c:243:19
+    - demux_NewAdvanced /src/vlc/src/input/demux.c:192:20
+    - demux_New /src/vlc/src/input/demux.c:76:12
+    - demux_process_stream /src/vlc/test/src/input/demux-run.c:297:22
+    - LLVMFuzzerTestOneInput /src/vlc/test/vlc-demux-libfuzzer.c:54:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

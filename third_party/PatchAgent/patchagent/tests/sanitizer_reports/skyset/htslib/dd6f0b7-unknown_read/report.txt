@@ -1,0 +1,18 @@
+=================================================================
+==756070==ERROR: AddressSanitizer: SEGV on unknown address 0x505a05a6a430 (pc 0x55d3b33b131e bp 0x000000000000 sp 0x7ffdcbd80b00 T0)
+==756070==The signal is caused by a READ memory access.
+    #0 0x55d3b33b131e in vcf_format /root/vcf.c:2838:13
+    #1 0x55d3b33b2431 in vcf_write /root/vcf.c:2918:9
+    #2 0x55d3b3379e1d in view_vcf /root/test/fuzz/hts_open_fuzzer.c:107:13
+    #3 0x55d3b3379e1d in LLVMFuzzerTestOneInput /root/test/fuzz/hts_open_fuzzer.c:143:13
+    #4 0x55d3b335f584 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/hts_open_fuzzer+0x26584) (BuildId: 8024b54e5f6d59e96886f54130831c717e0f8b2d)
+    #5 0x55d3b33486b6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/hts_open_fuzzer+0xf6b6) (BuildId: 8024b54e5f6d59e96886f54130831c717e0f8b2d)
+    #6 0x55d3b334e16a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/hts_open_fuzzer+0x1516a) (BuildId: 8024b54e5f6d59e96886f54130831c717e0f8b2d)
+    #7 0x55d3b33789c6 in main (/root/hts_open_fuzzer+0x3f9c6) (BuildId: 8024b54e5f6d59e96886f54130831c717e0f8b2d)
+    #8 0x7fcc7ac611c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7fcc7ac6128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x55d3b3343284 in _start (/root/hts_open_fuzzer+0xa284) (BuildId: 8024b54e5f6d59e96886f54130831c717e0f8b2d)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/vcf.c:2838:13 in vcf_format
+==756070==ABORTING

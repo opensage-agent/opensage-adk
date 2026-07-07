@@ -1,0 +1,87 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5020000005b1 at pc 0x5599b5e8647a bp 0x7fffb253fac0 sp 0x7fffb253fab8
+READ of size 1 at 0x5020000005b1 thread T0
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x5599b5e86479 in iasecc_parse_size /src/opensc/src/libopensc/iasecc-sdo.c:392:6
+    #1 0x5599b5e94293 in iasecc_parse_get_tlv /src/opensc/src/libopensc/iasecc-sdo.c:427:13
+    #2 0x5599b5e949dc in iasecc_parse_docp /src/opensc/src/libopensc/iasecc-sdo.c:589:8
+    #3 0x5599b5e8951a in iasecc_sdo_parse_data /src/opensc/src/libopensc/iasecc-sdo.c:661:8
+    #4 0x5599b5e88a73 in iasecc_sdo_parse /src/opensc/src/libopensc/iasecc-sdo.c:769:8
+    #5 0x5599b5e65dad in iasecc_sdo_get_tagged_data /src/opensc/src/libopensc/card-iasecc.c:2943:7
+    #6 0x5599b5e640af in iasecc_sdo_get_data /src/opensc/src/libopensc/card-iasecc.c:2960:7
+    #7 0x5599b5e7f8be in iasecc_pin_get_policy /src/opensc/src/libopensc/card-iasecc.c:2162:7
+    #8 0x5599b5e7a6c5 in iasecc_pin_get_info /src/opensc/src/libopensc/card-iasecc.c:2234:7
+    #9 0x5599b5e5b44c in iasecc_pin_cmd /src/opensc/src/libopensc/card-iasecc.c:2555:8
+    #10 0x5599b60bd1e9 in sc_pin_cmd /src/opensc/src/libopensc/sec.c:212:7
+    #11 0x5599b5fb796f in sc_pkcs15emu_din_66291_init /src/opensc/src/libopensc/pkcs15-din-66291.c:71:23
+    #12 0x5599b5fb6fbd in sc_pkcs15emu_din_66291_init_ex /src/opensc/src/libopensc/pkcs15-din-66291.c:255:23
+    #13 0x5599b5c0842f in sc_pkcs15_bind_synthetic /src/opensc/src/libopensc/pkcs15-syn.c:141:8
+    #14 0x5599b5bad633 in sc_pkcs15_bind /src/opensc/src/libopensc/pkcs15.c:1351:8
+    #15 0x5599b5b459ee in _main /src/opensc/src/tests/fuzzing/../../../src/tools/pkcs15-crypt.c:508:7
+    #16 0x5599b5b48905 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15_crypt.c:134:3
+    #17 0x5599b59fbce0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x5599b59e6f55 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x5599b59ec9ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x5599b5a17c92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7fd42b199082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #22 0x5599b59df13d in _start (/out/fuzz_pkcs15_crypt+0x1fe13d)
+
+DEDUP_TOKEN: iasecc_parse_size--iasecc_parse_get_tlv--iasecc_parse_docp
+0x5020000005b1 is located 0 bytes after 1-byte region [0x5020000005b0,0x5020000005b1)
+allocated by thread T0 here:
+    #0 0x5599b5b07c79 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x5599b5e943ee in iasecc_parse_get_tlv /src/opensc/src/libopensc/iasecc-sdo.c:430:15
+    #2 0x5599b5e892fe in iasecc_sdo_parse_data /src/opensc/src/libopensc/iasecc-sdo.c:653:13
+    #3 0x5599b5e88a73 in iasecc_sdo_parse /src/opensc/src/libopensc/iasecc-sdo.c:769:8
+    #4 0x5599b5e65dad in iasecc_sdo_get_tagged_data /src/opensc/src/libopensc/card-iasecc.c:2943:7
+    #5 0x5599b5e640af in iasecc_sdo_get_data /src/opensc/src/libopensc/card-iasecc.c:2960:7
+    #6 0x5599b5e7f8be in iasecc_pin_get_policy /src/opensc/src/libopensc/card-iasecc.c:2162:7
+    #7 0x5599b5e7a6c5 in iasecc_pin_get_info /src/opensc/src/libopensc/card-iasecc.c:2234:7
+    #8 0x5599b5e5b44c in iasecc_pin_cmd /src/opensc/src/libopensc/card-iasecc.c:2555:8
+    #9 0x5599b60bd1e9 in sc_pin_cmd /src/opensc/src/libopensc/sec.c:212:7
+    #10 0x5599b5fb796f in sc_pkcs15emu_din_66291_init /src/opensc/src/libopensc/pkcs15-din-66291.c:71:23
+    #11 0x5599b5fb6fbd in sc_pkcs15emu_din_66291_init_ex /src/opensc/src/libopensc/pkcs15-din-66291.c:255:23
+    #12 0x5599b5c0842f in sc_pkcs15_bind_synthetic /src/opensc/src/libopensc/pkcs15-syn.c:141:8
+    #13 0x5599b5bad633 in sc_pkcs15_bind /src/opensc/src/libopensc/pkcs15.c:1351:8
+    #14 0x5599b5b459ee in _main /src/opensc/src/tests/fuzzing/../../../src/tools/pkcs15-crypt.c:508:7
+    #15 0x5599b5b48905 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15_crypt.c:134:3
+    #16 0x5599b59fbce0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x5599b59e6f55 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x5599b59ec9ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x5599b5a17c92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7fd42b199082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--iasecc_parse_get_tlv--iasecc_sdo_parse_data
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/opensc/src/libopensc/iasecc-sdo.c:392:6 in iasecc_parse_size
+Shadow bytes around the buggy address:
+  0x502000000300: fa fa fd fd fa fa fd fa fa fa fd fa fa fa fd fa
+  0x502000000380: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x502000000400: fa fa fd fa fa fa fd fa fa fa fd fd fa fa fd fa
+  0x502000000480: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x502000000500: fa fa fd fd fa fa fd fa fa fa fd fd fa fa 00 00
+=>0x502000000580: fa fa 00 04 fa fa[01]fa fa fa fa fa fa fa fa fa
+  0x502000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

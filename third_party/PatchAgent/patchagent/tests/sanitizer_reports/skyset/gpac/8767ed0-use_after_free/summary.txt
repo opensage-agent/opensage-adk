@@ -1,0 +1,71 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 2 at 0x50700002ff82 thread T0
+    - xmt_resolve_od_links /root/src/scene_manager/loader_xmt.c:531:24
+    - load_xmt_run /root/src/scene_manager/loader_xmt.c:3148:2
+    - gf_sm_load_run /root/src/scene_manager/scene_manager.c:722:28
+    - ctxload_process /root/src/filters/load_bt_xmt.c:522:8
+    - gf_filter_process_task /root/src/filter_core/filter.c:3164:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2145:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2452:3
+    - gf_media_import /root/src/media_tools/media_import.c:1239:3
+    - convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    - mp4box_main /root/applications/mp4box/mp4box.c:6403:10
+    - main /root/applications/mp4box/mp4box.c:6962:1
+
+0x50700002ff82 is located 2 bytes inside of 80-byte region [0x50700002ff80,0x50700002ffd0)
+freed by thread T0 here:
+    - gf_free /root/src/utils/alloc.c:165:2
+    - gf_odf_del_iod /root/src/odf/odf_code.c:442:2
+    - gf_odf_delete_descriptor /root/src/odf/desc_private.c:169:10
+    - gf_odf_desc_del /root/src/odf/odf_codec.c:253:12
+    - xmt_node_end /root/src/scene_manager/loader_xmt.c:2675:5
+    - xml_sax_node_end /root/src/utils/xml_parser.c:265:4
+    - xml_sax_parse /root/src/utils/xml_parser.c:867:6
+    - gf_xml_sax_parse_intern /root/src/utils/xml_parser.c:1104:9
+    - gf_xml_sax_parse /root/src/utils/xml_parser.c:1132:6
+    - xml_sax_read_file /root/src/utils/xml_parser.c:1219:7
+    - gf_xml_sax_parse_file /root/src/utils/xml_parser.c:1331:9
+    - load_xmt_run /root/src/scene_manager/loader_xmt.c:3144:6
+    - gf_sm_load_run /root/src/scene_manager/scene_manager.c:722:28
+    - ctxload_process /root/src/filters/load_bt_xmt.c:522:8
+    - gf_filter_process_task /root/src/filter_core/filter.c:3164:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2145:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2452:3
+    - gf_media_import /root/src/media_tools/media_import.c:1239:3
+    - convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    - mp4box_main /root/applications/mp4box/mp4box.c:6403:10
+    - main /root/applications/mp4box/mp4box.c:6962:1
+
+previously allocated by thread T0 here:
+    - gf_malloc /root/src/utils/alloc.c:150:9
+    - gf_odf_new_iod /root/src/odf/odf_code.c:415:71
+    - gf_odf_create_descriptor /root/src/odf/desc_private.c:38:10
+    - gf_odf_desc_new /root/src/odf/odf_codec.c:244:12
+    - xmt_parse_descriptor /root/src/scene_manager/loader_xmt.c:1951:10
+    - xmt_node_start /root/src/scene_manager/loader_xmt.c:2578:10
+    - xml_sax_node_start /root/src/utils/xml_parser.c:308:4
+    - xml_sax_parse_attribute /root/src/utils/xml_parser.c:397:6
+    - xml_sax_parse /root/src/utils/xml_parser.c:940:8
+    - gf_xml_sax_parse_intern /root/src/utils/xml_parser.c:1104:9
+    - gf_xml_sax_parse /root/src/utils/xml_parser.c:1132:6
+    - xml_sax_read_file /root/src/utils/xml_parser.c:1219:7
+    - gf_xml_sax_parse_file /root/src/utils/xml_parser.c:1331:9
+    - load_xmt_run /root/src/scene_manager/loader_xmt.c:3144:6
+    - gf_sm_load_run /root/src/scene_manager/scene_manager.c:722:28
+    - ctxload_process /root/src/filters/load_bt_xmt.c:522:8
+    - gf_filter_process_task /root/src/filter_core/filter.c:3164:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2145:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2452:3
+    - gf_media_import /root/src/media_tools/media_import.c:1239:3
+    - convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    - mp4box_main /root/applications/mp4box/mp4box.c:6403:10
+    - main /root/applications/mp4box/mp4box.c:6962:1
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

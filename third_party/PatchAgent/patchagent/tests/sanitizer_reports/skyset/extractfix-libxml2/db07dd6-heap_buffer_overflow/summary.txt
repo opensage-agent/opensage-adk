@@ -1,0 +1,40 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 73661 at 0x531000024810 thread T0
+    - xmlDictAddString /root/dict.c:285:5
+    - xmlDictLookup /root/dict.c:926:11
+    - htmlParseNameComplex /root/HTMLparser.c:2517:12
+    - htmlParseName /root/HTMLparser.c:2483:12
+    - htmlParseEntityRef /root/HTMLparser.c:2682:16
+    - htmlParseReference /root/HTMLparser.c:4044:8
+    - htmlParseContentInternal /root/HTMLparser.c:4619:3
+    - htmlParseDocument /root/HTMLparser.c:4769:5
+    - htmlDoRead /root/HTMLparser.c:6741:5
+    - htmlReadFile /root/HTMLparser.c:6799:13
+    - parseAndPrintFile /root/xmllint.c:2255:8
+    - main /root/xmllint.c:3767:7
+
+0x531000024810 is located 0 bytes after 65552-byte region [0x531000014800,0x531000024810)
+allocated by thread T0 here:
+    - xmlBufGrowInternal /root/buf.c:486:23
+    - xmlBufGrow /root/buf.c:515:11
+    - xmlParserInputBufferGrow /root/xmlIO.c:3326:9
+    - xmlParserInputGrow /root/parserInternals.c:320:8
+    - htmlParseNameComplex /root/HTMLparser.c:2511:6
+    - htmlParseName /root/HTMLparser.c:2483:12
+    - htmlParseEntityRef /root/HTMLparser.c:2682:16
+    - htmlParseReference /root/HTMLparser.c:4044:8
+    - htmlParseContentInternal /root/HTMLparser.c:4619:3
+    - htmlParseDocument /root/HTMLparser.c:4769:5
+    - htmlDoRead /root/HTMLparser.c:6741:5
+    - htmlReadFile /root/HTMLparser.c:6799:13
+    - parseAndPrintFile /root/xmllint.c:2255:8
+    - main /root/xmllint.c:3767:7
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

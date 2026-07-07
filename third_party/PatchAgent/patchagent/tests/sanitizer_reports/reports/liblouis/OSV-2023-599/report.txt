@@ -1,0 +1,60 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/liblouis:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/liblouis/OSV-2023-599/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_translate_generic -runs=100.
++ FUZZER=fuzz_translate_generic
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_translate_generic -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_translate_generic -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2132181428
+INFO: Loaded 1 modules   (6157 inline 8-bit counters): 6157 [0x5560200f9b78, 0x5560200fb385), 
+INFO: Loaded 1 PC tables (6157 PCs): 6157 [0x5560200fb388,0x556020113458), 
+/out/fuzz_translate_generic: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: negative-size-param: (size=-2)
+[1m[0mSCARINESS: 10 (negative-size-param)
+    #0 0x55601ffd5ef6 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x55602003a5e2 in swapReplace /src/liblouis/liblouis/lou_translateString.c:481:4
+    #2 0x55602003a5e2 in passDoAction /src/liblouis/liblouis/lou_translateString.c:977:9
+    #3 0x55602002d007 in translateString /src/liblouis/liblouis/lou_translateString.c:3739:10
+    #4 0x5560200198c3 in _lou_translate /src/liblouis/liblouis/lou_translateString.c:1280:16
+    #5 0x556020017c5f in lou_translate /src/liblouis/liblouis/lou_translateString.c:1120:9
+    #6 0x556020017c5f in lou_translateString /src/liblouis/liblouis/lou_translateString.c:1112:9
+    #7 0x556020017a8d in LLVMFuzzerTestOneInput /src/liblouis/tests/fuzzing/fuzz_translate_generic.c:104:2
+    #8 0x55601fecc300 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55601feb7575 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55601febd00f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55601fee82b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7feacac76082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x55601feaf75d in _start (/out/fuzz_translate_generic+0x6a75d)
+
+DEDUP_TOKEN: __asan_memcpy--swapReplace--passDoAction
+[1m[32m0x5300000080e2 is located 31970 bytes inside of 63248-byte region [0x530000000400,0x53000000fb10)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55601ffd80cf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55602005d7c1 in allocateTranslationTable /src/liblouis/liblouis/compileTranslationTable.c:506:17
+    #2 0x55602005d7c1 in compileTable /src/liblouis/liblouis/compileTranslationTable.c:4879:24
+    #3 0x55602005d7c1 in getTable /src/liblouis/liblouis/compileTranslationTable.c:5077:7
+    #4 0x55602005cc38 in _lou_getTable /src/liblouis/liblouis/compileTranslationTable.c:4986:2
+    #5 0x556020017f8d in _lou_translate /src/liblouis/liblouis/lou_translateString.c:1179:2
+    #6 0x556020017c5f in lou_translate /src/liblouis/liblouis/lou_translateString.c:1120:9
+    #7 0x556020017c5f in lou_translateString /src/liblouis/liblouis/lou_translateString.c:1112:9
+    #8 0x556020017a8d in LLVMFuzzerTestOneInput /src/liblouis/tests/fuzzing/fuzz_translate_generic.c:104:2
+    #9 0x55601fecc300 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55601feb7575 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55601febd00f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55601fee82b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7feacac76082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--allocateTranslationTable--compileTable
+SUMMARY: AddressSanitizer: negative-size-param /src/liblouis/liblouis/lou_translateString.c:481:4 in swapReplace
+==14==ABORTING

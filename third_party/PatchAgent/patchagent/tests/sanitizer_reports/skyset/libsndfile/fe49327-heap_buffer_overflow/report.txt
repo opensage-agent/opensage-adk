@@ -1,0 +1,70 @@
+=================================================================
+==576179==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x529000004a04 at pc 0x7f28bd100889 bp 0x7ffe6aa562d0 sp 0x7ffe6aa55aa0
+WRITE of size 16385 at 0x529000004a04 thread T0
+    #0 0x7f28bd100888 in __asan_memset (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf6888) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55e0c8ed7a41 in psf_binheader_readf /root/src/common.c:1090:6
+    #2 0x55e0c8e986f9 in wavlike_read_cart_chunk /root/src/wavlike.c:873:12
+    #3 0x55e0c8e9f662 in wav_read_header /root/src/wav.c:567:19
+    #4 0x55e0c8e9c345 in wav_open /root/src/wav.c:171:17
+    #5 0x55e0c8e2568b in psf_open_file /root/src/sndfile.c:3079:13
+    #6 0x55e0c8e26694 in sf_open_virtual /root/src/sndfile.c:440:9
+    #7 0x55e0c8e2334a in LLVMFuzzerTestOneInput /root/ossfuzz/sndfile_fuzzer.cc:99:13
+    #8 0x55e0c8e0aad4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/sndfile_fuzzer+0x46ad4) (BuildId: 18c76492d2f36499540b61444fa74ac3fdd3cb38)
+    #9 0x55e0c8df3d56 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/sndfile_fuzzer+0x2fd56) (BuildId: 18c76492d2f36499540b61444fa74ac3fdd3cb38)
+    #10 0x55e0c8df980a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/sndfile_fuzzer+0x3580a) (BuildId: 18c76492d2f36499540b61444fa74ac3fdd3cb38)
+    #11 0x55e0c8e23126 in main (/root/sndfile_fuzzer+0x5f126) (BuildId: 18c76492d2f36499540b61444fa74ac3fdd3cb38)
+    #12 0x7f28bcd391c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7f28bcd3928a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x55e0c8deed24 in _start (/root/sndfile_fuzzer+0x2ad24) (BuildId: 18c76492d2f36499540b61444fa74ac3fdd3cb38)
+
+0x529000004a04 is located 0 bytes after 18436-byte region [0x529000000200,0x529000004a04)
+allocated by thread T0 here:
+    #0 0x7f28bd1027a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55e0c8eca941 in cart_var_alloc /root/src/cart.c:42:10
+    #2 0x55e0c8e98189 in wavlike_read_cart_chunk /root/src/wavlike.c:841:23
+    #3 0x55e0c8e9f662 in wav_read_header /root/src/wav.c:567:19
+    #4 0x55e0c8e9c345 in wav_open /root/src/wav.c:171:17
+    #5 0x55e0c8e2568b in psf_open_file /root/src/sndfile.c:3079:13
+    #6 0x55e0c8e26694 in sf_open_virtual /root/src/sndfile.c:440:9
+    #7 0x55e0c8e2334a in LLVMFuzzerTestOneInput /root/ossfuzz/sndfile_fuzzer.cc:99:13
+    #8 0x55e0c8e0aad4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/sndfile_fuzzer+0x46ad4) (BuildId: 18c76492d2f36499540b61444fa74ac3fdd3cb38)
+    #9 0x55e0c8df3d56 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/sndfile_fuzzer+0x2fd56) (BuildId: 18c76492d2f36499540b61444fa74ac3fdd3cb38)
+    #10 0x55e0c8df980a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/sndfile_fuzzer+0x3580a) (BuildId: 18c76492d2f36499540b61444fa74ac3fdd3cb38)
+    #11 0x55e0c8e23126 in main (/root/sndfile_fuzzer+0x5f126) (BuildId: 18c76492d2f36499540b61444fa74ac3fdd3cb38)
+    #12 0x7f28bcd391c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7f28bcd3928a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x55e0c8deed24 in _start (/root/sndfile_fuzzer+0x2ad24) (BuildId: 18c76492d2f36499540b61444fa74ac3fdd3cb38)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/common.c:1090:6 in psf_binheader_readf
+Shadow bytes around the buggy address:
+  0x529000004780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000004800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000004880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000004900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x529000004980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x529000004a00:[04]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000004a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000004b00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000004b80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000004c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x529000004c80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==576179==ABORTING

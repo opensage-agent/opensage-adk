@@ -1,0 +1,76 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5060000002a0 at pc 0x5581bb04c124 bp 0x7ffc991fd190 sp 0x7ffc991fd188
+READ of size 8 at 0x5060000002a0 thread T0
+SCARINESS: 23 (8-byte-read-heap-buffer-overflow)
+    #0 0x5581bb04c123 in wabt::interp::(anonymous namespace)::BinaryReaderInterp::OnExport(unsigned int, wabt::ExternalKind, unsigned int, std::__1::basic_string_view<char, std::__1::char_traits<char>>) /src/wabt/src/interp/binary-reader-interp.cc:693:63
+    #1 0x5581bb12427f in wabt::(anonymous namespace)::BinaryReader::ReadExportSection(unsigned long) /src/wabt/src/binary-reader.cc:2778:5
+    #2 0x5581bb119398 in wabt::(anonymous namespace)::BinaryReader::ReadSections(wabt::(anonymous namespace)::BinaryReader::ReadSectionsOptions const&) /src/wabt/src/binary-reader.cc:3033:26
+    #3 0x5581bb118100 in ReadModule /src/wabt/src/binary-reader.cc:3119:3
+    #4 0x5581bb118100 in wabt::ReadBinary(void const*, unsigned long, wabt::BinaryReaderDelegate*, wabt::ReadBinaryOptions const&) /src/wabt/src/binary-reader.cc:3141:17
+    #5 0x5581bb043cff in wabt::interp::ReadBinaryInterp(std::__1::basic_string_view<char, std::__1::char_traits<char>>, void const*, unsigned long, wabt::ReadBinaryOptions const&, std::__1::vector<wabt::Error, std::__1::allocator<wabt::Error>>*, wabt::interp::ModuleDesc*) /src/wabt/src/interp/binary-reader-interp.cc:1720:10
+    #6 0x5581bb02f967 in LLVMFuzzerTestOneInput /src/read_binary_interp_fuzzer.cc:39:3
+    #7 0x5581baee33f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5581baece665 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5581baed40ff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5581baeff3a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f5636df6082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x5581baec684d in _start (/out/read_binary_interp_fuzzer+0xfc84d)
+
+DEDUP_TOKEN: wabt::interp::(anonymous namespace)::BinaryReaderInterp::OnExport(unsigned int, wabt::ExternalKind, unsigned int, std::__1::basic_string_view<char, std::__1::char_traits<char>>)--wabt::(anonymous namespace)::BinaryReader::ReadExportSection(unsigned long)--wabt::(anonymous namespace)::BinaryReader::ReadSections(wabt::(anonymous namespace)::BinaryReader::ReadSectionsOptions const&)
+0x5060000002a0 is located 0 bytes after 64-byte region [0x506000000260,0x5060000002a0)
+allocated by thread T0 here:
+    #0 0x5581bb02c58d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x5581bb063e0c in __libcpp_operator_new<unsigned long> /usr/local/bin/../include/c++/v1/new:271:10
+    #2 0x5581bb063e0c in __libcpp_allocate /usr/local/bin/../include/c++/v1/new:295:10
+    #3 0x5581bb063e0c in allocate /usr/local/bin/../include/c++/v1/__memory/allocator.h:125:32
+    #4 0x5581bb063e0c in __allocate_at_least<std::__1::allocator<wabt::interp::FuncType> > /usr/local/bin/../include/c++/v1/__memory/allocate_at_least.h:55:19
+    #5 0x5581bb063e0c in __split_buffer /usr/local/bin/../include/c++/v1/__split_buffer:343:25
+    #6 0x5581bb063e0c in wabt::interp::FuncType* std::__1::vector<wabt::interp::FuncType, std::__1::allocator<wabt::interp::FuncType>>::__push_back_slow_path<wabt::interp::FuncType const&>(wabt::interp::FuncType const&) /usr/local/bin/../include/c++/v1/vector:1451:47
+    #7 0x5581bb045bc1 in push_back /usr/local/bin/../include/c++/v1/vector:1467:13
+    #8 0x5581bb045bc1 in wabt::interp::(anonymous namespace)::BinaryReaderInterp::OnImportFunc(unsigned int, std::__1::basic_string_view<char, std::__1::char_traits<char>>, std::__1::basic_string_view<char, std::__1::char_traits<char>>, unsigned int, unsigned int) /src/wabt/src/interp/binary-reader-interp.cc:524:15
+    #9 0x5581bb121464 in wabt::(anonymous namespace)::BinaryReader::ReadImportSection(unsigned long) /src/wabt/src/binary-reader.cc:2635:9
+    #10 0x5581bb119320 in wabt::(anonymous namespace)::BinaryReader::ReadSections(wabt::(anonymous namespace)::BinaryReader::ReadSectionsOptions const&) /src/wabt/src/binary-reader.cc:3013:26
+    #11 0x5581bb118100 in ReadModule /src/wabt/src/binary-reader.cc:3119:3
+    #12 0x5581bb118100 in wabt::ReadBinary(void const*, unsigned long, wabt::BinaryReaderDelegate*, wabt::ReadBinaryOptions const&) /src/wabt/src/binary-reader.cc:3141:17
+    #13 0x5581bb043cff in wabt::interp::ReadBinaryInterp(std::__1::basic_string_view<char, std::__1::char_traits<char>>, void const*, unsigned long, wabt::ReadBinaryOptions const&, std::__1::vector<wabt::Error, std::__1::allocator<wabt::Error>>*, wabt::interp::ModuleDesc*) /src/wabt/src/interp/binary-reader-interp.cc:1720:10
+    #14 0x5581bb02f967 in LLVMFuzzerTestOneInput /src/read_binary_interp_fuzzer.cc:39:3
+    #15 0x5581baee33f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x5581baece665 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x5581baed40ff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x5581baeff3a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f5636df6082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new(unsigned long)--__libcpp_operator_new<unsigned long>--__libcpp_allocate
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/wabt/src/interp/binary-reader-interp.cc:693:63 in wabt::interp::(anonymous namespace)::BinaryReaderInterp::OnExport(unsigned int, wabt::ExternalKind, unsigned int, std::__1::basic_string_view<char, std::__1::char_traits<char>>)
+Shadow bytes around the buggy address:
+  0x506000000000: fa fa fa fa 00 00 00 00 00 00 00 00 fa fa fa fa
+  0x506000000080: fd fd fd fd fd fd fd fd fa fa fa fa fd fd fd fd
+  0x506000000100: fd fd fd fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x506000000180: fa fa fa fa 00 00 00 00 00 00 00 fa fa fa fa fa
+  0x506000000200: 00 00 00 00 00 00 00 00 fa fa fa fa 00 00 00 00
+=>0x506000000280: 00 00 00 00[fa]fa fa fa 00 00 00 00 00 00 00 fa
+  0x506000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

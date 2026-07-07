@@ -1,0 +1,102 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libultrahdr:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libultrahdr/OSV-2024-1145/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce ultrahdr_dec_fuzzer -runs=100.
++ FUZZER=ultrahdr_dec_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ultrahdr_dec_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ultrahdr_dec_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 4047228522
+INFO: Loaded 1 modules   (22835 inline 8-bit counters): 22835 [0x56348cf55d90, 0x56348cf5b6c3), 
+INFO: Loaded 1 PC tables (22835 PCs): 22835 [0x56348cf5b6c8,0x56348cfb49f8), 
+/out/ultrahdr_dec_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5150000004e0 at pc 0x56348cb2cb6c bp 0x7ffdab666100 sp 0x7ffdab6660f8
+[1m[0m[1m[34mREAD of size 1 at 0x5150000004e0 thread T0[1m[0m
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x56348cb2cb6b in getYuv4abPixel /src/libultrahdr/lib/src/gainmapmath.cpp:724:20
+    #1 0x56348cb2cb6b in ultrahdr::getYuv444Pixel(uhdr_raw_image*, unsigned long, unsigned long) /src/libultrahdr/lib/src/gainmapmath.cpp:734:10
+    #2 0x56348cb5c788 in operator() /src/libultrahdr/lib/src/jpegr.cpp:1201:33
+    #3 0x56348cb5c788 in __invoke<(lambda at /src/libultrahdr/lib/src/jpegr.cpp:1192:39) &> /usr/local/bin/../include/c++/v1/__type_traits/invoke.h:344:25
+    #4 0x56348cb5c788 in __call<(lambda at /src/libultrahdr/lib/src/jpegr.cpp:1192:39) &> /usr/local/bin/../include/c++/v1/__type_traits/invoke.h:419:5
+    #5 0x56348cb5c788 in operator() /usr/local/bin/../include/c++/v1/__functional/function.h:169:12
+    #6 0x56348cb5c788 in std::__1::__function::__func<ultrahdr::JpegR::applyGainMap(uhdr_raw_image*, uhdr_raw_image*, ultrahdr::uhdr_gainmap_metadata_ext*, uhdr_color_transfer, uhdr_img_fmt, float, uhdr_raw_image*)::$_0, std::__1::allocator<ultrahdr::JpegR::applyGainMap(uhdr_raw_image*, uhdr_raw_image*, ultrahdr::uhdr_gainmap_metadata_ext*, uhdr_color_transfer, uhdr_img_fmt, float, uhdr_raw_image*)::$_0>, void ()>::operator()() /usr/local/bin/../include/c++/v1/__functional/function.h:311:10
+    #7 0x56348cb4e2c1 in operator() /usr/local/bin/../include/c++/v1/__functional/function.h:428:12
+    #8 0x56348cb4e2c1 in operator() /usr/local/bin/../include/c++/v1/__functional/function.h:981:10
+    #9 0x56348cb4e2c1 in ultrahdr::JpegR::applyGainMap(uhdr_raw_image*, uhdr_raw_image*, ultrahdr::uhdr_gainmap_metadata_ext*, uhdr_color_transfer, uhdr_img_fmt, float, uhdr_raw_image*) /src/libultrahdr/lib/src/jpegr.cpp:1297:3
+    #10 0x56348cb4d016 in ultrahdr::JpegR::decodeJPEGR(uhdr_compressed_image*, uhdr_raw_image*, float, uhdr_color_transfer, uhdr_img_fmt, uhdr_raw_image*, uhdr_gainmap_metadata*) /src/libultrahdr/lib/src/jpegr.cpp:1051:3
+    #11 0x56348cb1008a in uhdr_decode /src/libultrahdr/lib/src/ultrahdr_api.cpp:1486:13
+    #12 0x56348caf8308 in UltraHdrDecFuzzer::process() /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:73:5
+    #13 0x56348caf86ff in LLVMFuzzerTestOneInput /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:82:14
+    #14 0x56348c9ac870 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #15 0x56348c997ae5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #16 0x56348c99d57f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #17 0x56348c9c8822 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #18 0x7f4d41f07082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #19 0x56348c98fccd in _start (/out/ultrahdr_dec_fuzzer+0xeaccd)
+
+DEDUP_TOKEN: getYuv4abPixel--ultrahdr::getYuv444Pixel(uhdr_raw_image*, unsigned long, unsigned long)--operator()
+[1m[32m0x5150000004e0 is located 0 bytes after 480-byte region [0x515000000300,0x5150000004e0)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x56348caf5a0d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x56348cb3e3db in __libcpp_operator_new<unsigned long> /usr/local/bin/../include/c++/v1/new:271:10
+    #2 0x56348cb3e3db in __libcpp_allocate /usr/local/bin/../include/c++/v1/new:295:10
+    #3 0x56348cb3e3db in allocate /usr/local/bin/../include/c++/v1/__memory/allocator.h:125:32
+    #4 0x56348cb3e3db in __allocate_at_least<std::__1::allocator<unsigned char> > /usr/local/bin/../include/c++/v1/__memory/allocate_at_least.h:55:19
+    #5 0x56348cb3e3db in __split_buffer /usr/local/bin/../include/c++/v1/__split_buffer:343:25
+    #6 0x56348cb3e3db in std::__1::vector<unsigned char, std::__1::allocator<unsigned char>>::__append(unsigned long) /usr/local/bin/../include/c++/v1/vector:1095:49
+    #7 0x56348cb3ad58 in ultrahdr::JpegDecoderHelper::decode(void const*, int, ultrahdr::decode_mode_t) /src/libultrahdr/lib/src/jpegdecoderhelper.cpp:392:21
+    #8 0x56348cb3949d in ultrahdr::JpegDecoderHelper::decompressImage(void const*, int, ultrahdr::decode_mode_t) /src/libultrahdr/lib/src/jpegdecoderhelper.cpp:203:10
+    #9 0x56348cb4cbd9 in ultrahdr::JpegR::decodeJPEGR(uhdr_compressed_image*, uhdr_raw_image*, float, uhdr_color_transfer, uhdr_img_fmt, uhdr_raw_image*, uhdr_gainmap_metadata*) /src/libultrahdr/lib/src/jpegr.cpp:1011:3
+    #10 0x56348cb1008a in uhdr_decode /src/libultrahdr/lib/src/ultrahdr_api.cpp:1486:13
+    #11 0x56348caf8308 in UltraHdrDecFuzzer::process() /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:73:5
+    #12 0x56348caf86ff in LLVMFuzzerTestOneInput /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:82:14
+    #13 0x56348c9ac870 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x56348c997ae5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x56348c99d57f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x56348c9c8822 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f4d41f07082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator new(unsigned long)--__libcpp_operator_new<unsigned long>--__libcpp_allocate
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/libultrahdr/lib/src/gainmapmath.cpp:724:20 in getYuv4abPixel
+Shadow bytes around the buggy address:
+  0x515000000200: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000280: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000300: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x515000000380: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x515000000400: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x515000000480: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000500: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x515000000580: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000000600: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000000680: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x515000000700: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

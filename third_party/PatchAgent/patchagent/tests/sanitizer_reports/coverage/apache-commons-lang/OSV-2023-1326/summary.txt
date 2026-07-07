@@ -1,0 +1,18 @@
+The sanitizer detected a out of memory vulnerability.The explanation of the vulnerability is: The program runs out of memory, causing allocation failures and potential crashes.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Out of memory (use '-Xmx1710m' to reproduce)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+- java.base/java.lang.reflect.Array.newInstance (java/base/java/lang/reflect/Array.java:78)
+- java.base/java.io.ObjectInputStream.readArray (java/base/java/io/ObjectInputStream.java:2132)
+- java.base/java.io.ObjectInputStream.readObject0 (java/base/java/io/ObjectInputStream.java:1732)
+- java.base/java.io.ObjectInputStream.readObject (java/base/java/io/ObjectInputStream.java:514)
+- java.base/java.io.ObjectInputStream.readObject (java/base/java/io/ObjectInputStream.java:472)
+- org.apache.commons.lang3.SerializationUtils.deserialize (org/apache/commons/lang3/SerializationUtils.java:208)
+- org.apache.commons.lang3.SerializationUtils.deserialize (org/apache/commons/lang3/SerializationUtils.java:174)
+- SerializationUtilsFuzzer.fuzzerTestOneInput (SerializationUtilsFuzzer.java:38)
+
+To fix this issue, follow the advice below:
+
+1. Check for memory leaks that may be consuming system resources.
+2. Optimize memory usage by releasing unused resources.
+3. Increase system memory or swap space to accommodate memory requirements.

@@ -1,0 +1,40 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 279 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.FilePathTraversal (took 28 ms, size +24%)
+INFO: Using mutator: Arguments[String, Double]
+INFO: using inputs from: ./sanitizer_report/FilePathTraversal/crash-e4dbf1a42af102502e3c6f0ad9727f045b03c0b7
+INFO: found LLVMFuzzerCustomMutator (0x7fd477b70a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1426457508
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55c7c3bf7e00, 0x55c7c3bf8000), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55c7c3b96b80,0x55c7c3b98b80), 
+jazzer: Running 1 inputs 1 time(s) each.
+Running: ./sanitizer_report/FilePathTraversal/crash-e4dbf1a42af102502e3c6f0ad9727f045b03c0b7
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueCritical: File path traversal: ../jazzer-traversal
+	at com.code_intelligence.jazzer.sanitizers.FilePathTraversal.check(FilePathTraversal.java:346)
+	at com.code_intelligence.jazzer.sanitizers.FilePathTraversal.checkPath(FilePathTraversal.java:293)
+	at com.code_intelligence.jazzer.sanitizers.FilePathTraversal.pathFirstArgHook(FilePathTraversal.java:177)
+	at com.example.FilePathTraversal.fuzzerTestOneInput(FilePathTraversal.java:39)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+DEDUP_TOKEN: d971504e57de865e
+== libFuzzer crashing input ==

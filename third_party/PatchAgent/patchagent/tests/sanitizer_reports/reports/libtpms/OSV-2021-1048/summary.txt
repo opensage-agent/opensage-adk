@@ -1,0 +1,81 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 4 at 0x7f36b72c5200 thread T0
+    - INDEX_ORDERLY_RAM_Marshal /src/libtpms/src/tpm2/NVMarshal.c:4238:9
+    - PERSISTENT_ALL_Marshal /src/libtpms/src/tpm2/NVMarshal.c:4731:16
+    - TPM2_PersistentAllStore /src/libtpms/src/tpm_tpm2_interface.c:270:19
+    - libtpms_plat__NvCommit /src/libtpms/src/tpm2/LibtpmsCallbacks.c:144:15
+    - _plat__NvCommit /src/libtpms/src/tpm2/NVMem.c:444:15
+    - NvCommit /src/libtpms/src/tpm2/NVReserved.c:108:13
+    - ExecuteCommand /src/libtpms/src/tpm2/ExecCommand.c:307:10
+    - _plat__RunCommand /src/libtpms/src/tpm2/RunCommand.c:95:5
+    - TPM2_Process /src/libtpms/src/tpm_tpm2_interface.c:219:5
+    - LLVMFuzzerTestOneInput /src/libtpms/tests/fuzz.cc:91:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f36b72c5200 is located in stack of thread T0 at offset 6656 in frame
+    - PERSISTENT_ALL_Marshal /src/libtpms/src/tpm2/NVMarshal.c:4700:0
+
+  This frame has 50 object(s):
+    [32, 34) 'skip.i' (line 139)
+    [48, 49) '_bool.i.i139' (line 222)
+    [64, 66) 'zero.i' (line 116)
+    [80, 82) 'skip.i.i99' (line 139)
+    [96, 97) '_bool.i.i.i100' (line 222)
+    [112, 114) 'zero.i.i101' (line 116)
+    [128, 140) 'hdr.i.i102' (line 326)
+    [160, 172) 'nrh.i' (line 4222)
+    [192, 194) 'datasize.i' (line 4224)
+    [208, 212) 'sourceside_size.i' (line 4225)
+    [224, 320) 'block_skip.i103' (line 4226)
+    [352, 354) 'skip.i505.i' (line 139)
+    [368, 370) 'skip.i492.i' (line 139)
+    [384, 386) 'skip.i479.i' (line 139)
+    [400, 401) '_bool.i.i462.i' (line 222)
+    [416, 418) 'zero.i463.i' (line 116)
+    [432, 433) '_bool.i.i442.i' (line 222)
+    [448, 450) 'zero.i443.i' (line 116)
+    [464, 465) '_bool.i.i425.i' (line 222)
+    [480, 482) 'zero.i426.i' (line 116)
+    [496, 497) '_bool.i420.i' (line 222)
+    [512, 514) 'skip.i.i60' (line 139)
+    [528, 530) 'skip.i.i.i' (line 139)
+    [544, 545) '_bool.i.i.i.i' (line 222)
+    [560, 562) 'zero.i.i.i' (line 116)
+    [576, 588) 'hdr.i.i.i' (line 326)
+    [608, 610) 'array_size.i.i' (line 543)
+    [624, 720) 'block_skip.i.i' (line 544)
+    [752, 753) '_bool.i.i.i61' (line 222)
+    [768, 770) 'zero.i.i62' (line 116)
+    [784, 785) '_bool.i.i' (line 222)
+    [800, 812) 'hdr.i.i63' (line 326)
+    [832, 834) 'array_size.i64' (line 3891)
+    [848, 849) 'clocksize.i' (line 3892)
+    [864, 960) 'block_skip.i65' (line 3894)
+    [992, 994) 'skip.i.i' (line 139)
+    [1008, 1009) '_bool.i.i.i' (line 222)
+    [1024, 1026) 'zero.i.i' (line 116)
+    [1040, 1052) 'hdr.i.i' (line 326)
+    [1072, 1076) 'tmp_uint32.i' (line 3814)
+    [1088, 1092) 'array_size.i' (line 3815)
+    [1104, 1200) 'block_skip.i' (line 3816)
+    [1232, 1244) 'hdr.i' (line 326)
+    [1264, 1268) 'magic' (line 4701)
+    [1280, 2344) 'pd' (line 4702)
+    [2480, 2608) 'od' (line 4703)
+    [2640, 3104) 'srd' (line 4704)
+    [3168, 6012) 'scd' (line 4705)
+    [6144, 6656) 'indexOrderlyRam' (line 4707) <== Memory access at offset 6656 overflows this variable
+    [6720, 6816) 'block_skip' (line 4708)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

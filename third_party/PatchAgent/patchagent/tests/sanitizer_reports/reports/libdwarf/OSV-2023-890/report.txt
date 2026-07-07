@@ -1,0 +1,104 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libdwarf:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libdwarf/OSV-2023-890/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_stack_frame_access -runs=100.
++ FUZZER=fuzz_stack_frame_access
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_stack_frame_access -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_stack_frame_access -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 4048792712
+INFO: Loaded 1 modules   (11285 inline 8-bit counters): 11285 [0x5636f1aa54c0, 0x5636f1aa80d5), 
+INFO: Loaded 1 PC tables (11285 PCs): 11285 [0x5636f1aa80d8,0x5636f1ad4228), 
+/out/fuzz_stack_frame_access: Running 1 inputs 100 time(s) each.
+Running: /testcase
+
+libdwarf is unable to record error DW_DLE_HEADER_LEN_BIGGER_THAN_SECSIZE (342) Corrupt dwarf No error argument or handler available
+
+libdwarf is unable to record error DW_DLE_HEADER_LEN_BIGGER_THAN_SECSIZE (342) Corrupt dwarf No error argument or handler available
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x51000000084a at pc 0x5636f193b2df bp 0x7ffc587ac150 sp 0x7ffc587ac148
+[1m[0m[1m[34mREAD of size 2 at 0x51000000084a thread T0[1m[0m
+SCARINESS: 42 (2-byte-read-heap-use-after-free)
+    #0 0x5636f193b2de in dwarf_dealloc /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:872:33
+    #1 0x5636f196a54b in _dwarf_fde_destructor /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:3014:9
+    #2 0x5636f193d75f in tdestroy_free_node /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:525:9
+    #3 0x5636f19dc2b9 in _dwarf_tdestroy_inner /src/libdwarf/src/lib/libdwarf/dwarf_tsearchhash.c:672:17
+    #4 0x5636f19dc2b9 in _dwarf_tdestroy /src/libdwarf/src/lib/libdwarf/dwarf_tsearchhash.c:705:5
+    #5 0x5636f193cc7d in _dwarf_free_all_of_one_debug /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:1126:9
+    #6 0x5636f193a84e in LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_stack_frame_access.c:82:3
+    #7 0x5636f17f1320 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5636f17dc595 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5636f17e202f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5636f180d2d2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f0519b9a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #12 0x5636f17d477d in _start (/out/fuzz_stack_frame_access+0xa177d)
+
+DEDUP_TOKEN: dwarf_dealloc--_dwarf_fde_destructor--tdestroy_free_node
+[1m[32m0x51000000084a is located 10 bytes inside of 184-byte region [0x510000000840,0x5100000008f8)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x5636f18fce56 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x5636f19dc2b9 in _dwarf_tdestroy_inner /src/libdwarf/src/lib/libdwarf/dwarf_tsearchhash.c:672:17
+    #2 0x5636f19dc2b9 in _dwarf_tdestroy /src/libdwarf/src/lib/libdwarf/dwarf_tsearchhash.c:705:5
+    #3 0x5636f193cc7d in _dwarf_free_all_of_one_debug /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:1126:9
+    #4 0x5636f193a84e in LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_stack_frame_access.c:82:3
+    #5 0x5636f17f1320 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x5636f17dc595 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x5636f17e202f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x5636f180d2d2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f0519b9a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--_dwarf_tdestroy_inner--_dwarf_tdestroy
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x5636f18fd0ef in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5636f193ac25 in _dwarf_get_alloc /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:608:17
+    #2 0x5636f196d9c8 in _dwarf_create_cie_from_after_start /src/libdwarf/src/lib/libdwarf/dwarf_frame2.c:964:27
+    #3 0x5636f1965f7c in dwarf_get_fde_for_die /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:1901:16
+    #4 0x5636f193a7e4 in LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_stack_frame_access.c:74:11
+    #5 0x5636f17f1320 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x5636f17dc595 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x5636f17e202f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x5636f180d2d2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f0519b9a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--_dwarf_get_alloc--_dwarf_create_cie_from_after_start
+SUMMARY: AddressSanitizer: heap-use-after-free /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:872:33 in dwarf_dealloc
+Shadow bytes around the buggy address:
+  0x510000000580: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x510000000600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x510000000680: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x510000000700: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x510000000780: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+=>0x510000000800: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x510000000880: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x510000000900: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x510000000980: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x510000000a00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x510000000a80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

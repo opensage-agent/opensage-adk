@@ -1,0 +1,21 @@
+=================================================================
+==639783==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7f046aef716d bp 0x7ffe6bf104e0 sp 0x7ffe6bf101c0 T0)
+==639783==The signal is caused by a READ memory access.
+==639783==Hint: address points to the zero page.
+    #0 0x7f046aef716d in gf_filter_pck_new_alloc_internal /root/src/filter_core/filter_pck.c:108:6
+    #1 0x7f046aef7022 in gf_filter_pck_new_alloc /root/src/filter_core/filter_pck.c:197:9
+    #2 0x7f046b562fd1 in pcmreframe_process /root/src/filters/reframe_rawpcm.c:399:19
+    #3 0x7f046afcd993 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #4 0x7f046af9cef4 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    #5 0x7f046af98d1b in gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    #6 0x7f046a8a90df in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #7 0x55baf88071ce in do_dash /root/applications/mp4box/mp4box.c:4831:15
+    #8 0x55baf87fbcc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #9 0x55baf8802841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #10 0x7f0469abc1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f0469abc28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x55baf87e1e04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: ac873e1fbe0d570c926cc43ef11e895286fdb5eb)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/src/filter_core/filter_pck.c:108:6 in gf_filter_pck_new_alloc_internal
+==639783==ABORTING

@@ -1,0 +1,29 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser.expr (com/puppycrawl/tools/checkstyle/grammar/java/JavaLanguageParser.java:9392)
+Caused by: java.lang.StackOverflowError
+- java.base/sun.nio.cs.StreamEncoder.implWrite (java/base/sun/nio/cs/StreamEncoder.java:281)
+- java.base/sun.nio.cs.StreamEncoder.write (java/base/sun/nio/cs/StreamEncoder.java:132)
+- java.base/java.io.OutputStreamWriter.write (java/base/java/io/OutputStreamWriter.java:205)
+- java.base/java.io.BufferedWriter.flushBuffer (java/base/java/io/BufferedWriter.java:120)
+- java.base/java.io.PrintStream.writeln (java/base/java/io/PrintStream.java:722)
+- java.base/java.io.PrintStream.println (java/base/java/io/PrintStream.java:1028)
+- org.antlr.v4.runtime.ConsoleErrorListener.syntaxError (org/antlr/v4/runtime/ConsoleErrorListener.java:38)
+- org.antlr.v4.runtime.ProxyErrorListener.syntaxError (org/antlr/v4/runtime/ProxyErrorListener.java:41)
+- org.antlr.v4.runtime.Lexer.notifyListeners (org/antlr/v4/runtime/Lexer.java:364)
+- org.antlr.v4.runtime.Lexer.nextToken (org/antlr/v4/runtime/Lexer.java:144)
+- org.antlr.v4.runtime.BufferedTokenStream.fetch (org/antlr/v4/runtime/BufferedTokenStream.java:169)
+- org.antlr.v4.runtime.BufferedTokenStream.sync (org/antlr/v4/runtime/BufferedTokenStream.java:152)
+- org.antlr.v4.runtime.BufferedTokenStream.consume (org/antlr/v4/runtime/BufferedTokenStream.java:136)
+- org.antlr.v4.runtime.Parser.consume (org/antlr/v4/runtime/Parser.java:571)
+- com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser.expr (com/puppycrawl/tools/checkstyle/grammar/java/JavaLanguageParser.java:9389)
+- com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser.expr (com/puppycrawl/tools/checkstyle/grammar/java/JavaLanguageParser.java:9392)
+- com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser.expr (com/puppycrawl/tools/checkstyle/grammar/java/JavaLanguageParser.java:9392)
+	... 1 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

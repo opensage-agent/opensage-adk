@@ -1,0 +1,20 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==15==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000004 (pc 0x55889c55db47 bp 0x7ffc198a3b50 sp 0x7ffc198a3ac0 T0)
+==15==The signal is caused by a READ memory access.
+==15==Hint: address points to the zero page.
+SCARINESS: 10 (null-deref)
+    #0 0x55889c55db47 in re_case_expand /src/augeas/src/fa.c:4391:16
+    #1 0x55889c55d6ee in fa_expand_nocase /src/augeas/src/fa.c:4453:9
+    #2 0x55889c5358e9 in LLVMFuzzerTestOneInput /src/augeas/augeas_fa_fuzzer.cc:52:10
+    #3 0x55889c3ea2f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x55889c3d5565 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x55889c3dafff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x55889c4062a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7fd867f2d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #8 0x55889c3cd74d in _start (/out/augeas_fa_fuzzer+0x5274d)
+
+DEDUP_TOKEN: re_case_expand--fa_expand_nocase--LLVMFuzzerTestOneInput
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/augeas/src/fa.c:4391:16 in re_case_expand
+==15==ABORTING

@@ -1,0 +1,76 @@
+# repo_maintainer agent configuration.
+#
+# INVARIANT: This agent always mounts MAINTAINED_PROJECT_PATH to /workspace.
+# All prompt references to /workspace depend on this binding.
+#
+# The host directory of the project being maintained is mounted into the
+# container at /workspace. It is resolved from the MAINTAINED_PROJECT_PATH
+# environment variable at session start. Example:
+#
+#   MAINTAINED_PROJECT_PATH=/abs/path/to/my_repo \
+#     uv run opensage web \
+#       --agent  agent_library/agents/repo_maintainer_agent \
+#       --config agent_library/agents/repo_maintainer_agent/config.toml
+#
+# Long-term knowledge is persisted to ${MAINTAINED_PROJECT_PATH}/.opensage/knowledge/
+# on the host, mounted into the container at /mem/long_term/. This directory
+# should be git-tracked in the maintained project.
+
+DEFAULT_IMAGE = "ubuntu:22.04"
+TASK_NAME = "repo_maintainer"
+MAX_TOOL_RESPONSE_LENGTH = 20000
+MAX_HISTORY_SUMMARY_LENGTH = 240000
+
+task_name = "${TASK_NAME}"
+
+# Inject merged review-discipline + knowledge read protocol into every
+# agent's instruction at runtime. Resolved relative to this agent's
+# directory; overrides the framework default.
+[auto_insert_prompt_file]
+agent_relative_path = "auto_insert_review.md"
+
+[llm]
+[llm.model_configs.summarize]
+model_name = "inherit"
+temperature = 1.0
+
+[history]
+max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
+enable_quota_countdown = true
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+
+[history.events_compaction]
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+compaction_percent = 50
+
+[sandbox]
+backend = "native"
+# Bind-mount the maintained project into /workspace (read-write).
+# Also mount .opensage/knowledge/ to /mem/long_term/ so the framework's
+# long-term memory system writes directly to the repo (git-tracked).
+mount_host_paths = [
+    "${MAINTAINED_PROJECT_PATH}:/workspace:rw",
+    "${MAINTAINED_PROJECT_PATH}/.opensage/knowledge:/mem/long_term:rw",
+]
+
+[sandbox.sandboxes.main]
+image = "${TASK_NAME}_main"
+working_dir = "/workspace"
+project_relative_dockerfile_path = "agent_library/agents/repo_maintainer_agent/Dockerfile"
+timeout = 1200
+[sandbox.sandboxes.main.build_args]
+BASE_IMAGE = "${DEFAULT_IMAGE}"
+[sandbox.sandboxes.main.extra]
+initializer_timeout_sec = 1200
+
+[[model.available_models]]
+model = "claude-opus-4-6"
+api_key_env = "LITELLM_API_KEY"
+base_url = "LITELLM_BASE_URL"
+
+[plugins]
+enabled = [
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+    "doom_loop_detector_plugin",
+]

@@ -1,0 +1,38 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5210000014ff thread T0
+    - xmlHTMLPrintFileContext /root/xmllint.c:563:13
+    - xmlHTMLError /root/xmllint.c:610:5
+    - __xmlRaiseError /root/error.c:665:2
+    - xmlFatalErr /root/parserInternals.c:387:9
+    - xmlParserGrow /root/parserInternals.c:544:9
+    - xmlParseXMLDecl /root/parser.c:10940:5
+    - xmlParseDocument /root/parser.c:11040:2
+    - xmlDoRead /root/parser.c:14754:5
+    - xmlCtxtReadFile /root/parser.c:15007:13
+    - parseAndPrintFile /root/xmllint.c:2286:19
+    - main /root/xmllint.c:3778:7
+
+0x5210000014ff is located 1 bytes before 4196-byte region [0x521000001500,0x521000002564)
+allocated by thread T0 here:
+    - xmlBufGrowInternal /root/buf.c:420:23
+    - xmlBufGrow /root/buf.c:449:11
+    - xmlCharEncInput /root/encoding.c:2148:17
+    - xmlSwitchInputEncoding /root/parserInternals.c:1266:19
+    - xmlSwitchToEncoding /root/parserInternals.c:1297:12
+    - xmlSetDeclaredEncoding /root/parserInternals.c:1431:9
+    - xmlParseEncodingDecl /root/parser.c:10750:5
+    - xmlParseXMLDecl /root/parser.c:10917:5
+    - xmlParseDocument /root/parser.c:11040:2
+    - xmlDoRead /root/parser.c:14754:5
+    - xmlCtxtReadFile /root/parser.c:15007:13
+    - parseAndPrintFile /root/xmllint.c:2286:19
+    - main /root/xmllint.c:3778:7
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

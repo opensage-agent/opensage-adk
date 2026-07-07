@@ -2,7 +2,7 @@
 OpenSage Client for RL Framework Integration.
 
 This module provides the client class for integrating OpenSage agents
-with RL frameworks like slime, verl, areal, etc.
+with RL frameworks like slime, AReaL, Miles, etc.
 
 The Client handles:
 - Agent loading and configuration
@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any
 
 from opensage.session import cleanup_opensage_session, get_opensage_session
 
-from .adapters import ArealAdapter, BaseAdapter, SlimeAdapter
+from .adapters import BaseAdapter
 from .benchmark_interface import BenchmarkInterface
 
 if TYPE_CHECKING:
@@ -46,19 +46,20 @@ class Client:
         agent_name: str,
         benchmark_name: str,
         model_name: str | None = None,
+        **eval_kwargs: Any,
     ):
         """Initialize client.
 
         Args:
-            agent_name (str): Name of the agent (defined in opensage/agents/ or examples/agents/)
-            benchmark_name (str): Name of the benchmark (defined in opensage/evaluations/)
+            agent_name (str): Name of the agent (defined in opensage/agents/ or agent_library/agents/)
+            benchmark_name (str): Name of the benchmark registered under opensage.evaluation.
             model_name (str | None): Optional model name to override the evaluation's default.
-                When provided, this is passed to the evaluation class constructor
-                so that prompt formatting and model-specific logic use the correct
-                model identity (e.g., "qwen3-8b" instead of default "gemini-3-pro-preview")."""
+            **eval_kwargs: Extra keyword arguments passed to the Evaluation constructor
+                (e.g., dataset_path for HarborEvaluation)."""
         self.agent_name = agent_name
         self.benchmark_name = benchmark_name
         self.model_name = model_name
+        self._extra_eval_kwargs = eval_kwargs
 
         # Resolve agent directory
         self._agent_dir = self._resolve_agent_dir()
@@ -69,7 +70,7 @@ class Client:
     def _resolve_agent_dir(self) -> str:
         """Resolve agent directory from agent name.
 
-        Searches for agent in the installed package's examples/agents/ directory.
+        Searches for agent in the installed package's agent_library/agents/ directory.
 
         Returns:
             str: Absolute path to agent directory
@@ -79,7 +80,7 @@ class Client:
         """
         from opensage.utils.project_info import find_path
 
-        resolved = find_path("examples", "agents", self.agent_name)
+        resolved = find_path("agent_library", "agents", self.agent_name)
         if resolved.exists() and (resolved / "agent.py").exists():
             logger.info(f"Resolved agent directory: {resolved}")
             return str(resolved.resolve())
@@ -112,9 +113,10 @@ class Client:
 
                 # Create instance with agent_dir and agent_id (other params use defaults)
                 eval_kwargs = dict(
-                    dataset_path="",  # Not used for RL rollout
+                    dataset_path="",
                     agent_dir=self._agent_dir,
                     agent_id=agent_id,
+                    **self._extra_eval_kwargs,
                 )
                 if self.model_name is not None:
                     eval_kwargs["model_name"] = self.model_name
@@ -188,40 +190,24 @@ class RLSession:
         """Get or create adapter for specified framework.
 
         Args:
-            framework (str): Framework name ("slime", "verl", "areal", etc.)
+            framework (str): Framework name ("slime", "areal", "miles", etc.)
         Returns:
             BaseAdapter: Framework-specific adapter
 
         Raises:
-            ValueError: If framework is not supported
+            ValueError: If framework is not registered
         """
         if framework not in self._adapters:
-            # Create a temporary dummy session for adapter initialization
-            # The actual session with proper config will be created by
-            # Evaluation._register_opensage_session() when needed
-            from opensage.session import OpenSageSession
-
             dummy_session = type(
                 "DummySession", (), {"opensage_session_id": self.session_id}
             )()
 
-            if framework == "slime":
-                self._adapters[framework] = SlimeAdapter(
-                    opensage_session=dummy_session,
-                    evaluation=self.client._evaluation,
-                    benchmark=self.client._benchmark,
-                )
-            elif framework == "verl":
-                # TODO: Implement VerlAdapter
-                raise NotImplementedError("verl adapter not yet implemented")
-            elif framework == "areal":
-                self._adapters[framework] = ArealAdapter(
-                    opensage_session=dummy_session,
-                    evaluation=self.client._evaluation,
-                    benchmark=self.client._benchmark,
-                )
-            else:
-                raise ValueError(f"Unsupported framework: {framework}")
+            adapter_cls = BaseAdapter.get(framework)
+            self._adapters[framework] = adapter_cls(
+                opensage_session=dummy_session,
+                evaluation=self.client._evaluation,
+                benchmark=self.client._benchmark,
+            )
 
         return self._adapters[framework]
 
@@ -249,30 +235,53 @@ class RLSession:
         adapter = self._get_adapter("slime")
         return await adapter.generate(args, sample, sampling_params)
 
-    # Future framework methods (placeholders)
+    async def miles_generate(
+        self,
+        base_url: str,
+        prompt: Any,
+        metadata: dict[str, Any] | None = None,
+        sampling_params: dict[str, Any] | None = None,
+        model_name: str = "",
+    ) -> dict[str, Any]:
+        """Generate using OpenSage agent for Miles rollout.
+
+        Miles handles token tracking externally via TITO session server.
+        The agent just uses base_url for LLM calls (standard OpenAI API).
+
+        Args:
+            base_url: Miles session server endpoint
+            prompt: Task prompt
+            metadata: Task metadata from Miles sample
+            sampling_params: Sampling parameters
+            model_name: Model name for the agent
+
+        Returns:
+            dict with {reward, exit_status, agent_metrics, eval_report}
+        """
+        if self._closed:
+            raise RuntimeError("Session has been closed")
+
+        adapter = self._get_adapter("miles")
+        return await adapter.generate(
+            base_url=base_url,
+            prompt=prompt,
+            metadata=metadata,
+            sampling_params=sampling_params,
+            model_name=model_name,
+        )
+
     async def verl_generate(
         self,
         args: Any,
         sample: Any,
         sampling_params: dict[str, Any],
     ) -> Any:
-        """Generate using OpenSage agent for verl rollout.
-
-                Args:
-                    args (Any): Rollout arguments from verl
-                    sample (Any): Sample object
-                    sampling_params (dict[str, Any]): Sampling parameters
+        """Placeholder for a future verl rollout adapter.
 
         Raises:
-          RuntimeError: Raised when this operation fails.
-                Returns:
-                    Any: Updated sample object
+            NotImplementedError: verl integration is not implemented or registered.
         """
-        if self._closed:
-            raise RuntimeError("Session has been closed")
-
-        adapter = self._get_adapter("verl")
-        return await adapter.generate(args, sample, sampling_params)
+        raise NotImplementedError("verl integration is not implemented")
 
     async def areal_generate(
         self,
@@ -334,6 +343,7 @@ def create(
     agent_name: str,
     benchmark_name: str,
     model_name: str | None = None,
+    **eval_kwargs: Any,
 ) -> Client:
     """Create an OpenSage client for RL framework integration.
 
@@ -341,11 +351,10 @@ def create(
 
     Args:
         agent_name (str): Name of the agent defined in opensage/agents/ directory
-        benchmark_name (str): Name of the benchmark defined in opensage/evaluations/ directory
+        benchmark_name (str): Name of the benchmark registered under opensage.evaluation.
         model_name (str | None): Optional model name to override the evaluation's default.
-            When using RL integration (e.g., AReaL), the actual inference model
-            may differ from the evaluation's default. Passing model_name ensures
-            prompt formatting and model-specific logic use the correct identity.
+        **eval_kwargs: Extra keyword arguments passed to the Evaluation constructor
+            (e.g., dataset_path for HarborEvaluation).
     Returns:
         Client: Client instance
 
@@ -353,21 +362,20 @@ def create(
         ```python
         import opensage
 
-        # Create client
+        # SeCodePLT (auto-downloads from HuggingFace)
         client = opensage.create("vul_agent_static_tools", "secodeplt")
 
-        # For slime
-        with client.init_session() as session:
-            sample = await session.slime_generate(args, sample, sampling_params)
+        # Harbor tasks (auto-downloads from harbor registry)
+        client = opensage.create("harbor_agent", "harbor", dataset_path="swebench")
 
-        # For AReaL (with model_name override)
-        client = opensage.create("vul_agent_static_tools", "secodeplt", model_name="qwen3-8b")
-        with client.init_session() as session:
-            result = await session.areal_generate(data, model)
+        # Harbor tasks (local directory)
+        client = opensage.create("harbor_agent", "harbor",
+                                 dataset_path="/data/my_tasks")
         ```
     """
     return Client(
         agent_name=agent_name,
         benchmark_name=benchmark_name,
         model_name=model_name,
+        **eval_kwargs,
     )

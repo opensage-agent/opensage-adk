@@ -1,0 +1,79 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - bytes1_char_at /src/mrab-regex/regex_3/_regex.c:755:12
+    - ascii_at_line_end /src/mrab-regex/regex_3/_regex.c:931:10
+    - try_match /src/mrab-regex/regex_3/_regex.c:0:0
+    - basic_match /src/mrab-regex/regex_3/_regex.c:11910:22
+    - do_enhanced_fuzzy_match /src/mrab-regex/regex_3/_regex.c:17724:22
+    - do_match_2 /src/mrab-regex/regex_3/_regex.c:17914:16
+    - do_match /src/mrab-regex/regex_3/_regex.c:0:0
+    - pattern_search_or_match /src/mrab-regex/regex_3/_regex.c:21294:14
+    - method_vectorcall_VARARGS_KEYWORDS /tmp/Python-3.10.14/Objects/descrobject.c:344:14
+    - call_function /tmp/Python-3.10.14/Include/object.h:0:0
+    - _PyEval_EvalFrameDefault /tmp/Python-3.10.14/Python/ceval.c:4198:23
+    - _PyEval_EvalFrame /tmp/Python-3.10.14/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /tmp/Python-3.10.14/Python/ceval.c:5067:24
+    - call_function /tmp/Python-3.10.14/Include/object.h:0:0
+    - _PyEval_EvalFrameDefault /tmp/Python-3.10.14/Python/ceval.c:4181:23
+    - _PyEval_EvalFrame /tmp/Python-3.10.14/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /tmp/Python-3.10.14/Python/ceval.c:5067:24
+    - pybind11::detail::simple_collector<(pybind11::return_value_policy)1>::call(_object*) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1502:47
+    - pybind11::object pybind11::detail::object_api<pybind11::handle>::operator()<(pybind11::return_value_policy)1, pybind11::bytes>(pybind11::bytes&&) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1672:95
+    - pybind11::detail::type_caster<std::function<void (pybind11::bytes)>, void>::load(pybind11::handle, bool)::func_wrapper::operator()(pybind11::bytes) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/functional.h:109:31
+    - void std::__invoke_impl<void, pybind11::detail::type_caster<std::function<void (pybind11::bytes)>, void>::load(pybind11::handle, bool)::func_wrapper&, pybind11::bytes>(std::__invoke_other, pybind11::detail::type_caster<std::function<void (pybind11::bytes)>, void>::load(pybind11::handle, bool)::func_wrapper&, pybind11::bytes&&) /opt/rh/devtoolset-10/root/usr/include/c++/10/bits/invoke.h:60:36
+    - _ZSt10__invoke_rIvRZN8pybind116detail11type_casterISt8functionIFvNS0_5bytesEEEvE4loadENS0_6handleEbE12func_wrapperJS4_EENSt9enable_ifIXsrSt6__and_IJSt7is_voidIT_ESt14__is_invocableIT0_JDpT1_EEEE5valueESE_E4typeEOSH_DpOSI_ /opt/rh/devtoolset-10/root/usr/include/c++/10/bits/invoke.h:153:33
+    - std::_Function_handler<void (pybind11::bytes), pybind11::detail::type_caster<std::function<void (pybind11::bytes)>, void>::load(pybind11::handle, bool)::func_wrapper>::_M_invoke(std::_Any_data const&, pybind11::bytes&&) /opt/rh/devtoolset-10/root/usr/include/c++/10/bits/std_function.h:291:30
+    - std::function<void (pybind11::bytes)>::operator()(pybind11::bytes) const /opt/rh/devtoolset-10/root/usr/include/c++/10/bits/std_function.h:622:14
+    - void pybind11::detail::argument_loader<pybind11::bytes>::call_impl<void, std::function<void (pybind11::bytes)>&, 0ul, pybind11::detail::void_type>(std::function<void (pybind11::bytes)>&, std::integer_sequence<unsigned long, 0ul>, pybind11::detail::void_type&&) && /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1480:37
+    - _ZNO8pybind116detail15argument_loaderIJNS_5bytesEEE4callIvNS0_9void_typeERSt8functionIFvS2_EEEENSt9enable_ifIXsrSt7is_voidIT_E5valueES5_E4typeEOT1_ /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1454:65
+    - void pybind11::cpp_function::initialize<std::function<void (pybind11::bytes)>&, void, pybind11::bytes, pybind11::return_value_policy>(std::function<void (pybind11::bytes)>&, void (*)(pybind11::bytes), pybind11::return_value_policy const&)::'lambda1'(pybind11::detail::function_call&)::operator()(pybind11::detail::function_call&) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/pybind11.h:254:75
+    - void pybind11::cpp_function::initialize<std::function<void (pybind11::bytes)>&, void, pybind11::bytes, pybind11::return_value_policy>(std::function<void (pybind11::bytes)>&, void (*)(pybind11::bytes), pybind11::return_value_policy const&)::'lambda1'(pybind11::detail::function_call&)::_FUN(pybind11::detail::function_call&) /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/pybind11.h:224:21
+    - pybind11::cpp_function::dispatcher(_object*, _object*, _object*) /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/pybind11.h:946:35
+    - cfunction_call /tmp/Python-3.10.14/Objects/methodobject.c:543:18
+    - _PyObject_Call /tmp/Python-3.10.14/Objects/call.c:305:18
+    - pybind11::detail::simple_collector<(pybind11::return_value_policy)1>::call(_object*) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1502:47
+    - pybind11::object pybind11::detail::object_api<pybind11::handle>::operator()<(pybind11::return_value_policy)1, pybind11::bytes>(pybind11::bytes&&) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1672:95
+    - pybind11::detail::type_caster<std::function<void (pybind11::bytes)>, void>::load(pybind11::handle, bool)::func_wrapper::operator()(pybind11::bytes) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/functional.h:109:31
+    - void std::__invoke_impl<void, pybind11::detail::type_caster<std::function<void (pybind11::bytes)>, void>::load(pybind11::handle, bool)::func_wrapper&, pybind11::bytes>(std::__invoke_other, pybind11::detail::type_caster<std::function<void (pybind11::bytes)>, void>::load(pybind11::handle, bool)::func_wrapper&, pybind11::bytes&&) /opt/rh/devtoolset-10/root/usr/include/c++/10/bits/invoke.h:60:36
+    - _ZSt10__invoke_rIvRZN8pybind116detail11type_casterISt8functionIFvNS0_5bytesEEEvE4loadENS0_6handleEbE12func_wrapperJS4_EENSt9enable_ifIXsrSt6__and_IJSt7is_voidIT_ESt14__is_invocableIT0_JDpT1_EEEE5valueESE_E4typeEOSH_DpOSI_ /opt/rh/devtoolset-10/root/usr/include/c++/10/bits/invoke.h:153:33
+    - std::_Function_handler<void (pybind11::bytes), pybind11::detail::type_caster<std::function<void (pybind11::bytes)>, void>::load(pybind11::handle, bool)::func_wrapper>::_M_invoke(std::_Any_data const&, pybind11::bytes&&) /opt/rh/devtoolset-10/root/usr/include/c++/10/bits/std_function.h:291:30
+    - std::function<void (pybind11::bytes)>::operator()(pybind11::bytes) const /opt/rh/devtoolset-10/root/usr/include/c++/10/bits/std_function.h:622:14
+    - atheris::TestOneInput(unsigned char const*, unsigned long) /atheris/src/native/core.cc:146:26
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /root/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:617:15
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /root/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:324:21
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /root/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:860:19
+    - atheris::start_fuzzing(std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&) /atheris/src/native/core.cc:226:15
+    - void pybind11::detail::argument_loader<std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&>::call_impl<void, void (*&)(std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&), 0ul, 1ul, pybind11::detail::void_type>(void (*&)(std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&), std::integer_sequence<unsigned long, 0ul, 1ul>, pybind11::detail::void_type&&) && /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1480:37
+    - _ZNO8pybind116detail15argument_loaderIJRKSt6vectorISsSaISsEERKSt8functionIFvNS_5bytesEEEEE4callIvNS0_9void_typeERPFvS6_SC_EEENSt9enable_ifIXsrSt7is_voidIT_E5valueESF_E4typeEOT1_ /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1454:65
+    - void pybind11::cpp_function::initialize<void (*&)(std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&), void, std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&, pybind11::name, pybind11::scope, pybind11::sibling>(void (*&)(std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&), void (*)(std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&), pybind11::name const&, pybind11::scope const&, pybind11::sibling const&)::'lambda1'(pybind11::detail::function_call&)::operator()(pybind11::detail::function_call&) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/pybind11.h:254:75
+    - void pybind11::cpp_function::initialize<void (*&)(std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&), void, std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&, pybind11::name, pybind11::scope, pybind11::sibling>(void (*&)(std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&), void (*)(std::vector<std::string, std::allocator<std::string>> const&, std::function<void (pybind11::bytes)> const&), pybind11::name const&, pybind11::scope const&, pybind11::sibling const&)::'lambda1'(pybind11::detail::function_call&)::_FUN(pybind11::detail::function_call&) /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/pybind11.h:224:21
+    - pybind11::cpp_function::dispatcher(_object*, _object*, _object*) /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/pybind11.h:946:35
+    - cfunction_call /tmp/Python-3.10.14/Objects/methodobject.c:543:18
+    - _PyObject_Call /tmp/Python-3.10.14/Objects/call.c:305:18
+    - pybind11::detail::simple_collector<(pybind11::return_value_policy)1>::call(_object*) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1502:47
+    - pybind11::object pybind11::detail::object_api<pybind11::detail::accessor<pybind11::detail::accessor_policies::str_attr>>::operator()<(pybind11::return_value_policy)1, std::vector<std::string, std::allocator<std::string>>&, std::function<void (pybind11::bytes)>&>(std::vector<std::string, std::allocator<std::string>>&, std::function<void (pybind11::bytes)>&) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1672:95
+    - atheris::Fuzz() /atheris/src/native/atheris.cc:249:64
+    - void pybind11::detail::argument_loader<>::call_impl<void, void (*&)(), pybind11::detail::void_type>(void (*&)(), std::integer_sequence<unsigned long>, pybind11::detail::void_type&&) && /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1480:37
+    - _ZNO8pybind116detail15argument_loaderIJEE4callIvNS0_9void_typeERPFvvEEENSt9enable_ifIXsrSt7is_voidIT_E5valueES4_E4typeEOT1_ /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/cast.h:1454:65
+    - void pybind11::cpp_function::initialize<void (*&)(), void, pybind11::name, pybind11::scope, pybind11::sibling>(void (*&)(), void (*)(), pybind11::name const&, pybind11::scope const&, pybind11::sibling const&)::'lambda1'(pybind11::detail::function_call&)::operator()(pybind11::detail::function_call&) const /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/pybind11.h:254:75
+    - void pybind11::cpp_function::initialize<void (*&)(), void, pybind11::name, pybind11::scope, pybind11::sibling>(void (*&)(), void (*)(), pybind11::name const&, pybind11::scope const&, pybind11::sibling const&)::'lambda1'(pybind11::detail::function_call&)::_FUN(pybind11::detail::function_call&) /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/pybind11.h:224:21
+    - pybind11::cpp_function::dispatcher(_object*, _object*, _object*) /atheris/.eggs/pybind11-2.11.1-py3.10.egg/pybind11/include/pybind11/pybind11.h:946:35
+    - cfunction_call /tmp/Python-3.10.14/Objects/methodobject.c:543:18
+    - _PyObject_MakeTpCall /tmp/Python-3.10.14/Objects/call.c:215:18
+    - call_function /tmp/Python-3.10.14/Include/object.h:0:0
+    - _PyEval_EvalFrameDefault /tmp/Python-3.10.14/Python/ceval.c:4181:23
+    - _PyEval_EvalFrame /tmp/Python-3.10.14/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /tmp/Python-3.10.14/Python/ceval.c:5067:24
+    - call_function /tmp/Python-3.10.14/Include/object.h:0:0
+    - _PyEval_EvalFrameDefault /tmp/Python-3.10.14/Python/ceval.c:4213:19
+    - _PyEval_EvalFrame /tmp/Python-3.10.14/Include/internal/pycore_ceval.h:46:12
+    - _PyEval_Vector /tmp/Python-3.10.14/Python/ceval.c:5067:24
+    - PyEval_EvalCode /tmp/Python-3.10.14/Python/ceval.c:1134:12
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

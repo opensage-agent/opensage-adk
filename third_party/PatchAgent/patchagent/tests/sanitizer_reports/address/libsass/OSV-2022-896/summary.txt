@@ -1,0 +1,42 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - SharedPtr /src/libsass/src/memory/shared_ptr.hpp:128:53
+    - SharedImpl /src/libsass/src/memory/shared_ptr.hpp:195:9
+    - Sass::unifyComplex(std::__1::vector<std::__1::vector<Sass::SharedImpl<Sass::SelectorComponent>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorComponent>>>, std::__1::allocator<std::__1::vector<Sass::SharedImpl<Sass::SelectorComponent>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorComponent>>>>> const&) /src/libsass/src/ast_sel_unify.cpp:25:35
+    - Sass::Extender::extendCompound(Sass::SharedImpl<Sass::CompoundSelector> const&, std::__1::unordered_map<Sass::SharedImpl<Sass::SimpleSelector>, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::SimpleSelector> const, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>>>> const&, Sass::SharedImpl<Sass::CssMediaRule> const&, bool) /src/libsass/src/extender.cpp:856:21
+    - Sass::Extender::extendComplex(Sass::SharedImpl<Sass::ComplexSelector> const&, std::__1::unordered_map<Sass::SharedImpl<Sass::SimpleSelector>, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::SimpleSelector> const, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>>>> const&, Sass::SharedImpl<Sass::CssMediaRule> const&) /src/libsass/src/extender.cpp:576:53
+    - Sass::Extender::extendList(Sass::SharedImpl<Sass::SelectorList> const&, std::__1::unordered_map<Sass::SharedImpl<Sass::SimpleSelector>, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::SimpleSelector> const, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>>>> const&, Sass::SharedImpl<Sass::CssMediaRule> const&) /src/libsass/src/extender.cpp:512:9
+    - Sass::Extender::extendOrReplace(Sass::SharedImpl<Sass::SelectorList>&, Sass::SharedImpl<Sass::SelectorList> const&, Sass::SharedImpl<Sass::SelectorList> const&, Sass::Extender::ExtendMode, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&) /src/libsass/src/extender.cpp:111:29
+    - Sass::Extender::extend(Sass::SharedImpl<Sass::SelectorList>&, Sass::SharedImpl<Sass::SelectorList> const&, Sass::SharedImpl<Sass::SelectorList> const&, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&) /src/libsass/src/extender.cpp:54:12
+    - Sass::Functions::selector_extend(Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Context&, char const*, Sass::SourceSpan, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>) /src/libsass/src/fn_selectors.cpp:173:32
+    - Sass::Eval::operator()(Sass::Function_Call*) /src/libsass/src/eval.cpp:1063:18
+    - Sass::Eval::operator()(Sass::List*) /src/libsass/src/eval.cpp:514:27
+    - Sass::Eval::operator()(Sass::Argument*) /src/libsass/src/eval.cpp:1423:37
+    - perform /src/libsass/src/ast.hpp:857:5
+    - Sass::Eval::operator()(Sass::Arguments*) /src/libsass/src/eval.cpp:1455:35
+    - perform /src/libsass/src/ast.hpp:877:5
+    - Sass::Eval::operator()(Sass::Function_Call*) /src/libsass/src/eval.cpp:987:38
+    - Sass::Eval::operator()(Sass::Binary_Expression*) /src/libsass/src/eval.cpp:733:18
+    - Sass::Eval::operator()(Sass::List*) /src/libsass/src/eval.cpp:514:27
+    - Sass::Expand::operator()(Sass::Assignment*) /src/libsass/src/expand.cpp:419:41
+    - Sass::Expand::append_block(Sass::Block*) /src/libsass/src/expand.cpp:869:32
+    - Sass::Expand::operator()(Sass::Block*) /src/libsass/src/expand.cpp:158:11
+    - Sass::Context::compile() /src/libsass/src/context.cpp:653:12
+    - Sass::Data_Context::parse() /src/libsass/src/context.cpp:624:12
+    - Sass::sass_parse_block(Sass_Compiler*) /src/libsass/src/sass_context.cpp:182:31
+    - sass_compiler_parse /src/libsass/src/sass_context.cpp:436:22
+    - sass_compile_context(Sass_Context*, Sass::Context*) /src/libsass/src/sass_context.cpp:319:7
+    - LLVMFuzzerTestOneInput /src/data_context_fuzzer.cc:26:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

@@ -1,0 +1,43 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x521000006100 thread T0
+    - htmlCurrentChar /src/libxml2/HTMLparser.c:423:9
+    - htmlParseCharDataInternal /src/libxml2/HTMLparser.c:3130:8
+    - htmlParseCharData /src/libxml2/HTMLparser.c:3169:5
+    - htmlParseContentInternal /src/libxml2/HTMLparser.c:4710:13
+    - htmlParseDocument /src/libxml2/HTMLparser.c:4818:5
+    - htmlCtxtParseDocument /src/libxml2/HTMLparser.c:6352:5
+    - LLVMFuzzerTestOneInput /src/libxml2/fuzz/html.c:49:15
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x521000006100 is located 0 bytes after 4096-byte region [0x521000005100,0x521000006100)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - xmlFuzzMalloc /src/libxml2/fuzz/fuzz.c:94:11
+    - xmlBufCreate /src/libxml2/buf.c:132:32
+    - xmlInputSetEncodingHandler /src/libxml2/parserInternals.c:1335:11
+    - xmlSwitchInputEncodingName /src/libxml2/parserInternals.c:1250:12
+    - xmlSwitchEncodingName /src/libxml2/parserInternals.c:1279:12
+    - xmlSetDeclaredEncoding /src/libxml2/parserInternals.c:1551:9
+    - htmlCheckMeta /src/libxml2/HTMLparser.c:3727:17
+    - htmlParseStartTag /src/libxml2/HTMLparser.c:3919:2
+    - htmlParseElementInternal /src/libxml2/HTMLparser.c:4454:14
+    - htmlParseContentInternal /src/libxml2/HTMLparser.c:4669:13
+    - htmlParseDocument /src/libxml2/HTMLparser.c:4818:5
+    - htmlCtxtParseDocument /src/libxml2/HTMLparser.c:6352:5
+    - LLVMFuzzerTestOneInput /src/libxml2/fuzz/html.c:49:15
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

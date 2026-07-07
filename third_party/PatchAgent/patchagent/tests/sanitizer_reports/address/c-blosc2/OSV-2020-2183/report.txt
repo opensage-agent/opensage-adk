@@ -1,0 +1,65 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50700000014e at pc 0x55c149247602 bp 0x7ffc6849dfa0 sp 0x7ffc6849df98
+READ of size 2 at 0x50700000014e thread T0
+SCARINESS: 14 (2-byte-read-heap-buffer-overflow)
+    #0 0x55c149247601 in Lizard_decompress_LIZv1 /src/c-blosc2/internal-complibs/lizard-1.0/lizard_decompress_liz.h:70:34
+    #1 0x55c149247601 in Lizard_decompress_generic /src/c-blosc2/internal-complibs/lizard-1.0/lizard_decompress.c:241:19
+    #2 0x55c149247601 in Lizard_decompress_safe /src/c-blosc2/internal-complibs/lizard-1.0/lizard_decompress.c:269:12
+    #3 0x55c149108451 in lizard_wrap_decompress /src/c-blosc2/blosc/blosc2.c:405:12
+    #4 0x55c149108451 in blosc_d /src/c-blosc2/blosc/blosc2.c:1069:18
+    #5 0x55c1490ff43b in serial_blosc /src/c-blosc2/blosc/blosc2.c:1184:18
+    #6 0x55c1490ff43b in do_job /src/c-blosc2/blosc/blosc2.c:1343:15
+    #7 0x55c149104f58 in blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2142:15
+    #8 0x55c149105ffc in blosc2_decompress /src/c-blosc2/blosc/blosc2.c:2211:12
+    #9 0x55c1490bf9c1 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_chunk.c:34:5
+    #10 0x55c148f74340 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x55c148f5f5b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x55c148f6504f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x55c148f902f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f29ca69e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #15 0x55c148f5779d in _start (/out/decompress_chunk_fuzzer+0x12479d)
+
+DEDUP_TOKEN: Lizard_decompress_LIZv1--Lizard_decompress_generic--Lizard_decompress_safe
+0x50700000014e is located 0 bytes after 78-byte region [0x507000000100,0x50700000014e)
+allocated by thread T0 here:
+    #0 0x55c14908010f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55c1494b4563 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x55c148f5f5b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x55c148f6504f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x55c148f902f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7f29ca69e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/c-blosc2/internal-complibs/lizard-1.0/lizard_decompress_liz.h:70:34 in Lizard_decompress_LIZv1
+Shadow bytes around the buggy address:
+  0x506ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x506fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x506fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507000000000: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fa fa
+  0x507000000080: fa fa 00 00 00 00 00 00 00 00 00 06 fa fa fa fa
+=>0x507000000100: 00 00 00 00 00 00 00 00 00[06]fa fa fa fa 00 00
+  0x507000000180: 00 00 00 00 00 00 00 06 fa fa fa fa fa fa fa fa
+  0x507000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x507000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

@@ -1,0 +1,67 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5150000020fe at pc 0x55953e28fe9c bp 0x7ffdad541a50 sp 0x7ffdad541a48
+READ of size 1 at 0x5150000020fe thread T0
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x55953e28fe9b in setcos_create_key /src/opensc/src/pkcs15init/pkcs15-setcos.c:352:20
+    #1 0x55953dd1b9e3 in sc_pkcs15init_generate_key /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:1608:6
+    #2 0x55953dd49d42 in do_generate_key /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:207:9
+    #3 0x55953dd4af36 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:337:5
+    #4 0x55953dbb9c90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x55953dba4f05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x55953dbaa99f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x55953dbd5c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7facf3855082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #9 0x55953db9d0ed in _start (/out/fuzz_pkcs15init+0x1f30ed)
+
+DEDUP_TOKEN: setcos_create_key--sc_pkcs15init_generate_key--do_generate_key
+0x5150000020fe is located 2 bytes before 464-byte region [0x515000002100,0x5150000022d0)
+allocated by thread T0 here:
+    #0 0x55953dcc5c29 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x55953dd645ce in sc_file_new /src/opensc/src/libopensc/sc.c:619:33
+    #2 0x55953dd64bd7 in sc_file_dup /src/opensc/src/libopensc/sc.c:655:9
+    #3 0x55953dd0b5d1 in sc_profile_get_file /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/profile.c:562:2
+    #4 0x55953e2940f2 in setcos_new_file /src/opensc/src/pkcs15init/pkcs15-setcos.c:281:6
+    #5 0x55953e28fbdc in setcos_create_key /src/opensc/src/pkcs15init/pkcs15-setcos.c:343:6
+    #6 0x55953dd1b9e3 in sc_pkcs15init_generate_key /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:1608:6
+    #7 0x55953dd49d42 in do_generate_key /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:207:9
+    #8 0x55953dd4af36 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:337:5
+    #9 0x55953dbb9c90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55953dba4f05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55953dbaa99f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55953dbd5c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7facf3855082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--sc_file_new--sc_file_dup
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/opensc/src/pkcs15init/pkcs15-setcos.c:352:20 in setcos_create_key
+Shadow bytes around the buggy address:
+  0x515000001e00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000001e80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x515000001f00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x515000001f80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x515000002000: fd fd fd fd fd fd fd fd fd fd fa fa fa fa fa fa
+=>0x515000002080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa[fa]
+  0x515000002100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000002180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000002200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000002280: 00 00 00 00 00 00 00 00 00 00 fa fa fa fa fa fa
+  0x515000002300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

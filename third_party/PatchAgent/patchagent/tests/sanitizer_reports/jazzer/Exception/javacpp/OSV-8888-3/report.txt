@@ -1,0 +1,64 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /home/yk/code/oss-fuzz/build/out/javacpp:/out -v /home/yk/code/oss-fuzz/oss-fuzz-javacpp-20250423-134246/crashes/crash-3ffbbc284cc6d4db9a0551b7b2b3dfe3979e1864:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce JavacppFuzzer -runs=100.
++ FUZZER=JavacppFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer JavacppFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/JavacppFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 271 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented JavacppFuzzer (took 27 ms, size +26%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7ff8d1bdba00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3335957904
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55e77dcc8db0, 0x55e77dcc8fb0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55e77dc63a50,0x55e77dc65a50), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.bytedeco.javacpp.tools.InfoMap (took 15 ms, size +19%)
+INFO: Instrumented org.bytedeco.javacpp.tools.Info (took 7 ms, size +9%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.bytedeco.javacpp.tools.Tokenizer (took 7 ms, size +51%)
+INFO: Instrumented org.bytedeco.javacpp.tools.Token (took 4 ms, size +28%)
+INFO: Instrumented org.bytedeco.javacpp.tools.ParserException (took 0 ms, size +16%)
+INFO: Instrumented org.bytedeco.javacpp.tools.Templates (took 2 ms, size +47%)
+
+== Java Exception: java.lang.IndexOutOfBoundsException: Index -942986231 out of bounds for length 1
+	at java.base/jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:64)
+	at java.base/jdk.internal.util.Preconditions.outOfBoundsCheckIndex(Preconditions.java:70)
+	at java.base/jdk.internal.util.Preconditions.checkIndex(Preconditions.java:266)
+	at java.base/java.util.Objects.checkIndex(Objects.java:359)
+	at java.base/java.util.ArrayList.get(ArrayList.java:427)
+	at org.bytedeco.javacpp.tools.InfoMap.get(InfoMap.java:291)
+	at JavacppFuzzer.fuzzerTestOneInput(JavacppFuzzer.java:32)
+DEDUP_TOKEN: aef5045ba976c3d2
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_3ffbbc284cc6d4db9a0551b7b2b3dfe3979e1864.java
+

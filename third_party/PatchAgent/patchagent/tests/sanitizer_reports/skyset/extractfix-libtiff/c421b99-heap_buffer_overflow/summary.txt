@@ -1,0 +1,39 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 724 at 0x5150000004dc thread T0
+    - memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29:10
+    - updatewindow.isra.0 /usr/src/zlib-1:1.3.dfsg-3.1ubuntu2/inflate.c:429:9
+    - inflate /usr/src/zlib-1:1.3.dfsg-3.1ubuntu2/inflate.c:1279:13
+    - PixarLogDecode /root/libtiff/tif_pixarlog.c:787:15
+    - TIFFReadEncodedTile /root/libtiff/tif_read.c:668:33
+    - TIFFReadTile /root/libtiff/tif_read.c:641:10
+    - gtTileContig /root/libtiff/tif_getimage.c:661:10
+    - TIFFRGBAImageGet /root/libtiff/tif_getimage.c:500:12
+    - TIFFReadRGBAImageOriented /root/libtiff/tif_getimage.c:519:8
+    - TIFFReadRGBAImage /root/libtiff/tif_getimage.c:537:9
+    - tiffcvt /root/tools/rgb2ycbcr.c:315:7
+    - main /root/tools/rgb2ycbcr.c:127:10
+
+0x5150000004dc is located 0 bytes after 476-byte region [0x515000000300,0x5150000004dc)
+allocated by thread T0 here:
+    - _TIFFmalloc /root/libtiff/tif_unix.c:316:10
+    - PixarLogSetupDecode /root/libtiff/tif_pixarlog.c:694:24
+    - PredictorSetupDecode /root/libtiff/tif_predict.c:111:7
+    - TIFFStartTile /root/libtiff/tif_read.c:1001:8
+    - TIFFFillTile /root/libtiff/tif_read.c:901:10
+    - TIFFReadEncodedTile /root/libtiff/tif_read.c:668:6
+    - TIFFReadTile /root/libtiff/tif_read.c:641:10
+    - gtTileContig /root/libtiff/tif_getimage.c:661:10
+    - TIFFRGBAImageGet /root/libtiff/tif_getimage.c:500:12
+    - TIFFReadRGBAImageOriented /root/libtiff/tif_getimage.c:519:8
+    - TIFFReadRGBAImage /root/libtiff/tif_getimage.c:537:9
+    - tiffcvt /root/tools/rgb2ycbcr.c:315:7
+    - main /root/tools/rgb2ycbcr.c:127:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,26 @@
+The sanitizer detected a undefined behavior vulnerability. The explanation of the vulnerability is: The program exhibits undefined behavior, leading to unpredictable results or crashes. Here is the detail: 
+
+runtime error: member call on address 0x56105a4a5050 which does not point to an object of type 'Assimp::LogStream'
+0x56105a4a5050: note: object has invalid vptr
+ 00 00 00 00  70 6c 4a 5a 10 56 00 00  50 d2 ae 59 10 56 00 00  90 00 00 00 00 00 00 00  30 00 00 00
+              ^~~~~~~~~~~~~~~~~~~~~~~
+              invalid vptr
+    - CallbackToLogRedirector(char const*, char*) /src/assimp/code/Common/Assimp.cpp:359:8
+    - Assimp::DefaultLogger::WriteToStreams(char const*, Assimp::Logger::ErrorSeverity) /src/assimp/code/Common/DefaultLogger.cpp:412:31
+    - Assimp::DefaultLogger::OnInfo(char const*) /src/assimp/code/Common/DefaultLogger.cpp:292:5
+    - void Assimp::Logger::info<char const (&) [6], std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&>(char const (&) [6], std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/assimp/include/assimp/Logger.hpp:126:9
+    - WriteLogOpening(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/assimp/code/Common/Importer.cpp:528:5
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /src/assimp/code/Common/Importer.cpp:599:5
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /src/assimp/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /src/assimp/fuzz/assimp_fuzzer.cc:54:34
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /src/assimp/code/Common/Assimp.cpp:359:8 
+
+To fix this issue, follow the advice below:
+
+1. Review the code for undefined behavior patterns and correct them.
+2. Check for type mismatches, signed integer overflows, and other undefined behavior triggers.

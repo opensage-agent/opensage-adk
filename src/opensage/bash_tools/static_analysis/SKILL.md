@@ -22,6 +22,16 @@ Category of tools for advanced static code analysis using Joern and Neo4j. These
 
 These tools work with joern and main sandbox types, depending on the specific tool.
 
+The graph data lives in the `analysis` Neo4j database, populated by Joern/CodeQL initializers when the `joern` / `codeql` sandboxes start. Schema:
+
+- Node `METHOD` — one node per function/method. Properties include `name`, `id`, file/line info.
+- Node `TESTCASE` — one node per testcase (populated by coverage tools).
+- Relationship `(METHOD)-[:CG_CALL]->(METHOD)` — direct call edges in the call graph.
+- Relationship `(METHOD)-[:CG_MAYBE_INDIRECT_CALL]->(METHOD)` — indirect/virtual call edges (best-effort, may include false positives).
+- Relationship `(TESTCASE)-[:COVERS]->(METHOD)` — coverage edges (populated by `coverage` tools).
+
+The high-level skills below wrap common queries; for ad-hoc Cypher, use the `neo4j-query` skill against `--database analysis`.
+
 ## Common Use Cases
 
 - Analyzing call graphs and control flow

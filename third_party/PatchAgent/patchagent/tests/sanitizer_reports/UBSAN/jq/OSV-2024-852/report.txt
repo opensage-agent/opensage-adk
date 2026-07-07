@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/jq:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/jq/OSV-2024-852/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce jq_fuzz_fixed -runs=100.
++ FUZZER=jq_fuzz_fixed
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer jq_fuzz_fixed -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/jq_fuzz_fixed -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3438650654
+INFO: Loaded 1 modules   (22348 inline 8-bit counters): 22348 [0x559844b752f8, 0x559844b7aa44), 
+INFO: Loaded 1 PC tables (22348 PCs): 22348 [0x559844b7aa48,0x559844bd1f08), 
+/out/jq_fuzz_fixed: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address (pc 0x5598449aa196 bp 0x7ffe7eadd730 sp 0x7ffe7eadd6f0 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    #0 0x5598449aa196 in jvp_refcnt_dec /src/jq/src/jv.c:64:11
+    #1 0x5598449aa196 in jvp_object_free /src/jq/src/jv.c:1595:7
+    #2 0x5598449a4c3f in jv_equal /src/jq/src/jv.c:1932:3
+    #3 0x5598449a5306 in jvp_array_equal /src/jq/src/jv.c:885:10
+    #4 0x5598449a5306 in jv_equal /src/jq/src/jv.c:1919:11
+    #5 0x5598449b0274 in jv_group /src/jq/src/jv_aux.c:714:11
+    #6 0x55984499f2a4 in jq_next /src/jq/src/execute.c
+    #7 0x55984499a81d in LLVMFuzzerTestOneInput /src/jq/./tests/jq_fuzz_fixed.cpp:283:23
+    #8 0x5598448fcc10 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x5598448e7e85 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x5598448ed91f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x559844918bc2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f3c1e828082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x5598448e006d in _start (/out/jq_fuzz_fixed+0xe206d)
+
+DEDUP_TOKEN: jvp_refcnt_dec--jvp_object_free--jv_equal
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/jq/src/jv.c:64:11 in jvp_refcnt_dec
+==14==ABORTING

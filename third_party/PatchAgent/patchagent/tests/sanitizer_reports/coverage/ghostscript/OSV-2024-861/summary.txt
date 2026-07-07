@@ -1,0 +1,42 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - stream_dct_end_passthrough /src/ghostpdl/base/sdctc.c:92:9
+    - s_DCTD_process /src/ghostpdl/base/sdctd.c:428:5
+    - sreadbuf /src/ghostpdl/base/stream.c:845:22
+    - s_process_read_buf /src/ghostpdl/base/stream.c:771:14
+    - pdfi_render_image /src/ghostpdl/pdf/pdf_image.c:849:17
+    - pdfi_do_image /src/ghostpdl/pdf/pdf_image.c:2165:12
+    - pdfi_do_image_or_form /src/ghostpdl/pdf/pdf_image.c:2715:16
+    - pdfi_Do /src/ghostpdl/pdf/pdf_image.c:2800:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1470:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2124:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:132:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:156:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:1031:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:959:24
+    - do_call_operator /src/ghostpdl/psi/interp.c:91:12
+    - interp /src/ghostpdl/psi/interp.c:1768:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:531:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:488:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1174:12
+    - swproc /src/ghostpdl/psi/imainarg.c:368:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:290:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_opts_fuzzer.cc:25:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

@@ -1,0 +1,65 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50c000000191 at pc 0x56059d564b2b bp 0x7ffe934061b0 sp 0x7ffe934061a8
+READ of size 1 at 0x50c000000191 thread T0
+SCARINESS: 22 (1-byte-read-heap-buffer-overflow-far-from-bounds)
+    #0 0x56059d564b2a in pcpp::byteArrayToHexString(unsigned char const*, unsigned long, int) /src/PcapPlusPlus/Common++/src/GeneralUtils.cpp:24:72
+    #1 0x56059d42c057 in pcpp::PacketTrailerLayer::toString() const /src/PcapPlusPlus/Packet++/src/PacketTrailerLayer.cpp:18:28
+    #2 0x56059d3796a6 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:64:25
+    #3 0x56059d22d1d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x56059d218445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x56059d21dedf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x56059d249182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7f6a20552082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #8 0x56059d21062d in _start (/out/FuzzTarget+0x1b762d)
+
+DEDUP_TOKEN: pcpp::byteArrayToHexString(unsigned char const*, unsigned long, int)--pcpp::PacketTrailerLayer::toString() const--LLVMFuzzerTestOneInput
+0x50c000000191 is located 17 bytes after 128-byte region [0x50c000000100,0x50c000000180)
+allocated by thread T0 here:
+    #0 0x56059d37647d in operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    #1 0x56059d433dae in pcpp::RawPacket::reallocateData(unsigned long) /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:177:24
+    #2 0x56059d425a78 in pcpp::Packet::reallocateRawData(unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:201:21
+    #3 0x56059d4291bf in pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp
+    #4 0x56059d3d5e7d in extendLayer /src/PcapPlusPlus/Packet++/src/DnsLayer.cpp:109:15
+    #5 0x56059d3d5e7d in pcpp::DnsLayer::addQuery(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, pcpp::DnsType, pcpp::DnsClass) /src/PcapPlusPlus/Packet++/src/DnsLayer.cpp:570:8
+    #6 0x56059d37eec0 in readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:484:14
+    #7 0x56059d379874 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:66:5
+    #8 0x56059d22d1d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x56059d218445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x56059d21dedf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x56059d249182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f6a20552082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new[](unsigned long)--pcpp::RawPacket::reallocateData(unsigned long)--pcpp::Packet::reallocateRawData(unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/PcapPlusPlus/Common++/src/GeneralUtils.cpp:24:72 in pcpp::byteArrayToHexString(unsigned char const*, unsigned long, int)
+Shadow bytes around the buggy address:
+  0x50bfffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50bfffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50c000000000: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x50c000000080: fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+  0x50c000000100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x50c000000180: fa fa[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50c000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50c000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50c000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50c000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50c000000400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

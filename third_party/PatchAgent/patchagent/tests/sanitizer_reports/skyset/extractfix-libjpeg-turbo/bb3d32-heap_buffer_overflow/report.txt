@@ -1,0 +1,54 @@
+=================================================================
+==1472228==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5100000000f7 at pc 0x555dc4079fee bp 0x7ffe65b42200 sp 0x7ffe65b421f8
+READ of size 1 at 0x5100000000f7 thread T0
+    #0 0x555dc4079fed in put_pixel_rows /root/wrbmp.c:145:61
+    #1 0x555dc406aa8f in main /root/djpeg.c:762:7
+    #2 0x7f62f0aa31c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #3 0x7f62f0aa328a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #4 0x555dc4068424 in _start (/root/djpeg+0x6424) (BuildId: 4ea795c20070165788e8f6db8a811fb5557f1f9c)
+
+0x5100000000f7 is located 0 bytes after 183-byte region [0x510000000040,0x5100000000f7)
+allocated by thread T0 here:
+    #0 0x7f62f0f437a3 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x7f62f0ddd3b8 in jpeg_get_large /root/jmemnobs.c:56:18
+    #2 0x7f62f0dd76c4 in alloc_large /root/jmemmgr.c:391:29
+    #3 0x7f62f0dd7b3f in alloc_sarray /root/jmemmgr.c:475:27
+    #4 0x555dc407856e in jinit_write_bmp /root/wrbmp.c:554:22
+    #5 0x555dc406a0ce in main /root/djpeg.c:646:16
+    #6 0x7f62f0aa31c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #7 0x7f62f0aa328a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #8 0x555dc4068424 in _start (/root/djpeg+0x6424) (BuildId: 4ea795c20070165788e8f6db8a811fb5557f1f9c)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/wrbmp.c:145:61 in put_pixel_rows
+Shadow bytes around the buggy address:
+  0x50fffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50fffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50ffffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50ffffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x510000000000: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+=>0x510000000080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00[07]fa
+  0x510000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1472228==ABORTING

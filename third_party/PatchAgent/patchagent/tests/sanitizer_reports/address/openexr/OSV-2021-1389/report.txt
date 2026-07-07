@@ -1,0 +1,23 @@
+=================================================================
+==14==ERROR: AddressSanitizer: negative-size-param: (size=-48471970143639055)
+SCARINESS: 10 (negative-size-param)
+    #0 0x561146b0e9d6 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x561146b56b4f in Imf_2_5::(anonymous namespace)::memstream_read(_priv_exr_context_t const*, void*, void*, unsigned long, unsigned long, int (*)(_priv_exr_context_t const*, int, char const*, ...)) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1500:13
+    #2 0x561146d4adeb in dispatch_read /src/openexr/src/lib/OpenEXRCore/context.c:48:16
+    #3 0x561146d8b1f2 in exr_read_scanline_chunk_info /src/openexr/src/lib/OpenEXRCore/chunk.c:265:10
+    #4 0x561146b54f42 in readCoreScanlinePart /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1186:14
+    #5 0x561146b54f42 in Imf_2_5::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1441:18
+    #6 0x561146b520c8 in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1538:15
+    #7 0x561146b520c8 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    #8 0x561146b5029f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #9 0x561146a04de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x5611469f0055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x5611469f5aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x561146a20d92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fcc5b292082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #14 0x5611469e823d in _start (/out/openexr_exrcheck_fuzzer+0x16423d)
+
+DEDUP_TOKEN: __asan_memcpy--Imf_2_5::(anonymous namespace)::memstream_read(_priv_exr_context_t const*, void*, void*, unsigned long, unsigned long, int (*)(_priv_exr_context_t const*, int, char const*, ...))--dispatch_read
+Address 0xacb4cc5c82f800 is a wild pointer inside of access range of size 0x000000000001.
+SUMMARY: AddressSanitizer: negative-size-param /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1500:13 in Imf_2_5::(anonymous namespace)::memstream_read(_priv_exr_context_t const*, void*, void*, unsigned long, unsigned long, int (*)(_priv_exr_context_t const*, int, char const*, ...))
+==14==ABORTING

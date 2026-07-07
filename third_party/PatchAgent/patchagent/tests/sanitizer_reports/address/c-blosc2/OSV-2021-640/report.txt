@@ -1,0 +1,61 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50f0000001dd at pc 0x561c2252e042 bp 0x7ffcaac07db0 sp 0x7ffcaac07570
+READ of size 6 at 0x50f0000001dd thread T0
+SCARINESS: 20 (6-byte-read-heap-buffer-overflow)
+    #0 0x561c2252e041 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x561c225e61cf in get_meta_from_header /src/c-blosc2/blosc/frame.c:1288:5
+    #2 0x561c225e61cf in frame_get_metalayers /src/c-blosc2/blosc/frame.c:1336:9
+    #3 0x561c225e7b05 in frame_to_schunk /src/c-blosc2/blosc/frame.c:1723:8
+    #4 0x561c225d982b in blosc2_schunk_from_buffer /src/c-blosc2/blosc/schunk.c:446:27
+    #5 0x561c2256f859 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:23:27
+    #6 0x561c22424380 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x561c2240f5f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x561c2241508f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x561c22440332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f229f17e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #11 0x561c224077dd in _start (/out/decompress_frame_fuzzer+0x10d7dd)
+
+DEDUP_TOKEN: __asan_memcpy--get_meta_from_header--frame_get_metalayers
+0x50f0000001dd is located 0 bytes after 173-byte region [0x50f000000130,0x50f0000001dd)
+allocated by thread T0 here:
+    #0 0x561c2253014f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x561c228faed3 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x561c2240f5f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x561c2241508f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x561c22440332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7f229f17e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/c-blosc2/blosc/frame.c:1288:5 in get_meta_from_header
+Shadow bytes around the buggy address:
+  0x50efffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50efffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50f000000000: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x50f000000080: 00 00 00 00 00 00 00 00 00 00 00 00 00 05 fa fa
+  0x50f000000100: fa fa fa fa fa fa 00 00 00 00 00 00 00 00 00 00
+=>0x50f000000180: 00 00 00 00 00 00 00 00 00 00 00[05]fa fa fa fa
+  0x50f000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50f000000400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

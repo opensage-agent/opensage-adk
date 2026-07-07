@@ -1,0 +1,96 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51000000023f at pc 0x5609d8161a3e bp 0x7ffecc1cef80 sp 0x7ffecc1cef78
+READ of size 1 at 0x51000000023f thread T0
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x5609d8161a3d in H5HL__fl_deserialize /src/hdf5/src/H5HLcache.c:247:9
+    #1 0x5609d815f998 in H5HL__cache_datablock_deserialize /src/hdf5/src/H5HLcache.c:717:21
+    #2 0x5609d7f8af94 in H5C__load_entry /src/hdf5/src/H5Centry.c:1193:26
+    #3 0x5609d7f8af94 in H5C_protect /src/hdf5/src/H5Centry.c:3101:30
+    #4 0x5609d7f3c600 in H5AC_protect /src/hdf5/src/H5AC.c:1276:26
+    #5 0x5609d815a61b in H5HL_protect /src/hdf5/src/H5HL.c:338:40
+    #6 0x5609d8103943 in H5G__stab_get_name_by_idx /src/hdf5/src/H5Gstab.c:698:25
+    #7 0x5609d80fc2aa in H5G_obj_get_name_by_idx /src/hdf5/src/H5Gobj.c:798:13
+    #8 0x5609d81869fe in H5L__get_name_by_idx_cb /src/hdf5/src/H5Lint.c:1932:9
+    #9 0x5609d8108227 in H5G__traverse_real /src/hdf5/src/H5Gtraverse.c:743:9
+    #10 0x5609d810607a in H5G_traverse /src/hdf5/src/H5Gtraverse.c:823:9
+    #11 0x5609d8186800 in H5L__get_name_by_idx /src/hdf5/src/H5Lint.c:1977:9
+    #12 0x5609d855e73d in H5VL__native_link_get /src/hdf5/src/H5VLnative_link.c:278:17
+    #13 0x5609d8534507 in H5VL__link_get /src/hdf5/src/H5VLcallback.c:5183:9
+    #14 0x5609d8534507 in H5VL_link_get /src/hdf5/src/H5VLcallback.c:5215:9
+    #15 0x5609d817db06 in H5Lget_name_by_idx /src/hdf5/src/H5L.c:1553:9
+    #16 0x5609d7df9776 in Mat_CalcDir73 /src/matio/src/mat73.c:3329:28
+    #17 0x5609d7de5baf in Mat_GetDir /src/matio/src/mat.c:808:23
+    #18 0x5609d7de0b41 in MatioRead(char const*) /src/matio/ossfuzz/./matio_wrap.h:39:24
+    #19 0x5609d7de0d79 in LLVMFuzzerTestOneInput /src/matio/ossfuzz/./matio_fuzzer.cpp:30:12
+    #20 0x5609d7c955a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #21 0x5609d7c80815 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #22 0x5609d7c862af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #23 0x5609d7cb1552 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #24 0x7fa081f02082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #25 0x5609d7c789fd in _start (/out/matio_fuzzer+0x3bd9fd)
+
+DEDUP_TOKEN: H5HL__fl_deserialize--H5HL__cache_datablock_deserialize--H5C__load_entry
+0x51000000023f is located 1 bytes before 184-byte region [0x510000000240,0x5100000002f8)
+allocated by thread T0 here:
+    #0 0x5609d7da136f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x5609d80bf5e9 in H5FL__malloc /src/hdf5/src/H5FL.c:203:30
+    #2 0x5609d80bf5e9 in H5FL_blk_malloc /src/hdf5/src/H5FL.c:765:48
+    #3 0x5609d815f967 in H5HL__cache_datablock_deserialize /src/hdf5/src/H5HLcache.c:710:41
+    #4 0x5609d7f8af94 in H5C__load_entry /src/hdf5/src/H5Centry.c:1193:26
+    #5 0x5609d7f8af94 in H5C_protect /src/hdf5/src/H5Centry.c:3101:30
+    #6 0x5609d7f3c600 in H5AC_protect /src/hdf5/src/H5AC.c:1276:26
+    #7 0x5609d815a61b in H5HL_protect /src/hdf5/src/H5HL.c:338:40
+    #8 0x5609d8103943 in H5G__stab_get_name_by_idx /src/hdf5/src/H5Gstab.c:698:25
+    #9 0x5609d80fc2aa in H5G_obj_get_name_by_idx /src/hdf5/src/H5Gobj.c:798:13
+    #10 0x5609d81869fe in H5L__get_name_by_idx_cb /src/hdf5/src/H5Lint.c:1932:9
+    #11 0x5609d8108227 in H5G__traverse_real /src/hdf5/src/H5Gtraverse.c:743:9
+    #12 0x5609d810607a in H5G_traverse /src/hdf5/src/H5Gtraverse.c:823:9
+    #13 0x5609d8186800 in H5L__get_name_by_idx /src/hdf5/src/H5Lint.c:1977:9
+    #14 0x5609d855e73d in H5VL__native_link_get /src/hdf5/src/H5VLnative_link.c:278:17
+    #15 0x5609d8534507 in H5VL__link_get /src/hdf5/src/H5VLcallback.c:5183:9
+    #16 0x5609d8534507 in H5VL_link_get /src/hdf5/src/H5VLcallback.c:5215:9
+    #17 0x5609d817db06 in H5Lget_name_by_idx /src/hdf5/src/H5L.c:1553:9
+    #18 0x5609d7df9776 in Mat_CalcDir73 /src/matio/src/mat73.c:3329:28
+    #19 0x5609d7de5baf in Mat_GetDir /src/matio/src/mat.c:808:23
+    #20 0x5609d7de0b41 in MatioRead(char const*) /src/matio/ossfuzz/./matio_wrap.h:39:24
+    #21 0x5609d7de0d79 in LLVMFuzzerTestOneInput /src/matio/ossfuzz/./matio_fuzzer.cpp:30:12
+    #22 0x5609d7c955a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #23 0x5609d7c80815 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #24 0x5609d7c862af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #25 0x5609d7cb1552 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #26 0x7fa081f02082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--H5FL__malloc--H5FL_blk_malloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/hdf5/src/H5HLcache.c:247:9 in H5HL__fl_deserialize
+Shadow bytes around the buggy address:
+  0x50ffffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x510000000000: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x510000000080: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x510000000100: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x510000000180: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x510000000200: fa fa fa fa fa fa fa[fa]00 00 00 00 00 00 00 00
+  0x510000000280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fa
+  0x510000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x510000000480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

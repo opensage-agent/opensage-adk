@@ -1,0 +1,34 @@
+ALARM: working on the last Unit for -1 seconds
+       and the timeout value is 25 (use -timeout=N to change)
+==14== ERROR: libFuzzer: timeout after 18446744073709551615 seconds
+    #0 0x55f9e8a1dcd1 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    #1 0x55f9e8922c68 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x55f9e8905f77 in fuzzer::Fuzzer::AlarmCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:304:5
+    #3 0x7f78aee9a41f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 9a65bb469e45a1c6fbcffae5b82a2fd7a69eb479)
+    #4 0x55f9e897caff in __asan::Allocator::Allocate(unsigned long, unsigned long, __sanitizer::BufferedStackTrace*, __asan::AllocType, bool) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:604:19
+    #5 0x55f9e897c7f3 in __asan::asan_malloc(unsigned long, __sanitizer::BufferedStackTrace*) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:1000:34
+    #6 0x55f9e8a1333f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:69:10
+    #7 0x55f9e8afe6f4 in js_def_malloc /src/quickjs/quickjs.c:1729:11
+    #8 0x55f9e8a6e93f in js_malloc_rt /src/quickjs/quickjs.c:1316:12
+    #9 0x55f9e8a6e93f in js_malloc /src/quickjs/quickjs.c:1354:11
+    #10 0x55f9e8a6e93f in JS_NewObjectFromShape /src/quickjs/quickjs.c:4777:15
+    #11 0x55f9e8a6e67b in JS_NewObjectProtoClass /src/quickjs/quickjs.c:4884:12
+    #12 0x55f9e8b13e4f in JS_NewObjectClass /src/quickjs/quickjs.c:4942:12
+    #13 0x55f9e8b13e4f in js_closure /src/quickjs/quickjs.c:15781:16
+    #14 0x55f9e8aa8284 in JS_CallInternal /src/quickjs/quickjs.c:16316:21
+    #15 0x55f9e8ac85dd in JS_CallFree /src/quickjs/quickjs.c:18717:19
+    #16 0x55f9e8ac85dd in JS_EvalFunctionInternal /src/quickjs/quickjs.c:34401:19
+    #17 0x55f9e8ae5e3a in __JS_EvalInternal /src/quickjs/quickjs.c:34536:19
+    #18 0x55f9e8ac99e3 in JS_EvalInternal /src/quickjs/quickjs.c:34554:12
+    #19 0x55f9e8ac99e3 in JS_EvalThis /src/quickjs/quickjs.c:34585:11
+    #20 0x55f9e8ac99e3 in JS_Eval /src/quickjs/quickjs.c:34593:12
+    #21 0x55f9e8a52a54 in LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_eval.c:38:19
+    #22 0x55f9e8907510 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #23 0x55f9e88f2785 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #24 0x55f9e88f821f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #25 0x55f9e89234c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #26 0x7f78aec6f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #27 0x55f9e88ea96d in _start (/out/fuzz_eval+0x11b96d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::AlarmCallback()
+SUMMARY: libFuzzer: timeout

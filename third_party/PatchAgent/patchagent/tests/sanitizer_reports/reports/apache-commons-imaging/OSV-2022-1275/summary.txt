@@ -1,0 +1,17 @@
+The sanitizer detected a out of memory vulnerability.The explanation of the vulnerability is: The program runs out of memory, causing allocation failures and potential crashes.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Out of memory (use '-Xmx1710m' to reproduce)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+- java.desktop/java.awt.image.DataBufferInt.<init> (java/desktop/java/awt/image/DataBufferInt.java:75)
+- java.desktop/java.awt.image.Raster.createPackedRaster (java/desktop/java/awt/image/Raster.java:539)
+- java.desktop/java.awt.image.DirectColorModel.createCompatibleWritableRaster (java/desktop/java/awt/image/DirectColorModel.java:1032)
+- java.desktop/java.awt.image.BufferedImage.<init> (java/desktop/java/awt/image/BufferedImage.java:333)
+- org.apache.commons.imaging.common.SimpleBufferedImageFactory.getColorBufferedImage (org/apache/commons/imaging/common/SimpleBufferedImageFactory.java:26)
+- org.apache.commons.imaging.formats.png.PngImageParser.getBufferedImage (org/apache/commons/imaging/formats/png/PngImageParser.java:280)
+- ImagingPngFuzzer.fuzzerTestOneInput (ImagingPngFuzzer.java:24)
+
+To fix this issue, follow the advice below:
+
+1. Check for memory leaks that may be consuming system resources.
+2. Optimize memory usage by releasing unused resources.
+3. Increase system memory or swap space to accommodate memory requirements.

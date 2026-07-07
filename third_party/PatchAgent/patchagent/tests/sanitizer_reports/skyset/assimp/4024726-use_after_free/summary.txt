@@ -1,0 +1,36 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x502000000050 thread T0
+    - CallbackToLogRedirector(char const*, char*) /root/code/Common/Assimp.cpp:359:8
+    - LogToCallbackRedirector::write(char const*) /root/code/Common/Assimp.cpp:150:9
+    - Assimp::DefaultLogger::WriteToStreams(char const*, Assimp::Logger::ErrorSeverity) /root/code/Common/DefaultLogger.cpp:412:31
+    - Assimp::DefaultLogger::OnInfo(char const*) /root/code/Common/DefaultLogger.cpp:292:5
+    - Assimp::Logger::info(char const*) /root/code/Common/DefaultLogger.cpp:194:12
+    - void Assimp::Logger::info<char const (&) [6], std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&>(char const (&) [6], std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/include/assimp/Logger.hpp:126:9
+    - WriteLogOpening(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/code/Common/Importer.cpp:528:5
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:599:5
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+
+0x502000000050 is located 0 bytes inside of 16-byte region [0x502000000050,0x502000000060)
+freed by thread T0 here:
+    - Assimp::Intern::AllocateFromAssimpHeap::operator delete(void*) /root/code/Common/Importer.cpp:128:12
+    - Assimp::StdOStreamLogStream::~StdOStreamLogStream() /root/code/Common/StdOStreamLogStream.h:86:52
+    - LogToCallbackRedirector::~LogToCallbackRedirector() /root/code/Common/Assimp.cpp:143:13
+    - LogToCallbackRedirector::~LogToCallbackRedirector() /root/code/Common/Assimp.cpp:130:32
+    - aiDetachLogStream /root/code/Common/Assimp.cpp:417:5
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:64:5
+
+previously allocated by thread T0 here:
+    - operator new(unsigned long) /build/gcc-14-OQFzmN/gcc-14-14-20240412/src/libstdc++-v3/libsupc++/new_op.cc:50:22
+    - Assimp::LogStream::createDefaultStream(aiDefaultLogStream, char const*, Assimp::IOSystem*) /root/code/Common/DefaultLogger.cpp:112:16
+    - aiGetPredefinedLogStream /root/code/Common/Assimp.cpp:370:25
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:50:26
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

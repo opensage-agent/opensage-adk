@@ -1,0 +1,22 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - icu_74::UnicodeString::copyFrom(icu_74::UnicodeString const&, signed char) /src/icu/icu4c/source/common/unistr.cpp:505:6
+    - icu_74::UnicodeString::UnicodeString(icu_74::UnicodeString const&) /src/icu/icu4c/source/common/unistr.cpp:308:3
+    - icu_74::number::impl::SimpleModifier::SimpleModifier(icu_74::SimpleFormatter const&, icu_74::FormattedStringBuilder::Field, bool, icu_74::number::impl::Modifier::Parameters) /src/icu/icu4c/source/i18n/number_modifiers.cpp:130:11
+    - icu_74::RelativeDateTimeFormatter::formatNumericImpl(double, URelativeDateTimeUnit, icu_74::FormattedRelativeDateTimeData&, UErrorCode&) const /src/icu/icu4c/source/i18n/reldatefmt.cpp:1065:34
+    - icu_74::FormattedRelativeDateTime icu_74::RelativeDateTimeFormatter::doFormatToValue<void (icu_74::RelativeDateTimeFormatter::*)(double, URelativeDateTimeUnit, icu_74::FormattedRelativeDateTimeData&, UErrorCode&) const, double, URelativeDateTimeUnit>(void (icu_74::RelativeDateTimeFormatter::*)(double, URelativeDateTimeUnit, icu_74::FormattedRelativeDateTimeData&, UErrorCode&) const, UErrorCode&, double, URelativeDateTimeUnit) const /src/icu/icu4c/source/i18n/reldatefmt.cpp:925:5
+    - icu_74::RelativeDateTimeFormatter::formatNumericToValue(double, URelativeDateTimeUnit, UErrorCode&) const /src/icu/icu4c/source/i18n/reldatefmt.cpp:1015:12
+    - LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/relative_date_time_formatter_fuzzer.cpp:90:36
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

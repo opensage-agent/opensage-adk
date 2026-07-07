@@ -1,0 +1,111 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5290000044f4 thread T0
+    - dispatch /src/mruby/mrbgems/mruby-compiler/core/codegen.c:573:21
+    - dispatch_linked /src/mruby/mrbgems/mruby-compiler/core/codegen.c:584:11
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1629:11
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    - gen_literal_array /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1426:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    - lambda_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1058:3
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1700:17
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1221:5
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    - scope_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1075:3
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1912:5
+    - generate_code /src/mruby/mrbgems/mruby-compiler/core/codegen.c:3340:5
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6843:10
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5290000044f4 is located 756 bytes after 16384-byte region [0x529000000200,0x529000004200)
+allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - mrb_realloc_simple /src/mruby/src/gc.c:229:8
+    - codegen_realloc /src/mruby/mrbgems/mruby-compiler/core/codegen.c:165:7
+    - emit_B /src/mruby/mrbgems/mruby-compiler/core/codegen.c:190:27
+    - emit_S /src/mruby/mrbgems/mruby-compiler/core/codegen.c:210:3
+    - gen_S /src/mruby/mrbgems/mruby-compiler/core/codegen.c:224:3
+    - genop_2 /src/mruby/mrbgems/mruby-compiler/core/codegen.c:269:5
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2673:7
+    - gen_literal_array /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1426:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    - lambda_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1058:3
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1700:17
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1221:5
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    - gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:0:0
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    - scope_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1075:3
+    - codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1912:5
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,56 @@
+MAX_TOOL_RESPONSE_LENGTH = 15000
+MAX_HISTORY_SUMMARY_LENGTH = 240000
+
+# neo4j config disabled — see sandbox section below
+# NEO4J_PASSWORD = "testpassword"
+[llm]
+model_name = "gemini-3-flash-preview"
+temperature = 0.7
+
+[build]
+run_command = "echo 'Please check the problem statement and the repository for how to reproduce the issue.'"
+compile_command = "echo 'No compilation needed'"
+
+[llm.model_configs.summarize]
+model_name = "inherit"
+temperature = 1
+
+[history]
+max_tool_response_length = "${MAX_TOOL_RESPONSE_LENGTH}"
+enable_quota_countdown = true
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+
+[history.events_compaction]
+max_history_summary_length = "${MAX_HISTORY_SUMMARY_LENGTH}"
+compaction_percent = 50
+
+[subagent]
+
+[sandbox]
+backend = "nitrobox"
+
+[sandbox.sandboxes.main]
+image = "${DEFAULT_IMAGE}"
+working_dir = "/workspace"
+timeout = 300
+
+[sandbox.sandboxes.main.extra]
+fs_backend = "btrfs"
+env_base_dir = "/data/opensage_ns"
+rootfs_cache_dir = "/data/rootfs_cache"
+
+# neo4j disabled for 64-worker scalability test (each instance uses ~1.2GB RAM)
+# [sandbox.sandboxes.neo4j]
+# image = "neo4j:5.26.12-enterprise"
+
+[plugins]
+enabled = [
+    "build_verifier_plugin",
+    "doom_loop_detector_plugin",
+    "read_before_edit_plugin",
+
+    "history_summarizer_plugin",
+    "tool_response_summarizer_plugin",
+    "careful_edit",
+    "test_output_review",
+]

@@ -4,6 +4,8 @@ Configuration DataClass Definitions for OpenSage Framework
 Defines all configuration dataclasses with default values and environment variable overrides.
 """
 
+from __future__ import annotations
+
 import copy
 import os
 import re
@@ -91,32 +93,6 @@ def _expand_template_variables(config_data: dict) -> dict:
 
 
 @dataclass
-class MemoryConfig:
-    """Memory module configuration for graph-based knowledge storage."""
-
-    # Whether memory module is enabled (default: disabled)
-    enabled: bool = False
-
-    # LLM model for internal memory operations (strategy selection, entity extraction, etc.)
-    llm_model: str = "gemini/gemini-2.5-flash-lite"
-
-    # Embedding model for vector similarity search
-    embedding_model: str = "gemini/gemini-embedding-001"
-
-    # Whether to use LLM for search strategy selection
-    use_llm_selection: bool = True
-
-    # Whether to use LLM for operation decisions (ADD/UPDATE/DELETE/NONE)
-    use_llm_decision: bool = False
-
-    # Max iterations for search refinement
-    search_max_iterations: int = 3
-
-    # Similarity threshold for relationship discovery
-    similarity_threshold: float = 0.7
-
-
-@dataclass
 class Neo4jConfig:
     """Neo4j database configuration with dynamic URI construction."""
 
@@ -144,10 +120,10 @@ class Neo4jConfig:
 
 @dataclass
 class ContainerConfig:
-    """Lightweight config for Docker-backed sandboxes.
+    """Lightweight config for container-backed sandboxes.
 
     This is an internal convenience type to keep sandbox code tidy and typed.
-    It intentionally mirrors common docker SDK/run options that we may support.
+    It intentionally mirrors common Docker-compatible run options that we may support.
     Any unsupported fields can be kept in extra for forward-compat.
     """
 
@@ -168,9 +144,12 @@ class ContainerConfig:
     privileged: bool = False
     security_opt: List[str] = field(default_factory=list)
     cap_add: List[str] = field(default_factory=list)
+    cap_drop: List[str] = field(default_factory=list)
+    devices: List[str] = field(default_factory=list)  # e.g., ["/dev/kvm"]
     gpus: Optional[str] = None  # e.g., "all" or "device=GPU-UUID"
     shm_size: Optional[str] = None
     mem_limit: Optional[str] = None
+    # Docker-compatible CPU quota, equivalent to `docker run --cpus N`.
     cpus: Optional[str] = None
     user: Optional[str] = None
     working_dir: Optional[str] = None
@@ -183,17 +162,20 @@ class ContainerConfig:
     )  # ["type=bind,source=...,target=..."]
     ports: Dict[str, Union[int, None, Dict[str, Any]]] = field(default_factory=dict)
 
-    # Raw args passthrough for docker CLI (where applicable)
+    # Raw args passthrough for Docker-compatible CLI backends (where applicable)
     docker_args: List[str] = field(default_factory=list)
 
     # Build configuration
     project_relative_dockerfile_path: Optional[str] = (
         None  # Path to Dockerfile relative to project root
     )
-    absolute_dockerfile_path: Optional[str] = None
+    agent_relative_dockerfile_path: Optional[str] = (
+        None  # Path to Dockerfile relative to the agent directory
+    )
+    absolute_dockerfile_path: Optional[str] = None  # Path to Dockerfile as given
     build_args: Dict[str, str] = field(
         default_factory=dict
-    )  # Build arguments for Docker build
+    )  # Build arguments for container image build
 
     # Command override - if None, defaults to "bash"; if empty string, uses Dockerfile's default CMD
     command: Optional[str] = None
@@ -214,6 +196,21 @@ class ContainerConfig:
 
 
 @dataclass
+class SandboxPathsConfig:
+    """Configurable paths inside the sandbox (or host, for local backend).
+
+    Container backends mount volumes at these paths inside the container.
+    The local backend can override them to point at host directories.
+    """
+
+    mem_root: str = "/mem"
+    shared: str = "/shared"
+    bash_tools: str = "/bash_tools"
+    sandbox_scripts: str = "/sandbox_scripts"
+    src: str = "/src"
+
+
+@dataclass
 class SandboxConfig:
     """Configuration for different sandbox types."""
 
@@ -221,12 +218,11 @@ class SandboxConfig:
     sandboxes: Dict[str, ContainerConfig] = field(default_factory=dict)
     project_relative_shared_data_path: Optional[str] = None
     absolute_shared_data_path: Optional[str] = None
-    # Optional absolute host directory mounted to /mem/shared in all sandboxes.
-    host_shared_mem_dir: Optional[str] = None
     # Global host bind mounts injected into every sandbox config as
     # "<abs_host_path>:<abs_container_path>:<ro|rw>" entries.
     mount_host_paths: List[str] = field(default_factory=list)
     backend: str = "native"
+    paths: SandboxPathsConfig = field(default_factory=SandboxPathsConfig)
     opensandbox: Optional["OpenSandboxConfig"] = None
     # Global tolerations applied to all k8s pods (init/chmod/session). If set,
     # overrides/augments any per-container tolerations in ContainerConfig.extra.
@@ -271,24 +267,11 @@ class LLMConfig:
         """Add a new model configuration."""
         self.model_configs[name] = config
 
-    # Backward compatibility properties
-    @property
-    def model_name(self) -> Optional[str]:
-        """Get main model name for backward compatibility."""
-        main_config = self.model_configs.get("main")
-        return main_config.model_name if main_config else None
-
     @property
     def summarize_model(self) -> Optional[str]:
-        """Get drop/summarize model name for backward compatibility."""
+        """Get drop/summarize model name."""
         drop_config = self.model_configs.get("summarize")
         return drop_config.model_name if drop_config else None
-
-    @property
-    def flag_claims_model(self) -> Optional[str]:
-        """Get flag claims model name for backward compatibility."""
-        flag_config = self.model_configs.get("flag_claims")
-        return flag_config.model_name if flag_config else None
 
 
 @dataclass
@@ -355,16 +338,88 @@ class PluginsConfig:
 
 
 @dataclass
-class AgentEnsembleConfig:
-    """Agent ensemble configuration."""
+class ModelEntry:
+    """One model entry under ``config.model.available_models``.
 
-    # If True, only agents whose tools are all listed in thread_safe_tools are
-    # considered "safe" and allowed for ensemble execution. If False, the
-    # thread_safe_tools filtering is disabled (all discovered agents are treated
-    # as safe).
-    enforce_thread_safe_tools: bool = False
-    thread_safe_tools: Set[str] = field(default_factory=set)
-    available_models_for_ensemble: List[str] = field(default_factory=list)
+    The ``model`` field doubles as the registry key (LLM-facing name) and the
+    provider id passed to ``LiteLlm(model=...)``. No aliasing — duplicates raise.
+    """
+
+    model: str
+    api_key_env: str
+    base_url: Optional[str] = None
+
+
+@dataclass
+class ModelPrice:
+    """Custom runtime budget price for one model.
+
+    Prices are USD per 1M tokens. ``cached_per_million`` defaults to the
+    prompt price when omitted.
+    """
+
+    model: str
+    prompt_per_million: float
+    completion_per_million: float
+    cached_per_million: Optional[float] = None
+
+
+@dataclass
+class ModelRegistryConfig:
+    """Model registry configuration (corresponds to the ``[model]`` TOML section).
+
+    Two mutually-exclusive sources:
+    - ``available_models``: declarative list parsed from TOML (simple LiteLlm setups)
+    - ``models_python_file``: path to a Python file exporting ``models: list[BaseLlm]``
+      (for cases that need custom LiteLlm kwargs like ``cache_control_injection_points``)
+
+    Configuring both raises at registry load time.
+
+    Optional override fields are framework-specific shortcuts and reference a
+    registry key (i.e. the ``model`` field of one of ``available_models``).
+    """
+
+    available_models: List[ModelEntry] = field(default_factory=list)
+    models_python_file: Optional[str] = None
+    # Runtime budget shared by every model call in one OpenSage session.
+    # 0 or omitted means unlimited.
+    budget: float = 0.0
+    prices: List[ModelPrice] = field(default_factory=list)
+
+    # When set, ``Evaluation._prepare_agent`` walks the agent tree and
+    # replaces every LlmAgent.model with the registered model under this
+    # name. None = use the agents' declared models. Validated against the
+    # LlmRegistry at the moment of use; not at config-load time, since the
+    # registry is built from the same config.
+    evaluation_replace_all_models_with_model_name: Optional[str] = None
+
+
+@dataclass
+class AutoInsertPromptFileConfig:
+    """Path to a markdown file whose content is appended to every agent's
+    instruction at invocation time (covers static + dynamic agents alike).
+
+    Two mutually-exclusive sources:
+    - ``agent_relative_path``: resolved against the agent_dir (the directory
+      that contains this agent's ``agent.py`` / ``config.toml``) at load time.
+    - ``absolute_path``: used as-is.
+
+    Note: this differs from ``project_relative_dockerfile_path`` elsewhere,
+    which is relative to the OpenSage repo root. We deliberately use a
+    different prefix here to avoid that confusion.
+
+    Both unset ⇒ a built-in default template under
+    ``src/opensage/templates/auto_insert_prompts/default.md`` is used; the
+    default describes long-term memory conventions and what kinds of
+    knowledge to persist there.
+
+    The resolved file's content is injected at runtime by the
+    ``BaseAgent.run_async`` patch (with a marker so it is restored after
+    the invocation finishes). Empty/missing file ⇒ nothing is injected.
+    """
+
+    agent_relative_path: Optional[str] = None
+    absolute_path: Optional[str] = None
 
 
 @dataclass
@@ -376,6 +431,21 @@ class BuildConfig:
     run_command: Optional[str] = None
     target_type: Optional[str] = None
     target_binary: Optional[str] = None
+
+
+@dataclass
+class FakeUserConfig:
+    """Configuration for fake-user (user-simulator) callbacks.
+
+    Corresponds to the ``[fake_user]`` TOML section.  Points at a Python
+    file that exports an async function named ``fake_user`` with signature
+    ``async (Session) -> str | None``.
+
+    Relative paths are resolved against the agent directory.
+    """
+
+    python_file: Optional[str] = None
+    """Path to a Python file exporting ``async def fake_user(session) -> str | None``."""
 
 
 @dataclass
@@ -486,21 +556,22 @@ class MCPConfig:
 
 @dataclass
 class OpenSageConfig:
-    """Complete SecAgentFramework configuration."""
+    """Complete OpenSage-ADK configuration."""
 
     neo4j: Neo4jConfig = None
     sandbox: SandboxConfig = None
-    llm: LLMConfig = None
+    llm: LLMConfig = field(default_factory=LLMConfig)
     history: HistoryConfig = None
     plugins: PluginsConfig = field(default_factory=PluginsConfig)
-    agent_ensemble: AgentEnsembleConfig = None
+    model: ModelRegistryConfig = field(default_factory=ModelRegistryConfig)
+    auto_insert_prompt_file: AutoInsertPromptFileConfig = field(
+        default_factory=AutoInsertPromptFileConfig
+    )
+    fake_user: FakeUserConfig = None
     build: BuildConfig = None
     mcp: MCPConfig = None
-    memory: MemoryConfig = None
     task_name: str = None
     src_dir_in_sandbox: str = None
-    agent_storage_path: Optional[str] = None
-    load_dynamic_agents: bool = False
     default_host: str = None
 
     auto_cleanup: bool = True
@@ -545,6 +616,14 @@ class OpenSageConfig:
             ),
         )
 
+        # Resolve relative sandbox paths against the config file's directory
+        if config.sandbox and config.sandbox.paths:
+            paths = config.sandbox.paths
+            for field in ("mem_root", "shared", "bash_tools", "sandbox_scripts", "src"):
+                val = getattr(paths, field, None)
+                if val and not os.path.isabs(val):
+                    setattr(paths, field, str(Path.cwd() / val))
+
         # Set parent config references to enable dynamic host resolution
         if config.neo4j:
             config.neo4j._parent_config = config
@@ -559,33 +638,9 @@ class OpenSageConfig:
         """Preprocess config data for special conversions before dacite.
 
         Modifies data dict in-place to handle:
-        - agent_ensemble: list → set, comma-separated string → list
         - build: empty string → None
         - mcp: convert to MCPServiceConfig with proper initialization
         """
-        # Agent Ensemble: list → set, comma-separated string → list
-        if "agent_ensemble" in data:
-            ensemble_data = data["agent_ensemble"]
-
-            # Convert thread_safe_tools list to set
-            if "thread_safe_tools" in ensemble_data:
-                ensemble_data["thread_safe_tools"] = set(
-                    ensemble_data["thread_safe_tools"]
-                )
-
-            # Handle comma-separated available_models_for_ensemble string
-            if "available_models_for_ensemble" in ensemble_data:
-                models_value = ensemble_data["available_models_for_ensemble"]
-                if isinstance(models_value, str) and models_value.strip():
-                    # Split comma-separated string and clean up whitespace
-                    ensemble_data["available_models_for_ensemble"] = [
-                        model.strip()
-                        for model in models_value.split(",")
-                        if model.strip()
-                    ]
-                elif not models_value or models_value == "":
-                    ensemble_data["available_models_for_ensemble"] = []
-
         # Build: empty string → None
         if "build" in data:
             build_data = data["build"]
@@ -599,7 +654,6 @@ class OpenSageConfig:
             for field in [
                 "project_relative_shared_data_path",
                 "absolute_shared_data_path",
-                "host_shared_mem_dir",
             ]:
                 if sandbox_data.get(field) == "":
                     sandbox_data[field] = None
@@ -620,6 +674,26 @@ class OpenSageConfig:
             # Sandbox ports: only allow int/None or {host, port}.
             sandboxes_data = sandbox_data.get("sandboxes") or {}
             for sandbox_name, sandbox_cfg in sandboxes_data.items():
+                dockerfile_fields = [
+                    "absolute_dockerfile_path",
+                    "agent_relative_dockerfile_path",
+                    "project_relative_dockerfile_path",
+                ]
+                for field in dockerfile_fields:
+                    if sandbox_cfg.get(field) == "":
+                        sandbox_cfg[field] = None
+                configured_dockerfile_fields = [
+                    field for field in dockerfile_fields if sandbox_cfg.get(field)
+                ]
+                if len(configured_dockerfile_fields) > 1:
+                    raise ValueError(
+                        f"Sandbox '{sandbox_name}' configures multiple Dockerfile "
+                        f"path fields: {', '.join(configured_dockerfile_fields)}. "
+                        "Use exactly one of absolute_dockerfile_path, "
+                        "agent_relative_dockerfile_path, or "
+                        "project_relative_dockerfile_path."
+                    )
+
                 ports_data = sandbox_cfg.get("ports")
                 if not isinstance(ports_data, dict):
                     continue
@@ -667,18 +741,6 @@ class OpenSageConfig:
         """
         if self.sandbox:
             return self.sandbox.get_sandbox_config(sandbox_type)
-        return None
-
-    def get_llm_config(self, model_name: str):
-        """Get LLM configuration for a specific model.
-
-        Args:
-            model_name (str): Name of the model configuration to get
-        Returns:
-            ModelConfig for the specified model, or None if not found
-        """
-        if self.llm and model_name in self.llm.model_configs:
-            return self.llm.model_configs[model_name]
         return None
 
     def save_to_toml(self, toml_path: str) -> None:

@@ -1,0 +1,68 @@
+=================================================================
+==639735==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000001fd1 at pc 0x7f33a2667760 bp 0x7ffcc87d9c00 sp 0x7ffcc87d9bf8
+READ of size 1 at 0x502000001fd1 thread T0
+    #0 0x7f33a266775f in naludmx_create_hevc_decoder_config /root/src/filters/reframe_nalu.c:1008:44
+    #1 0x7f33a265ec75 in naludmx_check_pid /root/src/filters/reframe_nalu.c:1581:3
+    #2 0x7f33a264e3d7 in naludmx_process /root/src/filters/reframe_nalu.c:3074:3
+    #3 0x7f33a21c64d0 in gf_filter_process_task /root/src/filter_core/filter.c:2515:7
+    #4 0x7f33a2199ed8 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1756:3
+    #5 0x7f33a21964b0 in gf_fs_run /root/src/filter_core/filter_session.c:2000:2
+    #6 0x7f33a1b749b3 in gf_media_import /root/src/media_tools/media_import.c:1226:3
+    #7 0x5635f4f68dcb in convert_file_info /root/applications/mp4box/fileimport.c:128:6
+    #8 0x5635f4f27ee5 in mp4boxMain /root/applications/mp4box/main.c:6068:6
+    #9 0x5635f4f2d9c1 in main /root/applications/mp4box/main.c:6601:1
+    #10 0x7f33a0d871c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f33a0d8728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x5635f4f0dc54 in _start (/root/bin/gcc/MP4Box+0x46c54) (BuildId: 719d32c1337dacae4677b8b0b45f90ef1c1699ac)
+
+0x502000001fd1 is located 0 bytes after 1-byte region [0x502000001fd0,0x502000001fd1)
+allocated by thread T0 here:
+    #0 0x7f33a2f7d7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f33a12518d4 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7f33a26657f0 in naludmx_queue_param_set /root/src/filters/reframe_nalu.c:1928:13
+    #3 0x7f33a265862e in naludmx_parse_nal_hevc /root/src/filters/reframe_nalu.c:2207:4
+    #4 0x7f33a264e177 in naludmx_process /root/src/filters/reframe_nalu.c:3056:23
+    #5 0x7f33a21c64d0 in gf_filter_process_task /root/src/filter_core/filter.c:2515:7
+    #6 0x7f33a2199ed8 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1756:3
+    #7 0x7f33a21964b0 in gf_fs_run /root/src/filter_core/filter_session.c:2000:2
+    #8 0x7f33a1b749b3 in gf_media_import /root/src/media_tools/media_import.c:1226:3
+    #9 0x5635f4f68dcb in convert_file_info /root/applications/mp4box/fileimport.c:128:6
+    #10 0x5635f4f27ee5 in mp4boxMain /root/applications/mp4box/main.c:6068:6
+    #11 0x5635f4f2d9c1 in main /root/applications/mp4box/main.c:6601:1
+    #12 0x7f33a0d871c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7f33a0d8728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x5635f4f0dc54 in _start (/root/bin/gcc/MP4Box+0x46c54) (BuildId: 719d32c1337dacae4677b8b0b45f90ef1c1699ac)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/filters/reframe_nalu.c:1008:44 in naludmx_create_hevc_decoder_config
+Shadow bytes around the buggy address:
+  0x502000001d00: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000001d80: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000001e00: fa fa 07 fa fa fa 00 00 fa fa 00 00 fa fa 00 fa
+  0x502000001e80: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000001f00: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 00 00
+=>0x502000001f80: fa fa 00 00 fa fa 00 00 fa fa[01]fa fa fa 00 00
+  0x502000002000: fa fa 00 00 fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000002080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000002100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000002180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000002200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==639735==ABORTING

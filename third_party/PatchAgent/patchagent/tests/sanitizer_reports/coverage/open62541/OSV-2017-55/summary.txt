@@ -1,0 +1,25 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - String_deleteMembers /src/open62541/src/ua_types.c:91:5
+    - NodeId_deleteMembers /src/open62541/src/ua_types.c:200:9
+    - ExtensionObject_deleteMembers /src/open62541/src/ua_types.c:331:9
+    - deleteMembers_noInit /src/open62541/src/ua_types.c:979:13
+    - UA_deleteMembers /src/open62541/src/ua_types.c:993:5
+    - UA_Array_delete /src/open62541/src/ua_types.c:1060:13
+    - Array_decodeBinary /src/open62541/src/ua_types_encoding_binary.c:572:17
+    - Variant_decodeBinary /src/open62541/src/ua_types_encoding_binary.c:1156:15
+    - UA_decodeBinaryInternal /src/open62541/src/ua_types_encoding_binary.c:1503:20
+    - UA_decodeBinary /src/open62541/src/ua_types_encoding_binary.c:1538:18
+    - tortureEncoding(unsigned char const*, unsigned long, unsigned long*) /src/open62541/tests/fuzz/fuzz_binary_decode.cc:32:25
+    - LLVMFuzzerTestOneInput /src/open62541/tests/fuzz/fuzz_binary_decode.cc:100:10
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

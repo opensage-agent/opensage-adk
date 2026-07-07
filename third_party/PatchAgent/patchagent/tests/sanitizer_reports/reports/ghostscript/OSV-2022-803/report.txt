@@ -1,0 +1,68 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/ghostscript/OSV-2022-803/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gs_device_pxlcolor_fuzzer -runs=100.
++ FUZZER=gs_device_pxlcolor_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gs_device_pxlcolor_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gs_device_pxlcolor_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3438225139
+INFO: Loaded 3 modules   (221508 inline 8-bit counters): 14221 [0x7f851f4fe2a0, 0x7f851f501a2d), 958 [0x7f851f59f778, 0x7f851f59fb36), 206329 [0x563e2f766570, 0x563e2f798b69), 
+INFO: Loaded 3 PC tables (221508 PCs): 14221 [0x7f851f501a30,0x7f851f539300), 958 [0x7f851f59fb38,0x7f851f5a3718), 206329 [0x563e2f798b70,0x563e2fabeb00), 
+/out/gs_device_pxlcolor_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x563e2d0aa24b bp 0x7fff542ea730 sp 0x7fff542ea620 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x563e2d0aa24b in gs_fapi_ft_get_scaled_font /src/ghostpdl/./base/fapi_ft.c:1412:31
+    #1 0x563e2d09ce8e in gs_fapi_prepare_font /src/ghostpdl/./base/gxfapi.c:498:43
+    #2 0x563e2d0a6d04 in gs_fapi_passfont /src/ghostpdl/./base/gxfapi.c:1868:13
+    #3 0x563e2daed522 in pdfi_fapi_passfont /src/ghostpdl/./pdf/pdf_fapi.c:1519:9
+    #4 0x563e2d61b8f0 in pdfi_read_cff_font /src/ghostpdl/./pdf/pdf_font1C.c:2835:24
+    #5 0x563e2d5fdb6c in pdfi_load_font_buffer /src/ghostpdl/./pdf/pdf_font.c:624:24
+    #6 0x563e2d5fc72c in pdfi_load_font /src/ghostpdl/./pdf/pdf_font.c:924:24
+    #7 0x563e2d60be5b in pdfi_read_type0_font /src/ghostpdl/./pdf/pdf_font0.c:290:16
+    #8 0x563e2d5fc29d in pdfi_load_font /src/ghostpdl/./pdf/pdf_font.c:868:20
+    #9 0x563e2d602390 in pdfi_load_dict_font /src/ghostpdl/./pdf/pdf_font.c:1006:20
+    #10 0x563e2d6053ba in pdfi_load_resource_font /src/ghostpdl/./pdf/pdf_font.c:1048:12
+    #11 0x563e2d6053ba in pdfi_Tf /src/ghostpdl/./pdf/pdf_font.c:1407:12
+    #12 0x563e2d5830ff in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1642:24
+    #13 0x563e2d581593 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2126:24
+    #14 0x563e2d5d7d1e in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #15 0x563e2d5d7d1e in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #16 0x563e2d5d7d1e in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:1003:12
+    #17 0x563e2d54468a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1157:24
+    #18 0x563e2d3d7529 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #19 0x563e2d3d7529 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #20 0x563e2d3d7529 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #21 0x563e2cb783b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #22 0x563e2cb783b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #23 0x563e2cb783b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #24 0x563e2d6b5c40 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #25 0x563e2d6b2610 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #26 0x563e2d6af792 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #27 0x563e2d6b59c8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #28 0x563e2cb6ffbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #29 0x563e2cb70335 in LLVMFuzzerTestOneInput /src/gs_device_pxlcolor_fuzzer.cc:18:2
+    #30 0x563e2ca246d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #31 0x563e2ca0f945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #32 0x563e2ca153df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #33 0x563e2ca40682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #34 0x7f851ef26082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #35 0x563e2ca07b2d in _start (/out/gs_device_pxlcolor_fuzzer+0x71fb2d)
+
+DEDUP_TOKEN: gs_fapi_ft_get_scaled_font--gs_fapi_prepare_font--gs_fapi_passfont
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/ghostpdl/./base/fapi_ft.c:1412:31 in gs_fapi_ft_get_scaled_font
+==14==ABORTING

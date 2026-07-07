@@ -1,0 +1,15 @@
+The sanitizer detected a file path traversal vulnerability.The explanation of the vulnerability is: An attacker can manipulate file paths to access unauthorized files or directories.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueCritical: File path traversal: ../jazzer-traversal
+- com.code_intelligence.jazzer.sanitizers.FilePathTraversal.check (com/code_intelligence/jazzer/sanitizers/FilePathTraversal.java:346)
+- com.code_intelligence.jazzer.sanitizers.FilePathTraversal.checkPath (com/code_intelligence/jazzer/sanitizers/FilePathTraversal.java:293)
+- com.code_intelligence.jazzer.sanitizers.FilePathTraversal.pathFirstArgHook (com/code_intelligence/jazzer/sanitizers/FilePathTraversal.java:177)
+- com.example.FilePathTraversal.fuzzerTestOneInput (com/example/FilePathTraversal.java:39)
+- java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke (java/base/jdk/internal/reflect/DirectMethodHandleAccessor.java:103)
+- java.base/java.lang.reflect.Method.invoke (java/base/java/lang/reflect/Method.java:580)
+
+To fix this issue, follow the advice below:
+
+1. Validate user input to prevent directory traversal attacks.
+2. Use whitelists or allowlists to restrict file access to authorized directories.
+3. Sanitize file paths before using them in file operations.

@@ -1,0 +1,70 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f13d1157db0 at pc 0x5643f4ba0f84 bp 0x7ffdfb6b7e50 sp 0x7ffdfb6b7e48
+READ of size 1 at 0x7f13d1157db0 thread T0
+SCARINESS: 27 (1-byte-read-stack-buffer-overflow)
+    #0 0x5643f4ba0f83 in iasecc_crt_parse /src/opensc/src/libopensc/iasecc-sdo.c:220:3
+    #1 0x5643f4ba0283 in iasecc_se_parse /src/opensc/src/libopensc/iasecc-sdo.c:371:8
+    #2 0x5643f4b612a1 in iasecc_se_get_info /src/opensc/src/libopensc/card-iasecc.c:1747:8
+    #3 0x5643f4b95337 in iasecc_se_at_to_chv_reference /src/opensc/src/libopensc/card-iasecc.c:1974:7
+    #4 0x5643f4b90643 in iasecc_pin_verify /src/opensc/src/libopensc/card-iasecc.c:2051:8
+    #5 0x5643f4b75668 in iasecc_pin_cmd /src/opensc/src/libopensc/card-iasecc.c:2543:8
+    #6 0x5643f48a8189 in sc_pin_cmd /src/opensc/src/libopensc/sec.c:212:7
+    #7 0x5643f48595a5 in sc_pkcs15init_verify_secret /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:3941:7
+    #8 0x5643f4828340 in sc_pkcs15init_authenticate /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:4005:7
+    #9 0x5643f4d5d181 in iasecc_store_data_object /src/opensc/src/pkcs15init/pkcs15-iasecc.c:1792:8
+    #10 0x5643f4d48db9 in iasecc_emu_store_data /src/opensc/src/pkcs15init/pkcs15-iasecc.c:1849:8
+    #11 0x5643f484744d in sc_pkcs15init_store_data /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:2370:7
+    #12 0x5643f484c774 in sc_pkcs15init_store_data_object /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:2260:6
+    #13 0x5643f4862e1f in do_store_data_object /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:186:5
+    #14 0x5643f486447c in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:336:5
+    #15 0x5643f46d3c90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x5643f46bef05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x5643f46c499f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x5643f46efc42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f13d15a5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #20 0x5643f46b70ed in _start (/out/fuzz_pkcs15init+0x1f30ed)
+
+DEDUP_TOKEN: iasecc_crt_parse--iasecc_se_parse--iasecc_se_get_info
+Address 0x7f13d1157db0 is located in stack of thread T0 at offset 432 in frame
+    #0 0x5643f4b6077f in iasecc_se_get_info /src/opensc/src/libopensc/card-iasecc.c:1708
+
+DEDUP_TOKEN: iasecc_se_get_info
+  This frame has 3 object(s):
+    [32, 136) 'apdu' (line 1710)
+    [176, 432) 'rbuf' (line 1711) <== Memory access at offset 432 overflows this variable
+    [496, 506) 'sbuf_iasecc' (line 1712)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/opensc/src/libopensc/iasecc-sdo.c:220:3 in iasecc_crt_parse
+Shadow bytes around the buggy address:
+  0x7f13d1157b00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f13d1157b80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f13d1157c00: f1 f1 f1 f1 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f13d1157c80: 00 f2 f2 f2 f2 f2 00 00 00 00 00 00 00 00 00 00
+  0x7f13d1157d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7f13d1157d80: 00 00 00 00 00 00[f2]f2 f2 f2 f2 f2 f2 f2 00 02
+  0x7f13d1157e00: f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f13d1157e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f13d1157f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f13d1157f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f13d1158000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

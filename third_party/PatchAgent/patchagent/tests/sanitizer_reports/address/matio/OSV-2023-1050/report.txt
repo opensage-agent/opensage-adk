@@ -1,0 +1,762 @@
+      Name: c
+      Rank: 2
+Dimensions: 2 x 11
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+      Name: c
+      Rank: 2
+Dimensions: 2 x 11
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+{
+char array1
+char array2
+}
+      Name: c_in_tag
+      Rank: 2
+Dimensions: 1 x 4
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+      Name: c_in_tag
+      Rank: 2
+Dimensions: 1 x 4
+Class Type: Character Array
+ Data Type: 16-bit, unsigned integer
+{
+1234
+}
+-E- ossfuzz: HDF5 error #000 in H5Rdereference2()
+      file : H5Rdeprec.c:641
+      major: References
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #001 in H5VL_object_open()
+      file : H5VLcallback.c:5577
+      major: Virtual Object Layer
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #002 in H5VL__object_open()
+      file : H5VLcallback.c:5544
+      major: Virtual Object Layer
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #003 in H5VL__native_object_open()
+      file : H5VLnative_object.c:113
+      major: Object header
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #004 in H5O__open_by_addr()
+      file : H5Oint.c:689
+      major: Object header
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #005 in H5O_open_by_loc()
+      file : H5Oint.c:722
+      major: Object header
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #006 in H5O__dset_open()
+      file : H5Doh.c:234
+      major: Dataset
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #007 in H5D_open()
+      file : H5Dint.c:1499
+      major: Dataset
+      minor: Object not found
+-E- ossfuzz: HDF5 error #008 in H5D__open_oid()
+      file : H5Dint.c:1696
+      major: Dataset
+      minor: Unable to initialize object
+-E- ossfuzz: HDF5 error #009 in H5O_msg_read()
+      file : H5Omessage.c:431
+      major: Object header
+      minor: Read failed
+-E- ossfuzz: HDF5 error #010 in H5O_msg_read_oh()
+      file : H5Omessage.c:486
+      major: Object header
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #011 in H5O__dtype_shared_decode()
+      file : ./H5Oshared.h:74
+      major: Object header
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #012 in H5O__dtype_decode()
+      file : H5Odtype.c:1426
+      major: Datatype
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #013 in H5O__dtype_decode_helper()
+      file : H5Odtype.c:238
+      major: Datatype
+      minor: Out of range
+-E- ossfuzz: HDF5 error #000 in H5Literate2()
+      file : H5L.c:1647
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #001 in H5L__iterate_api_common()
+      file : H5L.c:1613
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #002 in H5VL_link_specific()
+      file : H5VLcallback.c:5318
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #003 in H5VL__link_specific()
+      file : H5VLcallback.c:5284
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #004 in H5VL__native_link_specific()
+      file : H5VLnative_link.c:366
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #005 in H5L_iterate()
+      file : H5Lint.c:2149
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #006 in H5G_iterate()
+      file : H5Gint.c:873
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #007 in H5G__obj_iterate()
+      file : H5Gobj.c:665
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #008 in H5G__stab_iterate()
+      file : H5Gstab.c:505
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: HDF5 error #009 in H5B_iterate()
+      file : H5B.c:1126
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #010 in H5B__iterate_helper()
+      file : H5B.c:1088
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #011 in H5G__node_iterate()
+      file : H5Gnode.c:950
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: HDF5 error #000 in H5Rdereference2()
+      file : H5Rdeprec.c:641
+      major: References
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #001 in H5VL_object_open()
+      file : H5VLcallback.c:5577
+      major: Virtual Object Layer
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #002 in H5VL__object_open()
+      file : H5VLcallback.c:5544
+      major: Virtual Object Layer
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #003 in H5VL__native_object_open()
+      file : H5VLnative_object.c:113
+      major: Object header
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #004 in H5O__open_by_addr()
+      file : H5Oint.c:689
+      major: Object header
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #005 in H5O_open_by_loc()
+      file : H5Oint.c:722
+      major: Object header
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #006 in H5O__dset_open()
+      file : H5Doh.c:234
+      major: Dataset
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #007 in H5D_open()
+      file : H5Dint.c:1499
+      major: Dataset
+      minor: Object not found
+-E- ossfuzz: HDF5 error #008 in H5D__open_oid()
+      file : H5Dint.c:1696
+      major: Dataset
+      minor: Unable to initialize object
+-E- ossfuzz: HDF5 error #009 in H5O_msg_read()
+      file : H5Omessage.c:431
+      major: Object header
+      minor: Read failed
+-E- ossfuzz: HDF5 error #010 in H5O_msg_read_oh()
+      file : H5Omessage.c:486
+      major: Object header
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #011 in H5O__dtype_shared_decode()
+      file : ./H5Oshared.h:74
+      major: Object header
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #012 in H5O__dtype_decode()
+      file : H5Odtype.c:1426
+      major: Datatype
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #013 in H5O__dtype_decode_helper()
+      file : H5Odtype.c:238
+      major: Datatype
+      minor: Out of range
+-E- ossfuzz: HDF5 error #000 in H5Literate2()
+      file : H5L.c:1647
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #001 in H5L__iterate_api_common()
+      file : H5L.c:1613
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #002 in H5VL_link_specific()
+      file : H5VLcallback.c:5318
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #003 in H5VL__link_specific()
+      file : H5VLcallback.c:5284
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #004 in H5VL__native_link_specific()
+      file : H5VLnative_link.c:366
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #005 in H5L_iterate()
+      file : H5Lint.c:2149
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #006 in H5G_iterate()
+      file : H5Gint.c:873
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #007 in H5G__obj_iterate()
+      file : H5Gobj.c:665
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #008 in H5G__stab_iterate()
+      file : H5Gstab.c:505
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: HDF5 error #009 in H5B_iterate()
+      file : H5B.c:1126
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #010 in H5B__iterate_helper()
+      file : H5B.c:1088
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #011 in H5G__node_iterate()
+      file : H5Gnode.c:950
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: HDF5 error #000 in H5Rdereference2()
+      file : H5Rdeprec.c:641
+      major: References
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #001 in H5VL_object_open()
+      file : H5VLcallback.c:5577
+      major: Virtual Object Layer
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #002 in H5VL__object_open()
+      file : H5VLcallback.c:5544
+      major: Virtual Object Layer
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #003 in H5VL__native_object_open()
+      file : H5VLnative_object.c:113
+      major: Object header
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #004 in H5O__open_by_addr()
+      file : H5Oint.c:689
+      major: Object header
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #005 in H5O_open_by_loc()
+      file : H5Oint.c:722
+      major: Object header
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #006 in H5O__dset_open()
+      file : H5Doh.c:234
+      major: Dataset
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #007 in H5D_open()
+      file : H5Dint.c:1499
+      major: Dataset
+      minor: Object not found
+-E- ossfuzz: HDF5 error #008 in H5D__open_oid()
+      file : H5Dint.c:1696
+      major: Dataset
+      minor: Unable to initialize object
+-E- ossfuzz: HDF5 error #009 in H5O_msg_read()
+      file : H5Omessage.c:431
+      major: Object header
+      minor: Read failed
+-E- ossfuzz: HDF5 error #010 in H5O_msg_read_oh()
+      file : H5Omessage.c:486
+      major: Object header
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #011 in H5O__dtype_shared_decode()
+      file : ./H5Oshared.h:74
+      major: Object header
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #012 in H5O__dtype_decode()
+      file : H5Odtype.c:1426
+      major: Datatype
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #013 in H5O__dtype_decode_helper()
+      file : H5Odtype.c:238
+      major: Datatype
+      minor: Out of range
+-E- ossfuzz: HDF5 error #000 in H5Literate2()
+      file : H5L.c:1647
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #001 in H5L__iterate_api_common()
+      file : H5L.c:1613
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #002 in H5VL_link_specific()
+      file : H5VLcallback.c:5318
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #003 in H5VL__link_specific()
+      file : H5VLcallback.c:5284
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #004 in H5VL__native_link_specific()
+      file : H5VLnative_link.c:366
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #005 in H5L_iterate()
+      file : H5Lint.c:2149
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #006 in H5G_iterate()
+      file : H5Gint.c:873
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #007 in H5G__obj_iterate()
+      file : H5Gobj.c:665
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #008 in H5G__stab_iterate()
+      file : H5Gstab.c:505
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: HDF5 error #009 in H5B_iterate()
+      file : H5B.c:1126
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #010 in H5B__iterate_helper()
+      file : H5B.c:1088
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #011 in H5G__node_iterate()
+      file : H5Gnode.c:950
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: An error occurred in reading the MAT file
+-E- ossfuzz: HDF5 error #000 in H5Oget_info_by_name3()
+      file : H5O.c:1158
+      major: Object header
+      minor: Can't get value
+-E- ossfuzz: HDF5 error #001 in H5O__get_info_by_name_api_common()
+      file : H5O.c:1133
+      major: Object header
+      minor: Can't get value
+-E- ossfuzz: HDF5 error #002 in H5VL_object_get()
+      file : H5VLcallback.c:5786
+      major: Virtual Object Layer
+      minor: Can't get value
+-E- ossfuzz: HDF5 error #003 in H5VL__object_get()
+      file : H5VLcallback.c:5754
+      major: Virtual Object Layer
+      minor: Can't get value
+-E- ossfuzz: HDF5 error #004 in H5VL__native_object_get()
+      file : H5VLnative_object.c:269
+      major: Object header
+      minor: Object not found
+-E- ossfuzz: HDF5 error #005 in H5G_loc_info()
+      file : H5Gloc.c:761
+      major: Symbol table
+      minor: Object not found
+-E- ossfuzz: HDF5 error #006 in H5G_traverse()
+      file : H5Gtraverse.c:824
+      major: Symbol table
+      minor: Object not found
+-E- ossfuzz: HDF5 error #007 in H5G__traverse_real()
+      file : H5Gtraverse.c:596
+      major: Symbol table
+      minor: Callback failed
+-E- ossfuzz: HDF5 error #008 in H5G__loc_info_cb()
+      file : H5Gloc.c:722
+      major: Symbol table
+      minor: Can't get value
+-E- ossfuzz: HDF5 error #009 in H5O_get_info()
+      file : H5Oint.c:2084
+      major: Object header
+      minor: Unable to protect metadata
+-E- ossfuzz: HDF5 error #010 in H5O_protect()
+      file : H5Oint.c:988
+      major: Object header
+      minor: Unable to protect metadata
+-E- ossfuzz: HDF5 error #011 in H5AC_protect()
+      file : H5AC.c:1277
+      major: Object cache
+      minor: Unable to protect metadata
+-E- ossfuzz: HDF5 error #012 in H5C_protect()
+      file : H5Centry.c:3106
+      major: Object cache
+      minor: Unable to load metadata into cache
+-E- ossfuzz: HDF5 error #013 in H5C__load_entry()
+      file : H5Centry.c:1194
+      major: Object cache
+      minor: Unable to load metadata into cache
+-E- ossfuzz: HDF5 error #014 in H5O__cache_deserialize()
+      file : H5Ocache.c:302
+      major: Object header
+      minor: Unable to initialize object
+-E- ossfuzz: HDF5 error #015 in H5O__chunk_deserialize()
+      file : H5Ocache.c:1266
+      major: Object header
+      minor: Unable to load metadata into cache
+-E- ossfuzz: HDF5 error #000 in H5Literate2()
+      file : H5L.c:1647
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #001 in H5L__iterate_api_common()
+      file : H5L.c:1613
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #002 in H5VL_link_specific()
+      file : H5VLcallback.c:5318
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #003 in H5VL__link_specific()
+      file : H5VLcallback.c:5284
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #004 in H5VL__native_link_specific()
+      file : H5VLnative_link.c:366
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #005 in H5L_iterate()
+      file : H5Lint.c:2149
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #006 in H5G_iterate()
+      file : H5Gint.c:873
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #007 in H5G__obj_iterate()
+      file : H5Gobj.c:665
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #008 in H5G__stab_iterate()
+      file : H5Gstab.c:505
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: HDF5 error #009 in H5B_iterate()
+      file : H5B.c:1126
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #010 in H5B__iterate_helper()
+      file : H5B.c:1088
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #011 in H5G__node_iterate()
+      file : H5Gnode.c:950
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: An error occurred in reading the MAT file
+-E- ossfuzz: HDF5 error #000 in H5Dopen2()
+      file : H5D.c:398
+      major: Dataset
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #001 in H5D__open_api_common()
+      file : H5D.c:360
+      major: Dataset
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #002 in H5VL_dataset_open()
+      file : H5VLcallback.c:1967
+      major: Virtual Object Layer
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #003 in H5VL__dataset_open()
+      file : H5VLcallback.c:1934
+      major: Virtual Object Layer
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #004 in H5VL__native_dataset_open()
+      file : H5VLnative_dataset.c:332
+      major: Dataset
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #005 in H5D__open_name()
+      file : H5Dint.c:1437
+      major: Dataset
+      minor: Unable to initialize object
+-E- ossfuzz: HDF5 error #006 in H5D_open()
+      file : H5Dint.c:1499
+      major: Dataset
+      minor: Object not found
+-E- ossfuzz: HDF5 error #007 in H5D__open_oid()
+      file : H5Dint.c:1696
+      major: Dataset
+      minor: Unable to initialize object
+-E- ossfuzz: HDF5 error #008 in H5O_msg_read()
+      file : H5Omessage.c:431
+      major: Object header
+      minor: Read failed
+-E- ossfuzz: HDF5 error #009 in H5O_msg_read_oh()
+      file : H5Omessage.c:486
+      major: Object header
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #010 in H5O__dtype_shared_decode()
+      file : ./H5Oshared.h:74
+      major: Object header
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #011 in H5O__dtype_decode()
+      file : H5Odtype.c:1426
+      major: Datatype
+      minor: Unable to decode value
+-E- ossfuzz: HDF5 error #012 in H5O__dtype_decode_helper()
+      file : H5Odtype.c:182
+      major: Datatype
+      minor: Out of range
+-E- ossfuzz: HDF5 error #000 in H5Aopen_by_name()
+      file : H5A.c:666
+      major: Attribute
+      minor: Can't open object
+-E- ossfuzz: HDF5 error #001 in H5A__open_by_name_api_common()
+      file : H5A.c:621
+      major: Attribute
+      minor: Can't set value
+-E- ossfuzz: HDF5 error #002 in H5VL_setup_name_args()
+      file : H5VLint.c:2727
+      major: Invalid arguments to routine
+      minor: Inappropriate type
+-E- ossfuzz: HDF5 error #003 in H5VL_vol_object()
+      file : H5VLint.c:1756
+      major: Invalid arguments to routine
+      minor: Inappropriate type
+-E- ossfuzz: HDF5 error #000 in H5Aclose()
+      file : H5A.c:2193
+      major: Invalid arguments to routine
+      minor: Inappropriate type
+-E- ossfuzz: HDF5 error #000 in H5Literate2()
+      file : H5L.c:1647
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #001 in H5L__iterate_api_common()
+      file : H5L.c:1613
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #002 in H5VL_link_specific()
+      file : H5VLcallback.c:5318
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #003 in H5VL__link_specific()
+      file : H5VLcallback.c:5284
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #004 in H5VL__native_link_specific()
+      file : H5VLnative_link.c:366
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #005 in H5L_iterate()
+      file : H5Lint.c:2149
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #006 in H5G_iterate()
+      file : H5Gint.c:873
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #007 in H5G__obj_iterate()
+      file : H5Gobj.c:665
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #008 in H5G__stab_iterate()
+      file : H5Gstab.c:505
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: HDF5 error #009 in H5B_iterate()
+      file : H5B.c:1126
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #010 in H5B__iterate_helper()
+      file : H5B.c:1088
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #011 in H5G__node_iterate()
+      file : H5Gnode.c:950
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: An error occurred in reading the MAT file
+-E- ossfuzz: HDF5 error #000 in H5Oget_info_by_name3()
+      file : H5O.c:1158
+      major: Object header
+      minor: Can't get value
+-E- ossfuzz: HDF5 error #001 in H5O__get_info_by_name_api_common()
+      file : H5O.c:1133
+      major: Object header
+      minor: Can't get value
+-E- ossfuzz: HDF5 error #002 in H5VL_object_get()
+      file : H5VLcallback.c:5786
+      major: Virtual Object Layer
+      minor: Can't get value
+-E- ossfuzz: HDF5 error #003 in H5VL__object_get()
+      file : H5VLcallback.c:5754
+      major: Virtual Object Layer
+      minor: Can't get value
+-E- ossfuzz: HDF5 error #004 in H5VL__native_object_get()
+      file : H5VLnative_object.c:269
+      major: Object header
+      minor: Object not found
+-E- ossfuzz: HDF5 error #005 in H5G_loc_info()
+      file : H5Gloc.c:761
+      major: Symbol table
+      minor: Object not found
+-E- ossfuzz: HDF5 error #006 in H5G_traverse()
+      file : H5Gtraverse.c:824
+      major: Symbol table
+      minor: Object not found
+-E- ossfuzz: HDF5 error #007 in H5G__traverse_real()
+      file : H5Gtraverse.c:596
+      major: Symbol table
+      minor: Callback failed
+-E- ossfuzz: HDF5 error #008 in H5G__loc_info_cb()
+      file : H5Gloc.c:722
+      major: Symbol table
+      minor: Can't get value
+-E- ossfuzz: HDF5 error #009 in H5O_get_info()
+      file : H5Oint.c:2084
+      major: Object header
+      minor: Unable to protect metadata
+-E- ossfuzz: HDF5 error #010 in H5O_protect()
+      file : H5Oint.c:988
+      major: Object header
+      minor: Unable to protect metadata
+-E- ossfuzz: HDF5 error #011 in H5AC_protect()
+      file : H5AC.c:1277
+      major: Object cache
+      minor: Unable to protect metadata
+-E- ossfuzz: HDF5 error #012 in H5C_protect()
+      file : H5Centry.c:3106
+      major: Object cache
+      minor: Unable to load metadata into cache
+-E- ossfuzz: HDF5 error #013 in H5C__load_entry()
+      file : H5Centry.c:1194
+      major: Object cache
+      minor: Unable to load metadata into cache
+-E- ossfuzz: HDF5 error #014 in H5O__cache_deserialize()
+      file : H5Ocache.c:302
+      major: Object header
+      minor: Unable to initialize object
+-E- ossfuzz: HDF5 error #015 in H5O__chunk_deserialize()
+      file : H5Ocache.c:1266
+      major: Object header
+      minor: Unable to load metadata into cache
+-E- ossfuzz: HDF5 error #000 in H5Literate2()
+      file : H5L.c:1647
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #001 in H5L__iterate_api_common()
+      file : H5L.c:1613
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #002 in H5VL_link_specific()
+      file : H5VLcallback.c:5318
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #003 in H5VL__link_specific()
+      file : H5VLcallback.c:5284
+      major: Virtual Object Layer
+      minor: Can't operate on object
+-E- ossfuzz: HDF5 error #004 in H5VL__native_link_specific()
+      file : H5VLnative_link.c:366
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #005 in H5L_iterate()
+      file : H5Lint.c:2149
+      major: Links
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #006 in H5G_iterate()
+      file : H5Gint.c:873
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #007 in H5G__obj_iterate()
+      file : H5Gobj.c:665
+      major: Symbol table
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #008 in H5G__stab_iterate()
+      file : H5Gstab.c:505
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: HDF5 error #009 in H5B_iterate()
+      file : H5B.c:1126
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #010 in H5B__iterate_helper()
+      file : H5B.c:1088
+      major: B-Tree node
+      minor: Iteration failed
+-E- ossfuzz: HDF5 error #011 in H5G__node_iterate()
+      file : H5Gnode.c:950
+      major: Symbol table
+      minor: Can't move to next iterator location
+-E- ossfuzz: An error occurred in reading the MAT file
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50300000a3d4 at pc 0x557a0d3e62f4 bp 0x7ffddc847930 sp 0x7ffddc8470f0
+WRITE of size 200 at 0x50300000a3d4 thread T0
+SCARINESS: 45 (multi-byte-write-heap-buffer-overflow)
+    #0 0x557a0d3e62f3 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x557a0d64c175 in H5D__scatter_mem /src/hdf5/src/H5Dscatgath.c:333:13
+    #2 0x557a0d64d7aa in H5D__scatgath_read /src/hdf5/src/H5Dscatgath.c:597:21
+    #3 0x557a0dc589f8 in H5D__contig_read /src/hdf5/src/H5Dcontig.c:893:13
+    #4 0x557a0d641faf in H5D__read /src/hdf5/src/H5Dio.c:398:17
+    #5 0x557a0db9951a in H5VL__native_dataset_read /src/hdf5/src/H5VLnative_dataset.c:373:9
+    #6 0x557a0db6b093 in H5VL__dataset_read /src/hdf5/src/H5VLcallback.c:2033:9
+    #7 0x557a0db6b093 in H5VL_dataset_read /src/hdf5/src/H5VLcallback.c:2076:9
+    #8 0x557a0d612568 in H5D__read_api_common /src/hdf5/src/H5D.c:990:9
+    #9 0x557a0d6118ee in H5Dread /src/hdf5/src/H5D.c:1042:9
+    #10 0x557a0d43c6c4 in Mat_VarRead73 /src/matio/src/mat73.c:2838:39
+    #11 0x557a0d436e49 in ReadData /src/matio/src/mat.c:112:16
+    #12 0x557a0d436e49 in Mat_VarRead /src/matio/src/mat.c:2785:29
+    #13 0x557a0d427ca4 in MatioRead(char const*) /src/matio/ossfuzz/./matio_wrap.h:63:18
+    #14 0x557a0d427d79 in LLVMFuzzerTestOneInput /src/matio/ossfuzz/./matio_fuzzer.cpp:30:12
+    #15 0x557a0d2dc5a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x557a0d2c7815 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x557a0d2cd2af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x557a0d2f8552 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f24984c3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #20 0x557a0d2bf9fd in _start (/out/matio_fuzzer+0x3bd9fd)
+
+DEDUP_TOKEN: __asan_memcpy--H5D__scatter_mem--H5D__scatgath_read
+0x50300000a3d4 is located 0 bytes after 20-byte region [0x50300000a3c0,0x50300000a3d4)
+allocated by thread T0 here:
+    #0 0x557a0d3e836f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x557a0d43c652 in Mat_VarRead73 /src/matio/src/mat73.c:2836:55
+    #2 0x557a0d436e49 in ReadData /src/matio/src/mat.c:112:16
+    #3 0x557a0d436e49 in Mat_VarRead /src/matio/src/mat.c:2785:29
+    #4 0x557a0d427ca4 in MatioRead(char const*) /src/matio/ossfuzz/./matio_wrap.h:63:18
+    #5 0x557a0d427d79 in LLVMFuzzerTestOneInput /src/matio/ossfuzz/./matio_fuzzer.cpp:30:12
+    #6 0x557a0d2dc5a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x557a0d2c7815 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x557a0d2cd2af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x557a0d2f8552 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f24984c3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--Mat_VarRead73--ReadData
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/hdf5/src/H5Dscatgath.c:333:13 in H5D__scatter_mem
+Shadow bytes around the buggy address:
+  0x50300000a100: fd fa fa fa fd fd fd fd fa fa fd fd fd fd fa fa
+  0x50300000a180: fd fd fd fd fa fa fd fd fd fd fa fa fd fd fd fa
+  0x50300000a200: fa fa fd fd fd fd fa fa 00 00 00 fa fa fa 00 00
+  0x50300000a280: 00 00 fa fa fd fd fd fd fa fa fd fd fd fd fa fa
+  0x50300000a300: fd fd fd fd fa fa fd fd fd fd fa fa fd fd fd fd
+=>0x50300000a380: fa fa 00 00 00 00 fa fa 00 00[04]fa fa fa fa fa
+  0x50300000a400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50300000a480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50300000a500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50300000a580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50300000a600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

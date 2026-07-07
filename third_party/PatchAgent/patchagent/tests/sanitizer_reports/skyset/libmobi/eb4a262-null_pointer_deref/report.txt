@@ -1,0 +1,20 @@
+=================================================================
+==527514==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000018 (pc 0x562b3392edfd bp 0x7ffd3c8824a0 sp 0x7ffd3c882450 T0)
+==527514==The signal is caused by a READ memory access.
+==527514==Hint: address points to the zero page.
+    #0 0x562b3392edfd in mobi_get_cncx_string_flat /root/src/index.c:933:58
+    #1 0x562b3392fbe4 in mobi_trie_insert_infl /root/src/index.c:1076:30
+    #2 0x562b338ca384 in mobi_reconstruct_orth /root/src/parse_rawml.c:1537:28
+    #3 0x562b338cbcf8 in mobi_reconstruct_links_kf7 /root/src/parse_rawml.c:1805:15
+    #4 0x562b338cc0e2 in mobi_reconstruct_links /root/src/parse_rawml.c:1854:15
+    #5 0x562b338ce210 in mobi_parse_rawml_opt /root/src/parse_rawml.c:2158:15
+    #6 0x562b338cd328 in mobi_parse_rawml /root/src/parse_rawml.c:2014:12
+    #7 0x562b338adfa2 in loadfilename /root/tools/mobitool.c:852:20
+    #8 0x562b338ad97b in main /root/tools/mobitool.c:1051:11
+    #9 0x7fef9bed41c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x7fef9bed428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x562b338ab744 in _start (/root/tools/mobitool+0x13744) (BuildId: 7d5b0a6928250d1b42e05592af9489154201b966)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/src/index.c:933:58 in mobi_get_cncx_string_flat
+==527514==ABORTING

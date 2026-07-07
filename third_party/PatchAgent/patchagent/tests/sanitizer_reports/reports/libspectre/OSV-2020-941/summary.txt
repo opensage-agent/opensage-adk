@@ -1,0 +1,32 @@
+The sanitizer detected a memory leak vulnerability. The explanation of the vulnerability is: A program fails to free allocated memory, leading to resource exhaustion and degraded system performance over time. Here is the detail: 
+
+
+Direct leak of 1951488 byte(s) in 1 object(s) allocated from:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - spectre_presize /src/libspectre/libspectre/spectre-device.c:75:19
+    - display_open /src/libspectre/ghostscript-9.50/devices/gdevdsp.c:278:13
+    - default_subclass_open_device /src/libspectre/ghostscript-9.50/base/gdevsclass.c:103:16
+    - gs_opendevice /src/libspectre/ghostscript-9.50/base/gsdevice.c:449:20
+    - display_set_callback /src/libspectre/ghostscript-9.50/psi/idisp.c:106:20
+    - gs_main_init2aux /src/libspectre/ghostscript-9.50/psi/imain.c:309:21
+    - gs_main_init2 /src/libspectre/ghostscript-9.50/psi/imain.c:338:12
+    - gs_main_init_with_args2 /src/libspectre/ghostscript-9.50/psi/imainarg.c:276:12
+    - gs_main_init_with_args /src/libspectre/ghostscript-9.50/psi/imainarg.c:292:12
+    - spectre_gs_run /src/libspectre/libspectre/spectre-gs.c:200:10
+    - spectre_device_render /src/libspectre/libspectre/spectre-device.c:363:12
+    - spectre_page_render /src/libspectre/libspectre/spectre-page.c:164:17
+    - spectre_document_render_full /src/libspectre/libspectre/spectre-document.c:351:2
+    - spectre_document_render /src/libspectre/libspectre/spectre-document.c:367:2
+    - spectre_document_load /src/libspectre/libspectre/spectre-document.c:87:3
+    - LLVMFuzzerTestOneInput /src/libspectre/test/spectre_read_fuzzer.c:34:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that every memory allocation has a corresponding deallocation.
+2. Track allocated memory systematically to avoid leaks.
+3. Avoid unnecessary memory allocations by reusing buffers where possible.

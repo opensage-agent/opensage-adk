@@ -1,0 +1,46 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mosquitto:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/mosquitto/OSV-2023-460/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce broker_fuzz_test_config -runs=100.
++ FUZZER=broker_fuzz_test_config
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer broker_fuzz_test_config -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/broker_fuzz_test_config -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=broker_fuzz_test_config.dict < /dev/null
+Dictionary: 165 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1708931914
+INFO: Loaded 1 modules   (10228 inline 8-bit counters): 10228 [0x55cb5a10bf30, 0x55cb5a10e724), 
+INFO: Loaded 1 PC tables (10228 PCs): 10228 [0x55cb5a10e728,0x55cb5a136668), 
+/out/broker_fuzz_test_config: Running 1 inputs 100 time(s) each.
+Running: /testcase
+1740434126: Error: Out of memory.
+1740434126: Error found at /tmp/mosquitto_14.conf:35.
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x55cb59fbd03b bp 0x7ffc2b26ec10 sp 0x7ffc2b26ebd0 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55cb59fbd03b in config__bridge_cleanup /src/mosquitto/src/conf.c:439:2
+    #1 0x55cb59fbc694 in config__cleanup /src/mosquitto/src/conf.c:414:4
+    #2 0x55cb59fb073f in mosquitto_fuzz_main /src/mosquitto/src/mosquitto.c:359:3
+    #3 0x55cb59fb0295 in run_broker(char*) /src/mosquitto/fuzzing/broker/broker_fuzz_test_config.cpp:42:2
+    #4 0x55cb59fb0475 in LLVMFuzzerTestOneInput /src/mosquitto/fuzzing/broker/broker_fuzz_test_config.cpp:62:2
+    #5 0x55cb59e64d00 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x55cb59e4ff75 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x55cb59e55a0f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x55cb59e80cb2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f6fcd810082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #10 0x55cb59e4815d in _start (/out/broker_fuzz_test_config+0x9615d)
+
+DEDUP_TOKEN: config__bridge_cleanup--config__cleanup--mosquitto_fuzz_main
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/mosquitto/src/conf.c:439:2 in config__bridge_cleanup
+==14==ABORTING

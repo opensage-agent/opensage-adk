@@ -1,0 +1,36 @@
+ERROR: Unknown arch 168034303
+ERROR: Unknown arch 168034303
+ERROR: Unknown arch 168034303
+==18== ERROR: libFuzzer: out-of-memory (used: 2628Mb; limit: 2560Mb)
+   To change the out-of-memory limit use -rss_limit_mb=<N>
+
+Live Heap Allocations: 2990417978 bytes in 13143 chunks; quarantined: 9832900 bytes in 3325 chunks; 40411 other chunks; total chunks: 56879; showing top 95% (at most 8 unique contexts)
+2964369588 byte(s) (99%) in 4 allocation(s)
+ERROR: Unknown arch 168034303
+    #0 0x55f8ca1b5889 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x55f8ca48e3d1 in walk_exports /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:2750:14
+    #2 0x55f8ca48e3d1 in _parse_symbols /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:2997:2
+    #3 0x55f8ca48e3d1 in load_symbols_64 /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:3263:3
+    #4 0x55f8ca49ba0a in get_main_64 /src/radare2/libr/../libr/bin/p/../format/mach0/mach0.c:4432:4
+    #5 0x55f8ca483e41 in binsym /src/radare2/libr/../libr/bin/p/bin_mach064.c:273:16
+    #6 0x55f8ca34a92a in r_bin_object_set_items /src/radare2/libr/bin/bobj.c:310:20
+    #7 0x55f8ca34a1fb in r_bin_object_new /src/radare2/libr/bin/bobj.c:182:2
+    #8 0x55f8ca341029 in r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:613:19
+    #9 0x55f8ca31f52a in r_bin_open_buf /src/radare2/libr/bin/bin.c:303:8
+    #10 0x55f8ca31eb15 in r_bin_open_io /src/radare2/libr/bin/bin.c:369:13
+    #11 0x55f8cad6d1b9 in cmd_open_bin /src/radare2/libr/core/./cmd_open.inc.c:273:6
+    #12 0x55f8cac96a26 in cmd_open /src/radare2/libr/core/./cmd_open.inc.c:2110:3
+    #13 0x55f8cae53943 in r_cmd_call /src/radare2/libr/core/cmd_api.c:520:11
+    #14 0x55f8cace079f in r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5016:8
+    #15 0x55f8cacd9787 in r_core_cmd_subst /src/radare2/libr/core/cmd.c:3842:10
+    #16 0x55f8cac3d705 in run_cmd_depth /src/radare2/libr/core/cmd.c:5958:9
+    #17 0x55f8cac3346d in r_core_cmd /src/radare2/libr/core/cmd.c:6046:8
+    #18 0x55f8ca1f4df5 in LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    #19 0x55f8ca0a98f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x55f8ca094b65 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x55f8ca09a5ff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x55f8ca0c58a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7fe58863d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--walk_exports--_parse_symbols
+SUMMARY: libFuzzer: out-of-memory

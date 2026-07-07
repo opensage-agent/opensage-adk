@@ -1,0 +1,56 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libaom:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce av1_dec_fuzzer -runs=100.
++ FUZZER=av1_dec_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer av1_dec_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/av1_dec_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=av1_dec_fuzzer.dict < /dev/null
+Dictionary: 2 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2843760917
+INFO: Loaded 1 modules   (11 inline 8-bit counters): 11 [0x55709ebd06f0, 0x55709ebd06fb), 
+INFO: Loaded 1 PC tables (11 PCs): 11 [0x55709ebd0700,0x55709ebd07b0), 
+/out/av1_dec_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x55ff9fc8a760 (pc 0x55709e7badd7 bp 0x7ffc20a23380 sp 0x7ffc20a232d0 T14)
+[1m[0m==14==The signal is caused by a WRITE memory access.
+    #0 0x55709e7badd7 in set_txfm_ctx /src/aom/av1/common/av1_common_int.h:1635:41
+    #1 0x55709e7badd7 in set_txfm_ctxs /src/aom/av1/common/av1_common_int.h:1648:3
+    #2 0x55709e7badd7 in parse_decode_block /src/aom/av1/decoder/decodeframe.c:1145:5
+    #3 0x55709e7b96ae in decode_partition /src/aom/av1/decoder/decodeframe.c:1330:7
+    #4 0x55709e7b9569 in decode_partition /src/aom/av1/decoder/decodeframe.c:1338:7
+    #5 0x55709e7b43c9 in parse_tile_row_mt /src/aom/av1/decoder/decodeframe.c:3143:7
+    #6 0x55709e7b43c9 in row_mt_worker_hook /src/aom/av1/decoder/decodeframe.c:3216:7
+    #7 0x55709e8a1ffc in execute /src/aom/aom_util/aom_thread.c:163:27
+    #8 0x55709e7b1593 in launch_dec_workers /src/aom/av1/decoder/decodeframe.c:3443:7
+    #9 0x55709e7b1593 in decode_tiles_row_mt /src/aom/av1/decoder/decodeframe.c:3819:3
+    #10 0x55709e7b1593 in av1_decode_tg_tiles_and_wrapup /src/aom/av1/decoder/decodeframe.c:5246:9
+    #11 0x55709e7d8027 in read_one_tile_group_obu /src/aom/av1/decoder/obu.c:361:3
+    #12 0x55709e7d8027 in aom_decode_frame_from_obus /src/aom/av1/decoder/obu.c:1030:33
+    #13 0x55709e7cc53f in av1_receive_compressed_data /src/aom/av1/decoder/decoder.c:469:7
+    #14 0x55709e7a7cd7 in frame_worker_hook /src/aom/av1/av1_dx_iface.c:409:16
+    #15 0x55709e8a1ffc in execute /src/aom/aom_util/aom_thread.c:163:27
+    #16 0x55709e7a4389 in decode_one /src/aom/av1/av1_dx_iface.c:526:3
+    #17 0x55709e7a4389 in decoder_decode /src/aom/av1/av1_dx_iface.c:713:11
+    #18 0x55709e7a3cd7 in aom_codec_decode /src/aom/aom/src/aom_decoder.c:103:11
+    #19 0x55709e7a33ac in LLVMFuzzerTestOneInput /src/aom/examples/av1_dec_fuzzer.cc:56:9
+    #20 0x55709e705840 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #21 0x55709e6f0ab5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #22 0x55709e6f654f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #23 0x55709e7217f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #24 0x7fb09404b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #25 0x55709e6e8c9d in _start (/out/av1_dec_fuzzer+0x28c9d)
+
+DEDUP_TOKEN: set_txfm_ctx--set_txfm_ctxs--parse_decode_block
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/aom/av1/common/av1_common_int.h:1635:41 in set_txfm_ctx
+==14==ABORTING

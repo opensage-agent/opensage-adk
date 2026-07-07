@@ -1,0 +1,123 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/php:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/php/OSV-2021-1759/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce php-fuzz-tracing-jit -runs=100.
++ FUZZER=php-fuzz-tracing-jit
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer php-fuzz-tracing-jit -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/php-fuzz-tracing-jit -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 355558494
+INFO: Loaded 2 modules   (173310 inline 8-bit counters): 140244 [0x55aa5c7c3a80, 0x55aa5c7e5e54), 33066 [0x7f5dc103a800, 0x7f5dc104292a), 
+INFO: Loaded 2 PC tables (173310 PCs): 140244 [0x55aa5c7e5e58,0x55aa5ca09b98), 33066 [0x7f5dc1042930,0x7f5dc10c3bd0), 
+/out/php-fuzz-tracing-jit: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x51e000009f18 at pc 0x55aa5bc09dd0 bp 0x7ffe445eef90 sp 0x7ffe445eef88
+[1m[0m[1m[34mREAD of size 8 at 0x51e000009f18 thread T0[1m[0m
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x55aa5bc09dcf in _zend_hash_del_el /src/php-src/Zend/zend_hash.c:1435:9
+    #1 0x55aa5bc09dcf in zend_hash_reverse_apply /src/php-src/Zend/zend_hash.c:2156:5
+    #2 0x55aa5bb63d71 in shutdown_destructors /src/php-src/Zend/zend_execute_API.c:252:4
+    #3 0x55aa5bbac84a in zend_call_destructors /src/php-src/Zend/zend.c:1225:3
+    #4 0x55aa5ba125f0 in php_request_shutdown /src/php-src/main/main.c:1808:3
+    #5 0x55aa5bfdd323 in fuzzer_request_shutdown /src/php-src/sapi/fuzzer/fuzzer-sapi.c:208:2
+    #6 0x55aa5bfdd97e in fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:288:2
+    #7 0x55aa5bfdc083 in LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-tracing-jit.c:34:2
+    #8 0x55aa5b3c4fe0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55aa5b3b0255 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55aa5b3b5cef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55aa5b3e0f92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f5dc33a1082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x55aa5b3a843d in _start (/out/php-fuzz-tracing-jit+0x60243d)
+
+DEDUP_TOKEN: _zend_hash_del_el--zend_hash_reverse_apply--shutdown_destructors
+[1m[32m0x51e000009f18 is located 664 bytes inside of 2560-byte region [0x51e000009c80,0x51e00000a680)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x55aa5b4d0b16 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55aa5bc12d62 in zend_hash_do_resize /src/php-src/Zend/zend_hash.c:1239:3
+    #2 0x55aa5bbf689c in _zend_hash_add_or_update_i /src/php-src/Zend/zend_hash.c:799:2
+    #3 0x55aa5bde7e36 in zend_fetch_var_address_helper_SPEC_TMPVAR_UNUSED /src/php-src/Zend/zend_vm_execute.h:17635:13
+    #4 0x55aa5bd10187 in ZEND_FETCH_W_SPEC_TMPVAR_UNUSED_HANDLER /src/php-src/Zend/zend_vm_execute.h:17694:2
+    #5 0x55aa5bfdc82c in fuzzer_execute_ex /src/php-src/sapi/fuzzer/fuzzer-execute-common.h:53:14
+    #6 0x55aa5bb6c4a3 in zend_call_function /src/php-src/Zend/zend_execute_API.c:903:3
+    #7 0x55aa5bb6e062 in zend_call_known_function /src/php-src/Zend/zend_execute_API.c:992:23
+    #8 0x55aa5be6d5a2 in zend_call_known_instance_method /src/php-src/Zend/zend_API.h:676:2
+    #9 0x55aa5be6d5a2 in zend_call_known_instance_method_with_0_params /src/php-src/Zend/zend_API.h:682:2
+    #10 0x55aa5be6d5a2 in zend_objects_destroy_object /src/php-src/Zend/zend_objects.c:170:3
+    #11 0x55aa5be813fb in zend_objects_store_del /src/php-src/Zend/zend_objects_API.c:184:4
+    #12 0x55aa5bbfbafd in _zend_hash_del_el_ex /src/php-src/Zend/zend_hash.c:1411:3
+    #13 0x55aa5bc0903b in _zend_hash_del_el /src/php-src/Zend/zend_hash.c:1434:2
+    #14 0x55aa5bc0903b in zend_hash_reverse_apply /src/php-src/Zend/zend_hash.c:2156:5
+    #15 0x55aa5bb63d71 in shutdown_destructors /src/php-src/Zend/zend_execute_API.c:252:4
+    #16 0x55aa5bbac84a in zend_call_destructors /src/php-src/Zend/zend.c:1225:3
+    #17 0x55aa5ba125f0 in php_request_shutdown /src/php-src/main/main.c:1808:3
+    #18 0x55aa5bfdd323 in fuzzer_request_shutdown /src/php-src/sapi/fuzzer/fuzzer-sapi.c:208:2
+    #19 0x55aa5bfdd97e in fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:288:2
+    #20 0x55aa5bfdc083 in LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-tracing-jit.c:34:2
+    #21 0x55aa5b3c4fe0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #22 0x55aa5b3b0255 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #23 0x55aa5b3b5cef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #24 0x55aa5b3e0f92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #25 0x7f5dc33a1082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--zend_hash_do_resize--_zend_hash_add_or_update_i
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x55aa5b4d0daf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55aa5bae4e2d in tracked_malloc /src/php-src/Zend/zend_alloc.c:2760:14
+    #2 0x55aa5bbed3ed in zend_hash_real_init_mixed_ex /src/php-src/Zend/zend_hash.c:214:10
+    #3 0x55aa5bbf6c5a in _zend_hash_add_or_update_i /src/php-src/Zend/zend_hash.c:756:4
+    #4 0x55aa5ba42372 in php_auto_globals_create_get /src/php-src/main/php_variables.c:739:2
+    #5 0x55aa5baf456f in zend_activate_auto_globals /src/php-src/Zend/zend_compile.c:1733:25
+    #6 0x55aa5ba41ceb in php_hash_environment /src/php-src/main/php_variables.c:722:2
+    #7 0x55aa5ba12115 in php_request_startup /src/php-src/main/main.c:1767:3
+    #8 0x55aa5bfdd6ad in fuzzer_request_startup /src/php-src/sapi/fuzzer/fuzzer-sapi.c:179:6
+    #9 0x55aa5bfdd6ad in fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:254:6
+    #10 0x55aa5bfdc083 in LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-tracing-jit.c:34:2
+    #11 0x55aa5b3c4fe0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x55aa5b3b0255 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x55aa5b3b5cef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x55aa5b3e0f92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f5dc33a1082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--tracked_malloc--zend_hash_real_init_mixed_ex
+SUMMARY: AddressSanitizer: heap-use-after-free /src/php-src/Zend/zend_hash.c:1435:9 in _zend_hash_del_el
+Shadow bytes around the buggy address:
+  0x51e000009c80: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x51e000009d00: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x51e000009d80: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x51e000009e00: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x51e000009e80: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+=>0x51e000009f00: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x51e000009f80: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x51e00000a000: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x51e00000a080: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x51e00000a100: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x51e00000a180: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

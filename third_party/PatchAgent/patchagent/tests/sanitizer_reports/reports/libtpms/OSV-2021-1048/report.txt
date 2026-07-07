@@ -1,0 +1,133 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libtpms:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libtpms/OSV-2021-1048/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz -runs=100.
++ FUZZER=fuzz
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3657401399
+INFO: Loaded 1 modules   (26855 inline 8-bit counters): 26855 [0x55e54096dd50, 0x55e540974637), 
+INFO: Loaded 1 PC tables (26855 PCs): 26855 [0x55e540974638,0x55e5409dd4a8), 
+/out/fuzz: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f36b72c5200 at pc 0x55e540776e15 bp 0x7fffb4714970 sp 0x7fffb4714968
+[1m[0m[1m[34mREAD of size 4 at 0x7f36b72c5200 thread T0[1m[0m
+SCARINESS: 32 (4-byte-read-stack-buffer-overflow)
+    #0 0x55e540776e14 in INDEX_ORDERLY_RAM_Marshal /src/libtpms/src/tpm2/NVMarshal.c:4238:9
+    #1 0x55e540776e14 in PERSISTENT_ALL_Marshal /src/libtpms/src/tpm2/NVMarshal.c:4731:16
+    #2 0x55e5406b804e in TPM2_PersistentAllStore /src/libtpms/src/tpm_tpm2_interface.c:270:19
+    #3 0x55e54080b170 in libtpms_plat__NvCommit /src/libtpms/src/tpm2/LibtpmsCallbacks.c:144:15
+    #4 0x55e540780621 in _plat__NvCommit /src/libtpms/src/tpm2/NVMem.c:444:15
+    #5 0x55e540780821 in NvCommit /src/libtpms/src/tpm2/NVReserved.c:108:13
+    #6 0x55e54084c553 in ExecuteCommand /src/libtpms/src/tpm2/ExecCommand.c:307:10
+    #7 0x55e54082febd in _plat__RunCommand /src/libtpms/src/tpm2/RunCommand.c:95:5
+    #8 0x55e5406b8ade in TPM2_Process /src/libtpms/src/tpm_tpm2_interface.c:219:5
+    #9 0x55e5406a9164 in LLVMFuzzerTestOneInput /src/libtpms/tests/fuzz.cc:91:11
+    #10 0x55e54055dae0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x55e540548d55 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x55e54054e7ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x55e540579a92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f36b79e4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #15 0x55e540540f3d in _start (/out/fuzz+0x12bf3d)
+
+DEDUP_TOKEN: INDEX_ORDERLY_RAM_Marshal--PERSISTENT_ALL_Marshal--TPM2_PersistentAllStore
+[1m[32mAddress 0x7f36b72c5200 is located in stack of thread T0 at offset 6656 in frame[1m[0m
+[1m[0m    #0 0x55e54077502f in PERSISTENT_ALL_Marshal /src/libtpms/src/tpm2/NVMarshal.c:4700
+
+DEDUP_TOKEN: PERSISTENT_ALL_Marshal
+  This frame has 50 object(s):
+    [32, 34) 'skip.i' (line 139)
+    [48, 49) '_bool.i.i139' (line 222)
+    [64, 66) 'zero.i' (line 116)
+    [80, 82) 'skip.i.i99' (line 139)
+    [96, 97) '_bool.i.i.i100' (line 222)
+    [112, 114) 'zero.i.i101' (line 116)
+    [128, 140) 'hdr.i.i102' (line 326)
+    [160, 172) 'nrh.i' (line 4222)
+    [192, 194) 'datasize.i' (line 4224)
+    [208, 212) 'sourceside_size.i' (line 4225)
+    [224, 320) 'block_skip.i103' (line 4226)
+    [352, 354) 'skip.i505.i' (line 139)
+    [368, 370) 'skip.i492.i' (line 139)
+    [384, 386) 'skip.i479.i' (line 139)
+    [400, 401) '_bool.i.i462.i' (line 222)
+    [416, 418) 'zero.i463.i' (line 116)
+    [432, 433) '_bool.i.i442.i' (line 222)
+    [448, 450) 'zero.i443.i' (line 116)
+    [464, 465) '_bool.i.i425.i' (line 222)
+    [480, 482) 'zero.i426.i' (line 116)
+    [496, 497) '_bool.i420.i' (line 222)
+    [512, 514) 'skip.i.i60' (line 139)
+    [528, 530) 'skip.i.i.i' (line 139)
+    [544, 545) '_bool.i.i.i.i' (line 222)
+    [560, 562) 'zero.i.i.i' (line 116)
+    [576, 588) 'hdr.i.i.i' (line 326)
+    [608, 610) 'array_size.i.i' (line 543)
+    [624, 720) 'block_skip.i.i' (line 544)
+    [752, 753) '_bool.i.i.i61' (line 222)
+    [768, 770) 'zero.i.i62' (line 116)
+    [784, 785) '_bool.i.i' (line 222)
+    [800, 812) 'hdr.i.i63' (line 326)
+    [832, 834) 'array_size.i64' (line 3891)
+    [848, 849) 'clocksize.i' (line 3892)
+    [864, 960) 'block_skip.i65' (line 3894)
+    [992, 994) 'skip.i.i' (line 139)
+    [1008, 1009) '_bool.i.i.i' (line 222)
+    [1024, 1026) 'zero.i.i' (line 116)
+    [1040, 1052) 'hdr.i.i' (line 326)
+    [1072, 1076) 'tmp_uint32.i' (line 3814)
+    [1088, 1092) 'array_size.i' (line 3815)
+    [1104, 1200) 'block_skip.i' (line 3816)
+    [1232, 1244) 'hdr.i' (line 326)
+    [1264, 1268) 'magic' (line 4701)
+    [1280, 2344) 'pd' (line 4702)
+    [2480, 2608) 'od' (line 4703)
+    [2640, 3104) 'srd' (line 4704)
+    [3168, 6012) 'scd' (line 4705)
+    [6144, 6656) 'indexOrderlyRam' (line 4707)[1m[32m <== Memory access at offset 6656 overflows this variable[1m[0m
+    [6720, 6816) 'block_skip' (line 4708)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/libtpms/src/tpm2/NVMarshal.c:4238:9 in INDEX_ORDERLY_RAM_Marshal
+Shadow bytes around the buggy address:
+  0x7f36b72c4f80: [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m
+  0x7f36b72c5000: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7f36b72c5080: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7f36b72c5100: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7f36b72c5180: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x7f36b72c5200:[[1m[31mf2[1m[0m][1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7f36b72c5280: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7f36b72c5300: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7f36b72c5380: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7f36b72c5400: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7f36b72c5480: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

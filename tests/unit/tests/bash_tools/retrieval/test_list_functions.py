@@ -44,7 +44,7 @@ async def test_list_functions_basic(opensage_session: OpenSageSession):
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test list-functions for a known file
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/retrieval/list-functions/scripts/list_functions.py --file "file/src/fsmagic.c"',
         tool_context=mock_context,
         sandbox_name="main",
@@ -80,7 +80,7 @@ async def test_list_functions_nonexistent_file(opensage_session: OpenSageSession
     fix_neo4j_client(opensage_session, "analysis")
 
     # Test with non-existent file
-    result = run_terminal_command(
+    result = await run_terminal_command(
         command='python3 /bash_tools/retrieval/list-functions/scripts/list_functions.py --file "nonexistent/file/path.c"',
         tool_context=mock_context,
         sandbox_name="main",

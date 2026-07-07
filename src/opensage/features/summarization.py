@@ -1,28 +1,60 @@
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
 import math
+import shlex
 from datetime import datetime
 from typing import List, Optional, Set
 
 from google.adk.agents.base_agent import BaseAgent
-from google.adk.apps.llm_event_summarizer import LlmEventSummarizer
 from google.adk.events.event import Event
 from google.adk.events.event_actions import EventActions, EventCompaction
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.models.llm_request import LlmRequest
 from google.genai import types
 
-from opensage.features.agent_history_tracker import is_neo4j_logging_enabled
+from opensage.memory.file_based.short_term import (
+    get_current_session_pinned_path,
+    get_current_session_tool_outputs_dir,
+)
 from opensage.utils.agent_utils import (
-    discover_all_agents,
+    create_litellm_model,
     get_opensage_session_id_from_context,
-    register_callback_to_all_agents,
-    resolve_model_spec,
     save_content_to_sandbox_file,
 )
 
 logger = logging.getLogger(__name__)
+
+
+async def _read_pinned_content(context) -> Optional[str]:
+    """Read pinned.md from the agent's short-term memory dir in the sandbox.
+
+    Returns the file content as a string, or None if the file is empty,
+    missing, or unreadable.  Failures are logged and swallowed — pinned
+    content is best-effort and must never block compaction.
+
+    Accepts ToolContext, CallbackContext, or InvocationContext.
+    """
+    try:
+        pinned_path = get_current_session_pinned_path(context)
+    except Exception:
+        return None
+    try:
+        from opensage.memory.file_based.short_term.sandbox_io import _get_main_sandbox
+
+        inv_ctx = getattr(context, "_invocation_context", context)
+        sandbox = _get_main_sandbox(inv_ctx)
+        output, exit_code = await sandbox.arun_command_in_container(
+            f"cat {shlex.quote(pinned_path)} 2>/dev/null"
+        )
+        if exit_code != 0 or not output or not output.strip():
+            return None
+        return output.strip()
+    except Exception as exc:
+        logger.warning("Failed to read pinned.md for compaction embed: %s", exc)
+        return None
 
 
 def _estimate_event_chars(event: Event) -> int:
@@ -100,10 +132,23 @@ def _group_invocation_rounds(events: List[Event], branch: Optional[str]) -> List
     return ordered
 
 
-async def _get_summary_async(model, llm_request):
+async def _get_summary_async(
+    model, llm_request, opensage_session=None, session_id=None
+):
     """Get summary from model asynchronously."""
+    if opensage_session is not None:
+        from opensage.llm.budget import generate_content_with_budget
+
+        response_iter = generate_content_with_budget(
+            model,
+            llm_request,
+            budget_manager=opensage_session.budget,
+            session_id=session_id,
+        )
+    else:
+        response_iter = model.generate_content_async(llm_request)
     summary_parts = []
-    async for llm_response in model.generate_content_async(llm_request):
+    async for llm_response in response_iter:
         if llm_response.content and llm_response.content.parts:
             for part in llm_response.content.parts:
                 if getattr(part, "text", None):
@@ -147,17 +192,19 @@ async def tool_response_summarizer_callback(tool, args, tool_context, tool_respo
         f"  session_id: {opensage_session_id}"
     )
 
-    # Save full output to file in sandbox using shared utility
-    output_dir = "/workspace/.tool_outputs"
+    # Save full output to the current session memory directory.
+    output_dir = get_current_session_tool_outputs_dir(tool_context)
 
     logger.warning(
         f"[ToolResponseSummarizer] Saving full output to file for '{tool_name}'"
     )
-    output_file = save_content_to_sandbox_file(
+    output_file = await save_content_to_sandbox_file(
         context=tool_context,
         content=raw,
         tool_name=tool_name,
         output_dir=output_dir,
+        file_id=tool_context.function_call_id,
+        file_extension=".out",
     )
     file_saved = output_file is not None
     logger.warning(
@@ -253,7 +300,7 @@ Here is a brief preview:
     model_name = getattr(opensage_session.config.llm, "summarize_model", None)
     agent = tool_context._invocation_context.agent
     if model_name:
-        model = resolve_model_spec(model_name, tool_context=tool_context)
+        model = create_litellm_model(model_name)
     else:
         if not hasattr(agent, "canonical_model"):
             logger.warning("Agent has no model, skipping tool response summarization")
@@ -267,7 +314,6 @@ Here is a brief preview:
     llm_request.config = types.GenerateContentConfig()
 
     # Build recent context window (up to last 10 events).
-    recent_context_lines: List[str] = []
     try:
         session = getattr(tool_context._invocation_context, "session", None)
         events: List[Event] = list(getattr(session, "events", []) or [])
@@ -322,9 +368,14 @@ Here is a brief preview:
     ]
 
     try:
-        summary = await _get_summary_async(model, llm_request)
+        summary = await _get_summary_async(
+            model,
+            llm_request,
+            opensage_session=opensage_session,
+            session_id=getattr(tool_context._invocation_context.session, "id", None),
+        )
     except Exception as e:
-        logger.error(f"Error summarizing tool response: {e}")
+        logger.exception(f"Error summarizing tool response: {e}")
         summary = raw[:1000] + ("..." if len(raw) > 1000 else "")
 
     # Build the full summary message
@@ -384,14 +435,6 @@ You can use `grep`, `cat`, or other commands to search or view the full content 
         else:
             tagged_summary += "\n[Quota] LLM calls: unlimited"
 
-    if is_neo4j_logging_enabled():
-        from opensage.utils.neo4j_history_management import (
-            create_raw_tool_response_node,
-        )
-
-        await create_raw_tool_response_node(
-            tool, args, tool_context, tool_response, tagged_summary
-        )
     tool_response.clear()
     tool_response["_tool_response_summarized"] = True
     tool_response["_tool_response_summary"] = tagged_summary
@@ -404,8 +447,10 @@ You can use `grep`, `cat`, or other commands to search or view the full content 
 class OpenSageFullEventSummarizer:
     """Summarizer including text, tool calls/responses, and previous compaction text."""
 
-    def __init__(self, model: LiteLlm):
+    def __init__(self, model: LiteLlm, opensage_session=None, session_id=None):
         self._model = model
+        self._opensage_session = opensage_session
+        self._session_id = session_id
 
     def _format_event_to_text(self, event: Event) -> List[str]:
         lines: List[str] = []
@@ -463,12 +508,12 @@ class OpenSageFullEventSummarizer:
             remaining = quota_info.get("remaining", 0)
             if limit > 0:
                 pct_used = int((used / limit) * 100) if limit > 0 else 0
-                lines.append(f"[⚠️ QUOTA WARNING]")
+                lines.append("[⚠️ QUOTA WARNING]")
                 lines.append(
                     f"LLM calls: {used}/{limit} used ({pct_used}%), {remaining} remaining."
                 )
                 lines.append(
-                    f"The agent MUST prioritize completing the main task over exploration."
+                    "The agent MUST prioritize completing the main task over exploration."
                 )
                 lines.append("")
 
@@ -494,20 +539,39 @@ class OpenSageFullEventSummarizer:
         prompt = (
             "You are given background context under [Context] (if present), and a "
             "target window under [WindowToSummarize]. Only summarize the content "
-            "under [WindowToSummarize]; do not re-summarize [Context]. First, provide "
-            "a very detailed process narrative (more than 10 sentences) that "
-            "describes the process in order. Cover: actors/roles, "
-            "intents/goals, inputs/outputs, tools used (names and key arguments), "
-            "errors/exceptions, intermediate results, decisions made, alternatives "
-            "and rationale, do not include timestamps/ids. Then provide a focused "
-            "and detailed breakdown with the following sections:\n"
-            "1) Key Points: bullet list of the most important facts/decisions.\n"
-            "2) Incorrect Attempts: what was tried, why it was wrong/failed.\n"
-            "3) Lessons Learned: actionable takeaways to guide next steps.\n"
-            "4) Task Status:\n"
-            "   - Started: tasks that began in this window.\n"
-            "   - Completed: tasks finished in this window.\n"
-            "   - Not Completed: tasks still pending or blocked.\n\n" + "\n".join(lines)
+            "under [WindowToSummarize]; do not re-summarize [Context].\n\n"
+            "Your output will be injected as a USER message to resume a conversation, "
+            "so write in first person as the user (e.g. 'I asked...', 'I provided...', "
+            "'We tried...', 'My goal is...'). The assistant's actions should be "
+            "described from the user's perspective (e.g. 'You helped me...', "
+            "'You ran...', 'You suggested...').\n\n"
+            "IMPORTANT: If the window contains a final user message that has not yet "
+            "been responded to, reproduce it verbatim at the very end under "
+            "[My Last Request], as it is the highest priority item.\n\n"
+            "IMPORTANT: If the conversation contains credentials, passwords, "
+            "API keys, exact URLs, or step-by-step procedures with specific "
+            "commands, preserve them VERBATIM in the summary — do not "
+            "paraphrase, abbreviate, or omit them.\n\n"
+            "Structure your output as follows:\n\n"
+            "## Conversation Summary\n"
+            "A detailed narrative (10+ sentences) in first person describing what "
+            "happened in order: what I was trying to accomplish, what I provided or "
+            "asked, what you did, what tools were used and why, what succeeded or "
+            "failed, what decisions were made and the rationale, and where things stand.\n\n"
+            "## Key Context\n"
+            "Bullet list of the most important facts, constraints, decisions, and "
+            "intermediate results needed to continue correctly.\n\n"
+            "## What Was Tried and Why It Failed\n"
+            "Any incorrect attempts, errors encountered, and why they didn't work — "
+            "so we don't repeat them.\n\n"
+            "## Current Task Status\n"
+            "- Completed: tasks fully done.\n"
+            "- In Progress / Blocked: tasks started but not finished, and why.\n"
+            "- Pending: tasks I mentioned but we haven't started.\n\n"
+            "## My Last Request\n"
+            "Reproduce my final user message from the window verbatim here, "
+            "or write NONE if the window ends with an assistant turn.\n\n"
+            + "\n".join(lines)
         )
 
         llm_request = LlmRequest()
@@ -520,9 +584,14 @@ class OpenSageFullEventSummarizer:
         ]
 
         try:
-            summary_text = await _get_summary_async(self._model, llm_request)
+            summary_text = await _get_summary_async(
+                self._model,
+                llm_request,
+                opensage_session=self._opensage_session,
+                session_id=self._session_id,
+            )
         except Exception as e:
-            logger.error(f"Error generating compaction summary: {e}")
+            logger.exception(f"Error generating compaction summary: {e}")
             return None
 
         if not summary_text:
@@ -533,20 +602,18 @@ class OpenSageFullEventSummarizer:
         )
 
 
-async def history_summarizer_callback(tool, args, tool_context, tool_response):
+async def _history_compaction_core(inv_ctx) -> None:
+    """Shared compaction logic used by both on_event and before_model hooks.
+
+    Checks the session's folded-view character count against the configured
+    budget.  When over budget, selects a compaction window, asks the LLM to
+    summarize it, and appends an EventCompaction to the session.
     """
-    Compaction-based history summarization:
-    - Decide a stable window (older events) to compact based on thresholds
-    - Create a compaction Event via LlmEventSummarizer
-    - Append compaction event; do not delete/overwrite original events
-    - Neo4j: record summary node and link to the original window
-    """
-    # Import here to avoid circular import
     from opensage.session import get_opensage_session
 
-    session = tool_context._invocation_context.session
-    agent = tool_context._invocation_context.agent
-    current_branch = tool_context._invocation_context.branch
+    session = inv_ctx.session
+    agent = inv_ctx.agent
+    current_branch = inv_ctx.branch
     if not hasattr(agent, "canonical_model"):
         logger.warning("Agent has no model, skipping history compaction")
         return None
@@ -555,7 +622,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     if len(events) < 2:
         return None
 
-    opensage_session_id = get_opensage_session_id_from_context(tool_context)
+    opensage_session_id = get_opensage_session_id_from_context(inv_ctx)
     opensage_session = get_opensage_session(opensage_session_id)
     comp_cfg = getattr(opensage_session.config.history, "events_compaction", None)
 
@@ -564,7 +631,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     )
     compaction_percent = getattr(comp_cfg, "compaction_percent", 50) if comp_cfg else 50
 
-    # Trigger check: use consumption-side folded view of current branch full history
     try:
         from google.adk.flows.llm_flows.contents import (
             _get_contents as _adk_get_contents,
@@ -602,7 +668,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
                                 )
                             )
         except Exception as _e:
-            logger.error(f"Failed to build folded contents for budget calc: {_e}")
+            logger.exception(f"Failed to build folded contents for budget calc: {_e}")
 
     total_chars = (
         folded_chars
@@ -611,7 +677,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
     )
     effective_budget = None
     if budget_chars is not None:
-        # Mirror legacy behavior: subtract tool response threshold to reserve headroom
         try:
             tool_resp_budget = int(
                 getattr(opensage_session.config.history, "max_tool_response_length", 0)
@@ -634,7 +699,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
             f"{total_chars} > {effective_budget}"
         )
 
-    # Determine last compaction boundary for windowing
     last_compaction_end_ts: float = float("-inf")
     for ev in reversed(events):
         if getattr(ev, "actions", None) and getattr(ev.actions, "compaction", None):
@@ -645,19 +709,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
                 last_compaction_end_ts = max(last_compaction_end_ts, comp.end_timestamp)
             break
 
-    # Find first user request timestamp on this branch (production-side constraint)
-    first_user_ts: Optional[float] = None
-    for ev in events:
-        if current_branch and ev.branch and ev.branch != current_branch:
-            continue
-        if (
-            getattr(ev, "author", None) == "user"
-            and getattr(ev, "timestamp", None) is not None
-        ):
-            if first_user_ts is None or ev.timestamp < first_user_ts:
-                first_user_ts = ev.timestamp
-
-    # Candidates: after last end ts, same branch, exclude compaction events
     candidates: List[Event] = []
     for ev in events:
         if current_branch and ev.branch and ev.branch != current_branch:
@@ -673,24 +724,20 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
 
     pct = int(compaction_percent)
     pct = max(0, min(100, pct))
-    window_size = max(1, math.floor(len(candidates) * pct / 100)) if pct > 0 else 0
+    window_size = math.floor(len(candidates) * pct / 100)
     if window_size <= 0:
         logger.info(
             f"No compaction triggered by window size: {window_size}, percentage: {pct}"
         )
         return None
 
-    # Build a maximal legal prefix window [0..k) that guarantees pairing:
-    # - Within the chosen prefix, every function_call id must have a matching
-    #   function_response id, and vice versa.
     k = 0
     pending_calls: Set[str] = set()
     pending_resps: Set[str] = set()
     seen_calls: Set[str] = set()
     seen_resps: Set[str] = set()
 
-    limit = min(window_size, len(candidates))
-    for i in range(limit):
+    for i in range(window_size):
         ev = candidates[i]
         call_ids: List[str] = []
         resp_ids: List[str] = []
@@ -703,7 +750,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
                 if fr and getattr(fr, "id", None):
                     resp_ids.append(fr.id)
 
-        # Update pending with calls first
         for cid in call_ids:
             seen_calls.add(cid)
             if cid in pending_resps:
@@ -711,7 +757,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
             else:
                 pending_calls.add(cid)
 
-        # Then update with responses
         for rid in resp_ids:
             seen_resps.add(rid)
             if rid in pending_calls:
@@ -719,7 +764,6 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
             else:
                 pending_resps.add(rid)
 
-        # If no pending on both sides, prefix [0..i] is legal
         if not pending_calls and not pending_resps:
             k = i + 1
 
@@ -727,34 +771,28 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         return None
     window_events: List[Event] = candidates[:k]
 
-    # Enforce: window start must be > first_user_ts (if known)
-    if first_user_ts is not None:
-        trimmed_window: List[Event] = []
-        for ev in window_events:
-            ts = getattr(ev, "timestamp", None)
-            if ts is None or ts > first_user_ts:
-                trimmed_window.append(ev)
-        if not trimmed_window:
-            logger.info(
-                f"No compaction triggered by events in window after user query: {len(window_events)}"
-            )
-            return None
-        window_events = trimmed_window
+    # NOTE: when only 1-2 candidate events remain after a prior compaction,
+    # this skips compaction even if those events are very large.  This is
+    # acceptable because on_event_callback compacts *before* the contents
+    # are built, so there is no timing gap that would cause overflow.
     if len(window_events) <= 2:
         logger.info(
-            f"No compaction triggered by actual events in window: {len(window_events)}"
+            "Skipping compaction: window too small (%d events)",
+            len(window_events),
         )
         return None
 
-    # Choose summarization model
     model_name = getattr(opensage_session.config.llm, "summarize_model", None)
     if model_name:
-        summarizer_model = resolve_model_spec(model_name, tool_context=tool_context)
+        summarizer_model = create_litellm_model(model_name)
     else:
         summarizer_model = agent.canonical_model
 
-    summarizer = OpenSageFullEventSummarizer(model=summarizer_model)
-    # Build folded full-history context text for the summarizer (current branch)
+    summarizer = OpenSageFullEventSummarizer(
+        model=summarizer_model,
+        opensage_session=opensage_session,
+        session_id=getattr(session, "id", None),
+    )
     folded_context_text: Optional[str] = None
     if _adk_get_contents is not None:
         try:
@@ -770,9 +808,7 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         except Exception as _e:
             logger.warning(f"Failed to build folded context text: {_e}")
 
-    # Build quota info for the summary
     quota_info = None
-    inv_ctx = tool_context._invocation_context
     try:
         limit = int(
             getattr(getattr(inv_ctx, "run_config", None), "max_llm_calls", 0) or 0
@@ -801,11 +837,40 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         quota_info=quota_info,
     )
     if not compacted_content:
-        logger.info(f"No compaction generated by model, skipping compaction")
+        logger.info("No compaction generated by model, skipping compaction")
         return None
+
+    try:
+        pinned = await _read_pinned_content(inv_ctx)
+        if pinned:
+            end_ts_for_pin = window_events[-1].timestamp if window_events else 0
+            pinned_block = (
+                f"\n\n[[PINNED_CONTEXT (compaction_ts={end_ts_for_pin}; "
+                f"if multiple PINNED_CONTEXT blocks exist, ONLY the one "
+                f"with the latest compaction_ts is authoritative — "
+                f"ignore earlier ones)]]\n"
+                f"{pinned}\n"
+                f"[[/PINNED_CONTEXT]]"
+            )
+            compacted_content.parts.append(types.Part(text=pinned_block))
+            logger.info(
+                "Embedded %d chars of pinned content into compaction event",
+                len(pinned),
+            )
+    except Exception as pin_err:
+        logger.warning("Failed to embed pinned content: %s", pin_err)
 
     start_ts = window_events[0].timestamp
     end_ts = window_events[-1].timestamp
+    # Expand start_ts to cover all prior compaction ranges so the new
+    # compaction subsumes them (prevents summary accumulation).
+    for ev in events:
+        if current_branch and ev.branch and ev.branch != current_branch:
+            continue
+        comp = getattr(getattr(ev, "actions", None), "compaction", None)
+        if comp and getattr(comp, "start_timestamp", None) is not None:
+            if comp.start_timestamp < start_ts:
+                start_ts = comp.start_timestamp
     compaction = EventCompaction(
         start_timestamp=start_ts,
         end_timestamp=end_ts,
@@ -816,28 +881,42 @@ async def history_summarizer_callback(tool, args, tool_context, tool_response):
         author="user", actions=actions, invocation_id=Event.new_id()
     )
 
-    # Attach current branch to compaction event
     compaction_event.branch = current_branch
-    # Use current invocation_id for traceability if available
     compaction_event.invocation_id = getattr(
-        tool_context._invocation_context,
+        inv_ctx,
         "invocation_id",
         compaction_event.invocation_id,
     )
-    session_service = tool_context._invocation_context.session_service
+    session_service = inv_ctx.session_service
     await session_service.append_event(session=session, event=compaction_event)
+    try:
+        from opensage.memory.file_based.short_term import (
+            persist_traj_json_for_invocation,
+        )
 
-    # Neo4j persistence aligned with previous summarization semantics
-    if is_neo4j_logging_enabled():
-        from opensage.utils.neo4j_history_management import create_history_summary_node
-
-        await create_history_summary_node(tool_context, compaction_event, window_events)
+        await persist_traj_json_for_invocation(inv_ctx)
+    except Exception as persist_error:
+        logger.warning(
+            "Failed to persist traj.json after compaction: %s", persist_error
+        )
 
     logger.info(
         f"History compaction appended. Window size={len(window_events)}; "
         f"inv_id={compaction_event.invocation_id}"
     )
     return None
+
+
+async def history_compaction_on_event(invocation_context, event) -> None:
+    """Run history compaction in on_event_callback.
+
+    Fires after each event is appended to the session.  Compacting here
+    means session.events is already trimmed when _ContentLlmRequestProcessor
+    builds llm_request.contents for the next LLM call — no timing gap.
+    """
+    if getattr(event, "actions", None) and getattr(event.actions, "compaction", None):
+        return None
+    return await _history_compaction_core(invocation_context)
 
 
 async def quota_after_tool_callback(tool, args, tool_context, tool_response):

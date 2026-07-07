@@ -1,26 +1,32 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Optional
+
 from google.adk.plugins.base_plugin import BasePlugin
-from google.adk.tools.base_tool import BaseTool
-from google.adk.tools.tool_context import ToolContext
 
 from opensage.features import summarization
 
+if TYPE_CHECKING:
+    from google.adk.agents.invocation_context import InvocationContext
+    from google.adk.events.event import Event
+
 
 class HistorySummarizerPlugin(BasePlugin):
-    """Plugin wrapper around history_summarizer_callback."""
+    """Runs history compaction after each event is appended to the session.
+
+    Compaction in ``on_event_callback`` modifies ``session.events`` before
+    ``_ContentLlmRequestProcessor`` builds ``llm_request.contents``, so the
+    next LLM call sees already-compacted history — no timing gap.
+    """
 
     def __init__(self) -> None:
         super().__init__(name="history_summarizer")
 
-    async def after_tool_callback(
+    async def on_event_callback(
         self,
         *,
-        tool: BaseTool,
-        tool_args: dict,
-        tool_context: ToolContext,
-        result: dict,
-    ):
-        return await summarization.history_summarizer_callback(
-            tool, tool_args, tool_context, result
-        )
+        invocation_context: "InvocationContext",
+        event: "Event",
+    ) -> Optional["Event"]:
+        await summarization.history_compaction_on_event(invocation_context, event)
+        return None

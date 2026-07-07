@@ -1,0 +1,26 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x000000010110 (pc 0x55bf5a611bda bp 0x7fffc82eef90 sp 0x7fffc82eeea0 T0)
+==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55bf5a611bda in zfp_getcell /src/c-blosc2/plugins/codecs/zfp/blosc2-zfp.c:737:35
+    #1 0x55bf5a595884 in blosc_d /src/c-blosc2/blosc/blosc2.c:1846:20
+    #2 0x55bf5a591eaf in _blosc_getitem /src/c-blosc2/blosc/blosc2.c:3154:22
+    #3 0x55bf5a596d97 in blosc2_getitem_ctx /src/c-blosc2/blosc/blosc2.c:3232:12
+    #4 0x55bf5a596b0a in blosc2_getitem /src/c-blosc2/blosc/blosc2.c:3191:12
+    #5 0x55bf5a5cbb5f in get_coffset /src/c-blosc2/blosc/frame.c:2054:12
+    #6 0x55bf5a5cc478 in frame_get_lazychunk /src/c-blosc2/blosc/frame.c:2282:8
+    #7 0x55bf5a5d6e1f in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:3724:8
+    #8 0x55bf5a5b1928 in blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:1100:17
+    #9 0x55bf5a580054 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:34:15
+    #10 0x55bf5a434a90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x55bf5a41fd05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x55bf5a42579f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x55bf5a450a42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f2c786b9082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #15 0x55bf5a417eed in _start (/out/decompress_frame_fuzzer+0x166eed)
+
+DEDUP_TOKEN: zfp_getcell--blosc_d--_blosc_getitem
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/c-blosc2/plugins/codecs/zfp/blosc2-zfp.c:737:35 in zfp_getcell
+==14==ABORTING

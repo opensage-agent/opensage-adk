@@ -1,0 +1,40 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/bluez:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/bluez/OSV-2022-859/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_textfile -runs=100.
++ FUZZER=fuzz_textfile
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_textfile -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_textfile -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1838590863
+INFO: Loaded 1 modules   (165 inline 8-bit counters): 165 [0x55ffb1d11028, 0x55ffb1d110cd), 
+INFO: Loaded 1 PC tables (165 PCs): 165 [0x55ffb1d110d0,0x55ffb1d11b20), 
+/out/fuzz_textfile: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==15==ERROR: AddressSanitizer: SEGV on unknown address 0x7fb70bd63fff (pc 0x55ffb1ca97ce bp 0x7ffe5d68bb50 sp 0x7ffe5d68ba80 T0)
+[1m[0m==15==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55ffb1ca97ce in find_key /src/bluez/src/textfile.c:132:9
+    #1 0x55ffb1ca97ce in write_key /src/bluez/src/textfile.c:243:8
+    #2 0x55ffb1ca8c33 in LLVMFuzzerTestOneInput /src/fuzz_textfile.c:61:3
+    #3 0x55ffb1b5d340 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x55ffb1b485b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x55ffb1b4e04f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x55ffb1b792f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7fb70c16c082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x55ffb1b4079d in _start (/out/fuzz_textfile+0x3e79d)
+
+DEDUP_TOKEN: find_key--write_key--LLVMFuzzerTestOneInput
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/bluez/src/textfile.c:132:9 in find_key
+==15==ABORTING

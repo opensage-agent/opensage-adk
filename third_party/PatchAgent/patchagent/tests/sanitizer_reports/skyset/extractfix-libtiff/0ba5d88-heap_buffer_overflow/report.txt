@@ -1,0 +1,50 @@
+=================================================================
+==3789597==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f4dc2c016e0 at pc 0x559cb99ebbb5 bp 0x7ffd86743730 sp 0x7ffd86743728
+READ of size 8 at 0x7f4dc2c016e0 thread T0
+    #0 0x559cb99ebbb4 in readSeparateTilesIntoBuffer /root/tools/tiffcrop.c:994:28
+    #1 0x559cb99d8a87 in loadImage /root/tools/tiffcrop.c:6079:11
+    #2 0x559cb99d3330 in main /root/tools/tiffcrop.c:2278:11
+    #3 0x7f4dc4dee1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #4 0x7f4dc4dee28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #5 0x559cb99cb5c4 in _start (/root/tools/.libs/tiffcrop+0xb5c4) (BuildId: 6d616acda8315414c5974c9717a27edd012dced3)
+
+Address 0x7f4dc2c016e0 is located in stack of thread T0 at offset 96 in frame
+    #0 0x559cb99eb7bf in readSeparateTilesIntoBuffer /root/tools/tiffcrop.c:955
+
+  This frame has 1 object(s):
+    [32, 96) 'srcbuffs' (line 965) <== Memory access at offset 96 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /root/tools/tiffcrop.c:994:28 in readSeparateTilesIntoBuffer
+Shadow bytes around the buggy address:
+  0x7f4dc2c01400: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f4dc2c01480: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f4dc2c01500: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f4dc2c01580: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f4dc2c01600: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+=>0x7f4dc2c01680: f1 f1 f1 f1 00 00 00 00 00 00 00 00[f3]f3 f3 f3
+  0x7f4dc2c01700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f4dc2c01780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f4dc2c01800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f4dc2c01880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f4dc2c01900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3789597==ABORTING

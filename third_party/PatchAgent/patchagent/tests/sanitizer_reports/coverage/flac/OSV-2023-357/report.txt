@@ -1,0 +1,48 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/flac:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzzer_tool_flac -runs=100.
++ FUZZER=fuzzer_tool_flac
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzzer_tool_flac -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzzer_tool_flac -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3406429401
+INFO: Loaded 1 modules   (3208 inline 8-bit counters): 3208 [0x556ec816ccc8, 0x556ec816d950), 
+INFO: Loaded 1 PC tables (3208 PCs): 3208 [0x556ec816d950,0x556ec817a1d0), 
+/out/fuzzer_tool_flac: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x556ec9f15000 (pc 0x556ec8073d9e bp 0x7ffe42caa390 sp 0x7ffe42c29ee0 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x556ec8073d9e in flac__analyze_frame /src/flac/oss-fuzz/../src/flac/analyze.c:144:28
+    #1 0x556ec8076ae0 in write_callback /src/flac/oss-fuzz/../src/flac/decode.c:1231:4
+    #2 0x556ec80bb97a in write_audio_frame_to_client_ /src/flac/src/libFLAC/stream_decoder.c:3206:12
+    #3 0x556ec80b7ed1 in read_frame_ /src/flac/src/libFLAC/stream_decoder.c:2241:7
+    #4 0x556ec80b5506 in FLAC__stream_decoder_process_single /src/flac/src/libFLAC/stream_decoder.c:1002:9
+    #5 0x556ec80b9e25 in seek_to_absolute_sample_ /src/flac/src/libFLAC/stream_decoder.c:3418:7
+    #6 0x556ec80b9e25 in FLAC__stream_decoder_seek_absolute /src/flac/src/libFLAC/stream_decoder.c:1165:4
+    #7 0x556ec80753a9 in DecoderSession_process /src/flac/oss-fuzz/../src/flac/decode.c:462:7
+    #8 0x556ec80753a9 in flac__decode_file /src/flac/oss-fuzz/../src/flac/decode.c:188:6
+    #9 0x556ec8094b9c in decode_file /src/flac/oss-fuzz/./../src/flac/main.c
+    #10 0x556ec8090a6a in do_it /src/flac/oss-fuzz/./../src/flac/main.c:524:15
+    #11 0x556ec8090a6a in main_to_fuzz /src/flac/oss-fuzz/./../src/flac/main.c:349:13
+    #12 0x556ec8090a6a in LLVMFuzzerTestOneInput /src/flac/oss-fuzz/tool_flac.c:81:2
+    #13 0x556ec7fd6980 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x556ec7fc1bf5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x556ec7fc768f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x556ec7ff2932 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f1e41308082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #18 0x556ec7fb9ddd in _start (/out/fuzzer_tool_flac+0x2bddd)
+
+DEDUP_TOKEN: flac__analyze_frame--write_callback--write_audio_frame_to_client_
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/flac/oss-fuzz/../src/flac/analyze.c:144:28 in flac__analyze_frame
+==14==ABORTING

@@ -1,0 +1,67 @@
+=================================================================
+==803046==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50b00000045f at pc 0x557741f4d206 bp 0x7fff246ade50 sp 0x7fff246ade48
+READ of size 1 at 0x50b00000045f thread T0
+    #0 0x557741f4d205 in xmlParseAttValueComplex /root/parser.c:4079:16
+    #1 0x557741ec813a in xmlParseAttValueInternal /root/parser.c:9009:12
+    #2 0x557741f4e323 in xmlParseAttribute2 /root/parser.c:9065:15
+    #3 0x557741f17fa4 in xmlParseStartTag2 /root/parser.c:9223:12
+    #4 0x557741f1408d in xmlParseElement /root/parser.c:9910:16
+    #5 0x557741f273d8 in xmlParseDocument /root/parser.c:10666:2
+    #6 0x557741f49059 in xmlDoRead /root/parser.c:15066:5
+    #7 0x557741f49278 in xmlReadFile /root/parser.c:15126:13
+    #8 0x557741e73248 in parseAndPrintFile /root/xmllint.c:2381:9
+    #9 0x557741e6eb17 in main /root/xmllint.c:3733:7
+    #10 0x7fd034a511c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #11 0x7fd034a5128a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #12 0x557741e68814 in _start (/root/xmllint+0x6a814) (BuildId: 8649b1cde8953a1f442a9bcd2e7dd98b9dc4b62d)
+
+0x50b00000045f is located 1 bytes before 100-byte region [0x50b000000460,0x50b0000004c4)
+allocated by thread T0 here:
+    #0 0x7fd034ea3372 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:69:3
+    #1 0x557741f4a8f7 in xmlParseAttValueComplex /root/parser.c:3921:23
+    #2 0x557741ec813a in xmlParseAttValueInternal /root/parser.c:9009:12
+    #3 0x557741f4e323 in xmlParseAttribute2 /root/parser.c:9065:15
+    #4 0x557741f17fa4 in xmlParseStartTag2 /root/parser.c:9223:12
+    #5 0x557741f1408d in xmlParseElement /root/parser.c:9910:16
+    #6 0x557741f273d8 in xmlParseDocument /root/parser.c:10666:2
+    #7 0x557741f49059 in xmlDoRead /root/parser.c:15066:5
+    #8 0x557741f49278 in xmlReadFile /root/parser.c:15126:13
+    #9 0x557741e73248 in parseAndPrintFile /root/xmllint.c:2381:9
+    #10 0x557741e6eb17 in main /root/xmllint.c:3733:7
+    #11 0x7fd034a511c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #12 0x7fd034a5128a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #13 0x557741e68814 in _start (/root/xmllint+0x6a814) (BuildId: 8649b1cde8953a1f442a9bcd2e7dd98b9dc4b62d)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/parser.c:4079:16 in xmlParseAttValueComplex
+Shadow bytes around the buggy address:
+  0x50b000000180: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50b000000200: 00 fa fa fa fa fa fa fa fa fa 00 00 00 00 00 00
+  0x50b000000280: 00 00 00 00 00 00 00 fa fa fa fa fa fa fa fa fa
+  0x50b000000300: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fa fa
+  0x50b000000380: fa fa fa fa fa fa 00 00 00 00 00 00 00 00 00 00
+=>0x50b000000400: 00 00 00 00 fa fa fa fa fa fa fa[fa]00 00 00 00
+  0x50b000000480: 00 00 00 00 00 00 00 00 04 fa fa fa fa fa fa fa
+  0x50b000000500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50b000000580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50b000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50b000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==803046==ABORTING

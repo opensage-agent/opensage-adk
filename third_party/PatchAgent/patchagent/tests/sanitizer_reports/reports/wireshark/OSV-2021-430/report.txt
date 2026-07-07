@@ -1,0 +1,143 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/wireshark:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/wireshark/OSV-2021-430/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzzshark_ip -runs=100.
++ FUZZER=fuzzshark_ip
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzzshark_ip -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzzshark_ip -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -max_len=1024 < /dev/null
+oss-fuzzshark: disabling: udp
+oss-fuzzshark: disabling: udplite
+oss-fuzzshark: disabling: ospf
+oss-fuzzshark: disabling: bgp
+oss-fuzzshark: disabling: dhcp
+oss-fuzzshark: disabling: json
+oss-fuzzshark: disabling: snort
+oss-fuzzshark: configured for dissector: ip
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3750980648
+INFO: Loaded 1 modules   (361746 inline 8-bit counters): 361746 [0x89bff10, 0x8a18422), 
+INFO: Loaded 1 PC tables (361746 PCs): 361746 [0x8a18428,0x8f9d548), 
+/out/fuzzshark_ip: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f071d97f64f at pc 0x000000555864 bp 0x7fff825850c0 sp 0x7fff82584880
+[1m[0m[1m[34mWRITE of size 49 at 0x7f071d97f64f thread T0[1m[0m
+SCARINESS: 60 (multi-byte-write-stack-buffer-overflow)
+    #0 0x555863 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x7aaa2b in tvb_memcpy /src/wireshark/epan/tvbuff.c:859:10
+    #2 0x25e795e in composite_memcpy /src/wireshark/epan/tvbuff_composite.c:142:10
+    #3 0x7b778d in _tvb_get_nstringz /src/wireshark/epan/tvbuff.c:3595:2
+    #4 0x7b7bef in tvb_get_nstringz0 /src/wireshark/epan/tvbuff.c:3634:8
+    #5 0x13da7ae in dissect_megaco_text /src/wireshark/epan/dissectors/packet-megaco.c:643:9
+    #6 0x13dfc78 in dissect_megaco_text_tcp /src/wireshark/epan/dissectors/packet-megaco.c:495:9
+    #7 0x6e4e84 in call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    #8 0x6e4e84 in call_dissector_work /src/wireshark/epan/packet.c:813:9
+    #9 0x6e4918 in dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    #10 0x19da3aa in decode_tcp_ports /src/wireshark/epan/dissectors/packet-tcp.c:6130:9
+    #11 0x19deefb in process_tcp_payload /src/wireshark/epan/dissectors/packet-tcp.c:6199:13
+    #12 0x19db539 in dissect_tcp_payload /src/wireshark/epan/dissectors/packet-tcp.c:6281:9
+    #13 0x19e8d63 in dissect_tcp /src/wireshark/epan/dissectors/packet-tcp.c
+    #14 0x6e4e84 in call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    #15 0x6e4e84 in call_dissector_work /src/wireshark/epan/packet.c:813:9
+    #16 0x6e4918 in dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    #17 0x11c91a0 in ip_try_dissect /src/wireshark/epan/dissectors/packet-ip.c:1817:7
+    #18 0x11ccd7f in dissect_ip_v4 /src/wireshark/epan/dissectors/packet-ip.c:2295:10
+    #19 0x6e4e84 in call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    #20 0x6e4e84 in call_dissector_work /src/wireshark/epan/packet.c:813:9
+    #21 0x6e1cea in call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    #22 0x6e1cea in call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    #23 0x1b45b7c in dissect_vjc_uncomp /src/wireshark/epan/dissectors/packet-vj-comp.c:317:12
+    #24 0x6e4e84 in call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    #25 0x6e4e84 in call_dissector_work /src/wireshark/epan/packet.c:813:9
+    #26 0x6e53e1 in dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    #27 0x6e53e1 in dissector_try_uint /src/wireshark/epan/packet.c:1437:9
+    #28 0x16aba21 in dissect_ppp_common /src/wireshark/epan/dissectors/packet-ppp.c:4786:10
+    #29 0x169ea6e in dissect_ppp /src/wireshark/epan/dissectors/packet-ppp.c:5769:5
+    #30 0x6e4e84 in call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    #31 0x6e4e84 in call_dissector_work /src/wireshark/epan/packet.c:813:9
+    #32 0x6e53e1 in dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    #33 0x6e53e1 in dissector_try_uint /src/wireshark/epan/packet.c:1437:9
+    #34 0x16113c3 in dissect_osi /src/wireshark/epan/dissectors/packet-osi.c:468:7
+    #35 0x6e4e84 in call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    #36 0x6e4e84 in call_dissector_work /src/wireshark/epan/packet.c:813:9
+    #37 0x6e4918 in dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    #38 0x11c91a0 in ip_try_dissect /src/wireshark/epan/dissectors/packet-ip.c:1817:7
+    #39 0x11ccd7f in dissect_ip_v4 /src/wireshark/epan/dissectors/packet-ip.c:2295:10
+    #40 0x6e4e84 in call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    #41 0x6e4e84 in call_dissector_work /src/wireshark/epan/packet.c:813:9
+    #42 0x6ed910 in call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    #43 0x6ed910 in call_all_postdissectors /src/wireshark/epan/packet.c:3608:3
+    #44 0xf5a777 in dissect_frame /src/wireshark/epan/dissectors/packet-frame.c:901:5
+    #45 0x6e4e84 in call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    #46 0x6e4e84 in call_dissector_work /src/wireshark/epan/packet.c:813:9
+    #47 0x6e1cea in call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    #48 0x6e1cea in call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    #49 0x6e17b8 in dissect_record /src/wireshark/epan/packet.c:594:3
+    #50 0x6d5d74 in epan_dissect_run /src/wireshark/epan/epan.c:594:2
+    #51 0x598307 in LLVMFuzzerTestOneInput /src/wireshark/fuzz/fuzzshark.c:381:2
+    #52 0x44bb10 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #53 0x436d85 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #54 0x43c81f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #55 0x467ac2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #56 0x7f071e114082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #57 0x42ef6d in _start (/out/fuzzshark_ip+0x42ef6d)
+
+DEDUP_TOKEN: __asan_memcpy--tvb_memcpy--composite_memcpy
+[1m[32mAddress 0x7f071d97f64f is located in stack of thread T0 at offset 79 in frame[1m[0m
+[1m[0m    #0 0x13da52f in dissect_megaco_text /src/wireshark/epan/dissectors/packet-megaco.c:578
+
+DEDUP_TOKEN: dissect_megaco_text
+  This frame has 7 object(s):
+    [32, 40) 'sub_ti' (line 585)
+    [64, 79) 'word' (line 587)
+    [96, 126) 'TermID' (line 588)[1m[32m <== Memory access at offset 79 partially underflows this variable[1m[0m
+    [160, 161) 'needle' (line 593)
+    [176, 177) 'ber_class' (line 670)
+    [192, 196) 'pc' (line 671)
+    [208, 212) 'tag' (line 672)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/wireshark/epan/tvbuff.c:859:10 in tvb_memcpy
+Shadow bytes around the buggy address:
+  0x7f071d97f380: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f071d97f400: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f071d97f480: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f071d97f500: [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[35mf8[1m[0m [1m[35mf8[1m[0m [1m[35mf8[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[35mf8[1m[0m [1m[35mf8[1m[0m [1m[35mf8[1m[0m [1m[35mf8[1m[0m
+  0x7f071d97f580: [1m[35mf8[1m[0m [1m[35mf8[1m[0m [1m[35mf8[1m[0m [1m[35mf8[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[31mf3[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x7f071d97f600: [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[31mf1[1m[0m [1m[0m00[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m[[1m[0m07[1m[0m][1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m06[1m[0m
+  0x7f071d97f680: [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[31mf2[1m[0m [1m[0m01[1m[0m [1m[31mf2[1m[0m [1m[35mf8[1m[0m [1m[31mf2[1m[0m [1m[35mf8[1m[0m [1m[31mf2[1m[0m [1m[35mf8[1m[0m [1m[31mf3[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x7f071d97f700: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f071d97f780: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f071d97f800: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+  0x7f071d97f880: [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m [1m[35mf5[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==18==ABORTING
+MS: 0 ; base unit: 0000000000000000000000000000000000000000
+0x46,0x20,0x20,0x20,0x20,0x20,0x20,0x0,0x20,0x50,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0xcf,0x2f,0x47,0x20,0x20,0x20,0x20,0x20,0x20,0x0,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0xb,0x80,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x56,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x0,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,
+F      \000 P              \317/G      \000                      \013\200        V       \000                                                

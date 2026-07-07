@@ -1,0 +1,104 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/openssl:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/openssl/OSV-2020-442/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce x509 -runs=100.
++ FUZZER=x509
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer x509 -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/x509 -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=x509.dict < /dev/null
+Dictionary: 1074 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2011612363
+INFO: Loaded 1 modules   (45827 inline 8-bit counters): 45827 [0x55e8586c8eb8, 0x55e8586d41bb), 
+INFO: Loaded 1 PC tables (45827 PCs): 45827 [0x55e8586d41c0,0x55e8587871f0), 
+/out/x509: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000008e9d at pc 0x55e85800537b bp 0x7ffcbf47ceb0 sp 0x7ffcbf47c678
+[1m[0m[1m[34mREAD of size 14 at 0x502000008e9d thread T0[1m[0m
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x55e85800537a in strlen /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:391:5
+    #1 0x55e85816b1d6 in CRYPTO_strdup /src/openssl/crypto/o_str.c:21:25
+    #2 0x55e85817c6c5 in X509V3_add_value /src/openssl/crypto/x509/v3_utl.c:46:28
+    #3 0x55e8584a89a8 in i2v_GENERAL_NAME /src/openssl/crypto/x509/v3_alt.c:80:18
+    #4 0x55e8584a76c6 in i2v_GENERAL_NAMES /src/openssl/crypto/x509/v3_alt.c:57:15
+    #5 0x55e85817c049 in X509V3_EXT_print /src/openssl/crypto/x509/v3_prn.c:117:21
+    #6 0x55e85817c4cc in X509V3_extensions_print /src/openssl/crypto/x509/v3_prn.c:164:14
+    #7 0x55e85817aa2f in X509_print_ex /src/openssl/crypto/x509/t_x509.c:201:9
+    #8 0x55e8580c6819 in FuzzerTestOneInput /src/openssl/fuzz/x509.c:37:9
+    #9 0x55e8580e3480 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55e8580ce6f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55e8580d418f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55e8580ff432 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7fef0c548082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #14 0x55e857fedefd in _start (/out/x509+0x226efd)
+
+DEDUP_TOKEN: ___interceptor_strlen--CRYPTO_strdup--X509V3_add_value
+[1m[32m0x502000008e9d is located 0 bytes after 13-byte region [0x502000008e90,0x502000008e9d)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55e858086f0f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55e8581b5b60 in ASN1_STRING_set /src/openssl/crypto/asn1/asn1_lib.c:284:21
+    #2 0x55e8581a2791 in c2i_ASN1_INTEGER /src/openssl/crypto/asn1/a_int.c:300:9
+    #3 0x55e8581bbe83 in asn1_ex_c2i /src/openssl/crypto/asn1/tasn_dec.c:835:14
+    #4 0x55e8581bbe83 in asn1_d2i_ex_primitive /src/openssl/crypto/asn1/tasn_dec.c:761:10
+    #5 0x55e8581b9eed in asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:181:16
+    #6 0x55e8581bd344 in asn1_template_noexp_d2i /src/openssl/crypto/asn1/tasn_dec.c:624:15
+    #7 0x55e8581bafce in asn1_template_ex_d2i /src/openssl/crypto/asn1/tasn_dec.c:475:15
+    #8 0x55e8581ba656 in asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:363:19
+    #9 0x55e8581bd42a in asn1_template_noexp_d2i /src/openssl/crypto/asn1/tasn_dec.c:614:15
+    #10 0x55e8581ba2c4 in asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:240:19
+    #11 0x55e8581bd7f1 in asn1_template_noexp_d2i /src/openssl/crypto/asn1/tasn_dec.c:592:18
+    #12 0x55e8581ba840 in asn1_item_embed_d2i /src/openssl/crypto/asn1/tasn_dec.c:178:20
+    #13 0x55e8581b977e in ASN1_item_ex_d2i /src/openssl/crypto/asn1/tasn_dec.c:124:10
+    #14 0x55e8581b977e in ASN1_item_d2i /src/openssl/crypto/asn1/tasn_dec.c:114:9
+    #15 0x55e85817becd in X509V3_EXT_print /src/openssl/crypto/x509/v3_prn.c:89:19
+    #16 0x55e85817c4cc in X509V3_extensions_print /src/openssl/crypto/x509/v3_prn.c:164:14
+    #17 0x55e85817aa2f in X509_print_ex /src/openssl/crypto/x509/t_x509.c:201:9
+    #18 0x55e8580c6819 in FuzzerTestOneInput /src/openssl/fuzz/x509.c:37:9
+    #19 0x55e8580e3480 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #20 0x55e8580ce6f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #21 0x55e8580d418f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #22 0x55e8580ff432 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #23 0x7fef0c548082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--ASN1_STRING_set--c2i_ASN1_INTEGER
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/openssl/crypto/o_str.c:21:25 in CRYPTO_strdup
+Shadow bytes around the buggy address:
+  0x502000008c00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x502000008c80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m
+  0x502000008d00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m05[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x502000008d80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m05[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x502000008e00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m05[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x502000008e80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m[[1m[0m05[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x502000008f00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m05[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m05[1m[0m
+  0x502000008f80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m04[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m05[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000009000: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000009080: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x502000009100: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

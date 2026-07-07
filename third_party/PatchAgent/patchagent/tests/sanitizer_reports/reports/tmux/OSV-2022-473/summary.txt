@@ -1,0 +1,30 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 9 at 0x7efdf8b6f9a8 thread T0
+    - strchr /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc:712:5
+    - input_osc_52 /src/tmux/input.c:2714:38
+    - input_set_state /src/tmux/input.c:883:3
+    - input_parse /src/tmux/input.c:940:4
+    - input_parse_buffer /src/tmux/input.c:982:2
+    - LLVMFuzzerTestOneInput /src/tmux/fuzz/input-fuzzer.c:55:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7efdf8b6f9a8 is located in stack of thread T0 at offset 168 in frame
+    - input_osc_52 /src/tmux/input.c:2687:0
+
+  This frame has 3 object(s):
+    [32, 40) 'len' (line 2691)
+    [64, 120) 'ctx' (line 2694)
+    [160, 168) 'flags' (line 2697) <== Memory access at offset 168 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

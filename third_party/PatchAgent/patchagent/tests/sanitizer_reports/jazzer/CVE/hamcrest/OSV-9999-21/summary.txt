@@ -1,0 +1,42 @@
+The sanitizer detected a xpath injection vulnerability.The explanation of the vulnerability is: An XPath query is constructed using untrusted input, leading to potential injection attacks.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh: XPath Injection
+Injected query: ?=
+- com.code_intelligence.jazzer.sanitizers.XPathInjection.checkXpathExecute (com/code_intelligence/jazzer/sanitizers/XPathInjection.kt:68)
+- org.hamcrest.xml.HasXPath.compiledXPath (org/hamcrest/xml/HasXPath.java:107)
+- org.hamcrest.xml.HasXPath.<init> (org/hamcrest/xml/HasXPath.java:58)
+- org.hamcrest.xml.HasXPath.hasXPath (org/hamcrest/xml/HasXPath.java:145)
+- org.hamcrest.xml.HasXPath.hasXPath (org/hamcrest/xml/HasXPath.java:126)
+- org.hamcrest.Matchers.hasXPath (org/hamcrest/Matchers.java:2142)
+- HamcrestFuzzer.runTest (HamcrestFuzzer.java:283)
+- HamcrestFuzzer.fuzzerTestOneInput (HamcrestFuzzer.java:292)
+Caused by: javax.xml.xpath.XPathExpressionException: javax.xml.transform.TransformerException: A location path was expected, but the end of the XPath expression was found instead.
+- java.xml/com.sun.org.apache.xpath.internal.jaxp.XPathImpl.compile (java/xml/com/sun/org/apache/xpath/internal/jaxp/XPathImpl.java:170)
+- java.base/java.lang.invoke.MethodHandle.invokeWithArguments (java/base/java/lang/invoke/MethodHandle.java:732)
+- com.code_intelligence.jazzer.sanitizers.XPathInjection.checkXpathExecute (com/code_intelligence/jazzer/sanitizers/XPathInjection.kt:58)
+	... 7 more
+Caused by: javax.xml.transform.TransformerException: A location path was expected, but the end of the XPath expression was found instead.
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.error (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:621)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.LocationPath (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:1558)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.PathExpr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:1283)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.UnionExpr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:1202)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.UnaryExpr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:1108)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.MultiplicativeExpr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:1029)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.AdditiveExpr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:971)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.RelationalExpr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:896)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.EqualityExpr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:836)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.EqualityExpr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:860)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.AndExpr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:800)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.OrExpr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:773)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.Expr (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:756)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.initXPath (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:132)
+- java.xml/com.sun.org.apache.xpath.internal.XPath.<init> (java/xml/com/sun/org/apache/xpath/internal/XPath.java:178)
+- java.xml/com.sun.org.apache.xpath.internal.XPath.<init> (java/xml/com/sun/org/apache/xpath/internal/XPath.java:268)
+- java.xml/com.sun.org.apache.xpath.internal.jaxp.XPathImpl.compile (java/xml/com/sun/org/apache/xpath/internal/jaxp/XPathImpl.java:162)
+	... 9 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid constructing XPath queries using untrusted input.
+2. Use parameterized queries or prepared statements to prevent injection attacks.
+3. Sanitize user input before using it in XPath queries.

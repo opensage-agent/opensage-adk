@@ -1,0 +1,49 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 10 at 0x502000001199 thread T0
+    - gf_fprintf /root/src/utils/os_file.c:1598:9
+    - cprt_box_dump /root/src/isomedia/box_dump.c:395:2
+    - gf_isom_box_dump /root/src/isomedia/box_funcs.c:2065:2
+    - gf_isom_box_array_dump /root/src/isomedia/box_dump.c:101:3
+    - udta_box_dump /root/src/isomedia/box_dump.c:918:3
+    - gf_isom_box_dump /root/src/isomedia/box_funcs.c:2065:2
+    - gf_isom_box_array_dump /root/src/isomedia/box_dump.c:101:3
+    - gf_isom_box_dump_done /root/src/isomedia/box_funcs.c:2072:3
+    - moov_box_dump /root/src/isomedia/box_dump.c:217:2
+    - gf_isom_box_dump /root/src/isomedia/box_funcs.c:2065:2
+    - gf_isom_dump /root/src/isomedia/box_dump.c:135:3
+    - dump_isom_xml /root/applications/mp4box/filedump.c:1949:6
+    - mp4boxMain /root/applications/mp4box/main.c:6171:7
+    - main /root/applications/mp4box/main.c:6601:1
+
+0x502000001199 is located 0 bytes after 9-byte region [0x502000001190,0x502000001199)
+allocated by thread T0 here:
+    - gf_malloc /root/src/utils/alloc.c:150:9
+    - cprt_box_read /root/src/isomedia/box_code_base.c:245:24
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1822:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:264:14
+    - gf_isom_box_array_read_ex /root/src/isomedia/box_funcs.c:1719:7
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:379:9
+    - udta_box_read /root/src/isomedia/box_code_base.c:8026:13
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1822:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:264:14
+    - gf_isom_box_array_read_ex /root/src/isomedia/box_funcs.c:1719:7
+    - gf_isom_box_array_read /root/src/isomedia/box_funcs.c:379:9
+    - moov_box_read /root/src/isomedia/box_code_base.c:3733:9
+    - gf_isom_box_read /root/src/isomedia/box_funcs.c:1822:9
+    - gf_isom_box_parse_ex /root/src/isomedia/box_funcs.c:264:14
+    - gf_isom_parse_root_box /root/src/isomedia/box_funcs.c:38:8
+    - gf_isom_parse_movie_boxes_internal /root/src/isomedia/isom_intern.c:321:7
+    - gf_isom_parse_movie_boxes /root/src/isomedia/isom_intern.c:784:6
+    - gf_isom_open_file /root/src/isomedia/isom_intern.c:904:19
+    - gf_isom_open /root/src/isomedia/isom_read.c:509:11
+    - mp4boxMain /root/applications/mp4box/main.c:5984:12
+    - main /root/applications/mp4box/main.c:6601:1
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

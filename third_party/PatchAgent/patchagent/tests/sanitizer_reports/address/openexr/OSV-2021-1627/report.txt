@@ -1,0 +1,75 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x511000001bac at pc 0x55b8e1d1af77 bp 0x7ffd2967c410 sp 0x7ffd2967c408
+WRITE of size 2 at 0x511000001bac thread T0
+SCARINESS: 43 (2-byte-write-heap-buffer-overflow-far-from-bounds)
+    #0 0x55b8e1d1af76 in composite_line /src/openexr/src/lib/OpenEXR/ImfCompositeDeepScanLine.cpp:371:25
+    #1 0x55b8e1d1af76 in Imf_2_5::(anonymous namespace)::LineCompositeTask::execute() /src/openexr/src/lib/OpenEXR/ImfCompositeDeepScanLine.cpp:385:3
+    #2 0x55b8e1d846b6 in IlmThread_3_4::(anonymous namespace)::NullThreadPoolProvider::addTask(IlmThread_3_4::Task*) /src/openexr/src/lib/IlmThread/IlmThreadPool.cpp:399:12
+    #3 0x55b8e1d8449b in addTask /src/openexr/src/lib/IlmThread/IlmThreadPool.cpp:752:28
+    #4 0x55b8e1d8449b in IlmThread_3_4::ThreadPool::addGlobalTask(IlmThread_3_4::Task*) /src/openexr/src/lib/IlmThread/IlmThreadPool.cpp:776:24
+    #5 0x55b8e1d18664 in Imf_2_5::CompositeDeepScanLine::readPixels(int, int) /src/openexr/src/lib/OpenEXR/ImfCompositeDeepScanLine.cpp:555:8
+    #6 0x55b8e1bc19d5 in Imf_2_5::InputFile::readPixels(int, int) /src/openexr/src/lib/OpenEXR/ImfInputFile.cpp:903:28
+    #7 0x55b8e1bdd628 in readYCAScanLine /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1116:16
+    #8 0x55b8e1bdd628 in Imf_2_5::RgbaInputFile::FromYca::readPixels(int) /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1036:3
+    #9 0x55b8e1be47fa in readPixels /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:945:6
+    #10 0x55b8e1be47fa in Imf_2_5::RgbaInputFile::readPixels(int, int) /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1303:12
+    #11 0x55b8e1b998db in bool Imf_2_5::(anonymous namespace)::readRgba<Imf_2_5::RgbaInputFile>(Imf_2_5::RgbaInputFile&, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:116:19
+    #12 0x55b8e1b8dee0 in runChecks<Imf_2_5::(anonymous namespace)::PtrIStream> /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1068:24
+    #13 0x55b8e1b8dee0 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1173:10
+    #14 0x55b8e1b8c279 in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:3
+    #15 0x55b8e1a40dc0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x55b8e1a2c035 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x55b8e1a31acf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x55b8e1a5cd72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f97062b3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #20 0x55b8e1a2421d in _start (/out/openexr_exrcheck_fuzzer+0x13521d)
+
+DEDUP_TOKEN: composite_line--Imf_2_5::(anonymous namespace)::LineCompositeTask::execute()--IlmThread_3_4::(anonymous namespace)::NullThreadPoolProvider::addTask(IlmThread_3_4::Task*)
+0x511000001bac is located 20 bytes before 216-byte region [0x511000001bc0,0x511000001c98)
+allocated by thread T0 here:
+    #0 0x55b8e1b89f5d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x55b8e1bbeb73 in Imf_2_5::InputFile::InputFile(Imf_2_5::IStream&, int) /src/openexr/src/lib/OpenEXR/ImfInputFile.cpp:487:12
+    #2 0x55b8e1be196d in Imf_2_5::RgbaInputFile::RgbaInputFile(Imf_2_5::IStream&, int) /src/openexr/src/lib/OpenEXR/ImfRgbaFile.cpp:1168:21
+    #3 0x55b8e1b8ded2 in runChecks<Imf_2_5::(anonymous namespace)::PtrIStream> /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1067:27
+    #4 0x55b8e1b8ded2 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1173:10
+    #5 0x55b8e1b8c279 in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:3
+    #6 0x55b8e1a40dc0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55b8e1a2c035 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55b8e1a31acf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55b8e1a5cd72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f97062b3082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new(unsigned long)--Imf_2_5::InputFile::InputFile(Imf_2_5::IStream&, int)--Imf_2_5::RgbaInputFile::RgbaInputFile(Imf_2_5::IStream&, int)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/openexr/src/lib/OpenEXR/ImfCompositeDeepScanLine.cpp:371:25 in composite_line
+Shadow bytes around the buggy address:
+  0x511000001900: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x511000001980: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x511000001a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000001a80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x511000001b00: fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+=>0x511000001b80: fa fa fa fa fa[fa]fa fa 00 00 00 00 00 00 00 00
+  0x511000001c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x511000001c80: 00 00 00 fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000001d00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x511000001d80: fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+  0x511000001e00: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

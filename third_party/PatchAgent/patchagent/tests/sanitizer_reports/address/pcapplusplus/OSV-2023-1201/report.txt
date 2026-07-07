@@ -1,0 +1,20 @@
+=================================================================
+==18==ERROR: AddressSanitizer: negative-size-param: (size=-8027)
+SCARINESS: 10 (negative-size-param)
+    #0 0x55aa2f465257 in __asan_memmove /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:71:3
+    #1 0x55aa2f561b85 in pcpp::RawPacket::insertData(int, unsigned char const*, unsigned long) /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:153:3
+    #2 0x55aa2f55725c in pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long) /src/PcapPlusPlus/Packet++/src/Packet.cpp:597:16
+    #3 0x55aa2f4ef11e in pcpp::BgpUpdateMessageLayer::setNetworkLayerReachabilityInfo(std::__1::vector<pcpp::BgpUpdateMessageLayer::prefix_and_ip, std::__1::allocator<pcpp::BgpUpdateMessageLayer::prefix_and_ip>> const&) /src/PcapPlusPlus/Packet++/src/BgpLayer.cpp:742:15
+    #4 0x55aa2f4ac7dd in readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:459:24
+    #5 0x55aa2f4a7874 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:66:5
+    #6 0x55aa2f35b1d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55aa2f346445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55aa2f34bedf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55aa2f377182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7ffbe56cf082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #11 0x55aa2f33e62d in _start (/out/FuzzTarget+0x1b762d)
+
+DEDUP_TOKEN: __asan_memmove--pcpp::RawPacket::insertData(int, unsigned char const*, unsigned long)--pcpp::Packet::extendLayer(pcpp::Layer*, int, unsigned long)
+Address 0x5160000023ee is a wild pointer inside of access range of size 0x000000000001.
+SUMMARY: AddressSanitizer: negative-size-param /src/PcapPlusPlus/Packet++/src/RawPacket.cpp:153:3 in pcpp::RawPacket::insertData(int, unsigned char const*, unsigned long)
+==18==ABORTING

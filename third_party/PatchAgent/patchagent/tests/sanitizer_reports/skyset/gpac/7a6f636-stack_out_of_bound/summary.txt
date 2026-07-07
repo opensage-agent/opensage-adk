@@ -1,0 +1,31 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 1 at 0x7f6a6f00871f thread T0
+    - gf_m2ts_get_adaptation_field /root/src/media_tools/mpegts.c:2471:21
+    - gf_m2ts_process_packet /root/src/media_tools/mpegts.c:2565:16
+    - gf_m2ts_process_data /root/src/media_tools/mpegts.c:2842:18
+    - m2tsdmx_configure_pid /root/src/filters/dmx_m2ts.c:1173:5
+    - gf_filter_pid_configure /root/src/filter_core/filter_pid.c:876:6
+    - gf_filter_pid_connect_task /root/src/filter_core/filter_pid.c:1230:3
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4831:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+Address 0x7f6a6f00871f is located in stack of thread T0 at offset 287 in frame
+    - gf_m2ts_get_adaptation_field /root/src/media_tools/mpegts.c:2350:0
+
+  This frame has 2 object(s):
+    [32, 287) 'URL' (line 2442) <== Memory access at offset 287 overflows this variable
+    [352, 392) 'temi_loc' (line 2443)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

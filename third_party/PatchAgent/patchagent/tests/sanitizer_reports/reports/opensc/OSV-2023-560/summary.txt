@@ -1,0 +1,38 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 66 at 0x7f9343a85b00 thread T0
+    - strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:568:5
+    - sc_pkcs15_get_lastupdate /src/opensc/src/libopensc/pkcs15.c:571:42
+    - generate_cache_filename /src/opensc/src/libopensc/pkcs15-cache.c:62:16
+    - sc_pkcs15_read_cached_file /src/opensc/src/libopensc/pkcs15-cache.c:128:7
+    - sc_pkcs15_read_file /src/opensc/src/libopensc/pkcs15.c:2474:7
+    - sc_pkcs15_parse_df /src/opensc/src/libopensc/pkcs15.c:2161:6
+    - __sc_pkcs15_search_objects /src/opensc/src/libopensc/pkcs15.c:1436:8
+    - sc_pkcs15_search_objects /src/opensc/src/libopensc/pkcs15.c:1654:9
+    - select_id /src/opensc/src/pkcs15init/pkcs15-lib.c:2894:9
+    - sc_pkcs15init_init_prkdf /src/opensc/src/pkcs15init/pkcs15-lib.c:1283:6
+    - sc_pkcs15init_generate_key /src/opensc/src/pkcs15init/pkcs15-lib.c:1578:6
+    - do_generate_key /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:207:9
+    - LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:337:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f9343a85b00 is located in stack of thread T0 at offset 256 in frame
+    - sc_pkcs15_get_lastupdate /src/opensc/src/libopensc/pkcs15.c:531:0
+
+  This frame has 4 object(s):
+    [32, 40) 'file' (line 533)
+    [64, 184) 'asn1_last_update' (line 534)
+    [224, 256) 'last_update' (line 535)
+    [288, 296) 'lupdate_len' (line 536) <== Memory access at offset 256 partially underflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

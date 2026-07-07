@@ -1,0 +1,59 @@
+=================================================================
+==359744==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52500000748f at pc 0x56213e3910bb bp 0x7ffd4bb7ffe0 sp 0x7ffd4bb7ffd8
+READ of size 1 at 0x52500000748f thread T0
+    #0 0x56213e3910ba in mobi_search_links_kf7 /root/src/parse_rawml.c:110:43
+    #1 0x56213e39c0f8 in mobi_reconstruct_links_kf7 /root/src/parse_rawml.c:1679:9
+    #2 0x56213e39d052 in mobi_reconstruct_links /root/src/parse_rawml.c:1849:15
+    #3 0x56213e39f180 in mobi_parse_rawml_opt /root/src/parse_rawml.c:2153:15
+    #4 0x56213e39e298 in mobi_parse_rawml /root/src/parse_rawml.c:2009:12
+    #5 0x56213e37efa2 in loadfilename /root/tools/mobitool.c:852:20
+    #6 0x56213e37e97b in main /root/tools/mobitool.c:1051:11
+    #7 0x7f2b7d2ae1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x7f2b7d2ae28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x56213e37c744 in _start (/root/tools/mobitool+0x13744) (BuildId: 6033ab8e2335178a5232c3dc880d71e589274c52)
+
+0x52500000748f is located 0 bytes after 9103-byte region [0x525000005100,0x52500000748f)
+allocated by thread T0 here:
+    #0 0x7f2b7d7c17a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x56213e395d42 in mobi_reconstruct_parts /root/src/parse_rawml.c:805:31
+    #2 0x56213e39f0f8 in mobi_parse_rawml_opt /root/src/parse_rawml.c:2142:11
+    #3 0x56213e39e298 in mobi_parse_rawml /root/src/parse_rawml.c:2009:12
+    #4 0x56213e37efa2 in loadfilename /root/tools/mobitool.c:852:20
+    #5 0x56213e37e97b in main /root/tools/mobitool.c:1051:11
+    #6 0x7f2b7d2ae1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x7f2b7d2ae28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x56213e37c744 in _start (/root/tools/mobitool+0x13744) (BuildId: 6033ab8e2335178a5232c3dc880d71e589274c52)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/parse_rawml.c:110:43 in mobi_search_links_kf7
+Shadow bytes around the buggy address:
+  0x525000007200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x525000007280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x525000007300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x525000007380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x525000007400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x525000007480: 00[07]fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x525000007500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x525000007580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x525000007600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x525000007680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x525000007700: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359744==ABORTING

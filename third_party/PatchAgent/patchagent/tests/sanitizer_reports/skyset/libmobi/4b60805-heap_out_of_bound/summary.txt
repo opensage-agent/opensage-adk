@@ -1,0 +1,28 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 8 at 0x510000000160 thread T0
+    - mobi_reconstruct_infl /root/src/parse_rawml.c:1416:77
+    - mobi_reconstruct_orth /root/src/parse_rawml.c:1578:23
+    - mobi_reconstruct_links_kf7 /root/src/parse_rawml.c:1796:15
+    - mobi_reconstruct_links /root/src/parse_rawml.c:1845:15
+    - mobi_parse_rawml_opt /root/src/parse_rawml.c:2149:15
+    - mobi_parse_rawml /root/src/parse_rawml.c:2005:12
+    - loadfilename /root/tools/mobitool.c:852:20
+    - main /root/tools/mobitool.c:1051:11
+
+0x510000000160 is located 96 bytes after 192-byte region [0x510000000040,0x510000000100)
+allocated by thread T0 here:
+    - mobi_parse_indx /root/src/index.c:657:33
+    - mobi_parse_index /root/src/index.c:721:15
+    - mobi_parse_rawml_opt /root/src/parse_rawml.c:2130:19
+    - mobi_parse_rawml /root/src/parse_rawml.c:2005:12
+    - loadfilename /root/tools/mobitool.c:852:20
+    - main /root/tools/mobitool.c:1051:11
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

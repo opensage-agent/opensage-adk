@@ -1,0 +1,29 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/wasm3:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzzer -runs=100.
++ FUZZER=fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3553638543
+/out/fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x563e1d14df90 (pc 0x563e1d14df90 bp 0x0000000000fc sp 0x7ffcd9a543b8 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: PC is at a non-executable region. Maybe a wild jump?
+    #0 0x563e1d14df90 in vtable for __cxxabiv1::__si_class_type_info (/out/fuzzer+0x170f90)
+
+DEDUP_TOKEN: vtable for __cxxabiv1::__si_class_type_info
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (/out/fuzzer+0x170f90) in vtable for __cxxabiv1::__si_class_type_info
+==14==ABORTING

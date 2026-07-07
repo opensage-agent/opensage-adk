@@ -1,0 +1,100 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/exiv2:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/exiv2/OSV-2023-1161/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz-read-print-write -runs=100.
++ FUZZER=fuzz-read-print-write
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz-read-print-write -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz-read-print-write -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=fuzz-read-print-write.dict < /dev/null
+Dictionary: 398 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3511716797
+INFO: Loaded 1 modules   (60217 inline 8-bit counters): 60217 [0x559342567e10, 0x559342576949), 
+INFO: Loaded 1 PC tables (60217 PCs): 60217 [0x559342576950,0x559342661ce0), 
+/out/fuzz-read-print-write: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5110000004c8 at pc 0x559341d160fb bp 0x7ffc8c75e170 sp 0x7ffc8c75d938
+[1m[0m[1m[34mREAD of size 201 at 0x5110000004c8 thread T0[1m[0m
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x559341d160fa in strlen /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:391:5
+    #1 0x559341f70617 in __constexpr_strlen /usr/local/bin/../include/c++/v1/__string/constexpr_c_functions.h:49:10
+    #2 0x559341f70617 in length /usr/local/bin/../include/c++/v1/__string/char_traits.h:227:12
+    #3 0x559341f70617 in operator<<<std::__1::char_traits<char> > /usr/local/bin/../include/c++/v1/ostream:801:51
+    #4 0x559341f70617 in std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> Exiv2::toString<unsigned char*>(unsigned char* const&) /src/exiv2/include/exiv2/types.hpp:472:6
+    #5 0x559341f76444 in Exiv2::QuickTimeVideo::NikonTagsDecoder(unsigned long) /src/exiv2/src/quicktimevideo.cpp:1054:56
+    #6 0x559341f67fd8 in Exiv2::QuickTimeVideo::userDataDecoder(unsigned long) /src/exiv2/src/quicktimevideo.cpp:892:17
+    #7 0x559341f546be in Exiv2::QuickTimeVideo::tagDecoder(Exiv2::DataBuf&, unsigned long) /src/exiv2/src/quicktimevideo.cpp:686:13
+    #8 0x559341f52972 in Exiv2::QuickTimeVideo::decodeBlock() /src/exiv2/src/quicktimevideo.cpp:653:9
+    #9 0x559341f5133b in Exiv2::QuickTimeVideo::readMetadata() /src/exiv2/src/quicktimevideo.cpp:620:37
+    #10 0x559341dd7582 in LLVMFuzzerTestOneInput /src/exiv2/fuzz/fuzz-read-print-write.cpp:22:12
+    #11 0x559341c8bec0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x559341c77135 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x559341c7cbcf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x559341ca7e72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f51150a9082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #16 0x559341c6f31d in _start (/out/fuzz-read-print-write+0x3dd31d)
+
+DEDUP_TOKEN: ___interceptor_strlen--__constexpr_strlen--length
+[1m[32m0x5110000004c8 is located 0 bytes after 200-byte region [0x511000000400,0x5110000004c8)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x559341dd505d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x559341e2838d in __libcpp_operator_new<unsigned long> /usr/local/bin/../include/c++/v1/new:271:10
+    #2 0x559341e2838d in __libcpp_allocate /usr/local/bin/../include/c++/v1/new:295:10
+    #3 0x559341e2838d in allocate /usr/local/bin/../include/c++/v1/__memory/allocator.h:125:32
+    #4 0x559341e2838d in __allocate_at_least<std::__1::allocator<unsigned char> > /usr/local/bin/../include/c++/v1/__memory/allocate_at_least.h:55:19
+    #5 0x559341e2838d in __vallocate /usr/local/bin/../include/c++/v1/vector:741:25
+    #6 0x559341e2838d in std::__1::vector<unsigned char, std::__1::allocator<unsigned char>>::vector(unsigned long) /usr/local/bin/../include/c++/v1/vector:1121:5
+    #7 0x559341f73bde in Exiv2::QuickTimeVideo::NikonTagsDecoder(unsigned long) /src/exiv2/src/quicktimevideo.cpp:931:17
+    #8 0x559341f67fd8 in Exiv2::QuickTimeVideo::userDataDecoder(unsigned long) /src/exiv2/src/quicktimevideo.cpp:892:17
+    #9 0x559341f546be in Exiv2::QuickTimeVideo::tagDecoder(Exiv2::DataBuf&, unsigned long) /src/exiv2/src/quicktimevideo.cpp:686:13
+    #10 0x559341f52972 in Exiv2::QuickTimeVideo::decodeBlock() /src/exiv2/src/quicktimevideo.cpp:653:9
+    #11 0x559341f5133b in Exiv2::QuickTimeVideo::readMetadata() /src/exiv2/src/quicktimevideo.cpp:620:37
+    #12 0x559341dd7582 in LLVMFuzzerTestOneInput /src/exiv2/fuzz/fuzz-read-print-write.cpp:22:12
+    #13 0x559341c8bec0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x559341c77135 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x559341c7cbcf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x559341ca7e72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f51150a9082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: operator new(unsigned long)--__libcpp_operator_new<unsigned long>--__libcpp_allocate
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/exiv2/include/exiv2/types.hpp:472:6 in std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> Exiv2::toString<unsigned char*>(unsigned char* const&)
+Shadow bytes around the buggy address:
+  0x511000000200: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m
+  0x511000000280: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x511000000300: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x511000000380: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x511000000400: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x511000000480: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x511000000500: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x511000000580: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x511000000600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x511000000680: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x511000000700: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

@@ -1,0 +1,57 @@
+=================================================================
+==14==ERROR: AddressSanitizer: global-buffer-overflow on address 0x556a812c2f09 at pc 0x556a811d2246 bp 0x7fffdb19b5a0 sp 0x7fffdb19b598
+READ of size 1 at 0x556a812c2f09 thread T0
+SCARINESS: 12 (1-byte-read-global-buffer-overflow)
+    #0 0x556a811d2245 in isvce_write_coeff4x4_cavlc /src/libavc/encoder/svc/isvce_cavlc.c
+    #1 0x556a811cd88b in isvce_encode_residue /src/libavc/encoder/svc/isvce_cavlc.c:893:13
+    #2 0x556a811cf24a in isvce_write_pslice_mb_cavlc /src/libavc/encoder/svc/isvce_cavlc.c:1587:20
+    #3 0x556a8111bbaf in isvce_entropy /src/libavc/encoder/svc/isvce_process.c:903:13
+    #4 0x556a81129c2d in isvce_process_thread /src/libavc/encoder/svc/isvce_process.c:2775:32
+    #5 0x556a8110b1fb in isvce_encode /src/libavc/encoder/svc/isvce_encode.c:484:13
+    #6 0x556a810f4474 in isvce_api_function /src/libavc/encoder/svc/isvce_api.c:6045:19
+    #7 0x556a810ef362 in Codec::encodeFrames(unsigned char const*, unsigned long) /src/libavc/fuzzer/svc_enc_fuzzer.cpp:1263:9
+    #8 0x556a810f028f in LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_enc_fuzzer.cpp:1339:16
+    #9 0x556a80f99380 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x556a80f845f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x556a80f8a08f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x556a80fb5332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f7cf3a0b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #14 0x556a80f7c7dd in _start (/out/svc_enc_fuzzer+0x997dd)
+
+DEDUP_TOKEN: isvce_write_coeff4x4_cavlc--isvce_encode_residue--isvce_write_pslice_mb_cavlc
+0x556a812c2f09 is located 55 bytes before global variable 'gu1_index_zero_table' defined in '/src/libavc/common/ih264_cavlc_tables.c' (0x556a812c2f40) of size 15
+0x556a812c2f09 is located 23 bytes before global variable 'gu1_code_zero_table_chroma' defined in '/src/libavc/common/ih264_cavlc_tables.c' (0x556a812c2f20) of size 9
+0x556a812c2f09 is located 0 bytes after global variable 'gu1_size_zero_table_chroma' defined in '/src/libavc/common/ih264_cavlc_tables.c' (0x556a812c2f00) of size 9
+SUMMARY: AddressSanitizer: global-buffer-overflow /src/libavc/encoder/svc/isvce_cavlc.c in isvce_write_coeff4x4_cavlc
+Shadow bytes around the buggy address:
+  0x556a812c2c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x556a812c2d00: f9 f9 f9 f9 00 00 f9 f9 00 00 f9 f9 06 f9 f9 f9
+  0x556a812c2d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x556a812c2e00: 07 f9 f9 f9 f9 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x556a812c2e80: 00 00 00 00 00 00 00 00 07 f9 f9 f9 f9 f9 f9 f9
+=>0x556a812c2f00: 00[01]f9 f9 00 01 f9 f9 00 07 f9 f9 00 00 00 00
+  0x556a812c2f80: 00 02 f9 f9 f9 f9 f9 f9 00 00 00 00 00 02 f9 f9
+  0x556a812c3000: f9 f9 f9 f9 07 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x556a812c3080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x556a812c3100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x556a812c3180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

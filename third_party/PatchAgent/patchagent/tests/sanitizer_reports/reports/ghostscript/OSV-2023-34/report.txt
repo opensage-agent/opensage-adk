@@ -1,0 +1,137 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/ghostscript/OSV-2023-34/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gs_device_faxg3_fuzzer -runs=100.
++ FUZZER=gs_device_faxg3_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gs_device_faxg3_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gs_device_faxg3_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=gs_device_faxg3_fuzzer.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 241076068
+INFO: Loaded 3 modules   (221834 inline 8-bit counters): 14221 [0x7f8fae06f2a0, 0x7f8fae072a2d), 958 [0x7f8fae110778, 0x7f8fae110b36), 206655 [0x55cd00f79570, 0x55cd00fabcaf), 
+INFO: Loaded 3 PC tables (221834 PCs): 14221 [0x7f8fae072a30,0x7f8fae0aa300), 958 [0x7f8fae110b38,0x7f8fae114718), 206655 [0x55cd00fabcb0,0x55cd012d30a0), 
+/out/gs_device_faxg3_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x52a000334260 at pc 0x55ccfecbc6b4 bp 0x7fffc46e5330 sp 0x7fffc46e5328
+[1m[0m[1m[34mREAD of size 2 at 0x52a000334260 thread T0[1m[0m
+SCARINESS: 42 (2-byte-read-heap-use-after-free)
+    #0 0x55ccfecbc6b3 in gc_trace /src/ghostpdl/./psi/igc.c:915:17
+    #1 0x55ccfecb772c in gs_gc_reclaim /src/ghostpdl/./psi/igc.c:338:21
+    #2 0x55ccfebf502b in gs_vmreclaim /src/ghostpdl/./psi/ireclaim.c:165:9
+    #3 0x55ccfebf502b in ireclaim /src/ghostpdl/./psi/ireclaim.c:80:12
+    #4 0x55ccfebe1c8e in interp_reclaim /src/ghostpdl/./psi/interp.c:452:12
+    #5 0x55ccfe387ddc in gs_main_finit /src/ghostpdl/./psi/imain.c:1281:20
+    #6 0x55ccfebd0d63 in psapi_exit /src/ghostpdl/./psi/psapi.c:517:5
+    #7 0x55ccfe37e010 in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:144:8
+    #8 0x55ccfe37e335 in LLVMFuzzerTestOneInput /src/gs_device_faxg3_fuzzer.cc:18:2
+    #9 0x55ccfe2326d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55ccfe21d945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55ccfe2233df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55ccfe24e682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f8fada97082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #14 0x55ccfe215b2d in _start (/out/gs_device_faxg3_fuzzer+0x721b2d)
+
+DEDUP_TOKEN: gc_trace--gs_gc_reclaim--gs_vmreclaim
+[1m[32m0x52a000334260 is located 16480 bytes inside of 20048-byte region [0x52a000330200,0x52a000335050)
+[1m[0m[1m[35mfreed by thread T0 here:[1m[0m
+    #0 0x55ccfe33e206 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55ccff24fb0d in alloc_free_clump /src/ghostpdl/./base/gsalloc.c:2596:9
+    #2 0x55ccff24fb0d in free_all_not_allocator /src/ghostpdl/./base/gsalloc.c:979:9
+    #3 0x55ccff24fb0d in clump_splay_app /src/ghostpdl/./base/gsalloc.c:592:19
+    #4 0x55ccff24fb0d in i_free_all /src/ghostpdl/./base/gsalloc.c:1015:9
+    #5 0x55ccfeccb86d in restore_free /src/ghostpdl/./psi/isave.c:991:5
+    #6 0x55ccfeccb86d in restore_space /src/ghostpdl/./psi/isave.c:847:5
+    #7 0x55ccfeccb86d in alloc_restore_step_in /src/ghostpdl/./psi/isave.c:784:9
+    #8 0x55ccfec50967 in dorestore /src/ghostpdl/./psi/zvmem.c:193:16
+    #9 0x55ccfebc8882 in z2restore /src/ghostpdl/./psi/zdevice2.c:373:12
+    #10 0x55ccfebe6029 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #11 0x55ccfebe6029 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #12 0x55ccfebe6029 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #13 0x55ccfe3863b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #14 0x55ccfe3863b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #15 0x55ccfe3863b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #16 0x55ccfeec7f40 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #17 0x55ccfeec4910 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #18 0x55ccfeec1a92 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #19 0x55ccfeec7cc8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #20 0x55ccfe37dfbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #21 0x55ccfe37e335 in LLVMFuzzerTestOneInput /src/gs_device_faxg3_fuzzer.cc:18:2
+    #22 0x55ccfe2326d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #23 0x55ccfe21d945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #24 0x55ccfe2233df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #25 0x55ccfe24e682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #26 0x7f8fada97082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--alloc_free_clump--free_all_not_allocator
+[1m[35mpreviously allocated by thread T0 here:[1m[0m
+    #0 0x55ccfe33e49f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55ccfe866150 in gs_heap_alloc_bytes /src/ghostpdl/./base/gsmalloc.c:192:34
+    #2 0x55ccff2593e7 in alloc_acquire_clump /src/ghostpdl/./base/gsalloc.c:2445:13
+    #3 0x55ccff2582fb in alloc_add_clump /src/ghostpdl/./base/gsalloc.c:2395:19
+    #4 0x55ccff2582fb in alloc_obj /src/ghostpdl/./base/gsalloc.c:2004:17
+    #5 0x55ccfecb5114 in gs_alloc_ref_array /src/ghostpdl/./psi/ialloc.c:226:15
+    #6 0x55ccfebd3855 in dict_create_unpacked_keys /src/ghostpdl/./psi/idict.c:172:12
+    #7 0x55ccfebd3855 in dict_unpack /src/ghostpdl/./psi/idict.c:256:16
+    #8 0x55ccfebd54a4 in dict_put /src/ghostpdl/./psi/idict.c:491:28
+    #9 0x55ccfec37d85 in zput /src/ghostpdl/./psi/zgeneric.c:209:28
+    #10 0x55ccfebe6029 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #11 0x55ccfebe6029 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #12 0x55ccfebe6029 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #13 0x55ccfe3863b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #14 0x55ccfe3863b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #15 0x55ccfe3863b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #16 0x55ccfeec7f40 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #17 0x55ccfeec4910 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #18 0x55ccfeec1a92 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #19 0x55ccfeec7cc8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #20 0x55ccfe37dfbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #21 0x55ccfe37e335 in LLVMFuzzerTestOneInput /src/gs_device_faxg3_fuzzer.cc:18:2
+    #22 0x55ccfe2326d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #23 0x55ccfe21d945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #24 0x55ccfe2233df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #25 0x55ccfe24e682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #26 0x7f8fada97082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--gs_heap_alloc_bytes--alloc_acquire_clump
+SUMMARY: AddressSanitizer: heap-use-after-free /src/ghostpdl/./psi/igc.c:915:17 in gc_trace
+Shadow bytes around the buggy address:
+  0x52a000333f80: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52a000334000: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52a000334080: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52a000334100: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52a000334180: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+=>0x52a000334200: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52a000334280: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52a000334300: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52a000334380: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52a000334400: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52a000334480: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

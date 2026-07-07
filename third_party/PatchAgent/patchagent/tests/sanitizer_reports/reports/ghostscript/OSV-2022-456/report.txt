@@ -1,0 +1,68 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/ghostscript/OSV-2022-456/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gstoraster_fuzzer -runs=100.
++ FUZZER=gstoraster_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gstoraster_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gstoraster_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=gstoraster_fuzzer.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3843172645
+INFO: Loaded 3 modules   (220033 inline 8-bit counters): 14221 [0x7fe70350e2a0, 0x7fe703511a2d), 958 [0x7fe7035af778, 0x7fe7035afb36), 204854 [0x564ce08e5230, 0x564ce0917266), 
+INFO: Loaded 3 PC tables (220033 PCs): 14221 [0x7fe703511a30,0x7fe703549300), 958 [0x7fe7035afb38,0x7fe7035b3718), 204854 [0x564ce0917268,0x564ce0c375c8), 
+/out/gstoraster_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x000000000000 bp 0x7ffdac1dae10 sp 0x7ffdac1dad18 T0)
+[1m[0m==14==Hint: pc points to the zero page.
+==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+SCARINESS: 10 (null-deref)
+    #0 0x0  (<unknown module>)
+    #1 0x564cde2452b4 in load_glyph /src/ghostpdl/./base/fapi_ft.c:685:20
+    #2 0x564cde2416f4 in gs_fapi_ft_get_char_raster_metrics /src/ghostpdl/./base/fapi_ft.c:1572:9
+    #3 0x564cde2383e1 in gs_fapi_do_char /src/ghostpdl/./base/gxfapi.c:1570:16
+    #4 0x564cdec77dc8 in pdfi_fapi_build_char /src/ghostpdl/./pdf/pdf_fapi.c:1398:16
+    #5 0x564cde35154f in show_proceed /src/ghostpdl/./base/gxchar.c:1229:12
+    #6 0x564cde7ea62e in pdfi_show_simple /src/ghostpdl/./pdf/pdf_text.c:445:16
+    #7 0x564cde7ea62e in pdfi_show_Tr_0 /src/ghostpdl/./pdf/pdf_text.c:460:12
+    #8 0x564cde7e5e0f in pdfi_show /src/ghostpdl/./pdf/pdf_text.c:842:24
+    #9 0x564cde7e83b1 in pdfi_TJ /src/ghostpdl/./pdf/pdf_text.c:1188:20
+    #10 0x564cde710756 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1625:24
+    #11 0x564cde70ed16 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2078:24
+    #12 0x564cde762445 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #13 0x564cde762445 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #14 0x564cde762445 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #15 0x564cde6d3eba in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1092:24
+    #16 0x564cde566e79 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #17 0x564cde566e79 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #18 0x564cde566e79 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #19 0x564cddd0f3b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #20 0x564cddd0f3b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #21 0x564cddd0f3b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #22 0x564cde8377f0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #23 0x564cde8341c0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #24 0x564cde831342 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #25 0x564cde837578 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #26 0x564cddd06fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #27 0x564cddd07335 in gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    #28 0x564cddd07335 in LLVMFuzzerTestOneInput /src/gstoraster_fuzzer.cc:23:2
+    #29 0x564cddbbb6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #30 0x564cddba6945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #31 0x564cddbac3df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #32 0x564cddbd7682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #33 0x7fe702f36082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: load_glyph--gs_fapi_ft_get_char_raster_metrics
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (<unknown module>) 
+==14==ABORTING

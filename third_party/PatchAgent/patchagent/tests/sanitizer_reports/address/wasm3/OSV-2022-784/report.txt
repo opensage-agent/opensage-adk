@@ -1,0 +1,60 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x506000000031 at pc 0x56497da3634c bp 0x7ffec0c420a0 sp 0x7ffec0c42098
+READ of size 8 at 0x506000000031 thread T0
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x56497da3634b in Environment_ReleaseCodePages /src/wasm3/source/m3_env.c:167:41
+    #1 0x56497da3634b in Runtime_Release /src/wasm3/source/m3_env.c:234:5
+    #2 0x56497da3634b in m3_FreeRuntime /src/wasm3/source/m3_env.c:248:9
+    #3 0x56497da3493e in LLVMFuzzerTestOneInput /src/wasm3/platforms/app_fuzz/fuzzer.c:43:13
+    #4 0x56497d8e92f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x56497d8d4565 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x56497d8d9fff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x56497d9052a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f49417e1082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #9 0x56497d8cc74d in _start (/out/fuzzer+0x5674d)
+
+DEDUP_TOKEN: Environment_ReleaseCodePages--Runtime_Release--m3_FreeRuntime
+0x506000000031 is located 17 bytes inside of 56-byte region [0x506000000020,0x506000000058)
+freed by thread T0 here:
+    #0 0x56497d9f4e26 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x7f49419e9b7c  (/lib/x86_64-linux-gnu/libdl.so.2+0x1b7c) (BuildId: 25372f43dbcc661aa02020d0365c948e89f6e612)
+    #2 0x56497da9fbb1  (/out/fuzzer+0x229bb1)
+
+DEDUP_TOKEN: __interceptor_free----
+previously allocated by thread T0 here:
+    #0 0x56497d9f50bf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+
+DEDUP_TOKEN: __interceptor_malloc
+SUMMARY: AddressSanitizer: heap-use-after-free /src/wasm3/source/m3_env.c:167:41 in Environment_ReleaseCodePages
+Shadow bytes around the buggy address:
+  0x505ffffffd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x505ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x505ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x505fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x505fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x506000000000: fa fa fa fa fd fd[fd]fd fd fd fd fa fa fa fa fa
+  0x506000000080: 00 00 00 00 00 00 00 00 fa fa fa fa fa fa fa fa
+  0x506000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

@@ -1,0 +1,24 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - libraw_sget4_static /src/libraw/src/utils/read_utils.cpp:63:12
+    - LibRaw::sget4(unsigned char*) /src/libraw/src/utils/read_utils.cpp:54:12
+    - LibRaw::parseAdobeRAFMakernote() /src/libraw/src/metadata/fuji.cpp:196:10
+    - LibRaw::parse_tiff_ifd(int) /src/libraw/src/metadata/tiff.cpp:1335:17
+    - LibRaw::parse_tiff_ifd(int) /src/libraw/src/metadata/tiff.cpp:0:0
+    - LibRaw::parse_tiff(int) /src/libraw/src/metadata/tiff.cpp:1495:9
+    - LibRaw::identify() /src/libraw/src/metadata/identify.cpp:503:14
+    - LibRaw::open_datastream(LibRaw_abstract_datastream*) /src/libraw/src/utils/open.cpp:464:4
+    - LibRaw::open_buffer(void const*, unsigned long) /src/libraw/src/utils/open.cpp:227:13
+    - LLVMFuzzerTestOneInput /src/libraw_fuzzer.cc:62:24
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

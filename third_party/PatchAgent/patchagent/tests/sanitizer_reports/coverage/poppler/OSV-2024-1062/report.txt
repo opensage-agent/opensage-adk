@@ -1,0 +1,55 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/poppler:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce annot_fuzzer -runs=100.
++ FUZZER=annot_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer annot_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/annot_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=annot_fuzzer.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1944426585
+INFO: Loaded 1 modules   (18 inline 8-bit counters): 18 [0x562fb47109d8, 0x562fb47109ea), 
+INFO: Loaded 1 PC tables (18 PCs): 18 [0x562fb47109f0,0x562fb4710b10), 
+/out/annot_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+libc++abi: terminating due to uncaught exception of type std::__1::system_error: recursive_mutex lock failed: Invalid argument
+==14== ERROR: libFuzzer: deadly signal
+    #0 0x562fb31cde74 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x562fb314cec8 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x562fb3130263 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7f7541d8b08f  (/lib/x86_64-linux-gnu/libc.so.6+0x4308f) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #4 0x7f7541d8b00a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7f7541d6a858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x562fb3c3ed05 in abort_message (/out/annot_fuzzer+0xcfcd05)
+    #7 0x562fb3c9cdea in demangling_terminate_handler() cxa_default_handlers.cpp
+    #8 0x562fb3c3eb12 in std::__terminate(void (*)()) (/out/annot_fuzzer+0xcfcb12)
+    #9 0x562fb3c40895 in __cxxabiv1::failed_throw(__cxxabiv1::__cxa_exception*) cxa_exception.cpp
+    #10 0x562fb3c4087f in __cxa_throw (/out/annot_fuzzer+0xcfe87f)
+    #11 0x562fb3c59be1 in std::__1::__throw_system_error[abi:ne180100](std::__1::error_code, char const*) (/out/annot_fuzzer+0xd17be1)
+    #12 0x562fb3c59b9d in std::__1::__throw_system_error(int, char const*) (/out/annot_fuzzer+0xd17b9d)
+    #13 0x562fb3c5ad19 in std::__1::recursive_mutex::lock() (/out/annot_fuzzer+0xd18d19)
+    #14 0x562fb3299169 in scoped_lock /usr/local/bin/../include/c++/v1/mutex:468:10
+    #15 0x562fb3299169 in Catalog::getForm() /src/poppler/poppler/Catalog.cc:1078:5
+    #16 0x562fb335591b in Page::getAnnots(XRef*) /src/poppler/poppler/Page.cc:419:57
+    #17 0x562fb33563a5 in Page::displaySlice(OutputDev*, double, double, int, bool, bool, int, int, int, int, bool, bool (*)(void*), void*, bool (*)(Annot*, void*), void*, bool) /src/poppler/poppler/Page.cc:602:17
+    #18 0x562fb31e62c0 in poppler_page_get_bounding_box /src/poppler/glib/poppler-page.cc:2270:17
+    #19 0x562fb31cf37b in LLVMFuzzerTestOneInput /src/poppler/glib/tests/fuzzing/annot_fuzzer.cc:51:14
+    #20 0x562fb3131770 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #21 0x562fb311c9e5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #22 0x562fb312247f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #23 0x562fb314d722 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #24 0x7f7541d6c082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #25 0x562fb3114bcd in _start (/out/annot_fuzzer+0x1d2bcd)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

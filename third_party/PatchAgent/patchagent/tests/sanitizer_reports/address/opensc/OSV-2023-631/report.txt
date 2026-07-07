@@ -1,0 +1,58 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51d00000135c at pc 0x55a5d1c80b42 bp 0x7fff836bc810 sp 0x7fff836bbfd0
+READ of size 1025 at 0x51d00000135c thread T0
+SCARINESS: 26 (multi-byte-read-heap-buffer-overflow)
+    #0 0x55a5d1c80b41 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x55a5d1cc786f in test_verify /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:515:4
+    #2 0x55a5d1cc3e36 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:1082:2
+    #3 0x55a5d1b76e80 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x55a5d1b620f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x55a5d1b67b8f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x55a5d1b92e32 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7fef74300082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #8 0x55a5d1b5a2dd in _start (/out/fuzz_pkcs11+0x2312dd)
+
+DEDUP_TOKEN: __asan_memcpy--test_verify--LLVMFuzzerTestOneInput
+0x51d00000135c is located 0 bytes after 2268-byte region [0x51d000000a80,0x51d00000135c)
+allocated by thread T0 here:
+    #0 0x55a5d1c82c4f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55a5d2382313 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x55a5d1b620f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x55a5d1b67b8f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x55a5d1b92e32 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7fef74300082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:515:4 in test_verify
+Shadow bytes around the buggy address:
+  0x51d000001080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000001100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000001180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000001200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51d000001280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51d000001300: 00 00 00 00 00 00 00 00 00 00 00[04]fa fa fa fa
+  0x51d000001380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000001400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000001480: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51d000001500: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51d000001580: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

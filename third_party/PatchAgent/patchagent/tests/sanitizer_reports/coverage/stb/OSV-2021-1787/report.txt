@@ -1,0 +1,45 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/stb:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce stbi_read_fuzzer -runs=100.
++ FUZZER=stbi_read_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer stbi_read_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/stbi_read_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=stbi_read_fuzzer.dict < /dev/null
+Dictionary: 16 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 898296142
+INFO: Loaded 1 modules   (3251 inline 8-bit counters): 3251 [0x55d6eea100f0, 0x55d6eea10da3), 
+INFO: Loaded 1 PC tables (3251 PCs): 3251 [0x55d6eea10da8,0x55d6eea1d8d8), 
+/out/stbi_read_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x55d6fea6eca7 (pc 0x55d6ee989d41 bp 0x7fffe116a6d0 sp 0x7fffe116a680 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x55d6ee989d41 in stbi__jpeg_huff_decode(stbi__jpeg*, stbi__huffman*) /src/stb/tests/../stb_image.h:2115:4
+    #1 0x55d6ee98918b in stbi__jpeg_decode_block(stbi__jpeg*, short*, stbi__huffman*, stbi__huffman*, short*, int, unsigned short*) /src/stb/tests/../stb_image.h:2216:19
+    #2 0x55d6ee97166c in stbi__parse_entropy_coded_data /src/stb/tests/../stb_image.h:2932:21
+    #3 0x55d6ee97166c in stbi__decode_jpeg_image /src/stb/tests/../stb_image.h:3368:15
+    #4 0x55d6ee97166c in load_jpeg_image /src/stb/tests/../stb_image.h:3820:9
+    #5 0x55d6ee97166c in stbi__jpeg_load(stbi__context*, int*, int*, int*, int, stbi__result_info*) /src/stb/tests/../stb_image.h:3982:13
+    #6 0x55d6ee9645a9 in stbi__load_and_postprocess_8bit(stbi__context*, int*, int*, int*, int) /src/stb/tests/../stb_image.h:1243:19
+    #7 0x55d6ee96a020 in stbi_load_from_memory /src/stb/tests/../stb_image.h:1413:11
+    #8 0x55d6ee96a020 in LLVMFuzzerTestOneInput /src/stb/tests/stbi_read_fuzzer.c:19:26
+    #9 0x55d6ee8c6860 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55d6ee8b1ad5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55d6ee8b756f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55d6ee8e2812 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f47bc4b1082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #14 0x55d6ee8a9cbd in _start (/out/stbi_read_fuzzer+0x32cbd)
+
+DEDUP_TOKEN: stbi__jpeg_huff_decode(stbi__jpeg*, stbi__huffman*)--stbi__jpeg_decode_block(stbi__jpeg*, short*, stbi__huffman*, stbi__huffman*, short*, int, unsigned short*)--stbi__parse_entropy_coded_data
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/stb/tests/../stb_image.h:2115:4 in stbi__jpeg_huff_decode(stbi__jpeg*, stbi__huffman*)
+==14==ABORTING

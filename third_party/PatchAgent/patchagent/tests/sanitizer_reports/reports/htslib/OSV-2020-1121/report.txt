@@ -1,0 +1,45 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/htslib:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/htslib/OSV-2020-1121/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce hts_open_fuzzer -runs=100.
++ FUZZER=hts_open_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer hts_open_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/hts_open_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1005260093
+INFO: Loaded 1 modules   (24252 inline 8-bit counters): 24252 [0x56348f25de98, 0x56348f263d54), 
+INFO: Loaded 1 PC tables (24252 PCs): 24252 [0x56348f263d58,0x56348f2c2918), 
+/out/hts_open_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+[W::vcf_parse] Contig '@SQ222' is not defined in the header. (Quick workaround: index the file with tabix.)
+[W::vcf_parse] FILTER '*' is not defined in the header
+[W::vcf_parse] INFO '+0' is not defined in the header, assuming Type=String
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x505a05a69770 (pc 0x56348f0b7601 bp 0x7ffc0bd1c6b0 sp 0x7ffc0bd1c580 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x56348f0b7601 in vcf_format /src/htslib/vcf.c:2838:44
+    #1 0x56348f0a02f1 in vcf_write /src/htslib/vcf.c:2918:9
+    #2 0x56348f09fcea in bcf_write /src/htslib/vcf.c:1705:16
+    #3 0x56348eff8eef in view_vcf /src/htslib/test/fuzz/hts_open_fuzzer.c:107:13
+    #4 0x56348eff8eef in LLVMFuzzerTestOneInput /src/htslib/test/fuzz/hts_open_fuzzer.c:143:13
+    #5 0x56348eead710 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x56348ee98985 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x56348ee9e41f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x56348eec96c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f35c0722082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #10 0x56348ee90b6d in _start (/out/hts_open_fuzzer+0xe8b6d)
+
+DEDUP_TOKEN: vcf_format--vcf_write--bcf_write
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/htslib/vcf.c:2838:44 in vcf_format
+==14==ABORTING

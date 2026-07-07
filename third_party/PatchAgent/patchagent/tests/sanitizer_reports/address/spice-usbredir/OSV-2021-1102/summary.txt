@@ -1,0 +1,44 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+WRITE of size 4 at 0x53100003c828 thread T0
+    - memcpy /usr/include/x86_64-linux-gnu/bits/string_fortified.h:34:10
+    - usbredirparser_serialize /src/spice-usbredir/usbredirparser/usbredirparser.c:1720:5
+    - try_serialize /src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:400:11
+    - LLVMFuzzerTestOneInput /src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:495:39
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x53100003c828 is located 40 bytes inside of 65536-byte region [0x53100003c800,0x53100004c800)
+freed by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - serialize_alloc /src/spice-usbredir/usbredirparser/usbredirparser.c:1534:14
+    - serialize_data /src/spice-usbredir/usbredirparser/usbredirparser.c:1590:9
+    - usbredirparser_serialize /src/spice-usbredir/usbredirparser/usbredirparser.c:1712:13
+    - try_serialize /src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:400:11
+    - LLVMFuzzerTestOneInput /src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:495:39
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - serialize_alloc /src/spice-usbredir/usbredirparser/usbredirparser.c:1534:14
+    - serialize_int /src/spice-usbredir/usbredirparser/usbredirparser.c:1553:9
+    - usbredirparser_serialize /src/spice-usbredir/usbredirparser/usbredirparser.c:1665:9
+    - try_serialize /src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:400:11
+    - LLVMFuzzerTestOneInput /src/spice-usbredir/fuzzing/usbredirparserfuzz.cc:495:39
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

@@ -1,0 +1,30 @@
+The sanitizer detected a server side request forgery vulnerability.The explanation of the vulnerability is: An attacker can make the server perform unauthorized requests, leading to potential data exfiltration or unauthorized access.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueMedium: Server Side Request Forgery (SSRF)
+Attempted connection to: o:21
+Requests to destinations based on untrusted data could lead to exfiltration of sensitive data or exposure of internal services.
+
+If the fuzz test is expected to perform network connections, call com.code_intelligence.jazzer.api.BugDetectors#allowNetworkConnections at the beginning of your fuzz test and optionally provide a predicate matching the expected hosts.
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrf (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:127)
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrfSocket (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:71)
+- java.base/java.net.Socket.connect (java/base/java/net/Socket.java:751)
+- java.base/sun.net.ftp.impl.FtpClient.doConnect (java/base/sun/net/ftp/impl/FtpClient.java:1045)
+- java.base/sun.net.ftp.impl.FtpClient.tryConnect (java/base/sun/net/ftp/impl/FtpClient.java:1010)
+- java.base/sun.net.ftp.impl.FtpClient.connect (java/base/sun/net/ftp/impl/FtpClient.java:1102)
+- java.base/sun.net.ftp.impl.FtpClient.connect (java/base/sun/net/ftp/impl/FtpClient.java:1088)
+- java.base/sun.net.www.protocol.ftp.FtpURLConnection.connect (java/base/sun/net/www/protocol/ftp/FtpURLConnection.java:314)
+- java.base/sun.net.www.protocol.ftp.FtpURLConnection.getInputStream (java/base/sun/net/www/protocol/ftp/FtpURLConnection.java:420)
+- java.base/java.net.URL.openStream (java/base/java/net/URL.java:1325)
+- org.apache.commons.text.lookup.UrlStringLookup.lookup (org/apache/commons/text/lookup/UrlStringLookup.java:79)
+- org.apache.commons.text.lookup.InterpolatorStringLookup.lookup (org/apache/commons/text/lookup/InterpolatorStringLookup.java:135)
+- org.apache.commons.text.StringSubstitutor.resolveVariable (org/apache/commons/text/StringSubstitutor.java:1067)
+- org.apache.commons.text.StringSubstitutor.substitute (org/apache/commons/text/StringSubstitutor.java:1433)
+- org.apache.commons.text.StringSubstitutor.substitute (org/apache/commons/text/StringSubstitutor.java:1308)
+- org.apache.commons.text.StringSubstitutor.replace (org/apache/commons/text/StringSubstitutor.java:816)
+- com.example.CommonsTextFuzzer.fuzzerTestOneInput (com/example/CommonsTextFuzzer.java:25)
+
+To fix this issue, follow the advice below:
+
+1. Validate and sanitize all user-provided URLs to prevent SSRF attacks.
+2. Use allowlists or secure APIs to restrict server-side requests to authorized domains.
+3. Monitor server logs for unusual or unauthorized requests.

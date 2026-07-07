@@ -1,0 +1,20 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - md_build_attribute /root/src/md4c.c:1439:12
+    - md_enter_leave_span_a /root/src/md4c.c:4117:5
+    - md_process_inlines /root/src/md4c.c:4295:21
+    - md_process_normal_block_contents /root/src/md4c.c:4640:5
+    - md_process_leaf_block /root/src/md4c.c:4819:13
+    - md_process_all_blocks /root/src/md4c.c:4901:13
+    - md_process_doc /root/src/md4c.c:6330:5
+    - md_parse /root/src/md4c.c:6398:11
+    - md_html /root/src/md4c-html.c:571:12
+    - LLVMFuzzerTestOneInput /root/test/fuzzers/fuzz-mdhtml.c:24:5
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

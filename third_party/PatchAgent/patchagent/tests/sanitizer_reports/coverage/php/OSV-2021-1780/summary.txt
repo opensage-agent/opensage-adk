@@ -1,0 +1,14 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+llvm-symbolizer: error: '/dev/zero (deleted)': No such file or directory
+    - zend_hash_index_find_bucket /src/php-src/Zend/zend_hash.c:0:0
+    - _zend_hash_index_find /src/php-src/Zend/zend_hash.c:2589:6
+    - zend_jit_fetch_dim_r_helper /src/php-src/ext/opcache/jit/zend_jit_helpers.c:431:2
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

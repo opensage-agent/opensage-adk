@@ -1,0 +1,19 @@
+The sanitizer detected a floating point exception vulnerability. The explanation of the vulnerability is: The program encountered a floating-point exception, such as division by zero or invalid arithmetic operation. Here is the detail: 
+
+    - decode_line_info /root/bfd/dwarf2.c:2442:34
+    - comp_unit_maybe_decode_line_info /root/bfd/dwarf2.c:3610:26
+    - comp_unit_find_line /root/bfd/dwarf2.c:3645:8
+    - _bfd_dwarf2_find_nearest_line /root/bfd/dwarf2.c:4757:11
+    - _bfd_elf_find_line /root/bfd/elf.c:8695:10
+    - print_symbol /root/binutils/nm.c:1003:9
+    - print_symbols /root/binutils/nm.c:1084:7
+    - display_rel_file /root/binutils/nm.c:1200:5
+    - display_file /root/binutils/nm.c:1318:7
+    - main /root/binutils/nm.c:1792:12
+
+
+To fix this issue, follow the advice below:
+
+1. Implement input validation to prevent division by zero and other arithmetic exceptions.
+2. Use exception handling mechanisms to gracefully handle floating-point exceptions.
+3. Check for invalid arithmetic operations that may lead to floating-point exceptions.

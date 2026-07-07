@@ -1,0 +1,110 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/qpdf:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce qpdf_fuzzer -runs=100.
++ FUZZER=qpdf_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer qpdf_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/qpdf_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=pdf.dict < /dev/null
+Dictionary: 1455 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1374115168
+/out/qpdf_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+WARNING: fuzz input: can't find PDF header
+WARNING: fuzz input: file is damaged
+WARNING: fuzz input: can't find startxref
+WARNING: fuzz input: Attempting to reconstruct cross-reference table
+WARNING: fuzz input (object -1 0, offset 59): empty object treated as null
+WARNING: fuzz input (object 8 0, offset 44): stream keyword not followed by proper line terminator
+WARNING: fuzz input (object 8 0, offset 8): stream dictionary lacks /Length key
+WARNING: fuzz input (object 8 0, offset 44): attempting to recover stream length
+WARNING: fuzz input (object 8 0, offset 44): recovered stream length: 15
+WARNING: fuzz input (xref stream: object 8 0, offset 44): stream keyword not followed by proper line terminator
+WARNING: fuzz input (xref stream: object 8 0, offset 8): stream dictionary lacks /Length key
+WARNING: fuzz input (xref stream: object 8 0, offset 44): attempting to recover stream length
+WARNING: fuzz input (xref stream: object 8 0, offset 44): recovered stream length: 15
+WARNING: fuzz input (xref stream, offset 1): Cross-reference stream data has the wrong size; expected = 8; actual = 15
+WARNING: fuzz input: reported number of objects (2) is not one plus the highest object number (8)
+QPDFExc: fuzz input: unable to find /Root dictionary
+WARNING: fuzz input: can't find PDF header
+WARNING: fuzz input: file is damaged
+WARNING: fuzz input: can't find startxref
+WARNING: fuzz input: Attempting to reconstruct cross-reference table
+WARNING: fuzz input (object -1 0, offset 59): empty object treated as null
+WARNING: fuzz input (object 8 0, offset 44): stream keyword not followed by proper line terminator
+WARNING: fuzz input (object 8 0, offset 8): stream dictionary lacks /Length key
+WARNING: fuzz input (object 8 0, offset 44): attempting to recover stream length
+WARNING: fuzz input (object 8 0, offset 44): recovered stream length: 15
+WARNING: fuzz input (xref stream: object 8 0, offset 44): stream keyword not followed by proper line terminator
+WARNING: fuzz input (xref stream: object 8 0, offset 8): stream dictionary lacks /Length key
+WARNING: fuzz input (xref stream: object 8 0, offset 44): attempting to recover stream length
+WARNING: fuzz input (xref stream: object 8 0, offset 44): recovered stream length: 15
+WARNING: fuzz input (xref stream, offset 1): Cross-reference stream data has the wrong size; expected = 8; actual = 15
+WARNING: fuzz input: reported number of objects (2) is not one plus the highest object number (8)
+QPDFExc: fuzz input: unable to find /Root dictionary
+WARNING: fuzz input: can't find PDF header
+WARNING: fuzz input: file is damaged
+WARNING: fuzz input: can't find startxref
+WARNING: fuzz input: Attempting to reconstruct cross-reference table
+WARNING: fuzz input (object -1 0, offset 59): empty object treated as null
+WARNING: fuzz input (object 8 0, offset 44): stream keyword not followed by proper line terminator
+WARNING: fuzz input (object 8 0, offset 8): stream dictionary lacks /Length key
+WARNING: fuzz input (object 8 0, offset 44): attempting to recover stream length
+WARNING: fuzz input (object 8 0, offset 44): recovered stream length: 15
+WARNING: fuzz input (xref stream: object 8 0, offset 44): stream keyword not followed by proper line terminator
+WARNING: fuzz input (xref stream: object 8 0, offset 8): stream dictionary lacks /Length key
+WARNING: fuzz input (xref stream: object 8 0, offset 44): attempting to recover stream length
+WARNING: fuzz input (xref stream: object 8 0, offset 44): recovered stream length: 15
+WARNING: fuzz input (xref stream, offset 1): Cross-reference stream data has the wrong size; expected = 8; actual = 15
+WARNING: fuzz input: reported number of objects (2) is not one plus the highest object number (8)
+QPDFExc: fuzz input: unable to find /Root dictionary
+WARNING: fuzz input: can't find PDF header
+WARNING: fuzz input: file is damaged
+WARNING: fuzz input: can't find startxref
+WARNING: fuzz input: Attempting to reconstruct cross-reference table
+WARNING: fuzz input (object -1 0, offset 59): empty object treated as null
+WARNING: fuzz input (object 8 0, offset 44): stream keyword not followed by proper line terminator
+WARNING: fuzz input (object 8 0, offset 8): stream dictionary lacks /Length key
+WARNING: fuzz input (object 8 0, offset 44): attempting to recover stream length
+WARNING: fuzz input (object 8 0, offset 44): recovered stream length: 15
+WARNING: fuzz input (xref stream: object 8 0, offset 44): stream keyword not followed by proper line terminator
+WARNING: fuzz input (xref stream: object 8 0, offset 8): stream dictionary lacks /Length key
+WARNING: fuzz input (xref stream: object 8 0, offset 44): attempting to recover stream length
+WARNING: fuzz input (xref stream: object 8 0, offset 44): recovered stream length: 15
+WARNING: fuzz input (xref stream, offset 1): Cross-reference stream data has the wrong size; expected = 8; actual = 15
+WARNING: fuzz input: reported number of objects (2) is not one plus the highest object number (8)
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==18==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address (pc 0x558afa92e5ed bp 0x7ffdfae3ba50 sp 0x7ffdfae3b8d0 T18)
+[1m[0m==18==The signal is caused by a READ memory access.
+==18==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    #0 0x558afa92e5ed in std::__1::__tree_node_base<void*>* std::__1::__tree_min[abi:ne180100]<std::__1::__tree_node_base<void*>*>(std::__1::__tree_node_base<void*>*) /usr/local/bin/../include/c++/v1/__tree:170:23
+    #1 0x558afa92e5ed in std::__1::__tree_end_node<std::__1::__tree_node_base<void*>*>* std::__1::__tree_next_iter[abi:ne180100]<std::__1::__tree_end_node<std::__1::__tree_node_base<void*>*>*, std::__1::__tree_node_base<void*>*>(std::__1::__tree_node_base<void*>*) /usr/local/bin/../include/c++/v1/__tree:199:37
+    #2 0x558afa92e5ed in std::__1::__tree_iterator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, long>::operator++[abi:ne180100]() /usr/local/bin/../include/c++/v1/__tree:751:9
+    #3 0x558afa92e5ed in std::__1::__map_iterator<std::__1::__tree_iterator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, long>>::operator++[abi:ne180100]() /usr/local/bin/../include/c++/v1/map:874:5
+    #4 0x558afa92e5ed in QPDF::read_xref(long long) /src/qpdf/libqpdf/QPDF.cc:712:33
+    #5 0x558afa931352 in QPDF::reconstruct_xref(QPDFExc&) /src/qpdf/libqpdf/QPDF.cc:601:17
+    #6 0x558afa92b0d2 in QPDF::parse(char const*) /src/qpdf/libqpdf/QPDF.cc:464:13
+    #7 0x558afa90e9d6 in FuzzHelper::getQpdf() /src/qpdf/fuzz/qpdf_fuzzer.cc:59:11
+    #8 0x558afa90ecac in FuzzHelper::testWrite() /src/qpdf/fuzz/qpdf_fuzzer.cc:92:9
+    #9 0x558afa91098c in FuzzHelper::doChecks() /src/qpdf/fuzz/qpdf_fuzzer.cc:176:5
+    #10 0x558afa91098c in FuzzHelper::run() /src/qpdf/fuzz/qpdf_fuzzer.cc:191:9
+    #11 0x558afa910ada in LLVMFuzzerTestOneInput /src/qpdf/fuzz/qpdf_fuzzer.cc:208:7
+    #12 0x558afa870de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x558afa85c055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x558afa861aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x558afa88cd92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7efc1538a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #17 0x558afa85423d in _start (/out/qpdf_fuzzer+0x3b23d)
+
+DEDUP_TOKEN: std::__1::__tree_node_base<void*>* std::__1::__tree_min[abi:ne180100]<std::__1::__tree_node_base<void*>*>(std::__1::__tree_node_base<void*>*)--std::__1::__tree_end_node<std::__1::__tree_node_base<void*>*>* std::__1::__tree_next_iter[abi:ne180100]<std::__1::__tree_end_node<std::__1::__tree_node_base<void*>*>*, std::__1::__tree_node_base<void*>*>(std::__1::__tree_node_base<void*>*)--std::__1::__tree_iterator<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, std::__1::__tree_node<std::__1::__value_type<QPDFObjGen, QPDFXRefEntry>, void*>*, long>::operator++[abi:ne180100]()
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/qpdf/libqpdf/QPDF.cc:712:33 in QPDF::read_xref(long long)
+==18==ABORTING

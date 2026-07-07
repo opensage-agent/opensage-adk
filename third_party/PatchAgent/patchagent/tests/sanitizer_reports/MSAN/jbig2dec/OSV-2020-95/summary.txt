@@ -1,0 +1,94 @@
+The sanitizer detected a use of uninitialized memory vulnerability. The explanation of the vulnerability is: The program reads uninitialized memory, leading to undefined behavior or crashes. Here is the detail: 
+
+    - jbig2_decode_generic_template0_TPGDON /src/jbig2dec/jbig2_generic.c:995:23
+    - jbig2_decode_generic_region_TPGDON /src/jbig2dec/jbig2_generic.c:1168:16
+    - jbig2_decode_generic_region /src/jbig2dec/jbig2_generic.c:1209:16
+    - jbig2_immediate_generic_region /src/jbig2dec/jbig2_generic.c:1360:16
+    - jbig2_data_in /src/jbig2dec/jbig2.c:389:20
+    - LLVMFuzzerTestOneInput /src/jbig2_fuzzer.cc:126:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was stored to memory at
+    - jbig2_decode_generic_template0_TPGDON /src/jbig2dec/jbig2_generic.c:995:47
+    - jbig2_decode_generic_region_TPGDON /src/jbig2dec/jbig2_generic.c:1168:16
+    - jbig2_decode_generic_region /src/jbig2dec/jbig2_generic.c:1209:16
+    - jbig2_immediate_generic_region /src/jbig2dec/jbig2_generic.c:1360:16
+    - jbig2_data_in /src/jbig2dec/jbig2.c:389:20
+    - LLVMFuzzerTestOneInput /src/jbig2_fuzzer.cc:126:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was stored to memory at
+    - jbig2_image_set_pixel_fast /src/jbig2dec/jbig2_image.h:77:23
+    - jbig2_decode_generic_template0_TPGDON /src/jbig2dec/jbig2_generic.c:998:17
+    - jbig2_decode_generic_region_TPGDON /src/jbig2dec/jbig2_generic.c:1168:16
+    - jbig2_decode_generic_region /src/jbig2dec/jbig2_generic.c:1209:16
+    - jbig2_immediate_generic_region /src/jbig2dec/jbig2_generic.c:1360:16
+    - jbig2_data_in /src/jbig2dec/jbig2.c:389:20
+    - LLVMFuzzerTestOneInput /src/jbig2_fuzzer.cc:126:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was stored to memory at
+    - jbig2_image_set_pixel_fast /src/jbig2dec/jbig2_image.h:77:23
+    - jbig2_decode_generic_template0_TPGDON /src/jbig2dec/jbig2_generic.c:998:17
+    - jbig2_decode_generic_region_TPGDON /src/jbig2dec/jbig2_generic.c:1168:16
+    - jbig2_decode_generic_region /src/jbig2dec/jbig2_generic.c:1209:16
+    - jbig2_immediate_generic_region /src/jbig2dec/jbig2_generic.c:1360:16
+    - jbig2_data_in /src/jbig2dec/jbig2.c:389:20
+    - LLVMFuzzerTestOneInput /src/jbig2_fuzzer.cc:126:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was stored to memory at
+    - jbig2_image_set_pixel_fast /src/jbig2dec/jbig2_image.h:77:23
+    - jbig2_decode_generic_template0_TPGDON /src/jbig2dec/jbig2_generic.c:998:17
+    - jbig2_decode_generic_region_TPGDON /src/jbig2dec/jbig2_generic.c:1168:16
+    - jbig2_decode_generic_region /src/jbig2dec/jbig2_generic.c:1209:16
+    - jbig2_immediate_generic_region /src/jbig2dec/jbig2_generic.c:1360:16
+    - jbig2_data_in /src/jbig2dec/jbig2.c:389:20
+    - LLVMFuzzerTestOneInput /src/jbig2_fuzzer.cc:126:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was stored to memory at
+    - jbig2_image_set_pixel_fast /src/jbig2dec/jbig2_image.h:77:23
+    - jbig2_decode_generic_template0_TPGDON /src/jbig2dec/jbig2_generic.c:998:17
+    - jbig2_decode_generic_region_TPGDON /src/jbig2dec/jbig2_generic.c:1168:16
+    - jbig2_decode_generic_region /src/jbig2dec/jbig2_generic.c:1209:16
+    - jbig2_immediate_generic_region /src/jbig2dec/jbig2_generic.c:1360:16
+    - jbig2_data_in /src/jbig2dec/jbig2.c:389:20
+    - LLVMFuzzerTestOneInput /src/jbig2_fuzzer.cc:126:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+  Uninitialized value was created by a heap allocation
+    - malloc /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:1021:3
+    - jbig2_fuzzer_alloc(_Jbig2Allocator*, unsigned long) /src/jbig2_fuzzer.cc:55:18
+    - jbig2_image_new /src/jbig2dec/jbig2_image.c:66:19
+    - jbig2_immediate_generic_region /src/jbig2dec/jbig2_generic.c:1329:13
+    - jbig2_data_in /src/jbig2dec/jbig2.c:389:20
+    - LLVMFuzzerTestOneInput /src/jbig2_fuzzer.cc:126:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Initialize all variables before using them to prevent uninitialized memory access.
+2. Check for uninitialized pointers or memory buffers that may lead to undefined behavior.

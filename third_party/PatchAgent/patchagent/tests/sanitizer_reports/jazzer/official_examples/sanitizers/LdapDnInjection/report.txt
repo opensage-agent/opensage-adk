@@ -1,0 +1,58 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 279 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 75 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.LdapDnInjection (took 23 ms, size +27%)
+INFO: using inputs from: ./sanitizer_report/LdapDnInjection/crash-a547a8fa2c9903006248a92cdbf56c3617329dfb
+INFO: found LLVMFuzzerCustomMutator (0x7f0966c60a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2502670553
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x5648efde4ba0, 0x5648efde4da0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x5648efd79bf0,0x5648efd7bbf0), 
+jazzer: Running 1 inputs 1 time(s) each.
+Running: ./sanitizer_report/LdapDnInjection/crash-a547a8fa2c9903006248a92cdbf56c3617329dfb
+INFO: Instrumented com.example.ldap.MockLdapContext (took 21 ms, size +4%)
+INFO: Instrumented com.unboundid.ldap.sdk.LDAPException (took 13 ms, size +26%)
+INFO: Instrumented com.unboundid.util.LDAPSDKException (took 2 ms, size +31%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented com.unboundid.ldap.sdk.DN (took 20 ms, size +25%)
+INFO: Instrumented com.unboundid.ldap.sdk.RDN (took 10 ms, size +20%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented com.unboundid.util.Validator (took 4 ms, size +16%)
+INFO: Instrumented com.unboundid.util.LDAPSDKUsageException (took 0 ms, size +9%)
+INFO: Instrumented com.unboundid.util.LDAPSDKRuntimeException (took 1 ms, size +30%)
+INFO: Instrumented com.unboundid.ldap.sdk.DNEscapingStrategy (took 2 ms, size +22%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented com.unboundid.util.StaticUtils (took 23 ms, size +22%)
+INFO: Instrumented com.unboundid.ldap.sdk.Control (took 3 ms, size +16%)
+INFO: Instrumented com.unboundid.util.ByteString (took 0 ms, size +0%)
+INFO: Instrumented com.unboundid.ldap.sdk.ResultCode (took 4 ms, size +16%)
+INFO: Instrumented com.unboundid.ldap.sdk.LDAPMessages (took 8 ms, size +10%)
+INFO: Instrumented com.unboundid.util.Debug (took 8 ms, size +24%)
+INFO: Instrumented com.unboundid.util.MinimalLogFormatter (took 0 ms, size +16%)
+INFO: Instrumented com.unboundid.util.DebugType (took 1 ms, size +102%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueCritical: LDAP Injection 
+Distinguished Names based on untrusted data must be escaped as specified in RFC 2253.
+	at com.code_intelligence.jazzer.sanitizers.LdapInjection.searchLdapContext(LdapInjection.kt:120)
+	at com.example.LdapDnInjection.fuzzerTestOneInput(LdapDnInjection.java:32)
+DEDUP_TOKEN: eb7752101dae2c26
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_a547a8fa2c9903006248a92cdbf56c3617329dfb.java
+

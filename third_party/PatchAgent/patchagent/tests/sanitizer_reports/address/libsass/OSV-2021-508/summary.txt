@@ -1,0 +1,36 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - obj /src/libsass/src/memory/shared_ptr.hpp:159:37
+    - operator Sass::SelectorComponent * /src/libsass/src/memory/shared_ptr.hpp:227:56
+    - Sass::CompoundSelector::resolve_parent_refs(std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, bool) /src/libsass/src/ast_selectors.cpp:888:65
+    - Sass::ComplexSelector::resolve_parent_refs(std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, bool) /src/libsass/src/ast_selectors.cpp:1005:26
+    - Sass::SelectorList::resolve_parent_refs(std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, bool) /src/libsass/src/ast_selectors.cpp:1047:34
+    - Sass::Functions::selector_nest(Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Context&, char const*, Sass::SourceSpan, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>) /src/libsass/src/fn_selectors.cpp:58:37
+    - Sass::Eval::operator()(Sass::Function_Call*) /src/libsass/src/eval.cpp:1063:18
+    - perform /src/libsass/src/ast_values.hpp:183:5
+    - Sass::Functions::call(Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Context&, char const*, Sass::SourceSpan, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>) /src/libsass/src/fn_miscs.cpp:143:35
+    - Sass::Eval::operator()(Sass::Function_Call*) /src/libsass/src/eval.cpp:1063:18
+    - Sass::Eval::operator()(Sass::Binary_Expression*) /src/libsass/src/eval.cpp:736:18
+    - Sass::Eval::operator()(Sass::Binary_Expression*) /src/libsass/src/eval.cpp:591:13
+    - Sass::Expand::operator()(Sass::Assignment*) /src/libsass/src/expand.cpp:419:41
+    - Sass::Expand::append_block(Sass::Block*) /src/libsass/src/expand.cpp:869:32
+    - Sass::Expand::operator()(Sass::Block*) /src/libsass/src/expand.cpp:158:11
+    - Sass::Context::compile() /src/libsass/src/context.cpp:653:12
+    - Sass::Data_Context::parse() /src/libsass/src/context.cpp:624:12
+    - Sass::sass_parse_block(Sass_Compiler*) /src/libsass/src/sass_context.cpp:182:31
+    - sass_compiler_parse /src/libsass/src/sass_context.cpp:436:22
+    - sass_compile_context(Sass_Context*, Sass::Context*) /src/libsass/src/sass_context.cpp:319:7
+    - LLVMFuzzerTestOneInput /src/data_context_fuzzer.cc:26:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

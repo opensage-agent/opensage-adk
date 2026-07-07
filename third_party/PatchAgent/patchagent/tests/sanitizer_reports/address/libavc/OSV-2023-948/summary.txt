@@ -1,0 +1,14 @@
+The sanitizer detected a abort vulnerability. The explanation of the vulnerability is: The program was terminated due to an abort signal, indicating a critical error. Here is the detail: 
+
+    - isvce_write_coeff4x4_cavlc /src/libavc/encoder/svc/isvce_cavlc.c:260:5
+    - isvce_encode_residue /src/libavc/encoder/svc/isvce_cavlc.c:897:13
+    - isvce_write_pslice_mb_cavlc /src/libavc/encoder/svc/isvce_cavlc.c:1587:20
+    - isvce_entropy /src/libavc/encoder/svc/isvce_process.c:896:13
+    - isvce_process_thread /src/libavc/encoder/svc/isvce_process.c:2770:32
+    - asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+
+
+To fix this issue, follow the advice below:
+
+1. Investigate the cause of the abort signal to identify the root cause of the error.
+2. Review the program's error handling mechanisms to ensure critical errors are handled appropriately.

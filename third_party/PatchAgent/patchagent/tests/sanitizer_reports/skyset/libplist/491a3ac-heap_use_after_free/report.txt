@@ -1,0 +1,78 @@
+=================================================================
+==499588==ERROR: AddressSanitizer: heap-use-after-free on address 0x504000000070 at pc 0x55dc004fbf1a bp 0x7ffc38e94e60 sp 0x7ffc38e94e58
+READ of size 8 at 0x504000000070 thread T0
+    #0 0x55dc004fbf19 in plist_free_node /root/src/plist.c:331:40
+    #1 0x55dc004fbecf in plist_free /root/src/plist.c:449:9
+    #2 0x55dc004f17ac in LLVMFuzzerTestOneInput /root/fuzz/oplist_fuzzer.cc:29:2
+    #3 0x55dc004d6ed4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/oplist_fuzzer+0x2bed4) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #4 0x55dc004c0006 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/oplist_fuzzer+0x15006) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #5 0x55dc004c5aba in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/oplist_fuzzer+0x1aaba) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #6 0x55dc004f0316 in main (/root/oplist_fuzzer+0x45316) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #7 0x7f03d9a841c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x7f03d9a8428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x55dc004babd4 in _start (/root/oplist_fuzzer+0xfbd4) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+
+0x504000000070 is located 32 bytes inside of 48-byte region [0x504000000050,0x504000000080)
+freed by thread T0 here:
+    #0 0x7f03d9e7a50a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55dc005026e6 in node_destroy /root/libcnary/node.c:43:2
+    #2 0x55dc004fbfb7 in plist_free_node /root/src/plist.c:343:5
+    #3 0x55dc004fbecf in plist_free /root/src/plist.c:449:9
+    #4 0x55dc004f425c in plist_from_openstep /root/src/oplist.c:853:13
+    #5 0x55dc004f17a0 in LLVMFuzzerTestOneInput /root/fuzz/oplist_fuzzer.cc:28:2
+    #6 0x55dc004d6ed4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/oplist_fuzzer+0x2bed4) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #7 0x55dc004c0006 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/oplist_fuzzer+0x15006) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #8 0x55dc004c5aba in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/oplist_fuzzer+0x1aaba) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #9 0x55dc004f0316 in main (/root/oplist_fuzzer+0x45316) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #10 0x7f03d9a841c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f03d9a8428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x55dc004babd4 in _start (/root/oplist_fuzzer+0xfbd4) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+
+previously allocated by thread T0 here:
+    #0 0x7f03d9e7a98d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55dc00502715 in node_create /root/libcnary/node.c:49:26
+    #2 0x55dc004fb468 in plist_new_node /root/src/plist.c:261:22
+    #3 0x55dc004f81a0 in node_from_openstep /root/src/oplist.c:792:22
+    #4 0x55dc004f4148 in plist_from_openstep /root/src/oplist.c:846:15
+    #5 0x55dc004f17a0 in LLVMFuzzerTestOneInput /root/fuzz/oplist_fuzzer.cc:28:2
+    #6 0x55dc004d6ed4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/oplist_fuzzer+0x2bed4) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #7 0x55dc004c0006 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/oplist_fuzzer+0x15006) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #8 0x55dc004c5aba in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/oplist_fuzzer+0x1aaba) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #9 0x55dc004f0316 in main (/root/oplist_fuzzer+0x45316) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+    #10 0x7f03d9a841c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f03d9a8428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x55dc004babd4 in _start (/root/oplist_fuzzer+0xfbd4) (BuildId: cbfd1046c5c387a53e7ffdb01bfa5c3ad569ec71)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/src/plist.c:331:40 in plist_free_node
+Shadow bytes around the buggy address:
+  0x503ffffffd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x503ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x503ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x503fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x503fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x504000000000: fa fa fd fd fd fd fd fd fa fa fd fd fd fd[fd]fd
+  0x504000000080: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000000100: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000000180: fa fa fd fd fd fd fd fd fa fa fd fd fd fd fd fd
+  0x504000000200: fa fa fd fd fd fd fd fd fa fa 00 00 00 00 00 00
+  0x504000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==499588==ABORTING

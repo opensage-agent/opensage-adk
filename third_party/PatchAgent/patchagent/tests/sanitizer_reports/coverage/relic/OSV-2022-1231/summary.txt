@@ -1,0 +1,20 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - bn_clean /src/relic/src/bn/relic_bn_mem.c:102:4
+    - cryptofuzz::module::relic_bignum::Bignum::~Bignum() /src/cryptofuzz/modules/relic/bn_helper.cpp:129:5
+    - cryptofuzz::module::relic::OpBignumCalc(cryptofuzz::operation::BignumCalc&) /src/cryptofuzz/modules/relic/module.cpp:845:1
+    - cryptofuzz::ExecutorBignumCalc::callModule(std::__1::shared_ptr<cryptofuzz::Module>, cryptofuzz::operation::BignumCalc&) const /src/cryptofuzz/executor.cpp:1325:20
+    - cryptofuzz::ExecutorBase<cryptofuzz::Bignum, cryptofuzz::operation::BignumCalc>::Run(fuzzing::datasource::Datasource&, unsigned char const*, unsigned long) const /src/cryptofuzz/executor.cpp:2808:47
+    - cryptofuzz::Driver::Run(unsigned char const*, unsigned long) const /src/cryptofuzz/driver.cpp:0:0
+    - LLVMFuzzerTestOneInput /src/cryptofuzz/entry.cpp:981:13
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

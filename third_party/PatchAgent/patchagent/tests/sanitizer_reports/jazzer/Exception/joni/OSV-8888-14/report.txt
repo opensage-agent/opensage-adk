@@ -1,0 +1,183 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /home/yk/code/oss-fuzz/build/out/joni:/out -v /home/yk/code/oss-fuzz/oss-fuzz-joni-20250423-164059/crashes/crash-123f63e6e1fdfb684e15072c17bd8244c9ccb97a:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce RegexMatcherFuzzer -runs=100.
++ FUZZER=RegexMatcherFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer RegexMatcherFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/RegexMatcherFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 268 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented RegexMatcherFuzzer (took 21 ms, size +23%)
+INFO: Instrumented org.joni.exception.SyntaxException (took 2 ms, size +21%)
+INFO: Instrumented org.joni.exception.JOniException (took 1 ms, size +21%)
+INFO: Instrumented org.joni.exception.InternalException (took 1 ms, size +20%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7fea7e040a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2464630449
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55beea489110, 0x55beea489310), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55beea43fd70,0x55beea441d70), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.joni.Regex (took 19 ms, size +15%)
+INFO: Instrumented org.jcodings.Encoding (took 18 ms, size +18%)
+INFO: Instrumented org.jcodings.specific.ASCIIEncoding (took 1 ms, size +24%)
+INFO: Instrumented org.jcodings.SingleByteEncoding (took 3 ms, size +10%)
+INFO: Instrumented org.jcodings.AbstractEncoding (took 2 ms, size +22%)
+INFO: Instrumented org.joni.exception.ValueException (took 0 ms, size +38%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.jcodings.specific.UTF8Encoding (took 5 ms, size +2%)
+INFO: Instrumented org.jcodings.specific.BaseUTF8Encoding (took 3 ms, size +23%)
+INFO: Instrumented org.jcodings.unicode.UnicodeEncoding (took 7 ms, size +22%)
+INFO: Instrumented org.jcodings.MultiByteEncoding (took 4 ms, size +21%)
+INFO: Instrumented org.jcodings.EncodingDB (took 2 ms, size +7%)
+INFO: Instrumented org.jcodings.exception.InternalException (took 0 ms, size +13%)
+INFO: Instrumented org.jcodings.exception.JCodingsException (took 0 ms, size +38%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented org.jcodings.util.CaseInsensitiveBytesHash (took 3 ms, size +14%)
+INFO: Instrumented org.jcodings.util.Hash (took 1 ms, size +12%)
+INFO: Instrumented org.jcodings.util.Hash$HashEntry (took 0 ms, size +8%)
+INFO: Instrumented org.jcodings.util.CaseInsensitiveBytesHash$CaseInsensitiveBytesHashEntry (took 0 ms, size +6%)
+INFO: Instrumented org.jcodings.util.Hash$HashEntryIterator (took 0 ms, size +7%)
+INFO: Instrumented org.jcodings.util.CaseInsensitiveBytesHash$CaseInsensitiveBytesHashEntryIterator (took 0 ms, size +7%)
+INFO: Instrumented org.jcodings.EncodingList (took 6 ms, size +87%)
+INFO: Instrumented org.jcodings.specific.USASCIIEncoding (took 1 ms, size +27%)
+INFO: Instrumented org.jcodings.specific.BIG5Encoding (took 1 ms, size +5%)
+INFO: Instrumented org.jcodings.specific.BaseBIG5Encoding (took 3 ms, size +4%)
+INFO: Instrumented org.jcodings.CanBeTrailTableEncoding (took 0 ms, size +32%)
+INFO: Instrumented org.jcodings.specific.Big5HKSCSEncoding (took 0 ms, size +5%)
+INFO: Instrumented org.jcodings.specific.Big5UAOEncoding (took 0 ms, size +5%)
+INFO: Instrumented org.jcodings.specific.CESU8Encoding (took 6 ms, size +6%)
+INFO: Instrumented org.jcodings.specific.CP949Encoding (took 2 ms, size +2%)
+INFO: Instrumented org.jcodings.specific.EmacsMuleEncoding (took 4 ms, size +4%)
+INFO: Instrumented org.jcodings.specific.EUCJPEncoding (took 2 ms, size +2%)
+INFO: Instrumented org.jcodings.specific.BaseEUCJPEncoding (took 4 ms, size +12%)
+INFO: Instrumented org.jcodings.EucEncoding (took 1 ms, size +36%)
+INFO: Instrumented org.jcodings.specific.EUCKREncoding (took 5 ms, size +5%)
+INFO: Instrumented org.jcodings.specific.EUCTWEncoding (took 7 ms, size +3%)
+INFO: Instrumented org.jcodings.specific.GB18030Encoding (took 10 ms, size +10%)
+INFO: Instrumented org.jcodings.specific.GBKEncoding (took 6 ms, size +2%)
+INFO: Instrumented org.jcodings.specific.ISO8859_1Encoding (took 6 ms, size +13%)
+INFO: Instrumented org.jcodings.ISOEncoding (took 1 ms, size +19%)
+INFO: Instrumented org.jcodings.CaseFoldMapEncoding (took 2 ms, size +26%)
+INFO: Instrumented org.jcodings.specific.ISO8859_2Encoding (took 4 ms, size +8%)
+INFO: Instrumented org.jcodings.specific.ISO8859_3Encoding (took 4 ms, size +10%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented org.jcodings.specific.ISO8859_4Encoding (took 3 ms, size +9%)
+INFO: Instrumented org.jcodings.specific.ISO8859_5Encoding (took 3 ms, size +7%)
+INFO: Instrumented org.jcodings.specific.ISO8859_6Encoding (took 2 ms, size +4%)
+INFO: Instrumented org.jcodings.specific.ISO8859_7Encoding (took 2 ms, size +10%)
+INFO: Instrumented org.jcodings.specific.ISO8859_8Encoding (took 1 ms, size +4%)
+INFO: Instrumented org.jcodings.specific.ISO8859_9Encoding (took 1 ms, size +11%)
+INFO: Instrumented org.jcodings.specific.ISO8859_10Encoding (took 1 ms, size +9%)
+INFO: Instrumented org.jcodings.specific.ISO8859_11Encoding (took 1 ms, size +4%)
+INFO: Instrumented org.jcodings.specific.ISO8859_13Encoding (took 1 ms, size +9%)
+INFO: Instrumented org.jcodings.specific.ISO8859_14Encoding (took 1 ms, size +11%)
+INFO: Instrumented org.jcodings.specific.ISO8859_15Encoding (took 1 ms, size +10%)
+INFO: Instrumented org.jcodings.specific.ISO8859_16Encoding (took 1 ms, size +11%)
+INFO: Instrumented org.jcodings.specific.KOI8REncoding (took 1 ms, size +5%)
+INFO: Instrumented org.jcodings.specific.KOI8UEncoding (took 1 ms, size +4%)
+INFO: Instrumented org.jcodings.specific.SJISEncoding (took 1 ms, size +3%)
+INFO: Instrumented org.jcodings.specific.BaseSJISEncoding (took 2 ms, size +8%)
+INFO: Instrumented org.jcodings.specific.UTF16BEEncoding (took 5 ms, size +17%)
+INFO: Instrumented org.jcodings.specific.UTF16LEEncoding (took 3 ms, size +23%)
+INFO: Instrumented org.jcodings.specific.UTF32BEEncoding (took 1 ms, size +27%)
+INFO: Instrumented org.jcodings.unicode.FixedWidthUnicodeEncoding (took 2 ms, size +19%)
+INFO: Instrumented org.jcodings.specific.UTF32LEEncoding (took 1 ms, size +27%)
+INFO: Instrumented org.jcodings.specific.Windows_31JEncoding (took 1 ms, size +9%)
+INFO: Instrumented org.jcodings.specific.Windows_1250Encoding (took 3 ms, size +9%)
+INFO: Instrumented org.jcodings.specific.Windows_1251Encoding (took 2 ms, size +10%)
+INFO: Instrumented org.jcodings.specific.Windows_1252Encoding (took 1 ms, size +10%)
+INFO: Instrumented org.jcodings.specific.Windows_1253Encoding (took 1 ms, size +12%)
+INFO: Instrumented org.jcodings.specific.Windows_1254Encoding (took 1 ms, size +11%)
+INFO: Instrumented org.jcodings.specific.Windows_1257Encoding (took 1 ms, size +10%)
+INFO: Instrumented org.jcodings.ascii.AsciiTables (took 1 ms, size +2%)
+INFO: Instrumented org.jcodings.EncodingDB$Entry (took 1 ms, size +14%)
+INFO: Instrumented org.jcodings.exception.EncodingException (took 0 ms, size +8%)
+INFO: Instrumented org.jcodings.exception.CharacterPropertyException (took 0 ms, size +9%)
+INFO: Instrumented org.jcodings.util.BytesHash (took 1 ms, size +17%)
+INFO: Instrumented org.jcodings.util.BytesHash$BytesHashEntry (took 0 ms, size +17%)
+INFO: Instrumented org.joni.Syntax (took 6 ms, size +9%)
+INFO: Instrumented org.joni.constants.SyntaxProperties (took 0 ms, size +0%)
+INFO: Instrumented org.joni.Syntax$MetaCharTable (took 0 ms, size +14%)
+INFO: Instrumented org.joni.WarnCallback (took 0 ms, size +22%)
+INFO: Instrumented org.joni.WarnCallback$1 (took 0 ms, size +16%)
+INFO: Instrumented org.joni.WarnCallback$2 (took 0 ms, size +20%)
+INFO: Instrumented org.joni.Config (took 0 ms, size +19%)
+INFO: Instrumented org.jcodings.Config (took 0 ms, size +0%)
+INFO: Instrumented org.joni.ConfigSupport (took 0 ms, size +74%)
+INFO: New number of coverage counters: 8192
+INFO: Instrumented org.joni.Analyser (took 12 ms, size +34%)
+INFO: Instrumented org.joni.Parser (took 9 ms, size +26%)
+INFO: Instrumented org.joni.Lexer (took 8 ms, size +41%)
+INFO: Instrumented org.joni.ScannerSupport (took 2 ms, size +21%)
+INFO: Instrumented org.joni.exception.ErrorMessages (took 0 ms, size +5%)
+INFO: Instrumented org.jcodings.exception.ErrorMessages (took 0 ms, size +0%)
+INFO: Instrumented org.jcodings.IntHolder (took 0 ms, size +32%)
+INFO: Instrumented org.joni.ast.Node (took 1 ms, size +25%)
+INFO: Instrumented org.joni.constants.internal.NodeType (took 0 ms, size +0%)
+INFO: Instrumented org.joni.ast.StringNode (took 2 ms, size +17%)
+INFO: Instrumented org.joni.constants.internal.StringType (took 0 ms, size +0%)
+INFO: Instrumented org.joni.ast.AnchorNode (took 1 ms, size +27%)
+INFO: Instrumented org.joni.ast.CClassNode (took 3 ms, size +29%)
+INFO: Instrumented org.joni.ast.AnyCharNode (took 0 ms, size +9%)
+INFO: Instrumented org.joni.ast.EncloseNode (took 5 ms, size +12%)
+INFO: Instrumented org.joni.constants.internal.EncloseType (took 0 ms, size +0%)
+INFO: Instrumented org.joni.ast.StateNode (took 3 ms, size +23%)
+INFO: Instrumented org.joni.constants.internal.NodeStatus (took 0 ms, size +0%)
+INFO: Instrumented org.joni.ast.ListNode (took 1 ms, size +7%)
+INFO: Instrumented org.joni.ast.CTypeNode (took 0 ms, size +7%)
+INFO: Instrumented org.jcodings.ApplyAllCaseFoldFunction (took 0 ms, size +0%)
+INFO: Instrumented org.joni.ast.QuantifierNode (took 4 ms, size +15%)
+INFO: Instrumented org.joni.ast.BackRefNode (took 3 ms, size +12%)
+INFO: Instrumented org.joni.ast.CallNode (took 3 ms, size +6%)
+INFO: Instrumented org.joni.Token (took 3 ms, size +18%)
+INFO: Instrumented org.joni.ScanEnvironment (took 1 ms, size +18%)
+INFO: Instrumented org.joni.constants.internal.TokenType (took 0 ms, size +11%)
+
+== Java Exception: java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 1
+	at org.jcodings.specific.UTF8Encoding.length(UTF8Encoding.java:30)
+	at org.jcodings.specific.BaseUTF8Encoding.mbcToCode(BaseUTF8Encoding.java:90)
+	at org.jcodings.specific.UTF8Encoding.mbcToCode(UTF8Encoding.java:22)
+	at org.joni.ScannerSupport.peek(ScannerSupport.java:151)
+	at org.joni.ScannerSupport.peekIs(ScannerSupport.java:155)
+	at org.joni.Lexer.greedyCheck(Lexer.java:1285)
+	at org.joni.Lexer.fetchTokenFor_repeat(Lexer.java:746)
+	at org.joni.Lexer.fetchToken(Lexer.java:1208)
+	at org.joni.Parser.parseRegexp(Parser.java:1383)
+	at org.joni.Analyser.compile(Analyser.java:78)
+	at org.joni.Regex.<init>(Regex.java:172)
+	at org.joni.Regex.<init>(Regex.java:148)
+	at org.joni.Regex.<init>(Regex.java:134)
+	at org.joni.Regex.<init>(Regex.java:114)
+	at RegexMatcherFuzzer.fuzzerTestOneInput(RegexMatcherFuzzer.java:33)
+DEDUP_TOKEN: 4a63a2bc38abb949
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_123f63e6e1fdfb684e15072c17bd8244c9ccb97a.java
+

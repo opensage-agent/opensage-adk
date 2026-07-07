@@ -1,0 +1,14 @@
+=================================================================
+==3786883==ERROR: AddressSanitizer: FPE on unknown address 0x7ffa8b25d233 (pc 0x7ffa8b25d233 bp 0x7ffc7d782640 sp 0x7ffc7d782390 T0)
+    #0 0x7ffa8b25d233 in OJPEGDecodeRaw /root/libtiff/tif_ojpeg.c:816:8
+    #1 0x7ffa8b243c2d in OJPEGDecode /root/libtiff/tif_ojpeg.c:791:7
+    #2 0x7ffa8b2881d3 in TIFFReadScanline /root/libtiff/tif_read.c:304:7
+    #3 0x557d4668a670 in quant /root/tools/tiffmedian.c:771:7
+    #4 0x557d46685209 in main /root/tools/tiffmedian.c:283:3
+    #5 0x7ffa8ad861c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #6 0x7ffa8ad8628a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #7 0x557d466822e4 in _start (/root/tools/.libs/tiffmedian+0x32e4) (BuildId: c6ac9a0f877795d51791438f63dad74e0f66e268)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: FPE /root/libtiff/tif_ojpeg.c:816:8 in OJPEGDecodeRaw
+==3786883==ABORTING

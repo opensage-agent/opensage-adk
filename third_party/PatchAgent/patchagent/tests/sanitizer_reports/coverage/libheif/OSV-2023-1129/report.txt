@@ -1,0 +1,41 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libheif:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce file_fuzzer -runs=100.
++ FUZZER=file_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer file_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/file_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 309029455
+/out/file_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x2131b15996f0 (pc 0x7fcc02379b25 bp 0x7fff57b5b150 sp 0x7fff57b5b048 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x7fcc02379b25  (/lib/x86_64-linux-gnu/libc.so.6+0x18bb25) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x55e9afd8431d in HeifPixelImage::overlay(std::__1::shared_ptr<HeifPixelImage>&, int, int) /src/libheif/libheif/pixelimage.cc:834:9
+    #2 0x55e9afd56eaf in HeifContext::decode_overlay_image(unsigned int, std::__1::shared_ptr<HeifPixelImage>&, std::__1::vector<unsigned char, std::__1::allocator<unsigned char>> const&, heif_decoding_options const&) const /src/libheif/libheif/context.cc:1976:16
+    #3 0x55e9afd52a28 in HeifContext::decode_image_planar(unsigned int, std::__1::shared_ptr<HeifPixelImage>&, heif_colorspace, heif_decoding_options const&, bool) const /src/libheif/libheif/context.cc:1333:13
+    #4 0x55e9afd5031a in HeifContext::decode_image_user(unsigned int, std::__1::shared_ptr<HeifPixelImage>&, heif_colorspace, heif_chroma, heif_decoding_options const&) const /src/libheif/libheif/context.cc:1154:15
+    #5 0x55e9afd2929c in heif_decode_image /src/libheif/libheif/heif.cc:1019:35
+    #6 0x55e9afd23993 in TestDecodeImage(heif_context*, heif_image_handle const*, unsigned long) /src/libheif/fuzzing/file_fuzzer.cc:62:9
+    #7 0x55e9afd23730 in LLVMFuzzerTestOneInput /src/libheif/fuzzing/file_fuzzer.cc:134:5
+    #8 0x55e9afc85b20 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55e9afc70d95 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55e9afc7682f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55e9afca1ad2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7fcc02212082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x55e9afc68f7d in _start (/out/file_fuzzer+0x32f7d)
+
+DEDUP_TOKEN: HeifPixelImage::overlay(std::__1::shared_ptr<HeifPixelImage>&, int, int)--HeifContext::decode_overlay_image(unsigned int, std::__1::shared_ptr<HeifPixelImage>&, std::__1::vector<unsigned char, std::__1::allocator<unsigned char>> const&, heif_decoding_options const&) const
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x18bb25) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) 
+==14==ABORTING

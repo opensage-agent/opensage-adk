@@ -1,0 +1,23 @@
+The sanitizer detected a negative size param vulnerability. The explanation of the vulnerability is: A function receives a negative size parameter, leading to unexpected behavior or memory allocation errors. Here is the detail: 
+
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - Imf_2_5::(anonymous namespace)::memstream_read(_priv_exr_context_t const*, void*, void*, unsigned long, unsigned long, int (*)(_priv_exr_context_t const*, int, char const*, ...)) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1500:13
+    - dispatch_read /src/openexr/src/lib/OpenEXRCore/context.c:48:16
+    - exr_read_scanline_chunk_info /src/openexr/src/lib/OpenEXRCore/chunk.c:265:10
+    - readCoreScanlinePart /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1186:14
+    - Imf_2_5::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1441:18
+    - runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1538:15
+    - Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    - LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0xacb4cc5c82f800 is a wild pointer inside of access range of size 0x000000000001.
+
+To fix this issue, follow the advice below:
+
+1. Validate all size parameters before passing them to memory allocation functions.
+2. Ensure that buffer sizes and loop limits are always positive values.
+3. Use unsigned integer types to store sizes to prevent negative values.

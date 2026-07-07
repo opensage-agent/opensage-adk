@@ -1,0 +1,79 @@
+=================================================================
+==1697466==ERROR: AddressSanitizer: heap-use-after-free on address 0x512000000940 at pc 0x55eadca51d8b bp 0x7ffe261d0fb0 sp 0x7ffe261d0fa8
+READ of size 4 at 0x512000000940 thread T0
+    #0 0x55eadca51d8a in module_check_cast /root/Build/../src/core/modules.c:34:3
+    #1 0x55eadca75710 in server_connect_unref /root/Build/../src/core/servers.c:621:2
+    #2 0x55eadca70ec0 in server_unref /root/Build/../src/core/servers.c:549:2
+    #3 0x55eadca31ce4 in LLVMFuzzerTestOneInput /root/Build/../src/fe-fuzz/server.c:192:3
+    #4 0x55eadca163b4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/server-fuzz+0x19a3b4) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #5 0x55eadc9ff4e6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/server-fuzz+0x1834e6) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #6 0x55eadca04f9a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/server-fuzz+0x188f9a) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #7 0x55eadca2f7f6 in main (/root/server-fuzz+0x1b37f6) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #8 0x7f8e68f1f1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7f8e68f1f28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x55eadc9fa0b4 in _start (/root/server-fuzz+0x17e0b4) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+
+0x512000000940 is located 0 bytes inside of 312-byte region [0x512000000940,0x512000000a78)
+freed by thread T0 here:
+    #0 0x7f8e692e850a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55eadcc70edf in g_free /root/Build/build-subprojects/glib/../../../subprojects/glib-2.58.3/glib/gmem.c:194:5
+    #2 0x55eadca76069 in server_connect_unref /root/Build/../src/core/servers.c:665:2
+    #3 0x55eadca31cd8 in LLVMFuzzerTestOneInput /root/Build/../src/fe-fuzz/server.c:190:4
+    #4 0x55eadca163b4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/server-fuzz+0x19a3b4) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #5 0x55eadc9ff4e6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/server-fuzz+0x1834e6) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #6 0x55eadca04f9a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/server-fuzz+0x188f9a) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #7 0x55eadca2f7f6 in main (/root/server-fuzz+0x1b37f6) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #8 0x7f8e68f1f1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7f8e68f1f28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x55eadc9fa0b4 in _start (/root/server-fuzz+0x17e0b4) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+
+previously allocated by thread T0 here:
+    #0 0x7f8e692e898d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55eadcc70d84 in g_malloc0 /root/Build/build-subprojects/glib/../../../subprojects/glib-2.58.3/glib/gmem.c:129:13
+    #2 0x55eadcb54349 in create_server_connect /root/Build/../src/irc/core/irc-core.c:65:16
+    #3 0x55eadca69d32 in create_addr_conn /root/Build/../src/core/servers-setup.c:306:9
+    #4 0x55eadca694ac in server_create_conn_opt /root/Build/../src/core/servers-setup.c:401:9
+    #5 0x55eadca6a429 in server_create_conn /root/Build/../src/core/servers-setup.c:411:8
+    #6 0x55eadca316b0 in test_server /root/Build/../src/fe-fuzz/server.c:121:9
+    #7 0x55eadca31a93 in LLVMFuzzerTestOneInput /root/Build/../src/fe-fuzz/server.c:172:2
+    #8 0x55eadca163b4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/server-fuzz+0x19a3b4) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #9 0x55eadc9ff4e6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/server-fuzz+0x1834e6) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #10 0x55eadca04f9a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/server-fuzz+0x188f9a) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #11 0x55eadca2f7f6 in main (/root/server-fuzz+0x1b37f6) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+    #12 0x7f8e68f1f1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7f8e68f1f28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x55eadc9fa0b4 in _start (/root/server-fuzz+0x17e0b4) (BuildId: ea412283c41d2eb22dbf34fc8efe787de0355d36)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/Build/../src/core/modules.c:34:3 in module_check_cast
+Shadow bytes around the buggy address:
+  0x512000000680: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x512000000700: fd fd fd fd fd fd fd fd fd fd fd fd fa fa fa fa
+  0x512000000780: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x512000000800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x512000000880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fa
+=>0x512000000900: fa fa fa fa fa fa fa fa[fd]fd fd fd fd fd fd fd
+  0x512000000980: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x512000000a00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fa
+  0x512000000a80: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x512000000b00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x512000000b80: fd fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1697466==ABORTING

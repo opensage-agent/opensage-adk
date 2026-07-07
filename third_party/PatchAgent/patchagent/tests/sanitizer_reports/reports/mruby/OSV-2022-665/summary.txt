@@ -1,0 +1,40 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x502000004940 thread T0
+    - udiv /src/mruby/mrbgems/mruby-bigint/core/bigint.c:452:33
+    - mpz_mdiv /src/mruby/mrbgems/mruby-bigint/core/bigint.c:495:3
+    - mrb_bint_div /src/mruby/mrbgems/mruby-bigint/core/bigint.c:1181:3
+    - mrb_vm_exec /src/mruby/src/vm.c:0:0
+    - mrb_vm_run /src/mruby/src/vm.c:1208:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6889:7
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x502000004940 is located 0 bytes after 16-byte region [0x502000004930,0x502000004940)
+allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - mrb_realloc_simple /src/mruby/src/gc.c:227:8
+    - mrb_realloc /src/mruby/src/gc.c:241:8
+    - mpz_realloc /src/mruby/mrbgems/mruby-bigint/core/bigint.c:39:20
+    - udiv /src/mruby/mrbgems/mruby-bigint/core/bigint.c:443:3
+    - mpz_mdiv /src/mruby/mrbgems/mruby-bigint/core/bigint.c:495:3
+    - mrb_bint_div /src/mruby/mrbgems/mruby-bigint/core/bigint.c:1181:3
+    - mrb_vm_exec /src/mruby/src/vm.c:0:0
+    - mrb_vm_run /src/mruby/src/vm.c:1208:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6889:7
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

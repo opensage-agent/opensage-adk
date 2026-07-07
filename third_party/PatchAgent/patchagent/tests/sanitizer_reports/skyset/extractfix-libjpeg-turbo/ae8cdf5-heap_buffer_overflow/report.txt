@@ -1,0 +1,55 @@
+=================================================================
+==1398391==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50d000000150 at pc 0x55f23780312b bp 0x7ffe3cb3f550 sp 0x7ffe3cb3f548
+READ of size 1 at 0x50d000000150 thread T0
+    #0 0x55f23780312a in get_8bit_row /root/rdbmp.c:145:17
+    #1 0x55f237802d90 in preload_image /root/rdbmp.c:270:10
+    #2 0x55f2377f43d6 in main /root/cjpeg.c:616:21
+    #3 0x7f1628bab1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #4 0x7f1628bab28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #5 0x55f2377f23a4 in _start (/root/.libs/cjpeg+0x53a4) (BuildId: b1bdbcb16a18e66c1dfb99250bb421a22bc20d1b)
+
+0x50d000000150 is located 137 bytes after 135-byte region [0x50d000000040,0x50d0000000c7)
+allocated by thread T0 here:
+    #0 0x7f1629031372 in malloc build-llvm/tools/clang/stage2-bins/runtimes/runtimes-bins/compiler-rt/lib/asan/asan_malloc_linux.cpp:69:3
+    #1 0x7f1628ee6898 in jpeg_get_large /root/jmemnobs.c:56:19
+    #2 0x7f1628ee0ba4 in alloc_large /root/jmemmgr.c:393:30
+    #3 0x7f1628ee101f in alloc_sarray /root/jmemmgr.c:477:28
+    #4 0x55f2378011d4 in start_input_bmp /root/rdbmp.c:401:24
+    #5 0x55f2377f4271 in main /root/cjpeg.c:595:3
+    #6 0x7f1628bab1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #7 0x7f1628bab28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #8 0x55f2377f23a4 in _start (/root/.libs/cjpeg+0x53a4) (BuildId: b1bdbcb16a18e66c1dfb99250bb421a22bc20d1b)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/rdbmp.c:145:17 in get_8bit_row
+Shadow bytes around the buggy address:
+  0x50cffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50cfffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50cfffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x50d000000000: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x50d000000080: 00 00 00 00 00 00 00 00 07 fa fa fa fa fa fa fa
+=>0x50d000000100: fa fa fa fa fa fa fa fa fa fa[fa]fa fa fa fa fa
+  0x50d000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50d000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50d000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50d000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x50d000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1398391==ABORTING

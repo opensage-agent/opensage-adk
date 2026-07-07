@@ -17,14 +17,14 @@ from opensage.utils.agent_utils import get_sandbox_from_context
 logger = logging.getLogger(__name__)
 
 
-def _run_python_script(sandbox, script: str, description: str) -> str:
+async def _run_python_script(sandbox, script: str, description: str) -> str:
     """Helper to run a generated python script safely in the container."""
     encoded_script = base64.b64encode(script.encode("utf-8")).decode("utf-8")
     # We unwrap the script inside the container and execute it
     cmd = f"python3 -c \"import base64; exec(base64.b64decode('{encoded_script}').decode('utf-8'))\""
 
     logger.info(f"Running file operation ({description}): {cmd}")
-    output, exit_code = sandbox.run_command_in_container(cmd)
+    output, exit_code = await sandbox.arun_command_in_container(cmd)
 
     if exit_code != 0:
         return f"Error ({exit_code}): {output}"
@@ -62,7 +62,7 @@ def _detect_file_indentation(content: str) -> str:
         return "MIXED"
 
 
-def view_file(
+async def view_file(
     path: str, start_line: int = 1, end_line: int = -1, *, tool_context: ToolContext
 ) -> str:
     """
@@ -81,7 +81,7 @@ def view_file(
 
     # Check if file exists first
     check_cmd = f"test -f {shlex.quote(path)}"
-    _, exit_code = sandbox.run_command_in_container(check_cmd)
+    _, exit_code = await sandbox.arun_command_in_container(check_cmd)
     if exit_code != 0:
         return f"Error: File {path} not found or not a regular file."
 
@@ -91,7 +91,7 @@ def view_file(
     range_spec = f"{start_line},$" if end_line == -1 else f"{start_line},{end_line}"
 
     cmd = f"nl -b a {shlex.quote(path)} | sed -n '{range_spec}p'"
-    output, exit_code = sandbox.run_command_in_container(cmd)
+    output, exit_code = await sandbox.arun_command_in_container(cmd)
 
     if exit_code != 0:
         return f"Error viewing file: {output}"
@@ -99,7 +99,7 @@ def view_file(
     # Detect indentation style and prepend hint
     # Read full file content for indentation detection
     cat_cmd = f"cat {shlex.quote(path)}"
-    full_content, cat_exit = sandbox.run_command_in_container(cat_cmd)
+    full_content, cat_exit = await sandbox.arun_command_in_container(cat_cmd)
 
     indent_style = "UNKNOWN"
     if cat_exit == 0 and full_content:
@@ -114,7 +114,7 @@ def view_file(
     return header + output
 
 
-def edit_file(
+async def edit_file(
     path: str,
     content: str,
     start_line: int,
@@ -140,68 +140,49 @@ def edit_file(
     # We use a python script to handle file IO cleanly to avoid shell escaping issues
     # and to handle newlines correctly.
 
-    script = textwrap.dedent(f"""
-        import sys
-        import base64
-        import os
+    content_b64 = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+    script = textwrap.dedent(f"""\
+import sys
+import base64
+import os
 
-        path = "{path}"
+path = "{path}"
+content_b64 = "{content_b64}"
+new_content = base64.b64decode(content_b64).decode('utf-8')
+start = {start_line}
+end = {end_line}
 
-        # Decode content
-        content_b64 = "{base64.b64encode(content.encode("utf-8")).decode("utf-8")}"
-        new_content = base64.b64decode(content_b64).decode('utf-8')
+if not os.path.exists(path):
+    print(f"Error: File {{path}} not found")
+    sys.exit(1)
 
-        start = {start_line}
-        end = {end_line}
+with open(path, 'r') as f:
+    lines = f.readlines()
 
-        if not os.path.exists(path):
-            print(f"Error: File {{path}} not found")
-            sys.exit(1)
+if start < 1:
+    print(f"Error: Start line {{start}} must be >= 1")
+    sys.exit(1)
 
-        with open(path, 'r') as f:
-            lines = f.readlines()
+idx_start = start - 1
+idx_end = end
 
-        # Validate bounds
-        # start is 1-indexed
-        if start < 1:
-             print(f"Error: Start line {{start}} must be >= 1")
-             sys.exit(1)
+if idx_start > len(lines):
+    print(f"Error: Start line {{start}} is beyond EOF ({{len(lines)}} lines)")
+    sys.exit(1)
 
-        # Convert to 0-indexed slice
-        idx_start = start - 1
-        idx_end = end # slice is exclusive, but end_line is inclusive, so end (idx) match
+replacement_lines = new_content.splitlines(keepends=True)
+lines[idx_start:idx_end] = replacement_lines
 
-        # If start is beyond end of file, we append?
-        # Standard behavior: if start > len, maybe just append?
-        # Let's enforce bounds strictly for safety/clarity unless it gets annoying.
-        if idx_start > len(lines):
-             print(f"Error: Start line {{start}} is beyond EOF ({{len(lines)}} lines)")
-             sys.exit(1)
+with open(path, 'w') as f:
+    f.writelines(lines)
 
-        # Prepare new lines
-        # Determine if we need to add a newline to the new content chunks
-        # Usually user provides a block. We split it into lines.
-        replacement_lines = new_content.splitlines(keepends=True)
+print(f"Successfully edited {{path}} (Replaced lines {{start}}-{{end}})")
+""")
 
-        # If the input string didn't have a trailing newline but we are inserting as lines,
-        # we might want to ensure consistency.
-        # But `splitlines(keepends=True)` keeps \n if present.
-        # If user sends "a\nb", we get ["a\n", "b"].
-        # If we insert "b" into middle of file, it merges with next line if no \n.
-        # Let's trust the user's content exactly.
-
-        lines[idx_start:idx_end] = replacement_lines
-
-        with open(path, 'w') as f:
-            f.writelines(lines)
-
-        print(f"Successfully edited {{path}} (Replaced lines {{start}}-{{end}})")
-    """)
-
-    return _run_python_script(sandbox, script, "edit_file")
+    return await _run_python_script(sandbox, script, "edit_file")
 
 
-def search_file(path: str, regex: str, *, tool_context: ToolContext) -> str:
+async def search_file(path: str, regex: str, *, tool_context: ToolContext) -> str:
     """
     Search for a regular expression in a file.
 
@@ -216,7 +197,7 @@ def search_file(path: str, regex: str, *, tool_context: ToolContext) -> str:
     # Use grep -nE for extended regex and line numbers
     # Ensure regex is quoted
     cmd = f"grep -nE {shlex.quote(regex)} {shlex.quote(path)}"
-    output, exit_code = sandbox.run_command_in_container(cmd)
+    output, exit_code = await sandbox.arun_command_in_container(cmd)
 
     if exit_code == 1:
         return "No matches found."
@@ -226,7 +207,7 @@ def search_file(path: str, regex: str, *, tool_context: ToolContext) -> str:
     return output
 
 
-def replace_in_file(
+async def replace_in_file(
     path: str, old_text: str, new_text: str, *, tool_context: ToolContext
 ) -> str:
     """
@@ -275,7 +256,7 @@ def replace_in_file(
         print(f"Successfully replaced text in {{path}}")
     """)
 
-    return _run_python_script(sandbox, script, "replace_in_file")
+    return await _run_python_script(sandbox, script, "replace_in_file")
 
 
 async def str_replace_edit(
@@ -283,7 +264,7 @@ async def str_replace_edit(
     old_string: str,
     new_string: str,
     replace_all: bool = False,
-    analyze_failure: bool = True,
+    analyze_failure: bool = False,
     *,
     tool_context: ToolContext,
 ) -> str:
@@ -306,7 +287,12 @@ async def str_replace_edit(
         old_string (str): The string to find.
         new_string (str): The string to replace it with.
         replace_all (bool): If True, replace all occurrences. Default False.
-        analyze_failure (bool): If True, use LLM to analyze why edit failed. Default True.
+        analyze_failure (bool): If True, use LLM to analyze why edit failed.
+            Default False — the analyzer creates a fresh LiteLlm instance with
+            no timeout that can hang the agent indefinitely when the shared
+            vLLM queue is under contention (observed in RL rollouts: 9 agents
+            deadlocked on str_replace_edit → analyze_edit_failure → LiteLlm
+            waiting forever for a response from an idle vLLM server).
     Returns:
         str: Success message or error with context. If analyze_failure is True and
         the edit fails, includes LLM analysis of why the edit failed.
@@ -317,7 +303,7 @@ async def str_replace_edit(
     file_content = None
     if analyze_failure:
         cat_cmd = f"cat {shlex.quote(path)}"
-        file_content, cat_exit = sandbox.run_command_in_container(cat_cmd)
+        file_content, cat_exit = await sandbox.arun_command_in_container(cat_cmd)
         if cat_exit != 0:
             file_content = None  # File doesn't exist or can't be read
 
@@ -782,7 +768,7 @@ async def str_replace_edit(
             sys.exit(1)
     """)
 
-    result = _run_python_script(sandbox, script, "str_replace_edit")
+    result = await _run_python_script(sandbox, script, "str_replace_edit")
 
     # If edit failed and analyze_failure is enabled, get LLM analysis
     if result.startswith("Error") and analyze_failure and file_content:
@@ -803,7 +789,7 @@ async def str_replace_edit(
     return result
 
 
-def list_dir(path: str = ".", *, tool_context: ToolContext) -> str:
+async def list_dir(path: str = ".", *, tool_context: ToolContext) -> str:
     """
     List contents of a directory.
 
@@ -816,7 +802,7 @@ def list_dir(path: str = ".", *, tool_context: ToolContext) -> str:
 
     # ls -F appends / to dirs, * to executables
     cmd = f"ls -F {shlex.quote(path)}"
-    output, exit_code = sandbox.run_command_in_container(cmd)
+    output, exit_code = await sandbox.arun_command_in_container(cmd)
 
     if exit_code != 0:
         return f"Error listing directory: {output}"

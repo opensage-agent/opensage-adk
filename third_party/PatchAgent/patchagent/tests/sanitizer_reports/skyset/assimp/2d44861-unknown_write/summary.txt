@@ -1,0 +1,16 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - Assimp::SortByPTypeProcess::Execute(aiScene*) /root/code/PostProcessing/SortByPTypeProcess.cpp:183:17
+    - Assimp::BaseProcess::ExecuteOnScene(Assimp::Importer*) /root/code/Common/BaseProcess.cpp:86:9
+    - Assimp::Importer::ApplyPostProcessing(unsigned int) /root/code/Common/Importer.cpp:855:22
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:765:13
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:53:34
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

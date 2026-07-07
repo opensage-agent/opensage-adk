@@ -24,6 +24,11 @@ from opensage.sandbox.native_docker_sandbox import (
     DockerBuildResult,
     NativeDockerSandbox,
 )
+from opensage.sandbox.utils import (
+    SandboxCacheInfo,
+    load_named_cache_manifest,
+    normalize_image_name,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -324,7 +329,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
                         pass
 
         except Exception as e:
-            logger.error(f"Failed to create volume {volume_name}: {e}")
+            logger.exception(f"Failed to create volume {volume_name}: {e}")
             raise
 
     @classmethod
@@ -393,7 +398,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
             return sandbox_instances
 
         except Exception as e:
-            logger.error(f"Failed to launch: {e}")
+            logger.exception(f"Failed to launch: {e}")
             for sandbox in sandbox_instances.values():
                 try:
                     if hasattr(sandbox, "delete_container"):
@@ -492,7 +497,12 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         if cls.can_pull_image(config.image):
             return True, None
 
-        if config.absolute_dockerfile_path or config.project_relative_dockerfile_path:
+        has_dockerfile = (
+            config.absolute_dockerfile_path
+            or config.agent_relative_dockerfile_path
+            or config.project_relative_dockerfile_path
+        )
+        if has_dockerfile:
             build_result = cls.build_image_from_dockerfile(config)
 
             if build_result is None:
@@ -511,10 +521,18 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         from opensage.utils.project_info import PROJECT_PATH
 
         has_dockerfile = (
-            config.project_relative_dockerfile_path or config.absolute_dockerfile_path
+            config.absolute_dockerfile_path
+            or config.agent_relative_dockerfile_path
+            or config.project_relative_dockerfile_path
         )
         if not has_dockerfile or not config.image:
             return None
+
+        if config.agent_relative_dockerfile_path:
+            raise ValueError(
+                "agent_relative_dockerfile_path must be resolved against agent_dir "
+                "before building Docker images."
+            )
 
         if config.absolute_dockerfile_path:
             dockerfile_path = Path(config.absolute_dockerfile_path)
@@ -583,6 +601,49 @@ class RemoteDockerSandbox(NativeDockerSandbox):
             )
 
     @classmethod
+    def load_cache_manifest(cls, task_name: str, config) -> tuple[dict, Optional[str]]:
+        """Load cache manifest for remote Docker backend."""
+        manifest, _, shared_volume_backup = load_named_cache_manifest(
+            task_name,
+            cache_dir_env="OPENSAGE_REMOTE_DOCKER_CACHE_DIR",
+            global_subdir="remote_docker_cache",
+            manifest_filename="remote_docker_cache_manifest.json",
+        )
+        return manifest, shared_volume_backup
+
+    @classmethod
+    def resolve_sandbox_cache(
+        cls,
+        sandbox_type: str,
+        cached_image_name: str,
+        manifest: dict,
+    ) -> SandboxCacheInfo:
+        """Resolve cache for remote Docker: named manifest image, then remote image check."""
+        entry = manifest.get(sandbox_type, {})
+
+        # Strategy 1: named manifest image
+        if entry:
+            logger.info(
+                f"Using runtime-visible cached image for {sandbox_type}: "
+                f"{entry.get('image_name', cached_image_name)}"
+            )
+            return SandboxCacheInfo(
+                found=True,
+                image=entry.get("image_name", cached_image_name),
+                rootfs_tar=entry.get("rootfs_tar"),
+                base_image=entry.get("base_image"),
+            )
+
+        # Strategy 2: check remote Docker daemon for image
+        if cls.image_exists_locally(cached_image_name) or cls.can_pull_image(
+            cached_image_name
+        ):
+            logger.info(f"Found cached image for {sandbox_type}: {cached_image_name}")
+            return SandboxCacheInfo(found=True, image=cached_image_name)
+
+        return SandboxCacheInfo(found=False)
+
+    @classmethod
     def cache_sandboxes(
         cls,
         sandbox_instances: dict,
@@ -591,18 +652,6 @@ class RemoteDockerSandbox(NativeDockerSandbox):
         task_name: str,
     ) -> dict:
         """Cache containers on remote Docker."""
-        import re
-
-        def normalize_image_name(name: str) -> str:
-            normalized = name.lower()
-            normalized = re.sub(r"[^a-z0-9._-]", "_", normalized)
-            normalized = normalized.strip(".-")
-            if normalized.startswith("_"):
-                normalized = "img" + normalized
-            if len(normalized) > 200:
-                normalized = normalized[:200].rstrip("_-.")
-            return normalized
-
         cache_results = {
             "backend": "remotedocker",
             "task_name": task_name,
@@ -626,7 +675,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
                     cache_results["shared_volume_backup"] = str(backup_path)
                 except Exception as exc:
                     error = f"Failed to backup shared volume {shared_volume_id}: {exc}"
-                    logger.error(error)
+                    logger.exception(error)
                     cache_results["errors"].append(error)
 
             client = cls._get_docker_client()
@@ -664,7 +713,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
                 except Exception as e:
                     error = f"Failed to commit {sandbox_type}: {e}"
-                    logger.error(error)
+                    logger.exception(error)
                     cache_results["errors"].append(error)
 
             manifest_data = {
@@ -691,7 +740,7 @@ class RemoteDockerSandbox(NativeDockerSandbox):
 
         except Exception as e:
             error = f"Failed to cache: {e}"
-            logger.error(error)
+            logger.exception(error)
             cache_results["errors"].append(error)
             return cache_results
 

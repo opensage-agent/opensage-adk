@@ -1,0 +1,38 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5020000004b2 thread T0
+    - streamReadU32 /src/libultrahdr/lib/src/gainmapmetadata.cpp:47:12
+    - ultrahdr::gain_map_metadata::decodeGainmapMetadata(std::__1::vector<unsigned char, std::__1::allocator<unsigned char>> const&, ultrahdr::gain_map_metadata*) /src/libultrahdr/lib/src/gainmapmetadata.cpp:196:5
+    - ultrahdr::JpegR::decodeJPEGR(ultrahdr::jpegr_compressed_struct*, ultrahdr::jpegr_uncompressed_struct*, float, ultrahdr::jpegr_exif_struct*, ultrahdr::ultrahdr_output_format, ultrahdr::jpegr_uncompressed_struct*, ultrahdr::ultrahdr_metadata_struct*) /src/libultrahdr/lib/src/jpegr.cpp:753:7
+    - UltraHdrDecFuzzer::process() /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:59:17
+    - LLVMFuzzerTestOneInput /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:66:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5020000004b2 is located 0 bytes after 2-byte region [0x5020000004b0,0x5020000004b2)
+allocated by thread T0 here:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - __allocate_at_least<std::__1::allocator<unsigned char> > /usr/local/include/c++/v1/__memory/allocate_at_least.h:55:19
+    - __split_buffer /usr/local/include/c++/v1/__split_buffer:343:25
+    - unsigned char* std::__1::vector<unsigned char, std::__1::allocator<unsigned char>>::__push_back_slow_path<unsigned char const&>(unsigned char const&) /usr/local/include/c++/v1/vector:1451:47
+    - std::__1::vector<unsigned char, std::__1::allocator<unsigned char>>::push_back[abi:ne180100](unsigned char const&) /usr/local/include/c++/v1/vector:1467:13
+    - ultrahdr::JpegR::decodeJPEGR(ultrahdr::jpegr_compressed_struct*, ultrahdr::jpegr_uncompressed_struct*, float, ultrahdr::jpegr_exif_struct*, ultrahdr::ultrahdr_output_format, ultrahdr::jpegr_uncompressed_struct*, ultrahdr::ultrahdr_metadata_struct*) /src/libultrahdr/lib/src/jpegr.cpp:750:17
+    - UltraHdrDecFuzzer::process() /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:59:17
+    - LLVMFuzzerTestOneInput /src/libultrahdr/fuzzer/ultrahdr_dec_fuzzer.cpp:66:14
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

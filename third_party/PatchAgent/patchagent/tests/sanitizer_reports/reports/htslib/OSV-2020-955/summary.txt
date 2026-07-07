@@ -1,0 +1,23 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: out-of-memory (malloc(4294967296))
+   To change the out-of-memory limit use -rss_limit_mb=<N>
+
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::HandleMalloc(unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:131:3
+    - fuzzer::MallocHook(void const volatile*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:100:6
+    - __sanitizer::RunMallocHooks(void*, unsigned long) /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common.cpp:346:5
+    - __asan::Allocator::Allocate(unsigned long, unsigned long, __sanitizer::BufferedStackTrace*, __asan::AllocType, bool) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:658:5
+    - __asan::Allocator::Reallocate(void*, unsigned long, __sanitizer::BufferedStackTrace*) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:758:21
+    - __asan::asan_realloc(void*, unsigned long, __sanitizer::BufferedStackTrace*) /src/llvm-project/compiler-rt/lib/asan/asan_allocator.cpp:1029:34
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:83:10
+    - ks_resize /src/htslib/htslib/kstring.h:142:16
+    - vcf_parse_format /src/htslib/vcf.c:2292:9
+    - vcf_parse /src/htslib/vcf.c:2673:20
+    - view_vcf /src/htslib/test/fuzz/hts_open_fuzzer.c:106:12
+    - LLVMFuzzerTestOneInput /src/htslib/test/fuzz/hts_open_fuzzer.c:143:13
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10

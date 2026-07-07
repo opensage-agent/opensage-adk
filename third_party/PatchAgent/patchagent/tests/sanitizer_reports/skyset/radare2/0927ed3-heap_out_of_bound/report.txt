@@ -1,0 +1,78 @@
+=================================================================
+==1274163==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000066117 at pc 0x7f3e737d10b1 bp 0x7fffde54a880 sp 0x7fffde54a878
+READ of size 1 at 0x502000066117 thread T0
+    #0 0x7f3e737d10b0 in r_bin_java_bootstrap_methods_attr_new /root/shlr/java/class.c:6936:61
+    #1 0x7f3e737a15c1 in r_bin_java_read_next_attr_from_buffer /root/shlr/java/class.c:2082:15
+    #2 0x7f3e7379ca2c in r_bin_java_read_next_attr /root/shlr/java/class.c:2043:10
+    #3 0x7f3e737a3781 in r_bin_java_parse_attrs /root/shlr/java/class.c:2247:29
+    #4 0x7f3e737a4b17 in r_bin_java_load_bin /root/shlr/java/class.c:2373:9
+    #5 0x7f3e737a44cd in r_bin_java_new_bin /root/shlr/java/class.c:2323:9
+    #6 0x7f3e737ab6ae in r_bin_java_new_buf /root/shlr/java/class.c:3145:7
+    #7 0x7f3e71b87744 in load_buffer /root/libr/../libr/bin/p/bin_java.c:81:16
+    #8 0x7f3e71a6c121 in r_bin_object_new /root/libr/bin/bobj.c:149:8
+    #9 0x7f3e71a61193 in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:585:19
+    #10 0x7f3e71a3bb1c in r_bin_open_buf /root/libr/bin/bin.c:281:8
+    #11 0x7f3e71a3ac3e in r_bin_open_io /root/libr/bin/bin.c:341:13
+    #12 0x7f3e72449fe2 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:436:7
+    #13 0x7f3e7244527c in r_core_bin_load /root/libr/core/cfile.c:637:4
+    #14 0x7f3e6fa854db in r_main_radare2 /root/libr/main/radare2.c:1206:15
+    #15 0x55764487367e in main /root/binr/radare2/radare2.c:96:9
+    #16 0x7f3e6f84f1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7f3e6f84f28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x5576448721e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 48965ad9f008bbbc3e68dd28956181bc45d7f951)
+
+0x502000066117 is located 0 bytes after 7-byte region [0x502000066110,0x502000066117)
+allocated by thread T0 here:
+    #0 0x7f3e74fc498d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f3e737a0635 in r_bin_java_get_attr_buf /root/shlr/java/class.c:1963:26
+    #2 0x7f3e7379c9f9 in r_bin_java_read_next_attr /root/shlr/java/class.c:2039:16
+    #3 0x7f3e737a3781 in r_bin_java_parse_attrs /root/shlr/java/class.c:2247:29
+    #4 0x7f3e737a4b17 in r_bin_java_load_bin /root/shlr/java/class.c:2373:9
+    #5 0x7f3e737a44cd in r_bin_java_new_bin /root/shlr/java/class.c:2323:9
+    #6 0x7f3e737ab6ae in r_bin_java_new_buf /root/shlr/java/class.c:3145:7
+    #7 0x7f3e71b87744 in load_buffer /root/libr/../libr/bin/p/bin_java.c:81:16
+    #8 0x7f3e71a6c121 in r_bin_object_new /root/libr/bin/bobj.c:149:8
+    #9 0x7f3e71a61193 in r_bin_file_new_from_buffer /root/libr/bin/bfile.c:585:19
+    #10 0x7f3e71a3bb1c in r_bin_open_buf /root/libr/bin/bin.c:281:8
+    #11 0x7f3e71a3ac3e in r_bin_open_io /root/libr/bin/bin.c:341:13
+    #12 0x7f3e72449fe2 in r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:436:7
+    #13 0x7f3e7244527c in r_core_bin_load /root/libr/core/cfile.c:637:4
+    #14 0x7f3e6fa854db in r_main_radare2 /root/libr/main/radare2.c:1206:15
+    #15 0x55764487367e in main /root/binr/radare2/radare2.c:96:9
+    #16 0x7f3e6f84f1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7f3e6f84f28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x5576448721e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 48965ad9f008bbbc3e68dd28956181bc45d7f951)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/shlr/java/class.c:6936:61 in r_bin_java_bootstrap_methods_attr_new
+Shadow bytes around the buggy address:
+  0x502000065e80: fa fa fd fa fa fa 05 fa fa fa 00 07 fa fa 05 fa
+  0x502000065f00: fa fa fd fd fa fa 05 fa fa fa 00 01 fa fa 05 fa
+  0x502000065f80: fa fa fd fd fa fa 05 fa fa fa 00 03 fa fa fd fd
+  0x502000066000: fa fa 05 fa fa fa 00 04 fa fa 05 fa fa fa 05 fa
+  0x502000066080: fa fa 05 fa fa fa 05 fa fa fa 05 fa fa fa fd fd
+=>0x502000066100: fa fa[07]fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000066180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000066200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000066280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000066300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000066380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1274163==ABORTING

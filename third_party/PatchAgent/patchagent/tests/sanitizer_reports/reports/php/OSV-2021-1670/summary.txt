@@ -1,0 +1,33 @@
+The sanitizer detected a dynamic stack buffer overflow vulnerability. The explanation of the vulnerability is: A dynamically allocated stack buffer is overflowed, leading to potential memory corruption or execution hijacking. Here is the detail: 
+
+READ of size 4 at 0x7ffd173098a8 thread T0
+    - zend_calc_live_ranges /src/php-src/Zend/zend_opcode.c:902:8
+    - zend_compile_func_decl /src/php-src/Zend/zend_compile.c:7202:2
+    - zend_compile_expr_inner /src/php-src/Zend/zend_compile.c:10123:4
+    - zend_compile_expr /src/php-src/Zend/zend_compile.c:10140:2
+    - zend_compile_assign /src/php-src/Zend/zend_compile.c:3133:4
+    - zend_compile_expr_inner /src/php-src/Zend/zend_compile.c:10023:4
+    - zend_compile_expr /src/php-src/Zend/zend_compile.c:10140:2
+    - zend_compile_greater /src/php-src/Zend/zend_compile.c:8590:2
+    - zend_compile_expr_inner /src/php-src/Zend/zend_compile.c:10042:4
+    - zend_compile_expr /src/php-src/Zend/zend_compile.c:10140:2
+    - zend_compile_stmt /src/php-src/Zend/zend_compile.c:9982:4
+    - zend_compile_top_stmt /src/php-src/Zend/zend_compile.c:9868:3
+    - zend_compile_top_stmt /src/php-src/Zend/zend_compile.c:9854:4
+    - zend_compile /src/php-src/Zend/zend_language_scanner.l:619:3
+    - compile_file /src/php-src/Zend/zend_language_scanner.l:654:14
+    - fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:272:29
+    - LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-parser.c:35:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7ffd173098a8 is located in stack of thread T0
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

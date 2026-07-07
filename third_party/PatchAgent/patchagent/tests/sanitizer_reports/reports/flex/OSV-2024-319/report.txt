@@ -1,0 +1,84 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/flex:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/flex/OSV-2024-319/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz-main -runs=100.
++ FUZZER=fuzz-main
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz-main -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz-main -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -detect_leaks=0 < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1593979160
+INFO: Loaded 1 modules   (3926 inline 8-bit counters): 3926 [0x560be802dd80, 0x560be802ecd6), 
+INFO: Loaded 1 PC tables (3926 PCs): 3926 [0x560be802ecd8,0x560be803e238), 
+/out/fuzz-main: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==21==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7f4a2dc428a4 bp 0x7ffd96f1b210 sp 0x7ffd96f1b190 T0)
+[1m[0m==21==The signal is caused by a READ memory access.
+==21==Hint: address points to the zero page.
+SCARINESS: 10 (null-deref)
+    #0 0x7f4a2dc428a4 in execvpe (/lib/x86_64-linux-gnu/libc.so.6+0xe38a4) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x560be7eddeb8 in filter_apply_chain /src/flex/src/filter.c:180:4
+    #2 0x560be7eddb65 in filter_apply_chain /src/flex/src/filter.c:136:3
+    #3 0x560be7f2cb8f in readin /src/flex/src/main.c:1211:2
+    #4 0x560be7f2b1a3 in flex_main /src/flex/src/main.c:163:2
+    #5 0x560be7ed19c8 in LLVMFuzzerTestOneInput /src/fuzz-main.c:38:3
+    #6 0x560be7d863c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x560be7d71635 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x560be7d770cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x560be7da2372 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f4a2db83082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x560be7d6981d in _start (/out/fuzz-main+0xe781d)
+
+DEDUP_TOKEN: execvpe--filter_apply_chain--filter_apply_chain
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0xe38a4) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) in execvpe
+==21==ABORTING
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/fakefuzzer: error closing output file lex.yy.c
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error
+/tmp/libfuzzer.20:1: start condition INITIAL declared twice
+/tmp/libfuzzer.20:1: unknown error processing section 1
+/tmp/libfuzzer.20:1: fatal parse error

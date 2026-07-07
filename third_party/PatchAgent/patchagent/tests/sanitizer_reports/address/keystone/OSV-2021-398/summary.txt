@@ -1,0 +1,28 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    - llvm_ks::StringRef::operator[](unsigned long) const /src/keystone/llvm/include/llvm/ADT/StringRef.h:211:14
+    - llvm_ks::HashString(llvm_ks::StringRef, unsigned int) /src/keystone/llvm/include/llvm/ADT/StringExtras.h:114:43
+    - llvm_ks::StringMapImpl::LookupBucketFor(llvm_ks::StringRef) /src/keystone/llvm/lib/Support/StringMap.cpp:64:28
+    - llvm_ks::StringMap<llvm_ks::MCSymbol*, llvm_ks::BumpPtrAllocatorImpl<llvm_ks::MallocAllocator, 4096ul, 4096ul>&>::insert(std::__1::pair<llvm_ks::StringRef, llvm_ks::MCSymbol*>) /src/keystone/llvm/include/llvm/ADT/StringMap.h:331:25
+    - llvm_ks::StringMap<llvm_ks::MCSymbol*, llvm_ks::BumpPtrAllocatorImpl<llvm_ks::MallocAllocator, 4096ul, 4096ul>&>::operator[](llvm_ks::StringRef) /src/keystone/llvm/include/llvm/ADT/StringMap.h:299:12
+    - llvm_ks::MCContext::getOrCreateSectionSymbol(llvm_ks::MCSectionELF const&) /src/keystone/llvm/lib/MC/MCContext.cpp:130:23
+    - llvm_ks::MCELFStreamer::ChangeSection(llvm_ks::MCSection*, llvm_ks::MCExpr const*) /src/keystone/llvm/lib/MC/MCELFStreamer.cpp:155:17
+    - llvm_ks::MCStreamer::SwitchSection(llvm_ks::MCSection*, llvm_ks::MCExpr const*) /src/keystone/llvm/lib/MC/MCStreamer.cpp:744:5
+    - (anonymous namespace)::DarwinAsmParser::parseDirectiveSection(llvm_ks::StringRef, llvm_ks::SMLoc) /src/keystone/llvm/lib/MC/MCParser/DarwinAsmParser.cpp:616:17
+    - (anonymous namespace)::AsmParser::parseStatement((anonymous namespace)::ParseStatementInfo&, llvm_ks::MCAsmParserSemaCallback*, unsigned long&) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp:1712:14
+    - (anonymous namespace)::AsmParser::Run(bool, unsigned long, bool) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp:712:10
+    - ks_asm /src/keystone/llvm/keystone/ks.cpp:691:27
+    - LLVMFuzzerTestOneInput /src/keystone/suite/fuzz/fuzz_asm_sparc.c:42:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

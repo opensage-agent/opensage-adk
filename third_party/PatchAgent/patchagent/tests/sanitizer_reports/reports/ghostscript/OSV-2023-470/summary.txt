@@ -1,0 +1,81 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x51c0000010f0 thread T0
+    - psi_device_ref_finalize /src/ghostpdl/psi/zdevice.c:74:49
+    - gc_objects_set_reloc /src/ghostpdl/psi/igc.c:1201:13
+    - gs_gc_reclaim /src/ghostpdl/psi/igc.c:431:9
+    - gs_vmreclaim /src/ghostpdl/psi/ireclaim.c:165:9
+    - ireclaim /src/ghostpdl/psi/ireclaim.c:80:12
+    - interp_reclaim /src/ghostpdl/psi/interp.c:454:12
+    - gs_main_finit /src/ghostpdl/psi/imain.c:1293:20
+    - psapi_exit /src/ghostpdl/psi/psapi.c:517:5
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:144:8
+    - gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    - LLVMFuzzerTestOneInput /src/gstoraster_ps_fuzzer.cc:43:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x51c0000010f0 is located 112 bytes inside of 1816-byte region [0x51c000001080,0x51c000001798)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - alloc_free_clump /src/ghostpdl/base/gsalloc.c:2597:9
+    - i_free_object /src/ghostpdl/base/gsalloc.c:1542:17
+    - default_subclass_finalize /src/ghostpdl/base/gdevsclass.c:890:5
+    - i_free_object /src/ghostpdl/base/gsalloc.c:1502:9
+    - gs_setdevice_no_init /src/ghostpdl/base/gsdevice.c:618:5
+    - gs_setdevice_no_erase /src/ghostpdl/base/gsdevice.c:584:5
+    - zsetdevice_no_safer /src/ghostpdl/psi/zdevice.c:594:12
+    - zsetdevice /src/ghostpdl/psi/zdevice.c:637:12
+    - interp /src/ghostpdl/psi/interp.c:1741:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:524:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:481:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    - LLVMFuzzerTestOneInput /src/gstoraster_ps_fuzzer.cc:43:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - gs_heap_alloc_bytes /src/ghostpdl/base/gsmalloc.c:192:34
+    - alloc_acquire_clump /src/ghostpdl/base/gsalloc.c:2446:13
+    - alloc_obj /src/ghostpdl/base/gsalloc.c:1911:13
+    - i_alloc_struct_immovable /src/ghostpdl/base/gsalloc.c:1241:11
+    - gx_device_subclass /src/ghostpdl/base/gdevdflt.c:1334:17
+    - gs_fillpage /src/ghostpdl/base/gspaint.c:87:5
+    - interp /src/ghostpdl/psi/interp.c:1741:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:524:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:481:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    - LLVMFuzzerTestOneInput /src/gstoraster_ps_fuzzer.cc:43:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

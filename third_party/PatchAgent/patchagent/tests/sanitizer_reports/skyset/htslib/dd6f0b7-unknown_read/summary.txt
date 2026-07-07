@@ -1,0 +1,14 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - vcf_format /root/vcf.c:2838:13
+    - vcf_write /root/vcf.c:2918:9
+    - view_vcf /root/test/fuzz/hts_open_fuzzer.c:107:13
+    - LLVMFuzzerTestOneInput /root/test/fuzz/hts_open_fuzzer.c:143:13
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

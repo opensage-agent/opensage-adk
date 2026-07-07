@@ -1,0 +1,77 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50300000041d at pc 0x561d38c1787c bp 0x7ffcfd2eb770 sp 0x7ffcfd2eaf18
+READ of size 3 at 0x50300000041d thread T0
+SCARINESS: 15 (3-byte-read-heap-buffer-overflow)
+    #0 0x561d38c1787b in MemcmpInterceptorCommon(void*, int (*)(void const*, void const*, unsigned long), void const*, void const*, unsigned long) /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:813:7
+    #1 0x561d38c17d4c in memcmp /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:845:10
+    #2 0x561d38d6f5bf in memsearch_swar /src/mruby/src/string.c:647:11
+    #3 0x561d38d6f5bf in mrb_memsearch /src/mruby/src/string.c:671:10
+    #4 0x561d38d7262f in mrb_str_index /src/mruby/src/string.c:773:9
+    #5 0x561d38d7262f in str_index_str /src/mruby/src/string.c:787:10
+    #6 0x561d38d7262f in str_convert_range /src/mruby/src/string.c:1219:16
+    #7 0x561d38d7193d in mrb_str_aref /src/mruby/src/string.c:1244:11
+    #8 0x561d38de0e4f in mrb_vm_exec /src/mruby/src/vm.c:1588:16
+    #9 0x561d38dc9574 in mrb_vm_run /src/mruby/src/vm.c:1331:12
+    #10 0x561d38d1c583 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6919:7
+    #11 0x561d38cd3cb0 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #12 0x561d38b887a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x561d38b73a15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x561d38b794af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x561d38ba4752 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7f0be24a8082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #17 0x561d38b6bbfd in _start (/out/mruby_fuzzer+0x167bfd)
+
+DEDUP_TOKEN: MemcmpInterceptorCommon(void*, int (*)(void const*, void const*, unsigned long), void const*, void const*, unsigned long)--___interceptor_memcmp--memsearch_swar
+0x50300000041d is located 0 bytes after 29-byte region [0x503000000400,0x50300000041d)
+allocated by thread T0 here:
+    #0 0x561d38c9495c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x561d38da330c in mrb_realloc_simple /src/mruby/src/gc.c:195:8
+    #2 0x561d38da330c in mrb_realloc /src/mruby/src/gc.c:209:8
+    #3 0x561d38da330c in mrb_malloc /src/mruby/src/gc.c:225:10
+    #4 0x561d38d6dd15 in str_init_normal_capa /src/mruby/src/string.c:57:22
+    #5 0x561d38d6dd15 in str_init_normal /src/mruby/src/string.c:70:10
+    #6 0x561d38d6dd15 in str_new /src/mruby/src/string.c:151:10
+    #7 0x561d38dce3e3 in mrb_vm_exec /src/mruby/src/vm.c:2827:19
+    #8 0x561d38dc9574 in mrb_vm_run /src/mruby/src/vm.c:1331:12
+    #9 0x561d38d1c583 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6919:7
+    #10 0x561d38cd3cb0 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #11 0x561d38b887a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x561d38b73a15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x561d38b794af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x561d38ba4752 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f0be24a8082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--mrb_realloc_simple--mrb_realloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/mruby/src/string.c:647:11 in memsearch_swar
+Shadow bytes around the buggy address:
+  0x503000000180: fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00
+  0x503000000200: 00 fa fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa
+  0x503000000280: 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00 00 fa
+  0x503000000300: fa fa 00 00 00 00 fa fa 00 00 00 00 fa fa 00 00
+  0x503000000380: 00 00 fa fa 00 00 00 fa fa fa 00 00 00 05 fa fa
+=>0x503000000400: 00 00 00[05]fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

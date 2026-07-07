@@ -1,0 +1,61 @@
+=================================================================
+==18==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f523dc04b24 at pc 0x564aacbd29fb bp 0x7ffc2571ecc0 sp 0x7ffc2571e488
+READ of size 5 at 0x7f523dc04b24 thread T0
+SCARINESS: 33 (5-byte-read-stack-buffer-overflow)
+    #0 0x564aacbd29fa in strlen /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:391:5
+    #1 0x564aacc9d50f in __constexpr_strlen /usr/local/bin/../include/c++/v1/__string/constexpr_c_functions.h:49:10
+    #2 0x564aacc9d50f in length /usr/local/bin/../include/c++/v1/__string/char_traits.h:227:12
+    #3 0x564aacc9d50f in std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>::basic_string[abi:ne180100]<0>(char const*) /usr/local/bin/../include/c++/v1/string:954:17
+    #4 0x564aacd3b42e in pcpp::NtpLayer::getReferenceIdentifierString() const /src/PcapPlusPlus/Packet++/src/NtpLayer.cpp:254:28
+    #5 0x564aacc97fb4 in readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:292:23
+    #6 0x564aacc94e96 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:67:5
+    #7 0x564aacb487c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x564aacb33a35 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x564aacb394cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x564aacb64772 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f523e095082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x564aacb2bc1d in _start (/out/FuzzTarget+0x1b5c1d)
+
+DEDUP_TOKEN: ___interceptor_strlen--__constexpr_strlen--length
+Address 0x7f523dc04b24 is located in stack of thread T0 at offset 36 in frame
+    #0 0x564aacd3a9af in pcpp::NtpLayer::getReferenceIdentifierString() const /src/PcapPlusPlus/Packet++/src/NtpLayer.cpp:191
+
+DEDUP_TOKEN: pcpp::NtpLayer::getReferenceIdentifierString() const
+  This frame has 2 object(s):
+    [32, 36) 'arrBuff' (line 252) <== Memory access at offset 36 overflows this variable
+    [48, 52) 'addr' (line 358)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/PcapPlusPlus/Packet++/src/NtpLayer.cpp:254:28 in pcpp::NtpLayer::getReferenceIdentifierString() const
+Shadow bytes around the buggy address:
+  0x7f523dc04880: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f523dc04900: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f523dc04980: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f523dc04a00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7f523dc04a80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+=>0x7f523dc04b00: f1 f1 f1 f1[04]f2 f8 f3 00 00 00 00 00 00 00 00
+  0x7f523dc04b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f523dc04c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f523dc04c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f523dc04d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f523dc04d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

@@ -1,0 +1,84 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f6010d81d20 at pc 0x55f18b6bf6c7 bp 0x7ffe51796660 sp 0x7ffe51796658
+READ of size 1 at 0x7f6010d81d20 thread T0
+SCARINESS: 27 (1-byte-read-stack-buffer-overflow)
+    #0 0x55f18b6bf6c6 in pput_hex /src/ghostpdl/./devices/vector/gdevpsfm.c:60:9
+    #1 0x55f18b6bf6c6 in cmap_put_ranges /src/ghostpdl/./devices/vector/gdevpsfm.c:74:9
+    #2 0x55f18b6bedf5 in psf_write_cmap /src/ghostpdl/./devices/vector/gdevpsfm.c:303:13
+    #3 0x55f18b6a875f in pdf_write_cmap /src/ghostpdl/./devices/vector/gdevpdtw.c:816:12
+    #4 0x55f18c139595 in attach_cmap_resource /src/ghostpdl/./devices/vector/gdevpdtc.c:310:20
+    #5 0x55f18c137c83 in scan_cmap_text /src/ghostpdl/./devices/vector/gdevpdtc.c:823:28
+    #6 0x55f18c137c83 in process_cmap_text /src/ghostpdl/./devices/vector/gdevpdtc.c:965:12
+    #7 0x55f18b69f3db in pdf_text_process /src/ghostpdl/./devices/vector/gdevpdtt.c:3758:16
+    #8 0x55f18be031e2 in pdfi_show_simple /src/ghostpdl/./pdf/pdf_text.c:445:16
+    #9 0x55f18be031e2 in pdfi_show_Tr_preserve /src/ghostpdl/./pdf/pdf_text.c:780:12
+    #10 0x55f18be031e2 in pdfi_show /src/ghostpdl/./pdf/pdf_text.c:830:16
+    #11 0x55f18be04188 in pdfi_Tj /src/ghostpdl/./pdf/pdf_text.c:1076:12
+    #12 0x55f18bd22745 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1666:24
+    #13 0x55f18bd208bf in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2156:24
+    #14 0x55f18bd78e1e in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #15 0x55f18bd78e1e in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #16 0x55f18bd78e1e in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:1003:12
+    #17 0x55f18bce282a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1157:24
+    #18 0x55f18bb756c9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #19 0x55f18bb756c9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #20 0x55f18bb756c9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #21 0x55f18b3153b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #22 0x55f18b3153b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #23 0x55f18b3153b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #24 0x55f18be58760 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #25 0x55f18be55130 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #26 0x55f18be522b2 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #27 0x55f18be584e8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #28 0x55f18b30cfbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #29 0x55f18b30d335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #30 0x55f18b1c16d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #31 0x55f18b1ac945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #32 0x55f18b1b23df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #33 0x55f18b1dd682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #34 0x7f60111c7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #35 0x55f18b1a4b2d in _start (/out/gs_device_pdfwrite_fuzzer+0x722b2d)
+
+DEDUP_TOKEN: pput_hex--cmap_put_ranges--psf_write_cmap
+Address 0x7f6010d81d20 is located in stack of thread T0 at offset 1312 in frame
+    #0 0x55f18b6be4cf in psf_write_cmap /src/ghostpdl/./devices/vector/gdevpsfm.c:219
+
+DEDUP_TOKEN: psf_write_cmap
+  This frame has 2 object(s):
+    [32, 72) 'renum' (line 287)
+    [112, 1312) 'ranges' (line 289) <== Memory access at offset 1312 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/ghostpdl/./devices/vector/gdevpsfm.c:60:9 in pput_hex
+Shadow bytes around the buggy address:
+  0x7f6010d81a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6010d81b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6010d81b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6010d81c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6010d81c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7f6010d81d00: 00 00 00 00[f3]f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3
+  0x7f6010d81d80: f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6010d81e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6010d81e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6010d81f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f6010d81f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

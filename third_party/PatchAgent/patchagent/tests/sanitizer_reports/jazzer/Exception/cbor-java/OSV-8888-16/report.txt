@@ -1,0 +1,93 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /home/yk/code/oss-fuzz/build/out/cbor-java:/out -v /home/yk/code/oss-fuzz/oss-fuzz-cbor-java-20250423-134206/crashes/crash-fcf8af7f824c6940aa16aefadeddb607fbc1952f:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce FuzzDec -runs=100.
++ FUZZER=FuzzDec
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer FuzzDec -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/FuzzDec -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 265 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented FuzzDec (took 20 ms, size +16%)
+INFO: Instrumented co.nstant.in.cbor.CborException (took 2 ms, size +14%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f8354764a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 236934523
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55c1c917db00, 0x55c1c917dd00), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55c1c91466e0,0x55c1c91486e0), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented co.nstant.in.cbor.CborDecoder (took 8 ms, size +10%)
+INFO: Instrumented co.nstant.in.cbor.model.DataItem (took 2 ms, size +19%)
+INFO: Instrumented co.nstant.in.cbor.model.LanguageTaggedString (took 1 ms, size +8%)
+INFO: Instrumented co.nstant.in.cbor.model.Array (took 1 ms, size +18%)
+INFO: Instrumented co.nstant.in.cbor.model.ChunkableDataItem (took 1 ms, size +28%)
+INFO: Instrumented co.nstant.in.cbor.model.RationalNumber (took 1 ms, size +44%)
+INFO: Instrumented co.nstant.in.cbor.model.ByteString (took 1 ms, size +53%)
+INFO: Instrumented co.nstant.in.cbor.model.Map (took 3 ms, size +32%)
+INFO: Instrumented co.nstant.in.cbor.model.NegativeInteger (took 0 ms, size +21%)
+INFO: Instrumented co.nstant.in.cbor.model.Number (took 1 ms, size +55%)
+INFO: Instrumented co.nstant.in.cbor.model.UnicodeString (took 2 ms, size +56%)
+INFO: Instrumented co.nstant.in.cbor.model.UnsignedInteger (took 0 ms, size +21%)
+INFO: Instrumented co.nstant.in.cbor.model.Special (took 1 ms, size +21%)
+INFO: Instrumented co.nstant.in.cbor.model.Tag (took 1 ms, size +26%)
+INFO: Instrumented co.nstant.in.cbor.decoder.UnsignedIntegerDecoder (took 6 ms, size +10%)
+INFO: Instrumented co.nstant.in.cbor.decoder.AbstractDecoder (took 2 ms, size +19%)
+INFO: Instrumented co.nstant.in.cbor.decoder.NegativeIntegerDecoder (took 1 ms, size +8%)
+INFO: Instrumented co.nstant.in.cbor.decoder.ByteStringDecoder (took 1 ms, size +14%)
+INFO: Instrumented co.nstant.in.cbor.decoder.UnicodeStringDecoder (took 1 ms, size +12%)
+INFO: Instrumented co.nstant.in.cbor.decoder.ArrayDecoder (took 1 ms, size +18%)
+INFO: Instrumented co.nstant.in.cbor.decoder.MapDecoder (took 1 ms, size +20%)
+INFO: Instrumented co.nstant.in.cbor.decoder.TagDecoder (took 0 ms, size +11%)
+INFO: Instrumented co.nstant.in.cbor.decoder.SpecialDecoder (took 0 ms, size +7%)
+INFO: Instrumented co.nstant.in.cbor.model.SimpleValue (took 1 ms, size +20%)
+INFO: Instrumented co.nstant.in.cbor.model.HalfPrecisionFloat (took 0 ms, size +17%)
+INFO: Instrumented co.nstant.in.cbor.model.AbstractFloat (took 0 ms, size +28%)
+INFO: Instrumented co.nstant.in.cbor.model.SinglePrecisionFloat (took 0 ms, size +17%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented co.nstant.in.cbor.model.DoublePrecisionFloat (took 1 ms, size +23%)
+INFO: Instrumented co.nstant.in.cbor.decoder.HalfPrecisionFloatDecoder (took 1 ms, size +25%)
+INFO: Instrumented co.nstant.in.cbor.decoder.SinglePrecisionFloatDecoder (took 0 ms, size +11%)
+INFO: Instrumented co.nstant.in.cbor.decoder.DoublePrecisionFloatDecoder (took 0 ms, size +12%)
+INFO: Instrumented co.nstant.in.cbor.CborDecoder$1 (took 0 ms, size +17%)
+INFO: Instrumented co.nstant.in.cbor.model.MajorType (took 1 ms, size +12%)
+INFO: Instrumented co.nstant.in.cbor.decoder.AbstractDecoder$1 (took 0 ms, size +15%)
+INFO: Instrumented co.nstant.in.cbor.model.AdditionalInformation (took 1 ms, size +11%)
+
+== Java Exception: java.lang.IllegalArgumentException: Negative initial size: -70057984
+	at java.base/java.io.ByteArrayOutputStream.<init>(ByteArrayOutputStream.java:78)
+	at co.nstant.in.cbor.decoder.UnicodeStringDecoder.decodeFixedLength(UnicodeStringDecoder.java:58)
+	at co.nstant.in.cbor.decoder.UnicodeStringDecoder.decode(UnicodeStringDecoder.java:32)
+	at co.nstant.in.cbor.CborDecoder.decodeNext(CborDecoder.java:141)
+	at co.nstant.in.cbor.CborDecoder.decode(CborDecoder.java:90)
+	at FuzzDec.fuzzerTestOneInput(FuzzDec.java:28)
+DEDUP_TOKEN: 51ccb91f374a556a
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_fcf8af7f824c6940aa16aefadeddb607fbc1952f.java
+

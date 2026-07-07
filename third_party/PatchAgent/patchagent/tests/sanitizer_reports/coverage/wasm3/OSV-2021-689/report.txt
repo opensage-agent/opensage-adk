@@ -1,0 +1,39 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/wasm3:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzzer -runs=100.
++ FUZZER=fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3394493390
+/out/fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0xffffffffffffffca (pc 0x56178cb93bfc bp 0x000000000001 sp 0x7ffd64f8bed0 T14)
+[1m[0m==14==The signal is caused by a WRITE memory access.
+    #0 0x56178cb93bfc in Environment_ReleaseCodePages /src/wasm3/source/m3_env.c:148:29
+    #1 0x56178cb93bfc in Runtime_Release /src/wasm3/source/m3_env.c:243:5
+    #2 0x56178cb93e8b in EvaluateExpression /src/wasm3/source/m3_env.c:328:5
+    #3 0x56178cb94271 in InitDataSegments /src/wasm3/source/m3_env.c:465:1
+    #4 0x56178cb9481a in m3_LoadModule /src/wasm3/source/m3_env.c:568:1
+    #5 0x56178cb932be in LLVMFuzzerTestOneInput /src/wasm3/platforms/app_fuzz/fuzzer.c:30:26
+    #6 0x56178caf5810 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x56178cae0a85 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x56178cae651f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x56178cb117c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f56dfbc5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x56178cad8c6d in _start (/out/fuzzer+0x23c6d)
+
+DEDUP_TOKEN: Environment_ReleaseCodePages--Runtime_Release--EvaluateExpression
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/wasm3/source/m3_env.c:148:29 in Environment_ReleaseCodePages
+==14==ABORTING

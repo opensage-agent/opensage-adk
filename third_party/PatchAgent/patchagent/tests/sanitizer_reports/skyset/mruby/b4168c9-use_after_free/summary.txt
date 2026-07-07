@@ -1,0 +1,80 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+WRITE of size 8 at 0x519000000390 thread T0
+    - mrb_vm_exec /root/src/vm.c:1397:19
+    - mrb_vm_run /root/src/vm.c:1131:12
+    - mrb_run /root/src/vm.c:3027:10
+    - mrb_funcall_with_block /root/src/vm.c:566:13
+    - mrb_funcall_argv /root/src/vm.c:577:10
+    - mrb_funcall_id /root/src/vm.c:393:10
+    - mrb_eql /root/src/object.c:620:10
+    - obj_eql /root/src/hash.c:378:5
+    - ar_get /root/src/hash.c:512:3
+    - h_get /root/src/hash.c:1005:10
+    - mrb_hash_key_p /root/src/hash.c:1688:10
+    - mrb_hash_has_key /root/src/hash.c:1697:11
+    - mrb_vm_exec /root/src/vm.c:1636:18
+    - mrb_vm_run /root/src/vm.c:1131:12
+    - mrb_top_run /root/src/vm.c:3040:12
+    - mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6890:7
+    - mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6933:12
+    - main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+
+0x519000000390 is located 784 bytes inside of 1024-byte region [0x519000000080,0x519000000480)
+freed by thread T0 here:
+    - mrb_default_allocf /root/src/state.c:68:12
+    - mrb_realloc_simple /root/src/gc.c:226:8
+    - stack_extend_alloc /root/src/vm.c:180:27
+    - mrb_stack_extend /root/src/vm.c:200:5
+    - mrb_vm_exec /root/src/vm.c:1671:9
+    - mrb_vm_run /root/src/vm.c:1131:12
+    - mrb_run /root/src/vm.c:3027:10
+    - mrb_funcall_with_block /root/src/vm.c:566:13
+    - mrb_funcall_argv /root/src/vm.c:577:10
+    - mrb_funcall_id /root/src/vm.c:393:10
+    - mrb_eql /root/src/object.c:620:10
+    - obj_eql /root/src/hash.c:378:5
+    - ar_get /root/src/hash.c:512:3
+    - h_get /root/src/hash.c:1005:10
+    - mrb_hash_get /root/src/hash.c:1215:7
+    - mrb_vm_exec /root/src/vm.c:1397:19
+    - mrb_vm_run /root/src/vm.c:1131:12
+    - mrb_run /root/src/vm.c:3027:10
+    - mrb_funcall_with_block /root/src/vm.c:566:13
+    - mrb_funcall_argv /root/src/vm.c:577:10
+    - mrb_funcall_id /root/src/vm.c:393:10
+    - mrb_eql /root/src/object.c:620:10
+    - obj_eql /root/src/hash.c:378:5
+    - ar_get /root/src/hash.c:512:3
+    - h_get /root/src/hash.c:1005:10
+    - mrb_hash_key_p /root/src/hash.c:1688:10
+    - mrb_hash_has_key /root/src/hash.c:1697:11
+    - mrb_vm_exec /root/src/vm.c:1636:18
+    - mrb_vm_run /root/src/vm.c:1131:12
+
+previously allocated by thread T0 here:
+    - mrb_default_allocf /root/src/state.c:68:12
+    - mrb_realloc_simple /root/src/gc.c:226:8
+    - mrb_realloc /root/src/gc.c:240:8
+    - mrb_malloc /root/src/gc.c:256:10
+    - mrb_calloc /root/src/gc.c:274:9
+    - stack_init /root/src/vm.c:109:28
+    - mrb_vm_run /root/src/vm.c:1124:5
+    - mrb_top_run /root/src/vm.c:3036:12
+    - mrb_load_proc /root/src/load.c:713:10
+    - mrb_init_mrblib /root/build/host/mrblib/mrblib.c:2326:3
+    - mrb_init_core /root/src/init.c:50:3
+    - init_gc_and_core /root/src/state.c:34:3
+    - mrb_core_init_protect /root/src/error.c:588:5
+    - mrb_open_core /root/src/state.c:52:7
+    - mrb_open_allocf /root/src/state.c:91:20
+    - mrb_open /root/src/state.c:75:20
+    - main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:278:20
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

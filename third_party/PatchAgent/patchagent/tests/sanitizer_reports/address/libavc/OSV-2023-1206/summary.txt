@@ -1,0 +1,43 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 640 at 0x531000024cf0 thread T4
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - ih264d_fmt_conv_420sp_to_420sp /src/libavc/decoder/ih264d_format_conv.c:400:9
+    - ih264d_format_convert /src/libavc/decoder/ih264d_format_conv.c:752:13
+    - ih264d_decode_recon_tfr_nmb_thread /src/libavc/decoder/ih264d_thread_parse_decode.c:257:21
+    - ih264d_decode_slice_thread /src/libavc/decoder/ih264d_thread_parse_decode.c:585:15
+    - ih264d_decode_picture_thread /src/libavc/decoder/ih264d_thread_parse_decode.c:621:13
+    - asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+
+0x531000024cf0 is located 0 bytes after 66800-byte region [0x531000014800,0x531000024cf0)
+allocated by thread T0 here:
+    - posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    - iv_aligned_malloc /src/libavc/fuzzer/svc_dec_fuzzer.cpp:85:13
+    - Codec::allocFrame() /src/libavc/fuzzer/svc_dec_fuzzer.cpp:308:48
+    - Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/svc_dec_fuzzer.cpp:399:9
+    - LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_dec_fuzzer.cpp:437:22
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Thread T4 created by T0 here:
+    - pthread_create /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:250:3
+    - isvcd_mark_err_slice_skip /src/libavc/decoder/svc/isvcd_parse_epslice.c:2773:21
+    - isvcd_parse_decode_slice /src/libavc/decoder/svc/isvcd_parse_slice.c:2236:15
+    - isvcd_parse_nal_unit /src/libavc/decoder/svc/isvcd_parse_headers.c:1005:40
+    - isvcd_video_decode /src/libavc/decoder/svc/isvcd_api.c:5292:27
+    - Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/svc_dec_fuzzer.cpp:375:11
+    - LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_dec_fuzzer.cpp:437:22
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

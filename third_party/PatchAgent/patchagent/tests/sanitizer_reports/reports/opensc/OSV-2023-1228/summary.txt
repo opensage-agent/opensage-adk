@@ -1,0 +1,49 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 8 at 0x7f96c2d73db0 thread T0
+    - asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1588:18
+    - asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    - _sc_asn1_decode /src/opensc/src/libopensc/asn1.c:2091:9
+    - asn1_decode_des_params /src/opensc/src/libopensc/pkcs15-algo.c:52:6
+    - sc_asn1_decode_algorithm_id /src/opensc/src/libopensc/pkcs15-algo.c:514:8
+    - asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1659:8
+    - asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    - sc_asn1_decode /src/opensc/src/libopensc/asn1.c:1805:9
+    - sc_pkcs15_pubkey_from_spki_fields /src/opensc/src/libopensc/pkcs15-pubkey.c:1352:6
+    - asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1667:8
+    - asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    - asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1507:8
+    - asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    - sc_asn1_decode /src/opensc/src/libopensc/asn1.c:1805:9
+    - parse_x509_cert /src/opensc/src/libopensc/pkcs15-cert.c:102:6
+    - sc_pkcs15_read_certificate /src/opensc/src/libopensc/pkcs15-cert.c:400:6
+    - sc_pkcs15emu_piv_init /src/opensc/src/libopensc/pkcs15-piv.c:791:8
+    - sc_pkcs15emu_piv_init_ex /src/opensc/src/libopensc/pkcs15-piv.c:1257:9
+    - sc_pkcs15_bind_synthetic /src/opensc/src/libopensc/pkcs15-syn.c:141:8
+    - sc_pkcs15_bind /src/opensc/src/libopensc/pkcs15.c:1351:8
+    - pkcs15_bind /src/opensc/src/pkcs11/framework-pkcs15.c:335:7
+    - fuzz_card_connect /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:114:8
+    - fuzz_pkcs11_initialize /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:161:6
+    - test_init_token /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:260:6
+    - LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:1082:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f96c2d73db0 is located in stack of thread T0 at offset 176 in frame
+    - asn1_decode_des_params /src/opensc/src/libopensc/pkcs15-algo.c:45:0
+
+  This frame has 3 object(s):
+    [32, 112) 'asn1_des_iv' (line 46)
+    [144, 152) 'iv' (line 47)
+    [176, 180) 'ivlen' (line 48) <== Memory access at offset 176 partially overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

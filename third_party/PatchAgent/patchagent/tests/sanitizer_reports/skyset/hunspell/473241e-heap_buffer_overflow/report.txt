@@ -1,0 +1,56 @@
+=================================================================
+==1559030==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50800000018d at pc 0x55cfb002fe05 bp 0x7ffd07a41c20 sp 0x7ffd07a41c18
+READ of size 1 at 0x50800000018d thread T0
+    #0 0x55cfb002fe04 in AffixMgr::setcminmax(int*, int*, char const*, int) /root/src/hunspell/affixmgr.cxx:1567:38
+    #1 0x55cfb0030df3 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:1673:11
+    #2 0x55cfaffc00f2 in HunspellImpl::checkword(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:869:19
+    #3 0x55cfaffc1c1a in HunspellImpl::spell_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:539:12
+    #4 0x55cfaffc0cd1 in HunspellImpl::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:447:12
+    #5 0x55cfaffd810e in Hunspell::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:2081:18
+    #6 0x55cfaffba1b7 in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:65:15
+    #7 0x55cfaff9f3e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3e4) (BuildId: 7382911e585b91c44336544e17f4d0b057e80182)
+    #8 0x55cfaff88516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x16516) (BuildId: 7382911e585b91c44336544e17f4d0b057e80182)
+    #9 0x55cfaff8dfca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bfca) (BuildId: 7382911e585b91c44336544e17f4d0b057e80182)
+    #10 0x55cfaffb8826 in main (/root/affdicfuzzer+0x46826) (BuildId: 7382911e585b91c44336544e17f4d0b057e80182)
+    #11 0x7efe017421c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7efe0174228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x55cfaff830e4 in _start (/root/affdicfuzzer+0x110e4) (BuildId: 7382911e585b91c44336544e17f4d0b057e80182)
+
+0x50800000018d is located 20 bytes after 89-byte region [0x508000000120,0x508000000179)
+allocated by thread T0 here:
+    #0 0x7efe01b387a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7efe026175bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/hunspell/affixmgr.cxx:1567:38 in AffixMgr::setcminmax(int*, int*, char const*, int)
+Shadow bytes around the buggy address:
+  0x507fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x508000000000: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 00 00
+  0x508000000080: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 00 fa
+  0x508000000100: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 00 01
+=>0x508000000180: fa[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1559030==ABORTING

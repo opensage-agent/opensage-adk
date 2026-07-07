@@ -1,0 +1,21 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 2147483647 at 0x50b000000151 thread T0
+    - get_vlmeta_from_trailer /root/blosc/frame.c:1397:5
+    - frame_get_vlmetalayers /root/blosc/frame.c:1456:9
+    - frame_to_schunk /root/blosc/frame.c:1686:8
+    - blosc2_schunk_from_buffer /root/blosc/schunk.c:461:27
+    - LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_decompress_frame.c:23:27
+    - main /root/tests/fuzz/standalone.c:32:7
+
+0x50b000000151 is located 0 bytes after 97-byte region [0x50b0000000f0,0x50b000000151)
+allocated by thread T0 here:
+    - main /root/tests/fuzz/standalone.c:28:28
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

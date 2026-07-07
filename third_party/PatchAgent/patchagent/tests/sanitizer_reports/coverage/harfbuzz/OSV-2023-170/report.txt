@@ -1,0 +1,53 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/harfbuzz:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce hb-subset-fuzzer -runs=100.
++ FUZZER=hb-subset-fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer hb-subset-fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/hb-subset-fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 443985098
+/out/hb-subset-fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+free(): invalid pointer
+==14== ERROR: libFuzzer: deadly signal
+    #0 0x561f162cafe4 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x561f1624a038 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x561f1622d3d3 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7f7a6e76241f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7f7a6e55c00a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7f7a6e53b858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7f7a6e5a6265  (/lib/x86_64-linux-gnu/libc.so.6+0x8d265) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7f7a6e5ae2fb  (/lib/x86_64-linux-gnu/libc.so.6+0x952fb) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x7f7a6e5afb2b  (/lib/x86_64-linux-gnu/libc.so.6+0x96b2b) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x561f1645bb7f in fini /work/build/../../src/harfbuzz/src/hb-array.hh:266:5
+    #10 0x561f1645bb7f in free_compiled_bytes /work/build/../../src/harfbuzz/src/OT/glyf/SubsetGlyph.hh:67:16
+    #11 0x561f1645bb7f in OT::glyf::_free_compiled_subset_glyphs(hb_vector_t<OT::glyf_impl::SubsetGlyph, false>&, unsigned int) const /work/build/../../src/harfbuzz/src/OT/glyf/glyf.hh:137:17
+    #12 0x561f1645b954 in OT::glyf::_populate_subset_glyphs(hb_subset_plan_t const*, hb_font_t*, hb_vector_t<OT::glyf_impl::SubsetGlyph, false>&) const /work/build/../../src/harfbuzz/src/OT/glyf/glyf.hh:437:11
+    #13 0x561f1645a376 in OT::glyf::subset(hb_subset_context_t*) const /work/build/../../src/harfbuzz/src/OT/glyf/glyf.hh:91:10
+    #14 0x561f164353af in bool _try_subset<OT::glyf>(OT::glyf const*, hb_vector_t<char, false>*, hb_subset_context_t*) /work/build/../../src/harfbuzz/src/hb-subset.cc:236:24
+    #15 0x561f1642fc3b in _subset<const OT::glyf> /work/build/../../src/harfbuzz/src/hb-subset.cc:300:14
+    #16 0x561f1642fc3b in _subset_table /work/build/../../src/harfbuzz/src/hb-subset.cc:435:31
+    #17 0x561f1642fc3b in hb_subset_plan_execute_or_fail /work/build/../../src/harfbuzz/src/hb-subset.cc:610:17
+    #18 0x561f1642d86a in hb_subset_or_fail /work/build/../../src/harfbuzz/src/hb-subset.cc:538:24
+    #19 0x561f162cc506 in trySubset(hb_face_t*, unsigned int const*, int, unsigned int, hb_subset_input_t*) /work/build/../../src/harfbuzz/test/fuzzing/hb-subset-fuzzer.cc:26:23
+    #20 0x561f162cc45c in LLVMFuzzerTestOneInput /work/build/../../src/harfbuzz/test/fuzzing/hb-subset-fuzzer.cc:112:5
+    #21 0x561f1622e8e0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #22 0x561f16219b55 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #23 0x561f1621f5ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #24 0x561f1624a892 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #25 0x7f7a6e53d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #26 0x561f16211d3d in _start (/out/hb-subset-fuzzer+0x22d3d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

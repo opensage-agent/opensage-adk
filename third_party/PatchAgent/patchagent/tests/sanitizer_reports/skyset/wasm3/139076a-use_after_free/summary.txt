@@ -1,0 +1,28 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x511000000108 thread T0
+    - ForEachModule /root/source/m3_env.c:211:34
+    - Runtime_Release /root/source/m3_env.c:232:5
+    - m3_FreeRuntime /root/source/m3_env.c:248:9
+    - main /root/platforms/app/main.c:722:5
+
+0x511000000108 is located 200 bytes inside of 208-byte region [0x511000000040,0x511000000110)
+freed by thread T0 here:
+    - m3_Free_Impl /root/source/m3_core.c:134:5
+    - m3_FreeModule /root/source/m3_module.c:44:9
+    - repl_load /root/platforms/app/main.c:165:5
+    - main /root/platforms/app/main.c:627:18
+
+previously allocated by thread T0 here:
+    - m3_Malloc_Impl /root/source/m3_core.c:129:12
+    - m3_ParseModule /root/source/m3_parse.c:609:14
+    - repl_load /root/platforms/app/main.c:147:14
+    - main /root/platforms/app/main.c:627:18
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

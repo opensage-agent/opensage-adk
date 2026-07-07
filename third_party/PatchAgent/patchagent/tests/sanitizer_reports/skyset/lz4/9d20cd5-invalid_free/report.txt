@@ -1,0 +1,26 @@
+=================================================================
+==638960==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x5310000247ff in thread T0
+    #0 0x7fa58631750a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x5604091745e4 in LLVMFuzzerTestOneInput /root/ossfuzz/round_trip_fuzzer.c:111:5
+    #2 0x560409158df4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/round_trip_fuzzer+0x27df4) (BuildId: d7314f9ddff5421a7815a3a69a2f88b94b798001)
+    #3 0x560409141f26 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/round_trip_fuzzer+0x10f26) (BuildId: d7314f9ddff5421a7815a3a69a2f88b94b798001)
+    #4 0x5604091479da in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/round_trip_fuzzer+0x169da) (BuildId: d7314f9ddff5421a7815a3a69a2f88b94b798001)
+    #5 0x560409172236 in main (/root/round_trip_fuzzer+0x41236) (BuildId: d7314f9ddff5421a7815a3a69a2f88b94b798001)
+    #6 0x7fa585f211c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x7fa585f2128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x56040913caf4 in _start (/root/round_trip_fuzzer+0xbaf4) (BuildId: d7314f9ddff5421a7815a3a69a2f88b94b798001)
+
+0x5310000247ff is located 65535 bytes inside of 65551-byte region [0x531000014800,0x53100002480f)
+allocated by thread T0 here:
+    #0 0x7fa5863177a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x560409173619 in LLVMFuzzerTestOneInput /root/ossfuzz/round_trip_fuzzer.c:25:45
+    #2 0x560409158df4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/round_trip_fuzzer+0x27df4) (BuildId: d7314f9ddff5421a7815a3a69a2f88b94b798001)
+    #3 0x560409141f26 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/round_trip_fuzzer+0x10f26) (BuildId: d7314f9ddff5421a7815a3a69a2f88b94b798001)
+    #4 0x5604091479da in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/round_trip_fuzzer+0x169da) (BuildId: d7314f9ddff5421a7815a3a69a2f88b94b798001)
+    #5 0x560409172236 in main (/root/round_trip_fuzzer+0x41236) (BuildId: d7314f9ddff5421a7815a3a69a2f88b94b798001)
+    #6 0x7fa585f211c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x7fa585f2128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x56040913caf4 in _start (/root/round_trip_fuzzer+0xbaf4) (BuildId: d7314f9ddff5421a7815a3a69a2f88b94b798001)
+
+SUMMARY: AddressSanitizer: bad-free /root/ossfuzz/round_trip_fuzzer.c:111:5 in LLVMFuzzerTestOneInput
+==638960==ABORTING

@@ -1,0 +1,34 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a WRITE memory access.
+    - set_txfm_ctx /src/aom/av1/common/av1_common_int.h:1635:41
+    - set_txfm_ctxs /src/aom/av1/common/av1_common_int.h:1648:3
+    - parse_decode_block /src/aom/av1/decoder/decodeframe.c:1145:5
+    - decode_partition /src/aom/av1/decoder/decodeframe.c:1330:7
+    - decode_partition /src/aom/av1/decoder/decodeframe.c:1338:7
+    - parse_tile_row_mt /src/aom/av1/decoder/decodeframe.c:3143:7
+    - row_mt_worker_hook /src/aom/av1/decoder/decodeframe.c:3216:7
+    - execute /src/aom/aom_util/aom_thread.c:163:27
+    - launch_dec_workers /src/aom/av1/decoder/decodeframe.c:3443:7
+    - decode_tiles_row_mt /src/aom/av1/decoder/decodeframe.c:3819:3
+    - av1_decode_tg_tiles_and_wrapup /src/aom/av1/decoder/decodeframe.c:5246:9
+    - read_one_tile_group_obu /src/aom/av1/decoder/obu.c:361:3
+    - aom_decode_frame_from_obus /src/aom/av1/decoder/obu.c:1030:33
+    - av1_receive_compressed_data /src/aom/av1/decoder/decoder.c:469:7
+    - frame_worker_hook /src/aom/av1/av1_dx_iface.c:409:16
+    - execute /src/aom/aom_util/aom_thread.c:163:27
+    - decode_one /src/aom/av1/av1_dx_iface.c:526:3
+    - decoder_decode /src/aom/av1/av1_dx_iface.c:713:11
+    - aom_codec_decode /src/aom/aom/src/aom_decoder.c:103:11
+    - LLVMFuzzerTestOneInput /src/aom/examples/av1_dec_fuzzer.cc:56:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

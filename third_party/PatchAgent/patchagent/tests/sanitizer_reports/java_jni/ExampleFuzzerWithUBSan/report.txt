@@ -1,0 +1,91 @@
+INFO: Loaded 282 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.ExampleFuzzerWithNative (took 24 ms, size +49%)
+INFO: found LLVMFuzzerCustomMutator (0x7f6762260a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2735196724
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x7f68a062c5b0, 0x7f68a062c7b0),
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x7f68a0571980,0x7f68a0573980),
+INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 4096 bytes
+INFO: Instrumented com.github.fmeum.rules_jni.RulesJni (took 10 ms, size +31%)
+INFO: Instrumented com.github.fmeum.rules_jni.EnvironmentUtils (took 5 ms, size +191%)
+INFO: detected a native library load, enabling interception for libc functions
+INFO: Instrumented com.github.fmeum.rules_jni.NativeLibraryInfo (took 0 ms, size +17%)
+INFO: Instrumented com.github.fmeum.rules_jni.CoverageHelper (took 0 ms, size +12%)
+INFO: A corpus is not provided, starting from an empty corpus
+examples/src/main/native/com/example/com_example_ExampleFuzzerWithNative.cpp:26:11: runtime error: signed integer overflow: 2147483642 + 37 cannot be represented in type 'int'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior examples/src/main/native/com/example/com_example_ExampleFuzzerWithNative.cpp:26:11 in
+
+Stack traces of all JVM threads:
+Thread[#5,Reference Handler,10,system]
+        at java.base@21.0.4/java.lang.ref.Reference.waitForReferencePendingList(Native Method)
+        at java.base@21.0.4/java.lang.ref.Reference.processPendingReferences(Reference.java:246)
+        at java.base@21.0.4/java.lang.ref.Reference$ReferenceHandler.run(Reference.java:208)
+
+Thread[#7,Signal Dispatcher,9,system]
+
+Thread[#23,Common-Cleaner,8,InnocuousThreadGroup]
+        at java.base@21.0.4/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.4/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+        at java.base@21.0.4/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1847)
+        at java.base@21.0.4/java.lang.ref.ReferenceQueue.await(ReferenceQueue.java:71)
+        at java.base@21.0.4/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:143)
+        at java.base@21.0.4/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:218)
+        at java.base@21.0.4/jdk.internal.ref.CleanerImpl.run(CleanerImpl.java:140)
+        at java.base@21.0.4/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.4/java.lang.Thread.run(Thread.java:1583)
+        at java.base@21.0.4/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:186)
+
+Thread[#24,Attach Listener,9,system]
+
+Thread[#6,Finalizer,8,system]
+        at java.base@21.0.4/java.lang.Object.wait0(Native Method)
+        at java.base@21.0.4/java.lang.Object.wait(Object.java:366)
+        at java.base@21.0.4/java.lang.Object.wait(Object.java:339)
+        at java.base@21.0.4/java.lang.ref.NativeReferenceQueue.await(NativeReferenceQueue.java:48)
+        at java.base@21.0.4/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:158)
+        at java.base@21.0.4/java.lang.ref.NativeReferenceQueue.remove(NativeReferenceQueue.java:89)
+        at java.base@21.0.4/java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:173)
+
+Thread[#1,main,5,main]
+        at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.dumpAllStackTraces(FuzzTargetRunner.java:534)
+        at app//com.example.ExampleFuzzerWithNative.parse(Native Method)
+        at app//com.example.ExampleFuzzerWithNative.fuzzerTestOneInput(ExampleFuzzerWithNative.java:33)
+        at java.base@21.0.4/java.lang.invoke.LambdaForm$DMH/0x00007f681e02c400.invokeStatic(LambdaForm$DMH)
+        at java.base@21.0.4/java.lang.invoke.LambdaForm$MH/0x00007f681e110400.invoke(LambdaForm$MH)
+        at java.base@21.0.4/java.lang.invoke.LambdaForm$MH/0x00007f681e109400.invoke_MT(LambdaForm$MH)
+        at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.runOne(FuzzTargetRunner.java:234)
+        at com.code_intelligence.jazzer.runtime.FuzzTargetRunnerNatives.startLibFuzzer(Native Method)
+        at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer(FuzzTargetRunner.java:551)
+        at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer(FuzzTargetRunner.java:441)
+        at app//com.code_intelligence.jazzer.driver.Driver.start(Driver.java:166)
+        at app//com.code_intelligence.jazzer.Jazzer.start(Jazzer.java:118)
+        at app//com.code_intelligence.jazzer.Jazzer.main(Jazzer.java:71)
+
+Thread[#22,Notification Thread,9,system]
+
+Garbage collector stats:
+
+PS MarkSweep: 0 collections took 0ms
+PS Scavenge: 6 collections took 32ms
+
+MS: 8 CopyPart-Custom-ChangeBinInt-Custom-ChangeByte-Custom-CMP-Custom- DE: "jazzer"-; base unit: a87afc5f27c320ebc3a72f902b8e1414fa0d6b94
+0x25,0xe,0x76,0x76,0x3f,0x76,0x6a,0x61,0x7a,0x7a,0x65,0x72,0x76,0x76,0x0,0xf,0x1,0xe4,0xfd,0xe,0x1,
+%\016vv?vjazzervv\000\017\001\344\375\016\001

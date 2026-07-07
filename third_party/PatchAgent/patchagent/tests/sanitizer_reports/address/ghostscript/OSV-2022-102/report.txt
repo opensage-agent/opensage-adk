@@ -1,0 +1,32 @@
+ALARM: working on the last Unit for 51 seconds
+       and the timeout value is 25 (use -timeout=N to change)
+==15== ERROR: libFuzzer: timeout after 51 seconds
+    #0 0x5618b78a5e91 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    #1 0x5618b77aae28 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x5618b778e137 in fuzzer::Fuzzer::AlarmCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:304:5
+    #3 0x7f9a88b4941f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 9a65bb469e45a1c6fbcffae5b82a2fd7a69eb479)
+    #4 0x7f9a8887fefa in unlink (/lib/x86_64-linux-gnu/libc.so.6+0x10fefa) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #5 0x5618b7db8938 in os_delete /src/ghostpdl/./base/gsiodev.c:308:13
+    #6 0x5618b8179db9 in zdeletefile /src/ghostpdl/./psi/zfile.c:361:12
+    #7 0x5618b8142529 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #8 0x5618b8142529 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #9 0x5618b8142529 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #10 0x5618b78e33b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #11 0x5618b78e33b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #12 0x5618b78e33b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #13 0x5618b8420d60 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #14 0x5618b841d730 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #15 0x5618b841a8b2 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #16 0x5618b8420ae8 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #17 0x5618b78dafbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #18 0x5618b78db335 in gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    #19 0x5618b78db335 in LLVMFuzzerTestOneInput /src/gstoraster_fuzzer.cc:23:2
+    #20 0x5618b778f6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #21 0x5618b777a945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #22 0x5618b77803df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #23 0x5618b77ab682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #24 0x7f9a88794082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #25 0x5618b7772b2d in _start (/out/gstoraster_fuzzer+0x71fb2d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::AlarmCallback()
+SUMMARY: libFuzzer: timeout

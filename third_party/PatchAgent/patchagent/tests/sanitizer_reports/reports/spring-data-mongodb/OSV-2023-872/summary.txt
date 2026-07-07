@@ -1,0 +1,32 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:93)
+Caused by: java.lang.StackOverflowError
+- java.base/java.lang.Class.getGenericSuperclass (java/base/java/lang/Class.java:1016)
+- org.springframework.core.ResolvableType.getSuperType (org/springframework/core/ResolvableType.java:472)
+- org.springframework.core.ResolvableType.as (org/springframework/core/ResolvableType.java:457)
+- org.springframework.core.ResolvableType.as (org/springframework/core/ResolvableType.java:452)
+- org.springframework.core.ResolvableType.asCollection (org/springframework/core/ResolvableType.java:416)
+- org.springframework.core.convert.TypeDescriptor.getElementTypeDescriptor (org/springframework/core/convert/TypeDescriptor.java:340)
+- org.springframework.core.convert.TypeDescriptor.equals (org/springframework/core/convert/TypeDescriptor.java:471)
+- org.springframework.core.convert.support.GenericConversionService$ConverterCacheKey.equals (org/springframework/core/convert/support/GenericConversionService$ConverterCacheKey/equals:436)
+- org.springframework.util.ObjectUtils.nullSafeEquals (org/springframework/util/ObjectUtils.java:341)
+- org.springframework.util.ConcurrentReferenceHashMap$Segment.findInChain (org/springframework/util/ConcurrentReferenceHashMap$Segment/findInChain:648)
+- org.springframework.util.ConcurrentReferenceHashMap$Segment.getReference (org/springframework/util/ConcurrentReferenceHashMap$Segment/getReference:504)
+- org.springframework.util.ConcurrentReferenceHashMap.getReference (org/springframework/util/ConcurrentReferenceHashMap.java:265)
+- org.springframework.util.ConcurrentReferenceHashMap.get (org/springframework/util/ConcurrentReferenceHashMap.java:235)
+- org.springframework.core.convert.support.GenericConversionService.getConverter (org/springframework/core/convert/support/GenericConversionService.java:228)
+- org.springframework.core.convert.support.GenericConversionService.canConvert (org/springframework/core/convert/support/GenericConversionService.java:141)
+- org.springframework.expression.spel.support.StandardTypeConverter.canConvert (org/springframework/expression/spel/support/StandardTypeConverter.java:75)
+- org.springframework.expression.spel.ast.OpPlus.convertTypedValueToString (org/springframework/expression/spel/ast/OpPlus.java:194)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:140)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:93)
+- org.springframework.expression.spel.ast.OpPlus.getValueInternal (org/springframework/expression/spel/ast/OpPlus.java:93)
+	... 1 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

@@ -1,0 +1,24 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x5251000000ff (pc 0x55726716dbd9 bp 0x7ffd0938db60 sp 0x7ffd0938dae0 T0)
+==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55726716dbd9 in ParseXMLElement /src/tidy-html5/src/parser.c:5732:14
+    #1 0x55726714767f in ParseHTMLWithNode /src/tidy-html5/src/parser.c:1077:25
+    #2 0x55726716cd30 in prvTidyParseXMLDocument /src/tidy-html5/src/parser.c:6439:13
+    #3 0x55726712f910 in prvTidyDocParseStream /src/tidy-html5/src/tidylib.c:1502:9
+    #4 0x55726712c53d in tidyDocParseString /src/tidy-html5/src/tidylib.c:1220:18
+    #5 0x55726712c53d in tidyParseString /src/tidy-html5/src/tidylib.c:1117:12
+    #6 0x5572671268c9 in TidyXml /src/tidy_xml_fuzzer.c:40:5
+    #7 0x557267126a4b in LLVMFuzzerTestOneInput /src/tidy_xml_fuzzer.c:60:3
+    #8 0x557266fdb330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x557266fc65a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x557266fcc03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x557266ff72e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7fa410a03082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #13 0x557266fbe78d in _start (/out/tidy_xml_fuzzer+0x12478d)
+
+DEDUP_TOKEN: ParseXMLElement--ParseHTMLWithNode--prvTidyParseXMLDocument
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/tidy-html5/src/parser.c:5732:14 in ParseXMLElement
+==14==ABORTING

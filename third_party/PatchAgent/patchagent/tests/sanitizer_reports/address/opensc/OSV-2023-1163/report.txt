@@ -1,0 +1,22 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x00000100000a (pc 0x55fa572cf324 bp 0x7ffe46f49da0 sp 0x7ffe46f49d30 T0)
+==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55fa572cf324 in sc_file_clear_acl_entries /src/opensc/src/libopensc/sc.c:610:28
+    #1 0x55fa572cf7b3 in sc_file_free /src/opensc/src/libopensc/sc.c:634:3
+    #2 0x55fa577fce62 in setcos_create_key /src/opensc/src/pkcs15init/pkcs15-setcos.c:367:3
+    #3 0x55fa572869ef in sc_pkcs15init_generate_key /src/opensc/src/tests/fuzzing/../../../src/pkcs15init/pkcs15-lib.c:1609:6
+    #4 0x55fa572b4d52 in do_generate_key /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:207:9
+    #5 0x55fa572b5f46 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:337:5
+    #6 0x55fa57124c90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55fa5710ff05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55fa5711599f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55fa57140c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f9776ebd082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #11 0x55fa571080ed in _start (/out/fuzz_pkcs15init+0x1f40ed)
+
+DEDUP_TOKEN: sc_file_clear_acl_entries--sc_file_free--setcos_create_key
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/opensc/src/libopensc/sc.c:610:28 in sc_file_clear_acl_entries
+==14==ABORTING

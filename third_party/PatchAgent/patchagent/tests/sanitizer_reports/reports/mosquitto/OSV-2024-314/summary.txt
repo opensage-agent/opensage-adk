@@ -1,0 +1,29 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 216 at 0x511000000398 thread T0
+    - __asan_memset /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:67:3
+    - config__add_listener /src/mosquitto/src/conf.c:161:2
+    - config__create_default_listener /src/mosquitto/src/conf.c:180:5
+    - config__read_file_core /src/mosquitto/src/conf.c:2094:9
+    - config__read_file /src/mosquitto/src/conf.c:2511:7
+    - config__read /src/mosquitto/src/conf.c:0:0
+    - config__parse_args /src/mosquitto/src/conf.c:521:8
+    - mosquitto_fuzz_main /src/mosquitto/src/mosquitto.c:432:7
+    - run_broker(char*) /src/mosquitto/fuzzing/broker/broker_fuzz_test_config.cpp:46:2
+    - LLVMFuzzerTestOneInput /src/mosquitto/fuzzing/broker/broker_fuzz_test_config.cpp:72:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x511000000398 is located 0 bytes after 216-byte region [0x5110000002c0,0x511000000398)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

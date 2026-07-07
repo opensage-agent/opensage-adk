@@ -1,0 +1,65 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x506000002152 at pc 0x5651ab678a87 bp 0x7ffec2f79a90 sp 0x7ffec2f79260
+READ of size 2 at 0x506000002152 thread T0
+SCARINESS: 14 (2-byte-read-heap-buffer-overflow)
+    #0 0x5651ab678a86 in memchr /src/llvm-project/compiler-rt/lib/asan/../sanitizer_common/sanitizer_common_interceptors.inc:884:3
+    #1 0x5651ab84ef13 in distanceToNextIAC /src/PcapPlusPlus/Packet++/src/TelnetLayer.cpp:34:20
+    #2 0x5651ab84ef13 in pcpp::TelnetLayer::getFieldLen(unsigned char*, unsigned long) /src/PcapPlusPlus/Packet++/src/TelnetLayer.cpp:62:10
+    #3 0x5651ab850edd in getNextCommandField /src/PcapPlusPlus/Packet++/src/TelnetLayer.cpp:88:20
+    #4 0x5651ab850edd in pcpp::TelnetLayer::getFirstCommand() /src/PcapPlusPlus/Packet++/src/TelnetLayer.cpp:192:18
+    #5 0x5651ab7367e3 in readParsedPacket(pcpp::Packet, pcpp::Layer*) /src/PcapPlusPlus/Tests/Fuzzers/ReadParsedPacket.h:33:17
+    #6 0x5651ab735874 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:66:5
+    #7 0x5651ab5e91d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5651ab5d4445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5651ab5d9edf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5651ab605182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f476acd1082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x5651ab5cc62d in _start (/out/FuzzTarget+0x1b762d)
+
+DEDUP_TOKEN: __interceptor_memchr--distanceToNextIAC--pcpp::TelnetLayer::getFieldLen(unsigned char*, unsigned long)
+0x506000002152 is located 0 bytes after 50-byte region [0x506000002120,0x506000002152)
+allocated by thread T0 here:
+    #0 0x5651ab73247d in operator new[](unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:89:3
+    #1 0x5651ab749980 in pcpp::PcapFileReaderDevice::getNextPacket(pcpp::RawPacket&) /src/PcapPlusPlus/Pcap++/src/PcapFileDevice.cpp:338:28
+    #2 0x5651ab7452b4 in pcpp::IFileReaderDevice::getNextPackets(pcpp::PointerVector<pcpp::RawPacket>&, int) /src/PcapPlusPlus/Pcap++/src/PcapFileDevice.cpp:117:22
+    #3 0x5651ab7354f7 in LLVMFuzzerTestOneInput /src/PcapPlusPlus/Tests/Fuzzers/FuzzTarget.cpp:46:14
+    #4 0x5651ab5e91d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x5651ab5d4445 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x5651ab5d9edf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x5651ab605182 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f476acd1082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new[](unsigned long)--pcpp::PcapFileReaderDevice::getNextPacket(pcpp::RawPacket&)--pcpp::IFileReaderDevice::getNextPackets(pcpp::PointerVector<pcpp::RawPacket>&, int)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/PcapPlusPlus/Packet++/src/TelnetLayer.cpp:34:20 in distanceToNextIAC
+Shadow bytes around the buggy address:
+  0x506000001e80: 00 00 00 00 00 00 00 fa fa fa fa fa 00 00 00 00
+  0x506000001f00: 00 00 00 fa fa fa fa fa 00 00 00 00 00 00 00 fa
+  0x506000001f80: fa fa fa fa 00 00 00 00 00 00 00 fa fa fa fa fa
+  0x506000002000: 00 00 00 00 00 00 00 fa fa fa fa fa 00 00 00 00
+  0x506000002080: 00 00 00 fa fa fa fa fa 00 00 00 00 00 00 00 00
+=>0x506000002100: fa fa fa fa 00 00 00 00 00 00[02]fa fa fa fa fa
+  0x506000002180: fd fd fd fd fd fd fd fa fa fa fa fa fd fd fd fd
+  0x506000002200: fd fd fd fa fa fa fa fa 00 00 00 00 00 00 02 fa
+  0x506000002280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000002300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x506000002380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

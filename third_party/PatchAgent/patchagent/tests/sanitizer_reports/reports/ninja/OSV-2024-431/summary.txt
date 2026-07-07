@@ -1,0 +1,96 @@
+The sanitizer detected a memory leak vulnerability. The explanation of the vulnerability is: A program fails to free allocated memory, leading to resource exhaustion and degraded system performance over time. Here is the detail: 
+
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - allocate /usr/local/include/c++/v1/__memory/allocator_traits.h:269:16
+    - __construct_node<const std::__1::piecewise_construct_t &, std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > &&>, std::__1::tuple<> > /usr/local/include/c++/v1/__tree:1819:21
+    - __emplace_unique_key_args<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, const std::__1::piecewise_construct_t &, std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > &&>, std::__1::tuple<> > /usr/local/include/c++/v1/__tree:1786:25
+    - operator[] /usr/local/include/c++/v1/map:1529:8
+    - ManifestParser::ParseRule(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:164:7
+    - ManifestParser::Parse(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:53:12
+    - Parser::Load(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*, Lexer*) /src/ninja/src/parser.cc:37:10
+    - LLVMFuzzerTestOneInput /src/ninja/misc/manifest_fuzzer.cc:37:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - allocate /usr/local/include/c++/v1/__memory/allocator_traits.h:269:16
+    - __construct_node<const std::__1::piecewise_construct_t &, std::__1::tuple<const std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > &>, std::__1::tuple<> > /usr/local/include/c++/v1/__tree:1819:21
+    - std::__1::pair<std::__1::__tree_iterator<std::__1::__value_type<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString>, std::__1::__tree_node<std::__1::__value_type<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString>, void*>*, long>, bool> std::__1::__tree<std::__1::__value_type<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString>, std::__1::__map_value_compare<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::__value_type<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString>, std::__1::less<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>, true>, std::__1::allocator<std::__1::__value_type<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString>>>::__emplace_unique_key_args<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::piecewise_construct_t const&, std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&>, std::__1::tuple<>>(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::piecewise_construct_t const&, std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&>&&, std::__1::tuple<>&&) /usr/local/include/c++/v1/__tree:1786:25
+    - operator[] /usr/local/include/c++/v1/map:1519:8
+    - Rule::AddBinding(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, EvalString const&) /src/ninja/src/eval_env.cc:56:3
+    - ManifestParser::ParseRule(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:155:13
+    - ManifestParser::Parse(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:53:12
+    - Parser::Load(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*, Lexer*) /src/ninja/src/parser.cc:37:10
+    - LLVMFuzzerTestOneInput /src/ninja/misc/manifest_fuzzer.cc:37:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Indirect leak of 80 byte(s) in 1 object(s) allocated from:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - allocate /usr/local/include/c++/v1/__memory/allocator_traits.h:269:16
+    - __construct_node<const std::__1::piecewise_construct_t &, std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > &&>, std::__1::tuple<> > /usr/local/include/c++/v1/__tree:1819:21
+    - __emplace_unique_key_args<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, const std::__1::piecewise_construct_t &, std::__1::tuple<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > &&>, std::__1::tuple<> > /usr/local/include/c++/v1/__tree:1786:25
+    - operator[] /usr/local/include/c++/v1/map:1529:8
+    - ManifestParser::ParseRule(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:163:7
+    - ManifestParser::Parse(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:53:12
+    - Parser::Load(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*, Lexer*) /src/ninja/src/parser.cc:37:10
+    - LLVMFuzzerTestOneInput /src/ninja/misc/manifest_fuzzer.cc:37:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Indirect leak of 48 byte(s) in 1 object(s) allocated from:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - ManifestParser::ParseRule(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:146:16
+    - ManifestParser::Parse(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:53:12
+    - Parser::Load(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*, Lexer*) /src/ninja/src/parser.cc:37:10
+    - LLVMFuzzerTestOneInput /src/ninja/misc/manifest_fuzzer.cc:37:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Indirect leak of 32 byte(s) in 1 object(s) allocated from:
+    - operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    - __libcpp_operator_new<unsigned long> /usr/local/include/c++/v1/new:271:10
+    - __libcpp_allocate /usr/local/include/c++/v1/new:295:10
+    - allocate /usr/local/include/c++/v1/__memory/allocator.h:125:32
+    - __allocate_at_least<std::__1::allocator<std::__1::pair<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, EvalString::TokenType> > > /usr/local/include/c++/v1/__memory/allocate_at_least.h:55:19
+    - __vallocate /usr/local/include/c++/v1/vector:741:25
+    - void std::__1::vector<std::__1::pair<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString::TokenType>, std::__1::allocator<std::__1::pair<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString::TokenType>>>::__assign_with_size[abi:ne180100]<std::__1::pair<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString::TokenType>*, std::__1::pair<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString::TokenType>*>(std::__1::pair<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString::TokenType>*, std::__1::pair<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, EvalString::TokenType>*, long) /usr/local/include/c++/v1/vector:1345:5
+    - assign<std::__1::pair<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, EvalString::TokenType> *, 0> /usr/local/include/c++/v1/vector:1326:3
+    - operator= /usr/local/include/c++/v1/vector:1297:5
+    - operator= /src/ninja/src/eval_env.h:34:8
+    - Rule::AddBinding(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, EvalString const&) /src/ninja/src/eval_env.cc:56:18
+    - ManifestParser::ParseRule(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:155:13
+    - ManifestParser::Parse(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/ninja/src/manifest_parser.cc:53:12
+    - Parser::Load(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*, Lexer*) /src/ninja/src/parser.cc:37:10
+    - LLVMFuzzerTestOneInput /src/ninja/misc/manifest_fuzzer.cc:37:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that every memory allocation has a corresponding deallocation.
+2. Track allocated memory systematically to avoid leaks.
+3. Avoid unnecessary memory allocations by reusing buffers where possible.

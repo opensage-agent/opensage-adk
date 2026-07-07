@@ -1,0 +1,16 @@
+The sanitizer detected a allocation size too big vulnerability. The explanation of the vulnerability is: The program attempted to allocate a memory block that exceeds the maximum allowed size. Here is the detail: 
+
+    - malloc /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:1021:3
+    - LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:30:43
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+HINT: if you don't care about these errors you may set allocator_may_return_null=1
+
+To fix this issue, follow the advice below:
+
+1. Check the size of memory allocations to ensure they are within reasonable limits.
+2. Implement input validation to prevent excessively large allocation requests.
+3. Use appropriate data types for size calculations to avoid overflow.

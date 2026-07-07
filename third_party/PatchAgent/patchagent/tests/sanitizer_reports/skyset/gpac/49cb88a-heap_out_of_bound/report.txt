@@ -1,0 +1,64 @@
+=================================================================
+==638794==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x52500001b758 at pc 0x7fb5bd07016c bp 0x7fffb8f27550 sp 0x7fffb8f27548
+READ of size 1 at 0x52500001b758 thread T0
+    #0 0x7fb5bd07016b in mhas_dmx_process /root/src/filters/reframe_mhas.c:545:8
+    #1 0x7fb5bcb46b83 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #2 0x7fb5bcb160e4 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    #3 0x7fb5bcb11f0b in gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    #4 0x7fb5bc4222cf in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #5 0x562173b151ce in do_dash /root/applications/mp4box/mp4box.c:4831:15
+    #6 0x562173b09cc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #7 0x562173b10841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #8 0x7fb5bb6351c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7fb5bb63528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x562173aefe04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: 01962dfd97ecd08e0a1d6f9a27663109d22a5bd5)
+
+0x52500001b758 is located 0 bytes after 9816-byte region [0x525000019100,0x52500001b758)
+allocated by thread T0 here:
+    #0 0x7fb5bda48bc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fb5bbb384ac in gf_realloc /root/src/utils/alloc.c:160:9
+    #2 0x7fb5bd06fb36 in mhas_dmx_process /root/src/filters/reframe_mhas.c:510:23
+    #3 0x7fb5bcb46b83 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #4 0x7fb5bcb160e4 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    #5 0x7fb5bcb11f0b in gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    #6 0x7fb5bc4222cf in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #7 0x562173b151ce in do_dash /root/applications/mp4box/mp4box.c:4831:15
+    #8 0x562173b09cc3 in mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    #9 0x562173b10841 in main /root/applications/mp4box/mp4box.c:6939:1
+    #10 0x7fb5bb6351c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7fb5bb63528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x562173aefe04 in _start (/root/bin/gcc/MP4Box+0x49e04) (BuildId: 01962dfd97ecd08e0a1d6f9a27663109d22a5bd5)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/filters/reframe_mhas.c:545:8 in mhas_dmx_process
+Shadow bytes around the buggy address:
+  0x52500001b480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52500001b500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52500001b580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52500001b600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x52500001b680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x52500001b700: 00 00 00 00 00 00 00 00 00 00 00[fa]fa fa fa fa
+  0x52500001b780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52500001b800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52500001b880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52500001b900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x52500001b980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==638794==ABORTING

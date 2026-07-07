@@ -1,0 +1,64 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x526000013424 at pc 0x55b8fd119451 bp 0x7ffc4dfc31b0 sp 0x7ffc4dfc31a8
+READ of size 8 at 0x526000013424 thread T0
+SCARINESS: 33 (8-byte-read-heap-buffer-overflow-far-from-bounds)
+    #0 0x55b8fd119450 in MEM_readLEST /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/../common/mem.h:357:24
+    #1 0x55b8fd119450 in BIT_initDStream /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/../common/bitstream.h:262:30
+    #2 0x55b8fd119450 in ZSTD_decompressSequences_body /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/zstd_decompress_block.c:1637:9
+    #3 0x55b8fd119450 in ZSTD_decompressSequences_bmi2 /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/zstd_decompress_block.c:1912:12
+    #4 0x55b8fd0fa836 in ZSTD_decompressSequences /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/zstd_decompress_block.c:1953:16
+    #5 0x55b8fd0e587a in ZSTD_decompressBlock_internal /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/zstd_decompress_block.c:2177:20
+    #6 0x55b8fd0d44e0 in ZSTD_decompressFrame /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/zstd_decompress.c:1016:27
+    #7 0x55b8fd0d44e0 in ZSTD_decompressMultiFrame /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/zstd_decompress.c:1142:32
+    #8 0x55b8fd0d5003 in ZSTD_decompress_usingDDict /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/zstd_decompress.c:1660:12
+    #9 0x55b8fd0d5003 in ZSTD_decompressDCtx /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/zstd_decompress.c:1197:12
+    #10 0x55b8fcd88dbf in zstd_wrap_decompress /src/c-blosc2/blosc/blosc2.c:540:12
+    #11 0x55b8fcd7a7b4 in blosc_d /src/c-blosc2/blosc/blosc2.c:1835:18
+    #12 0x55b8fcd84eba in serial_blosc /src/c-blosc2/blosc/blosc2.c:1969:16
+    #13 0x55b8fcd84eba in do_job /src/c-blosc2/blosc/blosc2.c:2136:15
+    #14 0x55b8fcd74a5d in blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2938:12
+    #15 0x55b8fcdbbf2d in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:3748:24
+    #16 0x55b8fcd96928 in blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:1100:17
+    #17 0x55b8fcd65054 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:34:15
+    #18 0x55b8fcc19a90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #19 0x55b8fcc04d05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #20 0x55b8fcc0a79f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #21 0x55b8fcc35a42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f93bf65e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #23 0x55b8fcbfceed in _start (/out/decompress_frame_fuzzer+0x166eed)
+
+DEDUP_TOKEN: MEM_readLEST--BIT_initDStream--ZSTD_decompressSequences_body
+Address 0x526000013424 is a wild pointer inside of access range of size 0x000000000008.
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/c-blosc2/internal-complibs/zstd-1.5.6/decompress/../common/mem.h:357:24 in MEM_readLEST
+Shadow bytes around the buggy address:
+  0x526000013180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000013200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000013280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000013300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000013380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x526000013400: fa fa fa fa[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x526000013480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000013500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000013580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000013600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x526000013680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

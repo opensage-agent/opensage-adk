@@ -1,0 +1,66 @@
+=================================================================
+==359804==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x525000004dd4 at pc 0x55e82b9494c1 bp 0x7fffebf287f0 sp 0x7fffebf287e8
+WRITE of size 2 at 0x525000004dd4 thread T0
+    #0 0x55e82b9494c0 in msadpcm_decode_block /root/src/ms_adpcm.c:279:31
+    #1 0x55e82b9478a9 in wavlike_msadpcm_init /root/src/ms_adpcm.c:171:3
+    #2 0x55e82b8dc5aa in wav_open /root/src/wav.c:258:14
+    #3 0x55e82b8648fb in psf_open_file /root/src/sndfile.c:3079:13
+    #4 0x55e82b865904 in sf_open_virtual /root/src/sndfile.c:440:9
+    #5 0x55e82b86234a in LLVMFuzzerTestOneInput /root/ossfuzz/sndfile_fuzzer.cc:120:13
+    #6 0x55e82b849ad4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/sndfile_fuzzer+0x46ad4) (BuildId: d7f8dd9f3051f2aa207e1b77f414ce3b93ca8cce)
+    #7 0x55e82b832d56 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/sndfile_fuzzer+0x2fd56) (BuildId: d7f8dd9f3051f2aa207e1b77f414ce3b93ca8cce)
+    #8 0x55e82b83880a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/sndfile_fuzzer+0x3580a) (BuildId: d7f8dd9f3051f2aa207e1b77f414ce3b93ca8cce)
+    #9 0x55e82b862126 in main (/root/sndfile_fuzzer+0x5f126) (BuildId: d7f8dd9f3051f2aa207e1b77f414ce3b93ca8cce)
+    #10 0x7f1efde3e1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f1efde3e28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x55e82b82dd24 in _start (/root/sndfile_fuzzer+0x2ad24) (BuildId: d7f8dd9f3051f2aa207e1b77f414ce3b93ca8cce)
+
+0x525000004dd4 is located 0 bytes after 9428-byte region [0x525000002900,0x525000004dd4)
+allocated by thread T0 here:
+    #0 0x7f1efe20798d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55e82b946da5 in wavlike_msadpcm_init /root/src/ms_adpcm.c:138:27
+    #2 0x55e82b8dc5aa in wav_open /root/src/wav.c:258:14
+    #3 0x55e82b8648fb in psf_open_file /root/src/sndfile.c:3079:13
+    #4 0x55e82b865904 in sf_open_virtual /root/src/sndfile.c:440:9
+    #5 0x55e82b86234a in LLVMFuzzerTestOneInput /root/ossfuzz/sndfile_fuzzer.cc:120:13
+    #6 0x55e82b849ad4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/sndfile_fuzzer+0x46ad4) (BuildId: d7f8dd9f3051f2aa207e1b77f414ce3b93ca8cce)
+    #7 0x55e82b832d56 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/sndfile_fuzzer+0x2fd56) (BuildId: d7f8dd9f3051f2aa207e1b77f414ce3b93ca8cce)
+    #8 0x55e82b83880a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/sndfile_fuzzer+0x3580a) (BuildId: d7f8dd9f3051f2aa207e1b77f414ce3b93ca8cce)
+    #9 0x55e82b862126 in main (/root/sndfile_fuzzer+0x5f126) (BuildId: d7f8dd9f3051f2aa207e1b77f414ce3b93ca8cce)
+    #10 0x7f1efde3e1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7f1efde3e28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x55e82b82dd24 in _start (/root/sndfile_fuzzer+0x2ad24) (BuildId: d7f8dd9f3051f2aa207e1b77f414ce3b93ca8cce)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/ms_adpcm.c:279:31 in msadpcm_decode_block
+Shadow bytes around the buggy address:
+  0x525000004b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x525000004b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x525000004c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x525000004c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x525000004d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x525000004d80: 00 00 00 00 00 00 00 00 00 00[04]fa fa fa fa fa
+  0x525000004e00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x525000004e80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x525000004f00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x525000004f80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x525000005000: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359804==ABORTING

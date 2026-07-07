@@ -1,0 +1,527 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/perfetto:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/perfetto/OSV-2022-943/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce trace_processor_fuzzer -runs=100.
++ FUZZER=trace_processor_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer trace_processor_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/trace_processor_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3089194078
+INFO: Loaded 1 modules   (112957 inline 8-bit counters): 112957 [0x55a0965e9750, 0x55a09660508d), 
+INFO: Loaded 1 PC tables (112957 PCs): 112957 [0x55a096605090,0x55a0967be460), 
+/out/trace_processor_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+[90m[779.070] oto_trace_reader.cc:228[0m [31mIt is strongly recommended to have flush_period_ms set when write_into_file is turned on. This trace will be loaded fully into memory before sorting which increases the likelihood of OOMs.[0m
+[90m[779.070] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.070] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.070] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.071] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.071] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.071] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.072] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.072] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.072] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.072] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.072] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.073] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.073] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.073] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.074] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.074] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.074] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.074] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.075] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.075] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.075] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.076] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.076] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.076] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.076] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.077] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.077] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.077] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.077] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.077] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.077] _event_tokenizer.cc:205[0m [31mTrackEvent packet without trusted_packet_sequence_id[0m
+[90m[779.078] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.078] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.078] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.078] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.079] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.079] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.079] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.079] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.079] _event_tokenizer.cc:205[0m [31mTrackEvent packet without trusted_packet_sequence_id[0m
+[90m[779.080] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.080] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.080] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.080] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.080] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.080] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.081] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.081] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.081] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.081] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.081] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.081] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.083] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.085]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.085]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467701561 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.085]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.085]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 3.[0m
+[90m[779.085] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.085] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.085]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.085]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467703404 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.086]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.086]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467706480 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.087]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.087]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467709175 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.087]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.087]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 13.[0m
+[90m[779.087] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.087] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.087]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.087]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467711018 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.087]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 17.[0m
+[90m[779.090] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.092]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.092]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467725221 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.092]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.092]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 22.[0m
+[90m[779.092] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.092] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.092]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.092]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467727064 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.092]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.092]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 27.[0m
+[90m[779.092] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.093] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.093] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.093]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.093]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467728875 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.093]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.093]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 32.[0m
+[90m[779.093] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.093] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.095]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.095]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467733763 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.095]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.095]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 36.[0m
+[90m[779.095] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.095] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.095]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.095]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467735606 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.095]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.095]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 41.[0m
+[90m[779.095] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.096] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.096] oto_trace_reader.cc:280[0m [31mInternedData packet without trusted_packet_sequence_id[0m
+[90m[779.097]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.097]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467739557 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.097]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.097]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 48.[0m
+[90m[779.097] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.097] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.098]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.098]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 55.[0m
+[90m[779.098] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.098] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.099]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.099]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467744455 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.099]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 59.[0m
+[90m[779.102] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.103]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.103]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467760683 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.103]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.103]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 68.[0m
+[90m[779.104] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.104] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.104] oto_trace_reader.cc:236[0m [31mincremental_state_cleared without trusted_packet_sequence_id[0m
+[90m[779.104] _event_tokenizer.cc:205[0m [31mTrackEvent packet without trusted_packet_sequence_id[0m
+[90m[779.105]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.105]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467764544 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.105]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.105]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467766714 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.105]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.105]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 74.[0m
+[90m[779.105] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.105] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.106]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.106]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=467768557 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.106]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 78.[0m
+[90m[779.108] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.108] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.108] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.108] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.108] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.109] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.109] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.109] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.109] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.109] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.115] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.115] ck_event_tracker.cc:377[0m [31mUnknown parent track 8 for track 139874667600423[0m
+[90m[779.116] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.116] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.116] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.116]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.116]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.116]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.116]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.116]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.116]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.116]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.116]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.117] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.117] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.117] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.117] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.117] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.118] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.118] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.118] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.118] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.118] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.118] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.118] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.118] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.118] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.119] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.119] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.119] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.119] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.119] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.119] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.119] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.119] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.119] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.120] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.121] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:377[0m [31mUnknown parent track 8 for track 139874667617336[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.122] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.123] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.123] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.123] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.123] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.124] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.124] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.124] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.124] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.124] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.124] ck_event_tracker.cc:377[0m [31mUnknown parent track 11274289058 for track 139874667627674[0m
+[90m[779.125] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.125] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.127] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.127] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.127] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.127] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.129] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.129] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.129] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.129] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.129] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.129] ck_event_tracker.cc:377[0m [31mUnknown parent track 11274289058 for track 139874667651334[0m
+[90m[779.129] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.129] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.130] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.131] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.131] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.131] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.131] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.133] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.133] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.133] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.133] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.134] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.134] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.134] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.134] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.134] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.134] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.134] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.136] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.137] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.137] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.138] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.138] p_profile_tracker.cc:52[0m [31mMissing packets between 0 and 0[0m
+[90m[779.138] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.138] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.138] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.139] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.139] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.139] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.139] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.147] oto_trace_reader.cc:228[0m [31mIt is strongly recommended to have flush_period_ms set when write_into_file is turned on. This trace will be loaded fully into memory before sorting which increases the likelihood of OOMs.[0m
+[90m[779.147] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.147] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.148] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.148] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.148] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.148] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.149] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.149] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.149] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.149] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.149] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.149] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.150] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.150] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.150] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.150] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.150] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.150] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.151] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.151] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.151] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.151] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.151] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.151] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.151] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.151] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.152] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.152] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.152] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.152] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.152] _event_tokenizer.cc:205[0m [31mTrackEvent packet without trusted_packet_sequence_id[0m
+[90m[779.152] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.153] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.153] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.153] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.153] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.153] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.153] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.154] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.154] _event_tokenizer.cc:205[0m [31mTrackEvent packet without trusted_packet_sequence_id[0m
+[90m[779.154] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.154] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.154] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.154] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.155] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.155] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.155] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.155] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.156] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.156] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.156] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.156] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.157] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.159]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.159]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445914937 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.159]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.159]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 3.[0m
+[90m[779.159] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.159] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.160]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.160]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445916780 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.160]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.161]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445919856 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.161]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.161]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445922551 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.161]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.161]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 13.[0m
+[90m[779.161] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.162] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.162]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.162]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445924394 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.162]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 17.[0m
+[90m[779.164] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.166]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.166]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445938597 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.166]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.166]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 22.[0m
+[90m[779.166] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.166] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.167]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.167]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445940440 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.167]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.167]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 27.[0m
+[90m[779.167] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.167] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.167] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.167]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.167]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445942251 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.167]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.167]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 32.[0m
+[90m[779.167] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.167] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.169]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.169]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445947139 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.169]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.169]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 36.[0m
+[90m[779.169] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.169] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.170]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.170]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445948982 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.170]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.170]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 41.[0m
+[90m[779.170] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.170] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.171] oto_trace_reader.cc:280[0m [31mInternedData packet without trusted_packet_sequence_id[0m
+[90m[779.171]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.171]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445952933 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.171]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.171]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 48.[0m
+[90m[779.171] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.171] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.172]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.172]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 55.[0m
+[90m[779.172] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.172] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.173]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.173]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445957831 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.173]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 59.[0m
+[90m[779.176] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.177]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.177]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445974059 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.177]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.177]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 68.[0m
+[90m[779.177] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.177] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.178] oto_trace_reader.cc:236[0m [31mincremental_state_cleared without trusted_packet_sequence_id[0m
+[90m[779.178] _event_tokenizer.cc:205[0m [31mTrackEvent packet without trusted_packet_sequence_id[0m
+[90m[779.178]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.178]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445977920 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.179]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.179]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445980090 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.179]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 8 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.179]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 74.[0m
+[90m[779.179] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.179] _event_tokenizer.cc:166[0m [31mThreadDescriptor packet without trusted_packet_sequence_id[0m
+[90m[779.180]     clock_tracker.h:207[0m [31mNot updating trace time clock from 6 to 134217729 because the old clock was already used for timestamp conversion - ClockSnapshot too late in trace?[0m
+[90m[779.180]     clock_tracker.cc:67[0m [31mClock sync error: the global clock with id=445981933 cannot use incremental encoding; this is only supported for sequence-scoped clocks.[0m
+[90m[779.180]     clock_tracker.cc:94[0m [31mClock sync error: duplicate clock domain with id=0 at snapshot 78.[0m
+[90m[779.182] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.182] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.182] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.182] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.182] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.182] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.183] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.183] k_event_tokenizer.cc:66[0m [31mTrackDescriptor packet without uuid[0m
+[90m[779.183] _event_tokenizer.cc:104[0m [31mNo pid in ProcessDescriptor for track with uuid 8[0m
+[90m[779.183] k_event_tokenizer.cc:86[0m [31mNo pid or tid in ThreadDescriptor for track with uuid 8[0m
+[90m[779.189] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.189] ck_event_tracker.cc:377[0m [31mUnknown parent track 8 for track 139874645813799[0m
+[90m[779.189] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.189] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.189] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.190]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.190]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.190]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.190]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.190]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.190]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.190]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.190]   profile_module.cc:173[0m [31mStreamingProfilePacket has less callstack IDs than timestamps![0m
+[90m[779.190] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.190] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.191] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.191] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.191] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.191] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.191] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.191] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+[90m[779.191] ck_event_tracker.cc:369[0m [31mLoop detected in parent_track_uuid hierarchy at track 8 with parent 8[0m
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50600002c3a0 at pc 0x55a095d305ed bp 0x7ffd77f2b230 sp 0x7ffd77f2b228
+[1m[0m[1m[34mWRITE of size 4 at 0x50600002c3a0 thread T0[1m[0m
+SCARINESS: 46 (4-byte-write-heap-buffer-overflow-far-from-bounds)
+    #0 0x55a095d305ec in Set /work/build/../../src/perfetto/src/trace_processor/db/column_storage.h:53:48
+    #1 0x55a095d305ec in SetAtIdx /work/build/../../src/perfetto/src/trace_processor/db/typed_column.h:139:24
+    #2 0x55a095d305ec in Set /work/build/../../src/perfetto/src/trace_processor/db/typed_column.h:87:5
+    #3 0x55a095d305ec in perfetto::trace_processor::TrackEventParser::ParseTrackDescriptor(protozero::ConstBytes) /work/build/../../src/perfetto/src/trace_processor/importers/proto/track_event_parser.cc:1542:29
+    #4 0x55a095d106ef in perfetto::trace_processor::ProtoTraceParser::ParseTracePacketImpl(long, perfetto::trace_processor::TimestampedTracePiece const&, perfetto::trace_processor::PacketSequenceStateGeneration*, perfetto::protos::pbzero::TracePacket_Decoder const&) /work/build/../../src/perfetto/src/trace_processor/importers/proto/proto_trace_parser.cc:120:17
+    #5 0x55a095d10164 in perfetto::trace_processor::ProtoTraceParser::ParseTracePacket(long, perfetto::trace_processor::TimestampedTracePiece) /work/build/../../src/perfetto/src/trace_processor/importers/proto/proto_trace_parser.cc:92:3
+    #6 0x55a095d79f3e in MaybePushEvent /work/build/../../src/perfetto/src/trace_processor/trace_sorter.cc:211:14
+    #7 0x55a095d79f3e in perfetto::trace_processor::TraceSorter::SortAndExtractEventsUntilPacket(unsigned long) /work/build/../../src/perfetto/src/trace_processor/trace_sorter.cc:149:7
+    #8 0x55a095d75c0f in ExtractEventsForced /work/build/../../src/perfetto/src/trace_processor/trace_sorter.h:176:5
+    #9 0x55a095d75c0f in perfetto::trace_processor::TraceProcessorStorageImpl::NotifyEndOfFile() /work/build/../../src/perfetto/src/trace_processor/trace_processor_storage_impl.cc:126:22
+    #10 0x55a095b3e80c in perfetto::trace_processor::FuzzTraceProcessor(unsigned char const*, unsigned long) /work/build/../../src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:33:14
+    #11 0x55a095b3e96f in LLVMFuzzerTestOneInput /work/build/../../src/perfetto/src/trace_processor/trace_parsing_fuzzer.cc:42:3
+    #12 0x55a095b00920 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x55a095aec325 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x55a095af1dbf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x55a095b1b4c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7f371c662082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #17 0x55a095a2260d in _start (/out/trace_processor_fuzzer+0x35260d) (BuildId: a01c4a470a226e80a07153e48cfc4279642f888f)
+
+DEDUP_TOKEN: Set--SetAtIdx--Set
+Address 0x50600002c3a0 is a wild pointer inside of access range of size 0x000000000004.
+SUMMARY: AddressSanitizer: heap-buffer-overflow /work/build/../../src/perfetto/src/trace_processor/db/column_storage.h:53:48 in Set
+Shadow bytes around the buggy address:
+  0x50600002c100: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50600002c180: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50600002c200: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50600002c280: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50600002c300: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+=>0x50600002c380: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50600002c400: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50600002c480: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50600002c500: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50600002c580: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x50600002c600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

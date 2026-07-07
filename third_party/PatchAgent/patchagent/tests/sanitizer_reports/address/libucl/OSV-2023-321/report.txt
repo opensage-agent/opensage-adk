@@ -1,0 +1,85 @@
+=================================================================
+==18==ERROR: AddressSanitizer: heap-use-after-free on address 0x5060000034a8 at pc 0x55fe5b4ad912 bp 0x7fff7f7d0f50 sp 0x7fff7f7d0f48
+READ of size 8 at 0x5060000034a8 thread T0
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x55fe5b4ad911 in ucl_hash_func /src/libucl/src/ucl_hash.c:105:22
+    #1 0x55fe5b4aadae in kh_resize_ucl_hash_node /src/libucl/src/ucl_hash.c:117:1
+    #2 0x55fe5b4a6e34 in kh_put_ucl_hash_node /src/libucl/src/ucl_hash.c:117:1
+    #3 0x55fe5b4a59a4 in ucl_hash_insert /src/libucl/src/ucl_hash.c:333:7
+    #4 0x55fe5b4697e0 in ucl_hash_insert_object /src/libucl/src/./ucl_internal.h:486:7
+    #5 0x55fe5b4697e0 in ucl_parser_process_object_element /src/libucl/src/ucl_parser.c:1258:15
+    #6 0x55fe5b46fe86 in ucl_parse_key /src/libucl/src/ucl_parser.c:1561:7
+    #7 0x55fe5b46fe86 in ucl_state_machine /src/libucl/src/ucl_parser.c:2525:9
+    #8 0x55fe5b46dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #9 0x55fe5b46780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #10 0x55fe5b31c330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x55fe5b3075a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x55fe5b30d03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x55fe5b3382e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f224f1b4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #15 0x55fe5b2ff78d in _start (/out/ucl_add_string_fuzzer+0x5978d)
+
+DEDUP_TOKEN: ucl_hash_func--kh_resize_ucl_hash_node--kh_put_ucl_hash_node
+0x5060000034a8 is located 8 bytes inside of 64-byte region [0x5060000034a0,0x5060000034e0)
+freed by thread T0 here:
+    #0 0x55fe5b427e66 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x55fe5b483bc9 in ucl_object_free_internal /src/libucl/src/ucl_util.c:286:3
+    #2 0x55fe5b469fd8 in ucl_parser_process_object_element /src/libucl/src/ucl_parser.c
+    #3 0x55fe5b46fe86 in ucl_parse_key /src/libucl/src/ucl_parser.c:1561:7
+    #4 0x55fe5b46fe86 in ucl_state_machine /src/libucl/src/ucl_parser.c:2525:9
+    #5 0x55fe5b46dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #6 0x55fe5b46780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #7 0x55fe5b31c330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55fe5b3075a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55fe5b30d03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55fe5b3382e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f224f1b4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--ucl_object_free_internal--ucl_parser_process_object_element
+previously allocated by thread T0 here:
+    #0 0x55fe5b4280ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55fe5b49296f in ucl_object_new_full /src/libucl/src/ucl_util.c:3014:9
+    #2 0x55fe5b46fd68 in ucl_parse_key /src/libucl/src/ucl_parser.c:1541:9
+    #3 0x55fe5b46fd68 in ucl_state_machine /src/libucl/src/ucl_parser.c:2525:9
+    #4 0x55fe5b46dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #5 0x55fe5b46780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #6 0x55fe5b31c330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55fe5b3075a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55fe5b30d03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55fe5b3382e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f224f1b4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_object_new_full--ucl_parse_key
+SUMMARY: AddressSanitizer: heap-use-after-free /src/libucl/src/ucl_hash.c:105:22 in ucl_hash_func
+Shadow bytes around the buggy address:
+  0x506000003200: 00 00 00 00 00 00 00 00 fa fa fa fa 00 00 00 00
+  0x506000003280: 00 00 00 00 fa fa fa fa fd fd fd fd fd fd fd fd
+  0x506000003300: fa fa fa fa fd fd fd fd fd fd fd fd fa fa fa fa
+  0x506000003380: fd fd fd fd fd fd fd fd fa fa fa fa 00 00 00 00
+  0x506000003400: 00 00 00 00 fa fa fa fa 00 00 00 00 00 00 00 00
+=>0x506000003480: fa fa fa fa fd[fd]fd fd fd fd fd fd fa fa fa fa
+  0x506000003500: fd fd fd fd fd fd fd fd fa fa fa fa fd fd fd fd
+  0x506000003580: fd fd fd fd fa fa fa fa fd fd fd fd fd fd fd fd
+  0x506000003600: fa fa fa fa 00 00 00 00 00 00 00 00 fa fa fa fa
+  0x506000003680: 00 00 00 00 00 00 00 00 fa fa fa fa 00 00 00 00
+  0x506000003700: 00 00 00 00 fa fa fa fa fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==18==ABORTING

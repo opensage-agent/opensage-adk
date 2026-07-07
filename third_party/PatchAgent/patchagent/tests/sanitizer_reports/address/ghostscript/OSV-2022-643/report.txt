@@ -1,0 +1,133 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x5110000457d8 at pc 0x557a305bf02b bp 0x7ffcd1ff6f10 sp 0x7ffcd1ff6f08
+READ of size 8 at 0x5110000457d8 thread T0
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x557a305bf02a in gp_fseek /src/ghostpdl/./base/gp.h:238:16
+    #1 0x557a305bf02a in gs_tifsSeekProc /src/ghostpdl/./base/gstiffio.c:97:9
+    #2 0x557a3059f2f4 in TIFFLinkDirectory /src/ghostpdl/./tiff//libtiff/tif_dirwrite.c:3097:21
+    #3 0x557a3059f2f4 in TIFFWriteDirectorySec /src/ghostpdl/./tiff//libtiff/tif_dirwrite.c:882:32
+    #4 0x557a305a3768 in TIFFWriteDirectory /src/ghostpdl/./tiff//libtiff/tif_dirwrite.c:196:9
+    #5 0x557a305a3768 in TIFFRewriteDirectory /src/ghostpdl/./tiff//libtiff/tif_dirwrite.c
+    #6 0x557a305ab221 in TIFFFlush /src/ghostpdl/./tiff//libtiff/tif_flush.c:53:13
+    #7 0x557a305632c4 in TIFFCleanup /src/ghostpdl/./tiff//libtiff/tif_close.c:51:3
+    #8 0x557a2fb3fffa in tiffsep1_prn_close /src/ghostpdl/./devices/gdevtsep.c:1299:13
+    #9 0x557a2fbbfb65 in gs_closedevice /src/ghostpdl/./base/gsdevice.c:786:16
+    #10 0x557a2f7ee1ec in devn_printer_put_params /src/ghostpdl/./base/gdevdevn.c:857:9
+    #11 0x557a2fb3d157 in tiffsep_put_params /src/ghostpdl/./devices/gdevtsep.c:1159:12
+    #12 0x557a2fbd0afd in gs_putdeviceparams /src/ghostpdl/./base/gsdparam.c:1087:12
+    #13 0x557a30036650 in zputdeviceparams /src/ghostpdl/./psi/zdevice.c:547:12
+    #14 0x557a2ff7ffb9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #15 0x557a2ff7ffb9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #16 0x557a2ff7ffb9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #17 0x557a2f721517 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #18 0x557a2f721517 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #19 0x557a2f721517 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #20 0x557a30254ac0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #21 0x557a30251490 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #22 0x557a3024e612 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #23 0x557a30254848 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #24 0x557a2f718fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #25 0x557a2f71942b in LLVMFuzzerTestOneInput /src/gs_device_tiffsep1_fuzzer.cc:24:2
+    #26 0x557a2f5cd6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #27 0x557a2f5b8945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #28 0x557a2f5be3df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #29 0x557a2f5e9682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #30 0x7f021dc07082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #31 0x557a2f5b0b2d in _start (/out/gs_device_tiffsep1_fuzzer+0x71bb2d)
+
+DEDUP_TOKEN: gp_fseek--gs_tifsSeekProc--TIFFLinkDirectory
+0x5110000457d8 is located 88 bytes inside of 232-byte region [0x511000045780,0x511000045868)
+freed by thread T0 here:
+    #0 0x557a2f6d9206 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x557a2fbc87b8 in gx_device_close_output_file /src/ghostpdl/./base/gsdevice.c:1368:5
+    #2 0x557a2fb3ff03 in tiffsep1_prn_close /src/ghostpdl/./devices/gdevtsep.c:1290:20
+    #3 0x557a2fbbfb65 in gs_closedevice /src/ghostpdl/./base/gsdevice.c:786:16
+    #4 0x557a2f7ee1ec in devn_printer_put_params /src/ghostpdl/./base/gdevdevn.c:857:9
+    #5 0x557a2fb3d157 in tiffsep_put_params /src/ghostpdl/./devices/gdevtsep.c:1159:12
+    #6 0x557a2fbd0afd in gs_putdeviceparams /src/ghostpdl/./base/gsdparam.c:1087:12
+    #7 0x557a30036650 in zputdeviceparams /src/ghostpdl/./psi/zdevice.c:547:12
+    #8 0x557a2ff7ffb9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #9 0x557a2ff7ffb9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #10 0x557a2ff7ffb9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #11 0x557a2f721517 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #12 0x557a2f721517 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #13 0x557a2f721517 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #14 0x557a30254ac0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #15 0x557a30251490 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #16 0x557a3024e612 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #17 0x557a30254848 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #18 0x557a2f718fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #19 0x557a2f71942b in LLVMFuzzerTestOneInput /src/gs_device_tiffsep1_fuzzer.cc:24:2
+    #20 0x557a2f5cd6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #21 0x557a2f5b8945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #22 0x557a2f5be3df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #23 0x557a2f5e9682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #24 0x7f021dc07082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--gx_device_close_output_file--tiffsep1_prn_close
+previously allocated by thread T0 here:
+    #0 0x557a2f6d949f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x557a2fc00330 in gs_heap_alloc_bytes /src/ghostpdl/./base/gsmalloc.c:192:34
+    #2 0x557a2fb9b343 in gp_file_alloc /src/ghostpdl/./base/gpmisc.c:438:32
+    #3 0x557a2fb9b343 in gp_file_FILE_alloc /src/ghostpdl/./base/gpmisc.c:676:12
+    #4 0x557a2fc0e838 in fs_file_open_file /src/ghostpdl/./base/gslibctx.c:174:13
+    #5 0x557a2fb9ba54 in gp_fopen /src/ghostpdl/./base/gpmisc.c:731:20
+    #6 0x557a2fbf62e5 in iodev_os_gp_fopen /src/ghostpdl/./base/gsiodev.c:289:14
+    #7 0x557a2fbc82a8 in gx_device_open_output_file /src/ghostpdl/./base/gsdevice.c:1327:16
+    #8 0x557a2fb3978b in tiffsep1_print_page /src/ghostpdl/./devices/gdevtsep.c:2518:20
+    #9 0x557a2f8067ea in gx_default_print_page_copies /src/ghostpdl/./base/gdevprn.c:1159:12
+    #10 0x557a2f8059c6 in gdev_prn_output_page_aux /src/ghostpdl/./base/gdevprn.c:1061:27
+    #11 0x557a2fbc05aa in gs_output_page /src/ghostpdl/./base/gsdevice.c:207:17
+    #12 0x557a300361d7 in zoutputpage /src/ghostpdl/./psi/zdevice.c:493:12
+    #13 0x557a2ff7cf91 in interp /src/ghostpdl/./psi/interp.c:1351:28
+    #14 0x557a2ff7cf91 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #15 0x557a2ff7cf91 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #16 0x557a2f721517 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #17 0x557a2f721517 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #18 0x557a2f721517 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #19 0x557a30254ac0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #20 0x557a30251490 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #21 0x557a3024e612 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #22 0x557a30254848 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #23 0x557a2f718fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #24 0x557a2f71942b in LLVMFuzzerTestOneInput /src/gs_device_tiffsep1_fuzzer.cc:24:2
+    #25 0x557a2f5cd6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #26 0x557a2f5b8945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #27 0x557a2f5be3df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #28 0x557a2f5e9682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #29 0x7f021dc07082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--gs_heap_alloc_bytes--gp_file_alloc
+SUMMARY: AddressSanitizer: heap-use-after-free /src/ghostpdl/./base/gp.h:238:16 in gp_fseek
+Shadow bytes around the buggy address:
+  0x511000045500: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x511000045580: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x511000045600: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x511000045680: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x511000045700: fd fd fd fd fd fa fa fa fa fa fa fa fa fa fa fa
+=>0x511000045780: fd fd fd fd fd fd fd fd fd fd fd[fd]fd fd fd fd
+  0x511000045800: fd fd fd fd fd fd fd fd fd fd fd fd fd fa fa fa
+  0x511000045880: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x511000045900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x511000045980: 00 00 00 00 00 fa fa fa fa fa fa fa fa fa fa fa
+  0x511000045a00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

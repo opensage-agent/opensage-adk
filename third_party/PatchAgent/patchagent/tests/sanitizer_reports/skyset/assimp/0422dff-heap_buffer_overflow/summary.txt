@@ -1,0 +1,23 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x50e000000538 thread T0
+    - Assimp::ScenePreprocessor::ProcessMesh(aiMesh*) /root/code/Common/ScenePreprocessor.cpp:149:26
+    - Assimp::ScenePreprocessor::ProcessScene() /root/code/Common/ScenePreprocessor.cpp:58:9
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:752:17
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:512:5
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:53:34
+
+0x50e000000538 is located 0 bytes after 152-byte region [0x50e0000004a0,0x50e000000538)
+allocated by thread T0 here:
+    - Assimp::BaseImporter::ReadFile(Assimp::Importer*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, Assimp::IOSystem*) /root/code/Common/BaseImporter.cpp:112:9
+    - Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:717:30
+    - Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:512:5
+    - LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:53:34
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,44 @@
+ALARM: working on the last Unit for 25 seconds
+       and the timeout value is 25 (use -timeout=N to change)
+==14== ERROR: libFuzzer: timeout after 25 seconds
+    #0 0x55f602403e91 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/asan/asan_stack.cpp:87:3
+    #1 0x55f602308e28 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x55f6022ec137 in fuzzer::Fuzzer::AlarmCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:304:5
+    #3 0x7f3fd835f41f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 9a65bb469e45a1c6fbcffae5b82a2fd7a69eb479)
+    #4 0x55f6025b11bd in insert_free /src/ghostpdl/./base/gsmchunk.c:670
+    #5 0x55f6025b0d15 in chunk_obj_alloc /src/ghostpdl/./base/gsmchunk.c:947:17
+    #6 0x55f602f0deb2 in cmap_endfbrange_func /src/ghostpdl/./pdf/pdf_cmap.c:368:50
+    #7 0x55f602eef662 in pdfi_pscript_interpret /src/ghostpdl/./pdf/pdf_fontps.c:362:36
+    #8 0x55f602f09182 in pdfi_read_cmap /src/ghostpdl/./pdf/pdf_cmap.c:865:12
+    #9 0x55f602ecc808 in pdfi_read_type0_font /src/ghostpdl/./pdf/pdf_font0.c:273:20
+    #10 0x55f602ebe967 in pdfi_load_font /src/ghostpdl/./pdf/pdf_font.c:700:20
+    #11 0x55f602ec3de0 in pdfi_load_dict_font /src/ghostpdl/./pdf/pdf_font.c:872:20
+    #12 0x55f602ec6dfa in pdfi_load_resource_font /src/ghostpdl/./pdf/pdf_font.c:914:12
+    #13 0x55f602ec6dfa in pdfi_Tf /src/ghostpdl/./pdf/pdf_font.c:1273:12
+    #14 0x55f602e48f0f in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1640:24
+    #15 0x55f602e47496 in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2101:24
+    #16 0x55f602e9b1b5 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:127:20
+    #17 0x55f602e9b1b5 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:152:12
+    #18 0x55f602e9b1b5 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:895:12
+    #19 0x55f602e0c43a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:1074:24
+    #20 0x55f602c9f3f9 in interp /src/ghostpdl/./psi/interp.c:1725:40
+    #21 0x55f602c9f3f9 in gs_call_interp /src/ghostpdl/./psi/interp.c:522:12
+    #22 0x55f602c9f3f9 in gs_interpret /src/ghostpdl/./psi/interp.c:479:12
+    #23 0x55f6024413b7 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #24 0x55f6024413b7 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #25 0x55f6024413b7 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #26 0x55f602f71ef0 in run_string /src/ghostpdl/./psi/imainarg.c:1169:12
+    #27 0x55f602f6e8c0 in swproc /src/ghostpdl/./psi/imainarg.c:367:20
+    #28 0x55f602f6ba42 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #29 0x55f602f71c78 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:289:16
+    #30 0x55f602438fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #31 0x55f602439335 in LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    #32 0x55f6022ed6d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #33 0x55f6022d8945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #34 0x55f6022de3df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #35 0x55f602309682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #36 0x7f3fd7faa082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #37 0x55f6022d0b2d in _start (/out/gs_device_pdfwrite_fuzzer+0x719b2d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::AlarmCallback()
+SUMMARY: libFuzzer: timeout

@@ -1,0 +1,76 @@
+=================================================================
+==360281==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000000020 at pc 0x55daf967aa45 bp 0x7fff13b0e0f0 sp 0x7fff13b0e0e8
+WRITE of size 4 at 0x502000000020 thread T0
+    #0 0x55daf967aa44 in NewCodePage /root/source/m3_code.c:27:29
+    #1 0x55daf96731de in AcquireCodePageWithCapacity /root/source/m3_env.c:993:20
+    #2 0x55daf96bbbf5 in EnsureCodePageNumLines /root/source/m3_emit.c:21:28
+    #3 0x55daf9683c4f in Compile_BranchTable /root/source/m3_compile.c:1298:1
+    #4 0x55daf96b493c in Compile_BlockStatements /root/source/m3_compile.c:2220:1
+    #5 0x55daf96876e6 in CompileBlock /root/source/m3_compile.c:2290:1
+    #6 0x55daf966ba7a in EvaluateExpression /root/source/m3_env.c:302:18
+    #7 0x55daf966d530 in InitElements /root/source/m3_env.c:495:1
+    #8 0x55daf966e1a4 in m3_LoadModule /root/source/m3_env.c:565:1
+    #9 0x55daf966873a in LLVMFuzzerTestOneInput /root/platforms/app_fuzz/fuzzer.c:26:26
+    #10 0x55daf964de14 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/fuzzer+0x2ae14) (BuildId: cb7ca1d3117d9cf19070fecd05c0f1d68e77b63a)
+    #11 0x55daf9636f46 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/fuzzer+0x13f46) (BuildId: cb7ca1d3117d9cf19070fecd05c0f1d68e77b63a)
+    #12 0x55daf963c9fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/fuzzer+0x199fa) (BuildId: cb7ca1d3117d9cf19070fecd05c0f1d68e77b63a)
+    #13 0x55daf9667256 in main (/root/fuzzer+0x44256) (BuildId: cb7ca1d3117d9cf19070fecd05c0f1d68e77b63a)
+    #14 0x7feb3a8721c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x7feb3a87228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x55daf9631b14 in _start (/root/fuzzer+0xeb14) (BuildId: cb7ca1d3117d9cf19070fecd05c0f1d68e77b63a)
+
+0x502000000020 is located 15 bytes after 1-byte region [0x502000000010,0x502000000011)
+allocated by thread T0 here:
+    #0 0x7feb3ac6898d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55daf96688c9 in m3_Malloc /root/source/m3_core.c:110:18
+    #2 0x55daf967a9e2 in NewCodePage /root/source/m3_code.c:23:25
+    #3 0x55daf96731de in AcquireCodePageWithCapacity /root/source/m3_env.c:993:20
+    #4 0x55daf96bbbf5 in EnsureCodePageNumLines /root/source/m3_emit.c:21:28
+    #5 0x55daf9683c4f in Compile_BranchTable /root/source/m3_compile.c:1298:1
+    #6 0x55daf96b493c in Compile_BlockStatements /root/source/m3_compile.c:2220:1
+    #7 0x55daf96876e6 in CompileBlock /root/source/m3_compile.c:2290:1
+    #8 0x55daf966ba7a in EvaluateExpression /root/source/m3_env.c:302:18
+    #9 0x55daf966d530 in InitElements /root/source/m3_env.c:495:1
+    #10 0x55daf966e1a4 in m3_LoadModule /root/source/m3_env.c:565:1
+    #11 0x55daf966873a in LLVMFuzzerTestOneInput /root/platforms/app_fuzz/fuzzer.c:26:26
+    #12 0x55daf964de14 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/fuzzer+0x2ae14) (BuildId: cb7ca1d3117d9cf19070fecd05c0f1d68e77b63a)
+    #13 0x55daf9636f46 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/fuzzer+0x13f46) (BuildId: cb7ca1d3117d9cf19070fecd05c0f1d68e77b63a)
+    #14 0x55daf963c9fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/fuzzer+0x199fa) (BuildId: cb7ca1d3117d9cf19070fecd05c0f1d68e77b63a)
+    #15 0x55daf9667256 in main (/root/fuzzer+0x44256) (BuildId: cb7ca1d3117d9cf19070fecd05c0f1d68e77b63a)
+    #16 0x7feb3a8721c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7feb3a87228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x55daf9631b14 in _start (/root/fuzzer+0xeb14) (BuildId: cb7ca1d3117d9cf19070fecd05c0f1d68e77b63a)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/source/m3_code.c:27:29 in NewCodePage
+Shadow bytes around the buggy address:
+  0x501ffffffd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x501fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x502000000000: fa fa 01 fa[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360281==ABORTING

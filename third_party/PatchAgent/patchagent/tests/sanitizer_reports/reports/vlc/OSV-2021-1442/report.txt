@@ -1,0 +1,47 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/vlc:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/vlc/OSV-2021-1442/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce vlc-demux-libfuzzer -runs=100.
++ FUZZER=vlc-demux-libfuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer vlc-demux-libfuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/vlc-demux-libfuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3306152489
+INFO: Loaded 1 modules   (53407 inline 8-bit counters): 53407 [0x55b3fbfc9538, 0x55b3fbfd65d7), 
+INFO: Loaded 1 PC tables (53407 PCs): 53407 [0x55b3fbfd65d8,0x55b3fc0a6fc8), 
+/out/vlc-demux-libfuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+
+=================================================================
+[1m[31m==14==ERROR: LeakSanitizer: detected memory leaks
+[1m[0m
+[1m[34mDirect leak of 61288 byte(s) in 1 object(s) allocated from:
+[1m[0m    #0 0x55b3fba1269f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55b3fbba437a in Open /src/vlc/modules/demux/ty.c:323:13
+    #2 0x55b3fbcfc6da in demux_Probe /src/vlc/src/input/demux.c:111:15
+    #3 0x55b3fbcd3ee1 in vlc_module_load /src/vlc/src/modules/modules.c:243:19
+    #4 0x55b3fbcfc164 in demux_NewAdvanced /src/vlc/src/input/demux.c:192:20
+    #5 0x55b3fbcfb523 in demux_New /src/vlc/src/input/demux.c:76:12
+    #6 0x55b3fba4fde5 in demux_process_stream /src/vlc/test/src/input/demux-run.c:297:22
+    #7 0x55b3fba4fa73 in LLVMFuzzerTestOneInput /src/vlc/test/vlc-demux-libfuzzer.c:54:5
+    #8 0x55b3fb9068d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55b3fb8f1b45 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55b3fb8f75df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55b3fb922882 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f68eedf5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--Open--demux_Probe
+SUMMARY: AddressSanitizer: 61288 byte(s) leaked in 1 allocation(s).
+
+INFO: a leak has been found in the initial corpus.
+
+INFO: to ignore leaks on libFuzzer side use -detect_leaks=0.
+

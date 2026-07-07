@@ -1,0 +1,62 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mruby:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/mruby/OSV-2022-665/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce mruby_fuzzer -runs=100.
++ FUZZER=mruby_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer mruby_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/mruby_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=mruby.dict -only_ascii=1 < /dev/null
+Dictionary: 102 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 906392869
+INFO: Loaded 1 modules   (22718 inline 8-bit counters): 22718 [0x55f5a0f54768, 0x55f5a0f5a026), 
+INFO: Loaded 1 PC tables (22718 PCs): 22718 [0x55f5a0f5a028,0x55f5a0fb2c08), 
+/out/mruby_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+[1m[31m==18==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x55f5a0d2544e in udiv /src/mruby/mrbgems/mruby-bigint/core/bigint.c:454:9
+    #1 0x55f5a0d0cff1 in mpz_mdiv /src/mruby/mrbgems/mruby-bigint/core/bigint.c:495:3
+    #2 0x55f5a0d0c620 in mrb_bint_div /src/mruby/mrbgems/mruby-bigint/core/bigint.c:1181:3
+    #3 0x55f5a0ceb399 in int_div /src/mruby/src/numeric.c:158:12
+    #4 0x55f5a0c627c4 in mrb_vm_exec /src/mruby/src/vm.c
+    #5 0x55f5a0c40546 in mrb_vm_run /src/mruby/src/vm.c:1208:12
+    #6 0x55f5a0d465c2 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6889:7
+    #7 0x55f5a0c0e62e in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #8 0x55f5a0b04580 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55f5a0aef7f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55f5a0af528f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55f5a0b20532 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7faf06c59082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x55f5a0ae79dd in _start (/out/mruby_fuzzer+0xe89dd)
+
+DEDUP_TOKEN: udiv--mpz_mdiv--mrb_bint_div
+  [1m[35mUninitialized value was created by a heap deallocation[1m[0m
+    #0 0x55f5a0ba8070 in free /src/llvm-project/compiler-rt/lib/msan/msan_interceptors.cpp:218:3
+    #1 0x55f5a0c0e863 in mrb_default_allocf /src/mruby/src/state.c:65:5
+    #2 0x55f5a0d04671 in mpz_mul_int /src/mruby/mrbgems/mruby-bigint/core/bigint.c:335:3
+    #3 0x55f5a0d04671 in mpz_init_set_str /src/mruby/mrbgems/mruby-bigint/core/bigint.c:648:5
+    #4 0x55f5a0d04671 in mrb_bint_new_str /src/mruby/mrbgems/mruby-bigint/core/bigint.c:1006:3
+    #5 0x55f5a0c58ed9 in mrb_vm_exec /src/mruby/src/vm.c:1360:21
+    #6 0x55f5a0c40546 in mrb_vm_run /src/mruby/src/vm.c:1208:12
+    #7 0x55f5a0d465c2 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6889:7
+    #8 0x55f5a0c0e62e in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #9 0x55f5a0b04580 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55f5a0aef7f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55f5a0af528f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55f5a0b20532 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7faf06c59082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_free--mrb_default_allocf--mpz_mul_int
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/mruby/mrbgems/mruby-bigint/core/bigint.c:454:9 in udiv
+Unique heap origins: 2408
+Stack depot allocated bytes: 9764880
+Unique origin histories: 2230
+History depot allocated bytes: 196608
+Exiting

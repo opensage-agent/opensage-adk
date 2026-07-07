@@ -1,0 +1,90 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5020000dced0 thread T0
+    - dissect_vjc_uncomp /src/wireshark/epan/dissectors/packet-vj-comp.c:305:25
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - dissector_try_uint /src/wireshark/epan/packet.c:1437:9
+    - dissect_ppp_common /src/wireshark/epan/dissectors/packet-ppp.c:4786:10
+    - dissect_ppp_raw_hdlc /src/wireshark/epan/dissectors/packet-ppp.c:6002:17
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - dissect_gre /src/wireshark/epan/dissectors/packet-gre.c:491:14
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - ip_try_dissect /src/wireshark/epan/dissectors/packet-ip.c:1817:7
+    - ipv6_dissect_next /src/wireshark/epan/dissectors/packet-ipv6.c:2609:9
+    - dissect_ipv6 /src/wireshark/epan/dissectors/packet-ipv6.c:2557:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_all_postdissectors /src/wireshark/epan/packet.c:3608:3
+    - dissect_frame /src/wireshark/epan/dissectors/packet-frame.c:901:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - dissect_record /src/wireshark/epan/packet.c:594:3
+    - epan_dissect_run /src/wireshark/epan/epan.c:594:2
+    - LLVMFuzzerTestOneInput /src/wireshark/fuzz/fuzzshark.c:381:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5020000dced0 is located 48 bytes after 16-byte region [0x5020000dce90,0x5020000dcea0)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - tvb_memdup /src/wireshark/epan/tvbuff.c:905:10
+    - dissect_vjc_uncomp /src/wireshark/epan/dissectors/packet-vj-comp.c:296:49
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - dissector_try_uint /src/wireshark/epan/packet.c:1437:9
+    - dissect_ppp_common /src/wireshark/epan/dissectors/packet-ppp.c:4786:10
+    - dissect_ppp_raw_hdlc /src/wireshark/epan/dissectors/packet-ppp.c:6002:17
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - dissect_gre /src/wireshark/epan/dissectors/packet-gre.c:491:14
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1413:8
+    - ip_try_dissect /src/wireshark/epan/dissectors/packet-ip.c:1817:7
+    - ipv6_dissect_next /src/wireshark/epan/dissectors/packet-ipv6.c:2609:9
+    - dissect_ipv6 /src/wireshark/epan/dissectors/packet-ipv6.c:2557:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_all_postdissectors /src/wireshark/epan/packet.c:3608:3
+    - dissect_frame /src/wireshark/epan/dissectors/packet-frame.c:901:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:720:9
+    - call_dissector_work /src/wireshark/epan/packet.c:813:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3233:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3246:8
+    - dissect_record /src/wireshark/epan/packet.c:594:3
+    - epan_dissect_run /src/wireshark/epan/epan.c:594:2
+    - LLVMFuzzerTestOneInput /src/wireshark/fuzz/fuzzshark.c:381:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

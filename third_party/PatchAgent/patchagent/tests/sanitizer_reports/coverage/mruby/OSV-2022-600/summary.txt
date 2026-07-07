@@ -1,0 +1,22 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - digits /src/mruby/mrbgems/mruby-bigint/core/bigint.c:93:35
+    - mpz_sizeinbase /src/mruby/mrbgems/mruby-bigint/core/bigint.c:617:17
+    - mrb_bint_to_s /src/mruby/mrbgems/mruby-bigint/core/bigint.c:1366:17
+    - int_to_s /src/mruby/src/numeric.c:1817:10
+    - mrb_vm_exec /src/mruby/src/vm.c:0:0
+    - mrb_vm_run /src/mruby/src/vm.c:1208:12
+    - mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6889:7
+    - LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

@@ -1,0 +1,103 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libzmq:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libzmq/OSV-2020-910/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce test_connect_ws_fuzzer -runs=100.
++ FUZZER=test_connect_ws_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer test_connect_ws_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/test_connect_ws_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=test_connect_ws_fuzzer.dict < /dev/null
+Dictionary: 44 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2518093230
+INFO: Loaded 1 modules   (19159 inline 8-bit counters): 19159 [0x55cc33addee0, 0x55cc33ae29b7), 
+INFO: Loaded 1 PC tables (19159 PCs): 19159 [0x55cc33ae29b8,0x55cc33b2d728), 
+/out/test_connect_ws_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x52b000000660 at pc 0x55cc338e048a bp 0x7f72b9db6b70 sp 0x7f72b9db6b68
+[1m[0m[1m[34mREAD of size 8 at 0x52b000000660 thread T3 (ZMQbg/IO/0)[1m[0m
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x55cc338e0489 in zmq::stream_engine_base_t::out_event() /src/libzmq/src/stream_engine_base.cpp:360:13
+    #1 0x55cc33802c7c in zmq::epoll_t::loop() /src/libzmq/src/epoll.cpp:202:29
+    #2 0x55cc33854a11 in thread_routine(void*) /src/libzmq/src/thread.cpp:250:5
+    #3 0x55cc33790c68 in asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+    #4 0x7f72beaf1608 in start_thread (/lib/x86_64-linux-gnu/libpthread.so.0+0x8608) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #5 0x7f72be888352 in __clone (/lib/x86_64-linux-gnu/libc.so.6+0x11f352) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: zmq::stream_engine_base_t::out_event()--zmq::epoll_t::loop()--thread_routine(void*)
+[1m[32m0x52b000000660 is located 1120 bytes inside of 25384-byte region [0x52b000000200,0x52b000006528)
+[1m[0m[1m[35mfreed by thread T3 (ZMQbg/IO/0) here:[1m[0m
+    #0 0x55cc337d0d5d in operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    #1 0x55cc338e4ccd in zmq::stream_engine_base_t::error(zmq::i_engine::error_reason_t) /src/libzmq/src/stream_engine_base.cpp:715:5
+    #2 0x55cc33903b8d in zmq::ws_engine_t::close_connection_after_close(zmq::msg_t*) /src/libzmq/src/ws_engine.cpp:975:5
+    #3 0x55cc338dfd04 in zmq::stream_engine_base_t::out_event() /src/libzmq/src/stream_engine_base.cpp:347:17
+    #4 0x55cc33802c7c in zmq::epoll_t::loop() /src/libzmq/src/epoll.cpp:202:29
+    #5 0x55cc33854a11 in thread_routine(void*) /src/libzmq/src/thread.cpp:250:5
+    #6 0x55cc33790c68 in asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+
+DEDUP_TOKEN: operator delete(void*)--zmq::stream_engine_base_t::error(zmq::i_engine::error_reason_t)--zmq::ws_engine_t::close_connection_after_close(zmq::msg_t*)
+[1m[35mpreviously allocated by thread T3 (ZMQbg/IO/0) here:[1m[0m
+    #0 0x55cc337d071d in operator new(unsigned long, std::nothrow_t const&) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:92:3
+    #1 0x55cc338fd5a5 in zmq::ws_connecter_t::create_engine(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&) /src/libzmq/src/ws_connecter.cpp:294:18
+    #2 0x55cc338fc162 in zmq::ws_connecter_t::out_event() /src/libzmq/src/ws_connecter.cpp:130:9
+    #3 0x55cc33802c7c in zmq::epoll_t::loop() /src/libzmq/src/epoll.cpp:202:29
+    #4 0x55cc33854a11 in thread_routine(void*) /src/libzmq/src/thread.cpp:250:5
+    #5 0x55cc33790c68 in asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+
+DEDUP_TOKEN: operator new(unsigned long, std::nothrow_t const&)--zmq::ws_connecter_t::create_engine(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&)--zmq::ws_connecter_t::out_event()
+Thread T3 (ZMQbg/IO/0) created by T0 here:
+    #0 0x55cc33778cb1 in pthread_create /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:250:3
+    #1 0x55cc3385477f in zmq::thread_t::start(void (*)(void*), void*, char const*) /src/libzmq/src/thread.cpp:261:14
+    #2 0x55cc337f096e in zmq::thread_ctx_t::start_thread(zmq::thread_t&, void (*)(void*), void*, char const*) const /src/libzmq/src/ctx.cpp:561:13
+    #3 0x55cc3380427f in zmq::io_thread_t::start() /src/libzmq/src/io_thread.cpp:63:14
+    #4 0x55cc337ef720 in zmq::ctx_t::start() /src/libzmq/src/ctx.cpp:456:20
+    #5 0x55cc337eb511 in zmq::ctx_t::create_socket(int) /src/libzmq/src/ctx.cpp:490:14
+    #6 0x55cc337d6d5a in test_context_socket(int) /src/libzmq/tests/testutil_unity.cpp:229:26
+    #7 0x55cc337d297c in LLVMFuzzerTestOneInput /src/libzmq/tests/test_connect_ws_fuzzer.cpp:46:20
+    #8 0x55cc33687360 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x55cc336725d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x55cc3367806f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x55cc336a3312 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f72be78d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: ___interceptor_pthread_create--zmq::thread_t::start(void (*)(void*), void*, char const*)--zmq::thread_ctx_t::start_thread(zmq::thread_t&, void (*)(void*), void*, char const*) const
+SUMMARY: AddressSanitizer: heap-use-after-free /src/libzmq/src/stream_engine_base.cpp:360:13 in zmq::stream_engine_base_t::out_event()
+Shadow bytes around the buggy address:
+  0x52b000000380: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52b000000400: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52b000000480: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52b000000500: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52b000000580: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+=>0x52b000000600: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m[[1m[35mfd[1m[0m][1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52b000000680: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52b000000700: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52b000000780: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52b000000800: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+  0x52b000000880: [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m [1m[35mfd[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

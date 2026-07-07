@@ -1,0 +1,87 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 4 at 0x5100000004e4 thread T0
+    - Q_IsTypeOn /root/src/bifs/unquantize.c:185:12
+    - gf_bifs_dec_unquant_field /root/src/bifs/unquantize.c:397:7
+    - gf_bifs_dec_sf_field /root/src/bifs/field_decode.c:84:7
+    - BD_DecMFFieldVec /root/src/bifs/field_decode.c:426:8
+    - gf_bifs_dec_field /root/src/bifs/field_decode.c:558:9
+    - gf_bifs_dec_node_list /root/src/bifs/field_decode.c:618:7
+    - gf_bifs_dec_node /root/src/bifs/field_decode.c:920:7
+    - gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1143:12
+    - BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    - BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    - BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    - gf_bifs_decode_command_list /root/src/bifs/memory_decoder.c:1019:6
+    - gf_sm_load_run_isom /root/src/scene_manager/loader_isom.c:303:10
+    - gf_sm_load_run /root/src/scene_manager/scene_manager.c:719:28
+    - dump_isom_scene /root/applications/mp4box/filedump.c:203:14
+    - mp4boxMain /root/applications/mp4box/main.c:6146:7
+    - main /root/applications/mp4box/main.c:6601:1
+
+0x5100000004e4 is located 164 bytes inside of 192-byte region [0x510000000440,0x510000000500)
+freed by thread T0 here:
+    - gf_free /root/src/utils/alloc.c:165:2
+    - gf_node_free /root/src/scenegraph/base_scenegraph.c:1620:2
+    - QuantizationParameter_Del /root/src/scenegraph/mpeg4_nodes.c:11981:2
+    - gf_sg_mpeg4_node_del /root/src/scenegraph/mpeg4_nodes.c:37745:3
+    - gf_node_del /root/src/scenegraph/base_scenegraph.c:1902:59
+    - gf_node_unregister /root/src/scenegraph/base_scenegraph.c:761:3
+    - gf_node_unregister_children /root/src/scenegraph/base_scenegraph.c:1369:3
+    - gf_sg_vrml_parent_destroy /root/src/scenegraph/vrml_tools.c:161:2
+    - TemporalTransform_Del /root/src/scenegraph/mpeg4_nodes.c:22212:2
+    - gf_sg_mpeg4_node_del /root/src/scenegraph/mpeg4_nodes.c:37853:3
+    - gf_node_del /root/src/scenegraph/base_scenegraph.c:1902:59
+    - gf_node_unregister /root/src/scenegraph/base_scenegraph.c:761:3
+    - gf_bifs_dec_node /root/src/bifs/field_decode.c:930:3
+    - gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1143:12
+    - BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    - BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    - BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    - gf_bifs_flush_command_list /root/src/bifs/memory_decoder.c:951:9
+    - gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1162:5
+    - gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1132:8
+    - BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    - BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    - BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    - gf_bifs_decode_command_list /root/src/bifs/memory_decoder.c:1019:6
+    - gf_sm_load_run_isom /root/src/scene_manager/loader_isom.c:303:10
+    - gf_sm_load_run /root/src/scene_manager/scene_manager.c:719:28
+    - dump_isom_scene /root/applications/mp4box/filedump.c:203:14
+    - mp4boxMain /root/applications/mp4box/main.c:6146:7
+    - main /root/applications/mp4box/main.c:6601:1
+
+previously allocated by thread T0 here:
+    - gf_malloc /root/src/utils/alloc.c:150:9
+    - QuantizationParameter_Create /root/src/scenegraph/mpeg4_nodes.c:12496:2
+    - gf_sg_mpeg4_node_new /root/src/scenegraph/mpeg4_nodes.c:36873:10
+    - gf_node_new /root/src/scenegraph/base_scenegraph.c:1994:51
+    - gf_bifs_dec_node /root/src/bifs/field_decode.c:892:15
+    - BD_DecMFFieldVec /root/src/bifs/field_decode.c:432:24
+    - gf_bifs_dec_field /root/src/bifs/field_decode.c:558:9
+    - gf_bifs_dec_node_list /root/src/bifs/field_decode.c:618:7
+    - gf_bifs_dec_node /root/src/bifs/field_decode.c:920:7
+    - gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1143:12
+    - BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    - BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    - BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    - gf_bifs_flush_command_list /root/src/bifs/memory_decoder.c:951:9
+    - gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1162:5
+    - gf_bifs_dec_proto_list /root/src/bifs/com_dec.c:1132:8
+    - BD_DecSceneReplace /root/src/bifs/com_dec.c:1351:6
+    - BM_SceneReplace /root/src/bifs/memory_decoder.c:860:21
+    - BM_ParseCommand /root/src/bifs/memory_decoder.c:910:8
+    - gf_bifs_decode_command_list /root/src/bifs/memory_decoder.c:1019:6
+    - gf_sm_load_run_isom /root/src/scene_manager/loader_isom.c:303:10
+    - gf_sm_load_run /root/src/scene_manager/scene_manager.c:719:28
+    - dump_isom_scene /root/applications/mp4box/filedump.c:203:14
+    - mp4boxMain /root/applications/mp4box/main.c:6146:7
+    - main /root/applications/mp4box/main.c:6601:1
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

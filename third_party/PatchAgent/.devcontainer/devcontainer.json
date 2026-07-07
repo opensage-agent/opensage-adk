@@ -1,0 +1,32 @@
+{
+    "name": "patchagent",
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "context": ".."
+    },
+    "runArgs": [
+        "--privileged",
+        "--network=host"
+    ],
+    "postCreateCommand": "git config --global --add safe.directory '*' && pre-commit install",
+    "mounts": [
+        "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind",
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+        "source=/tmp,target=/tmp,type=bind"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "llvm-vs-code-extensions.vscode-clangd",
+                "ms-python.python",
+                "ms-python.black-formatter",
+                "github.copilot",
+                "ms-azuretools.vscode-docker",
+                "iliazeus.vscode-ansi",
+                "GrapeCity.gc-excelviewer",
+                "ms-python.isort",
+                "tamasfe.even-better-toml"
+            ]
+        }
+    }
+}

@@ -1,0 +1,31 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 1 at 0x7f4df6fccf94 thread T0
+    - set_pitch /src/espeak-ng/src/libespeak-ng/intonation.c:395:14
+    - SetPitchGradient /src/espeak-ng/src/libespeak-ng/intonation.c:650:4
+    - calc_pitches2 /src/espeak-ng/src/libespeak-ng/intonation.c:678:2
+    - calc_pitches /src/espeak-ng/src/libespeak-ng/intonation.c:723:10
+    - CalcPitches /src/espeak-ng/src/libespeak-ng/intonation.c:1050:5
+    - SpeakNextClause /src/espeak-ng/src/libespeak-ng/synthesize.c:1571:2
+    - Synthesize /src/espeak-ng/src/libespeak-ng/speech.c:492:9
+    - espeak_Synth /src/espeak-ng/src/libespeak-ng/espeak_api.c:90:32
+    - LLVMFuzzerTestOneInput /src/espeak-ng/tests/ssml-fuzzer.c:67:8
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f4df6fccf94 is located in stack of thread T0 at offset 6036 in frame
+    - CalcPitches /src/espeak-ng/src/libespeak-ng/intonation.c:927:0
+
+  This frame has 1 object(s):
+    [32, 6032) 'syllable_tab' (line 948) <== Memory access at offset 6036 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

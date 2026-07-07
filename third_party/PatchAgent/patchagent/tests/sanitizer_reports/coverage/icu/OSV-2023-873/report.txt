@@ -1,0 +1,38 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/icu:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce calendar_fuzzer -runs=100.
++ FUZZER=calendar_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer calendar_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/calendar_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2015959817
+INFO: Loaded 1 modules   (91 inline 8-bit counters): 91 [0x55b7a27f3d38, 0x55b7a27f3d93), 
+INFO: Loaded 1 PC tables (91 PCs): 91 [0x55b7a27f3d98,0x55b7a27f4348), 
+/out/calendar_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+set(-1, 538976288)
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x55bba3653798 (pc 0x55b7a05abad8 bp 0x7ffc3e2132c0 sp 0x7ffc3e213280 T14)
+[1m[0m==14==The signal is caused by a WRITE memory access.
+    #0 0x55b7a05abad8 in icu_74::Calendar::set(UCalendarDateFields, int) /src/icu/icu4c/source/i18n/calendar.cpp:1208:24
+    #1 0x55b7a05a832a in LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/calendar_fuzzer.cpp:108:22
+    #2 0x55b7a0509bf0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #3 0x55b7a04f4e65 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #4 0x55b7a04fa8ff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #5 0x55b7a0525ba2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #6 0x7fe6fd946082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x55b7a04ed04d in _start (/out/calendar_fuzzer+0x5d04d)
+
+DEDUP_TOKEN: icu_74::Calendar::set(UCalendarDateFields, int)--LLVMFuzzerTestOneInput--fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long)
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/icu/icu4c/source/i18n/calendar.cpp:1208:24 in icu_74::Calendar::set(UCalendarDateFields, int)
+==14==ABORTING

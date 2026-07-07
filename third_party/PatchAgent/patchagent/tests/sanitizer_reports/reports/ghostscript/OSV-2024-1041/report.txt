@@ -1,0 +1,63 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/ghostscript:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/ghostscript/OSV-2024-1041/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce gs_device_pgmraw_fuzzer -runs=100.
++ FUZZER=gs_device_pgmraw_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer gs_device_pgmraw_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/gs_device_pgmraw_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2515106483
+INFO: Loaded 3 modules   (226900 inline 8-bit counters): 14221 [0x7fd0c261c2a0, 0x7fd0c261fa2d), 958 [0x7fd0c26bd778, 0x7fd0c26bdb36), 211721 [0x564f0ffb1c80, 0x564f0ffe5789), 
+INFO: Loaded 3 PC tables (226900 PCs): 14221 [0x7fd0c261fa30,0x7fd0c2657300), 958 [0x7fd0c26bdb38,0x7fd0c26c1718), 211721 [0x564f0ffe5790,0x564f10320820), 
+/out/gs_device_pgmraw_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x531080098858 (pc 0x564f0dfb7546 bp 0x7ffca0a03fb0 sp 0x7ffca0a03e60 T0)
+[1m[0m==14==The signal is caused by a WRITE memory access.
+SCARINESS: 30 (wild-addr-write)
+    #0 0x564f0dfb7546 in s_DCTD_process /src/ghostpdl/./base/sdctd.c:430:1
+    #1 0x564f0d4ab0e9 in sreadbuf /src/ghostpdl/./base/stream.c:845:22
+    #2 0x564f0d4a7e61 in s_process_read_buf /src/ghostpdl/./base/stream.c:771:14
+    #3 0x564f0ddf4b8b in pdfi_render_image /src/ghostpdl/./pdf/pdf_image.c:849:17
+    #4 0x564f0dde9a9c in pdfi_do_image /src/ghostpdl/./pdf/pdf_image.c:2165:12
+    #5 0x564f0ddecb7b in pdfi_do_image_or_form /src/ghostpdl/./pdf/pdf_image.c:2715:16
+    #6 0x564f0dded78f in pdfi_Do /src/ghostpdl/./pdf/pdf_image.c:2800:12
+    #7 0x564f0dda0ca9 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1470:24
+    #8 0x564f0dd9f06e in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2124:24
+    #9 0x564f0ddfc69f in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:132:20
+    #10 0x564f0ddfc69f in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:156:12
+    #11 0x564f0ddfc69f in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:1031:12
+    #12 0x564f0dd5e33a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:959:24
+    #13 0x564f0dbf3405 in do_call_operator /src/ghostpdl/./psi/interp.c:91:12
+    #14 0x564f0dbed234 in interp /src/ghostpdl/./psi/interp.c:1768:40
+    #15 0x564f0dbed234 in gs_call_interp /src/ghostpdl/./psi/interp.c:531:12
+    #16 0x564f0dbed234 in gs_interpret /src/ghostpdl/./psi/interp.c:488:12
+    #17 0x564f0d36a407 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #18 0x564f0d36a407 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #19 0x564f0d36a407 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #20 0x564f0deecbb0 in run_string /src/ghostpdl/./psi/imainarg.c:1174:12
+    #21 0x564f0dee9470 in swproc /src/ghostpdl/./psi/imainarg.c:368:20
+    #22 0x564f0dee65f2 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #23 0x564f0deec938 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:290:16
+    #24 0x564f0d361fbe in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #25 0x564f0d362335 in LLVMFuzzerTestOneInput /src/gs_device_pgmraw_fuzzer.cc:18:2
+    #26 0x564f0d2166d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #27 0x564f0d201945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #28 0x564f0d2073df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #29 0x564f0d232682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #30 0x7fd0c2044082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #31 0x564f0d1f9b2d in _start (/out/gs_device_pgmraw_fuzzer+0x744b2d)
+
+DEDUP_TOKEN: s_DCTD_process--sreadbuf--s_process_read_buf
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/ghostpdl/./base/sdctd.c:430:1 in s_DCTD_process
+==14==ABORTING

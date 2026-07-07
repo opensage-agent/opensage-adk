@@ -1,0 +1,54 @@
+=================================================================
+==1398333==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fed80700298 at pc 0x7fed82873724 bp 0x7ffdf1ee2a70 sp 0x7ffdf1ee2a68
+WRITE of size 8 at 0x7fed80700298 thread T0
+    #0 0x7fed82873723 in get_sos /root/jdmarker.c:327:29
+    #1 0x7fed8286c011 in read_markers /root/jdmarker.c:1016:13
+    #2 0x7fed82862e40 in consume_markers /root/jdinput.c:386:9
+    #3 0x7fed8283f633 in jpeg_consume_input /root/jdapimin.c:301:15
+    #4 0x7fed8283f2d9 in jpeg_read_header /root/jdapimin.c:249:13
+    #5 0x5599a4632106 in main /root/djpeg.c:542:10
+    #6 0x7fed825cd1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #7 0x7fed825cd28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #8 0x5599a46303a4 in _start (/root/.libs/djpeg+0x53a4) (BuildId: 248de1c9d2a88537a1d0a828260962669946320a)
+
+Address 0x7fed80700298 is located in stack of thread T0 at offset 664 in frame
+    #0 0x5599a4631a8f in main /root/djpeg.c:435
+
+  This frame has 2 object(s):
+    [32, 664) 'cinfo' (line 436) <== Memory access at offset 664 overflows this variable
+    [800, 968) 'jerr' (line 437)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /root/jdmarker.c:327:29 in get_sos
+Shadow bytes around the buggy address:
+  0x7fed80700000: f1 f1 f1 f1 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fed80700080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fed80700100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fed80700180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fed80700200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7fed80700280: 00 00 00[f2]f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2
+  0x7fed80700300: f2 f2 f2 f2 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fed80700380: 00 00 00 00 00 00 00 00 00 f3 f3 f3 f3 f3 f3 f3
+  0x7fed80700400: f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fed80700480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7fed80700500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1398333==ABORTING

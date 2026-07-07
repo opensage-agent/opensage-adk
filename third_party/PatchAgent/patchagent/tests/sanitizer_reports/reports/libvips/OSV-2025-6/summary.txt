@@ -1,0 +1,96 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x7fc8846b5800 thread T4 (libvips worker)
+    - next_marker /src/libjpeg-turbo/src/jdmarker.c:0:0
+    - read_markers /src/libjpeg-turbo/src/jdmarker.c:979:14
+    - consume_markers /src/libjpeg-turbo/src/jdinput.c:339:9
+    - jpeg_consume_input /src/libjpeg-turbo/src/jdapimin.c:327:15
+    - jpeg_read_header /src/libjpeg-turbo/src/jdapimin.c:275:13
+    - rtiff_decompress_jpeg_run /src/libvips/libvips/foreign/tiff2vips.c:2100:6
+    - rtiff_decompress_jpeg /src/libvips/libvips/foreign/tiff2vips.c:2203:7
+    - rtiff_decompress_tile /src/libvips/libvips/foreign/tiff2vips.c:2245:7
+    - rtiff_read_tile /src/libvips/libvips/foreign/tiff2vips.c:2329:7
+    - rtiff_fill_region_unaligned /src/libvips/libvips/foreign/tiff2vips.c:2438:8
+    - rtiff_fill_region /src/libvips/libvips/foreign/tiff2vips.c:2542:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_prepare_to_generate /src/libvips/libvips/iofuncs/region.c:1748:6
+    - vips_region_prepare_to /src/libvips/libvips/iofuncs/region.c:1865:7
+    - vips_tile_cache_gen /src/libvips/libvips/conversion/tilecache.c:683:15
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_fill /src/libvips/libvips/iofuncs/region.c:881:7
+    - vips_region_prepare /src/libvips/libvips/iofuncs/region.c:1692:7
+    - vips_image_write_gen /src/libvips/libvips/iofuncs/image.c:2606:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_fill /src/libvips/libvips/iofuncs/region.c:881:7
+    - vips_region_prepare /src/libvips/libvips/iofuncs/region.c:1692:7
+    - vips_foreign_load_generate /src/libvips/libvips/foreign/foreign.c:1066:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_fill /src/libvips/libvips/iofuncs/region.c:881:7
+    - vips_region_prepare /src/libvips/libvips/iofuncs/region.c:1692:7
+    - vips_copy_gen /src/libvips/libvips/conversion/copy.c:140:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_fill /src/libvips/libvips/iofuncs/region.c:881:7
+    - vips_region_prepare /src/libvips/libvips/iofuncs/region.c:1692:7
+    - vips_cast_gen /src/libvips/libvips/conversion/cast.c:369:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_fill /src/libvips/libvips/iofuncs/region.c:881:7
+    - vips_region_prepare /src/libvips/libvips/iofuncs/region.c:1692:7
+    - vips_copy_gen /src/libvips/libvips/conversion/copy.c:140:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_prepare_to_generate /src/libvips/libvips/iofuncs/region.c:1748:6
+    - vips_region_prepare_to /src/libvips/libvips/iofuncs/region.c:1865:7
+    - wbuffer_work_fn /src/libvips/libvips/iofuncs/sinkdisc.c:431:11
+    - vips_worker_work_unit /src/libvips/libvips/iofuncs/threadpool.c:373:6
+    - vips_thread_main_loop /src/libvips/libvips/iofuncs/threadpool.c:400:3
+    - vips_threadset_work /src/libvips/libvips/iofuncs/threadset.c:182:3
+    - vips_thread_run /src/libvips/libvips/iofuncs/thread.c:148:11
+    - asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+
+0x7fc8846b5800 is located 0 bytes after 524288-byte region [0x7fc884635800,0x7fc8846b5800)
+allocated by thread T4 (libvips worker) here:
+    - calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    - rtiff_seq_start /src/libvips/libvips/foreign/tiff2vips.c:1976:31
+    - vips__region_start /src/libvips/libvips/iofuncs/region.c:238:17
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1618:6
+    - vips_region_prepare_to_generate /src/libvips/libvips/iofuncs/region.c:1748:6
+    - vips_region_prepare_to /src/libvips/libvips/iofuncs/region.c:1865:7
+    - vips_tile_cache_gen /src/libvips/libvips/conversion/tilecache.c:683:15
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_fill /src/libvips/libvips/iofuncs/region.c:881:7
+    - vips_region_prepare /src/libvips/libvips/iofuncs/region.c:1692:7
+    - vips_image_write_gen /src/libvips/libvips/iofuncs/image.c:2606:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_fill /src/libvips/libvips/iofuncs/region.c:881:7
+    - vips_region_prepare /src/libvips/libvips/iofuncs/region.c:1692:7
+    - vips_foreign_load_generate /src/libvips/libvips/foreign/foreign.c:1066:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_fill /src/libvips/libvips/iofuncs/region.c:881:7
+    - vips_region_prepare /src/libvips/libvips/iofuncs/region.c:1692:7
+    - vips_copy_gen /src/libvips/libvips/conversion/copy.c:140:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_fill /src/libvips/libvips/iofuncs/region.c:881:7
+    - vips_region_prepare /src/libvips/libvips/iofuncs/region.c:1692:7
+    - vips_cast_gen /src/libvips/libvips/conversion/cast.c:369:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_fill /src/libvips/libvips/iofuncs/region.c:881:7
+    - vips_region_prepare /src/libvips/libvips/iofuncs/region.c:1692:7
+    - vips_copy_gen /src/libvips/libvips/conversion/copy.c:140:6
+    - vips_region_generate /src/libvips/libvips/iofuncs/region.c:1624:6
+    - vips_region_prepare_to_generate /src/libvips/libvips/iofuncs/region.c:1748:6
+    - vips_region_prepare_to /src/libvips/libvips/iofuncs/region.c:1865:7
+    - wbuffer_work_fn /src/libvips/libvips/iofuncs/sinkdisc.c:431:11
+    - vips_worker_work_unit /src/libvips/libvips/iofuncs/threadpool.c:373:6
+    - vips_thread_main_loop /src/libvips/libvips/iofuncs/threadpool.c:400:3
+    - vips_threadset_work /src/libvips/libvips/iofuncs/threadset.c:182:3
+    - vips_thread_run /src/libvips/libvips/iofuncs/thread.c:148:11
+
+Thread T4 (libvips worker) created by T0 here:
+    - pthread_create /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:250:3
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

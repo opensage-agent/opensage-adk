@@ -1,0 +1,19 @@
+=================================================================
+==360044==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000008 (pc 0x7ff32785fb5f bp 0x7ffc992fa9b0 sp 0x7ffc992fa700 T0)
+==360044==The signal is caused by a READ memory access.
+==360044==Hint: address points to the zero page.
+    #0 0x7ff32785fb5f in r_io_bank_read_at /root/libr/io/io_bank.c:790:27
+    #1 0x7ff32784190c in r_io_vread_at /root/libr/io/io.c:213:9
+    #2 0x7ff327841d3b in internal_r_io_read_at /root/libr/io/io.c:234:5
+    #3 0x7ff327841c93 in r_io_read_at /root/libr/io/io.c:269:9
+    #4 0x7ff326da6a5c in r_core_block_read /root/libr/core/cio.c:538:9
+    #5 0x7ff326da2809 in r_core_seek /root/libr/core/cio.c:402:3
+    #6 0x7ff323769495 in r_main_radare2 /root/libr/main/radare2.c:1516:5
+    #7 0x5560e950f68e in main /root/binr/radare2/radare2.c:104:9
+    #8 0x7ff32352a1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7ff32352a28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x5560e950e1f4 in _start (/root/bin/radare2+0x21f4) (BuildId: ac3c2fbc6ba776ab13828a568c5a53dad4f7450c)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/libr/io/io_bank.c:790:27 in r_io_bank_read_at
+==360044==ABORTING

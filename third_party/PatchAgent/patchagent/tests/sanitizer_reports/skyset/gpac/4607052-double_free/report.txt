@@ -1,0 +1,60 @@
+=================================================================
+==639893==ERROR: AddressSanitizer: attempting double-free on 0x510000000c40 in thread T0:
+    #0 0x7f7bc0bfa50a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f7bbed0cfe4 in gf_free /root/src/utils/alloc.c:165:2
+    #2 0x7f7bbfcef749 in gf_filterpacket_del /root/src/filter_core/filter.c:38:17
+    #3 0x7f7bbfcc5649 in gf_fq_del /root/src/filter_core/filter_queue.c:105:33
+    #4 0x7f7bbfcf7d5d in gf_filter_del /root/src/filter_core/filter.c:664:3
+    #5 0x7f7bbfccad15 in gf_fs_del /root/src/filter_core/filter_session.c:782:4
+    #6 0x7f7bbf5e8c70 in gf_dasher_clean_inputs /root/src/media_tools/dash_segmenter.c:164:3
+    #7 0x7f7bbf5e8d31 in gf_dasher_del /root/src/media_tools/dash_segmenter.c:173:2
+    #8 0x55fe0232d549 in do_dash /root/applications/mp4box/mp4box.c:4888:2
+    #9 0x55fe02321c93 in mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    #10 0x55fe02328811 in main /root/applications/mp4box/mp4box.c:6933:1
+    #11 0x7f7bbe80d1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7f7bbe80d28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x55fe02307de4 in _start (/root/bin/gcc/MP4Box+0x49de4) (BuildId: 329cddeb4d19b2286103edcdcf70327ae2a51c62)
+
+0x510000000c40 is located 0 bytes inside of 186-byte region [0x510000000c40,0x510000000cfa)
+freed by thread T0 here:
+    #0 0x7f7bc0bfabc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f7bbed0cfbc in gf_realloc /root/src/utils/alloc.c:160:9
+    #2 0x7f7bbf4908b4 in Media_GetSample /root/src/isomedia/media.c:619:30
+    #3 0x7f7bbf3d5f99 in gf_isom_get_sample_ex /root/src/isomedia/isom_read.c:1950:6
+    #4 0x7f7bc000b330 in isor_reader_get_sample /root/src/filters/isoffin_read_ch.c:489:18
+    #5 0x7f7bc000b5b7 in isor_reader_get_sample /root/src/filters/isoffin_read_ch.c:499:5
+    #6 0x7f7bbfff97e4 in isoffin_process /root/src/filters/isoffin_read.c:1486:5
+    #7 0x7f7bbfd090c3 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #8 0x7f7bbfcd7281 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #9 0x7f7bbfcd327b in gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    #10 0x7f7bbf5ebb6f in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #11 0x55fe0232d19e in do_dash /root/applications/mp4box/mp4box.c:4825:15
+    #12 0x55fe02321c93 in mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    #13 0x55fe02328811 in main /root/applications/mp4box/mp4box.c:6933:1
+    #14 0x7f7bbe80d1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x7f7bbe80d28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #16 0x55fe02307de4 in _start (/root/bin/gcc/MP4Box+0x49de4) (BuildId: 329cddeb4d19b2286103edcdcf70327ae2a51c62)
+
+previously allocated by thread T0 here:
+    #0 0x7f7bc0bfa7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f7bbed0cf64 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7f7bbfc361df in gf_filter_pck_new_alloc_internal /root/src/filter_core/filter_pck.c:159:15
+    #3 0x7f7bbfc35832 in gf_filter_pck_new_alloc /root/src/filter_core/filter_pck.c:197:9
+    #4 0x7f7bc000769e in isor_sample_alloc /root/src/filters/isoffin_read_ch.c:322:12
+    #5 0x7f7bbf490c91 in Media_GetSample /root/src/isomedia/media.c:626:21
+    #6 0x7f7bbf3d5f99 in gf_isom_get_sample_ex /root/src/isomedia/isom_read.c:1950:6
+    #7 0x7f7bc000b330 in isor_reader_get_sample /root/src/filters/isoffin_read_ch.c:489:18
+    #8 0x7f7bbfff97e4 in isoffin_process /root/src/filters/isoffin_read.c:1486:5
+    #9 0x7f7bbfd090c3 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #10 0x7f7bbfcd7281 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #11 0x7f7bbfcd327b in gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    #12 0x7f7bbf5ebb6f in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #13 0x55fe0232d19e in do_dash /root/applications/mp4box/mp4box.c:4825:15
+    #14 0x55fe02321c93 in mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    #15 0x55fe02328811 in main /root/applications/mp4box/mp4box.c:6933:1
+    #16 0x7f7bbe80d1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #17 0x7f7bbe80d28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x55fe02307de4 in _start (/root/bin/gcc/MP4Box+0x49de4) (BuildId: 329cddeb4d19b2286103edcdcf70327ae2a51c62)
+
+SUMMARY: AddressSanitizer: double-free /root/src/utils/alloc.c:165:2 in gf_free
+==639893==ABORTING

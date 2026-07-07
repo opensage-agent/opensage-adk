@@ -1,0 +1,27 @@
+[2025/01/31 01:31:12] [error] [/src/fluent-bit/src/flb_sds.c:44 errno=0] Success
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x55d28bb91e32 bp 0x7fff4e818690 sp 0x7fff4e818650 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55d28bb91e32 in flb_sds_avail /src/fluent-bit/include/fluent-bit/flb_sds.h:77:25
+    #1 0x55d28bb91e32 in flb_sds_cat /src/fluent-bit/src/flb_sds.c:126:13
+    #2 0x55d28bb91e32 in flb_sds_cat_safe /src/fluent-bit/src/flb_sds.c:208:11
+    #3 0x55d28bb78167 in flb_cf_key_translate /src/fluent-bit/src/config_format/flb_config_format.c:74:5
+    #4 0x55d28bb7906d in flb_cf_section_property_add /src/fluent-bit/src/config_format/flb_config_format.c:275:11
+    #5 0x55d28bb81c0f in consume_event /src/fluent-bit/src/config_format/flb_cf_yaml.c:2341:17
+    #6 0x55d28bb7f7e0 in read_config /src/fluent-bit/src/config_format/flb_cf_yaml.c:2892:18
+    #7 0x55d28bb7ed9b in flb_cf_yaml_create /src/fluent-bit/src/config_format/flb_cf_yaml.c:2973:11
+    #8 0x55d28bb758ef in LLVMFuzzerTestOneInput /src/fluent-bit/tests/internal/fuzzers/config_yaml_fuzzer.c:56:10
+    #9 0x55d28ba2c460 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x55d28ba176d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x55d28ba1d16f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x55d28ba48412 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f51f728c082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #14 0x55d28ba0f8bd in _start (/out/flb-it-fuzz-config_yaml_fuzzer_OSSFUZZ+0x6f8bd)
+
+DEDUP_TOKEN: flb_sds_avail--flb_sds_cat--flb_sds_cat_safe
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/fluent-bit/include/fluent-bit/flb_sds.h:77:25 in flb_sds_avail
+==14==ABORTING

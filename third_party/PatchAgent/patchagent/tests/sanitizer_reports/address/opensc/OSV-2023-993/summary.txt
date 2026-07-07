@@ -1,0 +1,32 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 1 at 0x7f6611f9261f thread T0
+    - entersafe_reverse_buffer /src/opensc/src/libopensc/card-entersafe.c:123:13
+    - entersafe_gen_key /src/opensc/src/libopensc/card-entersafe.c:1445:2
+    - entersafe_card_ctl_2048 /src/opensc/src/libopensc/card-entersafe.c:1647:10
+    - sc_card_ctl /src/opensc/src/libopensc/card.c:1122:7
+    - entersafe_generate_key /src/opensc/src/pkcs15init/pkcs15-entersafe.c:443:6
+    - sc_pkcs15init_generate_key /src/opensc/src/pkcs15init/pkcs15-lib.c:1611:6
+    - do_generate_key /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:207:9
+    - LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:337:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f6611f9261f is located in stack of thread T0 at offset 543 in frame
+    - entersafe_gen_key /src/opensc/src/libopensc/card-entersafe.c:1373:0
+
+  This frame has 3 object(s):
+    [32, 136) 'apdu' (line 1376)
+    [176, 476) 'rbuf' (line 1377)
+    [544, 548) 'sbuf' (line 1378) <== Memory access at offset 543 underflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

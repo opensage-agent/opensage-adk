@@ -1,0 +1,18 @@
+The sanitizer detected a java generic exception vulnerability.The explanation of the vulnerability is: A Java exception occurred, indicating a potential issue in the code or environment.Here is the detail: 
+
+== Java Exception: java.lang.NegativeArraySizeException: -1
+- com.drew.metadata.icc.IccReader.readJpegSegments (com/drew/metadata/icc/IccReader.java:77)
+- com.drew.imaging.jpeg.JpegMetadataReader.processJpegSegmentData (com/drew/imaging/jpeg/JpegMetadataReader.java:134)
+- com.drew.imaging.jpeg.JpegMetadataReader.process (com/drew/imaging/jpeg/JpegMetadataReader.java:126)
+- com.drew.imaging.jpeg.JpegMetadataReader.readMetadata (com/drew/imaging/jpeg/JpegMetadataReader.java:77)
+- com.drew.imaging.jpeg.JpegMetadataReader.readMetadata (com/drew/imaging/jpeg/JpegMetadataReader.java:84)
+- com.drew.imaging.ImageMetadataReader.readMetadata (com/drew/imaging/ImageMetadataReader.java:146)
+- com.drew.imaging.ImageMetadataReader.readMetadata (com/drew/imaging/ImageMetadataReader.java:124)
+- com.drew.imaging.ImageMetadataReader.readMetadata (com/drew/imaging/ImageMetadataReader.java:103)
+- ImageMetadataReaderFuzzer.fuzzerTestOneInput (ImageMetadataReaderFuzzer.java:31)
+
+To fix this issue, follow the advice below:
+
+1. Investigate the cause of the Java exception to identify the root cause of the error.
+2. Review the code for potential memory corruption or undefined behavior.
+3. Check for uninitialized variables or unintended pointer accesses.

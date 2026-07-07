@@ -1,0 +1,62 @@
+=================================================================
+==485622==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51c00000075b at pc 0x55d90583f768 bp 0x7fff0c167450 sp 0x7fff0c167448
+WRITE of size 4 at 0x51c00000075b thread T0
+    #0 0x55d90583f767 in LZ4_write32 /root/lib/lz4.c:250:76
+    #1 0x55d9057e123c in LZ4_compress_generic /root/lib/lz4.c:1033:21
+    #2 0x55d9057e123c in LZ4_compress_fast_extState /root/lib/lz4.c:1161:20
+    #3 0x55d9057f71e6 in LZ4_compress_fast /root/lib/lz4.c:1222:14
+    #4 0x55d9057f727e in LZ4_compress_default /root/lib/lz4.c:1233:12
+    #5 0x55d9057d47c6 in LLVMFuzzerTestOneInput /root/ossfuzz/compress_fuzzer.c:27:29
+    #6 0x55d9057b9db4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/compress_fuzzer+0x24db4) (BuildId: a0af5ae1503f295aae0e83e4478aaa270feb2460)
+    #7 0x55d9057a2ee6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/compress_fuzzer+0xdee6) (BuildId: a0af5ae1503f295aae0e83e4478aaa270feb2460)
+    #8 0x55d9057a899a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/compress_fuzzer+0x1399a) (BuildId: a0af5ae1503f295aae0e83e4478aaa270feb2460)
+    #9 0x55d9057d31f6 in main (/root/compress_fuzzer+0x3e1f6) (BuildId: a0af5ae1503f295aae0e83e4478aaa270feb2460)
+    #10 0x7ff0467431c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #11 0x7ff04674328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x55d90579dab4 in _start (/root/compress_fuzzer+0x8ab4) (BuildId: a0af5ae1503f295aae0e83e4478aaa270feb2460)
+
+0x51c00000075b is located 1 bytes after 1754-byte region [0x51c000000080,0x51c00000075a)
+allocated by thread T0 here:
+    #0 0x7ff046b397a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55d9057d469d in LLVMFuzzerTestOneInput /root/ossfuzz/compress_fuzzer.c:19:30
+    #2 0x55d9057b9db4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/compress_fuzzer+0x24db4) (BuildId: a0af5ae1503f295aae0e83e4478aaa270feb2460)
+    #3 0x55d9057a2ee6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/compress_fuzzer+0xdee6) (BuildId: a0af5ae1503f295aae0e83e4478aaa270feb2460)
+    #4 0x55d9057a899a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/compress_fuzzer+0x1399a) (BuildId: a0af5ae1503f295aae0e83e4478aaa270feb2460)
+    #5 0x55d9057d31f6 in main (/root/compress_fuzzer+0x3e1f6) (BuildId: a0af5ae1503f295aae0e83e4478aaa270feb2460)
+    #6 0x7ff0467431c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #7 0x7ff04674328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #8 0x55d90579dab4 in _start (/root/compress_fuzzer+0x8ab4) (BuildId: a0af5ae1503f295aae0e83e4478aaa270feb2460)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/lib/lz4.c:250:76 in LZ4_write32
+Shadow bytes around the buggy address:
+  0x51c000000480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c000000500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c000000580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c000000600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x51c000000680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x51c000000700: 00 00 00 00 00 00 00 00 00 00 00[02]fa fa fa fa
+  0x51c000000780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c000000800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c000000880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c000000900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51c000000980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==485622==ABORTING

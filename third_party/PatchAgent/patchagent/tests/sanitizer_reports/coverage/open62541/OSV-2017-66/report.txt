@@ -1,0 +1,50 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/open62541:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_binary_message -runs=100.
++ FUZZER=fuzz_binary_message
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_binary_message -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_binary_message -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=binary.dict < /dev/null
+Dictionary: 18 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 420990753
+/out/fuzz_binary_message: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==18==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0xfffffffffffffff9 (pc 0x7fcb80c9e6f0 bp 0x7ffffc976ed0 sp 0x7ffffc976e20 T18)
+[1m[0m==18==The signal is caused by a READ memory access.
+    #0 0x7fcb80c9e6f0 in free (/lib/x86_64-linux-gnu/libc.so.6+0x9a6f0) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x56302d597b0c in writeArrayDimensionsAttribute /src/open62541/src/server/ua_services_attribute.c:736:5
+    #2 0x56302d5969bd in copyAttributeIntoNode /src/open62541/src/server/ua_services_attribute.c:1145:18
+    #3 0x56302d58e0f4 in UA_Server_editNode /src/open62541/src/server/ua_server_utils.c:310:28
+    #4 0x56302d595abe in Operation_Write /src/open62541/src/server/ua_services_attribute.c:1188:15
+    #5 0x56302d58e1b5 in UA_Server_processServiceOperations /src/open62541/src/server/ua_server_utils.c:355:9
+    #6 0x56302d595a93 in Service_Write /src/open62541/src/server/ua_services_attribute.c:1206:9
+    #7 0x56302d58d1b5 in processMSG /src/open62541/src/server/ua_server_binary.c:514:5
+    #8 0x56302d58c768 in processSecureChannelMessage /src/open62541/src/server/ua_server_binary.c:550:18
+    #9 0x56302d56751b in UA_SecureChannel_finalizeChunk /src/open62541/src/ua_securechannel.c:758:28
+    #10 0x56302d56726a in UA_SecureChannel_processChunk /src/open62541/src/ua_securechannel.c:1027:18
+    #11 0x56302d5654fd in processChunk /src/open62541/src/ua_connection.c:139:12
+    #12 0x56302d5654fd in UA_Connection_processChunks /src/open62541/src/ua_connection.c:164:18
+    #13 0x56302d58bfe7 in processBinaryMessage /src/open62541/src/server/ua_server_binary.c:685:28
+    #14 0x56302d58bfe7 in UA_Server_processBinaryMessage /src/open62541/src/server/ua_server_binary.c:705:5
+    #15 0x56302d55c3eb in LLVMFuzzerTestOneInput /src/open62541/tests/fuzz/fuzz_binary_message.cc:29:5
+    #16 0x56302d4be940 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #17 0x56302d4a9bb5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #18 0x56302d4af64f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #19 0x56302d4da8f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #20 0x7fcb80c28082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #21 0x56302d4a1d9d in _start (/out/fuzz_binary_message+0x2ed9d)
+
+DEDUP_TOKEN: free--writeArrayDimensionsAttribute--copyAttributeIntoNode
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x9a6f0) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) in free
+==18==ABORTING

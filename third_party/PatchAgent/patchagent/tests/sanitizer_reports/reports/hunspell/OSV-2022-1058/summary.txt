@@ -1,0 +1,40 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 1 at 0x7f2f9ba63e38 thread T0
+    - AffixMgr::suffix_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int, int, PfxEntry*, unsigned short, unsigned short, char) /src/hunspell/src/hunspell/affixmgr.cxx:2786:22
+    - AffixMgr::affix_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int, unsigned short, char) /src/hunspell/src/hunspell/affixmgr.cxx:3133:8
+    - AffixMgr::compound_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /src/hunspell/src/hunspell/affixmgr.cxx:2130:29
+    - AffixMgr::compound_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /src/hunspell/src/hunspell/affixmgr.cxx:2091:20
+    - AffixMgr::compound_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /src/hunspell/src/hunspell/affixmgr.cxx:2091:20
+    - AffixMgr::compound_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /src/hunspell/src/hunspell/affixmgr.cxx:2091:20
+    - HunspellImpl::checkword(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:852:19
+    - HunspellImpl::spell_internal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:520:12
+    - HunspellImpl::spell(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:431:12
+    - LLVMFuzzerTestOneInput /src/hunspell/src/tools/affdicfuzzer.cxx:65:15
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f2f9ba63e38 is located in stack of thread T0 at offset 568 in frame
+    - AffixMgr::compound_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /src/hunspell/src/hunspell/affixmgr.cxx:1581:0
+
+  This frame has 9 object(s):
+    [32, 56) 'st' (line 1585)
+    [96, 120) 'ref.tmp' (line 1658)
+    [160, 184) 'ref.tmp957' (line 1855)
+    [224, 248) 'ref.tmp973' (line 1858)
+    [288, 312) 'ref.tmp1304' (line 1935)
+    [352, 376) 'ref.tmp1622' (line 2026)
+    [416, 440) 'tmp' (line 2031)
+    [480, 504) 'ref.tmp1667' (line 2040)
+    [544, 568) 'ref.tmp1799' (line 2091) <== Memory access at offset 568 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

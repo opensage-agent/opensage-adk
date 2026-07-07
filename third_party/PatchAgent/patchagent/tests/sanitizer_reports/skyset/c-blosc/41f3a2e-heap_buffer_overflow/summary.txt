@@ -1,0 +1,24 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 1 at 0x50d0000000c1 thread T0
+    - blosclz_compress /root/blosc/blosclz.c:588:11
+    - blosc_c /root/blosc/blosc.c:653:16
+    - serial_blosc /root/blosc/blosc.c:836:18
+    - do_job /root/blosc/blosc.c:914:15
+    - blosc_compress_context /root/blosc/blosc.c:1255:13
+    - blosc_compress /root/blosc/blosc.c:1417:14
+    - LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_compress.c:44:7
+    - main /root/tests/fuzz/standalone.c:32:7
+
+0x50d0000000c1 is located 0 bytes after 129-byte region [0x50d000000040,0x50d0000000c1)
+allocated by thread T0 here:
+    - LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_compress.c:40:12
+    - main /root/tests/fuzz/standalone.c:32:7
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

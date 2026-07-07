@@ -1,0 +1,29 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - writeArrayDimensionsAttribute /src/open62541/src/server/ua_services_attribute.c:736:5
+    - copyAttributeIntoNode /src/open62541/src/server/ua_services_attribute.c:1145:18
+    - UA_Server_editNode /src/open62541/src/server/ua_server_utils.c:310:28
+    - Operation_Write /src/open62541/src/server/ua_services_attribute.c:1188:15
+    - UA_Server_processServiceOperations /src/open62541/src/server/ua_server_utils.c:355:9
+    - Service_Write /src/open62541/src/server/ua_services_attribute.c:1206:9
+    - processMSG /src/open62541/src/server/ua_server_binary.c:514:5
+    - processSecureChannelMessage /src/open62541/src/server/ua_server_binary.c:550:18
+    - UA_SecureChannel_finalizeChunk /src/open62541/src/ua_securechannel.c:758:28
+    - UA_SecureChannel_processChunk /src/open62541/src/ua_securechannel.c:1027:18
+    - processChunk /src/open62541/src/ua_connection.c:139:12
+    - UA_Connection_processChunks /src/open62541/src/ua_connection.c:164:18
+    - processBinaryMessage /src/open62541/src/server/ua_server_binary.c:685:28
+    - UA_Server_processBinaryMessage /src/open62541/src/server/ua_server_binary.c:705:5
+    - LLVMFuzzerTestOneInput /src/open62541/tests/fuzz/fuzz_binary_message.cc:29:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

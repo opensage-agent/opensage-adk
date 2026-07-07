@@ -1,0 +1,58 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libspectre:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libspectre/OSV-2020-941/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce spectre_read_fuzzer -runs=100.
++ FUZZER=spectre_read_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer spectre_read_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/spectre_read_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3204992452
+INFO: Loaded 1 modules   (195974 inline 8-bit counters): 195974 [0x557dba8bf4a0, 0x557dba8ef226), 
+INFO: Loaded 1 PC tables (195974 PCs): 195974 [0x557dba8ef228,0x557dbabeca88), 
+/out/spectre_read_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+(libspectre) ghostscript reports: syntaxerror -18
+(libspectre) ghostscript reports: syntaxerror -18
+
+=================================================================
+[1m[31m==14==ERROR: LeakSanitizer: detected memory leaks
+[1m[0m
+[1m[34mDirect leak of 1951488 byte(s) in 1 object(s) allocated from:
+[1m[0m    #0 0x557db814339f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x557db819de4e in spectre_presize /src/libspectre/libspectre/spectre-device.c:75:19
+    #2 0x557db83c4b58 in display_open /src/libspectre/ghostscript-9.50/./devices/gdevdsp.c:278:13
+    #3 0x557db830d8e1 in default_subclass_open_device /src/libspectre/ghostscript-9.50/./base/gdevsclass.c:103:16
+    #4 0x557db874e7cf in gs_opendevice /src/libspectre/ghostscript-9.50/./base/gsdevice.c:449:20
+    #5 0x557db8aee8c9 in display_set_callback /src/libspectre/ghostscript-9.50/./psi/idisp.c:106:20
+    #6 0x557db819fe43 in gs_main_init2aux /src/libspectre/ghostscript-9.50/./psi/imain.c:309:21
+    #7 0x557db81a0145 in gs_main_init2 /src/libspectre/ghostscript-9.50/./psi/imain.c:338:12
+    #8 0x557db8c7044f in gs_main_init_with_args2 /src/libspectre/ghostscript-9.50/./psi/imainarg.c:276:12
+    #9 0x557db8c7044f in gs_main_init_with_args /src/libspectre/ghostscript-9.50/./psi/imainarg.c:292:12
+    #10 0x557db819bae8 in spectre_gs_run /src/libspectre/libspectre/spectre-gs.c:200:10
+    #11 0x557db819d0c6 in spectre_device_render /src/libspectre/libspectre/spectre-device.c:363:12
+    #12 0x557db81876ff in spectre_page_render /src/libspectre/libspectre/spectre-page.c:164:17
+    #13 0x557db8184b1b in spectre_document_render_full /src/libspectre/libspectre/spectre-document.c:351:2
+    #14 0x557db81831c9 in spectre_document_render /src/libspectre/libspectre/spectre-document.c:367:2
+    #15 0x557db81831c9 in spectre_document_load /src/libspectre/libspectre/spectre-document.c:87:3
+    #16 0x557db8182b92 in LLVMFuzzerTestOneInput /src/libspectre/test/spectre_read_fuzzer.c:34:5
+    #17 0x557db80375d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x557db8022845 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x557db80282df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x557db8053582 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7f88f1313082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--spectre_presize--display_open
+SUMMARY: AddressSanitizer: 1951488 byte(s) leaked in 1 allocation(s).
+
+INFO: a leak has been found in the initial corpus.
+
+INFO: to ignore leaks on libFuzzer side use -detect_leaks=0.
+

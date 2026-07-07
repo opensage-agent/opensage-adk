@@ -1,0 +1,72 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x511000002606 at pc 0x55df438ce225 bp 0x7ffe20595b30 sp 0x7ffe20595300
+WRITE of size 828 at 0x511000002606 thread T0
+SCARINESS: 45 (multi-byte-write-heap-buffer-overflow)
+    #0 0x55df438ce224 in __asan_memset /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:67:3
+    #1 0x55df4395e9f1 in isvcd_start_of_pic /src/libavc/decoder/svc/isvcd_parse_slice.c:298:13
+    #2 0x55df4396bc69 in isvcd_parse_decode_slice /src/libavc/decoder/svc/isvcd_parse_slice.c:2390:19
+    #3 0x55df43959b43 in isvcd_parse_nal_unit /src/libavc/decoder/svc/isvcd_parse_headers.c:1005:40
+    #4 0x55df4392486c in isvcd_video_decode /src/libavc/decoder/svc/isvcd_api.c:5292:27
+    #5 0x55df4391160e in Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/svc_dec_fuzzer.cpp:375:11
+    #6 0x55df4391214e in LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_dec_fuzzer.cpp:437:22
+    #7 0x55df437c42f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55df437af565 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55df437b4fff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55df437e02a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f6311a62082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x55df437a774d in _start (/out/svc_dec_fuzzer+0xa274d)
+
+DEDUP_TOKEN: __asan_memset--isvcd_start_of_pic--isvcd_parse_decode_slice
+0x511000002606 is located 0 bytes after 6-byte region [0x511000002600,0x511000002606)
+allocated by thread T0 here:
+    #0 0x55df438d0b67 in posix_memalign /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:142:3
+    #1 0x55df4390f846 in iv_aligned_malloc(void*, int, int) /src/libavc/fuzzer/svc_dec_fuzzer.cpp:85:13
+    #2 0x55df43ab373b in ih264d_allocate_dynamic_bufs /src/libavc/decoder/ih264d_utils.c:1935:14
+    #3 0x55df43983ec5 in isvcd_allocate_dynamic_bufs /src/libavc/decoder/svc/isvcd_utils.c:126:18
+    #4 0x55df439875d8 in isvcd_init_pic /src/libavc/decoder/svc/isvcd_utils.c:843:15
+    #5 0x55df4395e803 in isvcd_start_of_pic /src/libavc/decoder/svc/isvcd_parse_slice.c:283:11
+    #6 0x55df4396bc69 in isvcd_parse_decode_slice /src/libavc/decoder/svc/isvcd_parse_slice.c:2390:19
+    #7 0x55df43959b43 in isvcd_parse_nal_unit /src/libavc/decoder/svc/isvcd_parse_headers.c:1005:40
+    #8 0x55df4392486c in isvcd_video_decode /src/libavc/decoder/svc/isvcd_api.c:5292:27
+    #9 0x55df4391160e in Codec::decodeFrame(unsigned char const*, unsigned long, unsigned long*) /src/libavc/fuzzer/svc_dec_fuzzer.cpp:375:11
+    #10 0x55df4391214e in LLVMFuzzerTestOneInput /src/libavc/fuzzer/svc_dec_fuzzer.cpp:437:22
+    #11 0x55df437c42f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x55df437af565 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x55df437b4fff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x55df437e02a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f6311a62082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_posix_memalign--iv_aligned_malloc(void*, int, int)--ih264d_allocate_dynamic_bufs
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/libavc/decoder/svc/isvcd_parse_slice.c:298:13 in isvcd_start_of_pic
+Shadow bytes around the buggy address:
+  0x511000002380: 00 00 00 01 fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000002400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000002480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x511000002500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000002580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x511000002600:[06]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000002680: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000002700: 06 fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000002780: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000002800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x511000002880: 00 04 fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

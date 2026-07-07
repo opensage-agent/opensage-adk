@@ -1,0 +1,23 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - stbi__jpeg_huff_decode(stbi__jpeg*, stbi__huffman*) /src/stb/stb_image.h:2115:4
+    - stbi__jpeg_decode_block(stbi__jpeg*, short*, stbi__huffman*, stbi__huffman*, short*, int, unsigned short*) /src/stb/stb_image.h:2216:19
+    - stbi__parse_entropy_coded_data /src/stb/stb_image.h:2932:21
+    - stbi__decode_jpeg_image /src/stb/stb_image.h:3368:15
+    - load_jpeg_image /src/stb/stb_image.h:3820:9
+    - stbi__jpeg_load(stbi__context*, int*, int*, int*, int, stbi__result_info*) /src/stb/stb_image.h:3982:13
+    - stbi__load_and_postprocess_8bit(stbi__context*, int*, int*, int*, int) /src/stb/stb_image.h:1243:19
+    - stbi_load_from_memory /src/stb/stb_image.h:1413:11
+    - LLVMFuzzerTestOneInput /src/stb/tests/stbi_read_fuzzer.c:19:26
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

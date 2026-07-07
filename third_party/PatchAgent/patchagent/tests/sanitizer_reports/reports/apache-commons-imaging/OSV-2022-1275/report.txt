@@ -1,0 +1,137 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/apache-commons-imaging:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/apache-commons-imaging/OSV-2022-1275/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce ImagingPngFuzzer -runs=100.
++ FUZZER=ImagingPngFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer ImagingPngFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/ImagingPngFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=ImagingPngFuzzer.dict < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 274 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented ImagingPngFuzzer (took 58 ms, size +14%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f47c20dda00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+Dictionary: 75 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3554880850
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x561f8a1826b0, 0x561f8a1828b0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x561f8a127540,0x561f8a129540), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.apache.commons.imaging.formats.png.PngImageParser (took 54 ms, size +13%)
+INFO: Instrumented org.apache.commons.imaging.common.XmpEmbeddable (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.imaging.AbstractImageParser (took 16 ms, size +8%)
+INFO: Instrumented org.apache.commons.imaging.common.BinaryFileParser (took 4 ms, size +15%)
+INFO: Instrumented org.apache.commons.imaging.common.BufferedImageFactory (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.imaging.ImagingException (took 3 ms, size +21%)
+INFO: Instrumented org.apache.commons.imaging.ImagingParameters (took 3 ms, size +7%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.PngImagingParameters (took 4 ms, size +7%)
+INFO: Instrumented org.apache.commons.imaging.common.XmpImagingParameters (took 1 ms, size +10%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.apache.commons.imaging.formats.png.AbstractScanExpediter (took 6 ms, size +10%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.ScanExpediterSimple (took 2 ms, size +12%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.ScanExpediterInterlaced (took 2 ms, size +12%)
+INFO: Instrumented org.apache.commons.imaging.common.ImageMetadata (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.imaging.formats.tiff.TiffImagingParameters (took 8 ms, size +13%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.transparencyfilters.AbstractTransparencyFilter (took 2 ms, size +13%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.transparencyfilters.TransparencyFilterGrayscale (took 1 ms, size +19%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.transparencyfilters.TransparencyFilterTrueColor (took 1 ms, size +18%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.transparencyfilters.TransparencyFilterIndexedColor (took 1 ms, size +23%)
+INFO: Instrumented org.apache.commons.imaging.ImageFormat (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.imaging.ImageInfo (took 15 ms, size +8%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.PngImageInfo (took 2 ms, size +4%)
+INFO: Instrumented org.apache.commons.imaging.ImageFormats (took 4 ms, size +8%)
+INFO: Instrumented org.apache.commons.imaging.bytesource.ByteSource (took 5 ms, size +9%)
+INFO: Instrumented org.apache.commons.io.build.AbstractOrigin (took 8 ms, size +7%)
+INFO: Instrumented org.apache.commons.io.build.AbstractSupplier (took 1 ms, size +13%)
+INFO: Instrumented org.apache.commons.io.function.IOSupplier (took 2 ms, size +7%)
+INFO: Instrumented org.apache.commons.io.build.AbstractOrigin$ByteArrayOrigin (took 2 ms, size +8%)
+INFO: Instrumented org.apache.commons.io.build.AbstractOrigin$FileOrigin (took 2 ms, size +9%)
+INFO: Instrumented org.apache.commons.io.build.AbstractOrigin$PathOrigin (took 1 ms, size +5%)
+INFO: Instrumented org.apache.commons.imaging.bytesource.InputStreamByteSource (took 5 ms, size +15%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.ChunkType (took 5 ms, size +8%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.ChunkType$ChunkConstructor (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunk (took 3 ms, size +16%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunkIhdr (took 3 ms, size +13%)
+INFO: Instrumented org.apache.commons.imaging.common.BinaryFunctions (took 9 ms, size +13%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunkPlte (took 2 ms, size +13%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunkIdat (took 0 ms, size +19%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunkGama (took 1 ms, size +11%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunkIccp (took 2 ms, size +12%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunkText (took 1 ms, size +13%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.AbstractPngTextChunk (took 0 ms, size +14%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.AbstractPngText (took 0 ms, size +12%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.AbstractPngText$Text (took 0 ms, size +18%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunkZtxt (took 12 ms, size +11%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.AbstractPngText$Ztxt (took 1 ms, size +18%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunkItxt (took 3 ms, size +14%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.AbstractPngText$Itxt (took 1 ms, size +13%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunkPhys (took 1 ms, size +9%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.Extension (took 1 ms, size +11%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.chunks.PngChunkScal (took 1 ms, size +14%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.PngConstants (took 1 ms, size +11%)
+INFO: Instrumented org.apache.commons.imaging.common.BinaryConstant (took 2 ms, size +41%)
+INFO: Instrumented org.apache.commons.imaging.common.Allocator (took 4 ms, size +6%)
+INFO: Instrumented org.apache.commons.imaging.common.AllocationRequestException (took 2 ms, size +7%)
+INFO: Instrumented org.apache.commons.imaging.ImagingRuntimeException (took 0 ms, size +15%)
+INFO: Instrumented org.apache.commons.io.IOUtils (took 40 ms, size +12%)
+INFO: Instrumented org.apache.commons.io.output.StringBuilderWriter (took 3 ms, size +9%)
+INFO: Instrumented org.apache.commons.io.output.AppendableWriter (took 2 ms, size +12%)
+INFO: Instrumented org.apache.commons.io.output.ByteArrayOutputStream (took 4 ms, size +14%)
+INFO: Instrumented org.apache.commons.io.output.AbstractByteArrayOutputStream (took 5 ms, size +15%)
+INFO: Instrumented org.apache.commons.io.output.ThresholdingOutputStream (took 5 ms, size +11%)
+INFO: Instrumented org.apache.commons.io.CloseableURLConnection (took 9 ms, size +11%)
+INFO: Instrumented org.apache.commons.io.output.QueueOutputStream (took 1 ms, size +6%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented org.apache.commons.io.output.NullWriter (took 2 ms, size +8%)
+INFO: Instrumented org.apache.commons.io.output.NullOutputStream (took 1 ms, size +12%)
+INFO: Instrumented org.apache.commons.io.input.CharSequenceReader (took 4 ms, size +18%)
+INFO: Instrumented org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream (took 3 ms, size +10%)
+INFO: Instrumented org.apache.commons.io.StandardLineSeparator (took 1 ms, size +9%)
+INFO: Instrumented org.apache.commons.io.function.IOTriFunction (took 1 ms, size +5%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.PngColorType (took 3 ms, size +16%)
+INFO: Instrumented org.apache.commons.imaging.formats.png.InterlaceMethod (took 1 ms, size +9%)
+INFO: Instrumented org.apache.commons.imaging.common.SimpleBufferedImageFactory (took 1 ms, size +29%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Out of memory (use '-Xmx1710m' to reproduce)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+	at java.desktop/java.awt.image.DataBufferInt.<init>(DataBufferInt.java:75)
+	at java.desktop/java.awt.image.Raster.createPackedRaster(Raster.java:539)
+	at java.desktop/java.awt.image.DirectColorModel.createCompatibleWritableRaster(DirectColorModel.java:1032)
+	at java.desktop/java.awt.image.BufferedImage.<init>(BufferedImage.java:333)
+	at org.apache.commons.imaging.common.SimpleBufferedImageFactory.getColorBufferedImage(SimpleBufferedImageFactory.java:26)
+	at org.apache.commons.imaging.formats.png.PngImageParser.getBufferedImage(PngImageParser.java:280)
+	at ImagingPngFuzzer.fuzzerTestOneInput(ImagingPngFuzzer.java:24)
+	at java.base/java.lang.invoke.LambdaForm$DMH/0x0000000800cbc000.invokeStaticInit(LambdaForm$DMH)
+	at java.base/java.lang.invoke.LambdaForm$MH/0x0000000800cbd000.invoke(LambdaForm$MH)
+	at java.base/java.lang.invoke.LambdaForm$MH/0x0000000800cbc800.invoke_MT(LambdaForm$MH)
+DEDUP_TOKEN: 77c22f4346ef49ec
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_4b6350c4ffbcd2e31a8d7aec9f02c9366b91cb58.java
+

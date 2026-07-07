@@ -1,0 +1,80 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fe33d473db0 at pc 0x55f876516cf2 bp 0x7fff360f89c0 sp 0x7fff360f89b8
+READ of size 8 at 0x7fe33d473db0 thread T0
+SCARINESS: 38 (8-byte-read-stack-buffer-overflow)
+    #0 0x55f876516cf1 in asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1588:18
+    #1 0x55f87650fbfa in asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    #2 0x55f876510b3e in _sc_asn1_decode /src/opensc/src/libopensc/asn1.c:2091:9
+    #3 0x55f8765a7e0c in asn1_decode_des_params /src/opensc/src/libopensc/pkcs15-algo.c:52:6
+    #4 0x55f8765a6152 in sc_asn1_decode_algorithm_id /src/opensc/src/libopensc/pkcs15-algo.c:514:8
+    #5 0x55f8765178ed in asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1659:8
+    #6 0x55f87650fbfa in asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    #7 0x55f87650eaf8 in sc_asn1_decode /src/opensc/src/libopensc/asn1.c:1805:9
+    #8 0x55f8765901df in sc_pkcs15_pubkey_from_spki_fields /src/opensc/src/libopensc/pkcs15-pubkey.c:1352:6
+    #9 0x55f876517adc in asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1667:8
+    #10 0x55f87650fbfa in asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    #11 0x55f876515fc6 in asn1_decode_entry /src/opensc/src/libopensc/asn1.c:1507:8
+    #12 0x55f87650fbfa in asn1_decode /src/opensc/src/libopensc/asn1.c:1783:7
+    #13 0x55f87650eaf8 in sc_asn1_decode /src/opensc/src/libopensc/asn1.c:1805:9
+    #14 0x55f876568413 in parse_x509_cert /src/opensc/src/libopensc/pkcs15-cert.c:102:6
+    #15 0x55f876569ac2 in sc_pkcs15_read_certificate /src/opensc/src/libopensc/pkcs15-cert.c:400:6
+    #16 0x55f876916007 in sc_pkcs15emu_piv_init /src/opensc/src/libopensc/pkcs15-piv.c:791:8
+    #17 0x55f876913f69 in sc_pkcs15emu_piv_init_ex /src/opensc/src/libopensc/pkcs15-piv.c:1257:9
+    #18 0x55f8765ad4af in sc_pkcs15_bind_synthetic /src/opensc/src/libopensc/pkcs15-syn.c:141:8
+    #19 0x55f876552973 in sc_pkcs15_bind /src/opensc/src/libopensc/pkcs15.c:1351:8
+    #20 0x55f876496528 in pkcs15_bind /src/opensc/src/pkcs11/framework-pkcs15.c:335:7
+    #21 0x55f87644fa6c in fuzz_card_connect /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:114:8
+    #22 0x55f876442909 in fuzz_pkcs11_initialize /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:161:6
+    #23 0x55f876447022 in test_init_token /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:260:6
+    #24 0x55f876445e26 in LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs11.c:1082:2
+    #25 0x55f8762f8e70 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #26 0x55f8762e40e5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #27 0x55f8762e9b7f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #28 0x55f876314e22 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #29 0x7fe33dc0b082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #30 0x55f8762dc2cd in _start (/out/fuzz_pkcs11+0x2322cd)
+
+DEDUP_TOKEN: asn1_decode_entry--asn1_decode--_sc_asn1_decode
+Address 0x7fe33d473db0 is located in stack of thread T0 at offset 176 in frame
+    #0 0x55f8765a7bdf in asn1_decode_des_params /src/opensc/src/libopensc/pkcs15-algo.c:45
+
+DEDUP_TOKEN: asn1_decode_des_params
+  This frame has 3 object(s):
+    [32, 112) 'asn1_des_iv' (line 46)
+    [144, 152) 'iv' (line 47)
+    [176, 180) 'ivlen' (line 48) <== Memory access at offset 176 partially overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/opensc/src/libopensc/asn1.c:1588:18 in asn1_decode_entry
+Shadow bytes around the buggy address:
+  0x7fe33d473b00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fe33d473b80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fe33d473c00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fe33d473c80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fe33d473d00: f1 f1 f1 f1 00 00 00 00 00 00 00 00 00 00 f2 f2
+=>0x7fe33d473d80: f2 f2 00 f2 f2 f2[04]f3 00 00 00 00 00 00 00 00
+  0x7fe33d473e00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fe33d473e80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fe33d473f00: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fe33d473f80: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+  0x7fe33d474000: f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

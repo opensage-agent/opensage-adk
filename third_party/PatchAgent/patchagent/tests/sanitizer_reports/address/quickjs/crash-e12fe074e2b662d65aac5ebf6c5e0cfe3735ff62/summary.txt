@@ -1,0 +1,89 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x5070020ccad8 thread T0
+    - find_own_property /src/quickjs/quickjs.c:5243:13
+    - JS_DefineProperty /src/quickjs/quickjs.c:9078:11
+    - JS_DefinePropertyValue /src/quickjs/quickjs.c:9369:11
+    - build_backtrace /src/quickjs/quickjs.c:6612:5
+    - JS_CallInternal /src/quickjs/quickjs.c:18662:9
+    - async_func_resume /src/quickjs/quickjs.c:18959:15
+    - js_async_function_resume /src/quickjs/quickjs.c:19232:16
+    - js_async_function_call /src/quickjs/quickjs.c:19326:5
+    - js_execute_sync_module /src/quickjs/quickjs.c:28913:19
+    - js_inner_module_evaluation /src/quickjs/quickjs.c:29025:13
+    - js_evaluate_module /src/quickjs/quickjs.c:29072:9
+    - JS_EvalFunctionInternal /src/quickjs/quickjs.c:34411:19
+    - JS_EvalFunction /src/quickjs/quickjs.c:34425:12
+    - LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_compile.c:81:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5070020ccad8 is located 24 bytes inside of 72-byte region [0x5070020ccac0,0x5070020ccb08)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - free_zero_refcount /src/quickjs/quickjs.c:5513:9
+    - __JS_FreeValueRT /src/quickjs/quickjs.c:5557:21
+    - __JS_FreeValue /src/quickjs/quickjs.c:5598:5
+    - JS_FreeValue /src/quickjs/quickjs.h:654:13
+    - JS_Throw /src/quickjs/quickjs.c:6390:5
+    - JS_ThrowError2 /src/quickjs/quickjs.c:6655:11
+    - JS_ThrowError /src/quickjs/quickjs.c:6670:12
+    - JS_ThrowInternalError /src/quickjs/quickjs.c:6770:11
+    - JS_ThrowOutOfMemory /src/quickjs/quickjs.c:6780:9
+    - js_alloc_string /src/quickjs/quickjs.c:1915:9
+    - js_new_string8 /src/quickjs/quickjs.c:3492:11
+    - JS_NewStringLen /src/quickjs/quickjs.c:3903:16
+    - JS_NewString /src/quickjs/quickjs.c:3978:12
+    - build_backtrace /src/quickjs/quickjs.c:6610:15
+    - JS_CallInternal /src/quickjs/quickjs.c:18662:9
+    - async_func_resume /src/quickjs/quickjs.c:18959:15
+    - js_async_function_resume /src/quickjs/quickjs.c:19232:16
+    - js_async_function_call /src/quickjs/quickjs.c:19326:5
+    - js_execute_sync_module /src/quickjs/quickjs.c:28913:19
+    - js_inner_module_evaluation /src/quickjs/quickjs.c:29025:13
+    - js_evaluate_module /src/quickjs/quickjs.c:29072:9
+    - JS_EvalFunctionInternal /src/quickjs/quickjs.c:34411:19
+    - JS_EvalFunction /src/quickjs/quickjs.c:34425:12
+    - LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_compile.c:81:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - js_def_malloc /src/quickjs/quickjs.c:1729:11
+    - js_malloc_rt /src/quickjs/quickjs.c:1316:12
+    - js_malloc /src/quickjs/quickjs.c:1354:11
+    - JS_NewObjectFromShape /src/quickjs/quickjs.c:4762:9
+    - JS_NewObjectProtoClass /src/quickjs/quickjs.c:4884:12
+    - JS_ThrowError2 /src/quickjs/quickjs.c:6642:11
+    - JS_ThrowError /src/quickjs/quickjs.c:6670:12
+    - JS_ThrowReferenceError /src/quickjs/quickjs.c:6748:11
+    - JS_ThrowReferenceErrorNotDefined /src/quickjs/quickjs.c:6804:12
+    - JS_GetPropertyInternal /src/quickjs/quickjs.c:7280:16
+    - JS_GetGlobalVar /src/quickjs/quickjs.c:9613:12
+    - JS_CallInternal /src/quickjs/quickjs.c:16884:23
+    - async_func_resume /src/quickjs/quickjs.c:18959:15
+    - js_async_function_resume /src/quickjs/quickjs.c:19232:16
+    - js_async_function_call /src/quickjs/quickjs.c:19326:5
+    - js_execute_sync_module /src/quickjs/quickjs.c:28913:19
+    - js_inner_module_evaluation /src/quickjs/quickjs.c:29025:13
+    - js_evaluate_module /src/quickjs/quickjs.c:29072:9
+    - JS_EvalFunctionInternal /src/quickjs/quickjs.c:34411:19
+    - JS_EvalFunction /src/quickjs/quickjs.c:34425:12
+    - LLVMFuzzerTestOneInput /src/quickjs/fuzz/fuzz_compile.c:81:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

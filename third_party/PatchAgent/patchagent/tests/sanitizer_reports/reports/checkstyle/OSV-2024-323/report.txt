@@ -1,0 +1,2313 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/checkstyle:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/checkstyle/OSV-2024-323/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce CheckstyleFuzzer -runs=100.
++ FUZZER=CheckstyleFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer CheckstyleFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/CheckstyleFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 279 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented CheckstyleFuzzer (took 65 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.api.CheckstyleException (took 4 ms, size +15%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f8bf60e5a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2819247699
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55877d117d40, 0x55877d117f40), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55877d082130,0x55877d084130), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented com.puppycrawl.tools.checkstyle.api.FileContents (took 22 ms, size +23%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.CommentListener (took 0 ms, size +0%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.api.FileText (took 13 ms, size +13%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.utils.CommonUtil (took 24 ms, size +28%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.JavaParser (took 6 ms, size +8%)
+INFO: Instrumented org.antlr.v4.runtime.CharStream (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.IntStream (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.Lexer (took 24 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.TokenSource (took 1 ms, size +0%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.antlr.v4.runtime.Recognizer (took 18 ms, size +16%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageLexer (took 24 ms, size +3%)
+INFO: Instrumented org.antlr.v4.runtime.TokenStream (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.ANTLRErrorStrategy (took 1 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.ANTLRErrorListener (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.tree.ParseTree (took 1 ms, size +10%)
+INFO: Instrumented org.antlr.v4.runtime.tree.SyntaxTree (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.tree.Tree (took 0 ms, size +0%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.api.DetailAST (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.Token (took 0 ms, size +-5%)
+INFO: Instrumented org.antlr.v4.runtime.CharStreams (took 8 ms, size +17%)
+INFO: Instrumented org.antlr.v4.runtime.CodePointBuffer (took 5 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.CodePointBuffer$Builder (took 11 ms, size +20%)
+INFO: Instrumented org.antlr.v4.runtime.CodePointBuffer$Type (took 1 ms, size +10%)
+INFO: Instrumented org.antlr.v4.runtime.CodePointBuffer$1 (took 0 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.CodePointCharStream (took 3 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.CodePointCharStream$CodePoint8BitCharStream (took 2 ms, size +20%)
+INFO: Instrumented org.antlr.v4.runtime.CodePointCharStream$CodePoint16BitCharStream (took 4 ms, size +21%)
+INFO: Instrumented org.antlr.v4.runtime.CodePointCharStream$CodePoint32BitCharStream (took 3 ms, size +21%)
+INFO: Instrumented org.antlr.v4.runtime.CodePointCharStream$1 (took 1 ms, size +12%)
+INFO: Instrumented org.antlr.v4.runtime.LexerNoViableAltException (took 2 ms, size +15%)
+INFO: Instrumented org.antlr.v4.runtime.RecognitionException (took 2 ms, size +7%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNSimulator (took 2 ms, size +6%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerATNSimulator (took 18 ms, size +16%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.CrAwareLexerSimulator (took 1 ms, size +22%)
+INFO: Instrumented org.antlr.v4.runtime.Vocabulary (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.RuntimeMetaData (took 2 ms, size +87%)
+ANTLR Tool version 4.13.1 used for code generation does not match the current runtime version 4.11.1
+ANTLR Runtime version 4.13.1 used for parser compilation does not match the current runtime version 4.11.1
+INFO: Instrumented org.antlr.v4.runtime.atn.PredictionContextCache (took 1 ms, size +29%)
+INFO: Instrumented org.antlr.v4.runtime.atn.PredictionContext (took 13 ms, size +23%)
+INFO: Instrumented org.antlr.v4.runtime.atn.EmptyPredictionContext (took 1 ms, size +8%)
+INFO: Instrumented org.antlr.v4.runtime.atn.SingletonPredictionContext (took 2 ms, size +24%)
+INFO: Instrumented org.antlr.v4.runtime.VocabularyImpl (took 2 ms, size +23%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNDeserializer (took 19 ms, size +18%)
+INFO: Instrumented org.antlr.v4.runtime.atn.Transition (took 2 ms, size +7%)
+INFO: Instrumented org.antlr.v4.runtime.atn.EpsilonTransition (took 2 ms, size +12%)
+INFO: New number of coverage counters: 4096
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNState (took 6 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.atn.BasicBlockStartState (took 1 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.atn.BlockStartState (took 0 ms, size +23%)
+INFO: Instrumented org.antlr.v4.runtime.atn.DecisionState (took 1 ms, size +24%)
+INFO: Instrumented org.antlr.v4.runtime.atn.BlockEndState (took 1 ms, size +21%)
+INFO: Instrumented org.antlr.v4.runtime.atn.RuleStopState (took 1 ms, size +24%)
+INFO: Instrumented org.antlr.v4.runtime.atn.BasicState (took 1 ms, size +25%)
+INFO: Instrumented org.antlr.v4.runtime.atn.AtomTransition (took 2 ms, size +21%)
+INFO: Instrumented org.antlr.v4.runtime.atn.RuleStartState (took 1 ms, size +20%)
+INFO: Instrumented org.antlr.v4.runtime.atn.PlusBlockStartState (took 1 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.atn.StarBlockStartState (took 1 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.atn.TokensStartState (took 1 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.atn.StarLoopbackState (took 1 ms, size +14%)
+INFO: Instrumented org.antlr.v4.runtime.atn.StarLoopEntryState (took 1 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.atn.PlusLoopbackState (took 1 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LoopEndState (took 1 ms, size +21%)
+INFO: Instrumented org.antlr.v4.runtime.atn.RangeTransition (took 2 ms, size +21%)
+INFO: Instrumented org.antlr.v4.runtime.atn.RuleTransition (took 1 ms, size +9%)
+INFO: Instrumented org.antlr.v4.runtime.atn.PredicateTransition (took 1 ms, size +5%)
+INFO: Instrumented org.antlr.v4.runtime.atn.AbstractPredicateTransition (took 0 ms, size +20%)
+INFO: Instrumented org.antlr.v4.runtime.atn.PrecedencePredicateTransition (took 1 ms, size +5%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ActionTransition (took 1 ms, size +9%)
+INFO: Instrumented org.antlr.v4.runtime.atn.SetTransition (took 1 ms, size +8%)
+INFO: Instrumented org.antlr.v4.runtime.atn.NotSetTransition (took 1 ms, size +24%)
+INFO: Instrumented org.antlr.v4.runtime.atn.WildcardTransition (took 1 ms, size +33%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerAction (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNDeserializationOptions (took 2 ms, size +17%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNType (took 1 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATN (took 2 ms, size +12%)
+INFO: Instrumented org.antlr.v4.runtime.misc.IntSet (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.misc.Pair (took 1 ms, size +19%)
+INFO: Instrumented org.antlr.v4.runtime.misc.IntervalSet (took 12 ms, size +23%)
+INFO: Instrumented org.antlr.v4.runtime.misc.Interval (took 4 ms, size +30%)
+INFO: Instrumented org.antlr.v4.runtime.atn.Transition$1 (took 1 ms, size +12%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerActionType (took 2 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNDeserializer$1 (took 1 ms, size +16%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerCustomAction (took 2 ms, size +21%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerPushModeAction (took 2 ms, size +18%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerSkipAction (took 1 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerChannelAction (took 1 ms, size +18%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerPopModeAction (took 1 ms, size +10%)
+INFO: Instrumented org.antlr.v4.runtime.dfa.DFA (took 3 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.dfa.DFASerializer (took 2 ms, size +15%)
+INFO: Instrumented org.antlr.v4.runtime.dfa.LexerDFASerializer (took 0 ms, size +12%)
+INFO: Instrumented org.antlr.v4.runtime.Recognizer$1 (took 0 ms, size +12%)
+INFO: Instrumented org.antlr.v4.runtime.ConsoleErrorListener (took 0 ms, size +7%)
+INFO: Instrumented org.antlr.v4.runtime.BaseErrorListener (took 1 ms, size +6%)
+INFO: Instrumented org.antlr.v4.runtime.CommonTokenFactory (took 1 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.TokenFactory (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.misc.IntegerStack (took 1 ms, size +12%)
+INFO: Instrumented org.antlr.v4.runtime.misc.IntegerList (took 6 ms, size +23%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNConfig (took 4 ms, size +24%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerATNConfig (took 2 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNConfigSet (took 7 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.atn.OrderedATNConfigSet (took 0 ms, size +15%)
+INFO: Instrumented org.antlr.v4.runtime.dfa.DFAState (took 1 ms, size +14%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNConfigSet$AbstractConfigHashSet (took 1 ms, size +12%)
+INFO: Instrumented org.antlr.v4.runtime.misc.Array2DHashSet (took 10 ms, size +17%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNConfigSet$ConfigHashSet (took 0 ms, size +12%)
+INFO: Instrumented org.antlr.v4.runtime.misc.AbstractEqualityComparator (took 0 ms, size +15%)
+INFO: Instrumented org.antlr.v4.runtime.misc.EqualityComparator (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.misc.ObjectEqualityComparator (took 1 ms, size +47%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ATNConfigSet$ConfigEqualityComparator (took 1 ms, size +40%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerATNSimulator$SimState (took 0 ms, size +14%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.CompositeLexerContextCache (took 1 ms, size +16%)
+INFO: Instrumented org.antlr.v4.runtime.CommonTokenStream (took 1 ms, size +32%)
+INFO: Instrumented org.antlr.v4.runtime.BufferedTokenStream (took 8 ms, size +22%)
+INFO: New number of coverage counters: 8192
+INFO: New number of coverage counters: 16384
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser (took 90 ms, size +16%)
+INFO: Instrumented org.antlr.v4.runtime.Parser (took 14 ms, size +14%)
+INFO: Instrumented org.antlr.v4.runtime.RuleContext (took 5 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.tree.RuleNode (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.ParserRuleContext (took 7 ms, size +15%)
+INFO: Instrumented org.antlr.v4.runtime.tree.ParseTreeListener (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.tree.ErrorNode (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.tree.TerminalNode (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ProfilingATNSimulator (took 4 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ParserATNSimulator (took 17 ms, size +20%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AnnotationsContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$EnumConstantsContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AnnotationContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$IdContext (took 2 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ResourcesContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$DefaultValueContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PrimitiveTypeContext (took 2 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypesContext (took 1 ms, size +7%)
+INFO: Instrumented org.antlr.v4.runtime.NoViableAltException (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BlockContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$GuardContext (took 1 ms, size +14%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LiteralContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExprContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PrimaryExpContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SimpleMethodCallContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PrefixContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$MethodRefContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CastExpContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LambdaExpContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext (took 5 ms, size +9%)
+INFO: Instrumented org.antlr.v4.runtime.FailedPredicateException (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BitShiftContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TernaryOpContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TemplateExpContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$RefOpContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$MethodCallContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ThisExpContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InitExpContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SuperExpContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InvOpContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$IndexOpContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PostfixContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InstanceOfExpContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PatternContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LastRecordComponentContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CatchTypeContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeListContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ResourceContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext (took 18 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$RecordComponentContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$RecordComponentsContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TemplateContext (took 1 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CompilationUnitContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PackageDeclarationContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ImportDeclarationContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ImportDecContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SingleSemiImportContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeDeclarationContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ModifierContext (took 4 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$VariableModifierContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassDeclarationContext (took 2 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$RecordDeclarationContext (took 3 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$RecordComponentsListContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$RecordBodyContext (took 2 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$RecordBodyDeclarationContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CompactConstructorDeclarationContext (took 2 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassExtendsContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ImplementsClauseContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeUpperBoundsContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeBoundContext (took 2 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeBoundTypeContext (took 2 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$EnumDeclarationContext (took 2 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$EnumBodyContext (took 2 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$EnumBodyDeclarationsContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InterfaceDeclarationContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InterfaceExtendsContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassBodyContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InterfaceBodyContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassBodyDeclarationContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$EmptyClassContext (took 0 ms, size +13%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassBlockContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassDefContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$MemberDeclarationContext (took 2 ms, size +6%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$MethodDeclarationContext (took 2 ms, size +6%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$MethodBodyContext (took 1 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ThrowsListContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ConstructorDeclarationContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$FieldDeclarationContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InterfaceBodyDeclarationContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InterfaceMemberDeclarationContext (took 2 ms, size +6%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InterfaceMethodDeclarationContext (took 2 ms, size +6%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$VariableDeclaratorsContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$VariableDeclaratorContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$VariableDeclaratorIdContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$VariableInitializerContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArrayInitializerContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassOrInterfaceTypeContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassOrInterfaceTypeExtendedContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$QualifiedNameListContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$FormalParametersContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$FormalParameterListContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$FormalParameterContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeTypeContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LastFormalParameterContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$QualifiedNameContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$QualifiedNameExtendedContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$IntegerLiteralContext (took 1 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$FloatLiteralContext (took 1 ms, size +13%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TextBlockLiteralContext (took 1 ms, size +13%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ElementValuePairsContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ElementValuePairContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ElementValueContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ElementValueArrayInitializerContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AnnotationTypeDeclarationContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AnnotationTypeBodyContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AnnotationTypeElementDeclarationContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AnnotationTypeElementRestContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AnnotationFieldContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AnnotationTypeContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AnnotationMethodRestContext (took 1 ms, size +6%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AnnotationConstantRestContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ConstructorBlockContext (took 3 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExplicitConstructorInvocationContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExplicitCtorCallContext (took 2 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PrimaryCtorCallContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BlockStatementContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LocalVarContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$StatContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LocalTypeContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LocalVariableDeclarationContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LocalTypeDeclarationContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$StatementContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BlockStatContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$AssertExpContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$IfStatContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ForStatContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$WhileStatContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$DoStatContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TryStatContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TryWithResourceStatContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$YieldStatContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchStatContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SyncStatContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ReturnStatContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ThrowStatContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BreakStatContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ContinueStatContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$EmptyStatContext (took 0 ms, size +13%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpStatContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LabelStatContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchExpressionOrStatementContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchBlockContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchRulesContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchBlocksContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchLabeledRuleContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchLabeledExpressionContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchLabeledBlockContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchLabeledThrowContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ElseStatContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CatchClauseContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CatchParameterContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$FinallyBlockContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ResourceSpecificationContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ResourceDeclarationContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$VariableAccessContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$FieldAccessNoIdentContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchBlockStatementGroupContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchLabelContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CaseLabelContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$DefaultLabelContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CaseConstantsContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CaseConstantContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ForControlContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$EnhancedForContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ForForContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ForInitContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$EnhancedForControlContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$EnhancedForControlWithRecordPatternContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ParExpressionContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeCastParametersContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LambdaParametersContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SingleLambdaParamContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$FormalLambdaParamContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$MultiLambdaParamContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$MultiLambdaParamsContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PrimaryContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SwitchPrimaryContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ParenPrimaryContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TokenPrimaryContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$LiteralPrimaryContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassRefPrimaryContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PrimitivePrimaryContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TemplateArgumentContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$StringTemplateContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$StringTemplateMiddleContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$StringTemplateBeginContext (took 1 ms, size +13%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$StringTemplateMidContext (took 1 ms, size +13%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$StringTemplateEndContext (took 1 ms, size +13%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatedNameContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatedNameObjectContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatedNamePrimitiveContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatedNameExtendedContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InnerCreatorContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArrayCreatorRestContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BracketsWithExpContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeArgumentsOrDiamondContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$DiamondContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeArgsContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NonWildcardTypeArgumentsOrDiamondContext (took 0 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NonWildcardDiamondContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NonWildcardTypeArgsContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NonWildcardTypeArgumentsContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeArgumentsTypeListContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassOrInterfaceOrPrimitiveTypeContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArrayDeclaratorContext (took 1 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SuperSuffixContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SuperSuffixSimpleContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SuperSuffixDotContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$InnerPatternContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$GuardedPatternContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PrimaryPatternContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PatternVariableDefContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ParenPatternContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$RecordPatternDefContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypePatternContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypePatternDefContext (took 1 ms, size +8%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$UnnamedPatternDefContext (took 0 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$RecordPatternContext (took 1 ms, size +7%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$RecordComponentPatternListContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$PermittedSubclassesAndInterfacesContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeParameterContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassTypeContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeArgumentsContext (took 1 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeArgumentContext (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$SimpleTypeArgumentContext (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$WildCardTypeArgumentContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$EnumConstantContext (took 1 ms, size +9%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$TypeParametersContext (took 1 ms, size +10%)
+ANTLR Tool version 4.13.1 used for code generation does not match the current runtime version 4.11.1
+ANTLR Runtime version 4.13.1 used for parser compilation does not match the current runtime version 4.11.1
+INFO: Instrumented org.antlr.v4.runtime.DefaultErrorStrategy (took 6 ms, size +16%)
+INFO: Instrumented org.antlr.v4.runtime.InputMismatchException (took 0 ms, size +10%)
+INFO: Instrumented org.antlr.v4.runtime.atn.SemanticContext (took 1 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.atn.SemanticContext$PrecedencePredicate (took 2 ms, size +12%)
+INFO: Instrumented org.antlr.v4.runtime.atn.SemanticContext$Predicate (took 1 ms, size +20%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ParserATNSimulator$1 (took 0 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.atn.PredictionMode (took 5 ms, size +19%)
+INFO: Instrumented org.antlr.v4.runtime.atn.SemanticContext$Empty (took 0 ms, size +11%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.CheckstyleParserErrorStrategy (took 0 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.BailErrorStrategy (took 1 ms, size +10%)
+INFO: Instrumented org.antlr.v4.runtime.misc.ParseCancellationException (took 1 ms, size +14%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.JavaParser$CheckstyleErrorListener (took 1 ms, size +6%)
+INFO: Instrumented org.antlr.v4.runtime.atn.ArrayPredictionContext (took 3 ms, size +25%)
+INFO: Instrumented org.antlr.v4.runtime.misc.MurmurHash (took 2 ms, size +17%)
+INFO: Instrumented org.antlr.v4.runtime.atn.OrderedATNConfigSet$LexerConfigHashSet (took 0 ms, size +12%)
+INFO: Instrumented org.antlr.v4.runtime.atn.SemanticContext$OR (took 2 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.atn.SemanticContext$Operator (took 0 ms, size +17%)
+INFO: Instrumented org.antlr.v4.runtime.atn.SemanticContext$AND (took 2 ms, size +13%)
+INFO: Instrumented org.antlr.v4.runtime.CommonToken (took 6 ms, size +18%)
+INFO: Instrumented org.antlr.v4.runtime.WritableToken (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.misc.DoubleKeyMap (took 2 ms, size +30%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerActionExecutor (took 1 ms, size +21%)
+INFO: Instrumented org.antlr.v4.runtime.atn.LexerIndexedCustomAction (took 1 ms, size +41%)
+INFO: Instrumented org.antlr.v4.runtime.tree.TerminalNodeImpl (took 3 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.atn.PredictionMode$AltAndContextMap (took 0 ms, size +11%)
+INFO: Instrumented org.antlr.v4.runtime.misc.FlexibleHashMap (took 5 ms, size +15%)
+INFO: Instrumented org.antlr.v4.runtime.atn.PredictionMode$AltAndContextConfigEqualityComparator (took 1 ms, size +19%)
+INFO: Instrumented org.antlr.v4.runtime.misc.FlexibleHashMap$Entry (took 1 ms, size +9%)
+INFO: Instrumented org.antlr.v4.runtime.ProxyErrorListener (took 1 ms, size +12%)
+line 1:18 token recognition error at: ''
+line 1:27 token recognition error at: ''
+line 1:36 token recognition error at: ''
+line 1:45 token recognition error at: ''
+line 1:54 token recognition error at: ''
+line 1:63 token recognition error at: ''
+line 1:72 token recognition error at: ''
+line 1:81 token recognition error at: ''
+line 1:90 token recognition error at: ''
+line 1:99 token recognition error at: ''
+line 1:108 token recognition error at: ''
+line 1:117 token recognition error at: ''
+line 1:126 token recognition error at: ''
+line 1:135 token recognition error at: ''
+line 1:144 token recognition error at: ''
+line 1:153 token recognition error at: ''
+line 1:162 token recognition error at: ''
+line 1:171 token recognition error at: ''
+line 1:180 token recognition error at: ''
+line 1:189 token recognition error at: ''
+line 1:198 token recognition error at: ''
+line 1:207 token recognition error at: ''
+line 1:216 token recognition error at: ''
+line 1:225 token recognition error at: ''
+line 1:234 token recognition error at: ''
+line 1:243 token recognition error at: ''
+line 1:252 token recognition error at: ''
+line 1:261 token recognition error at: ''
+line 1:270 token recognition error at: ''
+line 1:279 token recognition error at: ''
+line 1:288 token recognition error at: ''
+line 1:297 token recognition error at: ''
+line 1:306 token recognition error at: ''
+line 1:315 token recognition error at: ''
+line 1:324 token recognition error at: ''
+line 1:333 token recognition error at: ''
+line 1:342 token recognition error at: ''
+line 1:351 token recognition error at: ''
+line 1:360 token recognition error at: ''
+line 1:369 token recognition error at: ''
+line 1:378 token recognition error at: ''
+line 1:387 token recognition error at: ''
+line 1:396 token recognition error at: ''
+line 1:405 token recognition error at: ''
+line 1:414 token recognition error at: ''
+line 1:423 token recognition error at: ''
+line 1:432 token recognition error at: ''
+line 1:441 token recognition error at: ''
+line 1:450 token recognition error at: ''
+line 1:459 token recognition error at: ''
+line 1:468 token recognition error at: ''
+line 1:477 token recognition error at: ''
+line 1:486 token recognition error at: ''
+line 1:495 token recognition error at: ''
+line 1:504 token recognition error at: ''
+line 1:513 token recognition error at: ''
+line 1:522 token recognition error at: ''
+line 1:531 token recognition error at: ''
+line 1:540 token recognition error at: ''
+line 1:549 token recognition error at: ''
+line 1:558 token recognition error at: ''
+line 1:567 token recognition error at: ''
+line 1:576 token recognition error at: ''
+line 1:585 token recognition error at: ''
+line 1:594 token recognition error at: ''
+line 1:603 token recognition error at: ''
+line 1:612 token recognition error at: ''
+line 1:621 token recognition error at: ''
+line 1:630 token recognition error at: ''
+line 1:639 token recognition error at: ''
+line 1:648 token recognition error at: ''
+line 1:657 token recognition error at: ''
+line 1:666 token recognition error at: ''
+line 1:675 token recognition error at: ''
+line 1:684 token recognition error at: ''
+line 1:693 token recognition error at: ''
+line 1:702 token recognition error at: ''
+line 1:711 token recognition error at: ''
+line 1:720 token recognition error at: ''
+line 1:729 token recognition error at: ''
+line 1:738 token recognition error at: ''
+line 1:747 token recognition error at: ''
+line 1:756 token recognition error at: ''
+line 1:765 token recognition error at: ''
+line 1:774 token recognition error at: ''
+line 1:783 token recognition error at: ''
+line 1:792 token recognition error at: ''
+line 1:801 token recognition error at: ''
+line 1:810 token recognition error at: ''
+line 1:819 token recognition error at: ''
+line 1:828 token recognition error at: ''
+line 1:837 token recognition error at: ''
+line 1:846 token recognition error at: ''
+line 1:855 token recognition error at: ''
+line 1:864 token recognition error at: ''
+line 1:873 token recognition error at: ''
+line 1:882 token recognition error at: ''
+line 1:891 token recognition error at: ''
+line 1:900 token recognition error at: ''
+line 1:909 token recognition error at: ''
+line 1:918 token recognition error at: ''
+line 1:927 token recognition error at: ''
+line 1:936 token recognition error at: ''
+line 1:945 token recognition error at: ''
+line 1:954 token recognition error at: ''
+line 1:963 token recognition error at: ''
+line 1:972 token recognition error at: ''
+line 1:981 token recognition error at: ''
+line 1:990 token recognition error at: ''
+line 1:999 token recognition error at: ''
+line 1:1008 token recognition error at: ''
+line 1:1017 token recognition error at: ''
+line 1:1026 token recognition error at: ''
+line 1:1035 token recognition error at: ''
+line 1:1044 token recognition error at: ''
+line 1:1053 token recognition error at: ''
+line 1:1062 token recognition error at: ''
+line 1:1071 token recognition error at: ''
+line 1:1080 token recognition error at: ''
+line 1:1089 token recognition error at: ''
+line 1:1098 token recognition error at: ''
+line 1:1107 token recognition error at: ''
+line 1:1116 token recognition error at: ''
+line 1:1125 token recognition error at: ''
+line 1:1134 token recognition error at: ''
+line 1:1143 token recognition error at: ''
+line 1:1152 token recognition error at: ''
+line 1:1161 token recognition error at: ''
+line 1:1170 token recognition error at: ''
+line 1:1179 token recognition error at: ''
+line 1:1188 token recognition error at: ''
+line 1:1197 token recognition error at: ''
+line 1:1206 token recognition error at: ''
+line 1:1215 token recognition error at: ''
+line 1:1224 token recognition error at: ''
+line 1:1233 token recognition error at: ''
+line 1:1242 token recognition error at: ''
+line 1:1251 token recognition error at: ''
+line 1:1260 token recognition error at: ''
+line 1:1268 token recognition error at: ' '
+line 1:1272 token recognition error at: ''
+line 1:1283 token recognition error at: ' '
+line 1:1287 token recognition error at: ''
+line 1:1298 token recognition error at: ' '
+line 1:1302 token recognition error at: ''
+line 1:1313 token recognition error at: ' '
+line 1:1317 token recognition error at: ''
+line 1:1328 token recognition error at: ' '
+line 1:1332 token recognition error at: ''
+line 1:1343 token recognition error at: ' '
+line 1:1347 token recognition error at: ''
+line 1:1358 token recognition error at: ' '
+line 1:1362 token recognition error at: ''
+line 1:1373 token recognition error at: ' '
+line 1:1377 token recognition error at: ''
+line 1:1388 token recognition error at: ' '
+line 1:1392 token recognition error at: ''
+line 1:1403 token recognition error at: ' '
+line 1:1407 token recognition error at: ''
+line 1:1418 token recognition error at: ' '
+line 1:1422 token recognition error at: ''
+line 1:1433 token recognition error at: ' '
+line 1:1437 token recognition error at: ''
+line 1:1448 token recognition error at: ' '
+line 1:1452 token recognition error at: ''
+line 1:1463 token recognition error at: ' '
+line 1:1467 token recognition error at: ''
+line 1:1478 token recognition error at: ' '
+line 1:1482 token recognition error at: ''
+line 1:1493 token recognition error at: ' '
+line 1:1497 token recognition error at: ''
+line 1:1508 token recognition error at: ' '
+line 1:1512 token recognition error at: ''
+line 1:1523 token recognition error at: ' '
+line 1:1527 token recognition error at: ''
+line 1:1538 token recognition error at: ' '
+line 1:1542 token recognition error at: ''
+line 1:1553 token recognition error at: ' '
+line 1:1557 token recognition error at: ''
+line 1:1568 token recognition error at: ' '
+line 1:1572 token recognition error at: ''
+line 1:1583 token recognition error at: ' '
+line 1:1587 token recognition error at: ''
+line 1:1598 token recognition error at: ' '
+line 1:1602 token recognition error at: ''
+line 1:1613 token recognition error at: ' '
+line 1:1617 token recognition error at: ''
+line 1:1628 token recognition error at: ' '
+line 1:1632 token recognition error at: ''
+line 1:1643 token recognition error at: ' '
+line 1:1647 token recognition error at: ''
+line 1:1658 token recognition error at: ' '
+line 1:1662 token recognition error at: ''
+line 1:1673 token recognition error at: ' '
+line 1:1677 token recognition error at: ''
+line 1:1688 token recognition error at: ' '
+line 1:1692 token recognition error at: ''
+line 1:1703 token recognition error at: ' '
+line 1:1707 token recognition error at: ''
+line 1:1718 token recognition error at: ' '
+line 1:1722 token recognition error at: ''
+line 1:1733 token recognition error at: ' '
+line 1:1737 token recognition error at: ''
+line 1:1748 token recognition error at: ' '
+line 1:1752 token recognition error at: ''
+line 1:1763 token recognition error at: ' '
+line 1:1767 token recognition error at: ''
+line 1:1778 token recognition error at: ' '
+line 1:1782 token recognition error at: ''
+line 1:1793 token recognition error at: ' '
+line 1:1797 token recognition error at: ''
+line 1:1808 token recognition error at: ' '
+line 1:1812 token recognition error at: ''
+line 1:1823 token recognition error at: ' '
+line 1:1827 token recognition error at: ''
+line 1:1838 token recognition error at: ' '
+line 1:1842 token recognition error at: ''
+line 1:1853 token recognition error at: ' '
+line 1:1857 token recognition error at: ''
+line 1:1868 token recognition error at: ' '
+line 1:1872 token recognition error at: ''
+line 1:1883 token recognition error at: ' '
+line 1:1887 token recognition error at: ''
+line 1:1898 token recognition error at: ' '
+line 1:1902 token recognition error at: ''
+line 1:1913 token recognition error at: ' '
+line 1:1917 token recognition error at: ''
+line 1:1928 token recognition error at: ' '
+line 1:1932 token recognition error at: ''
+line 1:1943 token recognition error at: ' '
+line 1:1947 token recognition error at: ''
+line 1:1958 token recognition error at: ' '
+line 1:1962 token recognition error at: ''
+line 1:1973 token recognition error at: ' '
+line 1:1977 token recognition error at: ''
+line 1:1988 token recognition error at: ' '
+line 1:1992 token recognition error at: ''
+line 1:2003 token recognition error at: ' '
+line 1:2007 token recognition error at: ''
+line 1:2018 token recognition error at: ' '
+line 1:2022 token recognition error at: ''
+line 1:2033 token recognition error at: ' '
+line 1:2037 token recognition error at: ''
+line 1:2048 token recognition error at: ' '
+line 1:2052 token recognition error at: ''
+line 1:2063 token recognition error at: ' '
+line 1:2067 token recognition error at: ''
+line 1:2078 token recognition error at: ' '
+line 1:2082 token recognition error at: ''
+line 1:2093 token recognition error at: ' '
+line 1:2097 token recognition error at: ''
+line 1:2108 token recognition error at: ' '
+line 1:2112 token recognition error at: ''
+line 1:2123 token recognition error at: ' '
+line 1:2127 token recognition error at: ''
+line 1:2138 token recognition error at: ' '
+line 1:2142 token recognition error at: ''
+line 1:2153 token recognition error at: ' '
+line 1:2157 token recognition error at: ''
+line 1:2168 token recognition error at: ' '
+line 1:2172 token recognition error at: ''
+line 1:2183 token recognition error at: ' '
+line 1:2187 token recognition error at: ''
+line 1:2198 token recognition error at: ' '
+line 1:2202 token recognition error at: ''
+line 1:2213 token recognition error at: ' '
+line 1:2217 token recognition error at: ''
+line 1:2228 token recognition error at: ' '
+line 1:2232 token recognition error at: ''
+line 1:2243 token recognition error at: ' '
+line 1:2247 token recognition error at: ''
+line 1:2258 token recognition error at: ' '
+line 1:2262 token recognition error at: ''
+line 1:2273 token recognition error at: ' '
+line 1:2277 token recognition error at: ''
+line 1:2288 token recognition error at: ' '
+line 1:2292 token recognition error at: ''
+line 1:2303 token recognition error at: ' '
+line 1:2307 token recognition error at: ''
+line 1:2318 token recognition error at: ' '
+line 1:2322 token recognition error at: ''
+line 1:2333 token recognition error at: ' '
+line 1:2337 token recognition error at: ''
+line 1:2348 token recognition error at: ' '
+line 1:2352 token recognition error at: ''
+line 1:2363 token recognition error at: ' '
+line 1:2367 token recognition error at: ''
+line 1:2378 token recognition error at: ' '
+line 1:2382 token recognition error at: ''
+line 1:2393 token recognition error at: ' '
+line 1:2397 token recognition error at: ''
+line 1:2408 token recognition error at: ' '
+line 1:2412 token recognition error at: ''
+line 1:2423 token recognition error at: ' '
+line 1:2427 token recognition error at: ''
+line 1:2438 token recognition error at: ' '
+line 1:2442 token recognition error at: ''
+line 1:2453 token recognition error at: ' '
+line 1:2457 token recognition error at: ''
+line 1:2468 token recognition error at: ' '
+line 1:2472 token recognition error at: ''
+line 1:2483 token recognition error at: ' '
+line 1:2487 token recognition error at: ''
+line 1:2498 token recognition error at: ' '
+line 1:2502 token recognition error at: ''
+line 1:2513 token recognition error at: ' '
+line 1:2517 token recognition error at: ''
+line 1:2528 token recognition error at: ' '
+line 1:2532 token recognition error at: ''
+line 1:2543 token recognition error at: ' '
+line 1:2547 token recognition error at: ''
+line 1:2558 token recognition error at: ' '
+line 1:2562 token recognition error at: ''
+line 1:2573 token recognition error at: ' '
+line 1:2577 token recognition error at: ''
+line 1:2588 token recognition error at: ' '
+line 1:2592 token recognition error at: ''
+line 1:2603 token recognition error at: ' '
+line 1:2607 token recognition error at: ''
+line 1:2618 token recognition error at: ' '
+line 1:2622 token recognition error at: ''
+line 1:2633 token recognition error at: ' '
+line 1:2637 token recognition error at: ''
+line 1:2647 token recognition error at: ' '
+line 1:2651 token recognition error at: ''
+line 1:2662 token recognition error at: ' '
+line 1:2666 token recognition error at: ''
+line 1:2677 token recognition error at: ' '
+line 1:2681 token recognition error at: ''
+line 1:2692 token recognition error at: ' '
+line 1:2696 token recognition error at: ''
+line 1:2707 token recognition error at: ' '
+line 1:2711 token recognition error at: ''
+line 1:2722 token recognition error at: ' '
+line 1:2726 token recognition error at: ''
+line 1:2737 token recognition error at: ' '
+line 1:2741 token recognition error at: ''
+line 1:2752 token recognition error at: ' '
+line 1:2756 token recognition error at: ''
+line 1:2767 token recognition error at: ' '
+line 1:2771 token recognition error at: ''
+line 1:2782 token recognition error at: ' '
+line 1:2786 token recognition error at: ''
+line 1:2797 token recognition error at: ' '
+line 1:2801 token recognition error at: ''
+line 1:2812 token recognition error at: ' '
+line 1:2816 token recognition error at: ''
+line 1:2827 token recognition error at: ' '
+line 1:2831 token recognition error at: ''
+line 1:2842 token recognition error at: ' '
+line 1:2846 token recognition error at: ''
+line 1:2857 token recognition error at: ' '
+line 1:2861 token recognition error at: ''
+line 1:2872 token recognition error at: ' '
+line 1:2876 token recognition error at: ''
+line 1:2887 token recognition error at: ' '
+line 1:2891 token recognition error at: ''
+line 1:2902 token recognition error at: ' '
+line 1:2906 token recognition error at: ''
+line 1:2917 token recognition error at: ' '
+line 1:2921 token recognition error at: ''
+line 1:2932 token recognition error at: ' '
+line 1:2936 token recognition error at: ''
+line 1:2947 token recognition error at: ' '
+line 1:2951 token recognition error at: ''
+line 1:2962 token recognition error at: ' '
+line 1:2966 token recognition error at: ''
+line 1:2977 token recognition error at: ' '
+line 1:2981 token recognition error at: ''
+line 1:2992 token recognition error at: ' '
+line 1:2996 token recognition error at: ''
+line 1:3007 token recognition error at: ' '
+line 1:3011 token recognition error at: ''
+line 1:3022 token recognition error at: ' '
+line 1:3026 token recognition error at: ''
+line 1:3037 token recognition error at: ' '
+line 1:3041 token recognition error at: ''
+line 1:3052 token recognition error at: ' '
+line 1:3056 token recognition error at: ''
+line 1:3067 token recognition error at: ' '
+line 1:3071 token recognition error at: ''
+line 1:3082 token recognition error at: ' '
+line 1:3086 token recognition error at: ''
+line 1:3097 token recognition error at: ' '
+line 1:3101 token recognition error at: ''
+line 1:3112 token recognition error at: ' '
+line 1:3116 token recognition error at: ''
+line 1:3127 token recognition error at: ' '
+line 1:3131 token recognition error at: ''
+line 1:3142 token recognition error at: ' '
+line 1:3146 token recognition error at: ''
+line 1:3157 token recognition error at: ' '
+line 1:3161 token recognition error at: ''
+line 1:3172 token recognition error at: ' '
+line 1:3176 token recognition error at: ''
+line 1:3187 token recognition error at: ' '
+line 1:3191 token recognition error at: ''
+line 1:3202 token recognition error at: ' '
+line 1:3206 token recognition error at: ''
+line 1:3217 token recognition error at: ' '
+line 1:3221 token recognition error at: ''
+line 1:3232 token recognition error at: ' '
+line 1:3236 token recognition error at: ''
+line 1:3247 token recognition error at: ' '
+line 1:3251 token recognition error at: ''
+line 1:3262 token recognition error at: ' '
+line 1:3266 token recognition error at: ''
+line 1:3277 token recognition error at: ' '
+line 1:3281 token recognition error at: ''
+line 1:3292 token recognition error at: ' '
+line 1:3296 token recognition error at: ''
+line 1:3307 token recognition error at: ' '
+line 1:3311 token recognition error at: ''
+line 1:3322 token recognition error at: ' '
+line 1:3326 token recognition error at: ''
+line 1:3337 token recognition error at: ' '
+line 1:3341 token recognition error at: ''
+INFO: Instrumented org.antlr.v4.runtime.dfa.DFAState$PredPrediction (took 0 ms, size +10%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.JavaAstVisitor (took 79 ms, size +5%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParserBaseVisitor (took 30 ms, size +1%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParserVisitor (took 1 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.tree.ParseTreeVisitor (took 0 ms, size +0%)
+INFO: Instrumented org.antlr.v4.runtime.tree.AbstractParseTreeVisitor (took 1 ms, size +12%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.DetailAstImpl (took 6 ms, size +17%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.utils.TokenUtil (took 4 ms, size +16%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.api.TokenTypes (took 0 ms, size +0%)
+INFO: Instrumented com.puppycrawl.tools.checkstyle.JavaAstVisitor$DetailAstPair (took 1 ms, size +12%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+Caused by: java.lang.StackOverflowError
+	at java.base/java.lang.StringUTF16.compress(StringUTF16.java:162)
+	at java.base/java.lang.String.<init>(String.java:4496)
+	at java.base/java.lang.String.<init>(String.java:300)
+	at org.antlr.v4.runtime.CodePointCharStream$CodePoint16BitCharStream.getText(CodePointCharStream.java:215)
+	at org.antlr.v4.runtime.CommonToken.getText(CommonToken.java:170)
+	at com.puppycrawl.tools.checkstyle.DetailAstImpl.initialize(DetailAstImpl.java:104)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.create(JavaAstVisitor.java:2318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.create(JavaAstVisitor.java:2336)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2096)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.getInnerBopAst(JavaAstVisitor.java:1631)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:960)
+	at java.base/java.util.stream.ReduceOps$ReduceTask.doLeaf(ReduceOps.java:934)
+	at java.base/java.util.stream.AbstractTask.compute(AbstractTask.java:327)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:686)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateParallel(ReduceOps.java:927)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:1604)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitBinOp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$BinOpContext.accept(JavaLanguageParser.java:9265)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.buildExpressionNode(JavaAstVisitor.java:2400)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:1324)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpression(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionContext.accept(JavaLanguageParser.java:8856)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:1318)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitExpressionList(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ExpressionListContext.accept(JavaLanguageParser.java:8802)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:2099)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitArguments(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ArgumentsContext.accept(JavaLanguageParser.java:12349)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:1959)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitClassCreatorRest(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$ClassCreatorRestContext.accept(JavaLanguageParser.java:11564)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.flattenedTree(JavaAstVisitor.java:2216)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:1890)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitCreator(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$CreatorContext.accept(JavaLanguageParser.java:10994)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.lambda$processChildren$31(JavaAstVisitor.java:2235)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.processChildren(JavaAstVisitor.java:2228)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:1406)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visitNewExp(JavaAstVisitor.java:96)
+	at com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser$NewExpContext.accept(JavaLanguageParser.java:8984)
+	at com.puppycrawl.tools.checkstyle.JavaAstVisitor.visit(JavaAstVisitor.java:2387)
+	... 20 more
+DEDUP_TOKEN: 5fdcfbef674f0620
+== libFuzzer crashing input ==
+line 1:18 token recognition error at: ''
+line 1:27 token recognition error at: ''
+line 1:36 token recognition error at: ''
+line 1:45 token recognition error at: ''
+line 1:54 token recognition error at: ''
+line 1:63 token recognition error at: ''
+line 1:72 token recognition error at: ''
+line 1:81 token recognition error at: ''
+line 1:90 token recognition error at: ''
+line 1:99 token recognition error at: ''
+line 1:108 token recognition error at: ''
+line 1:117 token recognition error at: ''
+line 1:126 token recognition error at: ''
+line 1:135 token recognition error at: ''
+line 1:144 token recognition error at: ''
+line 1:153 token recognition error at: ''
+line 1:162 token recognition error at: ''
+line 1:171 token recognition error at: ''
+line 1:180 token recognition error at: ''
+line 1:189 token recognition error at: ''
+line 1:198 token recognition error at: ''
+line 1:207 token recognition error at: ''
+line 1:216 token recognition error at: ''
+line 1:225 token recognition error at: ''
+line 1:234 token recognition error at: ''
+line 1:243 token recognition error at: ''
+line 1:252 token recognition error at: ''
+line 1:261 token recognition error at: ''
+line 1:270 token recognition error at: ''
+line 1:279 token recognition error at: ''
+line 1:288 token recognition error at: ''
+line 1:297 token recognition error at: ''
+line 1:306 token recognition error at: ''
+line 1:315 token recognition error at: ''
+line 1:324 token recognition error at: ''
+line 1:333 token recognition error at: ''
+line 1:342 token recognition error at: ''
+line 1:351 token recognition error at: ''
+line 1:360 token recognition error at: ''
+line 1:369 token recognition error at: ''
+line 1:378 token recognition error at: ''
+line 1:387 token recognition error at: ''
+line 1:396 token recognition error at: ''
+line 1:405 token recognition error at: ''
+line 1:414 token recognition error at: ''
+line 1:423 token recognition error at: ''
+line 1:432 token recognition error at: ''
+line 1:441 token recognition error at: ''
+line 1:450 token recognition error at: ''
+line 1:459 token recognition error at: ''
+line 1:468 token recognition error at: ''
+line 1:477 token recognition error at: ''
+line 1:486 token recognition error at: ''
+line 1:495 token recognition error at: ''
+line 1:504 token recognition error at: ''
+line 1:513 token recognition error at: ''
+line 1:522 token recognition error at: ''
+line 1:531 token recognition error at: ''
+line 1:540 token recognition error at: ''
+line 1:549 token recognition error at: ''
+line 1:558 token recognition error at: ''
+line 1:567 token recognition error at: ''
+line 1:576 token recognition error at: ''
+line 1:585 token recognition error at: ''
+line 1:594 token recognition error at: ''
+line 1:603 token recognition error at: ''
+line 1:612 token recognition error at: ''
+line 1:621 token recognition error at: ''
+line 1:630 token recognition error at: ''
+line 1:639 token recognition error at: ''
+line 1:648 token recognition error at: ''
+line 1:657 token recognition error at: ''
+line 1:666 token recognition error at: ''
+line 1:675 token recognition error at: ''
+line 1:684 token recognition error at: ''
+line 1:693 token recognition error at: ''
+line 1:702 token recognition error at: ''
+line 1:711 token recognition error at: ''
+line 1:720 token recognition error at: ''
+line 1:729 token recognition error at: ''
+line 1:738 token recognition error at: ''
+line 1:747 token recognition error at: ''
+line 1:756 token recognition error at: ''
+line 1:765 token recognition error at: ''
+line 1:774 token recognition error at: ''
+line 1:783 token recognition error at: ''
+line 1:792 token recognition error at: ''
+line 1:801 token recognition error at: ''
+line 1:810 token recognition error at: ''
+line 1:819 token recognition error at: ''
+line 1:828 token recognition error at: ''
+line 1:837 token recognition error at: ''
+line 1:846 token recognition error at: ''
+line 1:855 token recognition error at: ''
+line 1:864 token recognition error at: ''
+line 1:873 token recognition error at: ''
+line 1:882 token recognition error at: ''
+line 1:891 token recognition error at: ''
+line 1:900 token recognition error at: ''
+line 1:909 token recognition error at: ''
+line 1:918 token recognition error at: ''
+line 1:927 token recognition error at: ''
+line 1:936 token recognition error at: ''
+line 1:945 token recognition error at: ''
+line 1:954 token recognition error at: ''
+line 1:963 token recognition error at: ''
+line 1:972 token recognition error at: ''
+line 1:981 token recognition error at: ''
+line 1:990 token recognition error at: ''
+line 1:999 token recognition error at: ''
+line 1:1008 token recognition error at: ''
+line 1:1017 token recognition error at: ''
+line 1:1026 token recognition error at: ''
+line 1:1035 token recognition error at: ''
+line 1:1044 token recognition error at: ''
+line 1:1053 token recognition error at: ''
+line 1:1062 token recognition error at: ''
+line 1:1071 token recognition error at: ''
+line 1:1080 token recognition error at: ''
+line 1:1089 token recognition error at: ''
+line 1:1098 token recognition error at: ''
+line 1:1107 token recognition error at: ''
+line 1:1116 token recognition error at: ''
+line 1:1125 token recognition error at: ''
+line 1:1134 token recognition error at: ''
+line 1:1143 token recognition error at: ''
+line 1:1152 token recognition error at: ''
+line 1:1161 token recognition error at: ''
+line 1:1170 token recognition error at: ''
+line 1:1179 token recognition error at: ''
+line 1:1188 token recognition error at: ''
+line 1:1197 token recognition error at: ''
+line 1:1206 token recognition error at: ''
+line 1:1215 token recognition error at: ''
+line 1:1224 token recognition error at: ''
+line 1:1233 token recognition error at: ''
+line 1:1242 token recognition error at: ''
+line 1:1251 token recognition error at: ''
+line 1:1260 token recognition error at: ''
+line 1:1268 token recognition error at: ' '
+line 1:1272 token recognition error at: ''
+line 1:1283 token recognition error at: ' '
+line 1:1287 token recognition error at: ''
+line 1:1298 token recognition error at: ' '
+line 1:1302 token recognition error at: ''
+line 1:1313 token recognition error at: ' '
+line 1:1317 token recognition error at: ''
+line 1:1328 token recognition error at: ' '
+line 1:1332 token recognition error at: ''
+line 1:1343 token recognition error at: ' '
+line 1:1347 token recognition error at: ''
+line 1:1358 token recognition error at: ' '
+line 1:1362 token recognition error at: ''
+line 1:1373 token recognition error at: ' '
+line 1:1377 token recognition error at: ''
+line 1:1388 token recognition error at: ' '
+line 1:1392 token recognition error at: ''
+line 1:1403 token recognition error at: ' '
+line 1:1407 token recognition error at: ''
+line 1:1418 token recognition error at: ' '
+line 1:1422 token recognition error at: ''
+line 1:1433 token recognition error at: ' '
+line 1:1437 token recognition error at: ''
+line 1:1448 token recognition error at: ' '
+line 1:1452 token recognition error at: ''
+line 1:1463 token recognition error at: ' '
+line 1:1467 token recognition error at: ''
+line 1:1478 token recognition error at: ' '
+line 1:1482 token recognition error at: ''
+line 1:1493 token recognition error at: ' '
+line 1:1497 token recognition error at: ''
+line 1:1508 token recognition error at: ' '
+line 1:1512 token recognition error at: ''
+line 1:1523 token recognition error at: ' '
+line 1:1527 token recognition error at: ''
+line 1:1538 token recognition error at: ' '
+line 1:1542 token recognition error at: ''
+line 1:1553 token recognition error at: ' '
+line 1:1557 token recognition error at: ''
+line 1:1568 token recognition error at: ' '
+line 1:1572 token recognition error at: ''
+line 1:1583 token recognition error at: ' '
+line 1:1587 token recognition error at: ''
+line 1:1598 token recognition error at: ' '
+line 1:1602 token recognition error at: ''
+line 1:1613 token recognition error at: ' '
+line 1:1617 token recognition error at: ''
+line 1:1628 token recognition error at: ' '
+line 1:1632 token recognition error at: ''
+line 1:1643 token recognition error at: ' '
+line 1:1647 token recognition error at: ''
+line 1:1658 token recognition error at: ' '
+line 1:1662 token recognition error at: ''
+line 1:1673 token recognition error at: ' '
+line 1:1677 token recognition error at: ''
+line 1:1688 token recognition error at: ' '
+line 1:1692 token recognition error at: ''
+line 1:1703 token recognition error at: ' '
+line 1:1707 token recognition error at: ''
+line 1:1718 token recognition error at: ' '
+line 1:1722 token recognition error at: ''
+line 1:1733 token recognition error at: ' '
+line 1:1737 token recognition error at: ''
+line 1:1748 token recognition error at: ' '
+line 1:1752 token recognition error at: ''
+line 1:1763 token recognition error at: ' '
+line 1:1767 token recognition error at: ''
+line 1:1778 token recognition error at: ' '
+line 1:1782 token recognition error at: ''
+line 1:1793 token recognition error at: ' '
+line 1:1797 token recognition error at: ''
+line 1:1808 token recognition error at: ' '
+line 1:1812 token recognition error at: ''
+line 1:1823 token recognition error at: ' '
+line 1:1827 token recognition error at: ''
+line 1:1838 token recognition error at: ' '
+line 1:1842 token recognition error at: ''
+line 1:1853 token recognition error at: ' '
+line 1:1857 token recognition error at: ''
+line 1:1868 token recognition error at: ' '
+line 1:1872 token recognition error at: ''
+line 1:1883 token recognition error at: ' '
+line 1:1887 token recognition error at: ''
+line 1:1898 token recognition error at: ' '
+line 1:1902 token recognition error at: ''
+line 1:1913 token recognition error at: ' '
+line 1:1917 token recognition error at: ''
+line 1:1928 token recognition error at: ' '
+line 1:1932 token recognition error at: ''
+line 1:1943 token recognition error at: ' '
+line 1:1947 token recognition error at: ''
+line 1:1958 token recognition error at: ' '
+line 1:1962 token recognition error at: ''
+line 1:1973 token recognition error at: ' '
+line 1:1977 token recognition error at: ''
+line 1:1988 token recognition error at: ' '
+line 1:1992 token recognition error at: ''
+line 1:2003 token recognition error at: ' '
+line 1:2007 token recognition error at: ''
+line 1:2018 token recognition error at: ' '
+line 1:2022 token recognition error at: ''
+line 1:2033 token recognition error at: ' '
+line 1:2037 token recognition error at: ''
+line 1:2048 token recognition error at: ' '
+line 1:2052 token recognition error at: ''
+line 1:2063 token recognition error at: ' '
+line 1:2067 token recognition error at: ''
+line 1:2078 token recognition error at: ' '
+line 1:2082 token recognition error at: ''
+line 1:2093 token recognition error at: ' '
+line 1:2097 token recognition error at: ''
+line 1:2108 token recognition error at: ' '
+line 1:2112 token recognition error at: ''
+line 1:2123 token recognition error at: ' '
+line 1:2127 token recognition error at: ''
+line 1:2138 token recognition error at: ' '
+line 1:2142 token recognition error at: ''
+line 1:2153 token recognition error at: ' '
+line 1:2157 token recognition error at: ''
+line 1:2168 token recognition error at: ' '
+line 1:2172 token recognition error at: ''
+line 1:2183 token recognition error at: ' '
+line 1:2187 token recognition error at: ''
+line 1:2198 token recognition error at: ' '
+line 1:2202 token recognition error at: ''
+line 1:2213 token recognition error at: ' '
+line 1:2217 token recognition error at: ''
+line 1:2228 token recognition error at: ' '
+line 1:2232 token recognition error at: ''
+line 1:2243 token recognition error at: ' '
+line 1:2247 token recognition error at: ''
+line 1:2258 token recognition error at: ' '
+line 1:2262 token recognition error at: ''
+line 1:2273 token recognition error at: ' '
+line 1:2277 token recognition error at: ''
+line 1:2288 token recognition error at: ' '
+line 1:2292 token recognition error at: ''
+line 1:2303 token recognition error at: ' '
+line 1:2307 token recognition error at: ''
+line 1:2318 token recognition error at: ' '
+line 1:2322 token recognition error at: ''
+line 1:2333 token recognition error at: ' '
+line 1:2337 token recognition error at: ''
+line 1:2348 token recognition error at: ' '
+line 1:2352 token recognition error at: ''
+line 1:2363 token recognition error at: ' '
+line 1:2367 token recognition error at: ''
+line 1:2378 token recognition error at: ' '
+line 1:2382 token recognition error at: ''
+line 1:2393 token recognition error at: ' '
+line 1:2397 token recognition error at: ''
+line 1:2408 token recognition error at: ' '
+line 1:2412 token recognition error at: ''
+line 1:2423 token recognition error at: ' '
+line 1:2427 token recognition error at: ''
+line 1:2438 token recognition error at: ' '
+line 1:2442 token recognition error at: ''
+line 1:2453 token recognition error at: ' '
+line 1:2457 token recognition error at: ''
+line 1:2468 token recognition error at: ' '
+line 1:2472 token recognition error at: ''
+line 1:2483 token recognition error at: ' '
+line 1:2487 token recognition error at: ''
+line 1:2498 token recognition error at: ' '
+line 1:2502 token recognition error at: ''
+line 1:2513 token recognition error at: ' '
+line 1:2517 token recognition error at: ''
+line 1:2528 token recognition error at: ' '
+line 1:2532 token recognition error at: ''
+line 1:2543 token recognition error at: ' '
+line 1:2547 token recognition error at: ''
+line 1:2558 token recognition error at: ' '
+line 1:2562 token recognition error at: ''
+line 1:2573 token recognition error at: ' '
+line 1:2577 token recognition error at: ''
+line 1:2588 token recognition error at: ' '
+line 1:2592 token recognition error at: ''
+line 1:2603 token recognition error at: ' '
+line 1:2607 token recognition error at: ''
+line 1:2618 token recognition error at: ' '
+line 1:2622 token recognition error at: ''
+line 1:2633 token recognition error at: ' '
+line 1:2637 token recognition error at: ''
+line 1:2647 token recognition error at: ' '
+line 1:2651 token recognition error at: ''
+line 1:2662 token recognition error at: ' '
+line 1:2666 token recognition error at: ''
+line 1:2677 token recognition error at: ' '
+line 1:2681 token recognition error at: ''
+line 1:2692 token recognition error at: ' '
+line 1:2696 token recognition error at: ''
+line 1:2707 token recognition error at: ' '
+line 1:2711 token recognition error at: ''
+line 1:2722 token recognition error at: ' '
+line 1:2726 token recognition error at: ''
+line 1:2737 token recognition error at: ' '
+line 1:2741 token recognition error at: ''
+line 1:2752 token recognition error at: ' '
+line 1:2756 token recognition error at: ''
+line 1:2767 token recognition error at: ' '
+line 1:2771 token recognition error at: ''
+line 1:2782 token recognition error at: ' '
+line 1:2786 token recognition error at: ''
+line 1:2797 token recognition error at: ' '
+line 1:2801 token recognition error at: ''
+line 1:2812 token recognition error at: ' '
+line 1:2816 token recognition error at: ''
+line 1:2827 token recognition error at: ' '
+line 1:2831 token recognition error at: ''
+line 1:2842 token recognition error at: ' '
+line 1:2846 token recognition error at: ''
+line 1:2857 token recognition error at: ' '
+line 1:2861 token recognition error at: ''
+line 1:2872 token recognition error at: ' '
+line 1:2876 token recognition error at: ''
+line 1:2887 token recognition error at: ' '
+line 1:2891 token recognition error at: ''
+line 1:2902 token recognition error at: ' '
+line 1:2906 token recognition error at: ''
+line 1:2917 token recognition error at: ' '
+line 1:2921 token recognition error at: ''
+line 1:2932 token recognition error at: ' '
+line 1:2936 token recognition error at: ''
+line 1:2947 token recognition error at: ' '
+line 1:2951 token recognition error at: ''
+line 1:2962 token recognition error at: ' '
+line 1:2966 token recognition error at: ''
+line 1:2977 token recognition error at: ' '
+line 1:2981 token recognition error at: ''
+line 1:2992 token recognition error at: ' '
+line 1:2996 token recognition error at: ''
+line 1:3007 token recognition error at: ' '
+line 1:3011 token recognition error at: ''
+line 1:3022 token recognition error at: ' '
+line 1:3026 token recognition error at: ''
+line 1:3037 token recognition error at: ' '
+line 1:3041 token recognition error at: ''
+line 1:3052 token recognition error at: ' '
+line 1:3056 token recognition error at: ''
+line 1:3067 token recognition error at: ' '
+line 1:3071 token recognition error at: ''
+line 1:3082 token recognition error at: ' '
+line 1:3086 token recognition error at: ''
+line 1:3097 token recognition error at: ' '
+line 1:3101 token recognition error at: ''
+line 1:3112 token recognition error at: ' '
+line 1:3116 token recognition error at: ''
+line 1:3127 token recognition error at: ' '
+line 1:3131 token recognition error at: ''
+line 1:3142 token recognition error at: ' '
+line 1:3146 token recognition error at: ''
+line 1:3157 token recognition error at: ' '
+line 1:3161 token recognition error at: ''
+line 1:3172 token recognition error at: ' '
+line 1:3176 token recognition error at: ''
+line 1:3187 token recognition error at: ' '
+line 1:3191 token recognition error at: ''
+line 1:3202 token recognition error at: ' '
+line 1:3206 token recognition error at: ''
+line 1:3217 token recognition error at: ' '
+line 1:3221 token recognition error at: ''
+line 1:3232 token recognition error at: ' '
+line 1:3236 token recognition error at: ''
+line 1:3247 token recognition error at: ' '
+line 1:3251 token recognition error at: ''
+line 1:3262 token recognition error at: ' '
+line 1:3266 token recognition error at: ''
+line 1:3277 token recognition error at: ' '
+line 1:3281 token recognition error at: ''
+line 1:3292 token recognition error at: ' '
+line 1:3296 token recognition error at: ''
+line 1:3307 token recognition error at: ' '
+line 1:3311 token recognition error at: ''
+line 1:3322 token recognition error at: ' '
+line 1:3326 token recognition error at: ''
+line 1:3337 token recognition error at: ' '
+line 1:3341 token recognition error at: ''
+reproducer_path='.'; Java reproducer written to ./Crash_78c9221682f968a53b64f466df12f8187b8c2947.java
+

@@ -1,0 +1,14 @@
+The sanitizer detected a os command injection vulnerability.The explanation of the vulnerability is: Untrusted input is used in system commands, leading to potential command injection attacks.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueCritical: OS Command Injection
+Executing OS commands with attacker-controlled data can lead to remote code execution.
+- com.code_intelligence.jazzer.sanitizers.OsCommandInjection.processImplStartHook (com/code_intelligence/jazzer/sanitizers/OsCommandInjection.kt:60)
+- java.base/java.lang.ProcessBuilder.start (java/base/java/lang/ProcessBuilder.java:1126)
+- java.base/java.lang.ProcessBuilder.start (java/base/java/lang/ProcessBuilder.java:1089)
+- com.example.OsCommandInjectionProcessBuilder.fuzzerTestOneInput (com/example/OsCommandInjectionProcessBuilder.java:28)
+
+To fix this issue, follow the advice below:
+
+1. Avoid constructing system commands using untrusted input.
+2. Use parameterized commands or secure APIs to prevent injection attacks.
+3. Sanitize user input before executing system commands.

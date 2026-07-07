@@ -1,0 +1,79 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5310000ef41d thread T0
+    - Ins_JROF /src/ghostpdl/base/ttinterp.c:1832:10
+    - RunIns /src/ghostpdl/base/ttinterp.c:5057:7
+    - Instance_Reset /src/ghostpdl/base/ttobjs.c:828:15
+    - ttfFont__Open /src/ghostpdl/base/ttfmain.c:348:12
+    - ttfFont__Open_aux /src/ghostpdl/base/gxttfb.c:448:12
+    - gx_attach_tt_interpreter /src/ghostpdl/base/gxccman.c:249:12
+    - gs_type42_glyph_outline /src/ghostpdl/base/gstype42.c:1337:9
+    - gs_default_glyph_info /src/ghostpdl/base/gsfont.c:1061:12
+    - gs_type42_glyph_info_by_gid /src/ghostpdl/base/gstype42.c:1366:16
+    - process_text_estimate_bbox /src/ghostpdl/devices/vector/gdevpdte.c:689:16
+    - pdf_process_string /src/ghostpdl/devices/vector/gdevpdte.c:856:16
+    - pdf_process_string_aux /src/ghostpdl/devices/vector/gdevpdte.c:81:12
+    - process_plain_text /src/ghostpdl/devices/vector/gdevpdte.c:1841:16
+    - pdf_text_process /src/ghostpdl/devices/vector/gdevpdtt.c:3722:16
+    - pdfi_show_simple /src/ghostpdl/pdf/pdf_text.c:445:16
+    - pdfi_show_Tr_preserve /src/ghostpdl/pdf/pdf_text.c:780:12
+    - pdfi_show /src/ghostpdl/pdf/pdf_text.c:830:16
+    - pdfi_Tj /src/ghostpdl/pdf/pdf_text.c:1069:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1644:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2101:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:127:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:152:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:895:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:1074:24
+    - interp /src/ghostpdl/psi/interp.c:1725:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:522:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:479:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5310000ef41d is located 11245 bytes after 65584-byte region [0x5310000dc800,0x5310000ec830)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - gs_heap_alloc_bytes /src/ghostpdl/base/gsmalloc.c:192:34
+    - chunk_obj_alloc /src/ghostpdl/base/gsmchunk.c:928:36
+    - gx_char_cache_alloc /src/ghostpdl/base/gxccman.c:88:13
+    - gs_font_dir_alloc2_limits /src/ghostpdl/base/gsfont.c:264:12
+    - gs_font_dir_alloc2 /src/ghostpdl/base/gsfont.c:236:16
+    - pdfi_init_font_directory /src/ghostpdl/pdf/pdf_font.c:1708:21
+    - pdfi_create_context /src/ghostpdl/pdf/ghostpdf.c:1745:12
+    - zPDFInit /src/ghostpdl/psi/zpdfops.c:1160:11
+    - interp /src/ghostpdl/psi/interp.c:1725:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:522:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:479:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_pdfwrite_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

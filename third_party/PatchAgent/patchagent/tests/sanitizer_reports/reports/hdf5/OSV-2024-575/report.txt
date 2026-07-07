@@ -1,0 +1,194 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/hdf5:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/hdf5/OSV-2024-575/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce h5_extended_fuzzer -runs=100.
++ FUZZER=h5_extended_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer h5_extended_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/h5_extended_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3778683296
+INFO: Loaded 1 modules   (83598 inline 8-bit counters): 83598 [0x55d9abf2fe40, 0x55d9abf444ce), 
+INFO: Loaded 1 PC tables (83598 PCs): 83598 [0x55d9abf444d0,0x55d9ac08adb0), 
+/out/h5_extended_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+HDF5-DIAG: Error detected in HDF5 (1.15.0):
+  #000: /src/hdf5/src/H5D.c line 398 in H5Dopen2(): unable to synchronously open dataset
+    major: Dataset
+    minor: Can't open object
+  #001: /src/hdf5/src/H5D.c line 360 in H5D__open_api_common(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #002: /src/hdf5/src/H5VLcallback.c line 1954 in H5VL_dataset_open(): dataset open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #003: /src/hdf5/src/H5VLcallback.c line 1921 in H5VL__dataset_open(): dataset open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #004: /src/hdf5/src/H5VLnative_dataset.c line 332 in H5VL__native_dataset_open(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #005: /src/hdf5/src/H5Dint.c line 1426 in H5D__open_name(): not found
+    major: Dataset
+    minor: Object not found
+  #006: /src/hdf5/src/H5Gloc.c line 424 in H5G_loc_find(): can't find object
+    major: Symbol table
+    minor: Object not found
+  #007: /src/hdf5/src/H5Gtraverse.c line 824 in H5G_traverse(): internal path traversal failed
+    major: Symbol table
+    minor: Object not found
+  #008: /src/hdf5/src/H5Gtraverse.c line 551 in H5G__traverse_real(): can't look up component
+    major: Symbol table
+    minor: Object not found
+  #009: /src/hdf5/src/H5Gobj.c line 1070 in H5G__obj_lookup(): can't check for link info message
+    major: Symbol table
+    minor: Can't get value
+  #010: /src/hdf5/src/H5Gobj.c line 310 in H5G__obj_get_linfo(): unable to read object header
+    major: Symbol table
+    minor: Can't get value
+  #011: /src/hdf5/src/H5Omessage.c line 788 in H5O_msg_exists(): unable to protect object header
+    major: Object header
+    minor: Unable to protect metadata
+  #012: /src/hdf5/src/H5Oint.c line 989 in H5O_protect(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #013: /src/hdf5/src/H5AC.c line 1277 in H5AC_protect(): H5C_protect() failed
+    major: Object cache
+    minor: Unable to protect metadata
+  #014: /src/hdf5/src/H5Centry.c line 3106 in H5C_protect(): can't load entry
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #015: /src/hdf5/src/H5Centry.c line 1180 in H5C__load_entry(): incorrect metadata checksum after all read attempts
+    major: Object cache
+    minor: Read failed
+  #016: /src/hdf5/src/H5Ocache.c line 185 in H5O__cache_get_final_load_size(): can't deserialize object header prefix
+    major: Object header
+    minor: Unable to decode value
+  #017: /src/hdf5/src/H5Ocache.c line 1096 in H5O__prefix_deserialize(): bad object header version number
+    major: Object header
+    minor: Wrong version number
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51d000003080 at pc 0x55d9ab59c5c8 bp 0x7fff440033d0 sp 0x7fff440033c8
+[1m[0m[1m[34mREAD of size 8 at 0x51d000003080 thread T0[1m[0m
+SCARINESS: 33 (8-byte-read-heap-buffer-overflow-far-from-bounds)
+    #0 0x55d9ab59c5c7 in H5FS__sect_link_size /src/hdf5/src/H5FSsection.c:935:26
+    #1 0x55d9ab59c5c7 in H5FS__sect_link /src/hdf5/src/H5FSsection.c:1074:9
+    #2 0x55d9ab599f31 in H5FS_sect_add /src/hdf5/src/H5FSsection.c:1340:13
+    #3 0x55d9ab655e88 in H5MF__add_sect /src/hdf5/src/H5MF.c:634:9
+    #4 0x55d9ab657f30 in H5MF__alloc_pagefs /src/hdf5/src/H5MF.c:903:21
+    #5 0x55d9ab657f30 in H5MF_alloc /src/hdf5/src/H5MF.c:803:45
+    #6 0x55d9ab6578a1 in H5MF__alloc_pagefs /src/hdf5/src/H5MF.c:920:44
+    #7 0x55d9ab6578a1 in H5MF_alloc /src/hdf5/src/H5MF.c:803:45
+    #8 0x55d9abcf75e3 in H5O__alloc_chunk /src/hdf5/src/H5Oalloc.c:883:22
+    #9 0x55d9abcfd92d in H5O__alloc_new_chunk /src/hdf5/src/H5Oalloc.c:1154:9
+    #10 0x55d9abcfd92d in H5O__alloc /src/hdf5/src/H5Oalloc.c:1291:17
+    #11 0x55d9ab6dc10e in H5O__msg_alloc /src/hdf5/src/H5Omessage.c:1729:9
+    #12 0x55d9ab6dbbde in H5O__msg_append_real /src/hdf5/src/H5Omessage.c:191:9
+    #13 0x55d9ab6db6b2 in H5O_msg_append_oh /src/hdf5/src/H5Omessage.c:156:9
+    #14 0x55d9ab6db6b2 in H5O_msg_create /src/hdf5/src/H5Omessage.c:113:9
+    #15 0x55d9ab5472ab in H5F__super_ext_write_msg /src/hdf5/src/H5Fsuper.c:1728:13
+    #16 0x55d9ab662a7e in H5MF_settle_raw_data_fsm /src/hdf5/src/H5MF.c:2772:17
+    #17 0x55d9ab405653 in H5C_flush_cache /src/hdf5/src/H5C.c:686:33
+    #18 0x55d9ab3c53ef in H5AC_flush /src/hdf5/src/H5AC.c:619:9
+    #19 0x55d9ab530cd6 in H5F__flush_phase2 /src/hdf5/src/H5Fint.c:2303:9
+    #20 0x55d9ab52e440 in H5F__dest /src/hdf5/src/H5Fint.c:1419:17
+    #21 0x55d9ab532197 in H5F_try_close /src/hdf5/src/H5Fint.c:2642:9
+    #22 0x55d9ab5316c3 in H5F__close /src/hdf5/src/H5Fint.c:2444:9
+    #23 0x55d9abb6f6fc in H5VL__native_file_close /src/hdf5/src/H5VLnative_file.c:782:13
+    #24 0x55d9abb3ca2c in H5VL__file_close /src/hdf5/src/H5VLcallback.c:4259:9
+    #25 0x55d9abb3ca2c in H5VL_file_close /src/hdf5/src/H5VLcallback.c:4290:9
+    #26 0x55d9ab5390a9 in H5F__close_cb /src/hdf5/src/H5Fint.c:217:9
+    #27 0x55d9ab646d2c in H5I__dec_ref /src/hdf5/src/H5Iint.c:973:43
+    #28 0x55d9ab64707b in H5I__dec_app_ref /src/hdf5/src/H5Iint.c:1044:22
+    #29 0x55d9ab646f83 in H5I_dec_app_ref /src/hdf5/src/H5Iint.c:1089:22
+    #30 0x55d9ab50e2c8 in H5Fclose /src/hdf5/src/H5F.c:1046:9
+    #31 0x55d9ab397bde in LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:39:7
+    #32 0x55d9ab24c540 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #33 0x55d9ab2377b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #34 0x55d9ab23d24f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #35 0x55d9ab2684f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #36 0x7f7e4902e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #37 0x55d9ab22f99d in _start (/out/h5_extended_fuzzer+0x34b99d)
+
+DEDUP_TOKEN: H5FS__sect_link_size--H5FS__sect_link--H5FS_sect_add
+[1m[32m0x51d000003080 is located 56 bytes after 1992-byte region [0x51d000002880,0x51d000003048)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55d9ab35830f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55d9ab5876c6 in H5FL__malloc /src/hdf5/src/H5FL.c:203:30
+    #2 0x55d9ab5876c6 in H5FL_blk_malloc /src/hdf5/src/H5FL.c:765:48
+    #3 0x55d9ab589d25 in H5FL_blk_calloc /src/hdf5/src/H5FL.c:811:30
+    #4 0x55d9ab589d25 in H5FL_seq_calloc /src/hdf5/src/H5FL.c:1643:17
+    #5 0x55d9ab59773c in H5FS__sinfo_new /src/hdf5/src/H5FSsection.c:142:32
+    #6 0x55d9ab59813a in H5FS__sinfo_lock /src/hdf5/src/H5FSsection.c:272:42
+    #7 0x55d9ab599d9a in H5FS_sect_add /src/hdf5/src/H5FSsection.c:1314:9
+    #8 0x55d9ab655e88 in H5MF__add_sect /src/hdf5/src/H5MF.c:634:9
+    #9 0x55d9ab657f30 in H5MF__alloc_pagefs /src/hdf5/src/H5MF.c:903:21
+    #10 0x55d9ab657f30 in H5MF_alloc /src/hdf5/src/H5MF.c:803:45
+    #11 0x55d9ab6578a1 in H5MF__alloc_pagefs /src/hdf5/src/H5MF.c:920:44
+    #12 0x55d9ab6578a1 in H5MF_alloc /src/hdf5/src/H5MF.c:803:45
+    #13 0x55d9abcf75e3 in H5O__alloc_chunk /src/hdf5/src/H5Oalloc.c:883:22
+    #14 0x55d9abcfd92d in H5O__alloc_new_chunk /src/hdf5/src/H5Oalloc.c:1154:9
+    #15 0x55d9abcfd92d in H5O__alloc /src/hdf5/src/H5Oalloc.c:1291:17
+    #16 0x55d9ab6dc10e in H5O__msg_alloc /src/hdf5/src/H5Omessage.c:1729:9
+    #17 0x55d9ab6dbbde in H5O__msg_append_real /src/hdf5/src/H5Omessage.c:191:9
+    #18 0x55d9ab6db6b2 in H5O_msg_append_oh /src/hdf5/src/H5Omessage.c:156:9
+    #19 0x55d9ab6db6b2 in H5O_msg_create /src/hdf5/src/H5Omessage.c:113:9
+    #20 0x55d9ab5472ab in H5F__super_ext_write_msg /src/hdf5/src/H5Fsuper.c:1728:13
+    #21 0x55d9ab662a7e in H5MF_settle_raw_data_fsm /src/hdf5/src/H5MF.c:2772:17
+    #22 0x55d9ab405653 in H5C_flush_cache /src/hdf5/src/H5C.c:686:33
+    #23 0x55d9ab3c53ef in H5AC_flush /src/hdf5/src/H5AC.c:619:9
+    #24 0x55d9ab530cd6 in H5F__flush_phase2 /src/hdf5/src/H5Fint.c:2303:9
+    #25 0x55d9ab52e440 in H5F__dest /src/hdf5/src/H5Fint.c:1419:17
+    #26 0x55d9ab532197 in H5F_try_close /src/hdf5/src/H5Fint.c:2642:9
+    #27 0x55d9ab5316c3 in H5F__close /src/hdf5/src/H5Fint.c:2444:9
+    #28 0x55d9abb6f6fc in H5VL__native_file_close /src/hdf5/src/H5VLnative_file.c:782:13
+    #29 0x55d9abb3ca2c in H5VL__file_close /src/hdf5/src/H5VLcallback.c:4259:9
+    #30 0x55d9abb3ca2c in H5VL_file_close /src/hdf5/src/H5VLcallback.c:4290:9
+    #31 0x55d9ab5390a9 in H5F__close_cb /src/hdf5/src/H5Fint.c:217:9
+    #32 0x55d9ab646d2c in H5I__dec_ref /src/hdf5/src/H5Iint.c:973:43
+    #33 0x55d9ab64707b in H5I__dec_app_ref /src/hdf5/src/H5Iint.c:1044:22
+    #34 0x55d9ab646f83 in H5I_dec_app_ref /src/hdf5/src/H5Iint.c:1089:22
+    #35 0x55d9ab50e2c8 in H5Fclose /src/hdf5/src/H5F.c:1046:9
+    #36 0x55d9ab397bde in LLVMFuzzerTestOneInput /src/h5_extended_fuzzer.c:39:7
+
+DEDUP_TOKEN: __interceptor_malloc--H5FL__malloc--H5FL_blk_malloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/hdf5/src/H5FSsection.c:935:26 in H5FS__sect_link_size
+Shadow bytes around the buggy address:
+  0x51d000002e00: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x51d000002e80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x51d000002f00: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x51d000002f80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x51d000003000: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+=>0x51d000003080:[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x51d000003100: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x51d000003180: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x51d000003200: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x51d000003280: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x51d000003300: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

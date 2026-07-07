@@ -1,0 +1,32 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+WRITE of size 2 at 0x7f8ce4588300 thread T0
+    - u_terminateUChars_77 /src/icu/icu4c/source/common/ustring.cpp:1470:5
+    - ubidi_writeReordered_77 /src/icu/icu4c/source/common/ubidiwrt.cpp:0:0
+    - LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/ubidi_fuzzer.cpp:152:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f8ce4588300 is located in stack of thread T0 at offset 2816 in frame
+    - LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/ubidi_fuzzer.cpp:89:0
+
+  This frame has 8 object(s):
+    [32, 36) 'status.i' (line 32)
+    [48, 848) 'visualToLogical.i' (line 33)
+    [976, 1776) 'logicalToVisual.i' (line 34)
+    [1904, 1905) 'level.i' (line 53)
+    [1920, 1921) 'level47.i' (line 77)
+    [1936, 1940) 'status' (line 92)
+    [1952, 2352) 'inputText' (line 93)
+    [2416, 2816) 'reorderedText' (line 94) <== Memory access at offset 2816 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

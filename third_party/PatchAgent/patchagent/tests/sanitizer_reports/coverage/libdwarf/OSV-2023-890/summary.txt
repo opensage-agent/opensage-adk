@@ -1,0 +1,19 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - _dwarf_fde_destructor /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:3014:9
+    - tdestroy_free_node /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:525:9
+    - _dwarf_tdestroy_inner /src/libdwarf/src/lib/libdwarf/dwarf_tsearchhash.c:672:17
+    - _dwarf_tdestroy /src/libdwarf/src/lib/libdwarf/dwarf_tsearchhash.c:705:5
+    - _dwarf_free_all_of_one_debug /src/libdwarf/src/lib/libdwarf/dwarf_alloc.c:1126:9
+    - LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_stack_frame_access.c:82:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

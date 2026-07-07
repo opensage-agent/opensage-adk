@@ -1,0 +1,40 @@
+The sanitizer detected a java native error vulnerability. The explanation of the vulnerability is: A Java native error occurred, indicating a potential issue in the native code or environment. Here is the detail: 
+
+Stack traces of all JVM threads:
+Thread[Notification Thread,9,system]
+
+Thread[Attach Listener,9,system]
+
+Thread[Finalizer,8,system]
+- java.base@17.0.2/java.lang.ref.ReferenceQueue.remove (java/base@17/0/2/java/lang/ref/ReferenceQueue.java:155)
+- java.base@17.0.2/java.lang.ref.ReferenceQueue.remove (java/base@17/0/2/java/lang/ref/ReferenceQueue.java:176)
+- java.base@17.0.2/java.lang.ref.Finalizer$FinalizerThread.run (java/base@17/0/2/java/lang/ref/Finalizer$FinalizerThread/run:172)
+
+Thread[Reference Handler,10,system]
+- java.base@17.0.2/java.lang.ref.Reference.processPendingReferences (java/base@17/0/2/java/lang/ref/Reference.java:253)
+- java.base@17.0.2/java.lang.ref.Reference$ReferenceHandler.run (java/base@17/0/2/java/lang/ref/Reference$ReferenceHandler/run:215)
+
+Thread[Signal Dispatcher,9,system]
+
+Thread[Common-Cleaner,8,InnocuousThreadGroup]
+- java.base@17.0.2/java.lang.ref.ReferenceQueue.remove (java/base@17/0/2/java/lang/ref/ReferenceQueue.java:155)
+- java.base@17.0.2/jdk.internal.ref.CleanerImpl.run (java/base@17/0/2/jdk/internal/ref/CleanerImpl.java:140)
+- java.base@17.0.2/java.lang.Thread.run (java/base@17/0/2/java/lang/Thread.java:833)
+- java.base@17.0.2/jdk.internal.misc.InnocuousThread.run (java/base@17/0/2/jdk/internal/misc/InnocuousThread.java:162)
+
+Thread[main,5,main]
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.dumpAllStackTraces (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:534)
+- app//PersonInfoParserFuzzer.fuzzerTestOneInput (app/PersonInfoParserFuzzer/fuzzerTestOneInput:20)
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.runOne (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:234)
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:551)
+- app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer (app/com/code_intelligence/jazzer/driver/FuzzTargetRunner.java:441)
+- app//com.code_intelligence.jazzer.driver.Driver.start (app/com/code_intelligence/jazzer/driver/Driver.java:166)
+- app//com.code_intelligence.jazzer.Jazzer.start (app/com/code_intelligence/jazzer/Jazzer.java:118)
+- app//com.code_intelligence.jazzer.Jazzer.main (app/com/code_intelligence/jazzer/Jazzer.java:71)
+
+
+To fix this issue, follow the advice below:
+
+1. Investigate the cause of the Java native error to identify the root cause of the error.
+2. Review the code for potential memory corruption or undefined behavior.
+3. Check for uninitialized variables or unintended pointer accesses.

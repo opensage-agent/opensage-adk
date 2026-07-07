@@ -1,0 +1,53 @@
+=================================================================
+==14==ERROR: AddressSanitizer: memcpy-param-overlap: memory ranges [0x511000000400,0x5110000004fc) and [0x5110000003a9, 0x5110000004a5) overlap
+SCARINESS: 10 (memcpy-param-overlap)
+    #0 0x556d60c31ea0 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x556d60f2df3b in ZSTD_initDDict_internal /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:134:9
+    #2 0x556d60f2df3b in ZSTD_createDDict_advanced /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:155:39
+    #3 0x556d60f2df3b in ZSTD_createDDict /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:173:12
+    #4 0x556d60c804aa in initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:2028:27
+    #5 0x556d60c804aa in blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2483:8
+    #6 0x556d60c8087d in blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2509:12
+    #7 0x556d60cb38fd in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:3006:23
+    #8 0x556d60c99a19 in blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:915:17
+    #9 0x556d60c73925 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:38:15
+    #10 0x556d60b28360 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x556d60b135d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x556d60b1906f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x556d60b44312 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fac70c4f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #15 0x556d60b0b7bd in _start (/out/decompress_frame_fuzzer+0x10c7bd)
+
+DEDUP_TOKEN: __asan_memcpy--ZSTD_initDDict_internal--ZSTD_createDDict_advanced
+0x511000000400 is located 0 bytes inside of 252-byte region [0x511000000400,0x5110000004fc)
+allocated by thread T0 here:
+    #0 0x556d60c3412f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x556d60d63f30 in ZSTD_customMalloc /src/c-blosc2/internal-complibs/zstd-1.4.9/common/zstd_common.c:60:12
+    #2 0x556d60f2dee9 in ZSTD_initDDict_internal /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:130:38
+    #3 0x556d60f2dee9 in ZSTD_createDDict_advanced /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:155:39
+    #4 0x556d60f2dee9 in ZSTD_createDDict /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:173:12
+    #5 0x556d60c804aa in initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:2028:27
+    #6 0x556d60c804aa in blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2483:8
+    #7 0x556d60c8087d in blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2509:12
+    #8 0x556d60cb38fd in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:3006:23
+    #9 0x556d60c99a19 in blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:915:17
+    #10 0x556d60c73925 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:38:15
+    #11 0x556d60b28360 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x556d60b135d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x556d60b1906f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x556d60b44312 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fac70c4f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ZSTD_customMalloc--ZSTD_initDDict_internal
+0x5110000003b6 is located 0 bytes after 246-byte region [0x5110000002c0,0x5110000003b6)
+allocated by thread T0 here:
+    #0 0x556d60c3412f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x556d610045b3 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x556d60b135d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x556d60b1906f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x556d60b44312 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7fac70c4f082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: memcpy-param-overlap /src/c-blosc2/internal-complibs/zstd-1.4.9/decompress/zstd_ddict.c:134:9 in ZSTD_initDDict_internal
+==14==ABORTING

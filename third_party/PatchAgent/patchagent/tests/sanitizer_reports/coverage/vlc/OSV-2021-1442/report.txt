@@ -1,0 +1,43 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/vlc:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce vlc-demux-libfuzzer -runs=100.
++ FUZZER=vlc-demux-libfuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer vlc-demux-libfuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/vlc-demux-libfuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3118859501
+/out/vlc-demux-libfuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x7f2c8065f3d5 (pc 0x560c085ae47d bp 0x7ffcf8508200 sp 0x7ffcf8508200 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x560c085ae47d in find_es_header /src/vlc/modules/demux/ty.c:579:14
+    #1 0x560c085ab7b6 in analyze_chunk /src/vlc/modules/demux/ty.c:1828:36
+    #2 0x560c085ab7b6 in probe_stream /src/vlc/modules/demux/ty.c:1719:9
+    #3 0x560c085ab7b6 in Open /src/vlc/modules/demux/ty.c:351:9
+    #4 0x560c08610a32 in demux_Probe /src/vlc/src/input/demux.c:111:15
+    #5 0x560c085febe2 in vlc_module_load /src/vlc/src/modules/modules.c:243:19
+    #6 0x560c086106c4 in demux_NewAdvanced /src/vlc/src/input/demux.c:192:20
+    #7 0x560c086102a4 in demux_New /src/vlc/src/input/demux.c:76:12
+    #8 0x560c0852dd3f in demux_process_stream /src/vlc/test/src/input/demux-run.c:297:22
+    #9 0x560c0852dc13 in LLVMFuzzerTestOneInput /src/vlc/test/vlc-demux-libfuzzer.c:54:5
+    #10 0x560c08491090 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x560c0847c305 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x560c08481d9f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x560c084ad042 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f2c7f219082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #15 0x560c084744ed in _start (/out/vlc-demux-libfuzzer+0x284ed)
+
+DEDUP_TOKEN: find_es_header--analyze_chunk--probe_stream
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/vlc/modules/demux/ty.c:579:14 in find_es_header
+==14==ABORTING

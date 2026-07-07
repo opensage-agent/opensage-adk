@@ -1,0 +1,20 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 1 at 0x5030000004db thread T0
+    - krb5int_utf8_normalize /root/src/lib/krb5/unicode/ucstr.c:238:21
+    - krb5_chpw_message /root/src/lib/krb5/krb/chpw.c:496:9
+    - LLVMFuzzerTestOneInput /root/fuzzing/Fuzz_chpw.c:38:5
+
+0x5030000004db is located 0 bytes after 27-byte region [0x5030000004c0,0x5030000004db)
+allocated by thread T0 here:
+    - krb5int_utf8_normalize /root/src/lib/krb5/unicode/ucstr.c:169:12
+    - krb5_chpw_message /root/src/lib/krb5/krb/chpw.c:496:9
+    - LLVMFuzzerTestOneInput /root/fuzzing/Fuzz_chpw.c:38:5
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

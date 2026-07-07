@@ -1,0 +1,142 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/cpython3:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/cpython3/OSV-2021-745/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_sre_compile -runs=100.
++ FUZZER=fuzz_sre_compile
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_sre_compile -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_sre_compile -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=fuzz_sre_compile.dict < /dev/null
+Dictionary: 219 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3190157914
+INFO: Loaded 1 modules   (108670 inline 8-bit counters): 108670 [0x561e1d1f2320, 0x561e1d20cb9e), 
+INFO: Loaded 1 PC tables (108670 PCs): 108670 [0x561e1d20cba0,0x561e1d3b5380), 
+/out/fuzz_sre_compile: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50800001d771 at pc 0x561e1cb20212 bp 0x7ffe47fa9b90 sp 0x7ffe47fa9b88
+[1m[0m[1m[34mREAD of size 1 at 0x50800001d771 thread T0[1m[0m
+SCARINESS: 12 (1-byte-read-heap-buffer-overflow)
+    #0 0x561e1cb20211 in skip_to_next_entry /src/cpython3/Python/ceval.c:4798:13
+    #1 0x561e1cb20211 in get_exception_handler /src/cpython3/Python/ceval.c:4866:16
+    #2 0x561e1cb20211 in _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4465:33
+    #3 0x561e1cb078bc in _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    #4 0x561e1cb078bc in _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    #5 0x561e1cb2e5fa in _PyObject_VectorcallTstate /src/cpython3/./Include/cpython/abstract.h:114:11
+    #6 0x561e1cb26e2b in PyObject_Vectorcall /src/cpython3/./Include/cpython/abstract.h:123:12
+    #7 0x561e1cb26e2b in call_function /src/cpython3/Python/ceval.c:5976:13
+    #8 0x561e1cb0afe7 in _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4219:19
+    #9 0x561e1cb078bc in _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    #10 0x561e1cb078bc in _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    #11 0x561e1cb2e5fa in _PyObject_VectorcallTstate /src/cpython3/./Include/cpython/abstract.h:114:11
+    #12 0x561e1cb26e2b in PyObject_Vectorcall /src/cpython3/./Include/cpython/abstract.h:123:12
+    #13 0x561e1cb26e2b in call_function /src/cpython3/Python/ceval.c:5976:13
+    #14 0x561e1cb0afe7 in _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4219:19
+    #15 0x561e1cb078bc in _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    #16 0x561e1cb078bc in _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    #17 0x561e1cb2e5fa in _PyObject_VectorcallTstate /src/cpython3/./Include/cpython/abstract.h:114:11
+    #18 0x561e1cb26e2b in PyObject_Vectorcall /src/cpython3/./Include/cpython/abstract.h:123:12
+    #19 0x561e1cb26e2b in call_function /src/cpython3/Python/ceval.c:5976:13
+    #20 0x561e1cb1620c in _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4187:23
+    #21 0x561e1cb078bc in _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    #22 0x561e1cb078bc in _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    #23 0x561e1c90cdde in _PyObject_VectorcallTstate /src/cpython3/./Include/cpython/abstract.h:114:11
+    #24 0x561e1c90cdde in object_vacall /src/cpython3/Objects/call.c:734:14
+    #25 0x561e1c90d5cf in PyObject_CallFunctionObjArgs /src/cpython3/Objects/call.c:841:14
+    #26 0x561e1c8e0462 in fuzz_sre_compile /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:248:26
+    #27 0x561e1c8e0462 in _run_fuzz /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:398:14
+    #28 0x561e1c8e0462 in LLVMFuzzerTestOneInput /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:475:11
+    #29 0x561e1c794d90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #30 0x561e1c780005 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #31 0x561e1c785a9f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #32 0x561e1c7b0d42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #33 0x7f5371bd8082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #34 0x561e1c7781ed in _start (/out/fuzz_sre_compile+0x4411ed)
+
+DEDUP_TOKEN: skip_to_next_entry--get_exception_handler--_PyEval_EvalFrameDefault
+[1m[32m0x50800001d771 is located 0 bytes after 81-byte region [0x50800001d720,0x50800001d771)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x561e1c8a0b5f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x561e1c8e0e30 in _PyBytes_FromSize /src/cpython3/Objects/bytesobject.c:126:31
+    #2 0x561e1c8e0a34 in PyBytes_FromStringAndSize /src/cpython3/Objects/bytesobject.c:159:27
+    #3 0x561e1cbce245 in r_object /src/cpython3/Python/marshal.c:1066:17
+    #4 0x561e1cbcf22c in r_object /src/cpython3/Python/marshal.c:1375:30
+    #5 0x561e1cbce387 in r_object /src/cpython3/Python/marshal.c:1171:18
+    #6 0x561e1cbcf13e in r_object /src/cpython3/Python/marshal.c:1348:22
+    #7 0x561e1cbd67e2 in read_object /src/cpython3/Python/marshal.c:1445:9
+    #8 0x561e1cbd67e2 in marshal_loads_impl /src/cpython3/Python/marshal.c:1751:14
+    #9 0x561e1cbd67e2 in marshal_loads /src/cpython3/Python/clinic/marshal.c.h:148:20
+    #10 0x561e1ce2a9d1 in cfunction_vectorcall_O /src/cpython3/Objects/methodobject.c:512:24
+    #11 0x561e1cb2e5fa in _PyObject_VectorcallTstate /src/cpython3/./Include/cpython/abstract.h:114:11
+    #12 0x561e1cb26e2b in PyObject_Vectorcall /src/cpython3/./Include/cpython/abstract.h:123:12
+    #13 0x561e1cb26e2b in call_function /src/cpython3/Python/ceval.c:5976:13
+    #14 0x561e1cb1620c in _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4187:23
+    #15 0x561e1cb078bc in _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    #16 0x561e1cb078bc in _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    #17 0x561e1cb2e5fa in _PyObject_VectorcallTstate /src/cpython3/./Include/cpython/abstract.h:114:11
+    #18 0x561e1cb26e2b in PyObject_Vectorcall /src/cpython3/./Include/cpython/abstract.h:123:12
+    #19 0x561e1cb26e2b in call_function /src/cpython3/Python/ceval.c:5976:13
+    #20 0x561e1cb1514b in _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4237:19
+    #21 0x561e1cb078bc in _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    #22 0x561e1cb078bc in _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    #23 0x561e1cb2e5fa in _PyObject_VectorcallTstate /src/cpython3/./Include/cpython/abstract.h:114:11
+    #24 0x561e1cb26e2b in PyObject_Vectorcall /src/cpython3/./Include/cpython/abstract.h:123:12
+    #25 0x561e1cb26e2b in call_function /src/cpython3/Python/ceval.c:5976:13
+    #26 0x561e1cb161e3 in _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4204:23
+    #27 0x561e1cb078bc in _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    #28 0x561e1cb078bc in _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    #29 0x561e1cb2e5fa in _PyObject_VectorcallTstate /src/cpython3/./Include/cpython/abstract.h:114:11
+    #30 0x561e1cb26e2b in PyObject_Vectorcall /src/cpython3/./Include/cpython/abstract.h:123:12
+    #31 0x561e1cb26e2b in call_function /src/cpython3/Python/ceval.c:5976:13
+    #32 0x561e1cb161e3 in _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4204:23
+    #33 0x561e1cb078bc in _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    #34 0x561e1cb078bc in _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    #35 0x561e1cb2e5fa in _PyObject_VectorcallTstate /src/cpython3/./Include/cpython/abstract.h:114:11
+    #36 0x561e1cb26e2b in PyObject_Vectorcall /src/cpython3/./Include/cpython/abstract.h:123:12
+    #37 0x561e1cb26e2b in call_function /src/cpython3/Python/ceval.c:5976:13
+    #38 0x561e1cb0afe7 in _PyEval_EvalFrameDefault /src/cpython3/Python/ceval.c:4219:19
+    #39 0x561e1cb078bc in _PyEval_EvalFrame /src/cpython3/Include/internal/pycore_ceval.h:46:12
+    #40 0x561e1cb078bc in _PyEval_Vector /src/cpython3/Python/ceval.c:5160:24
+    #41 0x561e1cb2e5fa in _PyObject_VectorcallTstate /src/cpython3/./Include/cpython/abstract.h:114:11
+
+DEDUP_TOKEN: __interceptor_malloc--_PyBytes_FromSize--PyBytes_FromStringAndSize
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/cpython3/Python/ceval.c:4798:13 in skip_to_next_entry
+Shadow bytes around the buggy address:
+  0x50800001d480: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m03[1m[0m [1m[31mfa[1m[0m
+  0x50800001d500: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m03[1m[0m [1m[31mfa[1m[0m
+  0x50800001d580: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m03[1m[0m [1m[31mfa[1m[0m
+  0x50800001d600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x50800001d680: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m02[1m[0m
+=>0x50800001d700: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m[[1m[0m01[1m[0m][1m[31mfa[1m[0m
+  0x50800001d780: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m05[1m[0m
+  0x50800001d800: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m06[1m[0m
+  0x50800001d880: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m01[1m[0m
+  0x50800001d900: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m02[1m[0m
+  0x50800001d980: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m01[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

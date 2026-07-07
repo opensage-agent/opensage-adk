@@ -1,0 +1,39 @@
+The sanitizer detected a stack buffer overflow vulnerability. The explanation of the vulnerability is: A function writes more data to a local stack variable than it can hold, overwriting adjacent memory and potentially leading to execution hijacking. Here is the detail: 
+
+READ of size 1 at 0x7f13d1157db0 thread T0
+    - iasecc_crt_parse /src/opensc/src/libopensc/iasecc-sdo.c:220:3
+    - iasecc_se_parse /src/opensc/src/libopensc/iasecc-sdo.c:371:8
+    - iasecc_se_get_info /src/opensc/src/libopensc/card-iasecc.c:1747:8
+    - iasecc_se_at_to_chv_reference /src/opensc/src/libopensc/card-iasecc.c:1974:7
+    - iasecc_pin_verify /src/opensc/src/libopensc/card-iasecc.c:2051:8
+    - iasecc_pin_cmd /src/opensc/src/libopensc/card-iasecc.c:2543:8
+    - sc_pin_cmd /src/opensc/src/libopensc/sec.c:212:7
+    - sc_pkcs15init_verify_secret /src/opensc/src/pkcs15init/pkcs15-lib.c:3941:7
+    - sc_pkcs15init_authenticate /src/opensc/src/pkcs15init/pkcs15-lib.c:4005:7
+    - iasecc_store_data_object /src/opensc/src/pkcs15init/pkcs15-iasecc.c:1792:8
+    - iasecc_emu_store_data /src/opensc/src/pkcs15init/pkcs15-iasecc.c:1849:8
+    - sc_pkcs15init_store_data /src/opensc/src/pkcs15init/pkcs15-lib.c:2370:7
+    - sc_pkcs15init_store_data_object /src/opensc/src/pkcs15init/pkcs15-lib.c:2260:6
+    - do_store_data_object /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:186:5
+    - LLVMFuzzerTestOneInput /src/opensc/src/tests/fuzzing/fuzz_pkcs15init.c:336:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7f13d1157db0 is located in stack of thread T0 at offset 432 in frame
+    - iasecc_se_get_info /src/opensc/src/libopensc/card-iasecc.c:1708:0
+
+  This frame has 3 object(s):
+    [32, 136) 'apdu' (line 1710)
+    [176, 432) 'rbuf' (line 1711) <== Memory access at offset 432 overflows this variable
+    [496, 506) 'sbuf_iasecc' (line 1712)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

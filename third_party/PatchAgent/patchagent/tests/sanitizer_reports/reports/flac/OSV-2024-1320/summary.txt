@@ -1,0 +1,38 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x520000001f80 thread T0
+    - process_page_ /src/flac/src/libFLAC/ogg_decoder_aspect.c:130:23
+    - FLAC__ogg_decoder_aspect_skip_link /src/flac/src/libFLAC/ogg_decoder_aspect.c:668:49
+    - seek_to_absolute_sample_ogg_ /src/flac/src/libFLAC/stream_decoder.c:3873:13
+    - FLAC__stream_decoder_seek_absolute /src/flac/src/libFLAC/stream_decoder.c:1332:4
+    - LLVMFuzzerTestOneInput /src/flac/oss-fuzz/seek.cc:184:21
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x520000001f80 is located 32 bytes after 3808-byte region [0x520000001080,0x520000001f60)
+allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - safe_realloc_nofree_mul_2op_ /src/flac/include/share/alloc.h:0:0
+    - check_size_of_link_allocation_ /src/flac/src/libFLAC/ogg_decoder_aspect.c:152:24
+    - FLAC__ogg_decoder_aspect_read_callback_wrapper /src/flac/src/libFLAC/ogg_decoder_aspect.c:363:12
+    - read_callback_ogg_aspect_ /src/flac/src/libFLAC/stream_decoder.c:3465:9
+    - read_callback_ /src/flac/src/libFLAC/stream_decoder.c:3349:5
+    - bitreader_read_from_client_ /src/flac/src/libFLAC/bitreader.c:213:6
+    - FLAC__bitreader_read_raw_uint32 /src/flac/src/libFLAC/bitreader.c:445:7
+    - find_metadata_ /src/flac/src/libFLAC/stream_decoder.c:1616:8
+    - FLAC__stream_decoder_process_until_end_of_stream /src/flac/src/libFLAC/stream_decoder.c:1165:9
+    - LLVMFuzzerTestOneInput /src/flac/oss-fuzz/seek.cc:143:21
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

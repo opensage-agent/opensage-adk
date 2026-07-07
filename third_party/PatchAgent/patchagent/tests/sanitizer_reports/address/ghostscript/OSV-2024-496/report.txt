@@ -1,0 +1,45 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x00000045e066 (pc 0x55f4dfe21b6f bp 0x7ffe290f8010 sp 0x7ffe290f7fa0 T0)
+==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55f4dfe21b6f in chunk_free_object /src/ghostpdl/./base/gsmchunk.c:1110:31
+    #1 0x55f4e0cb9f19 in stream_dct_finalize /src/ghostpdl/./base/sdctc.c:77:13
+    #2 0x55f4dfe21b8d in chunk_free_object /src/ghostpdl/./base/gsmchunk.c:1112:13
+    #3 0x55f4dfdee512 in sclose /src/ghostpdl/./base/stream.c:460:13
+    #4 0x55f4e01486a8 in sfclose /src/ghostpdl/./base/strmio.c:177:5
+    #5 0x55f4e06f4ff2 in pdfi_close_filter_chain /src/ghostpdl/./pdf/pdf_file.c:1455:13
+    #6 0x55f4e06f4ff2 in pdfi_close_file /src/ghostpdl/./pdf/pdf_file.c:1461:5
+    #7 0x55f4e0733397 in pdfi_do_image /src/ghostpdl/./pdf/pdf_image.c:2179:9
+    #8 0x55f4e0739500 in pdfi_do_image_or_form /src/ghostpdl/./pdf/pdf_image.c:2708:16
+    #9 0x55f4e073a3a3 in pdfi_Do /src/ghostpdl/./pdf/pdf_image.c:2793:12
+    #10 0x55f4e06edc23 in pdfi_interpret_stream_operator /src/ghostpdl/./pdf/pdf_int.c:1491:24
+    #11 0x55f4e06ebc8e in pdfi_interpret_content_stream /src/ghostpdl/./pdf/pdf_int.c:2145:24
+    #12 0x55f4e0749648 in pdfi_process_page_contents /src/ghostpdl/./pdf/pdf_page.c:135:20
+    #13 0x55f4e0749648 in pdfi_process_one_page /src/ghostpdl/./pdf/pdf_page.c:159:12
+    #14 0x55f4e0749648 in pdfi_page_render /src/ghostpdl/./pdf/pdf_page.c:1029:12
+    #15 0x55f4e06a901a in zPDFdrawpage /src/ghostpdl/./psi/zpdfops.c:963:24
+    #16 0x55f4e053d815 in do_call_operator /src/ghostpdl/./psi/interp.c:91:12
+    #17 0x55f4e0537624 in interp /src/ghostpdl/./psi/interp.c:1772:40
+    #18 0x55f4e0537624 in gs_call_interp /src/ghostpdl/./psi/interp.c:535:12
+    #19 0x55f4e0537624 in gs_interpret /src/ghostpdl/./psi/interp.c:488:12
+    #20 0x55f4dfcae557 in gs_main_interpret /src/ghostpdl/./psi/imain.c:257:12
+    #21 0x55f4dfcae557 in gs_main_run_string_end /src/ghostpdl/./psi/imain.c:945:12
+    #22 0x55f4dfcae557 in gs_main_run_string_with_length /src/ghostpdl/./psi/imain.c:889:12
+    #23 0x55f4e08420a0 in run_string /src/ghostpdl/./psi/imainarg.c:1174:12
+    #24 0x55f4e083e960 in swproc /src/ghostpdl/./psi/imainarg.c:368:20
+    #25 0x55f4e083bae2 in gs_main_init_with_args01 /src/ghostpdl/./psi/imainarg.c:224:24
+    #26 0x55f4e0841e28 in gs_main_init_with_args /src/ghostpdl/./psi/imainarg.c:290:16
+    #27 0x55f4dfca5fae in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    #28 0x55f4dfca641b in LLVMFuzzerTestOneInput /src/gs_device_tiffsep1_fuzzer.cc:24:2
+    #29 0x55f4dfb5a6c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #30 0x55f4dfb45935 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #31 0x55f4dfb4b3cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #32 0x55f4dfb76672 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #33 0x7f7fb0f4d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #34 0x55f4dfb3db1d in _start (/out/gs_device_tiffsep1_fuzzer+0x751b1d)
+
+DEDUP_TOKEN: chunk_free_object--stream_dct_finalize--chunk_free_object
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/ghostpdl/./base/gsmchunk.c:1110:31 in chunk_free_object
+==14==ABORTING

@@ -1,0 +1,52 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 24 at 0x52b000006a48 thread T0
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - ZSTD_freeDDict /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:215:44
+    - blosc2_free_ctx /src/c-blosc2/blosc/blosc2.c:3154:5
+    - blosc2_schunk_free /src/c-blosc2/blosc/schunk.c:223:3
+    - LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:44:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x52b000006a48 is located 26696 bytes inside of 26720-byte region [0x52b000000200,0x52b000006a60)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - ZSTD_free /src/c-blosc2/internal-complibs/zstd-1.4.5/common/zstd_common.c:81:13
+    - ZSTD_freeDDict /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:217:9
+    - initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:1634:7
+    - blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2157:11
+    - blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2183:12
+    - frame_decompress_chunk /src/c-blosc2/blosc/frame.c:1675:23
+    - blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:540:17
+    - LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:33:15
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - ZSTD_malloc /src/c-blosc2/internal-complibs/zstd-1.4.5/common/zstd_common.c:60:12
+    - ZSTD_createDDict_advanced /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:152:49
+    - ZSTD_createDDict /src/c-blosc2/internal-complibs/zstd-1.4.5/decompress/zstd_ddict.c:173:12
+    - initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:1653:27
+    - blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2157:11
+    - blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2183:12
+    - frame_decompress_chunk /src/c-blosc2/blosc/frame.c:1675:23
+    - blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:540:17
+    - LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:33:15
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

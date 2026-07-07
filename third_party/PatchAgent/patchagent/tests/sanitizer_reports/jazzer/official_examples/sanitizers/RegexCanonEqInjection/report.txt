@@ -1,0 +1,51 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 279 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.RegexCanonEqInjection (took 23 ms, size +38%)
+INFO: using inputs from: ./sanitizer_report/RegexCanonEqInjection/crash-ffadf7f240522074ab4036f176bb68094814b150
+INFO: found LLVMFuzzerCustomMutator (0x7f8268860a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 577196480
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x557f47095890, 0x557f47095a90), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x557f470444e0,0x557f470464e0), 
+jazzer: Running 1 inputs 1 time(s) each.
+Running: ./sanitizer_report/RegexCanonEqInjection/crash-ffadf7f240522074ab4036f176bb68094814b150
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Regular Expression Injection
+Regular expression patterns that contain unescaped untrusted input can consume
+arbitrary amounts of CPU time. To properly escape the input, wrap it with
+Pattern.quote(...).
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:164)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.compileWithFlagsHook(RegexInjection.kt:62)
+	at com.example.RegexCanonEqInjection.fuzzerTestOneInput(RegexCanonEqInjection.java:27)
+Caused by: java.util.regex.PatternSyntaxException: Unmatched closing ')' near index 5
+\(?:Q̎)\E
+     ^
+	at java.base/java.util.regex.Pattern.error(Pattern.java:2204)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1949)
+	at java.base/java.util.regex.Pattern.<init>(Pattern.java:1576)
+	at java.base/java.util.regex.Pattern.compile(Pattern.java:1134)
+	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:733)
+	at com.code_intelligence.jazzer.sanitizers.RegexInjection.hookInternal(RegexInjection.kt:155)
+	... 2 more
+DEDUP_TOKEN: 7319e9ef4e3e6e04
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_ffadf7f240522074ab4036f176bb68094814b150.java
+

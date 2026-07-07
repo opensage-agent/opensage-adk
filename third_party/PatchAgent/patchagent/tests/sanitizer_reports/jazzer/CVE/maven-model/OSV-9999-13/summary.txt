@@ -1,0 +1,44 @@
+The sanitizer detected a server side request forgery vulnerability.The explanation of the vulnerability is: An attacker can make the server perform unauthorized requests, leading to potential data exfiltration or unauthorized access.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueMedium: Server Side Request Forgery (SSRF)
+Attempted connection to: www.apple.com:80
+Requests to destinations based on untrusted data could lead to exfiltration of sensitive data or exposure of internal services.
+
+If the fuzz test is expected to perform network connections, call com.code_intelligence.jazzer.api.BugDetectors#allowNetworkConnections at the beginning of your fuzz test and optionally provide a predicate matching the expected hosts.
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrf (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:127)
+- com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery.checkSsrfSocket (com/code_intelligence/jazzer/sanitizers/ServerSideRequestForgery.java:71)
+- java.base/java.net.Socket.connect (java/base/java/net/Socket.java:633)
+- java.base/java.net.Socket.connect (java/base/java/net/Socket.java:583)
+- java.base/sun.net.NetworkClient.doConnect (java/base/sun/net/NetworkClient.java:183)
+- java.base/sun.net.www.http.HttpClient.openServer (java/base/sun/net/www/http/HttpClient.java:498)
+- java.base/sun.net.www.http.HttpClient.openServer (java/base/sun/net/www/http/HttpClient.java:603)
+- java.base/sun.net.www.http.HttpClient.<init> (java/base/sun/net/www/http/HttpClient.java:246)
+- java.base/sun.net.www.http.HttpClient.New (java/base/sun/net/www/http/HttpClient.java:351)
+- java.base/sun.net.www.http.HttpClient.New (java/base/sun/net/www/http/HttpClient.java:373)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.getNewHttpClient (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1309)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0 (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1242)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1128)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.connect (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1057)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0 (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1665)
+- java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream (java/base/sun/net/www/protocol/http/HttpURLConnection.java:1589)
+- java.base/java.net.URL.openStream (java/base/java/net/URL.java:1161)
+- com.ctc.wstx.util.URLUtil.inputStreamFromURL (com/ctc/wstx/util/URLUtil.java:158)
+- com.ctc.wstx.io.DefaultInputResolver.sourceFromURL (com/ctc/wstx/io/DefaultInputResolver.java:255)
+- com.ctc.wstx.io.DefaultInputResolver.resolveEntity (com/ctc/wstx/io/DefaultInputResolver.java:92)
+- com.ctc.wstx.sr.ValidatingStreamReader.findDtdExtSubset (com/ctc/wstx/sr/ValidatingStreamReader.java:458)
+- com.ctc.wstx.sr.ValidatingStreamReader.finishDTD (com/ctc/wstx/sr/ValidatingStreamReader.java:326)
+- com.ctc.wstx.sr.BasicStreamReader.skipToken (com/ctc/wstx/sr/BasicStreamReader.java:3466)
+- com.ctc.wstx.sr.BasicStreamReader.nextFromProlog (com/ctc/wstx/sr/BasicStreamReader.java:2089)
+- com.ctc.wstx.sr.BasicStreamReader.next (com/ctc/wstx/sr/BasicStreamReader.java:1180)
+- org.apache.maven.model.v4.MavenStaxReader.read (org/apache/maven/model/v4/MavenStaxReader.java:458)
+- org.apache.maven.model.v4.MavenStaxReader.read (org/apache/maven/model/v4/MavenStaxReader.java:431)
+- org.apache.maven.model.io.xpp3.MavenXpp3Reader.read (org/apache/maven/model/io/xpp3/MavenXpp3Reader.java:110)
+- org.apache.maven.model.io.xpp3.MavenXpp3Reader.read (org/apache/maven/model/io/xpp3/MavenXpp3Reader.java:128)
+- org.apache.maven.model.io.xpp3.MavenXpp3Reader.read (org/apache/maven/model/io/xpp3/MavenXpp3Reader.java:141)
+- Xpp3ReaderFuzzer.fuzzerTestOneInput (Xpp3ReaderFuzzer.java:26)
+
+To fix this issue, follow the advice below:
+
+1. Validate and sanitize all user-provided URLs to prevent SSRF attacks.
+2. Use allowlists or secure APIs to restrict server-side requests to authorized domains.
+3. Monitor server logs for unusual or unauthorized requests.

@@ -1,0 +1,84 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x508000000170 at pc 0x562bfe2e416e bp 0x7ffe4bbab250 sp 0x7ffe4bbab248
+READ of size 4 at 0x508000000170 thread T0
+SCARINESS: 45 (4-byte-read-heap-use-after-free)
+    #0 0x562bfe2e416d in xmlCharEncCloseFunc /src/libxml2/encoding.c:1920:18
+    #1 0x562bfe41dd99 in htmlSaveFileFormat /src/libxml2/HTMLtree.c:1111:9
+    #2 0x562bfe2d763d in parseAndPrintFile /src/libxml2/fuzz/./../xmllint.c
+    #3 0x562bfe2ce09d in xmllintMain /src/libxml2/fuzz/./../xmllint.c:3465:2
+    #4 0x562bfe2ce09d in LLVMFuzzerTestOneInput /src/libxml2/fuzz/lint.c:205:5
+    #5 0x562bfe17f440 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x562bfe16a6b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x562bfe17014f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x562bfe19b3f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f6c9bde9082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #10 0x562bfe16289d in _start (/out/lint+0x1d089d)
+
+DEDUP_TOKEN: xmlCharEncCloseFunc--htmlSaveFileFormat--parseAndPrintFile
+0x508000000170 is located 80 bytes inside of 88-byte region [0x508000000120,0x508000000178)
+freed by thread T0 here:
+    #0 0x562bfe28af76 in free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    #1 0x562bfe2e4147 in xmlCharEncCloseFunc /src/libxml2/encoding.c:1928:5
+    #2 0x562bfe3d37a1 in __xmlOutputBufferCreateFilename /src/libxml2/xmlIO.c:1542:9
+    #3 0x562bfe41dd21 in htmlSaveFileFormat /src/libxml2/HTMLtree.c:1109:11
+    #4 0x562bfe2d763d in parseAndPrintFile /src/libxml2/fuzz/./../xmllint.c
+    #5 0x562bfe2ce09d in xmllintMain /src/libxml2/fuzz/./../xmllint.c:3465:2
+    #6 0x562bfe2ce09d in LLVMFuzzerTestOneInput /src/libxml2/fuzz/lint.c:205:5
+    #7 0x562bfe17f440 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x562bfe16a6b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x562bfe17014f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x562bfe19b3f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f6c9bde9082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_free--xmlCharEncCloseFunc--__xmlOutputBufferCreateFilename
+previously allocated by thread T0 here:
+    #0 0x562bfe28b20f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x562bfe3d780e in xmlMemMalloc /src/libxml2/xmlmemory.c:110:20
+    #2 0x562bfe2d1415 in myMallocFunc /src/libxml2/fuzz/./../xmllint.c:296:11
+    #3 0x562bfe2e0b52 in xmlFindExtraHandler /src/libxml2/encoding.c:798:15
+    #4 0x562bfe2e1bea in xmlCreateCharEncodingHandler /src/libxml2/encoding.c:1005:12
+    #5 0x562bfe41b6cc in htmlFindOutputEncoder /src/libxml2/HTMLtree.c:390:15
+    #6 0x562bfe41dcb7 in htmlSaveFileFormat /src/libxml2/HTMLtree.c:1100:15
+    #7 0x562bfe2d763d in parseAndPrintFile /src/libxml2/fuzz/./../xmllint.c
+    #8 0x562bfe2ce09d in xmllintMain /src/libxml2/fuzz/./../xmllint.c:3465:2
+    #9 0x562bfe2ce09d in LLVMFuzzerTestOneInput /src/libxml2/fuzz/lint.c:205:5
+    #10 0x562bfe17f440 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x562bfe16a6b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x562bfe17014f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x562bfe19b3f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f6c9bde9082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--xmlMemMalloc--myMallocFunc
+SUMMARY: AddressSanitizer: heap-use-after-free /src/libxml2/encoding.c:1920:18 in xmlCharEncCloseFunc
+Shadow bytes around the buggy address:
+  0x507ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x508000000000: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+  0x508000000080: fa fa fa fa fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x508000000100: fa fa fa fa fd fd fd fd fd fd fd fd fd fd[fd]fa
+  0x508000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

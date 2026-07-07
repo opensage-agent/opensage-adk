@@ -1,0 +1,115 @@
+=================================================================
+==640238==ERROR: AddressSanitizer: heap-use-after-free on address 0x519000000390 at pc 0x7f313bd136a8 bp 0x7fff1be67670 sp 0x7fff1be66e30
+WRITE of size 8 at 0x519000000390 thread T0
+    #0 0x7f313bd136a7 in __asan_memcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf66a7) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x558994294931 in mrb_vm_exec /root/src/vm.c:1397:19
+    #2 0x55899428de85 in mrb_vm_run /root/src/vm.c:1131:12
+    #3 0x558994289876 in mrb_run /root/src/vm.c:3027:10
+    #4 0x5589942885d2 in mrb_funcall_with_block /root/src/vm.c:566:13
+    #5 0x558994286bfd in mrb_funcall_argv /root/src/vm.c:577:10
+    #6 0x558994286efd in mrb_funcall_id /root/src/vm.c:393:10
+    #7 0x558994255b67 in mrb_eql /root/src/object.c:620:10
+    #8 0x558994247b41 in obj_eql /root/src/hash.c:378:5
+    #9 0x5589942474c1 in ar_get /root/src/hash.c:512:3
+    #10 0x558994241eac in h_get /root/src/hash.c:1005:10
+    #11 0x558994242fd3 in mrb_hash_key_p /root/src/hash.c:1688:10
+    #12 0x55899424428d in mrb_hash_has_key /root/src/hash.c:1697:11
+    #13 0x55899429a80f in mrb_vm_exec /root/src/vm.c:1636:18
+    #14 0x55899428de85 in mrb_vm_run /root/src/vm.c:1131:12
+    #15 0x55899428a873 in mrb_top_run /root/src/vm.c:3040:12
+    #16 0x558994307f72 in mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6890:7
+    #17 0x55899430874c in mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6933:12
+    #18 0x5589942098c3 in main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+    #19 0x7f313b69a1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #20 0x7f313b69a28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #21 0x558994207a54 in _start (/root/bin/mruby+0x9aa54) (BuildId: a2668c0414d89337e1b7f5b05e4684b023f407b2)
+
+0x519000000390 is located 784 bytes inside of 1024-byte region [0x519000000080,0x519000000480)
+freed by thread T0 here:
+    #0 0x7f313bd15bc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55899425dc15 in mrb_default_allocf /root/src/state.c:68:12
+    #2 0x55899423765e in mrb_realloc_simple /root/src/gc.c:226:8
+    #3 0x5589942856ba in stack_extend_alloc /root/src/vm.c:180:27
+    #4 0x5589942852d0 in mrb_stack_extend /root/src/vm.c:200:5
+    #5 0x55899429b0ad in mrb_vm_exec /root/src/vm.c:1671:9
+    #6 0x55899428de85 in mrb_vm_run /root/src/vm.c:1131:12
+    #7 0x558994289876 in mrb_run /root/src/vm.c:3027:10
+    #8 0x5589942885d2 in mrb_funcall_with_block /root/src/vm.c:566:13
+    #9 0x558994286bfd in mrb_funcall_argv /root/src/vm.c:577:10
+    #10 0x558994286efd in mrb_funcall_id /root/src/vm.c:393:10
+    #11 0x558994255b67 in mrb_eql /root/src/object.c:620:10
+    #12 0x558994247b41 in obj_eql /root/src/hash.c:378:5
+    #13 0x5589942474c1 in ar_get /root/src/hash.c:512:3
+    #14 0x558994241eac in h_get /root/src/hash.c:1005:10
+    #15 0x558994241d1b in mrb_hash_get /root/src/hash.c:1215:7
+    #16 0x55899429490f in mrb_vm_exec /root/src/vm.c:1397:19
+    #17 0x55899428de85 in mrb_vm_run /root/src/vm.c:1131:12
+    #18 0x558994289876 in mrb_run /root/src/vm.c:3027:10
+    #19 0x5589942885d2 in mrb_funcall_with_block /root/src/vm.c:566:13
+    #20 0x558994286bfd in mrb_funcall_argv /root/src/vm.c:577:10
+    #21 0x558994286efd in mrb_funcall_id /root/src/vm.c:393:10
+    #22 0x558994255b67 in mrb_eql /root/src/object.c:620:10
+    #23 0x558994247b41 in obj_eql /root/src/hash.c:378:5
+    #24 0x5589942474c1 in ar_get /root/src/hash.c:512:3
+    #25 0x558994241eac in h_get /root/src/hash.c:1005:10
+    #26 0x558994242fd3 in mrb_hash_key_p /root/src/hash.c:1688:10
+    #27 0x55899424428d in mrb_hash_has_key /root/src/hash.c:1697:11
+    #28 0x55899429a80f in mrb_vm_exec /root/src/vm.c:1636:18
+    #29 0x55899428de85 in mrb_vm_run /root/src/vm.c:1131:12
+
+previously allocated by thread T0 here:
+    #0 0x7f313bd15bc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x55899425dc15 in mrb_default_allocf /root/src/state.c:68:12
+    #2 0x55899423765e in mrb_realloc_simple /root/src/gc.c:226:8
+    #3 0x558994237be4 in mrb_realloc /root/src/gc.c:240:8
+    #4 0x558994237d10 in mrb_malloc /root/src/gc.c:256:10
+    #5 0x558994237dba in mrb_calloc /root/src/gc.c:274:9
+    #6 0x5589942886d2 in stack_init /root/src/vm.c:109:28
+    #7 0x55899428dd0d in mrb_vm_run /root/src/vm.c:1124:5
+    #8 0x55899428a72c in mrb_top_run /root/src/vm.c:3036:12
+    #9 0x55899424e061 in mrb_load_proc /root/src/load.c:713:10
+    #10 0x558994399804 in mrb_init_mrblib /root/build/host/mrblib/mrblib.c:2326:3
+    #11 0x5589943521c4 in mrb_init_core /root/src/init.c:50:3
+    #12 0x55899425dd3f in init_gc_and_core /root/src/state.c:34:3
+    #13 0x55899423559b in mrb_core_init_protect /root/src/error.c:588:5
+    #14 0x55899425db85 in mrb_open_core /root/src/state.c:52:7
+    #15 0x55899425de3c in mrb_open_allocf /root/src/state.c:91:20
+    #16 0x55899425de07 in mrb_open /root/src/state.c:75:20
+    #17 0x558994208f7a in main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:278:20
+    #18 0x7f313b69a1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x7f313b69a28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #20 0x558994207a54 in _start (/root/bin/mruby+0x9aa54) (BuildId: a2668c0414d89337e1b7f5b05e4684b023f407b2)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/src/vm.c:1397:19 in mrb_vm_exec
+Shadow bytes around the buggy address:
+  0x519000000100: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000180: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000200: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000280: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000300: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x519000000380: fd fd[fd]fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000400: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x519000000500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x519000000580: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x519000000600: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==640238==ABORTING

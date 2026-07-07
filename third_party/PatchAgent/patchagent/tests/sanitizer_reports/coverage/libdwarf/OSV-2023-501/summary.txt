@@ -1,0 +1,20 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a READ memory access.
+    - _dwarf_exec_frame_instr /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:509:14
+    - _dwarf_get_fde_info_for_a_pc_row /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:2209:15
+    - dwarf_get_fde_info_for_all_regs3 /src/libdwarf/src/lib/libdwarf/dwarf_frame.c:2266:11
+    - print_fde_instrs /src/libdwarf/fuzz/fuzz_set_frame_all.c:603:9
+    - read_frame_data /src/libdwarf/fuzz/fuzz_set_frame_all.c:181:5
+    - LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_set_frame_all.c:93:7
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

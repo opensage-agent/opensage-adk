@@ -1,0 +1,16 @@
+The sanitizer detected a global buffer overflow vulnerability. The explanation of the vulnerability is: A buffer overflow occurs in globally allocated memory, leading to memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x55759e965c38 thread T0
+    - _getBaseCellNeighbor /root/src/h3lib/lib/baseCells.c:901:12
+    - localIjkToCell /root/src/h3lib/lib/localij.c:326:33
+    - localIjToCell /root/src/h3lib/lib/localij.c:568:12
+    - LLVMFuzzerTestOneInput /root/src/apps/fuzzers/fuzzerLocalIj.c:58:19
+
+0x55759e965c38 is located 0 bytes after global variable 'baseCellNeighbors' defined in '/root/src/h3lib/lib/baseCells.c:38' (0x55759e964ee0) of size 3416
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

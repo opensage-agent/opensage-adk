@@ -1,0 +1,28 @@
+The sanitizer detected a bad free vulnerability. The explanation of the vulnerability is: A program attempts to free a memory block that was not dynamically allocated, causing undefined behavior or crashes. Here is the detail: 
+
+    - operator delete(void*) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:143:3
+    - __libcpp_operator_delete<void *> /usr/local/include/c++/v1/new:280:3
+    - __do_deallocate_handle_size<> /usr/local/include/c++/v1/new:302:10
+    - __libcpp_deallocate /usr/local/include/c++/v1/new:317:12
+    - deallocate /usr/local/include/c++/v1/__memory/allocator.h:139:7
+    - deallocate /usr/local/include/c++/v1/__memory/allocator_traits.h:289:9
+    - operator() /usr/local/include/c++/v1/vector:492:9
+    - ~vector /usr/local/include/c++/v1/vector:501:67
+    - igl::MshLoader::~MshLoader() /src/libigl/include/igl/MshLoader.h:23:7
+    - LLVMFuzzerTestOneInput /src/igl_fuzzer.cpp:33:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x504000000050 is located 16 bytes after 48-byte region [0x504000000010,0x504000000040)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that only dynamically allocated memory is freed.
+2. Avoid freeing memory that was not allocated using malloc or similar functions.
+3. Verify pointer values before attempting to free them.

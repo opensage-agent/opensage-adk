@@ -1,0 +1,87 @@
+=================================================================
+==360230==ERROR: AddressSanitizer: heap-use-after-free on address 0x50300000178e at pc 0x559147af3be3 bp 0x7ffd6183f5c0 sp 0x7ffd6183f5b8
+READ of size 1 at 0x50300000178e thread T0
+    #0 0x559147af3be2 in AffixMgr::isSubset(char const*, char const*) /root/src/hunspell/affixmgr.cxx:1073:19
+    #1 0x559147ad007e in AffixMgr::cpdpat_check(char const*, int, hentry*, hentry*, char) /root/src/hunspell/affixmgr.cxx:1332:9
+    #2 0x559147ade342 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2107:22
+    #3 0x559147ade23d in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    #4 0x559147ade23d in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    #5 0x559147ade23d in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    #6 0x559147a640df in HunspellImpl::checkword(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:869:19
+    #7 0x559147a65c0a in HunspellImpl::spell_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:539:12
+    #8 0x559147a64cc1 in HunspellImpl::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:447:12
+    #9 0x559147a67c6c in HunspellImpl::spell_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:710:70
+    #10 0x559147a64cc1 in HunspellImpl::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:447:12
+    #11 0x559147a7c0fe in Hunspell::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:2081:18
+    #12 0x559147a5e1b7 in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:65:15
+    #13 0x559147a433e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3e4) (BuildId: 926577e7a346dede91e42e3c5afdd273d8336c9b)
+    #14 0x559147a2c516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x16516) (BuildId: 926577e7a346dede91e42e3c5afdd273d8336c9b)
+    #15 0x559147a31fca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bfca) (BuildId: 926577e7a346dede91e42e3c5afdd273d8336c9b)
+    #16 0x559147a5c826 in main (/root/affdicfuzzer+0x46826) (BuildId: 926577e7a346dede91e42e3c5afdd273d8336c9b)
+    #17 0x7f8b438091c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x7f8b4380928a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x559147a270e4 in _start (/root/affdicfuzzer+0x110e4) (BuildId: 926577e7a346dede91e42e3c5afdd273d8336c9b)
+
+0x50300000178e is located 14 bytes inside of 20-byte region [0x503000001780,0x503000001794)
+freed by thread T0 here:
+    #0 0x7f8b43bff50a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f8b44785f5c in std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>::_M_mutate(unsigned long, unsigned long, char const*, unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0x162f5c) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+
+previously allocated by thread T0 here:
+    #0 0x7f8b43bff7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f8b446de5bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+    #2 0x559147b3cc43 in SfxEntry::check_twosfx(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int, int, PfxEntry*, unsigned short) /root/src/hunspell/affentry.cxx:728:17
+    #3 0x559147ae0796 in AffixMgr::suffix_check_twosfx(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int, int, PfxEntry*, unsigned short) /root/src/hunspell/affixmgr.cxx:2870:16
+    #4 0x559147ae0c8e in AffixMgr::affix_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int, int, unsigned short, char) /root/src/hunspell/affixmgr.cxx:3150:10
+    #5 0x559147adc1b8 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:1974:24
+    #6 0x559147ade23d in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    #7 0x559147ade23d in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    #8 0x559147ade23d in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2099:20
+    #9 0x559147a640df in HunspellImpl::checkword(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:869:19
+    #10 0x559147a65c0a in HunspellImpl::spell_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:539:12
+    #11 0x559147a64cc1 in HunspellImpl::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:447:12
+    #12 0x559147a67c6c in HunspellImpl::spell_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:710:70
+    #13 0x559147a64cc1 in HunspellImpl::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:447:12
+    #14 0x559147a7c0fe in Hunspell::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:2081:18
+    #15 0x559147a5e1b7 in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:65:15
+    #16 0x559147a433e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3e4) (BuildId: 926577e7a346dede91e42e3c5afdd273d8336c9b)
+    #17 0x559147a2c516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x16516) (BuildId: 926577e7a346dede91e42e3c5afdd273d8336c9b)
+    #18 0x559147a31fca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bfca) (BuildId: 926577e7a346dede91e42e3c5afdd273d8336c9b)
+    #19 0x559147a5c826 in main (/root/affdicfuzzer+0x46826) (BuildId: 926577e7a346dede91e42e3c5afdd273d8336c9b)
+    #20 0x7f8b438091c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #21 0x7f8b4380928a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #22 0x559147a270e4 in _start (/root/affdicfuzzer+0x110e4) (BuildId: 926577e7a346dede91e42e3c5afdd273d8336c9b)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/src/hunspell/affixmgr.cxx:1073:19 in AffixMgr::isSubset(char const*, char const*)
+Shadow bytes around the buggy address:
+  0x503000001500: fa fa fd fd fd fa fa fa fd fd fd fa fa fa fd fd
+  0x503000001580: fd fa fa fa fd fd fd fd fa fa fd fd fd fd fa fa
+  0x503000001600: fd fd fd fa fa fa fd fd fd fd fa fa fd fd fd fd
+  0x503000001680: fa fa fd fd fd fa fa fa fd fd fd fa fa fa fd fd
+  0x503000001700: fd fa fa fa 00 00 00 fa fa fa fd fd fd fd fa fa
+=>0x503000001780: fd[fd]fd fa fa fa fd fd fd fa fa fa fd fd fd fa
+  0x503000001800: fa fa fd fd fd fd fa fa fd fd fd fd fa fa fa fa
+  0x503000001880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000001900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000001980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000001a00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360230==ABORTING

@@ -1,0 +1,24 @@
+=================================================================
+==893442==ERROR: AddressSanitizer: strcpy-param-overlap: memory ranges [0x7fd6c6309023,0x7fd6c630902c) and [0x7fd6c6309025, 0x7fd6c630902e) overlap
+    #0 0x558203a389ed in strcpy (/workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/strcpy-param-overlap/a.out+0xad9ed) (BuildId: ed7305f6cca0429c18e0ef4e53b2dc6ee80d1d52)
+    #1 0x558203a8f841 in main /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/strcpy-param-overlap/test.c:10:5
+    #2 0x7fd6c83251c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 42c84c92e6f98126b3e2230ebfdead22c235b667)
+    #3 0x7fd6c832528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 42c84c92e6f98126b3e2230ebfdead22c235b667)
+    #4 0x5582039b6344 in _start (/workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/strcpy-param-overlap/a.out+0x2b344) (BuildId: ed7305f6cca0429c18e0ef4e53b2dc6ee80d1d52)
+
+Address 0x7fd6c6309023 is located in stack of thread T0 at offset 35 in frame
+    #0 0x558203a8f73f in main /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/strcpy-param-overlap/test.c:4
+
+  This frame has 1 object(s):
+    [32, 52) 'buffer' (line 5) <== Memory access at offset 35 is inside this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+Address 0x7fd6c6309025 is located in stack of thread T0 at offset 37 in frame
+    #0 0x558203a8f73f in main /workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/strcpy-param-overlap/test.c:4
+
+  This frame has 1 object(s):
+    [32, 52) 'buffer' (line 5) <== Memory access at offset 37 is inside this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: strcpy-param-overlap (/workspaces/PatchAgent/patchagent/tests/sanitizer_reports/custom/strcpy-param-overlap/a.out+0xad9ed) (BuildId: ed7305f6cca0429c18e0ef4e53b2dc6ee80d1d52) in strcpy
+==893442==ABORTING

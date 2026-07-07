@@ -1,0 +1,11 @@
+The sanitizer detected a out of memory vulnerability.The explanation of the vulnerability is: The program runs out of memory, causing allocation failures and potential crashes.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Out of memory (use '-Xmx1620m' to reproduce)
+Caused by: java.lang.OutOfMemoryError: Requested array size exceeds VM limit
+- com.example.ExampleOutOfMemoryFuzzer.fuzzerTestOneInput (com/example/ExampleOutOfMemoryFuzzer.java:26)
+
+To fix this issue, follow the advice below:
+
+1. Check for memory leaks that may be consuming system resources.
+2. Optimize memory usage by releasing unused resources.
+3. Increase system memory or swap space to accommodate memory requirements.

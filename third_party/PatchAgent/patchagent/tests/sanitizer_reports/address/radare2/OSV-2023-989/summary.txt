@@ -1,0 +1,58 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 161 at 0x514000001fd0 thread T0
+    - strlen /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc:391:5
+    - r_str_ncpy /src/radare2/libr/include/r_util/r_str.h:112:17
+    - load_sections_64 /src/radare2/libr/bin/format/mach0/mach0.c:2615:3
+    - metadata_sections_init /src/radare2/libr/bin/format/objc/mach0_classes.c:74:28
+    - parse_classes_64 /src/radare2/libr/bin/format/objc/mach0_classes.c:1533:20
+    - r_bin_object_set_items /src/radare2/libr/bin/bobj.c:392:21
+    - r_bin_object_new /src/radare2/libr/bin/bobj.c:182:2
+    - r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:613:19
+    - r_bin_open_buf /src/radare2/libr/bin/bin.c:303:8
+    - r_bin_open_io /src/radare2/libr/bin/bin.c:369:13
+    - cmd_open_bin /src/radare2/libr/core/cmd_open.inc.c:273:6
+    - cmd_open /src/radare2/libr/core/cmd_open.inc.c:2110:3
+    - r_cmd_call /src/radare2/libr/core/cmd_api.c:520:11
+    - r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5016:8
+    - r_core_cmd_subst /src/radare2/libr/core/cmd.c:3842:10
+    - run_cmd_depth /src/radare2/libr/core/cmd.c:5958:9
+    - r_core_cmd /src/radare2/libr/core/cmd.c:6046:8
+    - LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x514000001fd0 is located 0 bytes after 400-byte region [0x514000001e40,0x514000001fd0)
+allocated by thread T0 here:
+    - realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    - parse_segments /src/radare2/libr/bin/format/mach0/mach0.c:418:21
+    - init_items /src/radare2/libr/bin/format/mach0/mach0.c:1808:9
+    - init /src/radare2/libr/bin/format/mach0/mach0.c:2188:7
+    - new_buf_64 /src/radare2/libr/bin/format/mach0/mach0.c:2338:8
+    - load /src/radare2/libr/bin/p/bin_mach0.c:53:29
+    - r_bin_object_new /src/radare2/libr/bin/bobj.c:161:8
+    - r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:613:19
+    - r_bin_open_buf /src/radare2/libr/bin/bin.c:303:8
+    - r_bin_open_io /src/radare2/libr/bin/bin.c:369:13
+    - cmd_open_bin /src/radare2/libr/core/cmd_open.inc.c:273:6
+    - cmd_open /src/radare2/libr/core/cmd_open.inc.c:2110:3
+    - r_cmd_call /src/radare2/libr/core/cmd_api.c:520:11
+    - r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:5016:8
+    - r_core_cmd_subst /src/radare2/libr/core/cmd.c:3842:10
+    - run_cmd_depth /src/radare2/libr/core/cmd.c:5958:9
+    - r_core_cmd /src/radare2/libr/core/cmd.c:6046:8
+    - LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

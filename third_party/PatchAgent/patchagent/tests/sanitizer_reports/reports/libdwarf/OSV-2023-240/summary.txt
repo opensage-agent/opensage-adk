@@ -1,0 +1,29 @@
+The sanitizer detected a bad free vulnerability. The explanation of the vulnerability is: A program attempts to free a memory block that was not dynamically allocated, causing undefined behavior or crashes. Here is the detail: 
+
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_die_cu_attrs.c:185:11
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x50400000016d is located 29 bytes inside of 48-byte region [0x504000000150,0x504000000180)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - elf_load_nolibelf_section /src/libdwarf/src/lib/libdwarf/dwarf_elfread.c:230:26
+    - _dwarf_load_section /src/libdwarf/src/lib/libdwarf/dwarf_init_finish.c:1999:11
+    - _dwarf_load_die_containing_section /src/libdwarf/src/lib/libdwarf/dwarf_die_deliv.c:1650:9
+    - _dwarf_next_cu_header_internal /src/libdwarf/src/lib/libdwarf/dwarf_die_deliv.c:1751:15
+    - dwarf_next_cu_header_d /src/libdwarf/src/lib/libdwarf/dwarf_die_deliv.c:997:11
+    - LLVMFuzzerTestOneInput /src/libdwarf/fuzz/fuzz_die_cu_attrs.c:71:13
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that only dynamically allocated memory is freed.
+2. Avoid freeing memory that was not allocated using malloc or similar functions.
+3. Verify pointer values before attempting to free them.

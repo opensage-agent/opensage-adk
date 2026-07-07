@@ -1,0 +1,164 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/mruby:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/mruby/OSV-2021-913/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce mruby_fuzzer -runs=100.
++ FUZZER=mruby_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer mruby_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/mruby_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=mruby.dict -only_ascii=1 < /dev/null
+Dictionary: 102 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2989796621
+INFO: Loaded 1 modules   (20292 inline 8-bit counters): 20292 [0x55c391fea858, 0x55c391fef79c), 
+INFO: Loaded 1 PC tables (20292 PCs): 20292 [0x55c391fef7a0,0x55c39203ebe0), 
+/out/mruby_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==18==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5290000044f4 at pc 0x55c391e7266b bp 0x7ffe7f053010 sp 0x7ffe7f053008
+[1m[0m[1m[34mREAD of size 1 at 0x5290000044f4 thread T0[1m[0m
+SCARINESS: 22 (1-byte-read-heap-buffer-overflow-far-from-bounds)
+    #0 0x55c391e7266a in dispatch /src/mruby/mrbgems/mruby-compiler/core/codegen.c:573:21
+    #1 0x55c391e7266a in dispatch_linked /src/mruby/mrbgems/mruby-compiler/core/codegen.c:584:11
+    #2 0x55c391e7266a in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1629:11
+    #3 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #4 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #5 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #6 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #7 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #8 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #9 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #10 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #11 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #12 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #13 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #14 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #15 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #16 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #17 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #18 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #19 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #20 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #21 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #22 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #23 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #24 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #25 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #26 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #27 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #28 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #29 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #30 0x55c391e678e0 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1582:7
+    #31 0x55c391e6bb11 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    #32 0x55c391e804a0 in gen_literal_array /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1426:9
+    #33 0x55c391e6931e in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #34 0x55c391e6854e in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    #35 0x55c391e7ba53 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #36 0x55c391e7a2da in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #37 0x55c391e67944 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #38 0x55c391e6854e in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    #39 0x55c391e7ba53 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #40 0x55c391e7a2da in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #41 0x55c391e67944 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #42 0x55c391e6854e in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    #43 0x55c391e6bb11 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    #44 0x55c391e78b89 in lambda_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1058:3
+    #45 0x55c391e67a06 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1700:17
+    #46 0x55c391e7a716 in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1221:5
+    #47 0x55c391e67944 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #48 0x55c391e7ba53 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #49 0x55c391e7a2da in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #50 0x55c391e67944 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #51 0x55c391e7ba53 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #52 0x55c391e7a2da in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #53 0x55c391e67944 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #54 0x55c391e6bb11 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    #55 0x55c391e79eb0 in scope_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1075:3
+    #56 0x55c391e65c10 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1912:5
+    #57 0x55c391e645f5 in generate_code /src/mruby/mrbgems/mruby-compiler/core/codegen.c:3340:5
+    #58 0x55c391df4f62 in mrb_load_exec /src/mruby/mrbgems/mruby-compiler/core/parse.y:6843:10
+    #59 0x55c391d46b60 in LLVMFuzzerTestOneInput /src/mruby/oss-fuzz/mruby_fuzzer.c:14:5
+    #60 0x55c391bfb650 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #61 0x55c391be68c5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #62 0x55c391bec35f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #63 0x55c391c17602 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #64 0x7feb77f57082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #65 0x55c391bdeaad in _start (/out/mruby_fuzzer+0x146aad)
+
+DEDUP_TOKEN: dispatch--dispatch_linked--codegen
+[1m[32m0x5290000044f4 is located 756 bytes after 16384-byte region [0x529000000200,0x529000004200)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55c391d0780c in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x55c391d4807a in mrb_realloc_simple /src/mruby/src/gc.c:229:8
+    #2 0x55c391e81196 in codegen_realloc /src/mruby/mrbgems/mruby-compiler/core/codegen.c:165:7
+    #3 0x55c391e81196 in emit_B /src/mruby/mrbgems/mruby-compiler/core/codegen.c:190:27
+    #4 0x55c391e750c3 in emit_S /src/mruby/mrbgems/mruby-compiler/core/codegen.c:210:3
+    #5 0x55c391e750c3 in gen_S /src/mruby/mrbgems/mruby-compiler/core/codegen.c:224:3
+    #6 0x55c391e750c3 in genop_2 /src/mruby/mrbgems/mruby-compiler/core/codegen.c:269:5
+    #7 0x55c391e687f3 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2673:7
+    #8 0x55c391e804a0 in gen_literal_array /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1426:9
+    #9 0x55c391e6931e in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #10 0x55c391e6854e in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    #11 0x55c391e7ba53 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #12 0x55c391e7a2da in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #13 0x55c391e67944 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #14 0x55c391e6854e in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    #15 0x55c391e7ba53 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #16 0x55c391e7a2da in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #17 0x55c391e67944 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #18 0x55c391e6854e in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:2051:5
+    #19 0x55c391e6bb11 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    #20 0x55c391e78b89 in lambda_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1058:3
+    #21 0x55c391e67a06 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1700:17
+    #22 0x55c391e7a716 in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1221:5
+    #23 0x55c391e67944 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #24 0x55c391e7ba53 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #25 0x55c391e7a2da in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #26 0x55c391e67944 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #27 0x55c391e7ba53 in gen_values /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1178:5
+    #28 0x55c391e7a2da in gen_call /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1200:9
+    #29 0x55c391e67944 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c
+    #30 0x55c391e6bb11 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1565:7
+    #31 0x55c391e79eb0 in scope_body /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1075:3
+    #32 0x55c391e65c10 in codegen /src/mruby/mrbgems/mruby-compiler/core/codegen.c:1912:5
+
+DEDUP_TOKEN: __interceptor_realloc--mrb_realloc_simple--codegen_realloc
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/mruby/mrbgems/mruby-compiler/core/codegen.c:573:21 in dispatch
+Shadow bytes around the buggy address:
+  0x529000004200: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000004280: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000004300: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000004380: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000004400: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+=>0x529000004480: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m[[1m[31mfa[1m[0m][1m[31mfa[1m[0m
+  0x529000004500: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000004580: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000004600: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000004680: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000004700: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==18==ABORTING

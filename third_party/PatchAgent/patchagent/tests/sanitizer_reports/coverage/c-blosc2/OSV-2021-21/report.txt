@@ -1,0 +1,39 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/c-blosc2:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce decompress_frame_fuzzer -runs=100.
++ FUZZER=decompress_frame_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer decompress_frame_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/decompress_frame_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2708767637
+/out/decompress_frame_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address (pc 0x560d2ad00116 bp 0x7ffd96824dd0 sp 0x7ffd96824d10 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    #0 0x560d2ad00116 in sw32_ /src/c-blosc2/blosc/blosc-private.h:44:13
+    #1 0x560d2ad00116 in frame_get_lazychunk /src/c-blosc2/blosc/frame.c:1490:24
+    #2 0x560d2ad00c44 in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:1656:22
+    #3 0x560d2acfb399 in blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:540:17
+    #4 0x560d2acda37a in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:33:15
+    #5 0x560d2ac3c8f0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x560d2ac27b65 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x560d2ac2d5ff in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x560d2ac588a2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f41c1a40082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #10 0x560d2ac1fd4d in _start (/out/decompress_frame_fuzzer+0x2ed4d)
+
+DEDUP_TOKEN: sw32_--frame_get_lazychunk--frame_decompress_chunk
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/c-blosc2/blosc/blosc-private.h:44:13 in sw32_
+==14==ABORTING

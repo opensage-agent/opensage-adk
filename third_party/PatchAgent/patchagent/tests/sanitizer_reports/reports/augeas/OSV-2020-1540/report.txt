@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/augeas:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/augeas/OSV-2020-1540/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce augeas_api_fuzzer -runs=100.
++ FUZZER=augeas_api_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer augeas_api_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/augeas_api_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1857254579
+INFO: Loaded 1 modules   (16416 inline 8-bit counters): 16416 [0x562712636480, 0x56271263a4a0), 
+INFO: Loaded 1 PC tables (16416 PCs): 16416 [0x56271263a4a0,0x56271267a6a0), 
+/out/augeas_api_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x50340000aa1c (pc 0x56271249d629 bp 0x7ffca38fab90 sp 0x7ffca38faac0 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x56271249d629 in eval_expr /src/augeas/src/pathx.c:1425:31
+    #1 0x56271249ca37 in eval_binary /src/augeas/src/pathx.c:1088:5
+    #2 0x56271249ca37 in eval_expr /src/augeas/src/pathx.c:1407:9
+    #3 0x56271248a9f0 in pathx_eval /src/augeas/src/pathx.c:2738:5
+    #4 0x56271248a9f0 in pathx_symtab_define /src/augeas/src/pathx.c:2992:13
+    #5 0x562712476c88 in aug_defvar /src/augeas/src/augeas.c:896:18
+    #6 0x56271246eabc in LLVMFuzzerTestOneInput /src/augeas/augeas_api_fuzzer.cc:53:2
+    #7 0x5627123234d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x56271230e745 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5627123141df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x56271233f482 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fbffcba0082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #12 0x56271230692d in _start (/out/augeas_api_fuzzer+0xb692d)
+
+DEDUP_TOKEN: eval_expr--eval_binary--eval_expr
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/augeas/src/pathx.c:1425:31 in eval_expr
+==14==ABORTING

@@ -1,0 +1,19 @@
+=================================================================
+==640221==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000011 (pc 0x55d9026cf16f bp 0x7fffae291190 sp 0x7fffae290440 T0)
+==640221==The signal is caused by a READ memory access.
+==640221==Hint: address points to the zero page.
+    #0 0x55d9026cf16f in mrb_get_args /root/src/class.c:1009:12
+    #1 0x55d9027199ee in mrb_str_aset_m /root/src/string.c:1334:11
+    #2 0x55d9027487a3 in mrb_vm_exec /root/src/vm.c:1646:18
+    #3 0x55d90273be25 in mrb_vm_run /root/src/vm.c:1132:12
+    #4 0x55d902738813 in mrb_top_run /root/src/vm.c:3061:12
+    #5 0x55d9027b5ee2 in mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6891:7
+    #6 0x55d9027b66bc in mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6934:12
+    #7 0x55d9026b78c3 in main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+    #8 0x7fd7f33d61c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #9 0x7fd7f33d628a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #10 0x55d9026b5a54 in _start (/root/bin/mruby+0x9aa54) (BuildId: a13c555d901eef2420d58b5f47a9cdbcd8fba09d)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/src/class.c:1009:12 in mrb_get_args
+==640221==ABORTING

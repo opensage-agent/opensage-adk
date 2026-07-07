@@ -1,0 +1,40 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/wavpack:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzzer -runs=100.
++ FUZZER=fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -detect_leaks=1 -dict=fuzzer.dict < /dev/null
+Dictionary: 21 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 582782311
+INFO: Loaded 1 modules   (56 inline 8-bit counters): 56 [0x563371ec8f88, 0x563371ec8fc0), 
+INFO: Loaded 1 PC tables (56 PCs): 56 [0x563371ec8fc0,0x563371ec9340), 
+/out/fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==18==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x563372f3e830 (pc 0x563371e43627 bp 0x7ffdf20a42c0 sp 0x7ffdf20a4298 T18)
+[1m[0m==18==The signal is caused by a READ memory access.
+    #0 0x563371e43627 in decode_fast /src/wavpack/src/unpack_dsd.c:252:33
+    #1 0x563371e43627 in unpack_dsd_samples /src/wavpack/src/unpack_dsd.c:89:18
+    #2 0x563371e42751 in WavpackUnpackSamples /src/wavpack/src/unpack_utils.c:355:13
+    #3 0x563371e3a54b in LLVMFuzzerTestOneInput /src/wavpack/fuzzing/fuzzer.cc:244:29
+    #4 0x563371d9c850 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x563371d87ac5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x563371d8d55f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x563371db8802 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f0fae669082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x563371d7fcad in _start (/out/fuzzer+0x1fcad)
+
+DEDUP_TOKEN: decode_fast--unpack_dsd_samples--WavpackUnpackSamples
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/wavpack/src/unpack_dsd.c:252:33 in decode_fast
+==18==ABORTING

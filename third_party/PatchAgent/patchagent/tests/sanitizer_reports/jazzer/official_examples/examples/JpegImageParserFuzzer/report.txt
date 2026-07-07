@@ -1,0 +1,72 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 280 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented com.example.JpegImageParserFuzzer (took 21 ms, size +11%)
+INFO: Instrumented org.apache.commons.imaging.ImageReadException (took 2 ms, size +15%)
+INFO: Instrumented org.apache.commons.imaging.ImagingException (took 1 ms, size +16%)
+INFO: Instrumented org.apache.commons.imaging.common.bytesource.ByteSource (took 3 ms, size +21%)
+INFO: Instrumented org.apache.commons.imaging.common.bytesource.ByteSourceArray (took 3 ms, size +19%)
+INFO: using inputs from: JpegImageParserFuzzer/crash-ed04dde2ed4121538845653dcfe06c2938cd1a3a
+INFO: found LLVMFuzzerCustomMutator (0x7fa9b2960a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3016291920
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55db23c3ceb0, 0x55db23c3d0b0), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55db23bae4f0,0x55db23bb04f0), 
+jazzer: Running 1 inputs 1 time(s) each.
+Running: JpegImageParserFuzzer/crash-ed04dde2ed4121538845653dcfe06c2938cd1a3a
+INFO: Instrumented org.apache.commons.imaging.formats.jpeg.JpegImageParser (took 15 ms, size +16%)
+INFO: Instrumented org.apache.commons.imaging.common.XmpEmbeddable (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.imaging.ImageParser (took 6 ms, size +14%)
+INFO: Instrumented org.apache.commons.imaging.common.BinaryFileParser (took 1 ms, size +16%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.apache.commons.imaging.common.bytesource.ByteSourceFile (took 2 ms, size +25%)
+INFO: Instrumented org.apache.commons.imaging.common.BufferedImageFactory (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.imaging.ImageWriteException (took 1 ms, size +22%)
+INFO: Instrumented org.apache.commons.imaging.formats.jpeg.JpegUtils$Visitor (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.imaging.common.ImageMetadata (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.imaging.formats.tiff.taginfos.TagInfo (took 1 ms, size +3%)
+INFO: Instrumented org.apache.commons.imaging.formats.tiff.taginfos.TagInfoRational (took 0 ms, size +6%)
+INFO: Instrumented org.apache.commons.imaging.formats.tiff.taginfos.TagInfoShort (took 0 ms, size +7%)
+INFO: Instrumented org.apache.commons.imaging.ImageFormat (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.imaging.formats.jpeg.decoder.JpegDecoder (took 5 ms, size +14%)
+INFO: Instrumented org.apache.commons.imaging.formats.jpeg.segments.DqtSegment$QuantizationTable (took 0 ms, size +13%)
+INFO: Instrumented org.apache.commons.imaging.formats.jpeg.segments.DhtSegment$HuffmanTable (took 1 ms, size +24%)
+INFO: Instrumented org.apache.commons.imaging.formats.jpeg.JpegUtils (took 2 ms, size +29%)
+INFO: Instrumented org.apache.commons.imaging.formats.jpeg.JpegConstants (took 1 ms, size +6%)
+INFO: Instrumented org.apache.commons.imaging.common.BinaryConstant (took 1 ms, size +37%)
+INFO: New number of coverage counters: 2048
+INFO: Instrumented org.apache.commons.imaging.common.BinaryFunctions (took 3 ms, size +16%)
+INFO: Instrumented org.apache.commons.imaging.common.ByteConversions (took 4 ms, size +10%)
+INFO: Instrumented org.apache.commons.imaging.formats.jpeg.segments.SofnSegment (took 1 ms, size +9%)
+INFO: Instrumented org.apache.commons.imaging.formats.jpeg.segments.Segment (took 1 ms, size +37%)
+INFO: Instrumented org.apache.commons.imaging.formats.jpeg.segments.SofnSegment$Component (took 0 ms, size +12%)
+
+== Java Exception: java.lang.NegativeArraySizeException: -1
+	at org.apache.commons.imaging.formats.jpeg.segments.SofnSegment.<init>(SofnSegment.java:72)
+	at org.apache.commons.imaging.formats.jpeg.segments.SofnSegment.<init>(SofnSegment.java:56)
+	at org.apache.commons.imaging.formats.jpeg.decoder.JpegDecoder.visitSegment(JpegDecoder.java:235)
+	at org.apache.commons.imaging.formats.jpeg.JpegUtils.traverseJFIF(JpegUtils.java:91)
+	at org.apache.commons.imaging.formats.jpeg.decoder.JpegDecoder.decode(JpegDecoder.java:543)
+	at org.apache.commons.imaging.formats.jpeg.JpegImageParser.getBufferedImage(JpegImageParser.java:104)
+	at com.example.JpegImageParserFuzzer.fuzzerTestOneInput(JpegImageParserFuzzer.java:29)
+DEDUP_TOKEN: 45e46157f2e08bc8
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_ed04dde2ed4121538845653dcfe06c2938cd1a3a.java
+

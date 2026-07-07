@@ -1,0 +1,24 @@
+The sanitizer detected a segv on unknown address vulnerability. The explanation of the vulnerability is: The program attempted to access an invalid or unallocated memory address, leading to a segmentation fault. Here is the detail: 
+
+The signal is caused by a WRITE memory access.
+    - ZSTD_decodeLiteralsBlock /src/zstd/lib/legacy/zstd_v02.c:2888:17
+    - ZSTD_decompressBlock /src/zstd/lib/legacy/zstd_v02.c:3244:23
+    - ZSTD_decompressDCtx /src/zstd/lib/legacy/zstd_v02.c:3284:27
+    - ZSTD_decompress /src/zstd/lib/legacy/zstd_v02.c:3314:12
+    - ZSTDv02_decompress /src/zstd/lib/legacy/zstd_v02.c:3482:12
+    - ZSTD_decompressLegacy /src/zstd/lib/legacy/zstd_legacy.h:136:20
+    - ZSTD_decompressMultiFrame /src/zstd/lib/decompress/zstd_decompress.c:726:27
+    - ZSTD_decompress_usingDDict /src/zstd/lib/decompress/zstd_decompress.c:1223:12
+    - ZSTD_decompressDCtx /src/zstd/lib/decompress/zstd_decompress.c:819:12
+    - LLVMFuzzerTestOneInput /src/zstd/tests/fuzz/simple_decompress.c:37:9
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

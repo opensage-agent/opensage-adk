@@ -1,0 +1,89 @@
+The sanitizer detected a global buffer overflow vulnerability. The explanation of the vulnerability is: A buffer overflow occurs in globally allocated memory, leading to memory corruption or crashes. Here is the detail: 
+
+READ of size 4 at 0x000011c82ca0 thread T0
+    - dissect_zcl_read_attr_struct /src/wireshark/epan/dissectors/packet-zbee-zcl.c:1748:66
+    - dissect_zbee_zcl /src/wireshark/epan/dissectors/packet-zbee-zcl.c:1215:17
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    - call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    - call_dissector_work /src/wireshark/epan/packet.c:943:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    - dissect_zbee_apf /src/wireshark/epan/dissectors/packet-zbee-aps.c:1778:9
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    - call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    - call_dissector_work /src/wireshark/epan/packet.c:943:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    - dissect_zbee_aps /src/wireshark/epan/dissectors/packet-zbee-aps.c:1149:13
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    - call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    - call_dissector_work /src/wireshark/epan/packet.c:943:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    - dissect_zbee_nwk_full /src/wireshark/epan/dissectors/packet-zbee-nwk.c:788:9
+    - dissect_zbee_nwk /src/wireshark/epan/dissectors/packet-zbee-nwk.c:820:9
+    - dissect_zbee_nwk_heur /src/wireshark/epan/dissectors/packet-zbee-nwk.c:459:5
+    - dissector_try_heuristic /src/wireshark/epan/packet.c:3006:9
+    - ieee802154_dissect_frame_payload /src/wireshark/epan/dissectors/packet-ieee802154.c:3176:21
+    - dissect_ieee802154_common /src/wireshark/epan/dissectors/packet-ieee802154.c:2467:13
+    - dissect_ieee802154_nofcs /src/wireshark/epan/dissectors/packet-ieee802154.c:2158:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    - call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    - call_dissector_work /src/wireshark/epan/packet.c:943:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    - dissect_scop_bridge /src/wireshark/epan/dissectors/packet-scop.c:296:5
+    - dissect_scop /src/wireshark/epan/dissectors/packet-scop.c:181:13
+    - tcp_dissect_pdus /src/wireshark/epan/dissectors/packet-tcp.c:5103:13
+    - dissect_scop_tcp /src/wireshark/epan/dissectors/packet-scop.c:235:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    - call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    - call_dissector_work /src/wireshark/epan/packet.c:943:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1581:8
+    - decode_tcp_ports /src/wireshark/epan/dissectors/packet-tcp.c:7468:9
+    - process_tcp_payload /src/wireshark/epan/dissectors/packet-tcp.c:7537:13
+    - dissect_tcp_payload /src/wireshark/epan/dissectors/packet-tcp.c:7619:9
+    - dissect_tcp /src/wireshark/epan/dissectors/packet-tcp.c:0:0
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    - call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    - call_dissector_work /src/wireshark/epan/packet.c:943:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1581:8
+    - ip_try_dissect /src/wireshark/epan/dissectors/packet-ip.c:1822:7
+    - dissect_ip_v4 /src/wireshark/epan/dissectors/packet-ip.c:2328:10
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    - call_dissector_work_error /src/wireshark/epan/packet.c:1020:9
+    - call_dissector_work /src/wireshark/epan/packet.c:943:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    - dissect_icmp /src/wireshark/epan/dissectors/packet-icmp.c:1754:3
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    - call_dissector_work /src/wireshark/epan/packet.c:948:9
+    - dissector_try_uint_new /src/wireshark/epan/packet.c:1581:8
+    - ip_try_dissect /src/wireshark/epan/dissectors/packet-ip.c:1822:7
+    - dissect_ip_v4 /src/wireshark/epan/dissectors/packet-ip.c:2328:10
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    - call_dissector_work /src/wireshark/epan/packet.c:948:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    - call_all_postdissectors /src/wireshark/epan/packet.c:3912:3
+    - dissect_frame /src/wireshark/epan/dissectors/packet-frame.c:1435:5
+    - call_dissector_through_handle /src/wireshark/epan/packet.c:857:9
+    - call_dissector_work /src/wireshark/epan/packet.c:948:9
+    - call_dissector_only /src/wireshark/epan/packet.c:3483:8
+    - call_dissector_with_data /src/wireshark/epan/packet.c:3496:8
+    - dissect_record /src/wireshark/epan/packet.c:661:3
+    - epan_dissect_run /src/wireshark/epan/epan.c:642:2
+    - LLVMFuzzerTestOneInput /src/wireshark/fuzz/fuzzshark.c:382:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x000011c82ca0 is located 32 bytes before global variable 'ett_zbee_zcl_array_elements' defined in '/src/wireshark/epan/dissectors/packet-zbee-zcl.c:138' (0x11c82cc0) of size 64
+0x000011c82ca0 is located 0 bytes after global variable 'ett_zbee_zcl_sel' defined in '/src/wireshark/epan/dissectors/packet-zbee-zcl.c:137' (0x11c82c60) of size 64
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

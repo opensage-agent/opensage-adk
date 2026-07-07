@@ -1,0 +1,28 @@
+The sanitizer detected a xpath injection vulnerability.The explanation of the vulnerability is: An XPath query is constructed using untrusted input, leading to potential injection attacks.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh:                         XPath Injection
+                        Injected query: /user[@name=''
+' and @pass='']
+- com.code_intelligence.jazzer.sanitizers.XPathInjection.checkXpathExecute (com/code_intelligence/jazzer/sanitizers/XPathInjection.kt:72)
+- com.example.XPathInjection.unsafeEval (com/example/XPathInjection.java:46)
+- com.example.XPathInjection.fuzzerTestOneInput (com/example/XPathInjection.java:53)
+Caused by: javax.xml.xpath.XPathExpressionException: javax.xml.transform.TransformerException: misquoted literal... expected single quote!
+- java.xml/com.sun.org.apache.xpath.internal.jaxp.XPathImpl.evaluate (java/xml/com/sun/org/apache/xpath/internal/jaxp/XPathImpl.java:145)
+- java.base/java.lang.invoke.MethodHandle.invokeWithArguments (java/base/java/lang/invoke/MethodHandle.java:733)
+- com.code_intelligence.jazzer.sanitizers.XPathInjection.checkXpathExecute (com/code_intelligence/jazzer/sanitizers/XPathInjection.kt:62)
+	... 2 more
+Caused by: javax.xml.transform.TransformerException: misquoted literal... expected single quote!
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.error (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:644)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.Lexer.tokenize (java/xml/com/sun/org/apache/xpath/internal/compiler/Lexer.java:235)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.Lexer.tokenize (java/xml/com/sun/org/apache/xpath/internal/compiler/Lexer.java:129)
+- java.xml/com.sun.org.apache.xpath.internal.compiler.XPathParser.initXPath (java/xml/com/sun/org/apache/xpath/internal/compiler/XPathParser.java:131)
+- java.xml/com.sun.org.apache.xpath.internal.XPath.<init> (java/xml/com/sun/org/apache/xpath/internal/XPath.java:207)
+- java.xml/com.sun.org.apache.xpath.internal.jaxp.XPathImpl.eval (java/xml/com/sun/org/apache/xpath/internal/jaxp/XPathImpl.java:121)
+- java.xml/com.sun.org.apache.xpath.internal.jaxp.XPathImpl.evaluate (java/xml/com/sun/org/apache/xpath/internal/jaxp/XPathImpl.java:136)
+	... 4 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid constructing XPath queries using untrusted input.
+2. Use parameterized queries or prepared statements to prevent injection attacks.
+3. Sanitize user input before using it in XPath queries.

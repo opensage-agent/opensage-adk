@@ -1,0 +1,73 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x5080000000f5 at pc 0x557b83986aa2 bp 0x7fff1b68f210 sp 0x7fff1b68e9d0
+READ of size 2 at 0x5080000000f5 thread T0
+SCARINESS: 14 (2-byte-read-heap-buffer-overflow)
+    #0 0x557b83986aa1 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #1 0x557b83c3dce4 in uncompress_b44_impl /src/openexr/src/lib/OpenEXRCore/internal_b44.c:599:13
+    #2 0x557b83c17b7a in default_decompress_chunk /src/openexr/src/lib/OpenEXRCore/decoding.c:318:14
+    #3 0x557b83c184ae in exr_decoding_run /src/openexr/src/lib/OpenEXRCore/decoding.c:654:14
+    #4 0x557b839cd2c2 in readCoreScanlinePart /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1291:18
+    #5 0x557b839cd2c2 in Imf_2_5::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1500:17
+    #6 0x557b839c9e29 in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1615:15
+    #7 0x557b839c9e29 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1655:16
+    #8 0x557b839c829f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcorecheck_fuzzer.cc:17:5
+    #9 0x557b8387cde0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #10 0x557b83868055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #11 0x557b8386daef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #12 0x557b83898d92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #13 0x7f23a64b5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #14 0x557b8386023d in _start (/out/openexr_exrcorecheck_fuzzer+0x16723d)
+
+DEDUP_TOKEN: __asan_memcpy--uncompress_b44_impl--default_decompress_chunk
+0x5080000000f5 is located 0 bytes after 85-byte region [0x5080000000a0,0x5080000000f5)
+allocated by thread T0 here:
+    #0 0x557b83988baf in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x557b83c58c36 in internal_decode_alloc_buffer /src/openexr/src/lib/OpenEXRCore/coding.c:276:22
+    #2 0x557b83c3c592 in internal_exr_undo_b44 /src/openexr/src/lib/OpenEXRCore/internal_b44.c:619:10
+    #3 0x557b83c17b7a in default_decompress_chunk /src/openexr/src/lib/OpenEXRCore/decoding.c:318:14
+    #4 0x557b83c184ae in exr_decoding_run /src/openexr/src/lib/OpenEXRCore/decoding.c:654:14
+    #5 0x557b839cd2c2 in readCoreScanlinePart /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1291:18
+    #6 0x557b839cd2c2 in Imf_2_5::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1500:17
+    #7 0x557b839c9e29 in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1615:15
+    #8 0x557b839c9e29 in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1655:16
+    #9 0x557b839c829f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcorecheck_fuzzer.cc:17:5
+    #10 0x557b8387cde0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x557b83868055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x557b8386daef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x557b83898d92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f23a64b5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--internal_decode_alloc_buffer--internal_exr_undo_b44
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/openexr/src/lib/OpenEXRCore/internal_b44.c:599:13 in uncompress_b44_impl
+Shadow bytes around the buggy address:
+  0x507ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x507fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x508000000000: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 05 fa
+=>0x508000000080: fa fa fa fa 00 00 00 00 00 00 00 00 00 00[05]fa
+  0x508000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x508000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

@@ -1,0 +1,63 @@
+=================================================================
+==14==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7f8ce4588300 at pc 0x5641f725d32e bp 0x7ffd88c11330 sp 0x7ffd88c11328
+WRITE of size 2 at 0x7f8ce4588300 thread T0
+SCARINESS: 48 (2-byte-write-stack-buffer-overflow)
+    #0 0x5641f725d32d in u_terminateUChars_77 /src/icu/icu4c/source/common/ustring.cpp:1470:5
+    #1 0x5641f71e1bd0 in ubidi_writeReordered_77 /src/icu/icu4c/source/common/ubidiwrt.cpp
+    #2 0x5641f7191323 in LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/ubidi_fuzzer.cpp:152:9
+    #3 0x5641f7045610 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x5641f7030885 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x5641f703631f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x5641f70615c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7f8ce49b8082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #8 0x5641f7028a6d in _start (/out/ubidi_fuzzer+0xfaa6d)
+
+DEDUP_TOKEN: u_terminateUChars_77--ubidi_writeReordered_77--LLVMFuzzerTestOneInput
+Address 0x7f8ce4588300 is located in stack of thread T0 at offset 2816 in frame
+    #0 0x5641f7190c1f in LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/ubidi_fuzzer.cpp:89
+
+DEDUP_TOKEN: LLVMFuzzerTestOneInput
+  This frame has 8 object(s):
+    [32, 36) 'status.i' (line 32)
+    [48, 848) 'visualToLogical.i' (line 33)
+    [976, 1776) 'logicalToVisual.i' (line 34)
+    [1904, 1905) 'level.i' (line 53)
+    [1920, 1921) 'level47.i' (line 77)
+    [1936, 1940) 'status' (line 92)
+    [1952, 2352) 'inputText' (line 93)
+    [2416, 2816) 'reorderedText' (line 94) <== Memory access at offset 2816 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /src/icu/icu4c/source/common/ustring.cpp:1470:5 in u_terminateUChars_77
+Shadow bytes around the buggy address:
+  0x7f8ce4588080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8ce4588100: 00 00 00 00 00 00 f2 f2 f2 f2 f2 f2 f2 f2 00 00
+  0x7f8ce4588180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8ce4588200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8ce4588280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7f8ce4588300:[f3]f3 f3 f3 f3 f3 f3 f3 00 00 00 00 00 00 00 00
+  0x7f8ce4588380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8ce4588400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8ce4588480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8ce4588500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f8ce4588580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

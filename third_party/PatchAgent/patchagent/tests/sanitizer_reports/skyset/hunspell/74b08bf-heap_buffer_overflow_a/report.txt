@@ -1,0 +1,70 @@
+=================================================================
+==360234==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50300000012f at pc 0x562f87018a1c bp 0x7ffc1195a730 sp 0x7ffc1195a728
+READ of size 1 at 0x50300000012f thread T0
+    #0 0x562f87018a1b in AffixMgr::redundant_condition(char, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int) /root/src/hunspell/affixmgr.cxx:4825:29
+    #1 0x562f86ff1965 in AffixMgr::parse_affix(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, char, FileMgr*, char*) /root/src/hunspell/affixmgr.cxx:4678:15
+    #2 0x562f86fe50bb in AffixMgr::parse_file(char const*, char const*) /root/src/hunspell/affixmgr.cxx:692:12
+    #3 0x562f86fe18ce in AffixMgr::AffixMgr(char const*, std::vector<HashMgr*, std::allocator<HashMgr*>> const&, char const*) /root/src/hunspell/affixmgr.cxx:170:7
+    #4 0x562f86f87efb in HunspellImpl::HunspellImpl(char const*, char const*, char const*) /root/src/hunspell/hunspell.cxx:183:15
+    #5 0x562f86fa3654 in Hunspell::Hunspell(char const*, char const*, char const*) /root/src/hunspell/hunspell.cxx:2026:16
+    #6 0x562f86f8719e in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:63:14
+    #7 0x562f86f6c3e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3e4) (BuildId: ceceecb89670ffe707f0b104b792993189f7fbe4)
+    #8 0x562f86f55516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x16516) (BuildId: ceceecb89670ffe707f0b104b792993189f7fbe4)
+    #9 0x562f86f5afca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bfca) (BuildId: ceceecb89670ffe707f0b104b792993189f7fbe4)
+    #10 0x562f86f85826 in main (/root/affdicfuzzer+0x46826) (BuildId: ceceecb89670ffe707f0b104b792993189f7fbe4)
+    #11 0x7f6d33b731c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7f6d33b7328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x562f86f500e4 in _start (/root/affdicfuzzer+0x110e4) (BuildId: ceceecb89670ffe707f0b104b792993189f7fbe4)
+
+0x50300000012f is located 1 bytes before 24-byte region [0x503000000130,0x503000000148)
+allocated by thread T0 here:
+    #0 0x7f6d33f697a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f6d34a485bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+    #2 0x562f8701b6c7 in std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>::basic_string<__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>, void>(__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>, __gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>, std::allocator<char> const&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/basic_string.h:765:4
+    #3 0x562f86ff170b in AffixMgr::parse_affix(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, char, FileMgr*, char*) /root/src/hunspell/affixmgr.cxx:4668:23
+    #4 0x562f86fe50bb in AffixMgr::parse_file(char const*, char const*) /root/src/hunspell/affixmgr.cxx:692:12
+    #5 0x562f86fe18ce in AffixMgr::AffixMgr(char const*, std::vector<HashMgr*, std::allocator<HashMgr*>> const&, char const*) /root/src/hunspell/affixmgr.cxx:170:7
+    #6 0x562f86f87efb in HunspellImpl::HunspellImpl(char const*, char const*, char const*) /root/src/hunspell/hunspell.cxx:183:15
+    #7 0x562f86fa3654 in Hunspell::Hunspell(char const*, char const*, char const*) /root/src/hunspell/hunspell.cxx:2026:16
+    #8 0x562f86f8719e in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:63:14
+    #9 0x562f86f6c3e4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3e4) (BuildId: ceceecb89670ffe707f0b104b792993189f7fbe4)
+    #10 0x562f86f55516 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x16516) (BuildId: ceceecb89670ffe707f0b104b792993189f7fbe4)
+    #11 0x562f86f5afca in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bfca) (BuildId: ceceecb89670ffe707f0b104b792993189f7fbe4)
+    #12 0x562f86f85826 in main (/root/affdicfuzzer+0x46826) (BuildId: ceceecb89670ffe707f0b104b792993189f7fbe4)
+    #13 0x7f6d33b731c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x7f6d33b7328a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x562f86f500e4 in _start (/root/affdicfuzzer+0x110e4) (BuildId: ceceecb89670ffe707f0b104b792993189f7fbe4)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/hunspell/affixmgr.cxx:4825:29 in AffixMgr::redundant_condition(char, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int)
+Shadow bytes around the buggy address:
+  0x502ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x503000000000: fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00
+  0x503000000080: 00 00 fa fa 00 00 00 fa fa fa 00 00 00 00 fa fa
+=>0x503000000100: 00 00 00 00 fa[fa]00 00 00 fa fa fa fa fa fa fa
+  0x503000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360234==ABORTING

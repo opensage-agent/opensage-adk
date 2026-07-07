@@ -1,0 +1,52 @@
+The sanitizer detected a function param overlap vulnerability. The explanation of the vulnerability is: The source and destination buffers of a memory copy operation overlap, causing data corruption. Here is the detail: 
+
+    - memcpy /src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors_memintrinsics.inc:115:5
+    - pdfi_copy_truetype_font /src/ghostpdl/pdf/pdf_fontTT.c:726:9
+    - pdfi_copy_font /src/ghostpdl/pdf/pdf_font.c:644:18
+    - pdfi_load_font /src/ghostpdl/pdf/pdf_font.c:974:28
+    - pdfi_load_dict_font /src/ghostpdl/pdf/pdf_font.c:1113:20
+    - pdfi_load_resource_font /src/ghostpdl/pdf/pdf_font.c:1155:12
+    - pdfi_Tf /src/ghostpdl/pdf/pdf_font.c:1514:12
+    - pdfi_interpret_stream_operator /src/ghostpdl/pdf/pdf_int.c:1637:24
+    - pdfi_interpret_content_stream /src/ghostpdl/pdf/pdf_int.c:2124:24
+    - pdfi_process_page_contents /src/ghostpdl/pdf/pdf_page.c:128:20
+    - pdfi_process_one_page /src/ghostpdl/pdf/pdf_page.c:150:12
+    - pdfi_page_render /src/ghostpdl/pdf/pdf_page.c:1025:12
+    - zPDFdrawpage /src/ghostpdl/psi/zpdfops.c:1164:24
+    - interp /src/ghostpdl/psi/interp.c:1741:40
+    - gs_call_interp /src/ghostpdl/psi/interp.c:524:12
+    - gs_interpret /src/ghostpdl/psi/interp.c:481:12
+    - gs_main_interpret /src/ghostpdl/psi/imain.c:257:12
+    - gs_main_run_string_end /src/ghostpdl/psi/imain.c:945:12
+    - gs_main_run_string_with_length /src/ghostpdl/psi/imain.c:889:12
+    - run_string /src/ghostpdl/psi/imainarg.c:1169:12
+    - swproc /src/ghostpdl/psi/imainarg.c:367:20
+    - gs_main_init_with_args01 /src/ghostpdl/psi/imainarg.c:224:24
+    - gs_main_init_with_args /src/ghostpdl/psi/imainarg.c:289:16
+    - fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:139:8
+    - LLVMFuzzerTestOneInput /src/gs_device_eps2write_fuzzer.cc:18:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x52d000066d18 is located 10520 bytes inside of 32856-byte region [0x52d000064400,0x52d00006c458)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - gs_heap_alloc_bytes /src/ghostpdl/base/gsmalloc.c:192:34
+    - chunk_obj_alloc /src/ghostpdl/base/gsmchunk.c:928:36
+    - s_zlib_alloc /src/ghostpdl/base/szlibc.c:88:9
+
+0x52d000066318 is located 7960 bytes inside of 32856-byte region [0x52d000064400,0x52d00006c458)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - gs_heap_alloc_bytes /src/ghostpdl/base/gsmalloc.c:192:34
+    - chunk_obj_alloc /src/ghostpdl/base/gsmchunk.c:928:36
+    - s_zlib_alloc /src/ghostpdl/base/szlibc.c:88:9
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that the source and destination buffers do not overlap in memcpy operations.
+2. If overlapping memory regions must be copied, use memmove instead of memcpy.
+3. Validate memory regions before performing copy operations.

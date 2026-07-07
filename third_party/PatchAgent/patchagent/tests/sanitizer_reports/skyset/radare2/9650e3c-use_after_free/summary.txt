@@ -1,0 +1,66 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 8 at 0x50300008b600 thread T0
+    - get_object /root/libr/bin/format/pyc/marshal.c:1114:16
+    - get_code_object /root/libr/bin/format/pyc/marshal.c:953:18
+    - get_object /root/libr/bin/format/pyc/marshal.c:1032:9
+    - get_sections_symbols_from_code_objects /root/libr/bin/format/pyc/marshal.c:1205:34
+    - pyc_get_sections_symbols /root/libr/bin/format/pyc/pyc.c:7:9
+    - symbols /root/libr/bin/p/bin_pyc.c:124:2
+    - r_bin_object_set_items /root/libr/bin/bobj.c:326:16
+    - r_bin_object_new /root/libr/bin/bobj.c:168:2
+    - r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    - r_bin_open_buf /root/libr/bin/bin.c:279:8
+    - r_bin_open_io /root/libr/bin/bin.c:339:13
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    - r_core_bin_load /root/libr/core/cfile.c:636:4
+    - r_main_radare2 /root/libr/main/radare2.c:1177:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+0x50300008b600 is located 0 bytes inside of 24-byte region [0x50300008b600,0x50300008b618)
+freed by thread T0 here:
+    - r_list_pop /root/libr/util/list.c:295:3
+    - get_object /root/libr/bin/format/pyc/marshal.c:1101:3
+    - get_code_object /root/libr/bin/format/pyc/marshal.c:919:15
+    - get_object /root/libr/bin/format/pyc/marshal.c:1038:9
+    - get_code_object /root/libr/bin/format/pyc/marshal.c:953:18
+    - get_object /root/libr/bin/format/pyc/marshal.c:1032:9
+    - get_sections_symbols_from_code_objects /root/libr/bin/format/pyc/marshal.c:1205:34
+    - pyc_get_sections_symbols /root/libr/bin/format/pyc/pyc.c:7:9
+    - symbols /root/libr/bin/p/bin_pyc.c:124:2
+    - r_bin_object_set_items /root/libr/bin/bobj.c:326:16
+    - r_bin_object_new /root/libr/bin/bobj.c:168:2
+    - r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    - r_bin_open_buf /root/libr/bin/bin.c:279:8
+    - r_bin_open_io /root/libr/bin/bin.c:339:13
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    - r_core_bin_load /root/libr/core/cfile.c:636:4
+    - r_main_radare2 /root/libr/main/radare2.c:1177:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+previously allocated by thread T0 here:
+    - r_list_item_new /root/libr/util/list.c:204:20
+    - r_list_append /root/libr/util/list.c:214:20
+    - get_object /root/libr/bin/format/pyc/marshal.c:1003:14
+    - get_code_object /root/libr/bin/format/pyc/marshal.c:953:18
+    - get_object /root/libr/bin/format/pyc/marshal.c:1032:9
+    - get_sections_symbols_from_code_objects /root/libr/bin/format/pyc/marshal.c:1205:34
+    - pyc_get_sections_symbols /root/libr/bin/format/pyc/pyc.c:7:9
+    - symbols /root/libr/bin/p/bin_pyc.c:124:2
+    - r_bin_object_set_items /root/libr/bin/bobj.c:326:16
+    - r_bin_object_new /root/libr/bin/bobj.c:168:2
+    - r_bin_file_new_from_buffer /root/libr/bin/bfile.c:560:19
+    - r_bin_open_buf /root/libr/bin/bin.c:279:8
+    - r_bin_open_io /root/libr/bin/bin.c:339:13
+    - r_core_file_do_load_for_io_plugin /root/libr/core/cfile.c:435:7
+    - r_core_bin_load /root/libr/core/cfile.c:636:4
+    - r_main_radare2 /root/libr/main/radare2.c:1177:15
+    - main /root/binr/radare2/radare2.c:96:9
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

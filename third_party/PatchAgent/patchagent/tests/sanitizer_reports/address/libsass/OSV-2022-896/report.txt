@@ -1,0 +1,47 @@
+WARNING: Function selector-extend takes 3 arguments but 5 were passed.
+        on line 1 of stdin
+This will be an error in future versions of Sass.
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x563a37e84563 bp 0x7ffeb9b02a30 sp 0x7ffeb9b02920 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x563a37e84563 in SharedPtr /src/libsass/src/memory/shared_ptr.hpp:128:53
+    #1 0x563a37e84563 in SharedImpl /src/libsass/src/memory/shared_ptr.hpp:195:9
+    #2 0x563a37e84563 in Sass::unifyComplex(std::__1::vector<std::__1::vector<Sass::SharedImpl<Sass::SelectorComponent>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorComponent>>>, std::__1::allocator<std::__1::vector<Sass::SharedImpl<Sass::SelectorComponent>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorComponent>>>>> const&) /src/libsass/src/ast_sel_unify.cpp:25:35
+    #3 0x563a37d10484 in Sass::Extender::extendCompound(Sass::SharedImpl<Sass::CompoundSelector> const&, std::__1::unordered_map<Sass::SharedImpl<Sass::SimpleSelector>, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::SimpleSelector> const, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>>>> const&, Sass::SharedImpl<Sass::CssMediaRule> const&, bool) /src/libsass/src/extender.cpp:856:21
+    #4 0x563a37d08d5a in Sass::Extender::extendComplex(Sass::SharedImpl<Sass::ComplexSelector> const&, std::__1::unordered_map<Sass::SharedImpl<Sass::SimpleSelector>, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::SimpleSelector> const, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>>>> const&, Sass::SharedImpl<Sass::CssMediaRule> const&) /src/libsass/src/extender.cpp:576:53
+    #5 0x563a37cfdc86 in Sass::Extender::extendList(Sass::SharedImpl<Sass::SelectorList> const&, std::__1::unordered_map<Sass::SharedImpl<Sass::SimpleSelector>, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::SimpleSelector> const, Sass::ordered_map<Sass::SharedImpl<Sass::ComplexSelector>, Sass::Extension, Sass::ObjHash, Sass::ObjEquality, std::__1::allocator<std::__1::pair<Sass::SharedImpl<Sass::ComplexSelector> const, Sass::Extension>>>>>> const&, Sass::SharedImpl<Sass::CssMediaRule> const&) /src/libsass/src/extender.cpp:512:9
+    #6 0x563a37cfc684 in Sass::Extender::extendOrReplace(Sass::SharedImpl<Sass::SelectorList>&, Sass::SharedImpl<Sass::SelectorList> const&, Sass::SharedImpl<Sass::SelectorList> const&, Sass::Extender::ExtendMode, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&) /src/libsass/src/extender.cpp:111:29
+    #7 0x563a37cfb72d in Sass::Extender::extend(Sass::SharedImpl<Sass::SelectorList>&, Sass::SharedImpl<Sass::SelectorList> const&, Sass::SharedImpl<Sass::SelectorList> const&, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&) /src/libsass/src/extender.cpp:54:12
+    #8 0x563a37a5a350 in Sass::Functions::selector_extend(Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Context&, char const*, Sass::SourceSpan, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>) /src/libsass/src/fn_selectors.cpp:173:32
+    #9 0x563a37c42696 in Sass::Eval::operator()(Sass::Function_Call*) /src/libsass/src/eval.cpp:1063:18
+    #10 0x563a37c20c71 in Sass::Eval::operator()(Sass::List*) /src/libsass/src/eval.cpp:514:27
+    #11 0x563a37c5ba04 in Sass::Eval::operator()(Sass::Argument*) /src/libsass/src/eval.cpp:1423:37
+    #12 0x563a37c5d537 in perform /src/libsass/src/ast.hpp:857:5
+    #13 0x563a37c5d537 in Sass::Eval::operator()(Sass::Arguments*) /src/libsass/src/eval.cpp:1455:35
+    #14 0x563a37c3ec23 in perform /src/libsass/src/ast.hpp:877:5
+    #15 0x563a37c3ec23 in Sass::Eval::operator()(Sass::Function_Call*) /src/libsass/src/eval.cpp:987:38
+    #16 0x563a37c27927 in Sass::Eval::operator()(Sass::Binary_Expression*) /src/libsass/src/eval.cpp:733:18
+    #17 0x563a37c20c71 in Sass::Eval::operator()(Sass::List*) /src/libsass/src/eval.cpp:514:27
+    #18 0x563a37c91880 in Sass::Expand::operator()(Sass::Assignment*) /src/libsass/src/expand.cpp:419:41
+    #19 0x563a37c81268 in Sass::Expand::append_block(Sass::Block*) /src/libsass/src/expand.cpp:869:32
+    #20 0x563a37c80763 in Sass::Expand::operator()(Sass::Block*) /src/libsass/src/expand.cpp:158:11
+    #21 0x563a37972e2a in Sass::Context::compile() /src/libsass/src/context.cpp:653:12
+    #22 0x563a37971f4d in Sass::Data_Context::parse() /src/libsass/src/context.cpp:624:12
+    #23 0x563a379497dc in Sass::sass_parse_block(Sass_Compiler*) /src/libsass/src/sass_context.cpp:182:31
+    #24 0x563a37949119 in sass_compiler_parse /src/libsass/src/sass_context.cpp:436:22
+    #25 0x563a37948a87 in sass_compile_context(Sass_Context*, Sass::Context*) /src/libsass/src/sass_context.cpp:319:7
+    #26 0x563a379471d5 in LLVMFuzzerTestOneInput /src/data_context_fuzzer.cc:26:3
+    #27 0x563a377fbc90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #28 0x563a377e6f05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #29 0x563a377ec99f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #30 0x563a37817c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #31 0x7f9ca9ae6082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #32 0x563a377df0ed in _start (/out/data_context_fuzzer+0x2d50ed)
+
+DEDUP_TOKEN: SharedPtr--SharedImpl--Sass::unifyComplex(std::__1::vector<std::__1::vector<Sass::SharedImpl<Sass::SelectorComponent>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorComponent>>>, std::__1::allocator<std::__1::vector<Sass::SharedImpl<Sass::SelectorComponent>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorComponent>>>>> const&)
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/libsass/src/memory/shared_ptr.hpp:128:53 in SharedPtr
+==14==ABORTING

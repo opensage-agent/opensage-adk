@@ -1,0 +1,34 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 5002 at 0x52200000a489 thread T0
+    - mpgviddmx_process /root/src/filters/reframe_mpgvid.c:1166:4
+    - gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    - gf_fs_thread_proc /root/src/filter_core/filter_session.c:2105:3
+    - gf_fs_run /root/src/filter_core/filter_session.c:2405:3
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    - do_dash /root/applications/mp4box/mp4box.c:4831:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+0x52200000a489 is located 0 bytes after 5001-byte region [0x522000009100,0x52200000a489)
+allocated by thread T0 here:
+    - gf_malloc /root/src/utils/alloc.c:150:9
+    - filein_initialize_ex /root/src/filters/in_file.c:248:16
+    - filein_initialize /root/src/filters/in_file.c:259:9
+    - gf_filter_new_finalize /root/src/filter_core/filter.c:543:8
+    - gf_filter_new /root/src/filter_core/filter.c:468:7
+    - gf_fs_load_source_dest_internal /root/src/filter_core/filter_session.c:3548:12
+    - gf_fs_load_source /root/src/filter_core/filter_session.c:3590:9
+    - gf_dasher_setup /root/src/media_tools/dash_segmenter.c:1086:9
+    - gf_dasher_process /root/src/media_tools/dash_segmenter.c:1217:7
+    - do_dash /root/applications/mp4box/mp4box.c:4831:15
+    - mp4box_main /root/applications/mp4box/mp4box.c:6245:7
+    - main /root/applications/mp4box/mp4box.c:6939:1
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

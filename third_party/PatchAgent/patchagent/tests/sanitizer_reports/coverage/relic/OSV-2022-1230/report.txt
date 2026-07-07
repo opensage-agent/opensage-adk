@@ -1,0 +1,47 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/relic:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce cryptofuzz-relic -runs=100.
++ FUZZER=cryptofuzz-relic
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer cryptofuzz-relic -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/cryptofuzz-relic -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: found LLVMFuzzerCustomMutator (0x55a0b5485fa0). Disabling -len_control by default.
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2805705163
+/out/cryptofuzz-relic: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address (pc 0x7fc5377a97c1 bp 0x000000000440 sp 0x7ffd473e1cc0 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    #0 0x7fc5377a97c1  (/lib/x86_64-linux-gnu/libc.so.6+0x987c1) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x7fc5377ab298 in malloc (/lib/x86_64-linux-gnu/libc.so.6+0x9a298) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #2 0x55a0b55a0d71 in bn_make /src/relic/src/bn/relic_bn_mem.c:60:20
+    #3 0x55a0b5599b1a in bn_div_dig /src/relic/src/bn/relic_bn_div.c:170:3
+    #4 0x55a0b55af276 in bn_size_str /src/relic/src/bn/relic_bn_util.c:289:4
+    #5 0x55a0b5591de9 in cryptofuzz::module::relic_bignum::Bignum::ToString() /src/cryptofuzz/modules/relic/bn_helper.cpp:73:23
+    #6 0x55a0b559209e in cryptofuzz::module::relic_bignum::Bignum::ToComponentBignum() /src/cryptofuzz/modules/relic/bn_helper.cpp:84:16
+    #7 0x55a0b558ae49 in cryptofuzz::module::relic::OpBignumCalc(cryptofuzz::operation::BignumCalc&) /src/cryptofuzz/modules/relic/module.cpp:841:15
+    #8 0x55a0b52be715 in cryptofuzz::ExecutorBignumCalc::callModule(std::__1::shared_ptr<cryptofuzz::Module>, cryptofuzz::operation::BignumCalc&) const /src/cryptofuzz/executor.cpp:1325:20
+    #9 0x55a0b5389f3b in cryptofuzz::ExecutorBase<cryptofuzz::Bignum, cryptofuzz::operation::BignumCalc>::Run(fuzzing::datasource::Datasource&, unsigned char const*, unsigned long) const /src/cryptofuzz/executor.cpp:2808:47
+    #10 0x55a0b5290e4c in cryptofuzz::Driver::Run(unsigned char const*, unsigned long) const /src/cryptofuzz/driver.cpp
+    #11 0x55a0b529db43 in LLVMFuzzerTestOneInput /src/cryptofuzz/entry.cpp:981:13
+    #12 0x55a0b51960d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x55a0b5181345 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x55a0b5186ddf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x55a0b51b2082 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7fc537735082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #17 0x55a0b517952d in _start (/out/cryptofuzz-relic+0xbf52d)
+
+DEDUP_TOKEN: malloc--bn_make
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x987c1) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) 
+==14==ABORTING

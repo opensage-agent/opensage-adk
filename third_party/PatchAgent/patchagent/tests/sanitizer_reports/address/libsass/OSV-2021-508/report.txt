@@ -1,0 +1,41 @@
+DEPRECATION WARNING: Passing a string to call() is deprecated and will be illegal
+in Sass 4.0. Use call(get-function("selector-nest")) instead.
+
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x55a86fd3a5bd bp 0x7ffc2a8b3bb0 sp 0x7ffc2a8b3a40 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55a86fd3a5bd in obj /src/libsass/src/memory/shared_ptr.hpp:159:37
+    #1 0x55a86fd3a5bd in operator Sass::SelectorComponent * /src/libsass/src/memory/shared_ptr.hpp:227:56
+    #2 0x55a86fd3a5bd in Sass::CompoundSelector::resolve_parent_refs(std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, bool) /src/libsass/src/ast_selectors.cpp:888:65
+    #3 0x55a86fd3f2ff in Sass::ComplexSelector::resolve_parent_refs(std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, bool) /src/libsass/src/ast_selectors.cpp:1005:26
+    #4 0x55a86fd3de35 in Sass::SelectorList::resolve_parent_refs(std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, bool) /src/libsass/src/ast_selectors.cpp:1047:34
+    #5 0x55a86f8b23da in Sass::Functions::selector_nest(Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Context&, char const*, Sass::SourceSpan, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>) /src/libsass/src/fn_selectors.cpp:58:37
+    #6 0x55a86faa2696 in Sass::Eval::operator()(Sass::Function_Call*) /src/libsass/src/eval.cpp:1063:18
+    #7 0x55a86f82543e in perform /src/libsass/src/ast_values.hpp:183:5
+    #8 0x55a86f82543e in Sass::Functions::call(Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Environment<Sass::SharedImpl<Sass::AST_Node>>&, Sass::Context&, char const*, Sass::SourceSpan, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>) /src/libsass/src/fn_miscs.cpp:143:35
+    #9 0x55a86faa2696 in Sass::Eval::operator()(Sass::Function_Call*) /src/libsass/src/eval.cpp:1063:18
+    #10 0x55a86fa8af9f in Sass::Eval::operator()(Sass::Binary_Expression*) /src/libsass/src/eval.cpp:736:18
+    #11 0x55a86fa8501d in Sass::Eval::operator()(Sass::Binary_Expression*) /src/libsass/src/eval.cpp:591:13
+    #12 0x55a86faf1880 in Sass::Expand::operator()(Sass::Assignment*) /src/libsass/src/expand.cpp:419:41
+    #13 0x55a86fae1268 in Sass::Expand::append_block(Sass::Block*) /src/libsass/src/expand.cpp:869:32
+    #14 0x55a86fae0763 in Sass::Expand::operator()(Sass::Block*) /src/libsass/src/expand.cpp:158:11
+    #15 0x55a86f7d2e2a in Sass::Context::compile() /src/libsass/src/context.cpp:653:12
+    #16 0x55a86f7d1f4d in Sass::Data_Context::parse() /src/libsass/src/context.cpp:624:12
+    #17 0x55a86f7a97dc in Sass::sass_parse_block(Sass_Compiler*) /src/libsass/src/sass_context.cpp:182:31
+    #18 0x55a86f7a9119 in sass_compiler_parse /src/libsass/src/sass_context.cpp:436:22
+    #19 0x55a86f7a8a87 in sass_compile_context(Sass_Context*, Sass::Context*) /src/libsass/src/sass_context.cpp:319:7
+    #20 0x55a86f7a71d5 in LLVMFuzzerTestOneInput /src/data_context_fuzzer.cc:26:3
+    #21 0x55a86f65bc90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #22 0x55a86f646f05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #23 0x55a86f64c99f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #24 0x55a86f677c42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #25 0x7f07ef276082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #26 0x55a86f63f0ed in _start (/out/data_context_fuzzer+0x2d50ed)
+
+DEDUP_TOKEN: obj--operator Sass::SelectorComponent *--Sass::CompoundSelector::resolve_parent_refs(std::__1::vector<Sass::SharedImpl<Sass::SelectorList>, std::__1::allocator<Sass::SharedImpl<Sass::SelectorList>>>, std::__1::vector<Sass::Backtrace, std::__1::allocator<Sass::Backtrace>>&, bool)
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/libsass/src/memory/shared_ptr.hpp:159:37 in obj
+==14==ABORTING

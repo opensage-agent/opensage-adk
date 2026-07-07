@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/htslib:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/htslib/OSV-2020-1222/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce hts_open_fuzzer -runs=100.
++ FUZZER=hts_open_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer hts_open_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/hts_open_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1119135877
+INFO: Loaded 1 modules   (24252 inline 8-bit counters): 24252 [0x5602feea4e98, 0x5602feeaad54), 
+INFO: Loaded 1 PC tables (24252 PCs): 24252 [0x5602feeaad58,0x5602fef09918), 
+/out/hts_open_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x000000010000 (pc 0x7f376ad1ec0c bp 0x7fffd8c2bcf0 sp 0x7fffd8c2b4a8 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x7f376ad1ec0c  (/lib/x86_64-linux-gnu/libc.so.6+0xbbc0c) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x5602febfe152 in __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    #2 0x5602fec5e950 in hpeek /src/htslib/hfile.c:290:5
+    #3 0x5602fec9d154 in sam_hdr_create /src/htslib/sam.c:1343:28
+    #4 0x5602fec9d154 in sam_hdr_read /src/htslib/sam.c:1483:16
+    #5 0x5602fec3fd58 in view_sam /src/htslib/test/fuzz/hts_open_fuzzer.c:52:22
+    #6 0x5602fec3fd58 in LLVMFuzzerTestOneInput /src/htslib/test/fuzz/hts_open_fuzzer.c:140:13
+    #7 0x5602feaf4710 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5602feadf985 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5602feae541f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5602feb106c2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f376ac87082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #12 0x5602fead7b6d in _start (/out/hts_open_fuzzer+0xe8b6d)
+
+DEDUP_TOKEN: __asan_memcpy--hpeek
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0xbbc0c) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) 
+==14==ABORTING

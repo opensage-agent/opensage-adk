@@ -1,0 +1,36 @@
+The sanitizer detected a remote code execution vulnerability.The explanation of the vulnerability is: An attacker can execute arbitrary code on a remote system, leading to full compromise.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueHigh: Remote Code Execution
+Unrestricted class/object creation based on externally controlled data may allow
+remote code execution depending on available classes on the classpath.
+- jaz.Zer.reportFinding (jaz/Zer.java:110)
+- jaz.Zer.reportFindingIfEnabled (jaz/Zer.java:105)
+- jaz.Zer.<init> (jaz/Zer.java:82)
+- java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance (java/base/jdk/internal/reflect/NativeConstructorAccessorImpl.java:77)
+- java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance (java/base/jdk/internal/reflect/DelegatingConstructorAccessorImpl.java:45)
+- java.base/java.lang.reflect.Constructor.newInstanceWithCaller (java/base/java/lang/reflect/Constructor.java:499)
+- java.base/java.lang.reflect.Constructor.newInstance (java/base/java/lang/reflect/Constructor.java:480)
+- com.fasterxml.jackson.databind.introspect.AnnotatedConstructor.call1 (com/fasterxml/jackson/databind/introspect/AnnotatedConstructor.java:131)
+- com.fasterxml.jackson.databind.deser.std.StdValueInstantiator.createFromString (com/fasterxml/jackson/databind/deser/std/StdValueInstantiator.java:343)
+- com.fasterxml.jackson.databind.deser.std.StdDeserializer._deserializeFromString (com/fasterxml/jackson/databind/deser/std/StdDeserializer.java:265)
+- com.fasterxml.jackson.databind.deser.BeanDeserializerBase.deserializeFromString (com/fasterxml/jackson/databind/deser/BeanDeserializerBase.java:1588)
+- com.fasterxml.jackson.databind.deser.BeanDeserializer._deserializeOther (com/fasterxml/jackson/databind/deser/BeanDeserializer.java:197)
+- com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize (com/fasterxml/jackson/databind/deser/BeanDeserializer.java:187)
+- com.fasterxml.jackson.databind.jsontype.impl.AsArrayTypeDeserializer._deserialize (com/fasterxml/jackson/databind/jsontype/impl/AsArrayTypeDeserializer.java:120)
+- com.fasterxml.jackson.databind.jsontype.impl.AsArrayTypeDeserializer.deserializeTypedFromArray (com/fasterxml/jackson/databind/jsontype/impl/AsArrayTypeDeserializer.java:53)
+- com.fasterxml.jackson.databind.jsontype.impl.AsPropertyTypeDeserializer.deserializeTypedFromAny (com/fasterxml/jackson/databind/jsontype/impl/AsPropertyTypeDeserializer.java:238)
+- com.fasterxml.jackson.databind.deser.std.UntypedObjectDeserializerNR.deserializeWithType (com/fasterxml/jackson/databind/deser/std/UntypedObjectDeserializerNR.java:112)
+- com.fasterxml.jackson.databind.deser.impl.FieldProperty.deserializeAndSet (com/fasterxml/jackson/databind/deser/impl/FieldProperty.java:147)
+- com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize (com/fasterxml/jackson/databind/deser/BeanDeserializer.java:310)
+- com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize (com/fasterxml/jackson/databind/deser/BeanDeserializer.java:177)
+- com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue (com/fasterxml/jackson/databind/deser/DefaultDeserializationContext.java:342)
+- com.fasterxml.jackson.databind.ObjectMapper._readMapAndClose (com/fasterxml/jackson/databind/ObjectMapper.java:4905)
+- com.fasterxml.jackson.databind.ObjectMapper.readValue (com/fasterxml/jackson/databind/ObjectMapper.java:3848)
+- com.fasterxml.jackson.databind.ObjectMapper.readValue (com/fasterxml/jackson/databind/ObjectMapper.java:3831)
+- GuavaDeserializerFuzzer.fuzzerTestOneInput (GuavaDeserializerFuzzer.java:67)
+
+To fix this issue, follow the advice below:
+
+1. Implement strong input validation to prevent code injection attacks.
+2. Use secure communication protocols to protect against remote code execution.
+3. Monitor network traffic for suspicious activity and unauthorized access.

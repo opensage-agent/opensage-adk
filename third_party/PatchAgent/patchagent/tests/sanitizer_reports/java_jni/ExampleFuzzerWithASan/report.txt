@@ -1,0 +1,142 @@
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 279 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 32 hooks from com.code_intelligence.jazzer.sanitizers.FilePathTraversal
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+=================================================================
+==804734==ERROR: AddressSanitizer: heap-use-after-free on address 0x6020000fee90 at pc 0x7f58aa664fa6 bp 0x7f58aa1fd8f0 sp 0x7f58aa1fd0a0
+READ of size 1 at 0x6020000fee90 thread T1
+    #0 0x7f58aa664fa5  (/usr/lib/llvm-14/lib/clang/14.0.0/lib/linux/libclang_rt.asan-x86_64.so+0x64fa5) (BuildId: a6105a816e63299474c1078329a59ed80f244fbf)
+    #1 0x7f58aa665499 in __interceptor_memcmp (/usr/lib/llvm-14/lib/clang/14.0.0/lib/linux/libclang_rt.asan-x86_64.so+0x65499) (BuildId: a6105a816e63299474c1078329a59ed80f244fbf)
+    #2 0x7f58ab2b194a in memcmp (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/execroot/_main/_tmp/3aa53227f5c30b05a7fe747699c8d04a/rules_jni.6814092782667438582/libjazzer_preload_18407663590032796736.so+0x294a) (BuildId: fee00fd4d3264c6de7b0e0ca46dd4464)
+    #3 0x7f542ecdf61c in parseInternal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&) (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/execroot/_main/_tmp/3aa53227f5c30b05a7fe747699c8d04a/rules_jni.7597608026860544758/libnative_asan_15429365622473837289.so+0x1e61c) (BuildId: c8fe2db2a41c1c0140692bb583f8c6a0)
+    #4 0x7f542ecdfbb1 in Java_com_example_ExampleFuzzerWithNative_parse (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/execroot/_main/_tmp/3aa53227f5c30b05a7fe747699c8d04a/rules_jni.7597608026860544758/libnative_asan_15429365622473837289.so+0x1ebb1) (BuildId: c8fe2db2a41c1c0140692bb583f8c6a0)
+    #5 0x7f5896e67b7b  (<unknown module>)
+
+0x6020000fee90 is located 0 bytes inside of 2-byte region [0x6020000fee90,0x6020000fee92)
+freed by thread T1 here:
+    #0 0x7f58aa6cd542 in free (/usr/lib/llvm-14/lib/clang/14.0.0/lib/linux/libclang_rt.asan-x86_64.so+0xcd542) (BuildId: a6105a816e63299474c1078329a59ed80f244fbf)
+    #1 0x7f542ecdf606 in parseInternal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&) (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/execroot/_main/_tmp/3aa53227f5c30b05a7fe747699c8d04a/rules_jni.7597608026860544758/libnative_asan_15429365622473837289.so+0x1e606) (BuildId: c8fe2db2a41c1c0140692bb583f8c6a0)
+    #2 0x7f542ecdfbb1 in Java_com_example_ExampleFuzzerWithNative_parse (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/execroot/_main/_tmp/3aa53227f5c30b05a7fe747699c8d04a/rules_jni.7597608026860544758/libnative_asan_15429365622473837289.so+0x1ebb1) (BuildId: c8fe2db2a41c1c0140692bb583f8c6a0)
+    #3 0x7f5896e67b7b  (<unknown module>)
+    #4 0x7f5896e69ceb  (<unknown module>)
+
+previously allocated by thread T1 here:
+    #0 0x7f58aa6cd7ee in __interceptor_malloc (/usr/lib/llvm-14/lib/clang/14.0.0/lib/linux/libclang_rt.asan-x86_64.so+0xcd7ee) (BuildId: a6105a816e63299474c1078329a59ed80f244fbf)
+    #1 0x7f542ecdf5f9 in parseInternal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&) (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/execroot/_main/_tmp/3aa53227f5c30b05a7fe747699c8d04a/rules_jni.7597608026860544758/libnative_asan_15429365622473837289.so+0x1e5f9) (BuildId: c8fe2db2a41c1c0140692bb583f8c6a0)
+    #2 0x7f542ecdfbb1 in Java_com_example_ExampleFuzzerWithNative_parse (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/execroot/_main/_tmp/3aa53227f5c30b05a7fe747699c8d04a/rules_jni.7597608026860544758/libnative_asan_15429365622473837289.so+0x1ebb1) (BuildId: c8fe2db2a41c1c0140692bb583f8c6a0)
+    #3 0x7f5896e67b7b  (<unknown module>)
+    #4 0x7f5896e69ceb  (<unknown module>)
+
+Thread T1 created by T0 here:
+    #0 0x7f58aa6b6c8c in __interceptor_pthread_create (/usr/lib/llvm-14/lib/clang/14.0.0/lib/linux/libclang_rt.asan-x86_64.so+0xb6c8c) (BuildId: a6105a816e63299474c1078329a59ed80f244fbf)
+    #1 0x7f58ab27114d in CallJavaMainInNewThread (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/external/rules_java~~toolchains~remotejdk21_linux/bin/../lib/libjli.so+0x914d) (BuildId: eaf4f65462a8eac9a29b4cf21bdb0ccd446aeb41)
+    #2 0x7f58ab26de1c in ContinueInNewThread (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/external/rules_java~~toolchains~remotejdk21_linux/bin/../lib/libjli.so+0x5e1c) (BuildId: eaf4f65462a8eac9a29b4cf21bdb0ccd446aeb41)
+    #3 0x7f58ab26e9e6 in JLI_Launch (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/external/rules_java~~toolchains~remotejdk21_linux/bin/../lib/libjli.so+0x69e6) (BuildId: eaf4f65462a8eac9a29b4cf21bdb0ccd446aeb41)
+    #4 0x557659761afe in main (/home/yk/.cache/bazel/_bazel_yk/6b0970301960de4014e557a5359b47c6/external/rules_java~~toolchains~remotejdk21_linux/bin/java+0xafe) (BuildId: 6e7fe55ba4192b07ccbf30a44f7bbdee55c352cb)
+    #5 0x7f58aa229d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+
+SUMMARY: AddressSanitizer: heap-use-after-free (/usr/lib/llvm-14/lib/clang/14.0.0/lib/linux/libclang_rt.asan-x86_64.so+0x64fa5) (BuildId: a6105a816e63299474c1078329a59ed80f244fbf)
+Shadow bytes around the buggy address:
+  0x0c0480017d80: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fd
+  0x0c0480017d90: fa fa fd fd fa fa fd fd fa fa 00 fa fa fa fd fd
+  0x0c0480017da0: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fd
+  0x0c0480017db0: fa fa fd fa fa fa fd fd fa fa fd fd fa fa fd fd
+  0x0c0480017dc0: fa fa fd fd fa fa fd fd fa fa fd fd fa fa fd fd
+=>0x0c0480017dd0: fa fa[fd]fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c0480017de0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c0480017df0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c0480017e00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c0480017e10: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c0480017e20: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==804734==ABORTING
+
+Stack traces of all JVM threads:
+Thread[#5,Reference Handler,10,system]
+        at java.base@21.0.4/java.lang.ref.Reference.waitForReferencePendingList(Native Method)
+        at java.base@21.0.4/java.lang.ref.Reference.processPendingReferences(Reference.java:246)
+        at java.base@21.0.4/java.lang.ref.Reference$ReferenceHandler.run(Reference.java:208)
+
+Thread[#7,Signal Dispatcher,9,system]
+
+Thread[#23,Common-Cleaner,8,InnocuousThreadGroup]
+        at java.base@21.0.4/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.4/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+        at java.base@21.0.4/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1847)
+        at java.base@21.0.4/java.lang.ref.ReferenceQueue.await(ReferenceQueue.java:71)
+        at java.base@21.0.4/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:143)
+        at java.base@21.0.4/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:218)
+        at java.base@21.0.4/jdk.internal.ref.CleanerImpl.run(CleanerImpl.java:140)
+        at java.base@21.0.4/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.4/java.lang.Thread.run(Thread.java:1583)
+        at java.base@21.0.4/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:186)
+
+Thread[#24,Attach Listener,9,system]
+
+Thread[#6,Finalizer,8,system]
+        at java.base@21.0.4/java.lang.Object.wait0(Native Method)
+        at java.base@21.0.4/java.lang.Object.wait(Object.java:366)
+        at java.base@21.0.4/java.lang.Object.wait(Object.java:339)
+        at java.base@21.0.4/java.lang.ref.NativeReferenceQueue.await(NativeReferenceQueue.java:48)
+        at java.base@21.0.4/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:158)
+        at java.base@21.0.4/java.lang.ref.NativeReferenceQueue.remove(NativeReferenceQueue.java:89)
+        at java.base@21.0.4/java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:173)
+
+Thread[#1,main,5,main]
+        at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.dumpAllStackTraces(FuzzTargetRunner.java:534)
+        at app//com.example.ExampleFuzzerWithNative.parse(Native Method)
+        at app//com.example.ExampleFuzzerWithNative.fuzzerTestOneInput(ExampleFuzzerWithNative.java:33)
+        at java.base@21.0.4/java.lang.invoke.LambdaForm$DMH/0x00007f544002c400.invokeStatic(LambdaForm$DMH)
+        at java.base@21.0.4/java.lang.invoke.LambdaForm$MH/0x00007f5440112400.invoke(LambdaForm$MH)
+        at java.base@21.0.4/java.lang.invoke.LambdaForm$MH/0x00007f5440109400.invoke_MT(LambdaForm$MH)
+        at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.runOne(FuzzTargetRunner.java:234)
+        at com.code_intelligence.jazzer.runtime.FuzzTargetRunnerNatives.startLibFuzzer(Native Method)
+        at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer(FuzzTargetRunner.java:551)
+        at app//com.code_intelligence.jazzer.driver.FuzzTargetRunner.startLibFuzzer(FuzzTargetRunner.java:441)
+        at app//com.code_intelligence.jazzer.driver.Driver.start(Driver.java:166)
+        at app//com.code_intelligence.jazzer.Jazzer.start(Jazzer.java:118)
+        at app//com.code_intelligence.jazzer.Jazzer.main(Jazzer.java:71)
+
+Thread[#22,Notification Thread,9,system]
+
+Garbage collector stats:
+
+PS MarkSweep: 0 collections took 0ms
+PS Scavenge: 6 collections took 31ms
+
+MS: 6 PersAutoDict-Custom-ChangeBinInt-Custom-CMP-Custom- DE: "Java_jdk_internal_foreign_abi_UpcallLinker_registerNatives"-"secret_in_native_library"-; base unit: a7c242d711fddb7d0bfd588d9b02f4b66770d7c3
+0x61,0x62,0x11,0x36,0x61,0x63,0x62,0x11,0x6a,0x61,0x7a,0x7a,0x65,0x72,0x7a,0x65,0x74,0x65,0x72,0x6e,0x61,0x6c,0x72,0x6b,0x69,0x67,0x6e,0x5f,0x4a,0x61,0x76,0x61,0x5f,0x6a,0x64,0x6b,0x5f,0x69,0x73,0x65,0x63,0x72,0x65,0x74,0x5f,0x69,0x6e,0x5f,0x6e,0x61,0x74,0x69,0x76,0x65,0x5f,0x6c,0x69,0x62,0x72,0x61,0x72,0x79,0x6c,0x6c,0x4c,0x69,0x6e,0x6b,0x65,0x72,0x5f,0x72,0x65,0x67,0x69,0x73,0x74,0x65,0x72,0x4e,0x61,0x74,0x69,0x76,0x65,0x73,0x65,0x72,0xff,0xe4,0xfd,0xe,0x1,
+ab\0216acb\021jazzerzeternalrkign_Java_jdk_isecret_in_native_libraryllLinker_registerNativeser\377\344\375\016\001

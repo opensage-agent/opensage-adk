@@ -1,0 +1,87 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/apache-commons-codec:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/apache-commons-codec/OSV-2024-349/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce PhoneticEngineFuzzer -runs=100.
++ FUZZER=PhoneticEngineFuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer PhoneticEngineFuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/PhoneticEngineFuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+OpenJDK 64-Bit Server VM warning: Option CriticalJNINatives was deprecated in version 16.0 and will likely be removed in a future release.
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+INFO: Loaded 265 hooks from com.code_intelligence.jazzer.runtime.TraceCmpHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.runtime.TraceDivHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.runtime.TraceIndirHooks
+INFO: Loaded 4 hooks from com.code_intelligence.jazzer.runtime.NativeLibHooks
+INFO: Loaded 2 hooks from com.code_intelligence.jazzer.sanitizers.ClojureLangHooks
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.Deserialization
+INFO: Loaded 5 hooks from com.code_intelligence.jazzer.sanitizers.ExpressionLanguageInjection
+INFO: Loaded 70 hooks from com.code_intelligence.jazzer.sanitizers.LdapInjection
+INFO: Loaded 46 hooks from com.code_intelligence.jazzer.sanitizers.NamingContextLookup
+INFO: Loaded 1 hooks from com.code_intelligence.jazzer.sanitizers.OsCommandInjection
+INFO: Loaded 48 hooks from com.code_intelligence.jazzer.sanitizers.ReflectiveCall
+INFO: Loaded 8 hooks from com.code_intelligence.jazzer.sanitizers.RegexInjection
+INFO: Loaded 16 hooks from com.code_intelligence.jazzer.sanitizers.RegexRoadblocks
+INFO: Loaded 12 hooks from com.code_intelligence.jazzer.sanitizers.ScriptEngineInjection
+INFO: Loaded 3 hooks from com.code_intelligence.jazzer.sanitizers.ServerSideRequestForgery
+INFO: Loaded 19 hooks from com.code_intelligence.jazzer.sanitizers.SqlInjection
+INFO: Loaded 6 hooks from com.code_intelligence.jazzer.sanitizers.XPathInjection
+INFO: Instrumented PhoneticEngineFuzzer (took 47 ms, size +11%)
+INFO: using inputs from: /testcase
+INFO: found LLVMFuzzerCustomMutator (0x7f8144371a00). Disabling -len_control by default.
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 336405063
+INFO: Loaded 1 modules   (512 inline 8-bit counters): 512 [0x55f9040fa810, 0x55f9040faa10), 
+INFO: Loaded 1 PC tables (512 PCs): 512 [0x55f9040c47b0,0x55f9040c67b0), 
+jazzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+INFO: Instrumented org.apache.commons.codec.language.bm.PhoneticEngine (took 23 ms, size +14%)
+INFO: Instrumented org.apache.commons.codec.language.bm.NameType (took 3 ms, size +9%)
+INFO: Instrumented org.apache.commons.codec.language.bm.RuleType (took 2 ms, size +9%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Lang (took 7 ms, size +27%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Languages (took 5 ms, size +26%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Languages$LanguageSet (took 1 ms, size +16%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Languages$1 (took 3 ms, size +9%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Languages$2 (took 2 ms, size +9%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Languages$SomeLanguages (took 5 ms, size +8%)
+INFO: Instrumented org.apache.commons.codec.Resources (took 2 ms, size +10%)
+INFO: Instrumented org.apache.commons.codec.language.bm.ResourceConstants (took 1 ms, size +16%)
+INFO: Instrumented org.apache.commons.codec.CharEncoding (took 1 ms, size +14%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Lang$LangRule (took 4 ms, size +7%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Rule (took 19 ms, size +26%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Rule$RPattern (took 0 ms, size +0%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Rule$PhonemeExpr (took 1 ms, size +8%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Rule$1 (took 2 ms, size +8%)
+INFO: New number of coverage counters: 1024
+INFO: Instrumented org.apache.commons.codec.language.bm.Rule$Phoneme (took 4 ms, size +9%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Rule$PhonemeList (took 1 ms, size +9%)
+INFO: Instrumented org.apache.commons.codec.language.bm.Rule$2 (took 1 ms, size +28%)
+INFO: Instrumented org.apache.commons.codec.language.bm.PhoneticEngine$1 (took 1 ms, size +12%)
+INFO: Instrumented org.apache.commons.codec.language.bm.PhoneticEngine$PhonemeBuilder (took 5 ms, size +9%)
+INFO: Instrumented org.apache.commons.codec.language.bm.PhoneticEngine$RulesApplication (took 2 ms, size +18%)
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Out of memory (use '-Xmx1710m' to reproduce)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+	at java.base/java.lang.AbstractStringBuilder.<init>(AbstractStringBuilder.java:146)
+	at java.base/java.lang.StringBuilder.<init>(StringBuilder.java:143)
+	at org.apache.commons.codec.language.bm.Rule$Phoneme.<init>(Rule.java:113)
+	at org.apache.commons.codec.language.bm.Rule$Phoneme.<init>(Rule.java:123)
+	at org.apache.commons.codec.language.bm.PhoneticEngine$PhonemeBuilder.apply(PhoneticEngine.java:114)
+	at org.apache.commons.codec.language.bm.PhoneticEngine$RulesApplication.invoke(PhoneticEngine.java:206)
+	at org.apache.commons.codec.language.bm.PhoneticEngine.encode(PhoneticEngine.java:446)
+	at org.apache.commons.codec.language.bm.PhoneticEngine.encode(PhoneticEngine.java:363)
+	at PhoneticEngineFuzzer.fuzzerTestOneInput(PhoneticEngineFuzzer.java:32)
+	at java.base/java.lang.invoke.LambdaForm$DMH/0x0000000800cbc000.invokeStaticInit(LambdaForm$DMH)
+	at java.base/java.lang.invoke.LambdaForm$MH/0x0000000800cbd000.invoke(LambdaForm$MH)
+	at java.base/java.lang.invoke.LambdaForm$MH/0x0000000800cbc800.invoke_MT(LambdaForm$MH)
+DEDUP_TOKEN: 12561d3110ac6a25
+== libFuzzer crashing input ==
+reproducer_path='.'; Java reproducer written to ./Crash_fd2d436b1d87c4b0dd690fb856fe63769e7d32a3.java
+

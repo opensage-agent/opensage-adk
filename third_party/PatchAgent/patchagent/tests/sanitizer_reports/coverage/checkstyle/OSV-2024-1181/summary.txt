@@ -1,0 +1,24 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser.expr (com/puppycrawl/tools/checkstyle/grammar/java/JavaLanguageParser.java:9370)
+Caused by: java.lang.StackOverflowError
+- org.antlr.v4.runtime.CodePointCharStream.consume (org/antlr/v4/runtime/CodePointCharStream.java:94)
+- com.puppycrawl.tools.checkstyle.grammar.CrAwareLexerSimulator.consume (com/puppycrawl/tools/checkstyle/grammar/CrAwareLexerSimulator.java:75)
+- org.antlr.v4.runtime.atn.LexerATNSimulator.execATN (org/antlr/v4/runtime/atn/LexerATNSimulator.java:216)
+- org.antlr.v4.runtime.atn.LexerATNSimulator.match (org/antlr/v4/runtime/atn/LexerATNSimulator.java:114)
+- org.antlr.v4.runtime.Lexer.nextToken (org/antlr/v4/runtime/Lexer.java:141)
+- org.antlr.v4.runtime.BufferedTokenStream.fetch (org/antlr/v4/runtime/BufferedTokenStream.java:169)
+- org.antlr.v4.runtime.BufferedTokenStream.sync (org/antlr/v4/runtime/BufferedTokenStream.java:152)
+- org.antlr.v4.runtime.BufferedTokenStream.consume (org/antlr/v4/runtime/BufferedTokenStream.java:136)
+- org.antlr.v4.runtime.Parser.consume (org/antlr/v4/runtime/Parser.java:571)
+- com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser.expr (com/puppycrawl/tools/checkstyle/grammar/java/JavaLanguageParser.java:9367)
+- com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser.expr (com/puppycrawl/tools/checkstyle/grammar/java/JavaLanguageParser.java:9370)
+- com.puppycrawl.tools.checkstyle.grammar.java.JavaLanguageParser.expr (com/puppycrawl/tools/checkstyle/grammar/java/JavaLanguageParser.java:9370)
+	... 1 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

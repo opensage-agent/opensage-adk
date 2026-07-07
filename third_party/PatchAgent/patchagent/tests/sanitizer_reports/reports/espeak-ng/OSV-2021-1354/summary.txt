@@ -1,0 +1,30 @@
+The sanitizer detected a stack buffer underflow vulnerability. The explanation of the vulnerability is: A program attempts to read data before the beginning of a stack buffer, leading to unintended behavior. Here is the detail: 
+
+READ of size 8 at 0x7fad02175f00 thread T0
+    - CountVowelPosition /src/espeak-ng/src/libespeak-ng/synthdata.c:473:14
+    - InterpretCondition /src/espeak-ng/src/libespeak-ng/synthdata.c:652:12
+    - InterpretPhoneme /src/espeak-ng/src/libespeak-ng/synthdata.c:851:14
+    - InterpretPhoneme2 /src/espeak-ng/src/libespeak-ng/synthdata.c:998:2
+    - CalcLengths /src/espeak-ng/src/libespeak-ng/setlengths.c:749:5
+    - SpeakNextClause /src/espeak-ng/src/libespeak-ng/synthesize.c:1572:2
+    - Synthesize /src/espeak-ng/src/libespeak-ng/speech.c:492:9
+    - espeak_Synth /src/espeak-ng/src/libespeak-ng/espeak_api.c:90:32
+    - LLVMFuzzerTestOneInput /src/espeak-ng/tests/ssml-fuzzer.c:67:8
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Address 0x7fad02175f00 is located in stack of thread T0 at offset 0 in frame
+    - InterpretPhoneme2 /src/espeak-ng/src/libespeak-ng/synthdata.c:983:0
+
+  This frame has 1 object(s):
+    [32, 192) 'plist' (line 986)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+
+To fix this issue, follow the advice below:
+
+1. Ensure that stack buffers are properly initialized before reading data from them.
+2. Implement bounds checking to prevent underflow conditions.
+3. Use safer string manipulation functions like strncpy and strncat to avoid buffer underflows.

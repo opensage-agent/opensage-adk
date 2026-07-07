@@ -1,0 +1,31 @@
+=================================================================
+==248737==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7fc2d1be0421 bp 0x7ffd3fbf6330 sp 0x7ffd3fbf62f0 T0)
+==248737==The signal is caused by a READ memory access.
+==248737==Hint: address points to the zero page.
+    #0 0x7fc2d1be0421 in _IO_fread (/lib/x86_64-linux-gnu/libc.so.6+0x86421) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #1 0x7fc2d3ef24ad in fread (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0x7b4ad) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #2 0x7fc2d205dbf0 in gf_fread /root/src/utils/os_file.c:1692:11
+    #3 0x7fc2d2b69b04 in file_read_bytes /root/src/media_tools/mpeg2_ps.c:163:22
+    #4 0x7fc2d2b68c1b in read_to_next_pes_header /root/src/media_tools/mpeg2_ps.c:544:7
+    #5 0x7fc2d2b6cdff in search_for_next_pes_header /root/src/media_tools/mpeg2_ps.c:681:7
+    #6 0x7fc2d2b6cbfb in mpeg2ps_stream_read_next_pes_buffer /root/src/media_tools/mpeg2_ps.c:732:6
+    #7 0x7fc2d2b66944 in mpeg2ps_stream_find_mpeg_video_frame /root/src/media_tools/mpeg2_ps.c:823:8
+    #8 0x7fc2d2b673e0 in mpeg2ps_stream_read_frame /root/src/media_tools/mpeg2_ps.c:953:7
+    #9 0x7fc2d2b6aa3d in get_info_for_all_streams /root/src/media_tools/mpeg2_ps.c:1211:10
+    #10 0x7fc2d2b6454f in mpeg2ps_scan_file /root/src/media_tools/mpeg2_ps.c:1368:2
+    #11 0x7fc2d2b63566 in mpeg2ps_init /root/src/media_tools/mpeg2_ps.c:1625:2
+    #12 0x7fc2d322ff7d in m2psdmx_process /root/src/filters/dmx_mpegps.c:327:13
+    #13 0x7fc2d307ff43 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #14 0x7fc2d304e101 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #15 0x7fc2d304a0fb in gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    #16 0x7fc2d2962b6f in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #17 0x561e9304419e in do_dash /root/applications/mp4box/mp4box.c:4825:15
+    #18 0x561e93038c93 in mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    #19 0x561e9303f811 in main /root/applications/mp4box/mp4box.c:6933:1
+    #20 0x7fc2d1b841c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #21 0x7fc2d1b8428a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #22 0x561e9301ede4 in _start (/root/bin/gcc/MP4Box+0x49de4) (BuildId: 293e638714d4347c1acb66d2012bf74201a5934c)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x86421) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f) in _IO_fread
+==248737==ABORTING

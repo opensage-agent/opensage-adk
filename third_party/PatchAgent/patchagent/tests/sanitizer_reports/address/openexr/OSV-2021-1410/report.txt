@@ -1,0 +1,75 @@
+<memstream>: (EXR_ERR_INVALID_ATTR) attribute 'type': Mismatch between file flags and type string 'deeptile', believing file flags
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7f71af7fea00 at pc 0x55c2fd175d3b bp 0x7ffd5e984370 sp 0x7ffd5e984368
+WRITE of size 4 at 0x7f71af7fea00 thread T0
+SCARINESS: 36 (4-byte-write-heap-buffer-overflow)
+    #0 0x55c2fd175d3a in generic_unpack /src/openexr/src/lib/OpenEXRCore/unpack.c:1168:13
+    #1 0x55c2fd168bf9 in exr_decoding_run /src/openexr/src/lib/OpenEXRCore/decoding.c:682:14
+    #2 0x55c2fcf22b85 in readCoreTiledPart /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1397:30
+    #3 0x55c2fcf22b85 in Imf_2_5::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1446:18
+    #4 0x55c2fcf200ce in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1538:15
+    #5 0x55c2fcf200ce in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    #6 0x55c2fcf1e29f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #7 0x55c2fcdd2de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x55c2fcdbe055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x55c2fcdc3aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x55c2fcdeed92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f71b1611082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x55c2fcdb623d in _start (/out/openexr_exrcheck_fuzzer+0x16523d)
+
+DEDUP_TOKEN: generic_unpack--exr_decoding_run--readCoreTiledPart
+0x7f71af7fea00 is located 0 bytes after 647680-byte region [0x7f71af760800,0x7f71af7fea00)
+allocated by thread T0 here:
+    #0 0x55c2fcf1bf7d in operator new(unsigned long) /src/llvm-project/compiler-rt/lib/asan/asan_new_delete.cpp:86:3
+    #1 0x55c2fcf2222b in __libcpp_operator_new<unsigned long> /usr/local/bin/../include/c++/v1/new:271:10
+    #2 0x55c2fcf2222b in __libcpp_allocate /usr/local/bin/../include/c++/v1/new:295:10
+    #3 0x55c2fcf2222b in allocate /usr/local/bin/../include/c++/v1/__memory/allocator.h:125:32
+    #4 0x55c2fcf2222b in __allocate_at_least<std::__1::allocator<unsigned char> > /usr/local/bin/../include/c++/v1/__memory/allocate_at_least.h:55:19
+    #5 0x55c2fcf2222b in __split_buffer /usr/local/bin/../include/c++/v1/__split_buffer:343:25
+    #6 0x55c2fcf2222b in __append /usr/local/bin/../include/c++/v1/vector:1095:49
+    #7 0x55c2fcf2222b in resize /usr/local/bin/../include/c++/v1/vector:1750:11
+    #8 0x55c2fcf2222b in readCoreTiledPart /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1363:38
+    #9 0x55c2fcf2222b in Imf_2_5::(anonymous namespace)::checkCoreFile(_priv_exr_context_t*, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1446:18
+    #10 0x55c2fcf200ce in runCoreChecks /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1538:15
+    #11 0x55c2fcf200ce in Imf_2_5::checkOpenEXRFile(char const*, unsigned long, bool, bool, bool) /src/openexr/src/lib/OpenEXRUtil/ImfCheckFile.cpp:1565:17
+    #12 0x55c2fcf1e29f in LLVMFuzzerTestOneInput /src/openexr/src/test/OpenEXRFuzzTest/oss-fuzz/openexr_exrcheck_fuzzer.cc:17:5
+    #13 0x55c2fcdd2de0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x55c2fcdbe055 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x55c2fcdc3aef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x55c2fcdeed92 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7f71b1611082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: operator new(unsigned long)--__libcpp_operator_new<unsigned long>--__libcpp_allocate
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/openexr/src/lib/OpenEXRCore/unpack.c:1168:13 in generic_unpack
+Shadow bytes around the buggy address:
+  0x7f71af7fe780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f71af7fe800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f71af7fe880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f71af7fe900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7f71af7fe980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7f71af7fea00:[fa]fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f71af7fea80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f71af7feb00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f71af7feb80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f71af7fec00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7f71af7fec80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

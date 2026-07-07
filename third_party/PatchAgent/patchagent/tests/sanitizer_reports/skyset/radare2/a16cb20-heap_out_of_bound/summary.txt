@@ -1,0 +1,48 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+READ of size 1 at 0x5020000ad2f3 thread T0
+    - r_read_le16 /root/libr/include/r_endian.h:143:17
+    - r_read_at_le16 /root/libr/include/r_endian.h:151:9
+    - msp430_op /root/libr/anal/p/anal_msp430.c:62:15
+    - r_anal_op /root/libr/anal/op.c:121:9
+    - anal_block_cb /root/libr/core/canal.c:3512:7
+    - r_anal_block_recurse_depth_first /root/libr/anal/block.c:561:21
+    - r_core_recover_vars /root/libr/core/canal.c:3563:2
+    - r_core_af /root/libr/core/cmd_anal.c:3928:4
+    - r_core_anal_all /root/libr/core/canal.c:4262:3
+    - cmd_anal_all /root/libr/core/cmd_anal.c:11228:4
+    - cmd_anal /root/libr/core/cmd_anal.c:12445:8
+    - r_cmd_call /root/libr/core/cmd_api.c:549:11
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4528:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3401:9
+    - run_cmd_depth /root/libr/core/cmd.c:5422:9
+    - r_core_cmd /root/libr/core/cmd.c:5505:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5662:9
+    - r_main_radare2 /root/libr/main/radare2.c:1438:11
+    - main /root/binr/radare2/radare2.c:96:9
+
+0x5020000ad2f3 is located 1 bytes after 2-byte region [0x5020000ad2f0,0x5020000ad2f2)
+allocated by thread T0 here:
+    - anal_block_cb /root/libr/core/canal.c:3449:13
+    - r_anal_block_recurse_depth_first /root/libr/anal/block.c:561:21
+    - r_core_recover_vars /root/libr/core/canal.c:3563:2
+    - r_core_af /root/libr/core/cmd_anal.c:3928:4
+    - r_core_anal_all /root/libr/core/canal.c:4262:3
+    - cmd_anal_all /root/libr/core/cmd_anal.c:11228:4
+    - cmd_anal /root/libr/core/cmd_anal.c:12445:8
+    - r_cmd_call /root/libr/core/cmd_api.c:549:11
+    - r_core_cmd_subst_i /root/libr/core/cmd.c:4528:8
+    - r_core_cmd_subst /root/libr/core/cmd.c:3401:9
+    - run_cmd_depth /root/libr/core/cmd.c:5422:9
+    - r_core_cmd /root/libr/core/cmd.c:5505:8
+    - r_core_cmd0 /root/libr/core/cmd.c:5662:9
+    - r_main_radare2 /root/libr/main/radare2.c:1438:11
+    - main /root/binr/radare2/radare2.c:96:9
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

@@ -1,0 +1,18 @@
+The sanitizer detected a bad free vulnerability. The explanation of the vulnerability is: A program attempts to free a memory block that was not dynamically allocated, causing undefined behavior or crashes. Here is the detail: 
+
+    - frame_get_lazychunk /root/blosc/frame.c:2036:7
+    - frame_decompress_chunk /root/blosc/frame.c:2761:8
+    - blosc2_schunk_decompress_chunk /root/blosc/schunk.c:804:17
+    - LLVMFuzzerTestOneInput /root/tests/fuzz/fuzz_decompress_frame.c:38:15
+    - main /root/tests/fuzz/standalone.c:32:7
+
+0x50d00000009e is located 94 bytes inside of 138-byte region [0x50d000000040,0x50d0000000ca)
+allocated by thread T0 here:
+    - main /root/tests/fuzz/standalone.c:28:28
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure that only dynamically allocated memory is freed.
+2. Avoid freeing memory that was not allocated using malloc or similar functions.
+3. Verify pointer values before attempting to free them.

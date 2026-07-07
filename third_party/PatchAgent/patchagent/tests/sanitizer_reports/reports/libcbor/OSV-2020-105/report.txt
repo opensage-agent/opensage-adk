@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libcbor:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/libcbor/OSV-2020-105/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce cbor_load_fuzzer -runs=100.
++ FUZZER=cbor_load_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer cbor_load_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/cbor_load_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3445988445
+INFO: Loaded 1 modules   (1327 inline 8-bit counters): 1327 [0x563af9483138, 0x563af9483667), 
+INFO: Loaded 1 PC tables (1327 PCs): 1327 [0x563af9483668,0x563af9488958), 
+/out/cbor_load_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x563af93dd49a bp 0x7ffc73d01770 sp 0x7ffc73d01750 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x563af93dd49a in cbor_typeof /src/libcbor/src/cbor/common.c:50:63
+    #1 0x563af93cf50d in _cbor_nested_describe /src/libcbor/src/cbor.c:243:11
+    #2 0x563af93cf766 in _cbor_nested_describe /src/libcbor/src/cbor.c:262:11
+    #3 0x563af93cfb08 in _cbor_nested_describe /src/libcbor/src/cbor.c:299:9
+    #4 0x563af93cf486 in cbor_describe /src/libcbor/src/cbor.c:344:3
+    #5 0x563af93cc354 in LLVMFuzzerTestOneInput /src/libcbor/build/../oss-fuzz/cbor_load_fuzzer.cc:50:9
+    #6 0x563af9280450 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x563af926b6c5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x563af927115f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x563af929c402 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f3c21114082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x563af92638ad in _start (/out/cbor_load_fuzzer+0x4f8ad)
+
+DEDUP_TOKEN: cbor_typeof--_cbor_nested_describe--_cbor_nested_describe
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/libcbor/src/cbor/common.c:50:63 in cbor_typeof
+==14==ABORTING

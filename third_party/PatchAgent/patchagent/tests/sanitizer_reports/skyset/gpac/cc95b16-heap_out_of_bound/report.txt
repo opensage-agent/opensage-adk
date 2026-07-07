@@ -1,0 +1,69 @@
+=================================================================
+==359393==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x521000015330 at pc 0x7fe97138a616 bp 0x7ffd4ecd0d90 sp 0x7ffd4ecd0550
+READ of size 1769512 at 0x521000015330 thread T0
+    #0 0x7fe97138a615 in __asan_memcpy (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf6615) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fe96ff6ccd0 in avi_parse_input_file /root/src/media_tools/avilib.c:2083:8
+    #2 0x7fe96ff6b0ee in AVI_open_input_file /root/src/media_tools/avilib.c:1840:2
+    #3 0x7fe9705f6bc1 in avidmx_process /root/src/filters/dmx_avi.c:490:14
+    #4 0x7fe97049c9e3 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #5 0x7fe97046aba1 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #6 0x7fe970466b9b in gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    #7 0x7fe96fd7fadf in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #8 0x5635d464716e in do_dash /root/applications/mp4box/mp4box.c:4825:15
+    #9 0x5635d463bc63 in mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    #10 0x5635d46427e1 in main /root/applications/mp4box/mp4box.c:6933:1
+    #11 0x7fe96efa11c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7fe96efa128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x5635d4621db4 in _start (/root/bin/gcc/MP4Box+0x49db4) (BuildId: 1d6e74ee85f3a85ad180ed60a0c282f29dd1db6c)
+
+0x521000015330 is located 0 bytes after 4656-byte region [0x521000014100,0x521000015330)
+allocated by thread T0 here:
+    #0 0x7fe97138c7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fe96f4a0f44 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7fe96ff6b749 in avi_parse_input_file /root/src/media_tools/avilib.c:1944:35
+    #3 0x7fe96ff6b0ee in AVI_open_input_file /root/src/media_tools/avilib.c:1840:2
+    #4 0x7fe9705f6bc1 in avidmx_process /root/src/filters/dmx_avi.c:490:14
+    #5 0x7fe97049c9e3 in gf_filter_process_task /root/src/filter_core/filter.c:2971:7
+    #6 0x7fe97046aba1 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #7 0x7fe970466b9b in gf_fs_run /root/src/filter_core/filter_session.c:2261:3
+    #8 0x7fe96fd7fadf in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #9 0x5635d464716e in do_dash /root/applications/mp4box/mp4box.c:4825:15
+    #10 0x5635d463bc63 in mp4box_main /root/applications/mp4box/mp4box.c:6239:7
+    #11 0x5635d46427e1 in main /root/applications/mp4box/mp4box.c:6933:1
+    #12 0x7fe96efa11c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x7fe96efa128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x5635d4621db4 in _start (/root/bin/gcc/MP4Box+0x49db4) (BuildId: 1d6e74ee85f3a85ad180ed60a0c282f29dd1db6c)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/media_tools/avilib.c:2083:8 in avi_parse_input_file
+Shadow bytes around the buggy address:
+  0x521000015080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000015100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000015180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000015200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x521000015280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x521000015300: 00 00 00 00 00 00[fa]fa fa fa fa fa fa fa fa fa
+  0x521000015380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000015400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000015480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000015500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x521000015580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359393==ABORTING

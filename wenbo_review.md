@@ -1,0 +1,50 @@
+## Issues
+- the definition of session_id may be confusing as the session id is typically refer to the conversation of agents
+-  what are skills in opensage
+- patching folde maybe confusing as it is different from the patching task
+- agents/opensage_agent.py
+    - shall we consider cache the loaded skills in load_tools
+    - Shall we make the generate_system_prompt_part more structued using markdown table or group by tool types?
+    - shall we make the tool and sandbox config as skills rather than system prompts to save tokens?
+    - shall we consider creating multi-agent instances at the same time? parallel
+    - add some state function:
+        - list sub-agents
+        - list tools
+        - display agent topology?
+- I do not see a global skill and tool management; will it be benefical if we have it?
+- The agent topology is written in the database structure; may not be easy to query
+- We don't have load agent anymore?
+- If support yuzhou's lightsandbox -> we don't need to change sandbox manager, add another class in sandbox
+- memory: support file-based memory for short-trem and also get agent structure from the file structure
+- Long-term memory:
+ - Retrieve:
+    - after tool call is not reasonable; should be after agent call
+ - Save:
+    - too many strategies (merge or only keep the most useful one)
+    - revisit do we need too many types for nodes and relationships
+    - Integrate config into toml config
+    - search controller is to choose good strategies (really needed)
+- Short-term memory: why not save events real time using hook
+- Coverage tool:
+    - can we let agent write test?
+    - find_testcases_covering_function is used later for fuzzing?
+    - coverage tools of more PL
+- Debugger
+    - this should be very long horizon tool call, not sure if we can call this part out....
+    - do we want to write better tool descriptions to agent? espeecially for these MCP tools; like how the agent is able to know for PDB what are the options for "send_pdb_command"
+- fuzzer
+    - add func for customizer feedback func
+    - enable skills for instrumentation
+    - make run fuzzer how long as a parameter
+- neo4j
+    - this is nikpicking, not sure if we want to write the retrieve tool here and write tools somewhere else or we don't use tool for writing.
+- retrieval
+    - can be better named as these are not database retrieval
+    - read_file / get_file_content — Read an entire file.
+    - list_files_in_directory
+    - find_files_by_name
+    - get_file_structure
+    - search_symbol_references
+- in the relase version, remove the python tools?
+- remove the toolbox folder and only maintain one
+- move some swe tools to general tool set?

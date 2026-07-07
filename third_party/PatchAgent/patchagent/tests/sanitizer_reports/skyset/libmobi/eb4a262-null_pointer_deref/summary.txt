@@ -1,0 +1,20 @@
+The sanitizer detected a null dereference vulnerability. The explanation of the vulnerability is: The program attempts to dereference a null pointer, causing a segmentation fault or crash. Here is the detail: 
+
+The signal is caused by a READ memory access.
+Hint: address points to the zero page.
+    - mobi_get_cncx_string_flat /root/src/index.c:933:58
+    - mobi_trie_insert_infl /root/src/index.c:1076:30
+    - mobi_reconstruct_orth /root/src/parse_rawml.c:1537:28
+    - mobi_reconstruct_links_kf7 /root/src/parse_rawml.c:1805:15
+    - mobi_reconstruct_links /root/src/parse_rawml.c:1854:15
+    - mobi_parse_rawml_opt /root/src/parse_rawml.c:2158:15
+    - mobi_parse_rawml /root/src/parse_rawml.c:2014:12
+    - loadfilename /root/tools/mobitool.c:852:20
+    - main /root/tools/mobitool.c:1051:11
+
+
+To fix this issue, follow the advice below:
+
+1. Ensure all pointers are initialized before use to prevent null dereferences.
+2. Validate pointer values before dereferencing them.
+3. Implement default values for pointers to reduce the risk of unintended NULL dereferences.

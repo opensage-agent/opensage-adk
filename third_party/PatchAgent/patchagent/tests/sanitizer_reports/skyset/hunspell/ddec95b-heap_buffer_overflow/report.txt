@@ -1,0 +1,84 @@
+=================================================================
+==360208==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x515000002a47 at pc 0x558d87c8c94e bp 0x7ffe536313d0 sp 0x7ffe536313c8
+READ of size 1 at 0x515000002a47 thread T0
+    #0 0x558d87c8c94d in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:1612:15
+    #1 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #2 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #3 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #4 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #5 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #6 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #7 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #8 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #9 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #10 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #11 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #12 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #13 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #14 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #15 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #16 0x558d87c9657e in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*) /root/src/hunspell/affixmgr.cxx:2092:20
+    #17 0x558d87c1a5c0 in HunspellImpl::checkword(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:908:21
+    #18 0x558d87c1c336 in HunspellImpl::spell_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:544:12
+    #19 0x558d87c1b321 in HunspellImpl::spell(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, int*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*) /root/src/hunspell/hunspell.cxx:447:12
+    #20 0x558d87c24792 in HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1330:29
+    #21 0x558d87c1fcbe in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:959:35
+    #22 0x558d87c247e2 in HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1331:41
+    #23 0x558d87c1fcbe in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:959:35
+    #24 0x558d87c247e2 in HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1331:41
+    #25 0x558d87c1fcbe in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:959:35
+    #26 0x558d87c247e2 in HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1331:41
+    #27 0x558d87c1fcbe in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:959:35
+    #28 0x558d87c247e2 in HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1331:41
+    #29 0x558d87c1fcbe in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:959:35
+    #30 0x558d87c247e2 in HunspellImpl::suggest_internal(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&, bool&, unsigned long&, int&) /root/src/hunspell/hunspell.cxx:1331:41
+    #31 0x558d87c1fcbe in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>>>&) /root/src/hunspell/hunspell.cxx:959:35
+    #32 0x558d87c253ca in HunspellImpl::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/src/hunspell/hunspell.cxx:1050:10
+    #33 0x558d87c31e84 in Hunspell::suggest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&) /root/src/hunspell/hunspell.cxx:2136:18
+    #34 0x558d87c141d4 in LLVMFuzzerTestOneInput /root/./src/tools/affdicfuzzer.cxx:66:14
+    #35 0x558d87bf93b4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/affdicfuzzer+0x2d3b4) (BuildId: 464476a78750b979fee88f5cd5fad60f82aef1b5)
+    #36 0x558d87be24e6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/affdicfuzzer+0x164e6) (BuildId: 464476a78750b979fee88f5cd5fad60f82aef1b5)
+    #37 0x558d87be7f9a in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/affdicfuzzer+0x1bf9a) (BuildId: 464476a78750b979fee88f5cd5fad60f82aef1b5)
+    #38 0x558d87c127f6 in main (/root/affdicfuzzer+0x467f6) (BuildId: 464476a78750b979fee88f5cd5fad60f82aef1b5)
+    #39 0x7f089d8571c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #40 0x7f089d85728a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #41 0x558d87bdd0b4 in _start (/root/affdicfuzzer+0x110b4) (BuildId: 464476a78750b979fee88f5cd5fad60f82aef1b5)
+
+0x515000002a47 is located 0 bytes after 455-byte region [0x515000002880,0x515000002a47)
+allocated by thread T0 here:
+    #0 0x7f089dc4d7a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7f089e72c5bb in operator new(unsigned long) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xbb5bb) (BuildId: 447e536940f454adbdf80fc56608663b8057c208)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/hunspell/affixmgr.cxx:1612:15 in AffixMgr::compound_check(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, short, short, short, short, hentry**, hentry**, char, char, int*)
+Shadow bytes around the buggy address:
+  0x515000002780: 00 00 00 00 00 00 00 00 00 01 fa fa fa fa fa fa
+  0x515000002800: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000002880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000002900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x515000002980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x515000002a00: 00 00 00 00 00 00 00 00[07]fa fa fa fa fa fa fa
+  0x515000002a80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000002b00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000002b80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000002c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x515000002c80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==360208==ABORTING

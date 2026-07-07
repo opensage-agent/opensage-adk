@@ -1,0 +1,62 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 20 at 0x5110000f9028 thread T0
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - uiomove /src/usrsctp/usrsctplib/user_socket.c:0:0
+    - sctp_sorecvmsg /src/usrsctp/usrsctplib/netinet/sctputil.c:6681:13
+    - usrsctp_recvv /src/usrsctp/usrsctplib/user_socket.c:1110:10
+    - handle_upcall /src/usrsctp/fuzzer/fuzzer_connect.c:113:7
+    - sctp_common_input_processing /src/usrsctp/usrsctplib/netinet/sctp_input.c:6197:5
+    - usrsctp_conninput /src/usrsctp/usrsctplib/user_socket.c:3320:2
+    - LLVMFuzzerTestOneInput /src/usrsctp/fuzzer/fuzzer_connect.c:445:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x5110000f9028 is located 40 bytes inside of 256-byte region [0x5110000f9000,0x5110000f9100)
+freed by thread T5 (SCTP timer) here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - m_free /src/usrsctp/usrsctplib/user_mbuf.c:197:3
+    - sctp_sorecvmsg /src/usrsctp/usrsctplib/netinet/sctputil.c:6732:22
+    - usrsctp_recvv /src/usrsctp/usrsctplib/user_socket.c:1110:10
+    - handle_upcall /src/usrsctp/fuzzer/fuzzer_connect.c:113:7
+    - sctp_timeout_handler /src/usrsctp/usrsctplib/netinet/sctputil.c:2211:4
+    - sctp_handle_tick /src/usrsctp/usrsctplib/netinet/sctp_callout.c:172:4
+    - user_sctp_timer_iterate /src/usrsctp/usrsctplib/netinet/sctp_callout.c:214:3
+    - asan_thread_start(void*) /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:239:28
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - m_get /src/usrsctp/usrsctplib/user_mbuf.c:122:9
+    - m_getm2 /src/usrsctp/usrsctplib/user_mbuf.c:322:9
+    - sctp_notify_remote_error /src/usrsctp/usrsctplib/netinet/sctputil.c:4213:13
+    - sctp_ulp_notify /src/usrsctp/usrsctplib/netinet/sctputil.c:4446:3
+    - sctp_handle_error /src/usrsctp/usrsctplib/netinet/sctp_input.c:1342:2
+    - sctp_process_control /src/usrsctp/usrsctplib/netinet/sctp_input.c:5253:8
+    - sctp_common_input_processing /src/usrsctp/usrsctplib/netinet/sctp_input.c:5952:10
+    - usrsctp_conninput /src/usrsctp/usrsctplib/user_socket.c:3320:2
+    - LLVMFuzzerTestOneInput /src/usrsctp/fuzzer/fuzzer_connect.c:445:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+Thread T5 (SCTP timer) created by T0 here:
+    - pthread_create /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:250:3
+    - sctp_start_timer_thread /src/usrsctp/usrsctplib/netinet/sctp_callout.c:228:7
+    - usrsctp_init /src/usrsctp/usrsctplib/user_socket.c:112:2
+    - initialize_fuzzer /src/usrsctp/fuzzer/fuzzer_connect.c:141:2
+    - LLVMFuzzerTestOneInput /src/usrsctp/fuzzer/fuzzer_connect.c:268:17
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

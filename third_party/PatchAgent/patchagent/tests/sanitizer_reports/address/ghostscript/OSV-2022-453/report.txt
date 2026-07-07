@@ -1,0 +1,34 @@
+gsapi_init_with_args: error -100
+gsapi_init_with_args: error -100
+gsapi_init_with_args: error -100
+gsapi_init_with_args: error -100
+gsapi_init_with_args: error -25
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x55e5ea8c3969 bp 0x7ffeb8d63930 sp 0x7ffeb8d63900 T0)
+==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55e5ea8c3969 in gs_closedevice /src/ghostpdl/./base/gsdevice.c:786:16
+    #1 0x55e5ea8c3969 in gx_device_finalize /src/ghostpdl/./base/gsdevice.c:56:5
+    #2 0x55e5ead7fcf6 in gc_objects_set_reloc /src/ghostpdl/./psi/igc.c:1201:13
+    #3 0x55e5ead7fcf6 in gs_gc_reclaim /src/ghostpdl/./psi/igc.c:431:9
+    #4 0x55e5eacbbc2b in gs_vmreclaim /src/ghostpdl/./psi/ireclaim.c:165:9
+    #5 0x55e5eacbbc2b in ireclaim /src/ghostpdl/./psi/ireclaim.c:80:12
+    #6 0x55e5eaca888e in interp_reclaim /src/ghostpdl/./psi/interp.c:452:12
+    #7 0x55e5ea429ddc in gs_main_finit /src/ghostpdl/./psi/imain.c:1281:20
+    #8 0x55e5eac97963 in psapi_exit /src/ghostpdl/./psi/psapi.c:517:5
+    #9 0x55e5ea420010 in fuzz_gs_device(unsigned char const*, unsigned long, int, char const*, char const*, int) /src/gs_fuzzlib.h:144:8
+    #10 0x55e5ea420335 in gs_to_raster_fuzz /src/gs_fuzzlib.h:66:9
+    #11 0x55e5ea420335 in LLVMFuzzerTestOneInput /src/gstoraster_fuzzer.cc:23:2
+    #12 0x55e5ea2d46d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x55e5ea2bf945 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x55e5ea2c53df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x55e5ea2f0682 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7f822aef5082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #17 0x55e5ea2b7b2d in _start (/out/gstoraster_fuzzer+0x724b2d)
+
+DEDUP_TOKEN: gs_closedevice--gx_device_finalize--gc_objects_set_reloc
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/ghostpdl/./base/gsdevice.c:786:16 in gs_closedevice
+==14==ABORTING

@@ -1,0 +1,475 @@
+Executed /testcase in 29 ms
+***
+*** NOTE: fuzzing was not performed, you have only
+***       executed the target code on a fixed set of inputs.
+***
+
+=================================================================
+==18==ERROR: LeakSanitizer: detected memory leaks
+
+Indirect leak of 51200 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3afe8 in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2860:2
+    #2 0x564873e3a8be in ucl_parser_new /src/libucl/src/ucl_parser.c:2790:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 19200 byte(s) in 300 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e6296f in ucl_object_new_full /src/libucl/src/ucl_util.c:3014:9
+    #2 0x564873e3fd68 in ucl_parse_key /src/libucl/src/ucl_parser.c:1541:9
+    #3 0x564873e3fd68 in ucl_state_machine /src/libucl/src/ucl_parser.c:2525:9
+    #4 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #5 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #6 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_object_new_full--ucl_parse_key
+Indirect leak of 16800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3a88a in ucl_parser_new /src/libucl/src/ucl_parser.c:2783:11
+    #2 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #3 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_new--LLVMFuzzerTestOneInput
+Indirect leak of 12800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3dffd in ucl_create_err /src/libucl/src/./ucl_internal.h:381:3
+    #2 0x564873e3a77d in ucl_set_err /src/libucl/src/ucl_parser.c:85:3
+    #3 0x564873e466cf in ucl_parse_macro_arguments /src/libucl/src/ucl_parser.c:2379:5
+    #4 0x564873e466cf in ucl_state_machine /src/libucl/src/ucl_parser.c:2650:18
+    #5 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #6 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #7 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_create_err--ucl_set_err
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3aadf in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2847:8
+    #2 0x564873e3a921 in ucl_parser_new /src/libucl/src/ucl_parser.c:2793:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3aadf in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2847:8
+    #2 0x564873e3a8df in ucl_parser_new /src/libucl/src/ucl_parser.c:2791:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3aadf in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2847:8
+    #2 0x564873e3a8be in ucl_parser_new /src/libucl/src/ucl_parser.c:2790:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3aadf in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2847:8
+    #2 0x564873e3a900 in ucl_parser_new /src/libucl/src/ucl_parser.c:2792:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3aadf in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2847:8
+    #2 0x564873e3a942 in ucl_parser_new /src/libucl/src/ucl_parser.c:2794:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 8800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3b91f in ucl_parser_register_context_macro /src/libucl/src/ucl_parser.c:2874:8
+    #2 0x564873e3a963 in ucl_parser_new /src/libucl/src/ucl_parser.c:2795:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_register_context_macro--ucl_parser_new
+Indirect leak of 8400 byte(s) in 300 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e52e15 in ucl_copy_or_store_ptr /src/libucl/src/ucl_parser.c:607:10
+    #2 0x564873e3fdfe in ucl_parse_key /src/libucl/src/ucl_parser.c:1545:11
+    #3 0x564873e3fdfe in ucl_state_machine /src/libucl/src/ucl_parser.c:2525:9
+    #4 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #5 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #6 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_copy_or_store_ptr--ucl_parse_key
+Indirect leak of 8000 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3d57c in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:2972:11
+    #2 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #3 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_add_chunk_full--LLVMFuzzerTestOneInput
+Indirect leak of 7200 byte(s) in 300 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e759c8 in ucl_hash_insert /src/libucl/src/ucl_hash.c:335:10
+    #2 0x564873e397e0 in ucl_hash_insert_object /src/libucl/src/./ucl_internal.h:486:7
+    #3 0x564873e397e0 in ucl_parser_process_object_element /src/libucl/src/ucl_parser.c:1258:15
+    #4 0x564873e3fe86 in ucl_parse_key /src/libucl/src/ucl_parser.c:1561:7
+    #5 0x564873e3fe86 in ucl_state_machine /src/libucl/src/ucl_parser.c:2525:9
+    #6 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #7 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #8 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_hash_insert--ucl_hash_insert_object
+Indirect leak of 6400 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e6296f in ucl_object_new_full /src/libucl/src/ucl_util.c:3014:9
+    #2 0x564873e4f746 in ucl_parser_add_container /src/libucl/src/ucl_parser.c:668:10
+    #3 0x564873e452f6 in ucl_state_machine /src/libucl/src/ucl_parser.c
+    #4 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #5 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #6 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_object_new_full--ucl_parser_add_container
+Indirect leak of 6400 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3af26 in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2860:2
+    #2 0x564873e3a8be in ucl_parser_new /src/libucl/src/ucl_parser.c:2790:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 4800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3d013 in ucl_parser_register_variable /src/libucl/src/ucl_parser.c:2926:10
+    #2 0x564873e5ceca in ucl_parser_set_filevars /src/libucl/src/ucl_util.c:2011:3
+    #3 0x564873e3aa5c in ucl_parser_new /src/libucl/src/ucl_parser.c:2806:3
+    #4 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #5 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_register_variable--ucl_parser_set_filevars
+Indirect leak of 4800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e3d013 in ucl_parser_register_variable /src/libucl/src/ucl_parser.c:2926:10
+    #2 0x564873e5d025 in ucl_parser_set_filevars /src/libucl/src/ucl_util.c
+    #3 0x564873e3aa5c in ucl_parser_new /src/libucl/src/ucl_parser.c:2806:3
+    #4 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #5 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_register_variable--ucl_parser_set_filevars
+Indirect leak of 4000 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df82c9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564873e752ea in ucl_hash_create /src/libucl/src/ucl_hash.c
+    #2 0x564873e4f8f8 in ucl_parser_add_container /src/libucl/src/ucl_parser.c:687:21
+    #3 0x564873e452f6 in ucl_state_machine /src/libucl/src/ucl_parser.c
+    #4 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #5 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #6 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--ucl_hash_create--ucl_parser_add_container
+Indirect leak of 3200 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e4f941 in ucl_parser_add_container /src/libucl/src/ucl_parser.c:697:7
+    #2 0x564873e452f6 in ucl_state_machine /src/libucl/src/ucl_parser.c
+    #3 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #4 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #5 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_parser_add_container--ucl_state_machine
+Indirect leak of 3200 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df82c9 in calloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:75:3
+    #1 0x564873e3dfaa in ucl_create_err /src/libucl/src/./ucl_internal.h:381:3
+    #2 0x564873e3a77d in ucl_set_err /src/libucl/src/ucl_parser.c:85:3
+    #3 0x564873e466cf in ucl_parse_macro_arguments /src/libucl/src/ucl_parser.c:2379:5
+    #4 0x564873e466cf in ucl_state_machine /src/libucl/src/ucl_parser.c:2650:18
+    #5 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #6 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #7 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_calloc--ucl_create_err--ucl_set_err
+Indirect leak of 3200 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df84ec in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x564873e7b2bd in kh_resize_ucl_hash_node /src/libucl/src/ucl_hash.c:117:1
+    #2 0x564873e76e34 in kh_put_ucl_hash_node /src/libucl/src/ucl_hash.c:117:1
+    #3 0x564873e759a4 in ucl_hash_insert /src/libucl/src/ucl_hash.c:333:7
+    #4 0x564873e397e0 in ucl_hash_insert_object /src/libucl/src/./ucl_internal.h:486:7
+    #5 0x564873e397e0 in ucl_parser_process_object_element /src/libucl/src/ucl_parser.c:1258:15
+    #6 0x564873e3fe86 in ucl_parse_key /src/libucl/src/ucl_parser.c:1561:7
+    #7 0x564873e3fe86 in ucl_state_machine /src/libucl/src/ucl_parser.c:2525:9
+    #8 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #9 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #10 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--kh_resize_ucl_hash_node--kh_put_ucl_hash_node
+Indirect leak of 3200 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df84ec in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x564873e7b278 in kh_resize_ucl_hash_node /src/libucl/src/ucl_hash.c:117:1
+    #2 0x564873e76e34 in kh_put_ucl_hash_node /src/libucl/src/ucl_hash.c:117:1
+    #3 0x564873e759a4 in ucl_hash_insert /src/libucl/src/ucl_hash.c:333:7
+    #4 0x564873e397e0 in ucl_hash_insert_object /src/libucl/src/./ucl_internal.h:486:7
+    #5 0x564873e397e0 in ucl_parser_process_object_element /src/libucl/src/ucl_parser.c:1258:15
+    #6 0x564873e3fe86 in ucl_parse_key /src/libucl/src/ucl_parser.c:1561:7
+    #7 0x564873e3fe86 in ucl_state_machine /src/libucl/src/ucl_parser.c:2525:9
+    #8 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #9 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #10 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--kh_resize_ucl_hash_node--kh_put_ucl_hash_node
+Indirect leak of 2900 byte(s) in 300 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e52e15 in ucl_copy_or_store_ptr /src/libucl/src/ucl_parser.c:607:10
+    #2 0x564873e49499 in ucl_parse_value /src/libucl/src/ucl_parser.c:1990:20
+    #3 0x564873e49499 in ucl_state_machine /src/libucl/src/ucl_parser.c:2560:29
+    #4 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #5 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #6 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_copy_or_store_ptr--ucl_parse_value
+Indirect leak of 2400 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e7529a in ucl_hash_create /src/libucl/src/ucl_hash.c:237:8
+    #2 0x564873e4f8f8 in ucl_parser_add_container /src/libucl/src/ucl_parser.c:687:21
+    #3 0x564873e452f6 in ucl_state_machine /src/libucl/src/ucl_parser.c
+    #4 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #5 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #6 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--ucl_hash_create--ucl_parser_add_container
+Indirect leak of 1200 byte(s) in 100 object(s) allocated from:
+    #0 0x564873ddffda in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564873e3ab1e in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2854:14
+    #2 0x564873e3a8df in ucl_parser_new /src/libucl/src/ucl_parser.c:2791:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 900 byte(s) in 100 object(s) allocated from:
+    #0 0x564873ddffda in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564873e3d036 in ucl_parser_register_variable /src/libucl/src/ucl_parser.c:2931:15
+    #2 0x564873e5ceca in ucl_parser_set_filevars /src/libucl/src/ucl_util.c:2011:3
+    #3 0x564873e3aa5c in ucl_parser_new /src/libucl/src/ucl_parser.c:2806:3
+    #4 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #5 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--ucl_parser_register_variable--ucl_parser_set_filevars
+Indirect leak of 900 byte(s) in 100 object(s) allocated from:
+    #0 0x564873ddffda in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564873e3ab1e in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2854:14
+    #2 0x564873e3a900 in ucl_parser_new /src/libucl/src/ucl_parser.c:2792:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 900 byte(s) in 100 object(s) allocated from:
+    #0 0x564873ddffda in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564873e3ab1e in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2854:14
+    #2 0x564873e3a921 in ucl_parser_new /src/libucl/src/ucl_parser.c:2793:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873ddffda in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564873e3b95e in ucl_parser_register_context_macro /src/libucl/src/ucl_parser.c:2881:14
+    #2 0x564873e3a963 in ucl_parser_new /src/libucl/src/ucl_parser.c:2795:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--ucl_parser_register_context_macro--ucl_parser_new
+Indirect leak of 800 byte(s) in 100 object(s) allocated from:
+    #0 0x564873ddffda in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564873e3ab1e in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2854:14
+    #2 0x564873e3a8be in ucl_parser_new /src/libucl/src/ucl_parser.c:2790:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 700 byte(s) in 100 object(s) allocated from:
+    #0 0x564873ddffda in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564873e3d036 in ucl_parser_register_variable /src/libucl/src/ucl_parser.c:2931:15
+    #2 0x564873e5d025 in ucl_parser_set_filevars /src/libucl/src/ucl_util.c
+    #3 0x564873e3aa5c in ucl_parser_new /src/libucl/src/ucl_parser.c:2806:3
+    #4 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #5 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--ucl_parser_register_variable--ucl_parser_set_filevars
+Indirect leak of 600 byte(s) in 100 object(s) allocated from:
+    #0 0x564873ddffda in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564873e3d07d in ucl_parser_register_variable /src/libucl/src/ucl_parser.c:2933:17
+    #2 0x564873e5ceca in ucl_parser_set_filevars /src/libucl/src/ucl_util.c:2011:3
+    #3 0x564873e3aa5c in ucl_parser_new /src/libucl/src/ucl_parser.c:2806:3
+    #4 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #5 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--ucl_parser_register_variable--ucl_parser_set_filevars
+Indirect leak of 500 byte(s) in 100 object(s) allocated from:
+    #0 0x564873ddffda in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564873e3d07d in ucl_parser_register_variable /src/libucl/src/ucl_parser.c:2933:17
+    #2 0x564873e5d025 in ucl_parser_set_filevars /src/libucl/src/ucl_util.c
+    #3 0x564873e3aa5c in ucl_parser_new /src/libucl/src/ucl_parser.c:2806:3
+    #4 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #5 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #6 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #7 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #8 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #9 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--ucl_parser_register_variable--ucl_parser_set_filevars
+Indirect leak of 500 byte(s) in 100 object(s) allocated from:
+    #0 0x564873ddffda in strdup /src/llvm-project/compiler-rt/lib/asan/asan_interceptors.cpp:570:3
+    #1 0x564873e3ab1e in ucl_parser_register_macro /src/libucl/src/ucl_parser.c:2854:14
+    #2 0x564873e3a942 in ucl_parser_new /src/libucl/src/ucl_parser.c:2794:2
+    #3 0x564873e377fc in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:15:18
+    #4 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: ___interceptor_strdup--ucl_parser_register_macro--ucl_parser_new
+Indirect leak of 400 byte(s) in 100 object(s) allocated from:
+    #0 0x564873df80ff in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x564873e7b1b6 in kh_resize_ucl_hash_node /src/libucl/src/ucl_hash.c:117:1
+    #2 0x564873e76e34 in kh_put_ucl_hash_node /src/libucl/src/ucl_hash.c:117:1
+    #3 0x564873e759a4 in ucl_hash_insert /src/libucl/src/ucl_hash.c:333:7
+    #4 0x564873e397e0 in ucl_hash_insert_object /src/libucl/src/./ucl_internal.h:486:7
+    #5 0x564873e397e0 in ucl_parser_process_object_element /src/libucl/src/ucl_parser.c:1258:15
+    #6 0x564873e3fe86 in ucl_parse_key /src/libucl/src/ucl_parser.c:1561:7
+    #7 0x564873e3fe86 in ucl_state_machine /src/libucl/src/ucl_parser.c:2525:9
+    #8 0x564873e3dd0d in ucl_parser_add_chunk_full /src/libucl/src/ucl_parser.c:3051:12
+    #9 0x564873e3780d in LLVMFuzzerTestOneInput /src/libucl/tests/fuzzers/ucl_add_string_fuzzer.c:17:2
+    #10 0x564873cec330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x564873cd75a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x564873cdd03f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x564873d082e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7f947f70a082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--kh_resize_ucl_hash_node--kh_put_ucl_hash_node
+SUMMARY: AddressSanitizer: 229100 byte(s) leaked in 4300 allocation(s).

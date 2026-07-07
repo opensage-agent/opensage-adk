@@ -1,0 +1,42 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libcbor:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce cbor_load_fuzzer -runs=100.
++ FUZZER=cbor_load_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer cbor_load_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/cbor_load_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2584208370
+INFO: Loaded 1 modules   (150 inline 8-bit counters): 150 [0x55914898cfa0, 0x55914898d036), 
+INFO: Loaded 1 PC tables (150 PCs): 150 [0x55914898d038,0x55914898d998), 
+/out/cbor_load_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x000000000020 (pc 0x559148901dee bp 0x7fffd0847e20 sp 0x7fffd0847e20 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: address points to the zero page.
+    #0 0x559148901dee in cbor_typeof /src/libcbor/src/cbor/common.c:50:63
+    #1 0x5591488fa760 in _cbor_nested_describe /src/libcbor/src/cbor.c:243:11
+    #2 0x5591488fa96e in _cbor_nested_describe /src/libcbor/src/cbor.c:262:11
+    #3 0x5591488fac60 in _cbor_nested_describe /src/libcbor/src/cbor.c:299:9
+    #4 0x5591488fa710 in cbor_describe /src/libcbor/src/cbor.c:344:3
+    #5 0x5591488f775f in LLVMFuzzerTestOneInput /src/libcbor/build/../oss-fuzz/cbor_load_fuzzer.cc:50:9
+    #6 0x5591488598b0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x559148844b25 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55914884a5bf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x559148875862 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7f9e9e4b4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #11 0x55914883cd0d in _start (/out/cbor_load_fuzzer+0x20d0d)
+
+DEDUP_TOKEN: cbor_typeof--_cbor_nested_describe--_cbor_nested_describe
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/libcbor/src/cbor/common.c:50:63 in cbor_typeof
+==14==ABORTING

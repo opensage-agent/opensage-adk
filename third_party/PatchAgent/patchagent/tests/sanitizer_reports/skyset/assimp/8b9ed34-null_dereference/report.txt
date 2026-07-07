@@ -1,0 +1,21 @@
+=================================================================
+==418225==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000008 (pc 0x555556acbbe2 bp 0x7fffffffca70 sp 0x7fffffffc6a0 T0)
+==418225==The signal is caused by a READ memory access.
+==418225==Hint: address points to the zero page.
+    #0 0x555556acbbe2 in Assimp::ComputeUVMappingProcess::Execute(aiScene*) /root/code/PostProcessing/ComputeUVMappingProcess.cpp:359:36
+    #1 0x555556a610ff in Assimp::BaseProcess::ExecuteOnScene(Assimp::Importer*) /root/code/Common/BaseProcess.cpp:82:9
+    #2 0x5555558d6aa2 in Assimp::Importer::ApplyPostProcessing(unsigned int) /root/code/Common/Importer.cpp:841:22
+    #3 0x5555558d4411 in Assimp::Importer::ReadFile(char const*, unsigned int) /root/code/Common/Importer.cpp:751:13
+    #4 0x5555558d10c9 in Assimp::Importer::ReadFileFromMemory(void const*, unsigned long, unsigned int, char const*) /root/code/Common/Importer.cpp:507:9
+    #5 0x55555585ffa9 in LLVMFuzzerTestOneInput /root/fuzz/assimp_fuzzer.cc:54:34
+    #6 0x555555845714 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/assimp_fuzzer+0x2f1714) (BuildId: 4c60fa5f668dc59823d43bd6f7437be1f50850c4)
+    #7 0x55555582e846 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/assimp_fuzzer+0x2da846) (BuildId: 4c60fa5f668dc59823d43bd6f7437be1f50850c4)
+    #8 0x5555558342fa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/assimp_fuzzer+0x2e02fa) (BuildId: 4c60fa5f668dc59823d43bd6f7437be1f50850c4)
+    #9 0x55555585eab6 in main (/root/assimp_fuzzer+0x30aab6) (BuildId: 4c60fa5f668dc59823d43bd6f7437be1f50850c4)
+    #10 0x7ffff6f1b1c9 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #11 0x7ffff6f1b28a in __libc_start_main csu/../csu/libc-start.c:360:3
+    #12 0x555555829414 in _start (/root/assimp_fuzzer+0x2d5414) (BuildId: 4c60fa5f668dc59823d43bd6f7437be1f50850c4)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/code/PostProcessing/ComputeUVMappingProcess.cpp:359:36 in Assimp::ComputeUVMappingProcess::Execute(aiScene*)
+==418225==ABORTING

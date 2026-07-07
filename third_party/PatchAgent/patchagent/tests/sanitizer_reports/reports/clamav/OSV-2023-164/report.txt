@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/clamav:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/clamav/OSV-2023-164/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce clamav_dbload_CRB_fuzzer -runs=100.
++ FUZZER=clamav_dbload_CRB_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer clamav_dbload_CRB_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/clamav_dbload_CRB_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2113274370
+INFO: Loaded 1 modules   (55325 inline 8-bit counters): 55325 [0x5645bc69a700, 0x5645bc6a7f1d), 
+INFO: Loaded 1 PC tables (55325 PCs): 55325 [0x5645bc6a7f20,0x5645bc7800f0), 
+/out/clamav_dbload_CRB_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x5200000469c8 (pc 0x5645bb7960ba bp 0x7fff0d8b8810 sp 0x7fff0d8b87d0 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x5645bb7960ba in fp_cmp_mag /src/clamav/libclamav/tomsfastmath/addsub/fp_cmp_mag.c:22:26
+    #1 0x5645bb57b56a in crtmgr_trust_list_lookup /src/clamav/libclamav/crtmgr.c:138:14
+    #2 0x5645bb57bdd5 in crtmgr_add /src/clamav/libclamav/crtmgr.c:204:13
+    #3 0x5645bb55c6a0 in cli_loadcrt /src/clamav/libclamav/readdb.c:3465:9
+    #4 0x5645bb557ac9 in cli_load /src/clamav/libclamav/readdb.c:4754:15
+    #5 0x5645bb569033 in cl_load /src/clamav/libclamav/readdb.c:5313:19
+    #6 0x5645bb53a908 in LLVMFuzzerTestOneInput /src/clamav/fuzz/clamav_dbload_fuzzer.cpp:126:30
+    #7 0x5645bb3ef2d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5645bb3da545 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5645bb3dffdf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5645bb40b282 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fc5b0672082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #12 0x5645bb3d272d in _start (/out/clamav_dbload_CRB_fuzzer+0x34e72d)
+
+DEDUP_TOKEN: fp_cmp_mag--crtmgr_trust_list_lookup--crtmgr_add
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/clamav/libclamav/tomsfastmath/addsub/fp_cmp_mag.c:22:26 in fp_cmp_mag
+==14==ABORTING

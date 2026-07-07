@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# OpenSage -> AReaL Training Launcher
+# OpenSage → AReaL Training Launcher
 #
 # Usage:
 #   bash rl/areal/train.sh                              # 4-GPU default
@@ -94,7 +94,7 @@ ARGS=()
 
 echo ""
 echo "============================================"
-echo "  OpenSage -> AReaL Training"
+echo "  OpenSage → AReaL Training"
 echo "  AReaL dir:  $AREAL_DIR"
 [[ -n "$TRIAL" ]]      && echo "  Trial:      $TRIAL"
 [[ -n "$GPUS" ]]        && echo "  GPUs:       $GPUS"

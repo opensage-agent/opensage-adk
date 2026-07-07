@@ -1,0 +1,53 @@
+The sanitizer detected a heap use after free vulnerability. The explanation of the vulnerability is: Memory is accessed after it has been freed, leading to undefined behavior and security risks. Here is the detail: 
+
+READ of size 4 at 0x506000010d08 thread T0
+llvm-symbolizer: error: '/dev/zero (deleted)': No such file or directory
+    - zend_jit_fetch_dim_r_helper /src/php-src/ext/opcache/jit/zend_jit_helpers.c:431:2
+    - zend_execute /src/php-src/Zend/zend_vm_execute.h:59829:2
+    - fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:276:5
+    - LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-function-jit.c:42:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x506000010d08 is located 8 bytes inside of 56-byte region [0x506000010d00,0x506000010d38)
+freed by thread T0 here:
+    - free /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:52:3
+    - zend_assign_to_variable /src/php-src/Zend/zend_execute.h:158:5
+    - ZEND_ASSIGN_SPEC_VAR_CONST_RETVAL_UNUSED_HANDLER /src/php-src/Zend/zend_vm_execute.h:23971:10
+    - zend_call_function /src/php-src/Zend/zend_execute_API.c:903:3
+    - _call_user_function_impl /src/php-src/Zend/zend_execute_API.c:701:9
+    - zend_error_zstr_at /src/php-src/Zend/zend.c:1408:8
+    - zend_error_va_list /src/php-src/Zend/zend.c:1456:2
+    - zend_error_unchecked /src/php-src/Zend/zend.c:1534:2
+    - zend_dval_to_lval_safe /src/php-src/Zend/zend_operators.h:148:3
+    - zend_jit_fetch_dim_r_helper /src/php-src/ext/opcache/jit/zend_jit_helpers.c:399:11
+    - zend_execute /src/php-src/Zend/zend_vm_execute.h:59829:2
+    - fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:276:5
+    - LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-function-jit.c:42:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+previously allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - tracked_malloc /src/php-src/Zend/zend_alloc.c:2752:14
+    - _zend_new_array /src/php-src/Zend/zend_hash.c:279:18
+    - ZEND_INIT_ARRAY_SPEC_TMP_UNUSED_HANDLER /src/php-src/Zend/zend_vm_execute.h:20639:3
+    - zend_execute /src/php-src/Zend/zend_vm_execute.h:59829:2
+    - fuzzer_do_request_from_buffer /src/php-src/sapi/fuzzer/fuzzer-sapi.c:276:5
+    - LLVMFuzzerTestOneInput /src/php-src/sapi/fuzzer/fuzzer-function-jit.c:42:3
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. Set pointers to NULL immediately after freeing them to prevent accidental reuse.
+2. Ensure that each allocated memory block is freed only once.
+3. Track memory allocations and deallocations systematically to prevent use-after-free conditions.
+4. Consider swap the order of freeing memory and accessing it.

@@ -1,0 +1,43 @@
+The sanitizer detected a heap buffer overflow vulnerability. The explanation of the vulnerability is: The program tried to access a heap object outside of its allocated memory, causing potential memory corruption or crashes. Here is the detail: 
+
+WRITE of size 200 at 0x50300000a3d4 thread T0
+    - __asan_memcpy /src/llvm-project/compiler-rt/lib/asan/asan_interceptors_memintrinsics.cpp:63:3
+    - H5D__scatter_mem /src/hdf5/src/H5Dscatgath.c:333:13
+    - H5D__scatgath_read /src/hdf5/src/H5Dscatgath.c:597:21
+    - H5D__contig_read /src/hdf5/src/H5Dcontig.c:893:13
+    - H5D__read /src/hdf5/src/H5Dio.c:398:17
+    - H5VL__native_dataset_read /src/hdf5/src/H5VLnative_dataset.c:373:9
+    - H5VL__dataset_read /src/hdf5/src/H5VLcallback.c:2033:9
+    - H5VL_dataset_read /src/hdf5/src/H5VLcallback.c:2076:9
+    - H5D__read_api_common /src/hdf5/src/H5D.c:990:9
+    - H5Dread /src/hdf5/src/H5D.c:1042:9
+    - Mat_VarRead73 /src/matio/src/mat73.c:2838:39
+    - ReadData /src/matio/src/mat.c:112:16
+    - Mat_VarRead /src/matio/src/mat.c:2785:29
+    - MatioRead(char const*) /src/matio/ossfuzz/matio_wrap.h:63:18
+    - LLVMFuzzerTestOneInput /src/matio/ossfuzz/matio_fuzzer.cpp:30:12
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+0x50300000a3d4 is located 0 bytes after 20-byte region [0x50300000a3c0,0x50300000a3d4)
+allocated by thread T0 here:
+    - malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    - Mat_VarRead73 /src/matio/src/mat73.c:2836:55
+    - ReadData /src/matio/src/mat.c:112:16
+    - Mat_VarRead /src/matio/src/mat.c:2785:29
+    - MatioRead(char const*) /src/matio/ossfuzz/matio_wrap.h:63:18
+    - LLVMFuzzerTestOneInput /src/matio/ossfuzz/matio_fuzzer.cpp:30:12
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+
+To fix this issue, follow the advice below:
+
+1. If overflow is unavoidable, allocate a sufficiently large buffer during initialization.
+2. Add explicit bounds checking before accessing arrays or buffers to prevent overflows.
+3. Replace unsafe functions like memcpy, strcpy, strcat, and sprintf with safer alternatives such as strncpy, strncat, and snprintf.
+4. Check for integer overflows in size calculations that could cause improper memory allocations.

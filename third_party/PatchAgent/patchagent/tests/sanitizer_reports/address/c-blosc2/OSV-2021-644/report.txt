@@ -1,0 +1,23 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x52e00c0acc67 (pc 0x5597a825b2bd bp 0x7fff200d5390 sp 0x7fff200d51e0 T0)
+==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x5597a825b2bd in blosc_d /src/c-blosc2/blosc/blosc2.c:1769:14
+    #1 0x5597a8265eba in serial_blosc /src/c-blosc2/blosc/blosc2.c:1969:16
+    #2 0x5597a8265eba in do_job /src/c-blosc2/blosc/blosc2.c:2136:15
+    #3 0x5597a8255a5d in blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2938:12
+    #4 0x5597a829cf2d in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:3748:24
+    #5 0x5597a8277928 in blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:1100:17
+    #6 0x5597a8246054 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:34:15
+    #7 0x5597a80faa90 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x5597a80e5d05 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x5597a80eb79f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x5597a8116a42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7fd68840d082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x5597a80ddeed in _start (/out/decompress_frame_fuzzer+0x166eed)
+
+DEDUP_TOKEN: blosc_d--serial_blosc--do_job
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/c-blosc2/blosc/blosc2.c:1769:14 in blosc_d
+==14==ABORTING

@@ -1,0 +1,29 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - sdb_new /src/radare2/shlr/sdb/src/sdb.c:56:11
+    - sdb_new0 /src/radare2/shlr/sdb/src/sdb.c:52:9
+    - filter_classes /src/radare2/libr/bin/bobj.c:205:12
+    - r_bin_object_set_items /src/radare2/libr/bin/bobj.c:392:4
+    - r_bin_object_new /src/radare2/libr/bin/bobj.c:172:2
+    - r_bin_file_new_from_buffer /src/radare2/libr/bin/bfile.c:523:19
+    - r_bin_open_buf /src/radare2/libr/bin/bin.c:286:8
+    - r_bin_open_io /src/radare2/libr/bin/bin.c:346:13
+    - cmd_open_bin /src/radare2/libr/core/cmd_open.c:0:0
+    - cmd_open /src/radare2/libr/core/cmd_open.c:1572:3
+    - r_cmd_call /src/radare2/libr/core/cmd_api.c:293:10
+    - r_core_cmd_subst_i /src/radare2/libr/core/cmd.c:3769:8
+    - r_core_cmd_subst /src/radare2/libr/core/cmd.c:2687:9
+    - run_cmd_depth /src/radare2/libr/core/cmd.c:6682:9
+    - r_core_cmd /src/radare2/libr/core/cmd.c:6758:8
+    - LLVMFuzzerTestOneInput /src/radare2/targets/ia_fuzz.cc:13:2
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

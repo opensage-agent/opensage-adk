@@ -1,0 +1,94 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-use-after-free on address 0x51f000000c50 at pc 0x562cb4ac69ad bp 0x7ffd7fcfbf70 sp 0x7ffd7fcfbf68
+READ of size 8 at 0x51f000000c50 thread T0
+SCARINESS: 51 (8-byte-read-heap-use-after-free)
+    #0 0x562cb4ac69ac in prvTidyInsertedToken /src/tidy-html5/src/istack.c:279:60
+    #1 0x562cb4a56153 in prvTidyGetToken /src/tidy-html5/src/lexer.c:2487:24
+    #2 0x562cb4a2e4f3 in prvTidyParseInline /src/tidy-html5/src/parser.c:3268:20
+    #3 0x562cb4a1e64f in ParseHTMLWithNode /src/tidy-html5/src/parser.c:1077:25
+    #4 0x562cb4a401b3 in prvTidyParseDocument /src/tidy-html5/src/parser.c:6341:9
+    #5 0x562cb4a06933 in prvTidyDocParseStream /src/tidy-html5/src/tidylib.c:1509:9
+    #6 0x562cb4a035fb in tidyDocParseBuffer /src/tidy-html5/src/tidylib.c:1203:18
+    #7 0x562cb4a035fb in tidyParseBuffer /src/tidy-html5/src/tidylib.c:1122:12
+    #8 0x562cb49fd841 in run_tidy_parser /src/tidy_fuzzer.c:33:9
+    #9 0x562cb49fda12 in LLVMFuzzerTestOneInput /src/tidy_fuzzer.c:50:5
+    #10 0x562cb48b2330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #11 0x562cb489d5a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #12 0x562cb48a303f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #13 0x562cb48ce2e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #14 0x7fc209634082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #15 0x562cb489578d in _start (/out/tidy_fuzzer+0x12478d)
+
+DEDUP_TOKEN: prvTidyInsertedToken--prvTidyGetToken--prvTidyParseInline
+0x51f000000c50 is located 3024 bytes inside of 3072-byte region [0x51f000000080,0x51f000000c80)
+freed by thread T0 here:
+    #0 0x562cb49be4ec in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x562cb4aa561c in defaultRealloc /src/tidy-html5/src/alloc.c:83:49
+    #2 0x562cb4ac53a8 in prvTidyPushInline /src/tidy-html5/src/istack.c:90:35
+    #3 0x562cb4a2e3cd in prvTidyParseInline /src/tidy-html5/src/parser.c:3252:13
+    #4 0x562cb4a1e64f in ParseHTMLWithNode /src/tidy-html5/src/parser.c:1077:25
+    #5 0x562cb4a401b3 in prvTidyParseDocument /src/tidy-html5/src/parser.c:6341:9
+    #6 0x562cb4a06933 in prvTidyDocParseStream /src/tidy-html5/src/tidylib.c:1509:9
+    #7 0x562cb4a035fb in tidyDocParseBuffer /src/tidy-html5/src/tidylib.c:1203:18
+    #8 0x562cb4a035fb in tidyParseBuffer /src/tidy-html5/src/tidylib.c:1122:12
+    #9 0x562cb49fd841 in run_tidy_parser /src/tidy_fuzzer.c:33:9
+    #10 0x562cb49fda12 in LLVMFuzzerTestOneInput /src/tidy_fuzzer.c:50:5
+    #11 0x562cb48b2330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x562cb489d5a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x562cb48a303f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x562cb48ce2e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fc209634082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--defaultRealloc--prvTidyPushInline
+previously allocated by thread T0 here:
+    #0 0x562cb49be4ec in realloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:82:3
+    #1 0x562cb4aa561c in defaultRealloc /src/tidy-html5/src/alloc.c:83:49
+    #2 0x562cb4ac53a8 in prvTidyPushInline /src/tidy-html5/src/istack.c:90:35
+    #3 0x562cb4a2e3cd in prvTidyParseInline /src/tidy-html5/src/parser.c:3252:13
+    #4 0x562cb4a1e64f in ParseHTMLWithNode /src/tidy-html5/src/parser.c:1077:25
+    #5 0x562cb4a401b3 in prvTidyParseDocument /src/tidy-html5/src/parser.c:6341:9
+    #6 0x562cb4a06933 in prvTidyDocParseStream /src/tidy-html5/src/tidylib.c:1509:9
+    #7 0x562cb4a035fb in tidyDocParseBuffer /src/tidy-html5/src/tidylib.c:1203:18
+    #8 0x562cb4a035fb in tidyParseBuffer /src/tidy-html5/src/tidylib.c:1122:12
+    #9 0x562cb49fd841 in run_tidy_parser /src/tidy_fuzzer.c:33:9
+    #10 0x562cb49fda12 in LLVMFuzzerTestOneInput /src/tidy_fuzzer.c:50:5
+    #11 0x562cb48b2330 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x562cb489d5a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x562cb48a303f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x562cb48ce2e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7fc209634082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_realloc--defaultRealloc--prvTidyPushInline
+SUMMARY: AddressSanitizer: heap-use-after-free /src/tidy-html5/src/istack.c:279:60 in prvTidyInsertedToken
+Shadow bytes around the buggy address:
+  0x51f000000980: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f000000a00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f000000a80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f000000b00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51f000000b80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x51f000000c00: fd fd fd fd fd fd fd fd fd fd[fd]fd fd fd fd fd
+  0x51f000000c80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f000000d00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f000000d80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f000000e00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51f000000e80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

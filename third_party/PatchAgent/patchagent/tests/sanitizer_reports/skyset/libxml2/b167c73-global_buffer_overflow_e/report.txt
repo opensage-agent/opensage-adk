@@ -1,0 +1,63 @@
+=================================================================
+==359572==ERROR: AddressSanitizer: global-buffer-overflow on address 0x55938724947a at pc 0x5593871b0ce5 bp 0x7ffec53d0a20 sp 0x7ffec53d0a18
+READ of size 1 at 0x55938724947a thread T0
+    #0 0x5593871b0ce4 in xmlDictComputeFastKey /root/dict.c:437:14
+    #1 0x5593871afaba in xmlDictLookup /root/dict.c:859:12
+    #2 0x559386ecb547 in xmlParseNCNameComplex /root/parser.c:3446:12
+    #3 0x559386eca704 in xmlParseNCName /root/parser.c:3510:12
+    #4 0x559386ec8417 in xmlParseQName /root/parser.c:8865:9
+    #5 0x559386ec38b2 in xmlParseStartTag2 /root/parser.c:9366:17
+    #6 0x559386e95fb9 in xmlParseElementStart /root/parser.c:10118:16
+    #7 0x559386e94cf5 in xmlParseContentInternal /root/parser.c:9986:10
+    #8 0x559386e9549e in xmlParseElement /root/parser.c:10056:5
+    #9 0x559386e9fd61 in xmlParseDocument /root/parser.c:10917:2
+    #10 0x559386eba519 in xmlDoRead /root/parser.c:14975:5
+    #11 0x559386ebaccd in xmlCtxtReadFile /root/parser.c:15208:13
+    #12 0x559387078acb in xmlSchemaAddSchemaDoc /root/xmlschemas.c:10661:12
+    #13 0x559387077193 in xmlSchemaParse /root/xmlschemas.c:21489:11
+    #14 0x559386e1da47 in LLVMFuzzerTestOneInput /root/fuzz/schema.c:41:19
+    #15 0x559386e031c4 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/root/schema+0x811c4) (BuildId: 01e9eea6fb425e8e096febe95025c5b25732ca8d)
+    #16 0x559386dec2f6 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/root/schema+0x6a2f6) (BuildId: 01e9eea6fb425e8e096febe95025c5b25732ca8d)
+    #17 0x559386df1daa in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/root/schema+0x6fdaa) (BuildId: 01e9eea6fb425e8e096febe95025c5b25732ca8d)
+    #18 0x559386e1c606 in main (/root/schema+0x9a606) (BuildId: 01e9eea6fb425e8e096febe95025c5b25732ca8d)
+    #19 0x7f0f110c51c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #20 0x7f0f110c528a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #21 0x559386de6ec4 in _start (/root/schema+0x64ec4) (BuildId: 01e9eea6fb425e8e096febe95025c5b25732ca8d)
+
+0x55938724947a is located 6 bytes before global variable '.str.6' defined in '/root/parserInternals.c:353' (0x559387249480) of size 21
+  '.str.6' is ascii string 'Growing input buffer'
+0x55938724947a is located 40 bytes after global variable '.str.5' defined in '/root/parserInternals.c:332' (0x559387249440) of size 18
+  '.str.5' is ascii string 'Huge input lookup'
+SUMMARY: AddressSanitizer: global-buffer-overflow /root/dict.c:437:14 in xmlDictComputeFastKey
+Shadow bytes around the buggy address:
+  0x559387249180: 00 06 f9 f9 f9 f9 f9 f9 00 00 03 f9 f9 f9 f9 f9
+  0x559387249200: 02 f9 f9 f9 04 f9 f9 f9 00 00 00 00 00 00 00 00
+  0x559387249280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x559387249300: 00 00 00 03 f9 f9 f9 f9 00 00 00 00 00 00 00 04
+  0x559387249380: f9 f9 f9 f9 00 00 00 07 f9 f9 f9 f9 00 00 00 02
+=>0x559387249400: f9 f9 f9 f9 01 f9 f9 f9 00 00 02 f9 f9 f9 f9[f9]
+  0x559387249480: 00 00 05 f9 f9 f9 f9 f9 00 00 00 00 f9 f9 f9 f9
+  0x559387249500: 00 00 00 00 f9 f9 f9 f9 00 00 00 00 00 00 f9 f9
+  0x559387249580: f9 f9 f9 f9 00 00 00 00 04 f9 f9 f9 f9 f9 f9 f9
+  0x559387249600: 00 00 00 00 00 00 02 f9 f9 f9 f9 f9 00 00 00 07
+  0x559387249680: f9 f9 f9 f9 00 00 00 00 00 00 00 f9 f9 f9 f9 f9
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359572==ABORTING

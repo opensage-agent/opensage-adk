@@ -1,0 +1,46 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/icu:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/icu/OSV-2023-905/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce relative_date_time_formatter_fuzzer -runs=100.
++ FUZZER=relative_date_time_formatter_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer relative_date_time_formatter_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/relative_date_time_formatter_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2430208772
+INFO: Loaded 1 modules   (91534 inline 8-bit counters): 91534 [0x562b59f26e70, 0x562b59f3d3fe), 
+INFO: Loaded 1 PC tables (91534 PCs): 91534 [0x562b59f3d400,0x562b5a0a2ce0), 
+/out/relative_date_time_formatter_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x562b57f18b02 bp 0x7fffc3383510 sp 0x7fffc33834c0 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x562b57f18b02 in isBogus /src/icu/icu4c/source/common/unicode/unistr.h:3919:33
+    #1 0x562b57f18b02 in icu_74::UnicodeString::copyFrom(icu_74::UnicodeString const&, signed char) /src/icu/icu4c/source/common/unistr.cpp:505:10
+    #2 0x562b57f18a80 in icu_74::UnicodeString::UnicodeString(icu_74::UnicodeString const&) /src/icu/icu4c/source/common/unistr.cpp:308:3
+    #3 0x562b57a681b1 in icu_74::number::impl::SimpleModifier::SimpleModifier(icu_74::SimpleFormatter const&, icu_74::FormattedStringBuilder::Field, bool, icu_74::number::impl::Modifier::Parameters) /src/icu/icu4c/source/i18n/number_modifiers.cpp:130:11
+    #4 0x562b579e6907 in icu_74::RelativeDateTimeFormatter::formatNumericImpl(double, URelativeDateTimeUnit, icu_74::FormattedRelativeDateTimeData&, UErrorCode&) const /src/icu/icu4c/source/i18n/reldatefmt.cpp:1065:34
+    #5 0x562b579e6e45 in icu_74::FormattedRelativeDateTime icu_74::RelativeDateTimeFormatter::doFormatToValue<void (icu_74::RelativeDateTimeFormatter::*)(double, URelativeDateTimeUnit, icu_74::FormattedRelativeDateTimeData&, UErrorCode&) const, double, URelativeDateTimeUnit>(void (icu_74::RelativeDateTimeFormatter::*)(double, URelativeDateTimeUnit, icu_74::FormattedRelativeDateTimeData&, UErrorCode&) const, UErrorCode&, double, URelativeDateTimeUnit) const /src/icu/icu4c/source/i18n/reldatefmt.cpp:925:5
+    #6 0x562b579e6bb6 in icu_74::RelativeDateTimeFormatter::formatNumericToValue(double, URelativeDateTimeUnit, UErrorCode&) const /src/icu/icu4c/source/i18n/reldatefmt.cpp:1015:12
+    #7 0x562b579df3b1 in LLVMFuzzerTestOneInput /src/icu/icu4c/source/test/fuzzer/relative_date_time_formatter_fuzzer.cpp:90:36
+    #8 0x562b578936c0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x562b5787e935 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x562b578843cf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x562b578af672 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f8888993082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x562b57876b1d in _start (/out/relative_date_time_formatter_fuzzer+0x313b1d)
+
+DEDUP_TOKEN: isBogus--icu_74::UnicodeString::copyFrom(icu_74::UnicodeString const&, signed char)--icu_74::UnicodeString::UnicodeString(icu_74::UnicodeString const&)
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/icu/icu4c/source/common/unicode/unistr.h:3919:33 in isBogus
+==14==ABORTING

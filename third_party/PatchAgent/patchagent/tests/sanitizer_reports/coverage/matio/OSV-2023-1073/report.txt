@@ -1,0 +1,597 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/matio:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce matio_fuzzer -runs=100.
++ FUZZER=matio_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer matio_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/matio_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=matio_fuzzer.dict < /dev/null
+Dictionary: 4 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1102353959
+INFO: Loaded 1 modules   (24 inline 8-bit counters): 24 [0x55a6e6b80038, 0x55a6e6b80050), 
+INFO: Loaded 1 PC tables (24 PCs): 24 [0x55a6e6b80050,0x55a6e6b801d0), 
+/out/matio_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5Rdeprec.c line 641 in H5Rdereference2(): unable to open object by token
+    major: References
+    minor: Can't open object
+  #001: H5VLcallback.c line 5577 in H5VL_object_open(): object open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #002: H5VLcallback.c line 5544 in H5VL__object_open(): object open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #003: H5VLnative_object.c line 113 in H5VL__native_object_open(): unable to open object by address
+    major: Object header
+    minor: Can't open object
+  #004: H5Oint.c line 689 in H5O__open_by_addr(): unable to open object
+    major: Object header
+    minor: Can't open object
+  #005: H5Oint.c line 722 in H5O_open_by_loc(): unable to open object
+    major: Object header
+    minor: Can't open object
+  #006: H5Doh.c line 234 in H5O__dset_open(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #007: H5Dint.c line 1499 in H5D_open(): not found
+    major: Dataset
+    minor: Object not found
+  #008: H5Dint.c line 1696 in H5D__open_oid(): unable to load type info from dataset header
+    major: Dataset
+    minor: Unable to initialize object
+  #009: H5Omessage.c line 431 in H5O_msg_read(): unable to read object header message
+    major: Object header
+    minor: Read failed
+  #010: H5Omessage.c line 486 in H5O_msg_read_oh(): unable to decode message
+    major: Object header
+    minor: Unable to decode value
+  #011: ./H5Oshared.h line 74 in H5O__dtype_shared_decode(): unable to decode native message
+    major: Object header
+    minor: Unable to decode value
+  #012: H5Odtype.c line 1426 in H5O__dtype_decode(): can't decode type
+    major: Datatype
+    minor: Unable to decode value
+  #013: H5Odtype.c line 238 in H5O__dtype_decode_helper(): exponent starting position out of bounds
+    major: Datatype
+    minor: Out of range
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5L.c line 1647 in H5Literate2(): synchronous link iteration failed
+    major: Links
+    minor: Iteration failed
+  #001: H5L.c line 1613 in H5L__iterate_api_common(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #002: H5VLcallback.c line 5318 in H5VL_link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #003: H5VLcallback.c line 5284 in H5VL__link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #004: H5VLnative_link.c line 366 in H5VL__native_link_specific(): error iterating over links
+    major: Links
+    minor: Iteration failed
+  #005: H5Lint.c line 2149 in H5L_iterate(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #006: H5Gint.c line 873 in H5G_iterate(): error iterating over links
+    major: Symbol table
+    minor: Iteration failed
+  #007: H5Gobj.c line 665 in H5G__obj_iterate(): can't iterate over symbol table
+    major: Symbol table
+    minor: Iteration failed
+  #008: H5Gstab.c line 505 in H5G__stab_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+  #009: H5B.c line 1126 in H5B_iterate(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #010: H5B.c line 1088 in H5B__iterate_helper(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #011: H5Gnode.c line 950 in H5G__node_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5Rdeprec.c line 641 in H5Rdereference2(): unable to open object by token
+    major: References
+    minor: Can't open object
+  #001: H5VLcallback.c line 5577 in H5VL_object_open(): object open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #002: H5VLcallback.c line 5544 in H5VL__object_open(): object open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #003: H5VLnative_object.c line 113 in H5VL__native_object_open(): unable to open object by address
+    major: Object header
+    minor: Can't open object
+  #004: H5Oint.c line 689 in H5O__open_by_addr(): unable to open object
+    major: Object header
+    minor: Can't open object
+  #005: H5Oint.c line 722 in H5O_open_by_loc(): unable to open object
+    major: Object header
+    minor: Can't open object
+  #006: H5Doh.c line 234 in H5O__dset_open(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #007: H5Dint.c line 1499 in H5D_open(): not found
+    major: Dataset
+    minor: Object not found
+  #008: H5Dint.c line 1696 in H5D__open_oid(): unable to load type info from dataset header
+    major: Dataset
+    minor: Unable to initialize object
+  #009: H5Omessage.c line 431 in H5O_msg_read(): unable to read object header message
+    major: Object header
+    minor: Read failed
+  #010: H5Omessage.c line 486 in H5O_msg_read_oh(): unable to decode message
+    major: Object header
+    minor: Unable to decode value
+  #011: ./H5Oshared.h line 74 in H5O__dtype_shared_decode(): unable to decode native message
+    major: Object header
+    minor: Unable to decode value
+  #012: H5Odtype.c line 1426 in H5O__dtype_decode(): can't decode type
+    major: Datatype
+    minor: Unable to decode value
+  #013: H5Odtype.c line 238 in H5O__dtype_decode_helper(): exponent starting position out of bounds
+    major: Datatype
+    minor: Out of range
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5L.c line 1647 in H5Literate2(): synchronous link iteration failed
+    major: Links
+    minor: Iteration failed
+  #001: H5L.c line 1613 in H5L__iterate_api_common(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #002: H5VLcallback.c line 5318 in H5VL_link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #003: H5VLcallback.c line 5284 in H5VL__link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #004: H5VLnative_link.c line 366 in H5VL__native_link_specific(): error iterating over links
+    major: Links
+    minor: Iteration failed
+  #005: H5Lint.c line 2149 in H5L_iterate(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #006: H5Gint.c line 873 in H5G_iterate(): error iterating over links
+    major: Symbol table
+    minor: Iteration failed
+  #007: H5Gobj.c line 665 in H5G__obj_iterate(): can't iterate over symbol table
+    major: Symbol table
+    minor: Iteration failed
+  #008: H5Gstab.c line 505 in H5G__stab_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+  #009: H5B.c line 1126 in H5B_iterate(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #010: H5B.c line 1088 in H5B__iterate_helper(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #011: H5Gnode.c line 950 in H5G__node_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5Rdeprec.c line 641 in H5Rdereference2(): unable to open object by token
+    major: References
+    minor: Can't open object
+  #001: H5VLcallback.c line 5577 in H5VL_object_open(): object open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #002: H5VLcallback.c line 5544 in H5VL__object_open(): object open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #003: H5VLnative_object.c line 113 in H5VL__native_object_open(): unable to open object by address
+    major: Object header
+    minor: Can't open object
+  #004: H5Oint.c line 689 in H5O__open_by_addr(): unable to open object
+    major: Object header
+    minor: Can't open object
+  #005: H5Oint.c line 722 in H5O_open_by_loc(): unable to open object
+    major: Object header
+    minor: Can't open object
+  #006: H5Doh.c line 234 in H5O__dset_open(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #007: H5Dint.c line 1499 in H5D_open(): not found
+    major: Dataset
+    minor: Object not found
+  #008: H5Dint.c line 1696 in H5D__open_oid(): unable to load type info from dataset header
+    major: Dataset
+    minor: Unable to initialize object
+  #009: H5Omessage.c line 431 in H5O_msg_read(): unable to read object header message
+    major: Object header
+    minor: Read failed
+  #010: H5Omessage.c line 486 in H5O_msg_read_oh(): unable to decode message
+    major: Object header
+    minor: Unable to decode value
+  #011: ./H5Oshared.h line 74 in H5O__dtype_shared_decode(): unable to decode native message
+    major: Object header
+    minor: Unable to decode value
+  #012: H5Odtype.c line 1426 in H5O__dtype_decode(): can't decode type
+    major: Datatype
+    minor: Unable to decode value
+  #013: H5Odtype.c line 238 in H5O__dtype_decode_helper(): exponent starting position out of bounds
+    major: Datatype
+    minor: Out of range
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5L.c line 1647 in H5Literate2(): synchronous link iteration failed
+    major: Links
+    minor: Iteration failed
+  #001: H5L.c line 1613 in H5L__iterate_api_common(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #002: H5VLcallback.c line 5318 in H5VL_link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #003: H5VLcallback.c line 5284 in H5VL__link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #004: H5VLnative_link.c line 366 in H5VL__native_link_specific(): error iterating over links
+    major: Links
+    minor: Iteration failed
+  #005: H5Lint.c line 2149 in H5L_iterate(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #006: H5Gint.c line 873 in H5G_iterate(): error iterating over links
+    major: Symbol table
+    minor: Iteration failed
+  #007: H5Gobj.c line 665 in H5G__obj_iterate(): can't iterate over symbol table
+    major: Symbol table
+    minor: Iteration failed
+  #008: H5Gstab.c line 505 in H5G__stab_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+  #009: H5B.c line 1126 in H5B_iterate(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #010: H5B.c line 1088 in H5B__iterate_helper(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #011: H5Gnode.c line 950 in H5G__node_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5O.c line 1158 in H5Oget_info_by_name3(): can't synchronously retrieve object info
+    major: Object header
+    minor: Can't get value
+  #001: H5O.c line 1133 in H5O__get_info_by_name_api_common(): can't get data model info for object
+    major: Object header
+    minor: Can't get value
+  #002: H5VLcallback.c line 5786 in H5VL_object_get(): get failed
+    major: Virtual Object Layer
+    minor: Can't get value
+  #003: H5VLcallback.c line 5754 in H5VL__object_get(): get failed
+    major: Virtual Object Layer
+    minor: Can't get value
+  #004: H5VLnative_object.c line 269 in H5VL__native_object_get(): object not found
+    major: Object header
+    minor: Object not found
+  #005: H5Gloc.c line 761 in H5G_loc_info(): can't find object
+    major: Symbol table
+    minor: Object not found
+  #006: H5Gtraverse.c line 824 in H5G_traverse(): internal path traversal failed
+    major: Symbol table
+    minor: Object not found
+  #007: H5Gtraverse.c line 596 in H5G__traverse_real(): traversal operator failed
+    major: Symbol table
+    minor: Callback failed
+  #008: H5Gloc.c line 722 in H5G__loc_info_cb(): can't get object info
+    major: Symbol table
+    minor: Can't get value
+  #009: H5Oint.c line 2084 in H5O_get_info(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #010: H5Oint.c line 988 in H5O_protect(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #011: H5AC.c line 1277 in H5AC_protect(): H5C_protect() failed
+    major: Object cache
+    minor: Unable to protect metadata
+  #012: H5Centry.c line 3106 in H5C_protect(): can't load entry
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #013: H5Centry.c line 1194 in H5C__load_entry(): Can't deserialize image
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #014: H5Ocache.c line 302 in H5O__cache_deserialize(): can't deserialize first object header chunk
+    major: Object header
+    minor: Unable to initialize object
+  #015: H5Ocache.c line 1266 in H5O__chunk_deserialize(): message not aligned
+    major: Object header
+    minor: Unable to load metadata into cache
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5L.c line 1647 in H5Literate2(): synchronous link iteration failed
+    major: Links
+    minor: Iteration failed
+  #001: H5L.c line 1613 in H5L__iterate_api_common(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #002: H5VLcallback.c line 5318 in H5VL_link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #003: H5VLcallback.c line 5284 in H5VL__link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #004: H5VLnative_link.c line 366 in H5VL__native_link_specific(): error iterating over links
+    major: Links
+    minor: Iteration failed
+  #005: H5Lint.c line 2149 in H5L_iterate(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #006: H5Gint.c line 873 in H5G_iterate(): error iterating over links
+    major: Symbol table
+    minor: Iteration failed
+  #007: H5Gobj.c line 665 in H5G__obj_iterate(): can't iterate over symbol table
+    major: Symbol table
+    minor: Iteration failed
+  #008: H5Gstab.c line 505 in H5G__stab_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+  #009: H5B.c line 1126 in H5B_iterate(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #010: H5B.c line 1088 in H5B__iterate_helper(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #011: H5Gnode.c line 950 in H5G__node_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5D.c line 398 in H5Dopen2(): unable to synchronously open dataset
+    major: Dataset
+    minor: Can't open object
+  #001: H5D.c line 360 in H5D__open_api_common(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #002: H5VLcallback.c line 1967 in H5VL_dataset_open(): dataset open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #003: H5VLcallback.c line 1934 in H5VL__dataset_open(): dataset open failed
+    major: Virtual Object Layer
+    minor: Can't open object
+  #004: H5VLnative_dataset.c line 332 in H5VL__native_dataset_open(): unable to open dataset
+    major: Dataset
+    minor: Can't open object
+  #005: H5Dint.c line 1437 in H5D__open_name(): can't open dataset
+    major: Dataset
+    minor: Unable to initialize object
+  #006: H5Dint.c line 1499 in H5D_open(): not found
+    major: Dataset
+    minor: Object not found
+  #007: H5Dint.c line 1696 in H5D__open_oid(): unable to load type info from dataset header
+    major: Dataset
+    minor: Unable to initialize object
+  #008: H5Omessage.c line 431 in H5O_msg_read(): unable to read object header message
+    major: Object header
+    minor: Read failed
+  #009: H5Omessage.c line 486 in H5O_msg_read_oh(): unable to decode message
+    major: Object header
+    minor: Unable to decode value
+  #010: ./H5Oshared.h line 74 in H5O__dtype_shared_decode(): unable to decode native message
+    major: Object header
+    minor: Unable to decode value
+  #011: H5Odtype.c line 1426 in H5O__dtype_decode(): can't decode type
+    major: Datatype
+    minor: Unable to decode value
+  #012: H5Odtype.c line 182 in H5O__dtype_decode_helper(): integer offset out of bounds
+    major: Datatype
+    minor: Out of range
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5A.c line 666 in H5Aopen_by_name(): unable to synchronously open attribute
+    major: Attribute
+    minor: Can't open object
+  #001: H5A.c line 621 in H5A__open_by_name_api_common(): can't set object access arguments
+    major: Attribute
+    minor: Can't set value
+  #002: H5VLint.c line 2727 in H5VL_setup_name_args(): invalid location identifier
+    major: Invalid arguments to routine
+    minor: Inappropriate type
+  #003: H5VLint.c line 1756 in H5VL_vol_object(): invalid identifier type to function
+    major: Invalid arguments to routine
+    minor: Inappropriate type
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5L.c line 1647 in H5Literate2(): synchronous link iteration failed
+    major: Links
+    minor: Iteration failed
+  #001: H5L.c line 1613 in H5L__iterate_api_common(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #002: H5VLcallback.c line 5318 in H5VL_link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #003: H5VLcallback.c line 5284 in H5VL__link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #004: H5VLnative_link.c line 366 in H5VL__native_link_specific(): error iterating over links
+    major: Links
+    minor: Iteration failed
+  #005: H5Lint.c line 2149 in H5L_iterate(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #006: H5Gint.c line 873 in H5G_iterate(): error iterating over links
+    major: Symbol table
+    minor: Iteration failed
+  #007: H5Gobj.c line 665 in H5G__obj_iterate(): can't iterate over symbol table
+    major: Symbol table
+    minor: Iteration failed
+  #008: H5Gstab.c line 505 in H5G__stab_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+  #009: H5B.c line 1126 in H5B_iterate(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #010: H5B.c line 1088 in H5B__iterate_helper(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #011: H5Gnode.c line 950 in H5G__node_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5O.c line 1158 in H5Oget_info_by_name3(): can't synchronously retrieve object info
+    major: Object header
+    minor: Can't get value
+  #001: H5O.c line 1133 in H5O__get_info_by_name_api_common(): can't get data model info for object
+    major: Object header
+    minor: Can't get value
+  #002: H5VLcallback.c line 5786 in H5VL_object_get(): get failed
+    major: Virtual Object Layer
+    minor: Can't get value
+  #003: H5VLcallback.c line 5754 in H5VL__object_get(): get failed
+    major: Virtual Object Layer
+    minor: Can't get value
+  #004: H5VLnative_object.c line 269 in H5VL__native_object_get(): object not found
+    major: Object header
+    minor: Object not found
+  #005: H5Gloc.c line 761 in H5G_loc_info(): can't find object
+    major: Symbol table
+    minor: Object not found
+  #006: H5Gtraverse.c line 824 in H5G_traverse(): internal path traversal failed
+    major: Symbol table
+    minor: Object not found
+  #007: H5Gtraverse.c line 596 in H5G__traverse_real(): traversal operator failed
+    major: Symbol table
+    minor: Callback failed
+  #008: H5Gloc.c line 722 in H5G__loc_info_cb(): can't get object info
+    major: Symbol table
+    minor: Can't get value
+  #009: H5Oint.c line 2084 in H5O_get_info(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #010: H5Oint.c line 988 in H5O_protect(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #011: H5AC.c line 1277 in H5AC_protect(): H5C_protect() failed
+    major: Object cache
+    minor: Unable to protect metadata
+  #012: H5Centry.c line 3106 in H5C_protect(): can't load entry
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #013: H5Centry.c line 1194 in H5C__load_entry(): Can't deserialize image
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #014: H5Ocache.c line 302 in H5O__cache_deserialize(): can't deserialize first object header chunk
+    major: Object header
+    minor: Unable to initialize object
+  #015: H5Ocache.c line 1266 in H5O__chunk_deserialize(): message not aligned
+    major: Object header
+    minor: Unable to load metadata into cache
+HDF5-DIAG: Error detected in HDF5 (1.14.6-1):
+  #000: H5L.c line 1647 in H5Literate2(): synchronous link iteration failed
+    major: Links
+    minor: Iteration failed
+  #001: H5L.c line 1613 in H5L__iterate_api_common(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #002: H5VLcallback.c line 5318 in H5VL_link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #003: H5VLcallback.c line 5284 in H5VL__link_specific(): unable to execute link specific callback
+    major: Virtual Object Layer
+    minor: Can't operate on object
+  #004: H5VLnative_link.c line 366 in H5VL__native_link_specific(): error iterating over links
+    major: Links
+    minor: Iteration failed
+  #005: H5Lint.c line 2149 in H5L_iterate(): link iteration failed
+    major: Links
+    minor: Iteration failed
+  #006: H5Gint.c line 873 in H5G_iterate(): error iterating over links
+    major: Symbol table
+    minor: Iteration failed
+  #007: H5Gobj.c line 665 in H5G__obj_iterate(): can't iterate over symbol table
+    major: Symbol table
+    minor: Iteration failed
+  #008: H5Gstab.c line 505 in H5G__stab_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+  #009: H5B.c line 1126 in H5B_iterate(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #010: H5B.c line 1088 in H5B__iterate_helper(): B-tree iteration failed
+    major: B-Tree node
+    minor: Iteration failed
+  #011: H5Gnode.c line 950 in H5G__node_iterate(): iteration operator failed
+    major: Symbol table
+    minor: Can't move to next iterator location
+  #012: H5O.c line 1158 in H5Oget_info_by_name3(): can't synchronously retrieve object info
+    major: Object header
+    minor: Can't get value
+  #013: H5O.c line 1133 in H5O__get_info_by_name_api_common(): can't get data model info for object
+    major: Object header
+    minor: Can't get value
+  #014: H5VLcallback.c line 5786 in H5VL_object_get(): get failed
+    major: Virtual Object Layer
+    minor: Can't get value
+  #015: H5VLcallback.c line 5754 in H5VL__object_get(): get failed
+    major: Virtual Object Layer
+    minor: Can't get value
+  #016: H5VLnative_object.c line 269 in H5VL__native_object_get(): object not found
+    major: Object header
+    minor: Object not found
+  #017: H5Gloc.c line 761 in H5G_loc_info(): can't find object
+    major: Symbol table
+    minor: Object not found
+  #018: H5Gtraverse.c line 824 in H5G_traverse(): internal path traversal failed
+    major: Symbol table
+    minor: Object not found
+  #019: H5Gtraverse.c line 596 in H5G__traverse_real(): traversal operator failed
+    major: Symbol table
+    minor: Callback failed
+  #020: H5Gloc.c line 722 in H5G__loc_info_cb(): can't get object info
+    major: Symbol table
+    minor: Can't get value
+  #021: H5Oint.c line 2084 in H5O_get_info(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #022: H5Oint.c line 988 in H5O_protect(): unable to load object header
+    major: Object header
+    minor: Unable to protect metadata
+  #023: H5AC.c line 1277 in H5AC_protect(): H5C_protect() failed
+    major: Object cache
+    minor: Unable to protect metadata
+  #024: H5Centry.c line 3106 in H5C_protect(): can't load entry
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #025: H5Centry.c line 1194 in H5C__load_entry(): Can't deserialize image
+    major: Object cache
+    minor: Unable to load metadata into cache
+  #026: H5Ocache.c line 302 in H5O__cache_deserialize(): can't deserialize first object header chunk
+    major: Object header
+    minor: Unable to initialize object
+  #027: H5Ocache.c line 1266 in H5O__chunk_deserialize(): message not aligned
+    major: Object header
+    minor: Unable to load metadata into cache
+free(): invalid next size (fast)
+==14== ERROR: libFuzzer: deadly signal
+    #0 0x55a6e65602d4 in __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    #1 0x55a6e64df328 in fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    #2 0x55a6e64c26c3 in fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    #3 0x7f26b15cc41f  (/lib/x86_64-linux-gnu/libpthread.so.0+0x1441f) (BuildId: 5cfb896dd40f90aa8c6c8bb856004d1f5cfe293c)
+    #4 0x7f26b13c600a in raise (/lib/x86_64-linux-gnu/libc.so.6+0x4300a) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x7f26b13a5858 in abort (/lib/x86_64-linux-gnu/libc.so.6+0x22858) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #6 0x7f26b1410265  (/lib/x86_64-linux-gnu/libc.so.6+0x8d265) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #7 0x7f26b14182fb  (/lib/x86_64-linux-gnu/libc.so.6+0x952fb) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x7f26b1419bab  (/lib/x86_64-linux-gnu/libc.so.6+0x96bab) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #9 0x55a6e656288d in Mat_VarFree /src/matio/src/mat.c:1705:25
+    #10 0x55a6e656171b in MatioRead(char const*) /src/matio/ossfuzz/./matio_wrap.h:50:9
+    #11 0x55a6e6561797 in LLVMFuzzerTestOneInput /src/matio/ossfuzz/./matio_fuzzer.cpp:30:12
+    #12 0x55a6e64c3bd0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #13 0x55a6e64aee45 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #14 0x55a6e64b48df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #15 0x55a6e64dfb82 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #16 0x7f26b13a7082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #17 0x55a6e64a702d in _start (/out/matio_fuzzer+0x3102d)
+
+DEDUP_TOKEN: __sanitizer_print_stack_trace--fuzzer::PrintStackTrace()--fuzzer::Fuzzer::CrashCallback()
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

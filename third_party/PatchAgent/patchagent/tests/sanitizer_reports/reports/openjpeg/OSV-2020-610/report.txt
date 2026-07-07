@@ -1,0 +1,45 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/openjpeg:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/openjpeg/OSV-2020-610/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce opj_decompress_fuzzer -runs=100.
++ FUZZER=opj_decompress_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer opj_decompress_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/opj_decompress_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2780029609
+INFO: Loaded 1 modules   (9761 inline 8-bit counters): 9761 [0x556509aed500, 0x556509aefb21), 
+INFO: Loaded 1 PC tables (9761 PCs): 9761 [0x556509aefb28,0x556509b15d38), 
+/out/opj_decompress_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x5278000028d8 (pc 0x556509a681f5 bp 0x7ffdef32d7f0 sp 0x7ffdef32d640 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x556509a681f5 in opj_t2_decode_packets /src/openjpeg/src/lib/openjp2/t2.c:471:79
+    #1 0x5565099dc92d in opj_tcd_t2_decode /src/openjpeg/src/lib/openjp2/tcd.c:1925:11
+    #2 0x5565099dc92d in opj_tcd_decode_tile /src/openjpeg/src/lib/openjp2/tcd.c:1614:11
+    #3 0x55650997f61f in opj_j2k_decode_tile /src/openjpeg/src/lib/openjp2/j2k.c:8932:11
+    #4 0x55650999e149 in opj_j2k_decode_tiles /src/openjpeg/src/lib/openjp2/j2k.c:10719:15
+    #5 0x556509986052 in opj_j2k_exec /src/openjpeg/src/lib/openjp2/j2k.c:8090:33
+    #6 0x556509986052 in opj_j2k_decode /src/openjpeg/src/lib/openjp2/j2k.c:11014:11
+    #7 0x5565098d72ef in LLVMFuzzerTestOneInput /src/openjpeg/./tests/fuzzers/opj_decompress_fuzzer.cpp:199:13
+    #8 0x5565098f4190 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x5565098df405 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x5565098e4e9f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x556509910142 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7f33b3bee082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x5565097fe7ad in _start (/out/opj_decompress_fuzzer+0x7f7ad)
+
+DEDUP_TOKEN: opj_t2_decode_packets--opj_tcd_t2_decode--opj_tcd_decode_tile
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/openjpeg/src/lib/openjp2/t2.c:471:79 in opj_t2_decode_packets
+==14==ABORTING

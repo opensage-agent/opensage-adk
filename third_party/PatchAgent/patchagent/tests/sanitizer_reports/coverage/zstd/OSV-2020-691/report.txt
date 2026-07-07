@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/zstd:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce simple_decompress -runs=100.
++ FUZZER=simple_decompress
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer simple_decompress -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/simple_decompress -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3501057428
+/out/simple_decompress: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==15==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x7fffa3795da0 (pc 0x7f6007dd3b89 bp 0x7fffa3723580 sp 0x7fffa37233d8 T15)
+[1m[0m==15==The signal is caused by a WRITE memory access.
+    #0 0x7f6007dd3b89  (/lib/x86_64-linux-gnu/libc.so.6+0x18bb89) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x55fd04061962 in ZSTD_decodeLiteralsBlock /src/zstd/tests/fuzz/../../lib/legacy/zstd_v02.c:2888:17
+    #2 0x55fd04061962 in ZSTD_decompressBlock /src/zstd/tests/fuzz/../../lib/legacy/zstd_v02.c:3244:23
+    #3 0x55fd0406122f in ZSTD_decompressDCtx /src/zstd/tests/fuzz/../../lib/legacy/zstd_v02.c:3284:27
+    #4 0x55fd0406122f in ZSTD_decompress /src/zstd/tests/fuzz/../../lib/legacy/zstd_v02.c:3314:12
+    #5 0x55fd0406122f in ZSTDv02_decompress /src/zstd/tests/fuzz/../../lib/legacy/zstd_v02.c:3482:12
+    #6 0x55fd03fa6a78 in ZSTD_decompressLegacy /src/zstd/tests/fuzz/../../lib/legacy/zstd_legacy.h:136:20
+    #7 0x55fd03fa6a78 in ZSTD_decompressMultiFrame /src/zstd/tests/fuzz/../../lib/decompress/zstd_decompress.c:726:27
+    #8 0x55fd03fa71c9 in ZSTD_decompress_usingDDict /src/zstd/tests/fuzz/../../lib/decompress/zstd_decompress.c:1223:12
+    #9 0x55fd03fa71c9 in ZSTD_decompressDCtx /src/zstd/tests/fuzz/../../lib/decompress/zstd_decompress.c:819:12
+    #10 0x55fd04068065 in LLVMFuzzerTestOneInput /src/zstd/tests/fuzz/simple_decompress.c:37:9
+    #11 0x55fd03f058a0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #12 0x55fd03ef0b15 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #13 0x55fd03ef65af in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #14 0x55fd03f21852 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #15 0x7f6007c6c082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #16 0x55fd03ee8cfd in _start (/out/simple_decompress+0x1fcfd)
+
+DEDUP_TOKEN: ZSTD_decodeLiteralsBlock--ZSTD_decompressBlock
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x18bb89) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) 
+==15==ABORTING

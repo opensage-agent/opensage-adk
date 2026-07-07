@@ -1,0 +1,45 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/c-blosc2:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/c-blosc2/OSV-2021-429/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce decompress_frame_fuzzer -runs=100.
++ FUZZER=decompress_frame_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer decompress_frame_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/decompress_frame_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1403150544
+INFO: Loaded 1 modules   (32838 inline 8-bit counters): 32838 [0x5654228ca9e0, 0x5654228d2a26), 
+INFO: Loaded 1 PC tables (32838 PCs): 32838 [0x5654228d2a28,0x565422952e88), 
+/out/decompress_frame_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: SEGV on unknown address 0x50f0202022b6 (pc 0x565422503e55 bp 0x7ffdc5ca55e0 sp 0x7ffdc5ca5510 T0)
+[1m[0m==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x565422503e55 in blosc_d /src/c-blosc2/blosc/blosc2.c:1346:14
+    #1 0x565422502909 in _blosc_getitem /src/c-blosc2/blosc/blosc2.c:2540:14
+    #2 0x565422504d66 in blosc2_getitem_ctx /src/c-blosc2/blosc/blosc2.c:2607:12
+    #3 0x565422504d66 in blosc_getitem /src/c-blosc2/blosc/blosc2.c:2572:12
+    #4 0x565422533bce in get_coffset /src/c-blosc2/blosc/frame.c:1763:12
+    #5 0x565422534a93 in frame_get_lazychunk /src/c-blosc2/blosc/frame.c:1941:9
+    #6 0x5654225397eb in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:2731:20
+    #7 0x5654224ba945 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:38:15
+    #8 0x56542236f380 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #9 0x56542235a5f5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #10 0x56542236008f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #11 0x56542238b332 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #12 0x7fcae2754082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #13 0x5654223527dd in _start (/out/decompress_frame_fuzzer+0x10d7dd)
+
+DEDUP_TOKEN: blosc_d--_blosc_getitem--blosc2_getitem_ctx
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/c-blosc2/blosc/blosc2.c:1346:14 in blosc_d
+==14==ABORTING

@@ -1,0 +1,33 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==18==ERROR: AddressSanitizer: SEGV on unknown address (pc 0x55d8be629c8b bp 0x7fffcff5c6b0 sp 0x7fffcff5c640 T0)
+==18==The signal is caused by a READ memory access.
+==18==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x55d8be629c8b in llvm_ks::StringRef::operator[](unsigned long) const /src/keystone/llvm/include/llvm/ADT/StringRef.h:211:14
+    #1 0x55d8be629c8b in llvm_ks::HashString(llvm_ks::StringRef, unsigned int) /src/keystone/llvm/include/llvm/ADT/StringExtras.h:114:43
+    #2 0x55d8be629c8b in llvm_ks::StringMapImpl::LookupBucketFor(llvm_ks::StringRef) /src/keystone/llvm/lib/Support/StringMap.cpp:64:28
+    #3 0x55d8be4f5edb in llvm_ks::StringMap<llvm_ks::MCSymbol*, llvm_ks::BumpPtrAllocatorImpl<llvm_ks::MallocAllocator, 4096ul, 4096ul>&>::insert(std::__1::pair<llvm_ks::StringRef, llvm_ks::MCSymbol*>) /src/keystone/llvm/include/llvm/ADT/StringMap.h:331:25
+    #4 0x55d8be4e9f85 in llvm_ks::StringMap<llvm_ks::MCSymbol*, llvm_ks::BumpPtrAllocatorImpl<llvm_ks::MallocAllocator, 4096ul, 4096ul>&>::operator[](llvm_ks::StringRef) /src/keystone/llvm/include/llvm/ADT/StringMap.h:299:12
+    #5 0x55d8be4e9f85 in llvm_ks::MCContext::getOrCreateSectionSymbol(llvm_ks::MCSectionELF const&) /src/keystone/llvm/lib/MC/MCContext.cpp:130:23
+    #6 0x55d8be4fef5d in llvm_ks::MCELFStreamer::ChangeSection(llvm_ks::MCSection*, llvm_ks::MCExpr const*) /src/keystone/llvm/lib/MC/MCELFStreamer.cpp:155:17
+    #7 0x55d8be5a0a50 in llvm_ks::MCStreamer::SwitchSection(llvm_ks::MCSection*, llvm_ks::MCExpr const*) /src/keystone/llvm/lib/MC/MCStreamer.cpp:744:5
+    #8 0x55d8be57f24d in (anonymous namespace)::DarwinAsmParser::parseDirectiveSection(llvm_ks::StringRef, llvm_ks::SMLoc) /src/keystone/llvm/lib/MC/MCParser/DarwinAsmParser.cpp:616:17
+    #9 0x55d8be53cf65 in (anonymous namespace)::AsmParser::parseStatement((anonymous namespace)::ParseStatementInfo&, llvm_ks::MCAsmParserSemaCallback*, unsigned long&) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp:1712:14
+    #10 0x55d8be52c86e in (anonymous namespace)::AsmParser::Run(bool, unsigned long, bool) /src/keystone/llvm/lib/MC/MCParser/AsmParser.cpp:712:10
+    #11 0x55d8be4e081d in ks_asm /src/keystone/llvm/keystone/ks.cpp:691:27
+    #12 0x55d8be4da503 in LLVMFuzzerTestOneInput /src/keystone/suite/fuzz/fuzz_asm_sparc.c:42:9
+    #13 0x55d8be38ee60 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x55d8be37a0d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x55d8be37fb6f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x55d8be3aae12 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7efc33237082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #18 0x55d8be3722bd in _start (/out/fuzz_asm_sparc+0x49e2bd)
+
+DEDUP_TOKEN: llvm_ks::StringRef::operator[](unsigned long) const--llvm_ks::HashString(llvm_ks::StringRef, unsigned int)--llvm_ks::StringMapImpl::LookupBucketFor(llvm_ks::StringRef)
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/keystone/llvm/include/llvm/ADT/StringRef.h:211:14 in llvm_ks::StringRef::operator[](unsigned long) const
+==18==ABORTING
+MS: 0 ; base unit: 0000000000000000000000000000000000000000
+0x2e,0x73,0x65,0x63,0x74,0x69,0x6f,0x6e,0x9,0x2e,0x24,0x63,0x70,0x73,0x65,0x74,0x75,0x70,0x40,0x24,0x36,0x2c,0x32,0x3b,0xa,0x2e,0x63,0x70,0x73,0x65,0x74,0x75,0x70,0x20,0x24,0x36,0x2c,0xa,0xa,0x4a,0x4f,0x31,
+.section\011.$cpsetup@$6,2;\012.cpsetup $6,\012\012JO1

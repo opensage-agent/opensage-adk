@@ -1,0 +1,78 @@
+=================================================================
+==359849==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50300009aac8 at pc 0x561846eb33c7 bp 0x7ffe82accab0 sp 0x7ffe82accaa8
+READ of size 8 at 0x50300009aac8 thread T0
+    #0 0x561846eb33c6 in mrb_vm_exec /root/src/vm.c:1205:31
+    #1 0x561846eb2e25 in mrb_vm_run /root/src/vm.c:1132:12
+    #2 0x561846eae816 in mrb_run /root/src/vm.c:3048:10
+    #3 0x561846ead572 in mrb_funcall_with_block /root/src/vm.c:567:13
+    #4 0x561846eabb9d in mrb_funcall_argv /root/src/vm.c:578:10
+    #5 0x561846eabe9d in mrb_funcall_id /root/src/vm.c:394:10
+    #6 0x561846e7a9b7 in mrb_inspect /root/src/object.c:615:17
+    #7 0x561846e57964 in mrb_vformat /root/src/error.c:347:17
+    #8 0x561846e589b8 in error_va /root/src/error.c:412:20
+    #9 0x561846e5893a in mrb_raisef /root/src/error.c:423:9
+    #10 0x561846e5be40 in mrb_obj_to_sym /root/src/etc.c:69:3
+    #11 0x561846e4855c in mrb_get_args /root/src/class.c:1223:19
+    #12 0x561847026f71 in mrb_kernel_method /root/mrbgems/mruby-method/src/method.c:460:3
+    #13 0x561846ebf7a3 in mrb_vm_exec /root/src/vm.c:1646:18
+    #14 0x561846eb2e25 in mrb_vm_run /root/src/vm.c:1132:12
+    #15 0x561846eaf813 in mrb_top_run /root/src/vm.c:3061:12
+    #16 0x561846f2cee2 in mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6891:7
+    #17 0x561846f2d6bc in mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6934:12
+    #18 0x561846e2e8c3 in main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+    #19 0x7fd0a3fc21c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #20 0x7fd0a3fc228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #21 0x561846e2ca54 in _start (/root/bin/mruby+0x9aa54) (BuildId: 447651d25cc610bac0e651567fd4fc6ffbfd45c2)
+
+0x50300009aac8 is located 0 bytes after 24-byte region [0x50300009aab0,0x50300009aac8)
+allocated by thread T0 here:
+    #0 0x7fd0a463dbc0 in realloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf8bc0) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x561846e82b95 in mrb_default_allocf /root/src/state.c:69:12
+    #2 0x561846e5c65e in mrb_realloc_simple /root/src/gc.c:227:8
+    #3 0x561846e5cbe4 in mrb_realloc /root/src/gc.c:241:8
+    #4 0x561846e5cd10 in mrb_malloc /root/src/gc.c:257:10
+    #5 0x561846eaaadf in mrb_env_unshare /root/src/vm.c:287:22
+    #6 0x561846eab6ae in cipop /root/src/vm.c:304:12
+    #7 0x561846ecbc8e in mrb_vm_exec /root/src/vm.c:2342:14
+    #8 0x561846eb2e25 in mrb_vm_run /root/src/vm.c:1132:12
+    #9 0x561846eaf813 in mrb_top_run /root/src/vm.c:3061:12
+    #10 0x561846f2cee2 in mrb_load_exec /root/mrbgems/mruby-compiler/core/parse.y:6891:7
+    #11 0x561846f2d6bc in mrb_load_detect_file_cxt /root/mrbgems/mruby-compiler/core/parse.y:6934:12
+    #12 0x561846e2e8c3 in main /root/mrbgems/mruby-bin-mruby/tools/mruby/mruby.c:357:11
+    #13 0x7fd0a3fc21c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #14 0x7fd0a3fc228a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #15 0x561846e2ca54 in _start (/root/bin/mruby+0x9aa54) (BuildId: 447651d25cc610bac0e651567fd4fc6ffbfd45c2)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/vm.c:1205:31 in mrb_vm_exec
+Shadow bytes around the buggy address:
+  0x50300009a800: fa fa fd fd fd fd fa fa fd fd fd fd fa fa fd fd
+  0x50300009a880: fd fd fa fa fd fd fd fd fa fa fd fd fd fd fa fa
+  0x50300009a900: fd fd fd fd fa fa fd fd fd fd fa fa fd fd fd fd
+  0x50300009a980: fa fa fd fd fd fd fa fa fd fd fd fd fa fa fd fd
+  0x50300009aa00: fd fd fa fa fd fd fd fd fa fa fd fd fd fd fa fa
+=>0x50300009aa80: fd fd fd fd fa fa 00 00 00[fa]fa fa 00 00 00 00
+  0x50300009ab00: fa fa 00 00 00 00 fa fa 00 00 00 00 fa fa fd fd
+  0x50300009ab80: fd fd fa fa 00 00 00 00 fa fa 00 00 00 00 fa fa
+  0x50300009ac00: 00 00 00 00 fa fa 00 00 00 00 fa fa 00 00 00 00
+  0x50300009ac80: fa fa 00 00 00 00 fa fa 00 00 00 00 fa fa 00 00
+  0x50300009ad00: 00 00 fa fa 00 00 00 00 fa fa 00 00 00 00 fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359849==ABORTING

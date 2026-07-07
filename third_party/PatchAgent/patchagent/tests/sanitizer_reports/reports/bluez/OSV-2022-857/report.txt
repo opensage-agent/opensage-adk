@@ -1,0 +1,43 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/bluez:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/bluez/OSV-2022-857/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_textfile -runs=100.
++ FUZZER=fuzz_textfile
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_textfile -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_textfile -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1728609441
+INFO: Loaded 1 modules   (165 inline 8-bit counters): 165 [0x55f9bf3fb028, 0x55f9bf3fb0cd), 
+INFO: Loaded 1 PC tables (165 PCs): 165 [0x55f9bf3fb0d0,0x55f9bf3fbb20), 
+/out/fuzz_textfile: Running 1 inputs 100 time(s) each.
+Running: /testcase
+
+=================================================================
+[1m[31m==14==ERROR: LeakSanitizer: detected memory leaks
+[1m[0m
+[1m[34mDirect leak of 76 byte(s) in 1 object(s) allocated from:
+[1m[0m    #0 0x55f9bf35310f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55f9bf394870 in read_key /src/bluez/src/textfile.c:369:8
+    #2 0x55f9bf394870 in textfile_get /src/bluez/src/textfile.c:403:9
+    #3 0x55f9bf392c42 in LLVMFuzzerTestOneInput /src/fuzz_textfile.c:62:3
+    #4 0x55f9bf247340 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #5 0x55f9bf2325b5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #6 0x55f9bf23804f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #7 0x55f9bf2632f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #8 0x7fe1e0017082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--read_key--textfile_get
+SUMMARY: AddressSanitizer: 76 byte(s) leaked in 1 allocation(s).
+
+INFO: a leak has been found in the initial corpus.
+
+INFO: to ignore leaks on libFuzzer side use -detect_leaks=0.
+

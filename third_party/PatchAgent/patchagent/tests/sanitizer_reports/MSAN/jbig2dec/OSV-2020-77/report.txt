@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/jbig2dec:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/jbig2dec/OSV-2020-77/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce jbig2_fuzzer -runs=100.
++ FUZZER=jbig2_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer jbig2_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/jbig2_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -close_fd_mask=3 -dict=jbig2_fuzzer.dict < /dev/null
+Dictionary: 89 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1346762203
+INFO: Loaded 1 modules   (2322 inline 8-bit counters): 2322 [0x561c2482a3f0, 0x561c2482ad02), 
+INFO: Loaded 1 PC tables (2322 PCs): 2322 [0x561c2482ad08,0x561c24833e28), 
+/out/jbig2_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+[1m[31m==18==WARNING: MemorySanitizer: use-of-uninitialized-value
+[1m[0m    #0 0x561c2478eb03 in jbig2_text_region /src/jbig2dec/jbig2_text.c:1030:9
+    #1 0x561c2477bfb7 in jbig2_complete_page /src/jbig2dec/jbig2_page.c:215:20
+    #2 0x561c2477327a in LLVMFuzzerTestOneInput /src/jbig2_fuzzer.cc:128:9
+    #3 0x561c24669130 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #4 0x561c246543a5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #5 0x561c24659e3f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #6 0x561c246850e2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7fadc1621082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x561c2464c58d in _start (/out/jbig2_fuzzer+0x5158d)
+
+DEDUP_TOKEN: jbig2_text_region--jbig2_complete_page--LLVMFuzzerTestOneInput
+[1m[35m  [1m[35mUninitialized value was created by an allocation of '[1m[32mparams[1m[35m' in the stack frame[1m[0m
+    #0 0x561c2478bc91 in jbig2_text_region /src/jbig2dec/jbig2_text.c:583:5
+
+DEDUP_TOKEN: jbig2_text_region
+SUMMARY: MemorySanitizer: use-of-uninitialized-value /src/jbig2dec/jbig2_text.c:1030:9 in jbig2_text_region
+Unique heap origins: 47
+Stack depot allocated bytes: 9764880
+Unique origin histories: 20
+History depot allocated bytes: 196608
+Exiting

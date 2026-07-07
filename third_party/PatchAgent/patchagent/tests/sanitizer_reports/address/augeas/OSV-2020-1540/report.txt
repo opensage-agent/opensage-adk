@@ -1,0 +1,23 @@
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==14==ERROR: AddressSanitizer: SEGV on unknown address 0x50340000a4dc (pc 0x56208b687d79 bp 0x7fff7ac1a4b0 sp 0x7fff7ac1a3e0 T0)
+==14==The signal is caused by a READ memory access.
+SCARINESS: 20 (wild-addr-read)
+    #0 0x56208b687d79 in eval_expr /src/augeas/src/pathx.c:1517:31
+    #1 0x56208b6870cc in eval_binary /src/augeas/src/pathx.c:1164:5
+    #2 0x56208b6870cc in eval_expr /src/augeas/src/pathx.c:1499:9
+    #3 0x56208b674590 in pathx_eval /src/augeas/src/pathx.c:2869:5
+    #4 0x56208b674590 in pathx_symtab_define /src/augeas/src/pathx.c:3159:13
+    #5 0x56208b65fa88 in aug_defvar /src/augeas/src/augeas.c:900:18
+    #6 0x56208b657abc in LLVMFuzzerTestOneInput /src/augeas/augeas_api_fuzzer.cc:53:2
+    #7 0x56208b50c4d0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #8 0x56208b4f7745 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #9 0x56208b4fd1df in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #10 0x56208b528482 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #11 0x7f7162073082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #12 0x56208b4ef92d in _start (/out/augeas_api_fuzzer+0xb792d)
+
+DEDUP_TOKEN: eval_expr--eval_binary--eval_expr
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /src/augeas/src/pathx.c:1517:31 in eval_expr
+==14==ABORTING

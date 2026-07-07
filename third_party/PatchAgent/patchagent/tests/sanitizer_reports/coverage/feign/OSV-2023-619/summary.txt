@@ -1,0 +1,45 @@
+The sanitizer detected a stack overflow vulnerability.The explanation of the vulnerability is: Excessive function calls lead to stack exhaustion, causing the program to crash or behave unpredictably.Here is the detail: 
+
+== Java Exception: com.code_intelligence.jazzer.api.FuzzerSecurityIssueLow: Stack overflow (use '-Xss921k' to reproduce)
+- java.base/java.util.regex.Pattern$Ques.match (java/base/java/util/regex/Pattern$Ques/match:4230)
+- java.base/java.util.regex.Pattern$GroupHead.match (java/base/java/util/regex/Pattern$GroupHead/match:4789)
+- java.base/java.util.regex.Pattern$Loop.match (java/base/java/util/regex/Pattern$Loop/match:4898)
+Caused by: java.lang.StackOverflowError
+- java.base/java.util.WeakHashMap.get (java/base/java/util/WeakHashMap.java:402)
+- java.base/java.util.Map.computeIfAbsent (java/base/java/util/Map.java:1052)
+- com.code_intelligence.jazzer.sanitizers.RegexRoadblocks.predicateSolution (com/code_intelligence/jazzer/sanitizers/RegexRoadblocks.java:313)
+- com.code_intelligence.jazzer.sanitizers.RegexRoadblocks.nodeMatchHook (com/code_intelligence/jazzer/sanitizers/RegexRoadblocks.java:165)
+- java.base/java.util.regex.Pattern$Ques.match (java/base/java/util/regex/Pattern$Ques/match:4229)
+- java.base/java.util.regex.Pattern$GroupHead.match (java/base/java/util/regex/Pattern$GroupHead/match:4789)
+- java.base/java.util.regex.Pattern$Loop.match (java/base/java/util/regex/Pattern$Loop/match:4898)
+- java.base/java.util.regex.Pattern$GroupTail.match (java/base/java/util/regex/Pattern$GroupTail/match:4820)
+- java.base/java.util.regex.Pattern$GroupTail.match (java/base/java/util/regex/Pattern$GroupTail/match:4820)
+- java.base/java.util.regex.Pattern$BranchConn.match (java/base/java/util/regex/Pattern$BranchConn/match:4698)
+- java.base/java.util.regex.Pattern$BmpCharProperty.match (java/base/java/util/regex/Pattern$BmpCharProperty/match:3955)
+- java.base/java.util.regex.Pattern$Branch.match (java/base/java/util/regex/Pattern$Branch/match:4734)
+- java.base/java.util.regex.Pattern$GroupHead.match (java/base/java/util/regex/Pattern$GroupHead/match:4789)
+- java.base/java.util.regex.Pattern$Ques.match (java/base/java/util/regex/Pattern$Ques/match:4230)
+- java.base/java.util.regex.Pattern$GroupHead.match (java/base/java/util/regex/Pattern$GroupHead/match:4789)
+- java.base/java.util.regex.Pattern$Loop.match (java/base/java/util/regex/Pattern$Loop/match:4898)
+- java.base/java.util.regex.Pattern$GroupTail.match (java/base/java/util/regex/Pattern$GroupTail/match:4820)
+- java.base/java.util.regex.Pattern$GroupTail.match (java/base/java/util/regex/Pattern$GroupTail/match:4820)
+- java.base/java.util.regex.Pattern$BranchConn.match (java/base/java/util/regex/Pattern$BranchConn/match:4698)
+- java.base/java.util.regex.Pattern$BmpCharProperty.match (java/base/java/util/regex/Pattern$BmpCharProperty/match:3955)
+- java.base/java.util.regex.Pattern$Branch.match (java/base/java/util/regex/Pattern$Branch/match:4734)
+- java.base/java.util.regex.Pattern$GroupHead.match (java/base/java/util/regex/Pattern$GroupHead/match:4789)
+- java.base/java.util.regex.Pattern$Ques.match (java/base/java/util/regex/Pattern$Ques/match:4230)
+- java.base/java.util.regex.Pattern$GroupHead.match (java/base/java/util/regex/Pattern$GroupHead/match:4789)
+- java.base/java.util.regex.Pattern$Loop.match (java/base/java/util/regex/Pattern$Loop/match:4898)
+- java.base/java.util.regex.Pattern$GroupTail.match (java/base/java/util/regex/Pattern$GroupTail/match:4820)
+- java.base/java.util.regex.Pattern$GroupTail.match (java/base/java/util/regex/Pattern$GroupTail/match:4820)
+- java.base/java.util.regex.Pattern$BranchConn.match (java/base/java/util/regex/Pattern$BranchConn/match:4698)
+- java.base/java.util.regex.Pattern$BmpCharProperty.match (java/base/java/util/regex/Pattern$BmpCharProperty/match:3955)
+- java.base/java.util.regex.Pattern$Branch.match (java/base/java/util/regex/Pattern$Branch/match:4734)
+- java.base/java.util.regex.Pattern$GroupHead.match (java/base/java/util/regex/Pattern$GroupHead/match:4789)
+	... 3 more
+
+To fix this issue, follow the advice below:
+
+1. Avoid deep recursion by implementing iterative solutions where possible.
+2. Increase the stack size if necessary to accommodate recursion.
+3. Reduce function call depth by refactoring complex recursive functions.

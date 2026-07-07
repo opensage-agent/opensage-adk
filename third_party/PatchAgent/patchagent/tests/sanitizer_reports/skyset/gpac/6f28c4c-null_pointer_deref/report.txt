@@ -1,0 +1,22 @@
+=================================================================
+==304263==ERROR: AddressSanitizer: SEGV on unknown address 0x000000000000 (pc 0x7f4996bf8fcd bp 0x7fff16d99a70 sp 0x7fff16d98e80 T0)
+==304263==The signal is caused by a READ memory access.
+==304263==Hint: address points to the zero page.
+    #0 0x7f4996bf8fcd in gf_isom_fragment_add_sample_ex /root/src/isomedia/movie_fragments.c:2883:21
+    #1 0x7f49977e163e in mp4_mux_process_sample /root/src/filters/mux_isom.c:4797:9
+    #2 0x7f49977d0199 in mp4_mux_process_fragmented /root/src/filters/mux_isom.c:6446:8
+    #3 0x7f49977c7ddb in mp4_mux_process /root/src/filters/mux_isom.c:7047:14
+    #4 0x7f4997422520 in gf_filter_process_task /root/src/filter_core/filter.c:2894:7
+    #5 0x7f49973f1621 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1962:3
+    #6 0x7f49973ed61b in gf_fs_run /root/src/filter_core/filter_session.c:2264:3
+    #7 0x7f4996d098ef in gf_dasher_process /root/src/media_tools/dash_segmenter.c:1236:6
+    #8 0x5635fdace15e in do_dash /root/applications/mp4box/mp4box.c:4825:15
+    #9 0x5635fdac2c53 in mp4box_main /root/applications/mp4box/mp4box.c:6236:7
+    #10 0x5635fdac97d1 in main /root/applications/mp4box/mp4box.c:6930:1
+    #11 0x7f4995f3c1c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #12 0x7f4995f3c28a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #13 0x5635fdaa8d94 in _start (/root/bin/gcc/MP4Box+0x49d94) (BuildId: a5bc54aaaae172a92e4fa82e08ad15d46a8ca087)
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV /root/src/isomedia/movie_fragments.c:2883:21 in gf_isom_fragment_add_sample_ex
+==304263==ABORTING

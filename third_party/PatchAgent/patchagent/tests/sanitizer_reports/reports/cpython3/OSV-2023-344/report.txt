@@ -1,0 +1,107 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/cpython3:/out -v /mnt/data0/zf1025/AICC/oss-patch-build/cpython3/OSV-2023-344/poc.bin:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce fuzz_ast_literal_eval -runs=100.
++ FUZZER=fuzz_ast_literal_eval
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer fuzz_ast_literal_eval -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/fuzz_ast_literal_eval -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2785730667
+INFO: Loaded 1 modules   (122949 inline 8-bit counters): 122949 [0x55f38599bd70, 0x55f3859b9db5), 
+INFO: Loaded 1 PC tables (122949 PCs): 122949 [0x55f3859b9db8,0x55f385b9a208), 
+/out/fuzz_ast_literal_eval: Running 1 inputs 100 time(s) each.
+Running: /testcase
+=================================================================
+[1m[31m==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x529000018bc0 at pc 0x55f385393d98 bp 0x7fff1bc3cb90 sp 0x7fff1bc3cb88
+[1m[0m[1m[34mWRITE of size 1 at 0x529000018bc0 thread T0[1m[0m
+SCARINESS: 41 (1-byte-write-heap-buffer-overflow-far-from-bounds)
+    #0 0x55f385393d97 in tok_get_normal_mode /src/cpython3/Parser/tokenizer.c:2213:37
+    #1 0x55f385388905 in tok_get /src/cpython3/Parser/tokenizer.c
+    #2 0x55f385388905 in _PyTokenizer_Get /src/cpython3/Parser/tokenizer.c:2645:18
+    #3 0x55f3852d286a in _PyPegen_tokenize_full_source_to_check_for_errors /src/cpython3/Parser/pegen_errors.c:170:17
+    #4 0x55f3852ced9c in _PyPegen_run_parser /src/cpython3/Parser/pegen.c:844:9
+    #5 0x55f3852cf657 in _PyPegen_run_parser_from_string /src/cpython3/Parser/pegen.c:938:14
+    #6 0x55f3850fb395 in Py_CompileStringObject /src/cpython3/Python/pythonrun.c:1771:11
+    #7 0x55f384f9e81c in builtin_compile_impl /src/cpython3/Python/bltinmodule.c:831:14
+    #8 0x55f384f9e81c in builtin_compile /src/cpython3/Python/clinic/bltinmodule.c.h:383:20
+    #9 0x55f385480dd6 in cfunction_vectorcall_FASTCALL_KEYWORDS /src/cpython3/Objects/methodobject.c:438:24
+    #10 0x55f384dbe15a in _PyObject_VectorcallTstate /src/cpython3/Include/internal/pycore_call.h:92:11
+    #11 0x55f384fc8603 in _PyEval_EvalFrameDefault /src/cpython3/Python/bytecodes.c:2533:19
+    #12 0x55f384dbe15a in _PyObject_VectorcallTstate /src/cpython3/Include/internal/pycore_call.h:92:11
+    #13 0x55f384dc0aec in PyObject_CallOneArg /src/cpython3/Objects/call.c:379:12
+    #14 0x55f384dbd688 in fuzz_ast_literal_eval /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:425:25
+    #15 0x55f384dbd688 in _run_fuzz /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:443:14
+    #16 0x55f384dbd688 in LLVMFuzzerTestOneInput /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:568:11
+    #17 0x55f384c71dc0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #18 0x55f384c5d035 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #19 0x55f384c62acf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #20 0x55f384c8dd72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #21 0x7f3cc9f0e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #22 0x55f384c5521d in _start (/out/fuzz_ast_literal_eval+0x5b921d)
+
+DEDUP_TOKEN: tok_get_normal_mode--tok_get--_PyTokenizer_Get
+[1m[32m0x529000018bc0 is located 16 bytes after 18864-byte region [0x529000014200,0x529000018bb0)
+[1m[0m[1m[35mallocated by thread T0 here:[1m[0m
+    #0 0x55f384d7db8f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55f385384997 in tok_new /src/cpython3/Parser/tokenizer.c:83:49
+    #2 0x55f385384997 in _PyTokenizer_FromUTF8 /src/cpython3/Parser/tokenizer.c:880:29
+    #3 0x55f3852cf43b in _PyPegen_run_parser_from_string /src/cpython3/Parser/pegen.c:913:15
+    #4 0x55f3850fb395 in Py_CompileStringObject /src/cpython3/Python/pythonrun.c:1771:11
+    #5 0x55f384f9e81c in builtin_compile_impl /src/cpython3/Python/bltinmodule.c:831:14
+    #6 0x55f384f9e81c in builtin_compile /src/cpython3/Python/clinic/bltinmodule.c.h:383:20
+    #7 0x55f385480dd6 in cfunction_vectorcall_FASTCALL_KEYWORDS /src/cpython3/Objects/methodobject.c:438:24
+    #8 0x55f384dbe15a in _PyObject_VectorcallTstate /src/cpython3/Include/internal/pycore_call.h:92:11
+    #9 0x55f384fc8603 in _PyEval_EvalFrameDefault /src/cpython3/Python/bytecodes.c:2533:19
+    #10 0x55f384dbe15a in _PyObject_VectorcallTstate /src/cpython3/Include/internal/pycore_call.h:92:11
+    #11 0x55f384dc0aec in PyObject_CallOneArg /src/cpython3/Objects/call.c:379:12
+    #12 0x55f384dbd688 in fuzz_ast_literal_eval /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:425:25
+    #13 0x55f384dbd688 in _run_fuzz /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:443:14
+    #14 0x55f384dbd688 in LLVMFuzzerTestOneInput /src/cpython3/Modules/_xxtestfuzz/fuzzer.c:568:11
+    #15 0x55f384c71dc0 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #16 0x55f384c5d035 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #17 0x55f384c62acf in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #18 0x55f384c8dd72 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #19 0x7f3cc9f0e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+
+DEDUP_TOKEN: __interceptor_malloc--tok_new--_PyTokenizer_FromUTF8
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/cpython3/Parser/tokenizer.c:2213:37 in tok_get_normal_mode
+Shadow bytes around the buggy address:
+  0x529000018900: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x529000018980: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x529000018a00: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x529000018a80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+  0x529000018b00: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m
+=>0x529000018b80: [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[0m00[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m[[1m[31mfa[1m[0m][1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000018c00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000018c80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000018d00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000018d80: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+  0x529000018e00: [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m [1m[31mfa[1m[0m
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           [1m[0m00[1m[0m
+  Partially addressable: [1m[0m01[1m[0m [1m[0m02[1m[0m [1m[0m03[1m[0m [1m[0m04[1m[0m [1m[0m05[1m[0m [1m[0m06[1m[0m [1m[0m07[1m[0m 
+  Heap left redzone:       [1m[31mfa[1m[0m
+  Freed heap region:       [1m[35mfd[1m[0m
+  Stack left redzone:      [1m[31mf1[1m[0m
+  Stack mid redzone:       [1m[31mf2[1m[0m
+  Stack right redzone:     [1m[31mf3[1m[0m
+  Stack after return:      [1m[35mf5[1m[0m
+  Stack use after scope:   [1m[35mf8[1m[0m
+  Global redzone:          [1m[31mf9[1m[0m
+  Global init order:       [1m[36mf6[1m[0m
+  Poisoned by user:        [1m[34mf7[1m[0m
+  Container overflow:      [1m[34mfc[1m[0m
+  Array cookie:            [1m[31mac[1m[0m
+  Intra object redzone:    [1m[33mbb[1m[0m
+  ASan internal:           [1m[33mfe[1m[0m
+  Left alloca redzone:     [1m[34mca[1m[0m
+  Right alloca redzone:    [1m[34mcb[1m[0m
+==14==ABORTING

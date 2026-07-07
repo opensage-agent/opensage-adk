@@ -1,0 +1,118 @@
+=================================================================
+==906077==ERROR: AddressSanitizer: heap-use-after-free on address 0x5060000477e0 at pc 0x7fa2ba733c97 bp 0x7ffd306b65f0 sp 0x7ffd306b65e8
+READ of size 8 at 0x5060000477e0 thread T0
+    #0 0x7fa2ba733c96 in extract_arg /root/libr/anal/var.c:905:57
+    #1 0x7fa2ba7338a0 in r_anal_extract_vars /root/libr/anal/var.c:1356:3
+    #2 0x7fa2ba7188fa in fcn_recurse /root/libr/anal/fcn.c:1409:4
+    #3 0x7fa2ba70d173 in r_anal_function_bb /root/libr/anal/fcn.c:1456:9
+    #4 0x7fa2ba71a8b7 in r_anal_function /root/libr/anal/fcn.c:1577:12
+    #5 0x7fa2bc1f5e28 in __core_anal_fcn /root/libr/core/canal.c:797:12
+    #6 0x7fa2bc1f4f48 in r_core_anal_fcn /root/libr/core/canal.c:2024:6
+    #7 0x7fa2bbf1c86b in r_core_af /root/libr/core/./cmd_anal.c:3861:2
+    #8 0x7fa2bc20730d in r_core_anal_all /root/libr/core/canal.c:4270:5
+    #9 0x7fa2bc02aa0a in cmd_anal_all /root/libr/core/./cmd_anal.c:11070:4
+    #10 0x7fa2bbf7037a in cmd_anal /root/libr/core/./cmd_anal.c:12223:8
+    #11 0x7fa2bc1e3939 in r_cmd_call /root/libr/core/cmd_api.c:537:10
+    #12 0x7fa2bbfde7d1 in r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    #13 0x7fa2bbfd3fbf in r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    #14 0x7fa2bbf56888 in run_cmd_depth /root/libr/core/cmd.c:5366:9
+    #15 0x7fa2bbf49949 in r_core_cmd /root/libr/core/cmd.c:5449:8
+    #16 0x7fa2bbf1554e in r_core_cmd0 /root/libr/core/cmd.c:5606:9
+    #17 0x7fa2b94d085d in r_main_radare2 /root/libr/main/radare2.c:1397:11
+    #18 0x55e4e47f567e in main /root/binr/radare2/radare2.c:96:9
+    #19 0x7fa2b92991c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #20 0x7fa2b929928a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #21 0x55e4e47f41e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 3bd043de9b074935248ab600fe5e803aea185695)
+
+0x5060000477e0 is located 0 bytes inside of 56-byte region [0x5060000477e0,0x506000047818)
+freed by thread T0 here:
+    #0 0x7fa2bec7250a in free (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf850a) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fa2b96a1db4 in r_reg_item_free /root/libr/reg/reg.c:96:2
+    #2 0x7fa2be54dc57 in r_list_delete /root/libr/util/list.c:124:3
+    #3 0x7fa2be54da71 in r_list_purge /root/libr/util/list.c:90:3
+    #4 0x7fa2be54dcbf in r_list_free /root/libr/util/list.c:100:3
+    #5 0x7fa2b96a22d1 in r_reg_free_internal /root/libr/reg/reg.c:192:4
+    #6 0x7fa2b96b0bed in r_reg_set_profile_string /root/libr/reg/profile.c:150:2
+    #7 0x7fa2ba771481 in r_anal_set_reg_profile /root/libr/anal/anal.c:258:4
+    #8 0x7fa2ba770733 in r_anal_set_bits /root/libr/anal/anal.c:324:4
+    #9 0x7fa2bc114362 in cb_asmbits /root/libr/core/cconfig.c:884:8
+    #10 0x7fa2be9f279e in r_config_set_i /root/libr/config/config.c:574:13
+    #11 0x7fa2bc15ae36 in r_core_seek_arch_bits /root/libr/core/cio.c:377:3
+    #12 0x7fa2bbee914c in archbits /root/libr/core/core.c:267:2
+    #13 0x7fa2ba708d63 in r_anal_op /root/libr/anal/op.c:111:4
+    #14 0x7fa2ba7248fe in is_delta_pointer_table /root/libr/anal/fcn.c:195:13
+    #15 0x7fa2ba712d12 in fcn_recurse /root/libr/anal/fcn.c:998:9
+    #16 0x7fa2ba70d173 in r_anal_function_bb /root/libr/anal/fcn.c:1456:9
+    #17 0x7fa2ba71a8b7 in r_anal_function /root/libr/anal/fcn.c:1577:12
+    #18 0x7fa2bc1f5e28 in __core_anal_fcn /root/libr/core/canal.c:797:12
+    #19 0x7fa2bc1f4f48 in r_core_anal_fcn /root/libr/core/canal.c:2024:6
+    #20 0x7fa2bbf1c86b in r_core_af /root/libr/core/./cmd_anal.c:3861:2
+    #21 0x7fa2bc20730d in r_core_anal_all /root/libr/core/canal.c:4270:5
+    #22 0x7fa2bc02aa0a in cmd_anal_all /root/libr/core/./cmd_anal.c:11070:4
+    #23 0x7fa2bbf7037a in cmd_anal /root/libr/core/./cmd_anal.c:12223:8
+    #24 0x7fa2bc1e3939 in r_cmd_call /root/libr/core/cmd_api.c:537:10
+    #25 0x7fa2bbfde7d1 in r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    #26 0x7fa2bbfd3fbf in r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    #27 0x7fa2bbf56888 in run_cmd_depth /root/libr/core/cmd.c:5366:9
+    #28 0x7fa2bbf49949 in r_core_cmd /root/libr/core/cmd.c:5449:8
+    #29 0x7fa2bbf1554e in r_core_cmd0 /root/libr/core/cmd.c:5606:9
+
+previously allocated by thread T0 here:
+    #0 0x7fa2bec7298d in calloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf898d) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fa2b96b2038 in parse_def /root/libr/reg/profile.c:68:19
+    #2 0x7fa2b96b1649 in r_reg_set_profile_string /root/libr/reg/profile.c:221:8
+    #3 0x7fa2ba771481 in r_anal_set_reg_profile /root/libr/anal/anal.c:258:4
+    #4 0x7fa2ba770733 in r_anal_set_bits /root/libr/anal/anal.c:324:4
+    #5 0x7fa2bc114362 in cb_asmbits /root/libr/core/cconfig.c:884:8
+    #6 0x7fa2be9f279e in r_config_set_i /root/libr/config/config.c:574:13
+    #7 0x7fa2bc15ae36 in r_core_seek_arch_bits /root/libr/core/cio.c:377:3
+    #8 0x7fa2bc1f48ce in r_core_anal_fcn /root/libr/core/canal.c:1973:2
+    #9 0x7fa2bbf1c86b in r_core_af /root/libr/core/./cmd_anal.c:3861:2
+    #10 0x7fa2bc20730d in r_core_anal_all /root/libr/core/canal.c:4270:5
+    #11 0x7fa2bc02aa0a in cmd_anal_all /root/libr/core/./cmd_anal.c:11070:4
+    #12 0x7fa2bbf7037a in cmd_anal /root/libr/core/./cmd_anal.c:12223:8
+    #13 0x7fa2bc1e3939 in r_cmd_call /root/libr/core/cmd_api.c:537:10
+    #14 0x7fa2bbfde7d1 in r_core_cmd_subst_i /root/libr/core/cmd.c:4478:8
+    #15 0x7fa2bbfd3fbf in r_core_cmd_subst /root/libr/core/cmd.c:3364:9
+    #16 0x7fa2bbf56888 in run_cmd_depth /root/libr/core/cmd.c:5366:9
+    #17 0x7fa2bbf49949 in r_core_cmd /root/libr/core/cmd.c:5449:8
+    #18 0x7fa2bbf1554e in r_core_cmd0 /root/libr/core/cmd.c:5606:9
+    #19 0x7fa2b94d085d in r_main_radare2 /root/libr/main/radare2.c:1397:11
+    #20 0x55e4e47f567e in main /root/binr/radare2/radare2.c:96:9
+    #21 0x7fa2b92991c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #22 0x7fa2b929928a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #23 0x55e4e47f41e4 in _start (/root/bin/radare2+0x21e4) (BuildId: 3bd043de9b074935248ab600fe5e803aea185695)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /root/libr/anal/var.c:905:57 in extract_arg
+Shadow bytes around the buggy address:
+  0x506000047500: fd fd fd fa fa fa fa fa fd fd fd fd fd fd fd fa
+  0x506000047580: fa fa fa fa fd fd fd fd fd fd fd fa fa fa fa fa
+  0x506000047600: fd fd fd fd fd fd fd fa fa fa fa fa fd fd fd fd
+  0x506000047680: fd fd fd fa fa fa fa fa fd fd fd fd fd fd fd fa
+  0x506000047700: fa fa fa fa fd fd fd fd fd fd fd fa fa fa fa fa
+=>0x506000047780: fd fd fd fd fd fd fd fa fa fa fa fa[fd]fd fd fd
+  0x506000047800: fd fd fd fa fa fa fa fa fd fd fd fd fd fd fd fa
+  0x506000047880: fa fa fa fa fd fd fd fd fd fd fd fa fa fa fa fa
+  0x506000047900: fd fd fd fd fd fd fd fa fa fa fa fa fd fd fd fd
+  0x506000047980: fd fd fd fa fa fa fa fa fd fd fd fd fd fd fd fa
+  0x506000047a00: fa fa fa fa fd fd fd fd fd fd fd fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==906077==ABORTING

@@ -1,0 +1,30 @@
+The libFuzzer report is:
+
+ ERROR: libFuzzer: deadly signal
+    - __sanitizer_print_stack_trace /src/llvm-project/compiler-rt/lib/ubsan/ubsan_diag_standalone.cpp:31:3
+    - fuzzer::PrintStackTrace() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerUtil.cpp:210:5
+    - fuzzer::Fuzzer::CrashCallback() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:231:3
+    - String_deleteMembers /src/open62541/src/ua_types.c:91:5
+    - NodeId_deleteMembers /src/open62541/src/ua_types.c:200:9
+    - ExtensionObject_deleteMembers /src/open62541/src/ua_types.c:331:9
+    - deleteMembers_noInit /src/open62541/src/ua_types.c:979:13
+    - UA_deleteMembers /src/open62541/src/ua_types.c:993:5
+    - UA_decodeBinary /src/open62541/src/ua_types_encoding_binary.c:1545:9
+    - UA_RequestHeader_decodeBinary /work/open62541/src_generated/ua_types_generated_encoding_binary.h:314:12
+    - sendServiceFault /src/open62541/src/server/ua_server_binary.c:40:28
+    - processMSG /src/open62541/src/server/ua_server_binary.c:0:0
+    - processSecureChannelMessage /src/open62541/src/server/ua_server_binary.c:540:18
+    - UA_SecureChannel_finalizeChunk /src/open62541/src/ua_securechannel.c:726:28
+    - UA_SecureChannel_processChunk /src/open62541/src/ua_securechannel.c:994:18
+    - processChunk /src/open62541/src/ua_connection.c:139:12
+    - UA_Connection_processChunks /src/open62541/src/ua_connection.c:164:18
+    - processBinaryMessage /src/open62541/src/server/ua_server_binary.c:675:28
+    - UA_Server_processBinaryMessage /src/open62541/src/server/ua_server_binary.c:695:5
+    - LLVMFuzzerTestOneInput /src/open62541/tests/fuzz/fuzz_binary_message.cc:28:5
+    - fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    - fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    - fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    - main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.

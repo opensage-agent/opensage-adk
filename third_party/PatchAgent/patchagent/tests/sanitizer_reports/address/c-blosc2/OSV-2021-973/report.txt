@@ -1,0 +1,61 @@
+=================================================================
+==14==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x51200000076e at pc 0x55fdc845072f bp 0x7ffdde926b50 sp 0x7ffdde926b48
+READ of size 4 at 0x51200000076e thread T0
+SCARINESS: 27 (4-byte-read-heap-buffer-overflow-far-from-bounds)
+    #0 0x55fdc845072e in initialize_context_decompression /src/c-blosc2/blosc/blosc2.c:2016:34
+    #1 0x55fdc845072e in blosc_run_decompression_with_context /src/c-blosc2/blosc/blosc2.c:2483:8
+    #2 0x55fdc845087d in blosc2_decompress_ctx /src/c-blosc2/blosc/blosc2.c:2509:12
+    #3 0x55fdc84838fd in frame_decompress_chunk /src/c-blosc2/blosc/frame.c:3006:23
+    #4 0x55fdc8469a19 in blosc2_schunk_decompress_chunk /src/c-blosc2/blosc/schunk.c:915:17
+    #5 0x55fdc8443925 in LLVMFuzzerTestOneInput /src/c-blosc2/tests/fuzz/fuzz_decompress_frame.c:38:15
+    #6 0x55fdc82f8360 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #7 0x55fdc82e35d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #8 0x55fdc82e906f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #9 0x55fdc8314312 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #10 0x7ffa4c8fa082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+    #11 0x55fdc82db7bd in _start (/out/decompress_frame_fuzzer+0x10c7bd)
+
+DEDUP_TOKEN: initialize_context_decompression--blosc_run_decompression_with_context--blosc2_decompress_ctx
+0x51200000076e is located 31 bytes after 271-byte region [0x512000000640,0x51200000074f)
+allocated by thread T0 here:
+    #0 0x55fdc840412f in malloc /src/llvm-project/compiler-rt/lib/asan/asan_malloc_linux.cpp:68:3
+    #1 0x55fdc87d45b3 in operator new(unsigned long) cxa_noexception.cpp
+    #2 0x55fdc82e35d5 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #3 0x55fdc82e906f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #4 0x55fdc8314312 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #5 0x7ffa4c8fa082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0702430aef5fa3dda43986563e9ffcc47efbd75e)
+
+DEDUP_TOKEN: __interceptor_malloc--operator new(unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)
+SUMMARY: AddressSanitizer: heap-buffer-overflow /src/c-blosc2/blosc/blosc2.c:2016:34 in initialize_context_decompression
+Shadow bytes around the buggy address:
+  0x512000000480: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x512000000500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x512000000580: 00 00 00 00 00 00 00 00 00 07 fa fa fa fa fa fa
+  0x512000000600: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x512000000680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x512000000700: 00 00 00 00 00 00 00 00 00 07 fa fa fa[fa]fa fa
+  0x512000000780: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x512000000800: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x512000000880: fd fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+  0x512000000900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x512000000980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==14==ABORTING

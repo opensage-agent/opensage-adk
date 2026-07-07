@@ -1,0 +1,49 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/hunspell:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce affdicfuzzer -runs=100.
++ FUZZER=affdicfuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer affdicfuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/affdicfuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase < /dev/null
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1340758709
+INFO: Loaded 1 modules   (48 inline 8-bit counters): 48 [0x562c079046f0, 0x562c07904720), 
+INFO: Loaded 1 PC tables (48 PCs): 48 [0x562c07904720,0x562c07904a20), 
+/out/affdicfuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address (pc 0x562c07782768 bp 0x7ffe84bce1d0 sp 0x7ffe84bce1d0 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+==14==Hint: this fault was caused by a dereference of a high value address (see register values below).  Disassemble the provided pc to learn which register was used.
+    #0 0x562c07782768 in operator()<unsigned short, unsigned short> /usr/local/bin/../include/c++/v1/__algorithm/comp.h:41:12
+    #1 0x562c07782768 in __invoke<std::__1::__less<void, void> &, const unsigned short &, const unsigned short &> /usr/local/bin/../include/c++/v1/__type_traits/invoke.h:344:25
+    #2 0x562c07782768 in unsigned short const* std::__1::__lower_bound[abi:ne180100]<std::__1::_ClassicAlgPolicy, unsigned short const*, unsigned short const*, unsigned short, std::__1::__identity, std::__1::__less<void, void>>(unsigned short const*, unsigned short const*, unsigned short const&, std::__1::__less<void, void>&, std::__1::__identity&) /usr/local/bin/../include/c++/v1/__algorithm/lower_bound.h:39:9
+    #3 0x562c07761a24 in lower_bound<const unsigned short *, unsigned short, std::__1::__less<void, void> &> /usr/local/bin/../include/c++/v1/__algorithm/lower_bound.h:54:10
+    #4 0x562c07761a24 in binary_search<const unsigned short *, unsigned short, std::__1::__less<void, void> > /usr/local/bin/../include/c++/v1/__algorithm/binary_search.h:27:13
+    #5 0x562c07761a24 in binary_search<const unsigned short *, unsigned short> /usr/local/bin/../include/c++/v1/__algorithm/binary_search.h:34:10
+    #6 0x562c07761a24 in AffixMgr::prefix_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int, char, unsigned short) /src/hunspell/src/hunspell/affixmgr.cxx:1098:13
+    #7 0x562c0776f562 in AffixMgr::affix_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int, unsigned short, char) /src/hunspell/src/hunspell/affixmgr.cxx:3128:23
+    #8 0x562c0771fb99 in HunspellImpl::checkword(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:834:17
+    #9 0x562c07721054 in HunspellImpl::spell_internal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:534:12
+    #10 0x562c07720350 in HunspellImpl::spell(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>>&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:442:12
+    #11 0x562c0772f65f in Hunspell::spell(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) /src/hunspell/src/hunspell/hunspell.cxx:2070:18
+    #12 0x562c0771d2be in LLVMFuzzerTestOneInput /src/hunspell/./src/tools/affdicfuzzer.cxx:65:15
+    #13 0x562c0767f600 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:614:13
+    #14 0x562c0766a875 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:327:6
+    #15 0x562c0767030f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:862:9
+    #16 0x562c0769b5b2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #17 0x7fca8406e082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #18 0x562c07662a5d in _start (/out/affdicfuzzer+0x2aa5d)
+
+DEDUP_TOKEN: operator()<unsigned short, unsigned short>--__invoke<std::__1::__less<void, void> &, const unsigned short &, const unsigned short &>--unsigned short const* std::__1::__lower_bound[abi:ne180100]<std::__1::_ClassicAlgPolicy, unsigned short const*, unsigned short const*, unsigned short, std::__1::__identity, std::__1::__less<void, void>>(unsigned short const*, unsigned short const*, unsigned short const&, std::__1::__less<void, void>&, std::__1::__identity&)
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /src/hunspell/src/hunspell/affixmgr.cxx:1098:13 in AffixMgr::prefix_check(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, int, int, char, unsigned short)
+==14==ABORTING

@@ -1,0 +1,81 @@
+=================================================================
+==359425==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x502000001bd1 at pc 0x7fe4e2723169 bp 0x7ffcb2a98960 sp 0x7ffcb2a98958
+READ of size 1 at 0x502000001bd1 thread T0
+    #0 0x7fe4e2723168 in gf_m2ts_process_tdt_tot /root/src/media_tools/mpegts.c:952:23
+    #1 0x7fe4e272f4c8 in gf_m2ts_section_complete /root/src/media_tools/mpegts.c:623:6
+    #2 0x7fe4e272a5ec in gf_m2ts_gather_section /root/src/media_tools/mpegts.c:760:2
+    #3 0x7fe4e271cd21 in gf_m2ts_process_packet /root/src/media_tools/mpegts.c:2719:4
+    #4 0x7fe4e2719bbd in gf_m2ts_process_data /root/src/media_tools/mpegts.c:2817:18
+    #5 0x7fe4e2725470 in gf_m2ts_probe_buffer /root/src/media_tools/mpegts.c:3201:6
+    #6 0x7fe4e2725699 in gf_m2ts_probe_data /root/src/media_tools/mpegts.c:3256:9
+    #7 0x7fe4e2ee787e in m2tsdmx_probe_data /root/src/filters/dmx_m2ts.c:1438:6
+    #8 0x7fe4e2d86e38 in gf_filter_pid_raw_new /root/src/filter_core/filter.c:4210:13
+    #9 0x7fe4e2f8e80e in filein_process /root/src/filters/in_file.c:492:7
+    #10 0x7fe4e2d7c0f0 in gf_filter_process_task /root/src/filter_core/filter.c:2828:7
+    #11 0x7fe4e2d4ab19 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1859:3
+    #12 0x7fe4e2d46ea0 in gf_fs_run /root/src/filter_core/filter_session.c:2120:2
+    #13 0x7fe4e2707c83 in gf_media_import /root/src/media_tools/media_import.c:1228:3
+    #14 0x5591110968be in convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    #15 0x559111052402 in mp4box_main /root/applications/mp4box/mp4box.c:6302:10
+    #16 0x559111058501 in main /root/applications/mp4box/mp4box.c:6846:1
+    #17 0x7fe4e18c11c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #18 0x7fe4e18c128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x559111037d14 in _start (/root/bin/gcc/MP4Box+0x48d14) (BuildId: f2b672c7dd2346f9778f5df23b2738f441de8ebf)
+
+0x502000001bd1 is located 0 bytes after 1-byte region [0x502000001bd0,0x502000001bd1)
+allocated by thread T0 here:
+    #0 0x7fe4e3bf37a3 in malloc (/usr/lib/llvm-18/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so+0xf87a3) (BuildId: 49743e1a9753906ada8c1ae30e03059f556dfa80)
+    #1 0x7fe4e1da9774 in gf_malloc /root/src/utils/alloc.c:150:9
+    #2 0x7fe4e272e734 in gf_m2ts_section_complete /root/src/media_tools/mpegts.c:566:36
+    #3 0x7fe4e272a5ec in gf_m2ts_gather_section /root/src/media_tools/mpegts.c:760:2
+    #4 0x7fe4e271cd21 in gf_m2ts_process_packet /root/src/media_tools/mpegts.c:2719:4
+    #5 0x7fe4e2719bbd in gf_m2ts_process_data /root/src/media_tools/mpegts.c:2817:18
+    #6 0x7fe4e2725470 in gf_m2ts_probe_buffer /root/src/media_tools/mpegts.c:3201:6
+    #7 0x7fe4e2725699 in gf_m2ts_probe_data /root/src/media_tools/mpegts.c:3256:9
+    #8 0x7fe4e2ee787e in m2tsdmx_probe_data /root/src/filters/dmx_m2ts.c:1438:6
+    #9 0x7fe4e2d86e38 in gf_filter_pid_raw_new /root/src/filter_core/filter.c:4210:13
+    #10 0x7fe4e2f8e80e in filein_process /root/src/filters/in_file.c:492:7
+    #11 0x7fe4e2d7c0f0 in gf_filter_process_task /root/src/filter_core/filter.c:2828:7
+    #12 0x7fe4e2d4ab19 in gf_fs_thread_proc /root/src/filter_core/filter_session.c:1859:3
+    #13 0x7fe4e2d46ea0 in gf_fs_run /root/src/filter_core/filter_session.c:2120:2
+    #14 0x7fe4e2707c83 in gf_media_import /root/src/media_tools/media_import.c:1228:3
+    #15 0x5591110968be in convert_file_info /root/applications/mp4box/fileimport.c:130:6
+    #16 0x559111052402 in mp4box_main /root/applications/mp4box/mp4box.c:6302:10
+    #17 0x559111058501 in main /root/applications/mp4box/mp4box.c:6846:1
+    #18 0x7fe4e18c11c9  (/lib/x86_64-linux-gnu/libc.so.6+0x2a1c9) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #19 0x7fe4e18c128a in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x2a28a) (BuildId: 8f2af70b7deed50338b9186c7dd60cef3826e18f)
+    #20 0x559111037d14 in _start (/root/bin/gcc/MP4Box+0x48d14) (BuildId: f2b672c7dd2346f9778f5df23b2738f441de8ebf)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/src/media_tools/mpegts.c:952:23 in gf_m2ts_process_tdt_tot
+Shadow bytes around the buggy address:
+  0x502000001900: fa fa 00 00 fa fa 04 fa fa fa 06 fa fa fa 04 fa
+  0x502000001980: fa fa 06 fa fa fa 00 00 fa fa 00 00 fa fa 00 00
+  0x502000001a00: fa fa 00 00 fa fa 00 00 fa fa fd fa fa fa 00 00
+  0x502000001a80: fa fa 00 00 fa fa 06 fa fa fa 06 fa fa fa 06 fa
+  0x502000001b00: fa fa 00 00 fa fa 00 00 fa fa 00 00 fa fa 03 fa
+=>0x502000001b80: fa fa 00 00 fa fa 00 00 fa fa[01]fa fa fa 00 fa
+  0x502000001c00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000001c80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000001d00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000001d80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x502000001e00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==359425==ABORTING

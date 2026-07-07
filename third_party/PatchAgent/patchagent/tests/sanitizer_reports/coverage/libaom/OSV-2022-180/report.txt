@@ -1,0 +1,44 @@
+INFO:__main__:Running: docker run --privileged --shm-size=2g --platform linux/amd64 --rm -i -e HELPER=True -e ARCHITECTURE=x86_64 -v /mnt/data0/zf1025/AICC/oss-fuzz/build/out/libaom:/out -v /mnt/data0/zf1025/AICC/build_space/PoC:/testcase -t gcr.io/oss-fuzz-base/base-runner reproduce av1_dec_fuzzer -runs=100.
++ FUZZER=av1_dec_fuzzer
++ shift
++ '[' '!' -v TESTCASE ']'
++ TESTCASE=/testcase
++ '[' '!' -f /testcase ']'
++ export RUN_FUZZER_MODE=interactive
++ RUN_FUZZER_MODE=interactive
++ export FUZZING_ENGINE=libfuzzer
++ FUZZING_ENGINE=libfuzzer
++ export SKIP_SEED_CORPUS=1
++ SKIP_SEED_CORPUS=1
++ run_fuzzer av1_dec_fuzzer -runs=100 /testcase
+vm.mmap_rnd_bits = 28
+/out/av1_dec_fuzzer -rss_limit_mb=2560 -timeout=25 -runs=100 /testcase -dict=av1_dec_fuzzer.dict < /dev/null
+Dictionary: 2 entries
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2795937890
+INFO: Loaded 1 modules   (11 inline 8-bit counters): 11 [0x55e2f0658518, 0x55e2f0658523), 
+INFO: Loaded 1 PC tables (11 PCs): 11 [0x55e2f0658528,0x55e2f06585d8), 
+/out/av1_dec_fuzzer: Running 1 inputs 100 time(s) each.
+Running: /testcase
+Executed /testcase in 1895 ms
+***
+*** NOTE: fuzzing was not performed, you have only
+***       executed the target code on a fixed set of inputs.
+***
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+[1m[31m==14==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x000200000000 (pc 0x7f0f9d567f4d bp 0x000000004c4c sp 0x7ffdaab9b8f0 T14)
+[1m[0m==14==The signal is caused by a READ memory access.
+    #0 0x7f0f9d567f4d in getenv (/lib/x86_64-linux-gnu/libc.so.6+0x45f4d) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #1 0x55e2f04b73dc in writeFile InstrProfilingFile.c
+    #2 0x55e2f04b71a1 in __llvm_profile_write_file (/out/av1_dec_fuzzer+0x3601a1)
+    #3 0x7f0f9d5688a6  (/lib/x86_64-linux-gnu/libc.so.6+0x468a6) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #4 0x7f0f9d568a5f in exit (/lib/x86_64-linux-gnu/libc.so.6+0x46a5f) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #5 0x55e2f018d5a8 in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp
+    #6 0x55e2f01b87f2 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #7 0x7f0f9d546082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58)
+    #8 0x55e2f017fc9d in _start (/out/av1_dec_fuzzer+0x28c9d)
+
+DEDUP_TOKEN: getenv--writeFile--__llvm_profile_write_file
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV (/lib/x86_64-linux-gnu/libc.so.6+0x45f4d) (BuildId: 0323ab4806bee6f846d9ad4bccfc29afdca49a58) in getenv
+==14==ABORTING
